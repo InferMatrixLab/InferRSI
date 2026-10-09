@@ -9,3 +9,4 @@ dist/
 build/
 .coverage
 htmlcov/
+runs/
