@@ -1,5 +1,7 @@
 # Claims (fill-in template)
 
+Validation **level names and order** (L0–L4) are portable scaffold contract: [scaffold-test-design.md](scaffold-test-design.md). **Numeric thresholds**, SLO bars, and the exact sentences used in public claims live here and in acceptance issues (`plan/` / `results/`)—not in CI defaults or shared workflow env.
+
 ## Verdict vocabulary
 
 | Label | Meaning |

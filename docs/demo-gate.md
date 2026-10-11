@@ -1,5 +1,7 @@
 # Demo gate (fill-in template)
 
+L0–L4 **ladder** (what evidence types exist): [scaffold-test-design.md](scaffold-test-design.md). **Measured bars and demo narrative** are filled per campaign here and in [claims.md](claims.md)—not as numeric gates in the portable scaffold.
+
 ## Rule
 
 No external pitch, launch post, or “production ready” narrative until at least one campaign acceptance issue is **`PASS`** with published artifact paths under `evidence/`.
