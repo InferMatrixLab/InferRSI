@@ -4,7 +4,7 @@ This repository is the **ThinkFlowLab RSI Team** canonical home for OmniRSI and 
 
 ## Copy this scaffold to a new repo
 
-1. Copy the top-level layout (or use GitHub’s “Use this template” once enabled): `docs/`, `recipes/`, `benchmarks/`, `evidence/`, `src/`, `tests/`, `skills/`, `.github/workflows/`, `pyproject.toml`, and this `README.md`.
+1. Copy the top-level layout (or use GitHub’s “Use this template” once enabled): `AGENTS.md`, `docs/`, `recipes/`, `benchmarks/`, `evidence/`, `src/`, `tests/`, `skills/`, `.github/workflows/`, `pyproject.toml`, and this `README.md`.
 2. Rename the Python package under `src/rsi_scaffold/` to your project name (e.g. `src/my_inference_lab/`). Update `pyproject.toml` `[project].name` and any workflow `paths` filters if you rename directories.
 3. Read [docs/using-the-scaffold.md](docs/using-the-scaffold.md) and keep [docs/repo-template.md](docs/repo-template.md) as the chapter playbook (PM, Arch, RSI, CI, Ops).
 4. Use Research fill-ins: [positioning](docs/positioning.md), [claims](docs/claims.md), [downstream](docs/downstream.md), [demo gate](docs/demo-gate.md). Open campaigns via [acceptance checklist](docs/issues-acceptance-checklist.md) or the GitHub issue template (pinned SHAs in the issue only—not workflow defaults).
@@ -14,6 +14,7 @@ This repository is the **ThinkFlowLab RSI Team** canonical home for OmniRSI and 
 
 | Path | Purpose |
 | --- | --- |
+| `AGENTS.md` | **Read first** — portable contract for coding agents (CI lanes, L0–L4, evidence bar) |
 | `docs/` | Playbook + scaffold PRD / architecture / test design |
 | `recipes/` | Runnable scenario recipes (RunSpec-oriented) |
 | `benchmarks/` | Campaign and bench harness stubs (no pinned upstream SHAs here) |
