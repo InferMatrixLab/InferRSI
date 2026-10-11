@@ -6,7 +6,7 @@ Canonical playbook for ThinkFlowLab repos growing **OmniRSI → SIAS** (harness 
 | --- | --- |
 | [Issue #1 — design](https://github.com/ThinkFlowLab/OmniRSI/issues/1) | Target RSI architecture, adapters, multi-accelerator framing |
 | [PR #2 — draft workbench](https://github.com/ThinkFlowLab/OmniRSI/pull/2) | First CLI / knowledge slice; executable interface when merged |
-| [Issue #3 — campaign acceptance](https://github.com/ThinkFlowLab/OmniRSI/issues/3) | **First acceptance example** (baseline `f69b1f2b`, candidate `330d411d`) |
+| [Issue #3 — campaign acceptance](https://github.com/ThinkFlowLab/OmniRSI/issues/3) | **First acceptance example** (pinned baseline + candidate SHAs in the issue) |
 
 ---
 
@@ -151,3 +151,36 @@ Acceptance tests are issue-scoped, not implicit on every `main` push.
 3. **SIAS evolution** — Clear folders and planes for harness, model, and infra without forked nomenclature.
 
 Implementation of workbench code and CI workflows is **out of scope** for the doc-only bootstrap; track in [#1](https://github.com/ThinkFlowLab/OmniRSI/issues/1), [#2](https://github.com/ThinkFlowLab/OmniRSI/pull/2), and follow-on issues.
+
+---
+
+## Repository skeleton (portable scaffold)
+
+Copy this layout into new repos; rename `src/rsi_scaffold/` per [README](../README.md).
+
+```
+docs/
+  repo-template.md          # this playbook
+  using-the-scaffold.md
+  scaffold-prd.md | scaffold-architecture.md | scaffold-test-design.md
+  positioning.md | claims.md | downstream.md | demo-gate.md   # Research fill-ins
+  issues-acceptance-checklist.md                              # PM acceptance-first
+recipes/                    # RunSpec-oriented recipes (_template/)
+benchmarks/                 # harness stubs; campaigns/_template/
+evidence/
+  _template/plan|results|patch|validator/   # copy per campaign id
+src/rsi_scaffold/
+  harness/ | model/ | infra/                # SIAS seams
+  claim.py | runspec.py | evidence_paths.py
+tests/                      # CPU smoke + unit
+skills/                     # generic agent operators (no campaign SHAs)
+.github/
+  ISSUE_TEMPLATE/campaign-acceptance.yml
+  workflows/ci-draft.yml | ci-ready.yml | ci-merge.yml | ci-nightly.yml
+```
+
+**Pins.** Baseline and candidate SHAs live in **acceptance issues** and campaign evidence—not in shared workflow env, skills, or recipe defaults.
+
+**Research stubs.** Fill [positioning.md](positioning.md), [claims.md](claims.md), [downstream.md](downstream.md), [demo-gate.md](demo-gate.md) when campaigns mature.
+
+**CI lanes.** Implemented as four workflows; merge lane stays lightweight on `main` push; nightly runs scheduled safety net.

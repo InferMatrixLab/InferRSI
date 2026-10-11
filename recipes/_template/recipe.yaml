@@ -1,0 +1,16 @@
+# Copy to recipes/<name>/recipe.yaml and fill for your campaign.
+name: example-scenario
+runspec:
+  repo: your-org/your-repo
+  revision: "<candidate-sha-from-acceptance-issue>"
+  backend: cpu
+  device: local
+  model: placeholder
+  scenario: example-scenario
+evidence:
+  campaign_id: example-campaign
+  segments:
+    - plan
+    - results
+    - patch
+    - validator

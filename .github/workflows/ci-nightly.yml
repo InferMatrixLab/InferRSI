@@ -1,0 +1,30 @@
+name: CI — nightly lane
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: nightly-main
+  cancel-in-progress: false
+
+jobs:
+  safety-net:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install dev deps
+        run: python -m pip install -e ".[dev]"
+      - name: Lint
+        run: ruff check src tests benchmarks/harness
+      - name: Full test suite
+        run: pytest
+      - name: Evidence template layout
+        run: |
+          for seg in plan results patch validator; do
+            test -d "evidence/_template/$seg"
+          done
