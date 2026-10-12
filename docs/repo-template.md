@@ -156,7 +156,7 @@ Implementation of workbench code and CI workflows is **out of scope** for the do
 
 ## Repository skeleton (portable scaffold)
 
-Copy this layout into new repos; rename `src/rsi_scaffold/` per [README](../README.md).
+Copy this layout into new repos; rename `src/omnirsi/` per [README](../README.md).
 
 ```
 docs/
@@ -169,7 +169,7 @@ recipes/                    # RunSpec-oriented recipes (_template/)
 benchmarks/                 # harness stubs; campaigns/_template/
 evidence/
   _template/plan|results|patch|validator/   # copy per campaign id
-src/rsi_scaffold/
+src/omnirsi/
   harness/ | model/ | infra/                # SIAS seams
   claim.py | runspec.py | evidence_paths.py
 tests/                      # CPU smoke + unit

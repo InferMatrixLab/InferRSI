@@ -1,6 +1,6 @@
 from benchmarks.harness.stub_runner import dry_run_verdict
-from rsi_scaffold.claim import Verdict
-from rsi_scaffold.runspec import RunSpec
+from omnirsi.claim import Verdict
+from omnirsi.runspec import RunSpec
 
 
 def test_stub_returns_inconclusive() -> None:

@@ -8,11 +8,11 @@ Short guide for teams copying this tree into a new repository.
 
 ## 2. Rename the package
 
-Default import path: `rsi_scaffold`. After copy:
+Default import path: `omnirsi`. After copy:
 
-- Rename `src/rsi_scaffold/` → `src/<your_package>/`.
+- Rename `src/omnirsi/` → `src/<your_package>/`.
 - Update `pyproject.toml` project name and setuptools discovery.
-- Search-replace `rsi_scaffold` in `tests/` and docs.
+- Search-replace `omnirsi` in `tests/` and docs.
 
 ## 3. Evidence-first campaigns
 

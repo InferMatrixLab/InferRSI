@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from rsi_scaffold.claim import Verdict
-from rsi_scaffold.runspec import RunSpec
+from omnirsi.claim import Verdict
+from omnirsi.runspec import RunSpec
 
 
 def dry_run_verdict(spec: RunSpec) -> Verdict:

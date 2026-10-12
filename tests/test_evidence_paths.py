@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from rsi_scaffold.evidence_paths import campaign_evidence_root, ensure_evidence_layout
+from omnirsi.evidence_paths import campaign_evidence_root, ensure_evidence_layout
 
 
 def test_campaign_root_under_evidence(tmp_path: Path) -> None:

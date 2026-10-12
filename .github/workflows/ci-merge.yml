@@ -17,8 +17,8 @@ jobs:
         run: |
           test -f docs/repo-template.md
           test -f README.md
-          test -d src/rsi_scaffold/harness
-          test -d src/rsi_scaffold/model
-          test -d src/rsi_scaffold/infra
+          test -d src/omnirsi/harness
+          test -d src/omnirsi/model
+          test -d src/omnirsi/infra
           test -d evidence/_template/plan
           echo "merge lane: no heavy suite on main push (see ready + nightly lanes)"

@@ -224,16 +224,46 @@ def run(args):
     except Exception as error:
         record.update(status='failed',error=str(error))
     finally:
-        if process is not None:
-            record['server_cleanup']=lifecycle.stop_server(process,ownership,20)
-            if record['server_cleanup']['remaining_pids']:
-                record.update(status='failed',error='Owned processes remain')
-        after=lifecycle.source_snapshot(source)
-        record['source_after']=after
-        record['source_integrity']={'verified':before['snapshot_hash']==after['snapshot_hash']}
-        if not record['source_integrity']['verified'] or protected_sources(source)!=frozen or guards()!=frozen_guards or dependencies()!=versions or model_assets(model,cache)!=asset_hash:
-            record.update(status='failed',error='Source, guards or dependencies drifted during trial')
-        lifecycle.write_json(output,record)
+        final_errors = []
+        try:
+            if process is not None:
+                try:
+                    record['server_cleanup'] = lifecycle.stop_server(process, ownership, 20)
+                    if record['server_cleanup']['remaining_pids']:
+                        final_errors.append('Owned processes remain')
+                except Exception as error:
+                    record['server_cleanup'] = {'verified': False, 'error': str(error)}
+                    final_errors.append(f'Cleanup failed: {error}')
+            record['source_integrity'] = {'verified': False}
+            probes = [
+                ('source', lambda: lifecycle.source_snapshot(source), before),
+                ('protected_sources', lambda: protected_sources(source), frozen),
+                ('guards', guards, frozen_guards),
+                ('dependencies', dependencies, versions),
+                ('model_assets', lambda: model_assets(model, cache), asset_hash),
+            ]
+            record['final_integrity_checks'] = {}
+            for name, probe, expected in probes:
+                try:
+                    actual = probe()
+                    if name == 'source':
+                        record['source_after'] = actual
+                        matched = before['snapshot_hash'] == actual['snapshot_hash']
+                        record['source_integrity']['verified'] = matched
+                    else:
+                        matched = actual == expected
+                    record['final_integrity_checks'][name] = {'verified': matched}
+                    if not matched:
+                        final_errors.append(f'{name} drifted during trial')
+                except Exception as error:
+                    record['final_integrity_checks'][name] = {'verified': False, 'error': str(error)}
+                    final_errors.append(f'{name} check failed: {error}')
+            if final_errors:
+                record['finalization_errors'] = final_errors
+                record.update(status='failed', error='; '.join(final_errors))
+        finally:
+            # Failed cleanup or verification must never erase the trial record.
+            lifecycle.write_json(output, record)
     return record
 
 

@@ -9,8 +9,10 @@ from typing import Any
 
 REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt")
 BACKENDS = ("cpu", "cuda", "rocm", "ascend")
-SCENARIO_ALIASES = {"diffusion.t2i": "diffusion.image_generation",
-                    "diffusion.t2v": "diffusion.video_generation"}
+SCENARIO_ALIASES = {
+    "diffusion.t2i": "diffusion.image_generation",
+    "diffusion.t2v": "diffusion.video_generation",
+}
 
 
 def _walk(root):
@@ -40,16 +42,24 @@ def knowledge_records() -> list[dict[str, Any]]:
             raise ValueError(f"Unknown knowledge backend: {record['backend']}")
         if not record["sources"]:
             raise ValueError(f"Knowledge has no source: {record['id']}")
-        if record["status"] == "imported" and record.get("verification", {}).get("locally_verified") is not False:
-            raise ValueError(f"Imported knowledge must state locally_verified=false: {record['id']}")
+        if (
+            record["status"] == "imported"
+            and record.get("verification", {}).get("locally_verified") is not False
+        ):
+            raise ValueError(
+                f"Imported knowledge must state locally_verified=false: {record['id']}"
+            )
         seen.add(record["id"])
         records.append(record)
     return records
 
 
 def search_knowledge(
-    query: str = "", *, repo: str | None = None,
-    backend: str | None = None, scenario: str | None = None,
+    query: str = "",
+    *,
+    repo: str | None = None,
+    backend: str | None = None,
+    scenario: str | None = None,
     limit: int = 10,
 ) -> list[dict[str, Any]]:
     if limit < 1:
@@ -64,7 +74,9 @@ def search_knowledge(
             continue
         if scenario:
             declared = record.get("scenario", "")
-            if declared != scenario and not (declared.endswith(".*") and scenario.startswith(declared[:-1])):
+            if declared != scenario and not (
+                declared.endswith(".*") and scenario.startswith(declared[:-1])
+            ):
                 continue
         document = json.dumps(record, ensure_ascii=False).casefold()
         if any(token not in document for token in tokens):

@@ -17,8 +17,14 @@ class InspectionTests(unittest.TestCase):
             else:
                 stdout = rows
             return {"argv": argv, "returncode": 0, "stdout": stdout, "stderr": ""}
-        with patch("omnirsi.execution.repository_identity", return_value={"available": True, "head": "test"}), \
-             patch("omnirsi.inspection._command", side_effect=command):
+
+        with (
+            patch(
+                "omnirsi.execution.repository_identity",
+                return_value={"available": True, "head": "test"},
+            ),
+            patch("omnirsi.inspection._command", side_effect=command),
+        ):
             return inspect_environment(".", "vllm_omni", "cuda", device_ids=ids, device_model=model)
 
     def test_requested_device_and_model_are_checked(self):

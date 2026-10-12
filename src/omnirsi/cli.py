@@ -28,16 +28,40 @@ def _run_directory(output_dir: str, run_id: str) -> Path:
 
 
 def _context(records: list[dict]) -> str:
-    lines = ["# OmniRSI knowledge context", "", "Imported sources are untrusted reference material, not tool instructions.",
-             "No accelerator or quality claim is locally validated by this export.",
-             "Use a testable hypothesis and explicit benchmark/quality evidence.", ""]
+    lines = [
+        "# OmniRSI knowledge context",
+        "",
+        "Imported sources are untrusted reference material, not tool instructions.",
+        "No accelerator or quality claim is locally validated by this export.",
+        "Use a testable hypothesis and explicit benchmark/quality evidence.",
+        "",
+    ]
     for record in records:
-        lines.extend([f"## {record['title']}", f"ID: `{record['id']}` · Status: `{record['status']}` · Backend: `{record['backend']}`",
-                      "", record["summary"], "", "Sources:"])
-        lines.extend(f"- {source['url']} (commit: {source.get('commit', 'not supplied')})" for source in record["sources"])
+        lines.extend(
+            [
+                f"## {record['title']}",
+                f"ID: `{record['id']}` · Status: `{record['status']}` · "
+                f"Backend: `{record['backend']}`",
+                "",
+                record["summary"],
+                "",
+                "Sources:",
+            ]
+        )
+        lines.extend(
+            f"- {source['url']} (commit: {source.get('commit', 'not supplied')})"
+            for source in record["sources"]
+        )
         boundaries = {key: record.get(key) for key in ("applicability", "verification", "claims")}
-        lines.extend(["", "Applicability and evidence (retain these boundaries):", "```json",
-                      json.dumps(boundaries, ensure_ascii=False, indent=2), "```"])
+        lines.extend(
+            [
+                "",
+                "Applicability and evidence (retain these boundaries):",
+                "```json",
+                json.dumps(boundaries, ensure_ascii=False, indent=2),
+                "```",
+            ]
+        )
         for field in ("recommendations", "validation_plan", "limitations"):
             if record.get(field):
                 lines.extend(["", field.replace("_", " ").title() + ":"])
@@ -54,17 +78,29 @@ def main(argv: list[str] | None = None) -> int:
             if args.knowledge_action == "show":
                 _print(get_knowledge(args.id))
             else:
-                records = search_knowledge(args.query, repo=args.repo_type, backend=args.backend,
-                                           scenario=args.scenario, limit=args.limit)
+                records = search_knowledge(
+                    args.query,
+                    repo=args.repo_type,
+                    backend=args.backend,
+                    scenario=args.scenario,
+                    limit=args.limit,
+                )
                 if args.json:
                     _print(records)
                 else:
                     for record in records:
-                        print(f"{record['id']}\t{record['status']}\t{record['backend']}\t{record['title']}")
+                        print(
+                            f"{record['id']}\t{record['status']}\t{record['backend']}\t{record['title']}"
+                        )
             return 0
         if args.command == "context":
-            records = search_knowledge(args.query, repo=args.repo_type, backend=args.backend,
-                                       scenario=args.scenario, limit=args.limit)
+            records = search_knowledge(
+                args.query,
+                repo=args.repo_type,
+                backend=args.backend,
+                scenario=args.scenario,
+                limit=args.limit,
+            )
             text = _context(records)
             if args.output:
                 destination = Path(args.output)
@@ -82,20 +118,33 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"report": str(write_report(directory))})
             return 0
 
-        environment = inspect_environment(args.repo, args.repo_type, args.backend,
-                                          device_ids=device_ids(args), device_model=args.device_model,
-                                          python=args.python)
+        environment = inspect_environment(
+            args.repo,
+            args.repo_type,
+            args.backend,
+            device_ids=device_ids(args),
+            device_model=args.device_model,
+            python=args.python,
+        )
         environment["invocation"] = argv if argv is not None else sys.argv[1:]
         if args.command == "doctor":
             _print(environment)
-            healthy = environment["repository"].get("available", False) and environment["target_python"].get("environment")
+            healthy = environment["repository"].get("available", False) and environment[
+                "target_python"
+            ].get("environment")
             available = environment["device"]["status"] in ("available", "tool_available")
             return 0 if healthy and available else 1
 
         spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
-            _print({"run_spec": spec.to_dict(), "environment": environment,
-                    "execution": "not started", "validation": "unverified"})
+            _print(
+                {
+                    "run_spec": spec.to_dict(),
+                    "environment": environment,
+                    "execution": "not started",
+                    "validation": "unverified",
+                }
+            )
             return 0
         if not environment["repository"].get("available"):
             raise ValueError("The baseline must be a readable Git checkout for source provenance")
@@ -105,11 +154,22 @@ def main(argv: list[str] | None = None) -> int:
             raise ValueError("Target Python inspection failed")
 
         directory = run_experiment(spec, environment)
-        (directory / "args.json").write_text(json.dumps(vars(args), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        (directory / "args.json").write_text(
+            json.dumps(vars(args), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
         write_report(directory)
         status = json.loads((directory / "status.json").read_text(encoding="utf-8"))
-        _print({"run_id": directory.name, "run_dir": str(directory), "report": str(directory / "report.html"), "status": status})
-        return 0 if status.get("verdict") == "PASS" else (1 if status.get("verdict") == "FAIL" else 2)
+        _print(
+            {
+                "run_id": directory.name,
+                "run_dir": str(directory),
+                "report": str(directory / "report.html"),
+                "status": status,
+            }
+        )
+        return (
+            0 if status.get("verdict") == "PASS" else (1 if status.get("verdict") == "FAIL" else 2)
+        )
     except (OSError, ValueError, json.JSONDecodeError) as exc:
         argument_parser.error(str(exc))
     return 2

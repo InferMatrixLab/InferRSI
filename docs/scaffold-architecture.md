@@ -22,7 +22,7 @@
               .github/workflows/ (4 lanes)
 ```
 
-## SIAS seams (in `src/rsi_scaffold/`)
+## SIAS seams (in `src/omnirsi/`)
 
 | Plane | Responsibility |
 | --- | --- |

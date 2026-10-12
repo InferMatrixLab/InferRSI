@@ -3,12 +3,12 @@
 import contextlib
 import io
 import json
-from pathlib import Path
 import shlex
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
 from omnirsi.arguments import make_spec, parser
 from omnirsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
@@ -27,15 +27,21 @@ class CatalogTests(unittest.TestCase):
             self.assertFalse(record["verification"]["locally_verified"])
             for source in record["sources"]:
                 self.assertRegex(source["commit"], r"^[0-9a-f]{40}$")
-                self.assertTrue(source["url"].startswith("https://github.com/vllm-project/vllm-omni/"))
+                self.assertTrue(
+                    source["url"].startswith("https://github.com/vllm-project/vllm-omni/")
+                )
         rocm = search_knowledge(repo="vllm_omni", backend="rocm", limit=50)
         self.assertTrue(rocm)
         self.assertTrue(all(item["backend"] == "common" for item in rocm))
         self.assertEqual(search_knowledge(repo="vllm_rlt", limit=50), [])
 
     def test_scenario_alias_and_general_methods(self):
-        direct = search_knowledge(repo="vllm_omni", backend="cuda", scenario="diffusion.video_generation", limit=50)
-        alias = search_knowledge(repo="vllm_omni", backend="cuda", scenario="diffusion.t2v", limit=50)
+        direct = search_knowledge(
+            repo="vllm_omni", backend="cuda", scenario="diffusion.video_generation", limit=50
+        )
+        alias = search_knowledge(
+            repo="vllm_omni", backend="cuda", scenario="diffusion.t2v", limit=50
+        )
         self.assertEqual([item["id"] for item in direct], [item["id"] for item in alias])
         self.assertGreaterEqual(len([item for item in direct if item["backend"] == "common"]), 2)
         self.assertTrue(all(item["backend"] in ("cuda", "common") for item in direct))
@@ -48,12 +54,25 @@ class CatalogTests(unittest.TestCase):
         for name in ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt"):
             pack = repository_pack(name)
             self.assertEqual(pack["execution_support"], "caller_supplied_external_commands")
-            self.assertTrue(all(value == "unverified" for value in pack["backend_compatibility"].values()))
+            self.assertTrue(
+                all(value == "unverified" for value in pack["backend_compatibility"].values())
+            )
 
     def test_context_retains_conditions_and_source_verification(self):
         output = io.StringIO()
         with contextlib.redirect_stdout(output):
-            result = main(["context", "MiniMax-H3", "--repo-type", "vllm_omni", "--backend", "ascend", "--limit", "2"])
+            result = main(
+                [
+                    "context",
+                    "MiniMax-H3",
+                    "--repo-type",
+                    "vllm_omni",
+                    "--backend",
+                    "ascend",
+                    "--limit",
+                    "2",
+                ]
+            )
         self.assertEqual(result, 0)
         text = output.getvalue()
         self.assertIn('"applicability"', text)
@@ -71,17 +90,50 @@ class CLITests(unittest.TestCase):
         self.repo = self.root / "source"
         self.repo.mkdir()
         subprocess.run(["git", "init", str(self.repo)], check=True, capture_output=True)
-        subprocess.run(["git", "-C", str(self.repo), "-c", "core.hooksPath=" + str(self.root / "no-hooks"),
-                        "-c", "user.name=OmniRSI Test", "-c", "user.email=test@example.invalid",
-                        "commit", "-s", "--allow-empty", "-m", "fixture"], check=True, capture_output=True)
+        subprocess.run(
+            [
+                "git",
+                "-C",
+                str(self.repo),
+                "-c",
+                "core.hooksPath=" + str(self.root / "no-hooks"),
+                "-c",
+                "user.name=OmniRSI Test",
+                "-c",
+                "user.email=test@example.invalid",
+                "commit",
+                "-s",
+                "--allow-empty",
+                "-m",
+                "fixture",
+            ],
+            check=True,
+            capture_output=True,
+        )
         self.output_dir = self.root / "evidence"
         benchmark = PROJECT / "examples/synthetic_benchmark.py"
         validation = PROJECT / "examples/synthetic_validation.py"
-        self.arguments = ["run", "--repo", str(self.repo), "--repo-type", "vllm_omni", "--backend", "cpu",
-                          "--baseline-command", shlex.join([sys.executable, str(benchmark), "--value", "100", "--output", "{result}"]),
-                          "--candidate-command", shlex.join([sys.executable, str(benchmark), "--value", "80", "--output", "{result}"]),
-                          "--validation-command", shlex.join([sys.executable, str(validation)]),
-                          "--repetitions", "1", "--max-minutes", "1", "--output-dir", str(self.output_dir)]
+        self.arguments = [
+            "run",
+            "--repo",
+            str(self.repo),
+            "--repo-type",
+            "vllm_omni",
+            "--backend",
+            "cpu",
+            "--baseline-command",
+            shlex.join([sys.executable, str(benchmark), "--value", "100", "--output", "{result}"]),
+            "--candidate-command",
+            shlex.join([sys.executable, str(benchmark), "--value", "80", "--output", "{result}"]),
+            "--validation-command",
+            shlex.join([sys.executable, str(validation)]),
+            "--repetitions",
+            "1",
+            "--max-minutes",
+            "1",
+            "--output-dir",
+            str(self.output_dir),
+        ]
 
     def invoke(self, arguments):
         stream = io.StringIO()
@@ -98,9 +150,13 @@ class CLITests(unittest.TestCase):
         evaluation = json.loads((directory / "evaluation.json").read_text())
         self.assertEqual(evaluation["improvement_pct"], 20.0)
         self.assertEqual(evaluation["statistical_significance"], "not established")
-        code, status = self.invoke(["status", "--run-id", result["run_id"], "--output-dir", str(self.output_dir)])
+        code, status = self.invoke(
+            ["status", "--run-id", result["run_id"], "--output-dir", str(self.output_dir)]
+        )
         self.assertEqual(status["state"], "completed")
-        code, report = self.invoke(["report", "--run-id", result["run_id"], "--output-dir", str(self.output_dir)])
+        code, report = self.invoke(
+            ["report", "--run-id", result["run_id"], "--output-dir", str(self.output_dir)]
+        )
         self.assertTrue(Path(report["report"]).is_file())
 
     def test_dry_run_is_not_execution(self):
@@ -112,7 +168,7 @@ class CLITests(unittest.TestCase):
     def test_missing_validation_is_inconclusive(self):
         arguments = self.arguments.copy()
         start = arguments.index("--validation-command")
-        del arguments[start:start + 2]
+        del arguments[start : start + 2]
         code, result = self.invoke(arguments)
         self.assertEqual(code, 2)
         self.assertEqual(result["status"]["verdict"], "INCONCLUSIVE")

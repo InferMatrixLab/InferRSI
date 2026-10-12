@@ -1,13 +1,13 @@
 """CPU-only runtime contracts with real external commands and Git snapshots."""
 
-from dataclasses import replace
 import json
 import os
-from pathlib import Path
 import subprocess
 import sys
 import tempfile
 import unittest
+from dataclasses import replace
+from pathlib import Path
 from unittest.mock import patch
 
 from omnirsi.contracts import RunSpec
@@ -16,7 +16,10 @@ from omnirsi.reporting import write_report
 
 
 def benchmark(value: object) -> tuple[str, ...]:
-    code = "import json, pathlib, sys; pathlib.Path(sys.argv[1]).write_text(sys.argv[2], encoding='utf-8')"
+    code = (
+        "import json, pathlib, sys; pathlib.Path(sys.argv[1]).write_text(sys.argv[2], "
+        "encoding='utf-8')"
+    )
     return (sys.executable, "-c", code, "{result}", json.dumps({"metrics": {"latency_ms": value}}))
 
 
@@ -24,6 +27,7 @@ def process_running(pid: int) -> bool:
     if os.name == "nt":
         import ctypes
         from ctypes import wintypes
+
         kernel = ctypes.WinDLL("kernel32", use_last_error=True)
         kernel.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
         kernel.OpenProcess.restype = wintypes.HANDLE
@@ -59,16 +63,36 @@ class RuntimeTests(unittest.TestCase):
         (self.repo / "source.txt").write_text("initial source\n", encoding="utf-8")
         self.git("init", "--quiet")
         self.git("add", "source.txt")
-        self.git("-c", "user.name=OmniRSI test", "-c", "user.email=test@example.invalid",
-                 "-c", "commit.gpgsign=false", "commit", "--quiet", "-s", "-m", "fixture")
-        self.spec = RunSpec(repo=str(self.repo), baseline_command=benchmark(100),
-                            candidate_command=benchmark(80), repetitions=2,
-                            validation_command=(sys.executable, "-c", "print('caller quality checks passed')"),
-                            output_dir=str(self.root / "runs"), max_minutes=1)
+        self.git(
+            "-c",
+            "user.name=OmniRSI test",
+            "-c",
+            "user.email=test@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-s",
+            "-m",
+            "fixture",
+        )
+        self.spec = RunSpec(
+            repo=str(self.repo),
+            baseline_command=benchmark(100),
+            candidate_command=benchmark(80),
+            repetitions=2,
+            validation_command=(sys.executable, "-c", "print('caller quality checks passed')"),
+            output_dir=str(self.root / "runs"),
+            max_minutes=1,
+        )
 
     def git(self, *args):
-        return subprocess.run(["git", "-C", str(self.repo), *args], check=True,
-                              stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return subprocess.run(
+            ["git", "-C", str(self.repo), *args],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
 
     def run_spec(self, **changes):
         path = run_experiment(replace(self.spec, **changes), {"backend": "cpu", "test": True})
@@ -78,9 +102,14 @@ class RuntimeTests(unittest.TestCase):
         path, evaluation = self.run_spec()
         self.assertEqual(evaluation["verdict"], "PASS")
         self.assertAlmostEqual(evaluation["improvement_pct"], 20)
-        events = [json.loads(line) for line in (path / "events.jsonl").read_text(encoding="utf-8").splitlines()]
-        self.assertEqual([event["side"] for event in events if event["phase"] == "measurement"],
-                         ["baseline", "candidate", "candidate", "baseline"])
+        events = [
+            json.loads(line)
+            for line in (path / "events.jsonl").read_text(encoding="utf-8").splitlines()
+        ]
+        self.assertEqual(
+            [event["side"] for event in events if event["phase"] == "measurement"],
+            ["baseline", "candidate", "candidate", "baseline"],
+        )
         trial = json.loads((path / "baseline/trial-001/execution.json").read_text(encoding="utf-8"))
         self.assertGreater(trial["pid"], 0)
         self.assertIn(str(path / "baseline/trial-001/result.json"), trial["argv"])
@@ -92,6 +121,36 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertTrue(any("quality" in reason for reason in evaluation["reasons"]))
 
+    def test_tracked_source_mutation_is_detected_inside_output_directory(self):
+        source = self.repo / "src" / "implementation.py"
+        source.parent.mkdir()
+        source.write_text("original\n")
+        self.git("add", "src/implementation.py")
+        self.git(
+            "-c",
+            "user.name=OmniRSI test",
+            "-c",
+            "user.email=test@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-s",
+            "-m",
+            "source",
+        )
+        code = (
+            "import json,pathlib,sys; pathlib.Path('src/implementation.py').write_text('changed'); "
+            "pathlib.Path(sys.argv[1]).write_text(json.dumps({'metrics':{'latency_ms':80}}))"
+        )
+        _, result = self.run_spec(
+            output_dir=str(source.parent),
+            repetitions=1,
+            candidate_command=(sys.executable, "-c", code, "{result}"),
+        )
+        self.assertEqual(result["verdict"], "INCONCLUSIVE")
+        self.assertFalse(result["source_integrity"]["verified"])
+
     def test_quality_failure_and_benchmark_failure_are_fail(self):
         failure = (sys.executable, "-c", "import sys; print('failed evidence'); sys.exit(7)")
         path, evaluation = self.run_spec(validation_command=failure)
@@ -100,14 +159,25 @@ class RuntimeTests(unittest.TestCase):
         path, evaluation = self.run_spec(baseline_command=failure)
         self.assertEqual(evaluation["verdict"], "FAIL")
         self.assertFalse((path / "candidate").exists())
-        self.assertEqual(json.loads((path / "baseline/trial-001/execution.json").read_text())["returncode"], 7)
+        self.assertEqual(
+            json.loads((path / "baseline/trial-001/execution.json").read_text())["returncode"], 7
+        )
 
     def test_missing_malformed_nonfinite_and_nonpositive_metrics_are_inconclusive(self):
         commands = [
             (sys.executable, "-c", "pass"),
-            (sys.executable, "-c", "import pathlib, sys; pathlib.Path(sys.argv[1]).write_text('{broken')", "{result}"),
-            benchmark("80"), benchmark(True), benchmark(float("nan")), benchmark(float("inf")),
-            benchmark(0), benchmark(-1),
+            (
+                sys.executable,
+                "-c",
+                "import pathlib, sys; pathlib.Path(sys.argv[1]).write_text('{broken')",
+                "{result}",
+            ),
+            benchmark("80"),
+            benchmark(True),
+            benchmark(float("nan")),
+            benchmark(float("inf")),
+            benchmark(0),
+            benchmark(-1),
         ]
         for command in commands:
             with self.subTest(command=command):
@@ -115,7 +185,10 @@ class RuntimeTests(unittest.TestCase):
                 self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
 
     def test_result_environment_variable_is_supported(self):
-        code = "import json, os, pathlib; pathlib.Path(os.environ['OMNIRSI_RESULT_PATH']).write_text(json.dumps({'metrics':{'latency_ms':80}}))"
+        code = (
+            "import json, os, pathlib; "
+            "pathlib.Path(os.environ['OMNIRSI_RESULT_PATH']).write_text(json.dumps({'metrics':{'latency_ms':80}}))"
+        )
         _, evaluation = self.run_spec(candidate_command=(sys.executable, "-c", code), repetitions=1)
         self.assertEqual(evaluation["verdict"], "PASS")
 
@@ -136,28 +209,42 @@ class RuntimeTests(unittest.TestCase):
         self.assertTrue(identity["dirty"])
         _, evaluation = self.run_spec()
         self.assertEqual(evaluation["verdict"], "PASS")
-        code = ("import json, pathlib, sys; pathlib.Path('source.txt').write_text('unexpected change'); "
-                "pathlib.Path(sys.argv[1]).write_text(json.dumps({'metrics': {'latency_ms':80}}))")
+        code = (
+            "import json, pathlib, sys; pathlib.Path('source.txt').write_text('unexpected "
+            "change'); "
+            "pathlib.Path(sys.argv[1]).write_text(json.dumps({'metrics': {'latency_ms':80}}))"
+        )
         path, evaluation = self.run_spec(candidate_command=(sys.executable, "-c", code, "{result}"))
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertIn("source changed", evaluation["source_integrity"]["reason"])
         self.assertTrue((path / "repositories.final.json").is_file())
 
     def test_source_change_restored_later_still_invalidates_comparison(self):
-        changed = ("import json, pathlib, sys; pathlib.Path('source.txt').write_text('temporary drift'); "
-                   "pathlib.Path(sys.argv[1]).write_text(json.dumps({'metrics': {'latency_ms':100}}))")
-        restored = ("import json, pathlib, sys; pathlib.Path('source.txt').write_text('initial source\\n'); "
-                    "pathlib.Path(sys.argv[1]).write_text(json.dumps({'metrics': {'latency_ms':80}}))")
-        path, evaluation = self.run_spec(baseline_command=(sys.executable, "-c", changed, "{result}"),
-                                         candidate_command=(sys.executable, "-c", restored, "{result}"), repetitions=1)
+        changed = (
+            "import json, pathlib, sys; pathlib.Path('source.txt').write_text('temporary drift'); "
+            "pathlib.Path(sys.argv[1]).write_text(json.dumps({'metrics': {'latency_ms':100}}))"
+        )
+        restored = (
+            "import json, pathlib, sys; pathlib.Path('source.txt').write_text('initial "
+            "source\\n'); "
+            "pathlib.Path(sys.argv[1]).write_text(json.dumps({'metrics': {'latency_ms':80}}))"
+        )
+        path, evaluation = self.run_spec(
+            baseline_command=(sys.executable, "-c", changed, "{result}"),
+            candidate_command=(sys.executable, "-c", restored, "{result}"),
+            repetitions=1,
+        )
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertEqual((self.repo / "source.txt").read_text(), "initial source\n")
         checks = json.loads((path / "source_checks.json").read_text())
-        self.assertNotEqual(checks[0]["before"]["snapshot_hash"], checks[0]["after"]["snapshot_hash"])
+        self.assertNotEqual(
+            checks[0]["before"]["snapshot_hash"], checks[0]["after"]["snapshot_hash"]
+        )
 
     def test_derived_metric_overflow_preserves_inconclusive_artifacts(self):
-        path, evaluation = self.run_spec(baseline_command=benchmark(1e-308), candidate_command=benchmark(1e308),
-                                         repetitions=1)
+        path, evaluation = self.run_spec(
+            baseline_command=benchmark(1e-308), candidate_command=benchmark(1e308), repetitions=1
+        )
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertTrue((path / "report.html").is_file())
 
@@ -174,37 +261,53 @@ class RuntimeTests(unittest.TestCase):
 
     def test_unique_runs_do_not_reuse_previous_metrics(self):
         first, _ = self.run_spec(repetitions=1)
-        second, evaluation = self.run_spec(candidate_command=(sys.executable, "-c", "pass"), repetitions=1)
+        second, evaluation = self.run_spec(
+            candidate_command=(sys.executable, "-c", "pass"), repetitions=1
+        )
         self.assertNotEqual(first, second)
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertFalse((second / "candidate/trial-001/result.json").exists())
 
     def test_timeout_kills_child_tree_and_preserves_evidence(self):
         child = "import time; time.sleep(30)"
-        parent = "import subprocess, sys, time; p=subprocess.Popen([sys.executable, '-c', sys.argv[1]]); print(p.pid, flush=True); time.sleep(30)"
-        path, evaluation = self.run_spec(baseline_command=(sys.executable, "-c", parent, child),
-                                         max_minutes=0.1, repetitions=1)
+        parent = (
+            "import subprocess, sys, time; p=subprocess.Popen([sys.executable, "
+            "'-c', sys.argv[1]]); print(p.pid, flush=True); time.sleep(30)"
+        )
+        path, evaluation = self.run_spec(
+            baseline_command=(sys.executable, "-c", parent, child), max_minutes=0.1, repetitions=1
+        )
         self.assertEqual(evaluation["verdict"], "FAIL")
         self.assertEqual(json.loads((path / "status.json").read_text())["state"], "timeout")
         child_pid = int((path / "baseline/trial-001/stdout.log").read_text().strip())
         self.assertFalse(process_running(child_pid), "benchmark descendant survived the timeout")
 
     def test_deadline_also_applies_to_validation(self):
-        path, evaluation = self.run_spec(validation_command=(sys.executable, "-c", "import time; time.sleep(30)"),
-                                         repetitions=1, max_minutes=0.25)
+        path, evaluation = self.run_spec(
+            validation_command=(sys.executable, "-c", "import time; time.sleep(30)"),
+            repetitions=1,
+            max_minutes=0.25,
+        )
         self.assertEqual(evaluation["verdict"], "FAIL")
-        self.assertEqual(json.loads((path / "validation/execution.json").read_text())["status"], "timeout")
+        self.assertEqual(
+            json.loads((path / "validation/execution.json").read_text())["status"], "timeout"
+        )
 
     def test_successful_command_also_cleans_up_background_descendants(self):
         child = "import time; time.sleep(30)"
-        parent = ("import json, pathlib, subprocess, sys; "
-                  "p=subprocess.Popen([sys.executable, '-c', sys.argv[1]]); print(p.pid, flush=True); "
-                  "pathlib.Path(sys.argv[2]).write_text(json.dumps({'metrics': {'latency_ms':80}}))")
-        path, evaluation = self.run_spec(candidate_command=(sys.executable, "-c", parent, child, "{result}"),
-                                       repetitions=1)
+        parent = (
+            "import json, pathlib, subprocess, sys; "
+            "p=subprocess.Popen([sys.executable, '-c', sys.argv[1]]); print(p.pid, flush=True); "
+            "pathlib.Path(sys.argv[2]).write_text(json.dumps({'metrics': {'latency_ms':80}}))"
+        )
+        path, evaluation = self.run_spec(
+            candidate_command=(sys.executable, "-c", parent, child, "{result}"), repetitions=1
+        )
         self.assertEqual(evaluation["verdict"], "PASS")
         child_pid = int((path / "candidate/trial-001/stdout.log").read_text().strip())
-        self.assertFalse(process_running(child_pid), "completed benchmark left a background descendant")
+        self.assertFalse(
+            process_running(child_pid), "completed benchmark left a background descendant"
+        )
 
     def test_keyboard_interrupt_preserves_cancelled_run(self):
         with patch("omnirsi.execution._execute", side_effect=KeyboardInterrupt):
@@ -222,9 +325,15 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(write_report(path), path / "report.html")
 
     def test_contract_rejects_invalid_inputs_before_allocating_run(self):
-        for changes in ({"repetitions": 0}, {"direction": "unknown"}, {"max_minutes": float("inf")},
-                        {"min_improvement_pct": -1}, {"baseline_command": "echo unsafe"},
-                        {"metric_key": "metrics..latency"}, {"output_dir": str(self.repo)}):
+        for changes in (
+            {"repetitions": 0},
+            {"direction": "unknown"},
+            {"max_minutes": float("inf")},
+            {"min_improvement_pct": -1},
+            {"baseline_command": "echo unsafe"},
+            {"metric_key": "metrics..latency"},
+            {"output_dir": str(self.repo)},
+        ):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 run_experiment(replace(self.spec, **changes), {})
 

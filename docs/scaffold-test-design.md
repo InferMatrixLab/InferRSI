@@ -39,14 +39,14 @@ Design sections refer to the 2026-10-08 draft (README, directory layout, compone
 
 | Design section | Design intent (summary) | Scaffold test / evidence layout |
 | --- | --- | --- |
-| **01 README · positioning** | Multi-repo RSI; conditions → evidence → verdict; SIAS × adapters × backends | Playbook: [repo-template.md](repo-template.md). Package seams: `src/rsi_scaffold/{harness,model,infra}/`. Smoke: import + layout (`tests/test_smoke.py`, `tests/test_sias_layout.py`). |
+| **01 README · positioning** | Multi-repo RSI; conditions → evidence → verdict; SIAS × adapters × backends | Playbook: [repo-template.md](repo-template.md). Package seams: `src/omnirsi/{harness,model,infra}/`. Smoke: import + layout (`tests/test_smoke.py`, `tests/test_sias_layout.py`). |
 | **01 · target repos** | vLLM, vLLM-Omni, afd-plugin, vllm-rlt — each with distinct “must keep” validation | **Per-target acceptance issues** (one campaign id per claim). `recipes/<target>/` (copy from `recipes/_template/`) documents RunSpec dimensions only; gates in issue + `plan/`. No multi-repo matrix in CI. |
-| **01 · multi-accelerator** | CUDA / ROCm / Ascend; compatibility `validated` / `unsupported` / `unverified` | `RunSpec.backend` + `device` in [runspec.py](../src/rsi_scaffold/runspec.py) and recipe YAML. Matrix entries are **claims** in `results/` + issue text—not repo constants. Nightly: CPU smoke only. |
+| **01 · multi-accelerator** | CUDA / ROCm / Ascend; compatibility `validated` / `unsupported` / `unverified` | `RunSpec.backend` + `device` in [runspec.py](../src/omnirsi/runspec.py) and recipe YAML. Matrix entries are **claims** in `results/` + issue text—not repo constants. Nightly: CPU smoke only. |
 | **01 · CLI / RunSpec** (proposed) | `arguments.py` → JSON run snapshot | **Not in portable CI.** Scaffold tests round-trip `RunSpec` dict fields only. Full argv snapshots belong in `evidence/<campaign-id>/plan/` when a workbench exists ([#2](https://github.com/ThinkFlowLab/OmniRSI/pull/2)). |
 | **01 · modes** | `config` / `code` / `semantic` | Document in acceptance `plan/` (mode + allow-path policy for `code`). Scaffold has no mode-specific CI jobs. |
-| **01 · optimization types & L0–L4** | Layered validation; PASS/FAIL/INCONCLUSIVE | Ladder in [Evidence by validation level](#evidence-by-validation-level). Verdict module: [claim.py](../src/rsi_scaffold/claim.py). |
+| **01 · optimization types & L0–L4** | Layered validation; PASS/FAIL/INCONCLUSIVE | Ladder in [Evidence by validation level](#evidence-by-validation-level). Verdict module: [claim.py](../src/omnirsi/claim.py). |
 | **01 · knowledge / Skill Hub** | `knowledge/`, `repo_packs/`, `platform_packs/` | **Future workbench layout** ([#2](https://github.com/ThinkFlowLab/OmniRSI/pull/2)). Scaffold: `skills/` for portable agent operators (no campaign pins). |
-| **02 · directory structure** | `runs/RUN_ID/…`, `evaluation/`, `tests/unit|contract|integration` | **Campaign publish tree:** `evidence/<campaign-id>/{plan,results,patch,validator}/` ([evidence/README.md](../evidence/README.md), [evidence_paths.py](../src/rsi_scaffold/evidence_paths.py)). Local `runs/` is out-of-git (design) / not scaffolded in CI. |
+| **02 · directory structure** | `runs/RUN_ID/…`, `evaluation/`, `tests/unit|contract|integration` | **Campaign publish tree:** `evidence/<campaign-id>/{plan,results,patch,validator}/` ([evidence/README.md](../evidence/README.md), [evidence_paths.py](../src/omnirsi/evidence_paths.py)). Local `runs/` is out-of-git (design) / not scaffolded in CI. |
 | **02 · run artifacts** | `args.json`, `baseline/`, `candidates/…/evaluation.json` | Map into evidence segments: hypothesis + gates → `plan/`; metrics + verdict rationale → `results/`; diff → `patch/`; frozen validators → `validator/`. |
 | **03 · components** | Controller, Runner, Evaluator, TargetAdapter, PlatformAdapter | **SIAS mapping:** harness (runners, scenarios, verdict helpers), model (quality protocol hooks), infra (backend/device/executor placeholders). Tests: import seams only until adapters land. |
 | **03 · Evaluator** | Independent judgment; cannot rewrite frozen gates | Acceptance: validators frozen in `validator/` before Phase 3; evaluator outputs recorded in `results/` with `PASS` / `FAIL` / `INCONCLUSIVE`. |
@@ -112,7 +112,7 @@ Each downstream target gets its **own** campaign id and issue; do not mix gates 
 
 ### Cases (smoke)
 
-1. Import `rsi_scaffold` and read version.  
+1. Import `omnirsi` and read version.
 2. Build minimal RunSpec dict and round-trip JSON fields.  
 3. Resolve evidence subpaths for a dummy campaign id (no real pin).  
 

@@ -1,22 +1,20 @@
 """CPU contracts and Linux-only process ownership regressions for the campaign."""
 
-import argparse
-from contextlib import redirect_stderr, redirect_stdout
 import importlib.util
 import io
 import json
 import os
-from pathlib import Path
 import signal
 import subprocess
 import sys
 import tempfile
 import time
 import unittest
+from contextlib import redirect_stderr, redirect_stdout
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from omnirsi.execution import _execute, repository_identity
-
 
 SCRIPT = Path(__file__).resolve().parents[1] / "examples" / "ltx25_b300.py"
 SPEC = importlib.util.spec_from_file_location("ltx25_campaign", SCRIPT)
@@ -44,21 +42,41 @@ class CampaignTests(unittest.TestCase):
         (self.repo / "kernel.py").write_text("original kernel\n", encoding="utf-8")
         self.git("init", "--quiet")
         self.git("add", ".")
-        self.git("-c", "user.name=OmniRSI test", "-c", "user.email=test@example.invalid", "-c", "commit.gpgsign=false",
-                 "commit", "--quiet", "-s", "-m", "fixture")
+        self.git(
+            "-c",
+            "user.name=OmniRSI test",
+            "-c",
+            "user.email=test@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-s",
+            "-m",
+            "fixture",
+        )
         self.identity = repository_identity(self.repo)
         self.semantic_patch = patch.object(campaign, "SEMANTIC_SOURCE_PATHS", ("semantics.py",))
         self.semantic_patch.start()
         self.addCleanup(self.semantic_patch.stop)
-        self.version_patch = patch.object(campaign, "dependency_versions", return_value={"torch": "test", "diffusers": "test"})
+        self.version_patch = patch.object(
+            campaign, "dependency_versions", return_value={"torch": "test", "diffusers": "test"}
+        )
         self.version_patch.start()
         self.addCleanup(self.version_patch.stop)
         self.quality_script = self.root / "quality.py"
-        self.quality_script.write_text("# fake quality command used only by CPU contracts\n", encoding="utf-8")
+        self.quality_script.write_text(
+            "# fake quality command used only by CPU contracts\n", encoding="utf-8"
+        )
         self.reference = self.make_reference()
 
     def git(self, *argv):
-        return subprocess.run(["git", "-C", str(self.repo), *argv], stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True)
+        return subprocess.run(
+            ["git", "-C", str(self.repo), *argv],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=True,
+        )
 
     def make_reference(self):
         directory = self.root / "reference"
@@ -67,31 +85,74 @@ class CampaignTests(unittest.TestCase):
         for item in campaign.protocol()["prompts"]:
             artifact = directory / (item["id"] + ".mp4")
             artifact.write_bytes(b"CPU fixture, not a generated video")
-            artifacts.append({"id": item["id"], "path": str(artifact), "sha256": campaign.sha256(artifact)})
+            artifacts.append(
+                {"id": item["id"], "path": str(artifact), "sha256": campaign.sha256(artifact)}
+            )
         path = directory / "result.json"
-        campaign.write_json(path, {"status": "completed", "source_commit": self.identity["head"],
-                                  "protocol": campaign.protocol(), "protocol_sha256": campaign.digest(campaign.protocol()),
-                                  "semantic_sources_hashes": campaign.semantic_sources(self.repo),
-                                  "helper_sha256": campaign.sha256(SCRIPT),
-                                  "dependency_versions": campaign.dependency_versions(), "artifacts": artifacts})
+        campaign.write_json(
+            path,
+            {
+                "status": "completed",
+                "source_commit": self.identity["head"],
+                "protocol": campaign.protocol(),
+                "protocol_sha256": campaign.digest(campaign.protocol()),
+                "semantic_sources_hashes": campaign.semantic_sources(self.repo),
+                "helper_sha256": campaign.sha256(SCRIPT),
+                "dependency_versions": campaign.dependency_versions(),
+                "artifacts": artifacts,
+            },
+        )
         return path
 
     def search_args(self, extra=()):
-        return campaign.parser().parse_args(["search", "--source-repo", str(self.repo), "--cache-root", str(self.root / "cache"),
-            "--reference-manifest", str(self.reference), "--quality-script", str(self.quality_script),
-            "--output-dir", str(self.root / "search"), "--repetitions", "1", *extra])
+        return campaign.parser().parse_args(
+            [
+                "search",
+                "--source-repo",
+                str(self.repo),
+                "--cache-root",
+                str(self.root / "cache"),
+                "--reference-manifest",
+                str(self.reference),
+                "--quality-script",
+                str(self.quality_script),
+                "--output-dir",
+                str(self.root / "search"),
+                "--repetitions",
+                "1",
+                *extra,
+            ]
+        )
 
     def trial_args(self, extra=()):
-        return campaign.parser().parse_args(["trial", "--source-repo", str(self.repo), "--cache-root", str(self.root / "cache"),
-            "--output", str(self.root / "trial" / "result.json"), *extra])
+        return campaign.parser().parse_args(
+            [
+                "trial",
+                "--source-repo",
+                str(self.repo),
+                "--cache-root",
+                str(self.root / "cache"),
+                "--output",
+                str(self.root / "trial" / "result.json"),
+                *extra,
+            ]
+        )
 
     def test_parallel_matrix_and_single_reference_constraints(self):
         for tp, ulysses in ((1, 4), (2, 2), (4, 1)):
             for vae in (1, 2, 4):
                 self.assertEqual(campaign.validate_parallel(tp, ulysses, vae), 4)
         self.assertEqual(campaign.validate_parallel(1, 1, 1, True), 1)
-        for args in ((2, 4, 1, False), (4, 4, 4, False), (1, 4, 8, False), (1, 4, 0, False),
-                     (1, 1, 2, True), (2, 1, 1, True), (1, 2, 1, False), (True, 4, 1, False)):
+        for args in (
+            (2, 4, 1, False),
+            (4, 4, 4, False),
+            (1, 4, 8, False),
+            (1, 4, 0, False),
+            (1, 1, 2, True),
+            (2, 1, 1, True),
+            (1, 2, 1, False),
+            (True, 4, 1, False),
+        ):
             with self.subTest(args=args), self.assertRaises(ValueError):
                 campaign.validate_parallel(*args)
 
@@ -101,19 +162,30 @@ class CampaignTests(unittest.TestCase):
         measured = {item["seed"] for item in value["prompts"]}
         self.assertEqual(measured, {42, 43, 44})
         self.assertEqual(value["warmup_seeds"], [[10042, 10043, 10044], [11042, 11043, 11044]])
-        self.assertFalse(measured.intersection(seed for round_seeds in value["warmup_seeds"] for seed in round_seeds))
+        self.assertFalse(
+            measured.intersection(
+                seed for round_seeds in value["warmup_seeds"] for seed in round_seeds
+            )
+        )
         self.assertEqual((len(value["stage_1_sigmas"]), len(value["stage_2_sigmas"])), (9, 4))
         self.assertEqual(value["guidance"], "positive_only")
         self.assertFalse(value["ltx2_use_conv_vae"])
-        self.assertEqual(value["video_codec_options"], {"preset": "ultrafast", "threads": "0", "crf": "18"})
+        self.assertEqual(
+            value["video_codec_options"], {"preset": "ultrafast", "threads": "0", "crf": "18"}
+        )
         argv = campaign.server_argv(self.trial_args())
-        self.assertEqual(json.loads(argv[argv.index("--stage-overrides") + 1]), {"0": {"extras": {"ltx2_use_conv_vae": False}}})
+        self.assertEqual(
+            json.loads(argv[argv.index("--stage-overrides") + 1]),
+            {"0": {"extras": {"ltx2_use_conv_vae": False}}},
+        )
         self.assertIn("--cfg-parallel-size", argv)
         self.assertEqual(argv[argv.index("--ring") + 1], "1")
 
     def test_diagnostic_schedule_is_separate_from_full_benchmark(self):
         full = campaign.protocol(self.trial_args())
-        args = self.trial_args(("--diagnostic", "--profile-stage1-steps", "2", "--profile-stage2-steps", "1"))
+        args = self.trial_args(
+            ("--diagnostic", "--profile-stage1-steps", "2", "--profile-stage2-steps", "1")
+        )
         short = campaign.protocol(args)
         self.assertEqual((short["num_inference_steps"], short["refine_steps"]), (2, 1))
         self.assertEqual(short["stage_1_sigmas"], [1.0, 0.975, 0.0])
@@ -132,10 +204,24 @@ class CampaignTests(unittest.TestCase):
             campaign.freeze_campaign(args)
 
     def test_profile_overrides_cannot_shorten_a_benchmark(self):
-        arguments = ["trial", "--source-repo", str(self.repo), "--cache-root", str(self.root / "cache"),
-                     "--output", str(self.root / "trial/result.json"), "--profile-stage1-steps", "1", "--dry-run"]
-        with patch.object(campaign, "run_trial", side_effect=AssertionError("must reject before allocation")), \
-             redirect_stderr(io.StringIO()):
+        arguments = [
+            "trial",
+            "--source-repo",
+            str(self.repo),
+            "--cache-root",
+            str(self.root / "cache"),
+            "--output",
+            str(self.root / "trial/result.json"),
+            "--profile-stage1-steps",
+            "1",
+            "--dry-run",
+        ]
+        with (
+            patch.object(
+                campaign, "run_trial", side_effect=AssertionError("must reject before allocation")
+            ),
+            redirect_stderr(io.StringIO()),
+        ):
             self.assertEqual(campaign.main(arguments), 1)
 
     def test_diagnostic_reference_is_never_eligible_even_with_full_schedule(self):
@@ -151,7 +237,9 @@ class CampaignTests(unittest.TestCase):
         response.__exit__ = Mock(return_value=False)
         response.read.side_effect = [b"CPU fixture MP4 bytes", b""]
         with patch.object(campaign.urllib.request, "urlopen", return_value=response) as urlopen:
-            value = campaign.request_video(self.trial_args(), campaign.protocol()["prompts"][0], self.root / "request.mp4")
+            value = campaign.request_video(
+                self.trial_args(), campaign.protocol()["prompts"][0], self.root / "request.mp4"
+            )
         self.assertGreater(value, 0)
         payload = urlopen.call_args.args[0].data.decode("utf-8")
         self.assertIn('name="extra_params"', payload)
@@ -162,18 +250,44 @@ class CampaignTests(unittest.TestCase):
     def test_dependency_policy_preserves_runtime_versions_and_allows_omni_version_text(self):
         before = {"vllm-omni": "dev.old", "diffusers": "1.0", "torch": "2.0"}
         after = {**before, "vllm-omni": "dev.new"}
-        self.assertEqual(campaign.semantic_dependency_versions(before), campaign.semantic_dependency_versions(after))
+        self.assertEqual(
+            campaign.semantic_dependency_versions(before),
+            campaign.semantic_dependency_versions(after),
+        )
         after["diffusers"] = "2.0"
-        self.assertNotEqual(campaign.semantic_dependency_versions(before), campaign.semantic_dependency_versions(after))
+        self.assertNotEqual(
+            campaign.semantic_dependency_versions(before),
+            campaign.semantic_dependency_versions(after),
+        )
 
     def test_dry_run_is_cross_platform_and_never_calls_gpu_or_subprocess(self):
-        args = ["search", "--source-repo", str(self.root / "not-installed"), "--cache-root", str(self.root / "cache"),
-                "--reference-manifest", "unread-reference.json", "--quality-script", "unread-guard.py",
-                "--output-dir", str(self.root / "dry-search"), "--include-tp-candidates", "--dry-run"]
+        args = [
+            "search",
+            "--source-repo",
+            str(self.root / "not-installed"),
+            "--cache-root",
+            str(self.root / "cache"),
+            "--reference-manifest",
+            "unread-reference.json",
+            "--quality-script",
+            "unread-guard.py",
+            "--output-dir",
+            str(self.root / "dry-search"),
+            "--include-tp-candidates",
+            "--dry-run",
+        ]
         stdout = io.StringIO()
-        with patch.object(campaign, "preflight", side_effect=AssertionError("GPU inspection must not execute")), \
-             patch.object(campaign.subprocess, "run", side_effect=AssertionError("no child processes in dry run")), \
-             redirect_stdout(stdout):
+        with (
+            patch.object(
+                campaign, "preflight", side_effect=AssertionError("GPU inspection must not execute")
+            ),
+            patch.object(
+                campaign.subprocess,
+                "run",
+                side_effect=AssertionError("no child processes in dry run"),
+            ),
+            redirect_stdout(stdout),
+        ):
             self.assertEqual(campaign.main(args), 0)
         self.assertEqual(len(json.loads(stdout.getvalue())["grid"]), 9)
         self.assertFalse((self.root / "dry-search").exists())
@@ -186,8 +300,10 @@ class CampaignTests(unittest.TestCase):
 
     def test_storage_under_source_is_rejected_before_allocation(self):
         args = self.trial_args()
-        for cache, output in ((self.repo / "cache", self.root / "new-output"),
-                              (self.root / "new-cache", self.repo / "runs")):
+        for cache, output in (
+            (self.repo / "cache", self.root / "new-output"),
+            (self.root / "new-cache", self.repo / "runs"),
+        ):
             args.cache_root = str(cache)
             with self.subTest(cache=cache), self.assertRaisesRegex(ValueError, "outside"):
                 campaign.storage_locations(args, output)
@@ -216,7 +332,9 @@ class CampaignTests(unittest.TestCase):
         self.quality_script.write_text("changed guard\n", encoding="utf-8")
         with self.assertRaisesRegex(campaign.CampaignDrift, "Quality guard"):
             campaign.assert_campaign_frozen(args, frozen)
-        self.quality_script.write_text("# fake quality command used only by CPU contracts\n", encoding="utf-8")
+        self.quality_script.write_text(
+            "# fake quality command used only by CPU contracts\n", encoding="utf-8"
+        )
         (self.repo / "kernel.py").write_text("changed source\n", encoding="utf-8")
         with self.assertRaisesRegex(campaign.CampaignDrift, "Source changed"):
             campaign.assert_campaign_frozen(args, frozen)
@@ -225,24 +343,42 @@ class CampaignTests(unittest.TestCase):
         original_run = subprocess.run
         changed = [False]
         calls = []
+
         def identity(_):
-            return {**self.identity, "snapshot_hash": "changed" if changed[0] else self.identity["snapshot_hash"], "dirty": changed[0]}
+            return {
+                **self.identity,
+                "snapshot_hash": "changed" if changed[0] else self.identity["snapshot_hash"],
+                "dirty": changed[0],
+            }
+
         def trial(trial_args):
             calls.append((trial_args.tp, trial_args.ulysses, trial_args.vae))
-            result = {"status": "completed", "source_integrity": {"verified": True}, "server_cleanup": {"remaining_pids": []},
-                      "metrics": {"latency_ms": 1000 / trial_args.vae}}
+            result = {
+                "status": "completed",
+                "source_integrity": {"verified": True},
+                "server_cleanup": {"remaining_pids": []},
+                "metrics": {"latency_ms": 1000 / trial_args.vae},
+            }
             campaign.write_json(trial_args.output, result)
             if drift:
                 changed[0] = True
             return result
+
         def subprocess_run(argv, *positional, **keywords):
             if len(argv) > 1 and argv[1] == str(self.quality_script):
-                campaign.write_json(argv[argv.index("--output") + 1], {"verdict": "PASS" if quality_pass else "FAIL"})
+                campaign.write_json(
+                    argv[argv.index("--output") + 1],
+                    {"verdict": "PASS" if quality_pass else "FAIL"},
+                )
                 return subprocess.CompletedProcess(argv, 0 if quality_pass else 1)
             return original_run(argv, *positional, **keywords)
-        with patch.object(campaign, "source_snapshot", side_effect=identity), \
-             patch.object(campaign, "run_trial", side_effect=trial), \
-             patch.object(campaign.subprocess, "run", side_effect=subprocess_run), redirect_stdout(io.StringIO()):
+
+        with (
+            patch.object(campaign, "source_snapshot", side_effect=identity),
+            patch.object(campaign, "run_trial", side_effect=trial),
+            patch.object(campaign.subprocess, "run", side_effect=subprocess_run),
+            redirect_stdout(io.StringIO()),
+        ):
             campaign.search(args)
         return calls
 
@@ -253,8 +389,13 @@ class CampaignTests(unittest.TestCase):
         best = json.loads((Path(args.output_dir) / "best.json").read_text(encoding="utf-8"))
         self.assertEqual(best["best"]["vae"], 4)
         self.assertIn("not a global", best["scope"])
-        self.assertEqual(best["frozen_evidence"]["quality_script"]["sha256"], campaign.sha256(self.quality_script))
-        self.assertEqual(best["frozen_evidence"]["reference_manifest"]["sha256"], campaign.sha256(self.reference))
+        self.assertEqual(
+            best["frozen_evidence"]["quality_script"]["sha256"],
+            campaign.sha256(self.quality_script),
+        )
+        self.assertEqual(
+            best["frozen_evidence"]["reference_manifest"]["sha256"], campaign.sha256(self.reference)
+        )
 
     def test_explicit_tp_grid_qualifies_only_after_three_quality_passing_trials(self):
         args = self.search_args(("--include-tp-candidates", "--repetitions", "3"))
@@ -292,18 +433,23 @@ class CampaignTests(unittest.TestCase):
         response.__enter__ = Mock(return_value=response)
         response.__exit__ = Mock(return_value=False)
         seeds = []
+
         def request(_, item, destination):
             seeds.append(item["seed"])
             Path(destination).write_bytes(b"CPU fixture, not a generated video")
             if mutate and len(seeds) == 9:
                 (self.repo / "kernel.py").write_text("changed during request\n", encoding="utf-8")
             return 1000.0
-        with patch.object(campaign.sys, "platform", "linux"), patch.object(campaign, "preflight", return_value=[]), \
-             patch.object(campaign, "server_argv", return_value=[sys.executable]), \
-             patch.object(campaign, "launch_server", return_value=(process, {"mode": "CPU mock"})), \
-             patch.object(campaign, "stop_server", return_value={"remaining_pids": []}), \
-             patch.object(campaign.urllib.request, "urlopen", return_value=response), \
-             patch.object(campaign, "request_video", side_effect=request):
+
+        with (
+            patch.object(campaign.sys, "platform", "linux"),
+            patch.object(campaign, "preflight", return_value=[]),
+            patch.object(campaign, "server_argv", return_value=[sys.executable]),
+            patch.object(campaign, "launch_server", return_value=(process, {"mode": "CPU mock"})),
+            patch.object(campaign, "stop_server", return_value={"remaining_pids": []}),
+            patch.object(campaign.urllib.request, "urlopen", return_value=response),
+            patch.object(campaign, "request_video", side_effect=request),
+        ):
             result = campaign.run_trial(args)
         return result, seeds
 
@@ -326,7 +472,9 @@ class CampaignTests(unittest.TestCase):
         self.assertNotIn("metrics", result)
         self.assertTrue(result["diagnostic"])
         self.assertEqual(result["protocol"]["num_inference_steps"], 2)
-        quality_spec = importlib.util.spec_from_file_location("diagnostic_quality", SCRIPT.with_name("ltx25_quality.py"))
+        quality_spec = importlib.util.spec_from_file_location(
+            "diagnostic_quality", SCRIPT.with_name("ltx25_quality.py")
+        )
         quality = importlib.util.module_from_spec(quality_spec)
         quality_spec.loader.exec_module(quality)
         with self.assertRaisesRegex(quality.QualityError, "non-diagnostic"):
@@ -337,25 +485,43 @@ class CampaignTests(unittest.TestCase):
         self.assertEqual(result["status"], "completed")
         self.assertEqual(result["parallel"], {"tp": 1, "ulysses": 4, "vae": 1, "cfg": 1, "ring": 1})
         quality_path = SCRIPT.with_name("ltx25_quality.py")
-        quality_spec = importlib.util.spec_from_file_location("campaign_quality_contract", quality_path)
+        quality_spec = importlib.util.spec_from_file_location(
+            "campaign_quality_contract", quality_path
+        )
         quality = importlib.util.module_from_spec(quality_spec)
         quality_spec.loader.exec_module(quality)
         manifest = self.root / "trial/result.json"
-        arguments = ["--reference-manifest", str(self.reference), "--candidate-manifest", str(manifest),
-                     "--expected-parallel", "1,4,1", "--output", str(self.root / "quality.json")]
+        arguments = [
+            "--reference-manifest",
+            str(self.reference),
+            "--candidate-manifest",
+            str(manifest),
+            "--expected-parallel",
+            "1,4,1",
+            "--output",
+            str(self.root / "quality.json"),
+        ]
         # Exercise real driver serialization and guard manifest/configuration validation;
         # only media decoding is replaced, since these CPU artifacts are not generated videos.
-        with patch.object(quality, "compare_pair", return_value={"verdict": "PASS"}) as decode, redirect_stdout(io.StringIO()):
+        with (
+            patch.object(quality, "compare_pair", return_value={"verdict": "PASS"}) as decode,
+            redirect_stdout(io.StringIO()),
+        ):
             self.assertEqual(quality.main(arguments), 0)
             self.assertEqual(decode.call_count, 3)
         del result["parallel"]["ring"]
         campaign.write_json(manifest, result)
-        with patch.object(quality, "compare_pair", return_value={"verdict": "PASS"}) as decode, redirect_stdout(io.StringIO()):
+        with (
+            patch.object(quality, "compare_pair", return_value={"verdict": "PASS"}) as decode,
+            redirect_stdout(io.StringIO()),
+        ):
             self.assertNotEqual(quality.main(arguments), 0)
             decode.assert_not_called()
 
 
-@unittest.skipUnless(sys.platform == "linux", "Process-group regressions require Linux; no GPU is used")
+@unittest.skipUnless(
+    sys.platform == "linux", "Process-group regressions require Linux; no GPU is used"
+)
 class LinuxLifecycleTests(unittest.TestCase):
     def setUp(self):
         self.temporary = tempfile.TemporaryDirectory()
@@ -366,25 +532,46 @@ class LinuxLifecycleTests(unittest.TestCase):
         self.server.write_text(
             "import json,os,pathlib,signal,subprocess,sys,time\n"
             "ready=sys.argv[1]+'.worker-ready'\n"
-            "worker=subprocess.Popen([sys.executable,'-c','import pathlib,signal,sys,time; signal.signal(signal.SIGTERM,signal.SIG_IGN); pathlib.Path(sys.argv[1]).write_text(\"ready\"); time.sleep(120)',ready])\n"
+            "worker=subprocess.Popen([sys.executable,'-c','import pathlib,signal,sys,time; "
+            "signal.signal(signal.SIGTERM,signal.SIG_IGN); "
+            'pathlib.Path(sys.argv[1]).write_text("ready"); time.sleep(120)\',ready])\n'
             "while not pathlib.Path(ready).exists(): time.sleep(.01)\n"
             "pathlib.Path(sys.argv[1]).write_text(json.dumps({'server':os.getpid(),'worker':worker.pid,'group':os.getpgrp()}))\n"
             "time.sleep(.1)\n"
-            "if '--exit-leader' not in sys.argv: time.sleep(120)\n", encoding="utf-8")
-        self.loader = ("import importlib.util,json,os,pathlib,sys,time\n"
-                       f"spec=importlib.util.spec_from_file_location('campaign',{str(SCRIPT)!r})\n"
-                       "module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)\n")
+            "if '--exit-leader' not in sys.argv: time.sleep(120)\n",
+            encoding="utf-8",
+        )
+        self.loader = (
+            "import importlib.util,json,os,pathlib,sys,time\n"
+            f"spec=importlib.util.spec_from_file_location('campaign',{str(SCRIPT)!r})\n"
+            "module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)\n"
+        )
 
     def test_runner_timeout_kills_inherited_server_and_worker_even_without_helper_finally(self):
         helper = self.root / "helper.py"
-        helper.write_text(self.loader +
-            "log=open(sys.argv[3],'wb')\n"
-            "process,ownership=module.launch_server([sys.executable,sys.argv[1],sys.argv[2]], pathlib.Path(sys.argv[1]).parent, os.environ.copy(),log)\n"
+        helper.write_text(
+            self.loader + "log=open(sys.argv[3],'wb')\n"
+            "process,ownership=module.launch_server([sys.executable,sys.argv[1],sys.argv[2]], "
+            "pathlib.Path(sys.argv[1]).parent, os.environ.copy(),log)\n"
             "pathlib.Path(sys.argv[4]).write_text(json.dumps(ownership))\n"
-            "time.sleep(120)\n", encoding="utf-8")
+            "time.sleep(120)\n",
+            encoding="utf-8",
+        )
         owner = self.root / "ownership.json"
-        result = _execute((sys.executable, str(helper), str(self.server), str(self.pids), str(self.root / "server.log"), str(owner)),
-                          self.root, self.root / "trial", time.monotonic() + 5, None)
+        result = _execute(
+            (
+                sys.executable,
+                str(helper),
+                str(self.server),
+                str(self.pids),
+                str(self.root / "server.log"),
+                str(owner),
+            ),
+            self.root,
+            self.root / "trial",
+            time.monotonic() + 5,
+            None,
+        )
         self.assertEqual(result["status"], "timeout")
         ownership = json.loads(owner.read_text())
         pids = json.loads(self.pids.read_text())
@@ -399,8 +586,12 @@ class LinuxLifecycleTests(unittest.TestCase):
             old = os.environ.pop("OMNIRSI_RESULT_PATH", None)
             try:
                 with (self.root / "server.log").open("wb") as log:
-                    process, owner = campaign.launch_server([sys.executable, str(self.server), str(self.pids), "--exit-leader"],
-                                                           self.root, os.environ.copy(), log)
+                    process, owner = campaign.launch_server(
+                        [sys.executable, str(self.server), str(self.pids), "--exit-leader"],
+                        self.root,
+                        os.environ.copy(),
+                        log,
+                    )
                     self.addCleanup(campaign.stop_server, process, owner, 0.1)
                     process.wait(timeout=10)
                     pids = json.loads(self.pids.read_text())
@@ -418,19 +609,33 @@ class LinuxLifecycleTests(unittest.TestCase):
     def test_normal_supervised_cleanup_preserves_helper_and_interactive_group(self):
         helper = self.root / "helper-stop.py"
         owner = self.root / "ownership.json"
-        helper.write_text(self.loader +
-            "log=open(sys.argv[3],'wb')\n"
-            "process,ownership=module.launch_server([sys.executable,sys.argv[1],sys.argv[2]], pathlib.Path(sys.argv[1]).parent, os.environ.copy(),log)\n"
+        helper.write_text(
+            self.loader + "log=open(sys.argv[3],'wb')\n"
+            "process,ownership=module.launch_server([sys.executable,sys.argv[1],sys.argv[2]], "
+            "pathlib.Path(sys.argv[1]).parent, os.environ.copy(),log)\n"
             "deadline=time.monotonic()+5\n"
-            "while not pathlib.Path(sys.argv[2]).exists() and time.monotonic()<deadline: time.sleep(.02)\n"
+            "while not pathlib.Path(sys.argv[2]).exists() and time.monotonic()<deadline: "
+            "time.sleep(.02)\n"
             "time.sleep(.2)\n"
             "cleanup=module.stop_server(process,ownership,.1)\n"
-            "pathlib.Path(sys.argv[4]).write_text(json.dumps({'ownership':ownership,'cleanup':cleanup,'helper_survived':True}))\n", encoding="utf-8")
+            "pathlib.Path(sys.argv[4]).write_text(json.dumps({'ownership':ownership,'cleanup':cleanup,'helper_survived':True}))\n",
+            encoding="utf-8",
+        )
         environment = os.environ.copy()
         environment["OMNIRSI_RESULT_PATH"] = str(self.root / "result.json")
         original_group = os.getpgrp()
-        process = subprocess.Popen([sys.executable, str(helper), str(self.server), str(self.pids), str(self.root / "server.log"), str(owner)],
-                                   env=environment, start_new_session=True)
+        process = subprocess.Popen(
+            [
+                sys.executable,
+                str(helper),
+                str(self.server),
+                str(self.pids),
+                str(self.root / "server.log"),
+                str(owner),
+            ],
+            env=environment,
+            start_new_session=True,
+        )
         try:
             returncode = process.wait(timeout=15)
         finally:

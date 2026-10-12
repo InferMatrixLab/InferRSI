@@ -1,21 +1,20 @@
 """CPU-only quality policy contracts; no model or accelerator invocation."""
 
-from array import array
 import copy
-from contextlib import redirect_stdout
 import importlib.util
 import io
 import json
 import math
 import os
-from pathlib import Path
 import shutil
 import subprocess
 import sys
 import tempfile
 import unittest
+from array import array
+from contextlib import redirect_stdout
+from pathlib import Path
 from unittest.mock import patch
-
 
 SCRIPT = Path(__file__).resolve().parents[1] / "examples" / "ltx25_quality.py"
 SPEC = importlib.util.spec_from_file_location("ltx25_quality", SCRIPT)
@@ -24,12 +23,31 @@ SPEC.loader.exec_module(quality)
 
 
 def media_metadata():
-    return {"streams": [
-        {"codec_type": "video", "codec_name": "h264", "pix_fmt": "yuv420p", "width": 1920,
-         "height": 1088, "nb_read_frames": "3", "avg_frame_rate": "24/1", "r_frame_rate": "24/1",
-         "duration": "0.125000", "start_time": "0.000000"},
-        {"codec_type": "audio", "codec_name": "aac", "sample_rate": "48000", "channels": 2,
-         "channel_layout": "stereo", "duration": "0.125000", "start_time": "0.000000"}]}
+    return {
+        "streams": [
+            {
+                "codec_type": "video",
+                "codec_name": "h264",
+                "pix_fmt": "yuv420p",
+                "width": 1920,
+                "height": 1088,
+                "nb_read_frames": "3",
+                "avg_frame_rate": "24/1",
+                "r_frame_rate": "24/1",
+                "duration": "0.125000",
+                "start_time": "0.000000",
+            },
+            {
+                "codec_type": "audio",
+                "codec_name": "aac",
+                "sample_rate": "48000",
+                "channels": 2,
+                "channel_layout": "stereo",
+                "duration": "0.125000",
+                "start_time": "0.000000",
+            },
+        ]
+    }
 
 
 class QualityTests(unittest.TestCase):
@@ -49,16 +67,37 @@ class QualityTests(unittest.TestCase):
             identifier = f"prompt-{index:03d}-seed-42"
             path = directory / f"{identifier}.mp4"
             path.write_bytes(f"synthetic artifact {index}".encode())
-            artifacts.append({"id": identifier, "path": str(path), "sha256": quality.sha256_file(path)})
-        protocol = {"model": "LTX-2.5", "width": 1920, "height": 1088, "num_frames": 3, "fps": 24,
-                    "audio_sample_rate": 48000, "audio_channels": 2, "dtype": "bfloat16", **(protocol or {})}
+            artifacts.append(
+                {"id": identifier, "path": str(path), "sha256": quality.sha256_file(path)}
+            )
+        protocol = {
+            "model": "LTX-2.5",
+            "width": 1920,
+            "height": 1088,
+            "num_frames": 3,
+            "fps": 24,
+            "audio_sample_rate": 48000,
+            "audio_channels": 2,
+            "dtype": "bfloat16",
+            **(protocol or {}),
+        }
         result = directory / "result.json"
-        result.write_text(json.dumps({"protocol": protocol, "protocol_sha256": quality.protocol_digest(protocol),
-                                      "status": "completed", "diagnostic": False,
-                                      "helper_sha256": "a" * 64,
-                                      "semantic_sources_hashes": {"ltx2_recipes.py": "b" * 64},
-                                      "parallel": {"tp": 1, "ulysses": 4, "vae": 4, "cfg": 1, "ring": 1},
-                                      "artifacts": artifacts, "metrics": {"latency_ms": 1000}}), encoding="utf-8")
+        result.write_text(
+            json.dumps(
+                {
+                    "protocol": protocol,
+                    "protocol_sha256": quality.protocol_digest(protocol),
+                    "status": "completed",
+                    "diagnostic": False,
+                    "helper_sha256": "a" * 64,
+                    "semantic_sources_hashes": {"ltx2_recipes.py": "b" * 64},
+                    "parallel": {"tp": 1, "ulysses": 4, "vae": 4, "cfg": 1, "ring": 1},
+                    "artifacts": artifacts,
+                    "metrics": {"latency_ms": 1000},
+                }
+            ),
+            encoding="utf-8",
+        )
         return result
 
     def fake_tool(self, argv, evidence, label, timeout):
@@ -66,11 +105,17 @@ class QualityTests(unittest.TestCase):
             return subprocess.CompletedProcess(argv, 0, json.dumps(media_metadata()).encode(), b"")
         if label == "video-compare":
             self.video_calls.append(argv)
-            (evidence / "ssim.log").write_text("".join(f"n:{index} All:1.000000 (inf)\n" for index in range(1, 4)))
-            (evidence / "psnr.log").write_text("".join(f"n:{index} psnr_avg:inf\n" for index in range(1, 4)))
+            (evidence / "ssim.log").write_text(
+                "".join(f"n:{index} All:1.000000 (inf)\n" for index in range(1, 4))
+            )
+            (evidence / "psnr.log").write_text(
+                "".join(f"n:{index} psnr_avg:inf\n" for index in range(1, 4))
+            )
         elif label.endswith("audio"):
             self.assertIn("48000", argv)
-            self.assertEqual(argv[argv.index("-ac") + 1], "2", "audio must preserve both stereo channels")
+            self.assertEqual(
+                argv[argv.index("-ac") + 1], "2", "audio must preserve both stereo channels"
+            )
             values = array("f", [0.1, 0.2] * 6000)
             if sys.byteorder != "little":
                 values.byteswap()
@@ -78,11 +123,20 @@ class QualityTests(unittest.TestCase):
         return subprocess.CompletedProcess(argv, 0, b"", b"")
 
     def invoke(self, extra=None, fake=None):
-        arguments = ["--reference-manifest", str(self.reference), "--candidate-manifest", str(self.candidate),
-                     "--output", str(self.output)]
+        arguments = [
+            "--reference-manifest",
+            str(self.reference),
+            "--candidate-manifest",
+            str(self.candidate),
+            "--output",
+            str(self.output),
+        ]
         if extra:
             arguments += extra
-        with patch.object(quality, "_run", side_effect=fake or self.fake_tool), redirect_stdout(io.StringIO()):
+        with (
+            patch.object(quality, "_run", side_effect=fake or self.fake_tool),
+            redirect_stdout(io.StringIO()),
+        ):
             code = quality.main(arguments)
         return code, json.loads(self.output.read_text(encoding="utf-8"))
 
@@ -103,6 +157,7 @@ class QualityTests(unittest.TestCase):
             if label == "video-compare":
                 (evidence / "ssim.log").write_text("n:1 All:1\nn:2 All:0.98\nn:3 All:1\n")
             return result
+
         code, report = self.invoke(fake=tool)
         self.assertNotEqual(code, 0)
         self.assertEqual(report["verdict"], "FAIL")
@@ -112,8 +167,11 @@ class QualityTests(unittest.TestCase):
         def tool(argv, evidence, label, timeout):
             result = self.fake_tool(argv, evidence, label, timeout)
             if label == "video-compare":
-                (evidence / "psnr.log").write_text("n:1 psnr_avg:inf\nn:2 psnr_avg:34.9\nn:3 psnr_avg:inf\n")
+                (evidence / "psnr.log").write_text(
+                    "n:1 psnr_avg:inf\nn:2 psnr_avg:34.9\nn:3 psnr_avg:inf\n"
+                )
             return result
+
         code, report = self.invoke(fake=tool)
         self.assertNotEqual(code, 0)
         self.assertIn("minimum frame PSNR", report["comparisons"][0]["pairs"][0]["failures"][0])
@@ -127,6 +185,7 @@ class QualityTests(unittest.TestCase):
                     values.byteswap()
                 Path(argv[-1]).write_bytes(values.tobytes())
             return result
+
         code, report = self.invoke(fake=tool)
         self.assertNotEqual(code, 0)
         self.assertGreater(report["comparisons"][0]["pairs"][0]["audio"]["nrmse"], 0.01)
@@ -170,8 +229,14 @@ class QualityTests(unittest.TestCase):
 
     def test_metadata_mismatches_and_missing_streams_fail(self):
         reference = quality.parse_probe(media_metadata())
-        for field, value in (("width", 1280), ("frames", 2), ("fps", "25"), ("channels", 1),
-                             ("audio_duration", 0.12), ("video_start", 0.1)):
+        for field, value in (
+            ("width", 1280),
+            ("frames", 2),
+            ("fps", "25"),
+            ("channels", 1),
+            ("audio_duration", 0.12),
+            ("video_start", 0.1),
+        ):
             with self.subTest(field=field), self.assertRaises(quality.QualityError):
                 quality.compare_metadata(reference, {**reference, field: value})
         metadata = media_metadata()
@@ -180,8 +245,14 @@ class QualityTests(unittest.TestCase):
             quality.parse_probe(metadata)
 
     def test_both_outputs_with_wrong_shape_or_audio_format_fail_frozen_protocol(self):
-        for field, value in (("width", 1280), ("nb_read_frames", "2"), ("avg_frame_rate", "25/1"),
-                             ("channels", 1), ("sample_rate", "44100")):
+        for field, value in (
+            ("width", 1280),
+            ("nb_read_frames", "2"),
+            ("avg_frame_rate", "25/1"),
+            ("channels", 1),
+            ("sample_rate", "44100"),
+        ):
+
             def tool(argv, evidence, label, timeout):
                 if label.endswith("probe"):
                     metadata = media_metadata()
@@ -189,6 +260,7 @@ class QualityTests(unittest.TestCase):
                     stream[field] = value
                     return subprocess.CompletedProcess(argv, 0, json.dumps(metadata).encode(), b"")
                 return self.fake_tool(argv, evidence, label, timeout)
+
             with self.subTest(field=field):
                 code, report = self.invoke(fake=tool)
                 self.assertNotEqual(code, 0)
@@ -196,21 +268,31 @@ class QualityTests(unittest.TestCase):
 
     def test_frame_evidence_must_have_exact_count_order_and_finite_ssim(self):
         path = self.root / "ssim.log"
-        for text in ("n:1 All:1\nn:2 All:1\n", "n:2 All:1\nn:1 All:1\nn:3 All:1\n",
-                     "n:1 All:nan\nn:2 All:1\nn:3 All:1\n", "n:1 All:inf\nn:2 All:1\nn:3 All:1\n"):
+        for text in (
+            "n:1 All:1\nn:2 All:1\n",
+            "n:2 All:1\nn:1 All:1\nn:3 All:1\n",
+            "n:1 All:nan\nn:2 All:1\nn:3 All:1\n",
+            "n:1 All:inf\nn:2 All:1\nn:3 All:1\n",
+        ):
             with self.subTest(text=text), self.assertRaises(quality.QualityError):
                 path.write_text(text)
                 quality.video_stats(path, "All", 3)
 
     def test_reference_and_candidate_with_same_short_audio_or_wrong_duration_fail(self):
-        for stream_index, field, value in ((1, "duration", "0.001"), (0, "duration", "1.0"),
-                                            (1, "start_time", "0.2"), (0, "start_time", "0.2")):
+        for stream_index, field, value in (
+            (1, "duration", "0.001"),
+            (0, "duration", "1.0"),
+            (1, "start_time", "0.2"),
+            (0, "start_time", "0.2"),
+        ):
+
             def tool(argv, evidence, label, timeout):
                 if label.endswith("probe"):
                     metadata = media_metadata()
                     metadata["streams"][stream_index][field] = value
                     return subprocess.CompletedProcess(argv, 0, json.dumps(metadata).encode(), b"")
                 return self.fake_tool(argv, evidence, label, timeout)
+
             with self.subTest(field=field, value=value):
                 code, report = self.invoke(fake=tool)
                 self.assertNotEqual(code, 0)
@@ -222,14 +304,17 @@ class QualityTests(unittest.TestCase):
             if label.endswith("audio"):
                 Path(argv[-1]).write_bytes(array("f", [0.1, 0.2] * 2).tobytes())
             return result
+
         code, report = self.invoke(fake=tool)
         self.assertNotEqual(code, 0)
         self.assertIn("decoded audio duration", report["comparisons"][0]["pairs"][0]["error"])
 
     def test_semantic_or_helper_drift_and_validator_drift_fail(self):
         original = json.loads(self.candidate.read_text(encoding="utf-8"))
-        for field, changed in (("helper_sha256", "c" * 64),
-                               ("semantic_sources_hashes", {"ltx2_recipes.py": "d" * 64})):
+        for field, changed in (
+            ("helper_sha256", "c" * 64),
+            ("semantic_sources_hashes", {"ltx2_recipes.py": "d" * 64}),
+        ):
             value = copy.deepcopy(original)
             value[field] = changed
             self.candidate.write_text(json.dumps(value), encoding="utf-8")
@@ -251,8 +336,14 @@ class QualityTests(unittest.TestCase):
 
     def test_pcm_requires_matching_stereo_length_finite_samples_and_silent_protection(self):
         self.assertEqual(quality.audio_nrmse([0, 0], [0, 0])["nrmse"], 0)
-        for reference, candidate in (([], []), ([0.1, 0.2], [0.1]), ([0.1], [0.1]),
-                                     ([0, 0], [0, 1e-9]), ([math.nan, 0], [0, 0]), ([0.1, 0.2], [math.inf, 0])):
+        for reference, candidate in (
+            ([], []),
+            ([0.1, 0.2], [0.1]),
+            ([0.1], [0.1]),
+            ([0, 0], [0, 1e-9]),
+            ([math.nan, 0], [0, 0]),
+            ([0.1, 0.2], [math.inf, 0]),
+        ):
             with self.subTest(candidate=candidate), self.assertRaises(quality.QualityError):
                 quality.audio_nrmse(reference, candidate)
 
@@ -280,29 +371,61 @@ class QualityTests(unittest.TestCase):
             for index in range(1, 3):
                 trial = run / side / f"trial-{index:03d}"
                 self.make_manifest(trial)
-                (trial / "execution.json").write_text(json.dumps({"status": "completed", "returncode": 0}))
+                (trial / "execution.json").write_text(
+                    json.dumps({"status": "completed", "returncode": 0})
+                )
         return run
 
     def test_run_mode_checks_all_baseline_and_candidate_trials_independently(self):
         run = self.make_run()
-        with patch.object(quality, "_run", side_effect=self.fake_tool), redirect_stdout(io.StringIO()):
-            code = quality.main(["--reference-manifest", str(self.reference), "--candidate-root", str(run),
-                                 "--output", str(self.output)])
+        with (
+            patch.object(quality, "_run", side_effect=self.fake_tool),
+            redirect_stdout(io.StringIO()),
+        ):
+            code = quality.main(
+                [
+                    "--reference-manifest",
+                    str(self.reference),
+                    "--candidate-root",
+                    str(run),
+                    "--output",
+                    str(self.output),
+                ]
+            )
         report = json.loads(self.output.read_text(encoding="utf-8"))
         self.assertEqual(code, 0)
-        self.assertEqual([record["trial"] for record in report["comparisons"]],
-                         ["baseline/trial-001", "baseline/trial-002", "candidate/trial-001", "candidate/trial-002"])
+        self.assertEqual(
+            [record["trial"] for record in report["comparisons"]],
+            [
+                "baseline/trial-001",
+                "baseline/trial-002",
+                "candidate/trial-001",
+                "candidate/trial-002",
+            ],
+        )
         self.assertEqual(len(self.video_calls), 12)
-        self.assertEqual(len({argv[argv.index("-filter_complex") - 1] for argv in self.video_calls}), 12)
+        self.assertEqual(
+            len({argv[argv.index("-filter_complex") - 1] for argv in self.video_calls}), 12
+        )
 
     def test_omnirsi_validation_uses_environment_run_root_and_all_trials(self):
         run = self.make_run()
         validation = run / "validation" / "result.json"
         validation.parent.mkdir()
-        with patch.dict(os.environ, {"OMNIRSI_RESULT_PATH": str(validation)}), \
-             patch.object(quality, "_run", side_effect=self.fake_tool), redirect_stdout(io.StringIO()):
-            code = quality.main(["--reference-manifest", str(self.reference), "--omnirsi-run",
-                                 "--output", str(validation)])
+        with (
+            patch.dict(os.environ, {"OMNIRSI_RESULT_PATH": str(validation)}),
+            patch.object(quality, "_run", side_effect=self.fake_tool),
+            redirect_stdout(io.StringIO()),
+        ):
+            code = quality.main(
+                [
+                    "--reference-manifest",
+                    str(self.reference),
+                    "--omnirsi-run",
+                    "--output",
+                    str(validation),
+                ]
+            )
         report = json.loads(validation.read_text(encoding="utf-8"))
         self.assertEqual(code, 0)
         self.assertEqual(len(report["comparisons"]), 4)
@@ -335,10 +458,14 @@ class QualityTests(unittest.TestCase):
 
     def test_run_mode_rejects_incomplete_execution_or_trial_coverage(self):
         run = self.make_run()
-        (run / "baseline/trial-002/execution.json").write_text(json.dumps({"status": "failed", "returncode": 1}))
+        (run / "baseline/trial-002/execution.json").write_text(
+            json.dumps({"status": "failed", "returncode": 1})
+        )
         with self.assertRaisesRegex(quality.QualityError, "did not complete"):
             quality.run_manifests(run)
-        (run / "baseline/trial-002/execution.json").write_text(json.dumps({"status": "completed", "returncode": 0}))
+        (run / "baseline/trial-002/execution.json").write_text(
+            json.dumps({"status": "completed", "returncode": 0})
+        )
         shutil.rmtree(run / "candidate/trial-002")
         with self.assertRaisesRegex(quality.QualityError, "coverage mismatch"):
             quality.run_manifests(run)
@@ -347,18 +474,42 @@ class QualityTests(unittest.TestCase):
         run = self.make_run()
         source = json.loads((run / "candidate/trial-001/result.json").read_text(encoding="utf-8"))
         (run / "candidate/trial-002/result.json").write_text(json.dumps(source))
-        with patch.object(quality, "_run", side_effect=self.fake_tool), redirect_stdout(io.StringIO()):
-            code = quality.main(["--reference-manifest", str(self.reference), "--candidate-root", str(run),
-                                 "--output", str(self.output)])
+        with (
+            patch.object(quality, "_run", side_effect=self.fake_tool),
+            redirect_stdout(io.StringIO()),
+        ):
+            code = quality.main(
+                [
+                    "--reference-manifest",
+                    str(self.reference),
+                    "--candidate-root",
+                    str(run),
+                    "--output",
+                    str(self.output),
+                ]
+            )
         self.assertNotEqual(code, 0)
         report = json.loads(self.output.read_text(encoding="utf-8"))
         self.assertIn("escapes its trial directory", report["comparisons"][-1]["errors"][0])
 
     def test_real_cli_missing_tools_fails_and_preserves_json(self):
-        result = subprocess.run([sys.executable, str(SCRIPT), "--reference-manifest", str(self.reference),
-                                 "--candidate-manifest", str(self.candidate), "--output", str(self.output),
-                                 "--ffprobe", "omnirsi-missing-ffprobe-executable"],
-                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=False)
+        result = subprocess.run(
+            [
+                sys.executable,
+                str(SCRIPT),
+                "--reference-manifest",
+                str(self.reference),
+                "--candidate-manifest",
+                str(self.candidate),
+                "--output",
+                str(self.output),
+                "--ffprobe",
+                "omnirsi-missing-ffprobe-executable",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
         self.assertNotEqual(result.returncode, 0)
         self.assertEqual(json.loads(self.output.read_text(encoding="utf-8"))["verdict"], "FAIL")
 
@@ -366,21 +517,43 @@ class QualityTests(unittest.TestCase):
         code, report = self.invoke(["--min-ssim", "nan"])
         self.assertNotEqual(code, 0)
         self.assertIn("must be finite", report["errors"][0])
-        with patch.object(quality, "_run", side_effect=quality.QualityError("ffmpeg exited 1")), redirect_stdout(io.StringIO()):
-            code = quality.main(["--reference-manifest", str(self.reference), "--candidate-manifest", str(self.candidate),
-                                 "--output", str(self.output)])
+        with (
+            patch.object(quality, "_run", side_effect=quality.QualityError("ffmpeg exited 1")),
+            redirect_stdout(io.StringIO()),
+        ):
+            code = quality.main(
+                [
+                    "--reference-manifest",
+                    str(self.reference),
+                    "--candidate-manifest",
+                    str(self.candidate),
+                    "--output",
+                    str(self.output),
+                ]
+            )
         self.assertNotEqual(code, 0)
         self.assertEqual(json.loads(self.output.read_text(encoding="utf-8"))["verdict"], "FAIL")
 
     def test_output_cannot_overwrite_frozen_reference_manifest(self):
         before = self.reference.read_bytes()
         with redirect_stdout(io.StringIO()):
-            code = quality.main(["--reference-manifest", str(self.reference), "--candidate-manifest", str(self.candidate),
-                                 "--output", str(self.reference)])
+            code = quality.main(
+                [
+                    "--reference-manifest",
+                    str(self.reference),
+                    "--candidate-manifest",
+                    str(self.candidate),
+                    "--output",
+                    str(self.reference),
+                ]
+            )
         self.assertNotEqual(code, 0)
         self.assertEqual(self.reference.read_bytes(), before)
 
-    @unittest.skipUnless(shutil.which("ffmpeg") and shutil.which("ffprobe"), "ffmpeg/ffprobe are not installed locally")
+    @unittest.skipUnless(
+        shutil.which("ffmpeg") and shutil.which("ffprobe"),
+        "ffmpeg/ffprobe are not installed locally",
+    )
     def test_real_ffmpeg_identical_short_av_clips(self):
         for manifest in (self.reference, self.candidate):
             value = json.loads(manifest.read_text(encoding="utf-8"))
@@ -388,16 +561,43 @@ class QualityTests(unittest.TestCase):
             value["protocol"]["height"] = 64
             value["protocol_sha256"] = quality.protocol_digest(value["protocol"])
             for entry in value["artifacts"]:
-                command = ["ffmpeg", "-v", "error", "-nostdin", "-y", "-f", "lavfi", "-i",
-                           "testsrc2=size=64x64:rate=24:duration=0.125", "-f", "lavfi", "-i",
-                           "sine=frequency=440:sample_rate=48000:duration=0.125", "-c:v", "mpeg4",
-                           "-c:a", "aac", "-ac", "2", "-shortest", entry["path"]]
+                command = [
+                    "ffmpeg",
+                    "-v",
+                    "error",
+                    "-nostdin",
+                    "-y",
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "testsrc2=size=64x64:rate=24:duration=0.125",
+                    "-f",
+                    "lavfi",
+                    "-i",
+                    "sine=frequency=440:sample_rate=48000:duration=0.125",
+                    "-c:v",
+                    "mpeg4",
+                    "-c:a",
+                    "aac",
+                    "-ac",
+                    "2",
+                    "-shortest",
+                    entry["path"],
+                ]
                 subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
                 entry["sha256"] = quality.sha256_file(entry["path"])
             manifest.write_text(json.dumps(value))
         with redirect_stdout(io.StringIO()):
-            code = quality.main(["--reference-manifest", str(self.reference), "--candidate-manifest", str(self.candidate),
-                                 "--output", str(self.output)])
+            code = quality.main(
+                [
+                    "--reference-manifest",
+                    str(self.reference),
+                    "--candidate-manifest",
+                    str(self.candidate),
+                    "--output",
+                    str(self.output),
+                ]
+            )
         self.assertEqual(code, 0, self.output.read_text(encoding="utf-8"))
 
 

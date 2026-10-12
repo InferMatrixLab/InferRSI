@@ -1,12 +1,10 @@
 import importlib.util
 import json
-from pathlib import Path
 import tempfile
 import unittest
+from pathlib import Path
 
-path = (
-    Path(__file__).resolve().parents[1] / "examples/qwen21_turbo_validation_adapter.py"
-)
+path = Path(__file__).resolve().parents[1] / "examples/qwen21_turbo_validation_adapter.py"
 spec = importlib.util.spec_from_file_location("qwen21_validation_adapter", path)
 adapter = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(adapter)

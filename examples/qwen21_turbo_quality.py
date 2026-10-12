@@ -18,11 +18,59 @@ def load(path):
     return value
 
 
-def validate(reference_path,candidate_path,expected_parallel=None):
+def owned_artifact_paths(manifest, manifest_path):
+    """Resolve each saved output beneath its own trial, never the reference or another trial."""
+    root = Path(manifest_path).resolve().parent
+    entries = [*manifest['artifacts'], manifest['first_request']]
+    paths = set()
+    for entry in entries:
+        path = Path(entry['path'])
+        path = (path if path.is_absolute() else root / path).resolve()
+        if not path.is_relative_to(root) or not path.is_file():
+            raise ValueError('Artifact must be a file within its trial directory')
+        if path in paths:
+            raise ValueError('Reused artifact path within a trial')
+        paths.add(path)
+        entry['path'] = str(path)
+    return paths
+
+
+def compare_images(item, other):
     from PIL import Image
     import numpy as np
     from skimage.metrics import structural_similarity
+    arrays=[]
+    for entry in [other,item]:
+        if lifecycle.sha256(entry['path'])!=entry['sha256']:raise ValueError('PNG hash mismatch')
+        with Image.open(entry['path']) as image:
+            image.load()
+            if image.format!='PNG' or image.size!=(1280,704) or image.mode!='RGBA':
+                raise ValueError('Expected complete 1280x704 native RGBA PNG')
+            arrays.append(np.asarray(image).copy())
+    a,b=arrays
+    mse=float(np.mean((a.astype(np.float64)-b.astype(np.float64))**2))
+    psnr=math.inf if mse==0 else 10*math.log10(255**2/mse)
+    ssim=float(structural_similarity(a,b,channel_axis=2,data_range=255))
+    channel_metrics=[]
+    for name, left, right in [('rgb',a[:,:,:3],b[:,:,:3]),('alpha',a[:,:,3],b[:,:,3])]:
+        channel_mse=float(np.mean((left.astype(np.float64)-right.astype(np.float64))**2))
+        channel_psnr=math.inf if channel_mse==0 else 10*math.log10(255**2/channel_mse)
+        channel_ssim=float(structural_similarity(left,right,channel_axis=2 if name=='rgb' else None,data_range=255))
+        channel_metrics.append({'channel':name,'ssim':channel_ssim,'psnr_db':'inf' if channel_mse==0 else channel_psnr,
+                                'passed':channel_ssim>=0.99 and channel_psnr>=35})
+    passed=all(x['passed'] for x in channel_metrics)
+    return {'ssim':ssim,'psnr_db':'inf' if mse==0 else psnr,
+                    'channels':channel_metrics,'verdict':'PASS' if passed else 'FAIL'}
+
+
+def validate(reference_path,candidate_path,expected_parallel=None,*,seen_paths=None):
     ref,cand=load(reference_path),load(candidate_path)
+    reference_paths = owned_artifact_paths(ref, reference_path)
+    candidate_paths = owned_artifact_paths(cand, candidate_path)
+    if reference_paths & candidate_paths or (seen_paths is not None and seen_paths & candidate_paths):
+        raise ValueError('Reused reference or cross-trial artifact paths')
+    if seen_paths is not None:
+        seen_paths.update(candidate_paths)
     for name in ['protocol','protocol_sha256','protected_sources','guard_hashes','dependency_versions','model_assets_sha256']:
         if ref[name]!=cand[name]:raise ValueError(f'Frozen {name} mismatch')
     if expected_parallel and (cand['parallel']['tp'],cand['parallel']['ulysses'])!=expected_parallel:
@@ -44,28 +92,7 @@ def validate(reference_path,candidate_path,expected_parallel=None):
         identifier=(item['group'],item['id'])
         if identifier in seen or other is None:raise ValueError('Duplicate or unexpected output')
         seen.add(identifier)
-        arrays=[]
-        for entry in [other,item]:
-            if lifecycle.sha256(entry['path'])!=entry['sha256']:raise ValueError('PNG hash mismatch')
-            with Image.open(entry['path']) as image:
-                image.load()
-                if image.format!='PNG' or image.size!=(1280,704) or image.mode!='RGBA':
-                    raise ValueError('Expected complete 1280x704 native RGBA PNG')
-                arrays.append(np.asarray(image).copy())
-        a,b=arrays
-        mse=float(np.mean((a.astype(np.float64)-b.astype(np.float64))**2))
-        psnr=math.inf if mse==0 else 10*math.log10(255**2/mse)
-        ssim=float(structural_similarity(a,b,channel_axis=2,data_range=255))
-        channel_metrics=[]
-        for name, left, right in [('rgb',a[:,:,:3],b[:,:,:3]),('alpha',a[:,:,3],b[:,:,3])]:
-            channel_mse=float(np.mean((left.astype(np.float64)-right.astype(np.float64))**2))
-            channel_psnr=math.inf if channel_mse==0 else 10*math.log10(255**2/channel_mse)
-            channel_ssim=float(structural_similarity(left,right,channel_axis=2 if name=='rgb' else None,data_range=255))
-            channel_metrics.append({'channel':name,'ssim':channel_ssim,'psnr_db':'inf' if channel_mse==0 else channel_psnr,
-                                    'passed':channel_ssim>=0.99 and channel_psnr>=35})
-        passed=all(x['passed'] for x in channel_metrics)
-        results.append({'group':item['group'],'id':item['id'],'ssim':ssim,'psnr_db':'inf' if mse==0 else psnr,
-                        'channels':channel_metrics,'verdict':'PASS' if passed else 'FAIL'})
+        results.append({'group': item['group'], 'id': item['id'], **compare_images(item, other)})
     return {'verdict':'PASS' if all(x['verdict']=='PASS' for x in results) else 'FAIL','comparisons':results}
 
 
@@ -102,7 +129,8 @@ def main():
             paths=omnirsi_manifests(os.environ['OMNIRSI_RESULT_PATH'])
         elif args.candidate_manifest:paths=[Path(args.candidate_manifest)]
         else:raise ValueError('Candidate manifest or complete OmniRSI run required')
-        reports=[{'manifest':str(path),**validate(args.reference_manifest,path,parallel)} for path in paths]
+        seen_paths = set()
+        reports=[{'manifest':str(path),**validate(args.reference_manifest,path,parallel,seen_paths=seen_paths)} for path in paths]
         result={'verdict':'PASS' if all(r['verdict']=='PASS' for r in reports) else 'FAIL','min_ssim':0.99,'min_psnr_db':35,'reports':reports}
     except Exception as error:result={'verdict':'FAIL','error':str(error)}
     lifecycle.write_json(args.output,result)

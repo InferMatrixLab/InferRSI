@@ -4,7 +4,7 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 ## What this repo is
 
-**OmniRSI** is ThinkFlowLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/rsi_scaffold/` (rename on copy), with recipes, benchmarks, and a first-class `evidence/` tree.
+**OmniRSI** is ThinkFlowLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/omnirsi/` (rename on copy), with recipes, benchmarks, and a first-class `evidence/` tree.
 
 | Start here | Purpose |
 | --- | --- |
@@ -56,7 +56,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 ## RSI contract
 
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([docs/scaffold-test-design.md](docs/scaffold-test-design.md)).
-- **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/rsi_scaffold/`).
+- **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/omnirsi/`).
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`runspec.py`, campaign `plan/`).
 - **Evaluator + evidence win** — never treat agent narrative as `PASS`; verdicts follow frozen gates and `evidence/<campaign-id>/` artifacts.
 
@@ -74,7 +74,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 ## Evidence and clearing the bar
 
-Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/rsi_scaffold/claim.py`).
+Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/omnirsi/claim.py`).
 
 A public **`PASS`** requires:
 
@@ -109,14 +109,3 @@ ruff check src tests
 1. Read playbook + test design before large code or CI changes.
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.
-
-# Development rules
-
-- Follow plan -> code -> test -> review and keep changes focused.
-- The public configuration interface is CLI arguments. JSON records are evidence and internal package data.
-- Keep the control package importable without torch, inference engines or accelerator runtimes.
-- Preserve PASS / FAIL / INCONCLUSIVE; missing evidence must not become PASS.
-- Imported knowledge must keep sources, exact revisions, applicability and verification scope. Upstream reports are not local validation.
-- Run `python -m unittest discover -s tests -v` for the CPU suite. Document remote accelerator checks that were not run.
-- All Git commits must use `git commit -s`.
-- Do not merge, publish packages or activate production systems as part of an ordinary code change.
