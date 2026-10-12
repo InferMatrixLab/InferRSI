@@ -1,6 +1,6 @@
 # vLLM-Omni diffusion knowledge
 
-These are source-pinned, attributed summaries imported on 2026-10-09. No upstream skill was installed or executed and no remote GPU/NPU experiment was run for the import. All records remain `status=imported` and `verification.locally_verified=false`.
+The entries dated 2026-10-09 are source-pinned summaries. No upstream skill was installed or executed for that import, and those records remain `status=imported` with `verification.locally_verified=false`. The Qwen-Image-2.1 910B1 text-to-image entry is a later local measurement: `status=measured` and `locally_verified=true`.
 
 The authoritative guidance snapshot is [vllm-omni ee81f3300192](https://github.com/vllm-project/vllm-omni/commit/ee81f33001922f8d91dd09da0a57ee1531a8df82). PRs are pinned independently to their reviewed head, with merge status recorded as observed on the import date. Head/base/hardware-test revisions can differ; each record explains such differences.
 
@@ -16,6 +16,7 @@ The authoritative guidance snapshot is [vllm-omni ee81f3300192](https://github.c
 | cuda | [MiniMax-H3 Ref2VA TeaCache needs task-specific calibration and step defaults](experiences/cuda/diffusion/minimax-h3-ref2va-teacache/README.md) | open_pr |
 | cuda | [MiniMax-H3 stacked VAE tiling trades activation memory for fewer decode calls](experiences/cuda/diffusion/minimax-h3-vae-stacked-tiling/README.md) | open_pr |
 | ascend | [MiniMax-H3 SP head buckets reduce exposed All-to-All with quality still pending](experiences/ascend/diffusion/minimax-h3-sp-head-buckets/README.md) | open_pr |
+| ascend | [Qwen-Image-2.1 eager text-to-image on one 910B1](experiences/ascend/diffusion/qwen-image-21-eager-t2i/README.md) | local_npu |
 | ascend | [MiniMax-H3 reference KV reuse must balance ownership after Ulysses](experiences/ascend/diffusion/minimax-h3-reference-kv-reuse/README.md) | open_pr |
 | cuda | [MiniMax-H3 online CUDA MXFP8 is an opt-in approximate deployment lane](experiences/cuda/diffusion/minimax-h3-cuda-mxfp8/README.md) | open_pr |
 

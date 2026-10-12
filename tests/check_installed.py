@@ -16,5 +16,9 @@ assert (
 )
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
-assert all(not item["verification"]["locally_verified"] for item in records)
+assert all(
+    (item["status"] == "imported" and not item["verification"]["locally_verified"])
+    or (item["status"] == "measured" and item["verification"]["locally_verified"])
+    for item in records
+)
 print(f"Installed package: {omnirsi.__file__}; {len(records)} source-grounded records available.")

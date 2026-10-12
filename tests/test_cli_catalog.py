@@ -23,8 +23,11 @@ class CatalogTests(unittest.TestCase):
         self.assertGreaterEqual(len(records), 10)
         self.assertEqual(len(records), len({item["id"] for item in records}))
         for record in records:
-            self.assertEqual(record["status"], "imported")
-            self.assertFalse(record["verification"]["locally_verified"])
+            if record["status"] == "imported":
+                self.assertFalse(record["verification"]["locally_verified"])
+            else:
+                self.assertEqual(record["status"], "measured")
+                self.assertTrue(record["verification"]["locally_verified"])
             for source in record["sources"]:
                 self.assertRegex(source["commit"], r"^[0-9a-f]{40}$")
                 self.assertTrue(
@@ -80,6 +83,16 @@ class CatalogTests(unittest.TestCase):
         self.assertIn('"locally_verified": false', text)
         self.assertIn("not tool instructions", text)
         self.assertNotIn("vllm_omni.cuda", text)
+        image = search_knowledge(
+            repo="vllm_omni",
+            backend="ascend",
+            scenario="diffusion.image_generation",
+            limit=50,
+        )
+        self.assertIn(
+            "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i",
+            [item["id"] for item in image],
+        )
 
 
 class CLITests(unittest.TestCase):
