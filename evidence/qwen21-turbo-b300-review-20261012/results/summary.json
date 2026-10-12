@@ -1,0 +1,375 @@
+{
+  "base": "233f0842136b351ac057c1286d3ef3c4c4a47285",
+  "candidate": "8310b74b1cf3ca8c2b26d3381f53d4991111f322",
+  "arms": {
+    "base-default": {
+      "values": [
+        377.73683566289645,
+        400.35964232326177,
+        382.3213113161425,
+        383.2439226680435,
+        383.5165186901577
+      ],
+      "median_ms": 383.2439226680435,
+      "min_ms": 377.73683566289645,
+      "max_ms": 400.35964232326177,
+      "requests": [
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 377.86599702667445
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 376.172867952846
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 379.17164200916886
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 401.05408598901704
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 399.7857089852914
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 400.2391319954768
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 383.62530700396746
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 378.76317696645856
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 384.5754499780014
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 383.5640799952671
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 383.6440489976667
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 382.5236390111968
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 386.78268203511834
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 380.2349120378494
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 383.5319619975053
+          }
+        ]
+      ],
+      "readiness_seconds": [
+        40.027350524032954,
+        40.034269461000804,
+        40.024791834002826,
+        40.023220938048325,
+        41.02256696799304
+      ]
+    },
+    "base-symmem": {
+      "values": [
+        372.2654850183365,
+        374.1702143258105,
+        387.38763264458004,
+        376.7510910014001,
+        372.6470743228371
+      ],
+      "median_ms": 374.1702143258105,
+      "min_ms": 372.2654850183365,
+      "max_ms": 387.38763264458004,
+      "requests": [
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 372.41509900195524
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 371.3580180192366
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 373.0233380338177
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 376.7005709814839
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 371.54191598528996
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 374.26815601065755
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 387.99277698853984
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 385.33629797166213
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 388.8338229735382
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 377.53721000626683
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 375.21973199909553
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 377.49633099883795
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 374.10804396495223
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 371.0321800317615
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 372.8009989717975
+          }
+        ]
+      ],
+      "readiness_seconds": [
+        56.03294064098736,
+        38.02649019495584,
+        56.02496388298459,
+        40.024151451012585,
+        55.027472120011225
+      ]
+    },
+    "pr-symmem": {
+      "values": [
+        266.1679803277366,
+        266.9340020123248,
+        264.6880240063183,
+        262.71810235145193,
+        271.5476453304291
+      ],
+      "median_ms": 266.1679803277366,
+      "min_ms": 262.71810235145193,
+      "max_ms": 271.5476453304291,
+      "requests": [
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 265.70219499990344
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 265.0600480264984
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 267.7416979568079
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 267.1461410354823
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 265.44704200932756
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 268.20882299216464
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 264.7882750025019
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 263.74643499730155
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 265.52936201915145
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 263.19980702828616
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 261.21169299585745
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 263.74280703021213
+          }
+        ],
+        [
+          {
+            "group": 1,
+            "prompt_index": 0,
+            "seed": 42,
+            "latency_ms": 272.3064509918913
+          },
+          {
+            "group": 1,
+            "prompt_index": 1,
+            "seed": 43,
+            "latency_ms": 269.21763800783083
+          },
+          {
+            "group": 1,
+            "prompt_index": 2,
+            "seed": 44,
+            "latency_ms": 273.1188469915651
+          }
+        ]
+      ],
+      "readiness_seconds": [
+        38.02605379396118,
+        55.03286336699966,
+        38.024321115983184,
+        55.02826576697407,
+        55.03135463298531
+      ]
+    }
+  },
+  "recipe_reduction_pct": 30.548675508082425,
+  "same_flag_code_reduction_pct": 28.864465920323212,
+  "formal_outputs": 60,
+  "additional_outputs": 16,
+  "all_decoded_rgba_identical": true,
+  "method": "Five serial fresh-server trials per arm; balanced alternating order, three native-eight-step HTTP requests/trial. All samples retained. Descriptive median/range, no statistical-significance/tail claim."
+}
