@@ -14,7 +14,7 @@ omnirsi --help
 omnirsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
-Run the synthetic example in README first. The 100/80 values and validation script are fixtures, not inference timing or quality evidence.
+Continue below to connect your own benchmark and quality checks.
 
 ## The actual configuration interface
 
