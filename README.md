@@ -38,6 +38,18 @@ Recorded local campaign: five alternating AB/BA groups, warmed repeated prompts 
 
 [Results, source pins & every iteration →](docs/qwen21-turbo-b300-phase2-results.md) · [Acceptance issue](https://github.com/ThinkFlowLab/OmniRSI/issues/3) · [Upstream PR](https://github.com/vllm-project/vllm-omni/pull/8739)
 
+### Ascend 910B, same model, separate cohort
+
+**Qwen-Image-2.1-Turbo · 1× Ascend 910B1 · 1280×704 · BF16 · Native 8 steps · eager**
+
+| Baseline mean | Best measured mean | Image validation |
+| :---: | :---: | :---: |
+| **3111.5 ms** | **2425.5 ms (−22.0%)** | **quality gate passed, not pixel-identical** |
+
+A 30% reduction on this host would be 2178 ms. That line is not met. NPU interleaved RoPE alone stays pixel-identical at 2459.6 ms (−21.0%). Adding the opt-in VAE fastpath reaches 2425.5 ms. A later rerun of that same stack is 2431.9 ms. This is not the B300 five-group HTTP result above.
+
+[Ascend measurements and rejected rounds →](docs/qwen21-ascend-910b-results.md) · [Upstream NPU patch](https://github.com/vllm-project/vllm-omni/pull/8729)
+
 <a id="quickstart"></a>
 
 ## 🚀 Quickstart
@@ -52,6 +64,8 @@ python -m pip install .
 # Explore tuning knowledge, then export context for your coding agent.
 omnirsi knowledge search 'MiniMax-H3' --repo-type vllm_omni --backend cuda
 omnirsi context --repo-type vllm_omni --backend cuda --output context.md
+omnirsi context --repo-type vllm_omni --backend ascend \
+  --scenario diffusion.image_generation --output diffusion-context.md
 ```
 
 Ready to measure your own model? [Connect your benchmark and quality checks →](docs/quickstart.md#real-remote-experiment)
