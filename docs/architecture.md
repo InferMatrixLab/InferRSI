@@ -2,7 +2,9 @@
 
 ## Components
 
-![Component structure](assets/component-architecture.svg)
+![Component structure (English)](assets/component-architecture-en.svg)
+
+[Original Chinese diagram](assets/component-architecture.svg).
 
 The diagram is the target architecture from the reviewed plan. This first release maps its measurable slice to a few real modules rather than creating empty packages:
 
@@ -20,7 +22,9 @@ The local executor is suitable for installing directly on the user's prepared re
 
 ## Workflow
 
-![Reviewed complete workflow](assets/gpu-workflow.svg)
+![Reviewed complete workflow (English)](assets/gpu-workflow-en.svg)
+
+[Original Chinese diagram](assets/gpu-workflow.svg).
 
 The original workflow is retained as the long-term design reference. Its hardware panel illustrates the GPU lane. ROCm/Ascend have independent package-data namespaces and environment inspection, and must establish their own compatibility/evidence.
 

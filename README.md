@@ -1,23 +1,23 @@
 # OmniRSI
 
-面向推理系统的 **CLI 实验工作台与调优知识库**。将一次优化的源码身份、参数、基线、候选、质量验证与原始结果放在同一条证据链中。
+A **CLI experiment workbench and tuning knowledge base** for inference systems. It connects source identity, parameters, baselines, candidates, quality validation, and raw results in a single evidence trail.
 
-初版实现 reviewed plan 的第一个可运行切片：用户提供实际 benchmark 和 validation 命令，OmniRSI 负责重复执行、记录、比较和报告。所有运行配置使用 **CLI args**，没有 YAML 任务输入；控制包无必需第三方运行依赖，也不导入 torch 或推理引擎。
+The first release implements the first runnable slice of the reviewed plan: users provide real benchmark and validation commands, and OmniRSI repeats, records, compares, and reports the results. All run configuration uses **CLI arguments**, with no YAML task input. The control package has no mandatory third-party runtime dependencies and imports neither torch nor an inference engine.
 
-## 已实现
+## Implemented features
 
-- `doctor`：检查本机准备好的 Git checkout、Python 包版本与后端工具；CUDA 记录设备、驱动和拓扑。工具存在不等于模型/功能已兼容。
-- `plan` / `run --dry-run`：显示解析后的 RunSpec 和环境检查，不启动实验。
-- `run`：交替 AB/BA 重复执行明确的 baseline/candidate argv，在全局实验期限内保存结果、日志、源码指纹与质量命令证据。
-- `status` / `report`：读取运行状态、重新生成可独立浏览的 HTML 报告。
-- `knowledge search/show`：检索包内的来源固定知识；按仓库、后端和场景过滤。
-- `context`：导出带来源、适用条件、验证状态和限制的 Markdown，供 Codex / 三方 Agent 人工接续。
+- `doctor`: inspects a prepared local Git checkout, Python package versions, and backend tools; for CUDA, it records devices, drivers, and topology. Tool availability alone does not establish model or feature compatibility.
+- `plan` / `run --dry-run`: displays the resolved RunSpec and environment checks without starting an experiment.
+- `run`: repeats explicit baseline/candidate argument vectors in alternating AB/BA order, saving results, logs, source fingerprints, and quality-command evidence within a global experiment deadline.
+- `status` / `report`: reads run status and regenerates a standalone HTML report.
+- `knowledge search/show`: searches bundled knowledge with pinned sources, filtered by repository, backend, and scenario.
+- `context`: exports Markdown with sources, applicability, verification status, and limitations for manual handoff to Codex or third-party agents.
 
-初版不自动生成或应用代码补丁、不启动 Agent、不部署模型、不激活生产服务，也不实现控制端 SSH 编排、设备租约或崩溃恢复。**在准备好的 remote 机器上安装包后使用 local executor。** `--agent` 仅记录交接对象，不调用该 Agent。
+The first release does not automatically generate or apply patches, invoke agents, deploy models, activate production services, orchestrate SSH from a control host, lease devices, or recover from crashes. **Install the package on a prepared remote machine and use its local executor.** `--agent` only records the handoff target; it does not invoke that agent.
 
 ## Quickstart
 
-需要 Python 3.10+、Git，以及可运行目标仓库的环境。
+Requires Python 3.10+, Git, and an environment capable of running the target repository.
 
 ```bash
 python -m venv .venv
@@ -27,9 +27,9 @@ omnirsi --help
 omnirsi --version
 ```
 
-PowerShell 激活命令为 `.\.venv\Scripts\Activate.ps1`。以下命令在已 checkout 此 PR 的 OmniRSI 根目录执行。
+For PowerShell, activate with `.\.venv\Scripts\Activate.ps1`. Run the following commands from the OmniRSI root after checking out this PR.
 
-### CPU 合约 smoke：不是性能或质量基准
+### CPU contract smoke test: no performance or quality measurement
 
 ```bash
 omnirsi doctor --repo . --repo-type vllm_omni --backend cpu
@@ -46,26 +46,26 @@ omnirsi run \
   --output-dir runs
 ```
 
-此 fixture 写入预设的 100 / 80 数值，预期 `PASS` 和 20% 数值差；它只证明执行、证据和判定链路工作，没有测量模型加速。实际命令需要替换为目标仓库的 benchmark 与质量检查。
+This fixture writes preset values of 100 / 80, yielding an expected `PASS` and a 20% numerical difference. It verifies execution, evidence collection, and verdict handling; it does not measure model acceleration. Replace the fixture commands with the target repository's benchmark and quality checks for a real experiment.
 
-每个 trial 的 `{result}` 被替换为独立 JSON 路径，也通过 `OMNIRSI_RESULT_PATH` 提供。命令以 argv 执行，`shell=False`；不会展开 shell 管道、环境变量或重定向。需要这些操作时使用自己审阅的脚本。
+Each trial replaces `{result}` with a unique JSON path, also available through `OMNIRSI_RESULT_PATH`. Commands execute as argument vectors with `shell=False`; shell pipes, environment variables, and redirection are not expanded. Use a script you have reviewed when these operations are needed.
 
 ```bash
 omnirsi status --run-id RUN_ID --output-dir runs
 omnirsi report --run-id RUN_ID --output-dir runs
 ```
 
-详见 [完整 Quickstart](docs/quickstart.md)、[远程 Test plan](docs/test-plan.md)。
+See the [full quickstart](docs/quickstart.md) and [remote test plan](docs/test-plan.md).
 
-[B300 四卡 / Qwen-Image-2.1-Turbo 第二阶段计划](docs/qwen21-turbo-b300-phase2-plan.md)是当前 campaign：相对最早冻结源码 baseline，目标提高到 **30% E2E latency 下降**。保持 720p 档位、原生 8-step schedule、BF16、RGBA PNG 和精度门槛；重新 profile 后提取框架、流水线及算子任务，并链接固定版本的 KDA skills。最终以五组 AB/BA 和完整图像验证验收。
+The [four-B300 / Qwen-Image-2.1-Turbo phase 2 plan](docs/qwen21-turbo-b300-phase2-plan.md) is the active campaign: the target is now a **30% reduction in E2E latency** relative to the earliest frozen source baseline. It retains the 720p resolution class, native eight-step schedule, BF16, RGBA PNG output, and accuracy gates. Fresh profiles guide framework, pipeline, and operator tasks, with links to pinned KDA skills. Acceptance uses five AB/BA groups and complete image validation.
 
-[本地实测报告](docs/qwen21-turbo-b300-results.md)：五组 AB/BA 为 385.07→335.42 ms，降低 **12.89%**，未达到 20% 目标；所有最终/held-out RGBA 图像的解码像素一致。报告保留被拒绝的迭代和基础设施失败，不把 GPU 计划当作性能证据。
+The [local measurement report](docs/qwen21-turbo-b300-results.md) records 385.07→335.42 ms across five AB/BA groups, a **12.89%** reduction that missed the 20% target. All final and held-out RGBA images had identical decoded pixels. Rejected iterations and infrastructure failures remain in the report; a GPU test plan is not performance evidence.
 
-[第二阶段结果](docs/qwen21-turbo-b300-phase2-results.md)：新鲜原始源码 baseline **384.16→266.60 ms，降低30.60%**；相对最早记录385.07 ms降低30.76%。五组 AB/BA 和40张原生RGBA图像验证通过；较慢的第五组及前一轮29.81%的正式FAIL记录均保留。
+The [phase 2 results](docs/qwen21-turbo-b300-phase2-results.md) record a fresh original-source baseline of **384.16→266.60 ms, a 30.60% reduction**, or 30.76% relative to the earliest recorded 385.07 ms. Five AB/BA groups and validation of 40 native RGBA images passed. The slower fifth group and the previous formal FAIL at 29.81% are retained.
 
-此前 [LTX-2.5 计划](docs/ltx25-b300-test-plan.md)及[授权阻塞记录](docs/ltx25-b300-local-status.md)保留为历史，当前任务不再依赖该模型授权。
+The earlier [LTX-2.5 plan](docs/ltx25-b300-test-plan.md) and [model-access blocker record](docs/ltx25-b300-local-status.md) remain as history; the active task no longer depends on access to that model.
 
-## 知识库
+## Knowledge base
 
 ```bash
 omnirsi knowledge search 'MiniMax-H3' --repo-type vllm_omni --backend cuda
@@ -74,36 +74,36 @@ omnirsi knowledge show vllm_omni.common.diffusion.measurement_and_profiling
 omnirsi context 'MiniMax-H3' --repo-type vllm_omni --backend ascend --output runs/h3-context.md
 ```
 
-检索按关键词、repo/backend/scenario 过滤；具体设备、模型、软件和负载边界保留在记录中，初版需要人工核对。`common` 方法可与具体 diffusion 场景一起检索；`diffusion.t2i/t2v` 是图像/视频场景别名。
+Search filters by keyword, repository, backend, and scenario. Records retain device, model, software, and workload boundaries, which require manual checking in this first release. `common` methods can be retrieved alongside specific diffusion scenarios; `diffusion.t2i/t2v` are image/video scenario aliases.
 
-初始导入包括两份指定技能和 8 个 MiniMax-H3 PR：
+The initial import includes two specified skills and eight MiniMax-H3 PRs:
 
-| 条目 | 核心经验 |
+| Entry | Key lesson |
 | --- | --- |
-| diffusion-perf-opt | 固定三段复现命令；性能测量与 profiling 分开；一次实验控制变量 |
-| production-add-diffusion-model | loading 支持与生产 readiness 分开；模型/任务/后端逐项验证 |
-| [#5990](https://github.com/vllm-project/vllm-omni/pull/5990) | Q/K norm 与 RoPE 融合的形状、平台和输出边界 |
-| [#6281](https://github.com/vllm-project/vllm-omni/pull/6281) | modulation 融合的舍入差异，以及非 CUDA 平台 guard |
-| [#5783](https://github.com/vllm-project/vllm-omni/pull/5783) | AdaLN cache 的容量收益与速度收益分开评估 |
-| [#5952](https://github.com/vllm-project/vllm-omni/pull/5952) | Ref2VA TeaCache 的任务校准、步数和质量要求 |
-| [#7024](https://github.com/vllm-project/vllm-omni/pull/7024) | VAE stacked tiling 的调用次数与显存取舍 |
-| [#7988](https://github.com/vllm-project/vllm-omni/pull/7988) | MXFP8 是近似部署路线，需要质量和加载显存验证 |
-| [#7514](https://github.com/vllm-project/vllm-omni/pull/7514) | Ascend SP 通信分桶与尚未完成的整体质量等价验证 |
-| [#8072](https://github.com/vllm-project/vllm-omni/pull/8072) | reference KV 缓存位置、并行 ownership 与退化反例 |
+| diffusion-perf-opt | Freeze the three-part reproduction commands; separate performance measurement from profiling; control experimental variables |
+| production-add-diffusion-model | Distinguish loading support from production readiness; validate each model/task/backend combination |
+| [#5990](https://github.com/vllm-project/vllm-omni/pull/5990) | Shape, platform, and output boundaries for fused Q/K norm and RoPE |
+| [#6281](https://github.com/vllm-project/vllm-omni/pull/6281) | Rounding differences in fused modulation and guards for non-CUDA platforms |
+| [#5783](https://github.com/vllm-project/vllm-omni/pull/5783) | Evaluate AdaLN cache capacity savings separately from speed gains |
+| [#5952](https://github.com/vllm-project/vllm-omni/pull/5952) | Task calibration, step counts, and quality requirements for Ref2VA TeaCache |
+| [#7024](https://github.com/vllm-project/vllm-omni/pull/7024) | Call-count and device-memory tradeoffs in VAE stacked tiling |
+| [#7988](https://github.com/vllm-project/vllm-omni/pull/7988) | MXFP8 is an approximate deployment option requiring quality and loading-memory validation |
+| [#7514](https://github.com/vllm-project/vllm-omni/pull/7514) | Ascend SP communication buckets and still-incomplete overall quality-equivalence validation |
+| [#8072](https://github.com/vllm-project/vllm-omni/pull/8072) | Reference KV cache placement, parallel ownership, and regression counterexamples |
 
-来源技能固定于 `ee81f33001922f8d91dd09da0a57ee1531a8df82`；各 PR 分别固定导入时的 head 和观察状态。**全部条目为 `imported`、`locally_verified=false`。** merged/open、上游报告、实际测量硬件和未知质量边界均单独保存。没有将 ROCm 的其他模型经验冒充 H3 证据。
+Source skills are pinned to `ee81f33001922f8d91dd09da0a57ee1531a8df82`; each PR retains its head revision and observed status at import. **All entries are `imported` with `locally_verified=false`.** Merge/open status, upstream reports, actual measurement hardware, and unknown quality boundaries are recorded separately. ROCm experience from other models is not presented as H3 evidence.
 
-[知识索引、来源和使用建议](src/omnirsi/data/repo_packs/vllm_omni/knowledge/README.md)。
+See the [knowledge index, sources, and usage guidance](src/omnirsi/data/repo_packs/vllm_omni/knowledge/README.md).
 
-## 目录结构
+## Repository layout
 
 ```text
 src/omnirsi/
-  arguments.py / cli.py / contracts.py     CLI 与冻结契约
-  inspection.py                           环境与仓库检查
-  execution.py                            本机显式命令执行
-  evaluation.py / reporting.py            证据判定与 HTML
-  catalog.py                              只读知识检索
+  arguments.py / cli.py / contracts.py     CLI and frozen contracts
+  inspection.py                           Environment and repository inspection
+  execution.py                            Explicit local command execution
+  evaluation.py / reporting.py            Evidence verdicts and HTML reports
+  catalog.py                              Read-only knowledge retrieval
   data/
     repo_packs/{vllm,vllm_omni,afd_plugin,vllm_rlt}/
     platform_packs/{cuda,rocm,ascend}/
@@ -112,37 +112,45 @@ src/omnirsi/
       cuda/diffusion/...
       ascend/diffusion/...
 examples/                                 CPU smoke fixture
-tests/                                    运行、CLI 与知识契约
-docs/                                     使用、架构与远程 Test plan
-runs/                                     本地生成，默认忽略
+tests/                                    Runtime, CLI, and knowledge contracts
+docs/                                     Usage, architecture, and remote test plans
+runs/                                     Generated locally; ignored by default
 ```
 
-知识和描述包以 `src/omnirsi/data/` 为唯一权威位置，通过 package data 进入 wheel，避免安装后依赖源码 checkout 或出现两份经验副本。四类仓库描述当前只声明外部命令入口，并未实现全套模型 launcher；三类加速器兼容矩阵仍为 unverified。
+`src/omnirsi/data/` is the single authoritative location for knowledge and descriptor packs. These ship as wheel package data, avoiding a source-checkout dependency after installation or duplicate knowledge copies. The four repository descriptors currently declare external command entry points; they do not implement complete model launchers. Compatibility matrices for the three accelerator backends remain unverified.
 
-## 组件与流程
+## Components and workflow
 
-[组件结构、完整流程图与实际初版边界](docs/architecture.md)。用户给定候选命令相当于为 Phase 3 提供待验证实现；初版执行测量、质量验证、判定、报告，不把计划中未实现的阶段写成已经完成。
+See the [component structure, complete workflow, and actual first-release boundary](docs/architecture.md). A user-supplied candidate command provides an implementation for Phase 3 to validate. The first release performs measurement, quality validation, verdict handling, and reporting; planned stages that are not implemented remain explicitly identified as such.
 
-## 判定与复现边界
+The English diagrams below show the target architecture and long-term workflow from the reviewed plan. See the architecture document for the implemented subset.
 
-- `PASS`：请求的 trial 完整、命令成功、指标有效、源码指纹不变、显式 validation 成功，且正向中位数收益达到阈值。
-- `FAIL`：命令失败、超时、质量命令失败，或完整测量没有达到收益要求。
-- `INCONCLUSIVE`：质量命令缺失、JSON/指标无效、源码不可确定/发生变化、取消或证据不足。
-- 中位数与范围是描述性统计，不证明显著性。质量命令退出 0 仅覆盖其实际检查范围，不能自动证明模型等价或服务 readiness。
-- 指标单位、测量范围、模型/负载身份由调用者声明。外部 server 的实际版本、负载一致性、失败请求和 GPU 资源公平性需要另行核对。
-- Git 记录是 HEAD、dirty diff/untracked 哈希与前后指纹，不归档完整脏源码。复现时使用 committed baseline/candidate，或另行保留补丁和未追踪文件。
-- `--device-ids` 是元数据，不设置可见设备或占用租约；先自行分配资源并设置后端可见性。
-- `--python` 仅检查那个解释器的包；benchmark/validation 使用命令中写明的解释器。`--candidate-repo` 仅改变 cwd，不切换已经安装的包；候选需要独立环境或明确的导入路径。
-- 期限限制测量与质量命令的启动和等待；源码检查、清理与最终报告可能额外耗时。初版预算上限七天。Ctrl-C 保存状态与证据，但不支持跨控制程序重启 resume。
+![OmniRSI component architecture (English)](docs/assets/component-architecture-en.svg)
 
-## 验证与贡献
+![GPU inference optimization workflow (English)](docs/assets/gpu-workflow-en.svg)
+
+The original Chinese diagrams are also available: [component architecture](docs/assets/component-architecture.svg) and [GPU workflow](docs/assets/gpu-workflow.svg).
+
+## Verdict and reproducibility boundaries
+
+- `PASS`: all requested trials are complete, commands succeed, metrics are valid, source fingerprints are unchanged, explicit validation succeeds, and the positive median improvement meets the threshold.
+- `FAIL`: a command fails or times out, the quality command fails, or complete measurements miss the required gain.
+- `INCONCLUSIVE`: the quality command is missing, JSON or metrics are invalid, source identity is uncertain or changes, the run is cancelled, or evidence is insufficient.
+- Medians and ranges are descriptive statistics, not proof of statistical significance. A quality command exiting with code 0 covers only the checks it actually performs; it does not automatically establish model equivalence or service readiness.
+- The caller declares metric units, measurement scope, and model/workload identity. Actual external-server versions, workload consistency, failed requests, and fair GPU resource allocation require separate checks.
+- Git records include HEAD, hashes of dirty diffs and untracked files, and before/after fingerprints; they do not archive the complete dirty source tree. Reproduce with committed baseline/candidate sources, or separately preserve patches and untracked files.
+- `--device-ids` is metadata; it neither sets visible devices nor acquires a resource lease. Allocate resources and configure backend visibility first.
+- `--python` only inspects packages for that interpreter; benchmark and validation commands use the interpreter specified in their commands. `--candidate-repo` only changes the working directory, not installed packages. Candidates need a separate environment or an explicit import path.
+- Deadlines limit launching and waiting for measurement and quality commands. Source checks, cleanup, and final reporting may take additional time. The first release caps the budget at seven days. Ctrl-C saves status and evidence, but resuming across control-process restarts is not supported.
+
+## Validation and contribution
 
 ```bash
 python -m unittest discover -s tests -v
 python -m pip wheel --no-deps . -w dist
 ```
 
-本地 CPU 合约验证和实际 GPU/NPU 测量分别记录。远程 CUDA / ROCm / Ascend、模型质量、Linux 进程组与生产长稳由用户按 Test plan 验证。开发遵循 plan → code → test → review；所有提交使用 `git commit -s`。
+Record local CPU contract checks separately from actual GPU/NPU measurements. Users validate remote CUDA / ROCm / Ascend, model quality, Linux process groups, and production stability according to the test plan. Development follows plan → code → test → review; use `git commit -s` for every commit.
 
 ## Portable scaffold and CI
 
