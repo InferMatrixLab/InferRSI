@@ -36,6 +36,17 @@ Freeze **repo × revision × backend × device × model × scenario** before com
 
 ## Runtime and upstream review gates
 
+- Keep framework dispatch and its tests model-neutral. Prefer existing explicit
+  configuration over a second model/device/version-specific selection rule.
+  Model policy belongs in model adapters; backend prerequisites and topology
+  constraints belong in the owning backend. Remove obsolete knobs and tests
+  when consolidating selection, while retaining default and explicit-opt-in checks.
+- Before changing a shared component or script, enumerate direct and transitive
+  consumers and map each changed contract to a regression test. Exercise the
+  other consumers' fast and fallback paths, layouts, dtypes, hooks and gradients;
+  include encoder/decoder integration where applicable. Record commands, source,
+  environment, failures and skips. Missing consumer coverage is `INCONCLUSIVE`;
+  one model's E2E success does not establish another model's quality or speed.
 - Hardware/dtype matches do not prove build dependencies or collective availability.
   Keep optional acceleration opt-in until initialization establishes prerequisites;
   do not fall back on only one rank after starting a collective.

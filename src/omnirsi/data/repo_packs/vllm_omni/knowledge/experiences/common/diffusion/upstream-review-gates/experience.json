@@ -7,14 +7,16 @@
   "component": "diffusion",
   "scenario": "diffusion.*",
   "status": "imported",
-  "summary": "Review optional backend prerequisites, request-state lifetime, reusable operator ownership, portable reproduction, and independent artifact provenance before promoting an optimization.",
+  "summary": "Review framework policy boundaries, all shared-component consumers, optional backend prerequisites, request-state lifetime, portable reproduction, and independent artifact provenance before promoting an optimization.",
   "tags": [
     "review",
     "request_state",
     "shared_kernels",
     "reproducibility",
     "source_integrity",
-    "artifact_provenance"
+    "artifact_provenance",
+    "framework_boundaries",
+    "cross_model_regression"
   ],
   "sources": [
     {
@@ -39,6 +41,18 @@
       "url": "https://github.com/vllm-project/vllm-omni/pull/8739#discussion_r4237999149",
       "type": "github_review",
       "commit": "443b3e97c09af3f5bd9399ef3b3ec8e7b0215852",
+      "accessed_at": "2026-10-12"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/pull/8739#discussion_r4245652596",
+      "type": "github_review",
+      "commit": "d57480f5054e6c377a04225840b24e6355244dd9",
+      "accessed_at": "2026-10-12"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/pull/8739#discussion_r4245675241",
+      "type": "github_review",
+      "commit": "d57480f5054e6c377a04225840b24e6355244dd9",
       "accessed_at": "2026-10-12"
     }
   ],
@@ -79,19 +93,31 @@
     {
       "kind": "guidance",
       "description": "Published evidence uses portable paths, complete before/after timings, image checksums and frozen validators. Historical source-pair claims are distinct from rebased-head comparisons."
+    },
+    {
+      "kind": "guidance",
+      "description": "Framework dispatch and framework tests remain model-neutral. Reuse explicit common configuration; keep model policy in adapters and topology/build prerequisites in the owning backend instead of duplicating model/device/version condition chains."
+    },
+    {
+      "kind": "guidance",
+      "description": "Shared component or script changes require a direct and transitive consumer inventory, regression evidence for other affected models, and explicit coverage gaps. One model E2E result cannot establish another model quality or performance."
     }
   ],
   "recommendations": [
     "Record an executable failing regression before accepting each review fix.",
     "Use in-repository model-neutral benchmark clients instead of requiring personal forks or local storage paths.",
-    "Publish complete campaign archives and hash manifests, while preserving legacy records."
+    "Publish complete campaign archives and hash manifests, while preserving legacy records.",
+    "Remove obsolete selection knobs and their model-specific framework tests when consolidating configuration.",
+    "Attach a consumer-to-test coverage map, including fast/fallback paths, layouts, dtypes, hooks, gradients and applicable encoder/decoder integration."
   ],
   "validation_plan": [
     "Exercise unavailable-extension default selection without CUDA.",
     "Drop a populated request cache and check weak references after success/error/interrupt and step-mode cancellation.",
     "Run all consumers of moved shared operators, including their numeric CUDA contracts.",
     "Reject output aliasing and source changes under overlapping output roots.",
-    "Re-run native full-service quality and comparable current-base/current-head measurements after rebase."
+    "Re-run native full-service quality and comparable current-base/current-head measurements after rebase.",
+    "Verify default dispatch does not load optional extensions and explicit common settings reach the selected backend without model or device-name predicates.",
+    "Record source/environment/test commands and all skips or failures for every affected consumer; mark missing coverage INCONCLUSIVE rather than generalizing target-model E2E evidence."
   ],
   "limitations": [
     "This record imports review guidance; it is not a benchmark or an accelerator support claim.",

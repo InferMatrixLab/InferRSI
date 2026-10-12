@@ -17,6 +17,17 @@ Use **before** large feature PRs. GitHub form: [.github/ISSUE_TEMPLATE/campaign-
 
 Acceptance campaigns → blocking infra/CI → merge-ready slices → research spikes.
 
+## Shared-component review
+
+- [ ] Framework dispatch uses common configuration; model/backend policy and its
+  tests stay with their owners. Avoid duplicated model/device selection knobs.
+- [ ] List every direct and transitive consumer of changed shared components or
+  scripts, including consumers outside the optimization's target model.
+- [ ] Map affected contracts to tests and evidence: fast/fallback paths, dtype,
+  layout, hooks, gradients and relevant encoder/decoder integration.
+- [ ] Record untested consumers or hardware as `INCONCLUSIVE`; operator or
+  component parity does not establish full-model quality or service performance.
+
 ## Anti-patterns
 
 - Floating branch names instead of pinned SHAs in claims  

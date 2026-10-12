@@ -1,0 +1,201 @@
+{
+  "kind": "Scoped human-review regression evidence; not a new performance acceptance campaign",
+  "baseline_sha": "d78d8b13e4dfe7f2cad208fa82d7ec84cdc79ea3",
+  "reviewed_sha": "d57480f5054e6c377a04225840b24e6355244dd9",
+  "fixed_sha": "b4d22ba511197f96f969dec73776acf877468c03",
+  "reviews": [
+    "https://github.com/vllm-project/vllm-omni/pull/8739#discussion_r4245652596",
+    "https://github.com/vllm-project/vllm-omni/pull/8739#discussion_r4245675241"
+  ],
+  "changes": [
+    "Removed the model/device/version-specific selection override; factory exactly matches main and uses the common explicit communication setting.",
+    "Replaced the model-specific framework qualification matrix with five generic dispatch checks.",
+    "Added 36 Wan pending-bias tests covering normal and declined-kernel paths."
+  ],
+  "environment": {
+    "component_gpu": "one NVIDIA B300",
+    "service_gpu": "four NVIDIA B300, devices 0-3",
+    "python": "3.12.3",
+    "torch": "2.13.0+cu130",
+    "vllm": "0.31.0",
+    "diffusers": "0.40.0",
+    "triton": "3.7.1",
+    "metadata_note": "Installed Omni distribution metadata remains 0.29rc; source imports explicitly pinned."
+  },
+  "cpu_suite": {
+    "passed": 228,
+    "failed": 0,
+    "files": [
+      "tests/diffusion/attention/test_parallel_attention_factory.py",
+      "tests/diffusion/attention/test_ring_backend_selection.py",
+      "tests/diffusion/distributed/test_qkv_a2a.py",
+      "tests/diffusion/distributed/test_wan_vae_fastpath_install.py",
+      "tests/diffusion/distributed/test_wan_vae_fastpath_verdicts.py",
+      "tests/diffusion/distributed/test_wan_vae_encoder_fastpath.py"
+    ]
+  },
+  "gpu_and_qwen_suite": {
+    "passed": 1161,
+    "failed": 2,
+    "skipped": 0,
+    "files": [
+      "tests/diffusion/distributed/test_wan_vae_fastpath_kernels.py",
+      "tests/diffusion/distributed/test_wan_vae_encoder_fastpath_kernels.py",
+      "tests/diffusion/models/qwen_image_21"
+    ],
+    "result": "FAIL: both failures reproduced on unchanged main; do not present this suite as entirely passing."
+  },
+  "new_pending_bias_cases": {
+    "passed": 36,
+    "included_in_gpu_suite": true
+  },
+  "failure_attribution": {
+    "base": {
+      "sha": "d78d8b13e4dfe7f2cad208fa82d7ec84cdc79ea3",
+      "returncode": 1,
+      "outputs": [
+        {
+          "nodeid": "tests/diffusion/distributed/test_wan_vae_encoder_fastpath_kernels.py::test_encoder_norm_cache_fusion_adds_no_posterior_drift[1-channels_last-dtype1]",
+          "dtype": "torch.float16",
+          "shape": [
+            1,
+            96,
+            1,
+            4,
+            6
+          ],
+          "fused_sha256": "9cfd05b0c786e3ec6712465479d43af1720db54d3d03fb8cfc6f08516f52672a",
+          "unfused_sha256": "eb20a8ba242e21eeb04130ac3c3dc2a32d56b10c45d517aef67191a7d4030ef3",
+          "max_abs_difference": 0.0006103515625
+        },
+        {
+          "nodeid": "tests/diffusion/distributed/test_wan_vae_encoder_fastpath_kernels.py::test_encoder_norm_cache_fusion_adds_no_posterior_drift[9-channels_last-dtype1]",
+          "dtype": "torch.float16",
+          "shape": [
+            1,
+            96,
+            3,
+            4,
+            6
+          ],
+          "fused_sha256": "b29cb31b15a979cb38dc365fe1665d4de2b12e32602d60768698ef73aa0c2c0d",
+          "unfused_sha256": "9058c478650949bfbad8280228019dfc63059db7a24259e14b5a2d6eb159de68",
+          "max_abs_difference": 0.0009765625
+        }
+      ]
+    },
+    "candidate": {
+      "sha": "b4d22ba511197f96f969dec73776acf877468c03",
+      "returncode": 1,
+      "outputs": [
+        {
+          "nodeid": "tests/diffusion/distributed/test_wan_vae_encoder_fastpath_kernels.py::test_encoder_norm_cache_fusion_adds_no_posterior_drift[1-channels_last-dtype1]",
+          "dtype": "torch.float16",
+          "shape": [
+            1,
+            96,
+            1,
+            4,
+            6
+          ],
+          "fused_sha256": "9cfd05b0c786e3ec6712465479d43af1720db54d3d03fb8cfc6f08516f52672a",
+          "unfused_sha256": "eb20a8ba242e21eeb04130ac3c3dc2a32d56b10c45d517aef67191a7d4030ef3",
+          "max_abs_difference": 0.0006103515625
+        },
+        {
+          "nodeid": "tests/diffusion/distributed/test_wan_vae_encoder_fastpath_kernels.py::test_encoder_norm_cache_fusion_adds_no_posterior_drift[9-channels_last-dtype1]",
+          "dtype": "torch.float16",
+          "shape": [
+            1,
+            96,
+            3,
+            4,
+            6
+          ],
+          "fused_sha256": "b29cb31b15a979cb38dc365fe1665d4de2b12e32602d60768698ef73aa0c2c0d",
+          "unfused_sha256": "9058c478650949bfbad8280228019dfc63059db7a24259e14b5a2d6eb159de68",
+          "max_abs_difference": 0.0009765625
+        }
+      ]
+    },
+    "result": "Both pre-existing failures reproduced; corresponding fused and unfused output tensors have identical byte hashes between main and candidate."
+  },
+  "omnirsi_cpu_suite": {
+    "passed": 109,
+    "failed": 0,
+    "ruff": "passed"
+  },
+  "precommit": "all applicable hooks passed on changed files",
+  "service_correctness": {
+    "default": {
+      "native_images": 4,
+      "pixel_identical": true,
+      "max_rgb_difference": 0,
+      "max_alpha_difference": 0,
+      "source_integrity": {
+        "verified": true
+      },
+      "cleanup": {
+        "status": "completed",
+        "mode": "server_session",
+        "process_group_id": 3724007,
+        "term_sent": true,
+        "kill_sent": false,
+        "remaining_pids": [],
+        "server_returncode": 0
+      },
+      "process_to_ready_s": 39.02487272198778
+    },
+    "symmem": {
+      "native_images": 4,
+      "pixel_identical": true,
+      "max_rgb_difference": 0,
+      "max_alpha_difference": 0,
+      "source_integrity": {
+        "verified": true
+      },
+      "cleanup": {
+        "status": "completed",
+        "mode": "server_session",
+        "process_group_id": 3726905,
+        "term_sent": true,
+        "kill_sent": false,
+        "remaining_pids": [],
+        "server_returncode": 0
+      },
+      "process_to_ready_s": 37.02551905403379
+    }
+  },
+  "consumer_coverage": [
+    {
+      "consumer": "Shared VAE helper / Qwen norm",
+      "tests": "Qwen model suite including production decoder norm shapes, autograd, plus full native eight-step HTTP smoke on both communication settings."
+    },
+    {
+      "consumer": "Wan decoder / Omni Wan wrapper",
+      "tests": "CPU installer and GPU decoder suites: Wan2.1 and residual/patch2 configurations, FP16/BF16/FP32, layouts/strides, hooks, gradients, norm/bias/SiLU and full small-VAE decode."
+    },
+    {
+      "consumer": "Wan encoder / fused norm-cache / installer",
+      "tests": "CPU and GPU encoder suites: posterior parity, cache history, norm-cache fusion, fallbacks, install/uninstall and hooks; two existing FP16 channels-last failures retained."
+    }
+  ],
+  "commands": {
+    "cpu": "CUDA_VISIBLE_DEVICES= OMP_NUM_THREADS=4 PYTHONPATH=. python -m pytest -q <cpu_suite.files> -rA",
+    "gpu": "CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=4 PYTHONPATH=. python -m pytest -q <gpu_and_qwen_suite.files> -rA",
+    "base_attribution": "CUDA_VISIBLE_DEVICES=0 OMP_NUM_THREADS=4 PYTHONPATH=. python -m pytest -q tests/diffusion/distributed/test_wan_vae_encoder_fastpath_kernels.py -k test_encoder_norm_cache_fusion_adds_no_posterior_drift -rA",
+    "hash_attribution": "See capture_wan.py and compare_wan.py; source paths normalized in publication copies.",
+    "service": "See smoke-plan.json and smoke/<arm>/result.json for exact server/client argv; e2e_trial.py and run_smoke.py are recorded helper copies with normalized paths."
+  },
+  "limits": [
+    "No new formal A/B latency claim; prior 30.8221% remains tied to d57480f5 and includes the explicit communication-setting change.",
+    "Small-VAE tests do not establish pretrained Wan video-generation E2E quality/performance.",
+    "H200/Hopper numerical failure remains unresolved and outside these B300 checks."
+  ],
+  "publication_note": "Paths normalized only in publication copies; original logs/manifests retained with hashes. No tests skipped, xfailed or weakened to hide baseline failures.",
+  "archive": {
+    "url": "https://github.com/david6666666/OmniRSI/releases/download/qwen21-pr8739-e2e-20261012/qwen21-pr8739-human-review-20261012.tar.gz",
+    "sha256": "ead106b75f63b6cb9483f2346714996e30746b75f90d5bd07870efaec73f8489",
+    "bytes": 17399428
+  }
+}

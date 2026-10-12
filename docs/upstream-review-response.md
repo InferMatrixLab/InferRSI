@@ -40,6 +40,48 @@ publication copies, preserving originals. Distinguish frozen historical claims
 from current-base/current-head results and configuration changes from code-only
 comparisons.
 
+## Follow-up: framework boundaries and other consumers
+
+Two further human review comments establish reusable checks:
+
+1. [Framework selection](https://github.com/vllm-project/vllm-omni/pull/8739#discussion_r4245652596):
+   use the existing common parallel configuration instead of a model, device-name
+   and runtime-version condition chain in the framework factory. Remove the
+   redundant model-specific opt-in and its qualification matrix. Keep generic
+   tests of the default path and explicit setting forwarding; place model and
+   backend policy tests beside their owners.
+2. [Other consumers](https://github.com/vllm-project/vllm-omni/pull/8739#discussion_r4245675241):
+   extracting a shared operator changes every consumer's dependency path. Search
+   direct imports and transitive callers before editing, then record a coverage
+   map and run their regressions. A successful target-model E2E run cannot stand
+   in for the other consumers' tests.
+
+For the shared VAE norm, the affected consumers are Qwen's image norm, Wan's
+decoder and encoder forwards, the Wan installer and its fused encoder norm/cache
+kernel. Validation must preserve dtype rounding, layouts, deferred convolution
+bias, optional SiLU, declined-kernel fallbacks, hooks and autograd. Full small-VAE
+encode/decode parity is stronger than an isolated norm test, but still does not
+establish pretrained video-generation E2E quality or performance on other GPUs.
+
+These checks now live in the portable RSI evidence skill, the acceptance checklist
+and the searchable `upstream-review-gates` knowledge record. Hardware or consumer
+coverage gaps remain `INCONCLUSIVE`; they must not be described as fixed by a
+different model's successful campaign.
+
+The follow-up added a 36-case Wan deferred-bias regression across FP16/BF16/FP32,
+4D/5D layouts, SiLU and forced kernel refusal. The CPU consumer suite passed
+228 tests. The combined Wan CUDA and Qwen suite passed 1161 tests and failed two
+FP16 channels-last encoder norm/cache cases. Both failures also occur on the
+unchanged main baseline; corresponding fused and unfused posterior tensors have
+identical byte hashes between baseline and candidate. They remain baseline
+failures, not a green suite or a claim that the fusion is lossless there.
+
+The [follow-up evidence](../evidence/qwen21-turbo-b300-human-review-20261012/results/summary.json)
+records the consumer-to-test map, commands, source identities and failure
+attribution. The final Qwen service check is a correctness smoke, not a new
+multi-trial latency claim. Earlier performance measurements retain their original
+source pins; Hopper and pretrained Wan video E2E remain outside this validation.
+
 ## Evidence scopes
 
 The unchanged issue3 historical campaign remains30.6009% for f69b1f2b →330d411d
