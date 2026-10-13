@@ -81,6 +81,47 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("not tool instructions", text)
         self.assertNotIn("vllm_omni.cuda", text)
 
+    def test_ascend_image_context_preserves_provenance_and_scope(self):
+        record_id = "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
+        image = search_knowledge(
+            repo="vllm_omni",
+            backend="ascend",
+            scenario="diffusion.image_generation",
+            limit=50,
+        )
+        self.assertIn(record_id, [item["id"] for item in image])
+        for backend, scenario in (
+            ("cuda", "diffusion.image_generation"),
+            ("ascend", "diffusion.video_generation"),
+        ):
+            with self.subTest(backend=backend, scenario=scenario):
+                records = search_knowledge(
+                    repo="vllm_omni", backend=backend, scenario=scenario, limit=50
+                )
+                self.assertNotIn(record_id, [item["id"] for item in records])
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            result = main(
+                [
+                    "context",
+                    "Qwen-Image-2.1",
+                    "--repo-type",
+                    "vllm_omni",
+                    "--backend",
+                    "ascend",
+                    "--scenario",
+                    "diffusion.image_generation",
+                ]
+            )
+        self.assertEqual(result, 0)
+        text = output.getvalue()
+        self.assertIn(record_id, text)
+        self.assertIn("Status: `imported`", text)
+        self.assertIn("Backend: `ascend`", text)
+        self.assertIn('"locally_verified": false', text)
+        self.assertIn("399cc01d1bc4542964d91aaa17fb43862a8cf3b3", text)
+        self.assertNotIn("Backend: `cuda`", text)
+
 
 class CLITests(unittest.TestCase):
     def setUp(self):

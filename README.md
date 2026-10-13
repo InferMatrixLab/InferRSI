@@ -38,6 +38,19 @@ Recorded local campaign: five alternating AB/BA groups, warmed repeated prompts 
 
 [Results, source pins & every iteration →](docs/qwen21-turbo-b300-phase2-results.md) · [Acceptance issue](https://github.com/ThinkFlowLab/OmniRSI/issues/3) · [Upstream PR](https://github.com/vllm-project/vllm-omni/pull/8739)
 
+### Ascend NPU: up to 22.0% reported latency reduction
+
+**Qwen-Image-2.1-Turbo · 1× Ascend 910B1 · 1280×704 · BF16 · Native 8 steps · eager**
+
+| Optimization | Mean vs 3111.5 ms baseline | Reported image validation |
+| --- | :---: | --- |
+| Conditioning reuse + interleaved RoPE | **2459.6 ms (−21.0%)** | Pixel-identical RGBA |
+| + opt-in VAE fastpath | **2425.5 ms (−22.0%)** | Quality gate passed; not pixel-identical |
+
+Author-reported means from three requests after two warmups; not independently verified by this import. **The 30% target is not met.** The B300 and NPU cohorts use separate hardware and measurement protocols.
+
+[Ascend measurements and rejected rounds →](docs/qwen21-ascend-910b-results.md) · [Upstream NPU patch](https://github.com/vllm-project/vllm-omni/pull/8729)
+
 <a id="quickstart"></a>
 
 ## 🚀 Quickstart
@@ -52,6 +65,13 @@ python -m pip install .
 # Explore tuning knowledge, then export context for your coding agent.
 omnirsi knowledge search 'MiniMax-H3' --repo-type vllm_omni --backend cuda
 omnirsi context --repo-type vllm_omni --backend cuda --output context.md
+```
+
+For Ascend image-generation context:
+
+```bash
+omnirsi context --repo-type vllm_omni --backend ascend \
+  --scenario diffusion.image_generation --output ascend-context.md
 ```
 
 Ready to measure your own model? [Connect your benchmark and quality checks →](docs/quickstart.md#real-remote-experiment)
