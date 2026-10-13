@@ -45,11 +45,12 @@ def _context(records: list[dict]) -> str:
                 "",
                 record["summary"],
                 "",
-                "Sources:",
+                "Source attribution (repository links are not measurement evidence):",
             ]
         )
         lines.extend(
             f"- {source['url']} (commit: {source.get('commit', 'not supplied')})"
+            + (f" · Authors: {', '.join(source['authors'])}" if source.get("authors") else "")
             for source in record["sources"]
         )
         boundaries = {key: record.get(key) for key in ("applicability", "verification", "claims")}

@@ -30,11 +30,9 @@ assert (
         "repo_packs",
         "vllm_omni",
         "knowledge",
-        "experiences",
         "ascend",
         "diffusion",
-        "qwen-image-21-eager-t2i",
-        "README.md",
+        "qwen-image-21-eager-t2i.json",
     )
     .is_file()
 )

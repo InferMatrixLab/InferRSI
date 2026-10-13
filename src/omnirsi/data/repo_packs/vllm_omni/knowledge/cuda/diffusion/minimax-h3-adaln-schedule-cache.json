@@ -3,7 +3,7 @@
   "title": "MiniMax-H3 exact AdaLN schedule cache: capacity benefit can exceed latency benefit",
   "backend": "cuda",
   "scenario": "diffusion.video_generation",
-  "summary": "An open PR precomputes finite-schedule AdaLN tables and can release projection weights; production-shape compiled measurements show capacity savings without a distinguishable speed gain.",
+  "summary": "A schedule-cache candidate precomputes finite-schedule AdaLN tables and can release projection weights; production-shape compiled measurements show capacity savings without a distinguishable speed gain.",
   "tags": [
     "minimax_h3",
     "adaln",
@@ -14,16 +14,8 @@
   ],
   "sources": [
     {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/5783",
-      "type": "pull_request",
-      "commit": "635215a96d3eaf6b5bac66020feae51b34daa5c9",
-      "merge_commit": null,
-      "status": "open",
-      "accessed_at": "2026-10-09"
-    },
-    {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/5783#issuecomment-5192067994",
-      "type": "pull_request",
+      "url": "https://github.com/vllm-project/vllm-omni/",
+      "type": "upstream_report",
       "commit": "635215a96d3eaf6b5bac66020feae51b34daa5c9",
       "merge_commit": null,
       "status": "open",
@@ -35,7 +27,7 @@
       "2× NVIDIA H20 98 GB for TP2; one H20 for the separately reported layerwise run"
     ],
     "software": [
-      "PR head/hardware commit 635215a96d3eaf6b5bac66020feae51b34daa5c9",
+      "Source/hardware revision 635215a96d3eaf6b5bac66020feae51b34daa5c9",
       "Python 3.12, PyTorch 2.11.0+cu128, vLLM 0.26.0, FlashAttention"
     ],
     "models": [
@@ -71,13 +63,13 @@
     "Reserve memory for cold build and schedule replacement; a lower steady footprint cannot solve an unfit first-build phase."
   ],
   "validation_plan": [
-    "Use the PR's pinned implementation or first verify an equivalent path exists in target source; it was open at import.",
+    "Use the pinned source implementation or first verify an equivalent path exists in target source; it was open at import.",
     "A/B cache off, cache retained and cache+offload with fixed workload and compile state, at least three warm repeats.",
     "Measure cold miss, same-schedule hit and changed-schedule rebuild independently; capture NVML/device and allocator peaks.",
     "Compare steady output hashes plus decoded video/audio and test layerwise/HSDP/quantized ownership separately."
   ],
   "limitations": [
-    "Source PR open; target main support is not implied.",
+    "Source candidate unmerged at import; target main support is not implied.",
     "Production-shape deltas are one-sample observations and sub-1% values do not establish statistically meaningful speed changes.",
     "H20 and specific versions/schedules only; H200/B200 or another backend needs new validation."
   ],
@@ -87,6 +79,6 @@
   "status": "imported",
   "verification": {
     "locally_verified": false,
-    "evidence_level": "open_pr"
+    "evidence_level": "upstream_reported"
   }
 }

@@ -15,12 +15,15 @@
   ],
   "sources": [
     {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/8729",
-      "type": "pull_request",
+      "url": "https://github.com/vllm-project/vllm-omni/",
+      "type": "upstream_report",
       "commit": "399cc01d1bc4542964d91aaa17fb43862a8cf3b3",
       "merge_commit": null,
       "status": "open",
-      "accessed_at": "2026-10-12"
+      "accessed_at": "2026-10-12",
+      "authors": [
+        "amy-why-3459"
+      ]
     }
   ],
   "applicability": {
@@ -96,6 +99,6 @@
   "status": "imported",
   "verification": {
     "locally_verified": false,
-    "evidence_level": "open_pr"
+    "evidence_level": "upstream_reported"
   }
 }

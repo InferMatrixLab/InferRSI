@@ -3,7 +3,7 @@
   "title": "MiniMax-H3 Ref2VA TeaCache needs task-specific calibration and step defaults",
   "backend": "cuda",
   "scenario": "diffusion.video_generation",
-  "summary": "An open Ref2VA TeaCache PR calibrates a conservative late-step budget; quality and speed depend on task/step policy, and some cases produce zero hits and no gain.",
+  "summary": "A Ref2VA TeaCache candidate calibrates a conservative late-step budget; quality and speed depend on task/step policy, and some cases produce zero hits and no gain.",
   "tags": [
     "minimax_h3",
     "ref2va",
@@ -15,24 +15,8 @@
   ],
   "sources": [
     {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/5952",
-      "type": "pull_request",
-      "commit": "f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
-      "merge_commit": null,
-      "status": "open_draft",
-      "accessed_at": "2026-10-09"
-    },
-    {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/5952#discussion_r3756706344",
-      "type": "pull_request",
-      "commit": "f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
-      "merge_commit": null,
-      "status": "open_draft",
-      "accessed_at": "2026-10-09"
-    },
-    {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/5952#issuecomment-5288600990",
-      "type": "pull_request",
+      "url": "https://github.com/vllm-project/vllm-omni/",
+      "type": "upstream_report",
       "commit": "f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
       "merge_commit": null,
       "status": "open_draft",
@@ -44,7 +28,7 @@
       "1× NVIDIA B300"
     ],
     "software": [
-      "Open PR head f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
+      "Unmerged source revision at import f86bd6ad7bfc7e6eb04df0aaacd35ec68643d6a2",
       "BF16, CUDNN_ATTN, task-specific TeaCache coefficients"
     ],
     "models": [
@@ -80,13 +64,13 @@
     "Record actual cache hits and effective step schedule, not just an enabled flag; validate custom thresholds across video and audio."
   ],
   "validation_plan": [
-    "Use the exact PR head or verify target-source task support; the PR was open/draft at import.",
+    "Use the exact source revision or verify target-source task support; the candidate was unmerged at import.",
     "Test explicit 50 steps, omitted steps, non-50 steps, task alternation and error/abort reset behavior.",
     "Same-seed A/B across multiple prompt/media types; measure video, temporal and audio metrics with an explicit acceptance threshold.",
     "Run at least three unprofiled warm repetitions and measure device/host memory separately from compute reduction."
   ],
   "limitations": [
-    "Open/draft PR; no claim of main support or OmniRSI reproduction.",
+    "Unmerged candidate at import; no claim of main support or OmniRSI reproduction.",
     "Reported quality results are a small same-seed sample set; full perception/temporal quality acceptance remains user-specific.",
     "TeaCache and Cache-DiT are separate mutually exclusive backend choices in the reviewed branch."
   ],
@@ -96,6 +80,6 @@
   "status": "imported",
   "verification": {
     "locally_verified": false,
-    "evidence_level": "open_pr"
+    "evidence_level": "upstream_reported"
   }
 }

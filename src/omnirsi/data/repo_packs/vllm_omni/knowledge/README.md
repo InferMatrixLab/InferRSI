@@ -1,44 +1,123 @@
-# vLLM-Omni diffusion knowledge
+# vLLM-Omni knowledge
 
-These are source-pinned, attributed summaries. The initial entries were imported on 2026-10-09; the Qwen-Image-2.1 910B1 entry imports the author's later NPU measurements. No upstream skill was executed and no accelerator experiment was rerun for these imports. All records remain `status=imported` with `verification.locally_verified=false`; source-reported measurements do not become local verification when imported.
+Each named JSON file is the **single source of truth** for one reusable
+experience. This README explains organization and navigation; it does not
+duplicate findings, recommendations or validation plans. The previous
+per-entry README files and generic experience.json filenames have been
+replaced by named records. Existing record IDs and CLI commands are unchanged.
 
-The authoritative guidance snapshot is [vllm-omni ee81f3300192](https://github.com/vllm-project/vllm-omni/commit/ee81f33001922f8d91dd09da0a57ee1531a8df82). PRs are pinned independently to their reviewed head, with merge status recorded as observed on the import date. Head/base/hardware-test revisions can differ; each record explains such differences.
+## Ownership and hierarchy
+
+```text
+data/
+  repo_packs/<repo>/
+    pack.json                         Repository capabilities
+    knowledge/
+      README.md                       This guide and entry links
+      common/<component>/<entry>.json Backend-independent methods
+      cuda/<component>/<entry>.json   CUDA-scoped experience
+      ascend/<component>/<entry>.json Ascend-scoped experience
+  platform_packs/<backend>/pack.json   Backend inspection and capabilities
+evidence/<campaign>/                   Frozen plans, artifacts and verdicts
+```
+
+Only directories with records are created. All current records belong to
+vllm_omni/diffusion; common means common **within that repository**, not
+globally validated across repositories. ROCm currently retrieves common
+methods only. There are no ROCm-specific optimization results in this pack.
+
+| Axis | Stored in | Meaning |
+| --- | --- | --- |
+| Repository ownership | repo directory and repo field | Prevents mixing repositories |
+| Backend scope | backend directory and backend field | common or one concrete backend |
+| Component | component directory and component field | Currently diffusion; add other components when needed |
+| Workload | scenario | Exact image/video scenario or a component wildcard |
+| Model and prerequisites | applicability and tags | Model, SKU, software, shapes, dtype and workload conditions |
+| Origin and maturity | status, sources, verification | Imported guidance/report versus locally supported evidence |
+
+A model is a field rather than another directory level: a shared method can
+apply to several models without copying records. Keep an entry ID stable.
+Add a separate record when another backend needs different prerequisites,
+failure modes or measurements; do not overwrite the original qualification.
+
+## Record contract and retrieval
+
+Every record carries its ID/title/summary, repository/backend/component/scenario,
+schema_version, import status, source attribution and explicit verification.
+Applicability, claims, recommendations, validation_plan and limitations hold
+the technical content. The loader checks path/ID/scope consistency and pinned
+source attribution before making a record available.
+
+The CLI reads JSON directly; it never parses this README or executes imported
+instructions. Repository, backend and scenario filters run before keyword
+matching and the result limit. A backend query includes that backend plus
+common methods. Scenario aliases diffusion.t2i and diffusion.t2v still work.
+Hardware/model/software conditions require inspection of applicability; they
+are not an automatic eligibility check.
+
+```bash
+omnirsi knowledge search --repo-type vllm_omni --backend ascend --scenario diffusion.t2i
+omnirsi knowledge show vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i
+omnirsi context --repo-type vllm_omni --backend cuda --scenario diffusion.image_generation
+```
+
+Human-readable context is rendered from the same JSON used by search/show,
+so there is no second per-entry document to synchronize. This entry list
+contains navigation only; tests check that every packaged record is listed.
 
 ## Entries
 
-| Backend | Entry | Evidence |
-| --- | --- | --- |
-| common | [Diffusion measurement and profiling discipline](experiences/common/diffusion/measurement-and-profiling/README.md) | guidance |
-| common | [Production diffusion integration and compatibility gates](experiences/common/diffusion/production-integration-gates/README.md) | guidance |
-| cuda | [MiniMax-H3 guarded Q/K RMSNorm and packed RoPE fusion](experiences/cuda/diffusion/minimax-h3-qk-norm-rope/README.md) | upstream_reported |
-| cuda | [MiniMax-H3 modulation fusion changes rounding and requires platform guards](experiences/cuda/diffusion/minimax-h3-fp32-modulation/README.md) | upstream_reported |
-| cuda | [MiniMax-H3 exact AdaLN schedule cache: capacity benefit can exceed latency benefit](experiences/cuda/diffusion/minimax-h3-adaln-schedule-cache/README.md) | open_pr |
-| cuda | [MiniMax-H3 Ref2VA TeaCache needs task-specific calibration and step defaults](experiences/cuda/diffusion/minimax-h3-ref2va-teacache/README.md) | open_pr |
-| cuda | [MiniMax-H3 stacked VAE tiling trades activation memory for fewer decode calls](experiences/cuda/diffusion/minimax-h3-vae-stacked-tiling/README.md) | open_pr |
-| ascend | [MiniMax-H3 SP head buckets reduce exposed All-to-All with quality still pending](experiences/ascend/diffusion/minimax-h3-sp-head-buckets/README.md) | open_pr |
-| ascend | [Qwen-Image-2.1 eager text-to-image on one 910B1](experiences/ascend/diffusion/qwen-image-21-eager-t2i/README.md) | open_pr |
-| ascend | [MiniMax-H3 reference KV reuse must balance ownership after Ulysses](experiences/ascend/diffusion/minimax-h3-reference-kv-reuse/README.md) | open_pr |
-| cuda | [MiniMax-H3 online CUDA MXFP8 is an opt-in approximate deployment lane](experiences/cuda/diffusion/minimax-h3-cuda-mxfp8/README.md) | open_pr |
+| Backend | Record |
+| --- | --- |
+| ascend | [MiniMax-H3 reference KV reuse must balance ownership after Ulysses](ascend/diffusion/minimax-h3-reference-kv-reuse.json) |
+| ascend | [MiniMax-H3 SP head buckets reduce exposed All-to-All with quality still pending](ascend/diffusion/minimax-h3-sp-head-buckets.json) |
+| ascend | [Qwen-Image-2.1 eager text-to-image on one 910B1: reuse plus interleaved RoPE, 30% not met](ascend/diffusion/qwen-image-21-eager-t2i.json) |
+| common | [Diffusion measurement and profiling discipline](common/diffusion/measurement-and-profiling.json) |
+| common | [Production diffusion integration and compatibility gates](common/diffusion/production-integration-gates.json) |
+| common | [Upstream review gates for optional acceleration and evidence ownership](common/diffusion/upstream-review-gates.json) |
+| cuda | [MiniMax-H3 exact AdaLN schedule cache: capacity benefit can exceed latency benefit](cuda/diffusion/minimax-h3-adaln-schedule-cache.json) |
+| cuda | [MiniMax-H3 online CUDA MXFP8 is an opt-in approximate deployment lane](cuda/diffusion/minimax-h3-cuda-mxfp8.json) |
+| cuda | [MiniMax-H3 modulation fusion changes rounding and requires platform guards](cuda/diffusion/minimax-h3-fp32-modulation.json) |
+| cuda | [MiniMax-H3 guarded Q/K RMSNorm and packed RoPE fusion](cuda/diffusion/minimax-h3-qk-norm-rope.json) |
+| cuda | [MiniMax-H3 Ref2VA TeaCache needs task-specific calibration and step defaults](cuda/diffusion/minimax-h3-ref2va-teacache.json) |
+| cuda | [MiniMax-H3 stacked VAE tiling trades activation memory for fewer decode calls](cuda/diffusion/minimax-h3-vae-stacked-tiling.json) |
 
-## Retrieval and promotion
+## Attribution and evidence
 
-- Match repository/backend/scenario before applying device, software, task and workload conditions.
-- The `common` entries provide measurement and production-integration methods for CUDA, ROCm and Ascend, with backend-native tooling and independent hardware qualification.
-- This first import has concrete CUDA and Ascend MiniMax-H3 cases. It contains no claimed ROCm H3 optimization result. CUDA fusion/quantization and Ascend overlap cannot be promoted to ROCm by analogy.
-- Preserve negative results: no distinguishable production-shape AdaLN speed gain, higher stacked-tiling memory, slower pre-Ulysses KV cache, zero TeaCache hits and MXFP8 loading OOM.
-- An imported/open-PR record can inform a hypothesis. Only a linked remote experiment with exact source/environment/workload, appropriate quality gates and repeatable measurements can establish a local validated experience.
-- Latency values in summaries are milliseconds; GiB/MiB and allocator versus device-residency memory are kept distinct. Small fixed-work sample counts do not establish production tail latency.
-- OmniRSI's conceptual validation levels and upstream CI levels/readiness tracks are separate taxonomies.
+Knowledge records and exported context contain no PR or review-thread links.
+Keep repository/revision/date attribution, known authors and immutable
+technical-document URLs. A repository URL plus a commit identifies the source
+context; it is **not** a link to raw measurement evidence. Review guidance is
+attributed to its reviewed source revision and remains guidance.
 
-## Additional reviewed candidates
+All current entries remain status=imported and
+verification.locally_verified=false. Evidence levels describe content:
+guidance or upstream_reported. Source merge/open status, where retained, is a
+historical observation at accessed_at; it is not a confidence level.
+Removing links and reorganizing files does not verify any performance claim.
 
-The following sources were considered but not promoted into performance records:
+Reported numbers and counterexamples retain their hardware, workload, quality
+and sampling limits. Missing raw outputs or frozen validators remain explicit.
+Campaign artifacts belong in evidence/ and run directories; knowledge stores
+the reusable lesson and its boundaries.
 
-- [#5819 static conditioning](https://github.com/vllm-project/vllm-omni/pull/5819), head `cae3cdb3c42a8604b61b89e3170278aa25168fff`: request-local projection/refiner/RoPE hoisting; CPU equivalence/call-count evidence, no full-generation latency claim.
-- [#5765 offline example](https://github.com/vllm-project/vllm-omni/pull/5765), head `86a4dd4e3106058dd2ab7137402c41efd19ef049`: Ascend warmup/profiling example, one measured 2-step generation; not production repeated performance evidence.
-- [#7470 RainFusion AllGather-KV](https://github.com/vllm-project/vllm-omni/pull/7470), head `6b9a54452c38fa14a7129aa68de4936cad8fd54e`: open/draft; only static checks reported, pytest/NPU multi-rank validation not run.
-- [#7519 E2E acceleration roadmap](https://github.com/vllm-project/vllm-omni/pull/7519), head `7ba27060000028a1ab5fc86058271e1fb9f9da29`: open/draft split plan; regression failures and no full-model E2E qualification. A collection of proposed optimizations is not a cumulative speedup.
-- [#8376 ROCm pinned host slabs](https://github.com/vllm-project/vllm-omni/pull/8376), head `4e8c4bdd2be83dddd8bae45be4b69aec1dff1bb2`: open; production offloader CI and separate diagnostic Flux2 evidence. It is not MiniMax-H3 performance/quality evidence, so it remains a future backend-wide import candidate.
-- [#7543 model/hardware recipe separation](https://github.com/vllm-project/vllm-omni/pull/7543), head `d25a11b4faae491d6b3b54e4a8052b051872d1c5`: documentation design, explicitly establishes no new hardware performance or quality results.
+## Maintaining the pack
 
-Do not interpret a roadmap, documentation change, shared platform abstraction or successful unit test as a hardware deployment qualification.
+1. Find an existing entry by topic and scope before adding a new file. Use a
+   concise slug and match its repo.backend.component.slug_with_underscores ID.
+2. Write conditions, the actionable lesson, validation steps, limitations and
+   negative results in JSON. Attribute known authors; omit PR links.
+3. Keep imported claims unverified. Local qualification requires a separate
+   frozen campaign with exact source/environment/workload and complete quality
+   and performance artifacts. CPU tests, a merged change or a source report
+   alone do not promote an entry.
+4. When new evidence narrows or contradicts a lesson, update its conditions and
+   limitations without erasing the negative result or reassigning its ID.
+   Preserve the historical campaign artifacts.
+5. Add a navigation row here, then run the catalog/CLI tests and the
+   noneditable-package resource check. No manual index of metrics is needed.
+
+Future repository-wide and backend-wide methods should stay in their owning
+packs. Introduce a cross-repository knowledge scope only when a concrete
+shared use case exists, with explicit retrieval rules and tests; do not use
+common as an implicit global inheritance mechanism.

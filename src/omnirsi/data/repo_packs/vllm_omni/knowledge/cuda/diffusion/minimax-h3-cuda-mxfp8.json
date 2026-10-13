@@ -3,7 +3,7 @@
   "title": "MiniMax-H3 online CUDA MXFP8 is an opt-in approximate deployment lane",
   "backend": "cuda",
   "scenario": "diffusion.video_generation",
-  "summary": "An open Blackwell MXFP8 PR quantizes selected DiT projections after loading/fixed-adapter fusion and preserves sensitive components; small/shared-host observations do not establish stable speed or quality equivalence.",
+  "summary": "A Blackwell MXFP8 candidate quantizes selected DiT projections after loading/fixed-adapter fusion and preserves sensitive components; small/shared-host observations do not establish stable speed or quality equivalence.",
   "tags": [
     "minimax_h3",
     "mxfp8",
@@ -15,8 +15,8 @@
   ],
   "sources": [
     {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/7988",
-      "type": "pull_request",
+      "url": "https://github.com/vllm-project/vllm-omni/",
+      "type": "upstream_report",
       "commit": "0c248c848b5dfadef7066d54cfeae1d78c898757",
       "merge_commit": null,
       "status": "open_draft",
@@ -29,7 +29,7 @@
     ],
     "software": [
       "vLLM 0.29.0 wheel overlay, PyTorch 2.13.0+cu132, Python 3.12.13, driver 580.95.05",
-      "PR head 0c248c848b5dfadef7066d54cfeae1d78c898757 based on c7cd37b61e44fb51c61212ac9a317f2be26fe638",
+      "Source revision 0c248c848b5dfadef7066d54cfeae1d78c898757 based on c7cd37b61e44fb51c61212ac9a317f2be26fe638",
       "Public PyTorch block-scaled scaled_mm; CUDA/partition capability guards"
     ],
     "models": [
@@ -75,7 +75,7 @@
     "Run broad task/prompt/resolution/media quality evaluation and trajectory metrics against a same-base control before acceptance."
   ],
   "limitations": [
-    "Open/draft PR; broad quality/performance coverage and human review remain pending.",
+    "Unmerged candidate at import; broad quality/performance coverage and human review remain pending.",
     "Reported SM12.0 hardware is not evidence for H200 or B200.",
     "Shared-host observations, one prompt and a microbenchmark do not support production speed/quality claims."
   ],
@@ -85,6 +85,6 @@
   "status": "imported",
   "verification": {
     "locally_verified": false,
-    "evidence_level": "open_pr"
+    "evidence_level": "upstream_reported"
   }
 }

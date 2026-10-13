@@ -15,42 +15,73 @@ SCENARIO_ALIASES = {
 }
 
 
-def _walk(root):
+def _walk(root, prefix=()):
     for child in sorted(root.iterdir(), key=lambda item: item.name):
+        parts = (*prefix, child.name)
         if child.is_dir():
-            yield from _walk(child)
+            yield from _walk(child, parts)
         else:
-            yield child
+            yield parts, child
+
+
+def _validate_record(record: dict, repo: str, parts: tuple[str, ...]) -> None:
+    required = ("id", "title", "repo", "backend", "component", "scenario", "status", "summary")
+    if not isinstance(record, dict) or any(
+        not isinstance(record.get(key), str) or not record[key].strip() for key in required
+    ):
+        raise ValueError(f"Incomplete knowledge record: {repo}/{'/'.join(parts)}")
+    if record.get("schema_version") != 1:
+        raise ValueError(f"Unsupported knowledge schema: {record['id']}")
+    if len(parts) != 3:
+        raise ValueError("Knowledge path must be BACKEND/COMPONENT/ENTRY.json")
+    backend, component, filename = parts
+    if backend not in (*BACKENDS, "common"):
+        raise ValueError(f"Unknown knowledge backend: {backend}")
+    if (record["repo"], record["backend"], record["component"]) != (repo, backend, component):
+        raise ValueError(f"Knowledge scope disagrees with path: {record['id']}")
+    expected_id = f"{repo}.{backend}.{component}.{filename[:-5].replace('-', '_')}"
+    if record["id"] != expected_id:
+        raise ValueError(f"Knowledge ID disagrees with path: {record['id']}")
+    if not record["scenario"].startswith(component + "."):
+        raise ValueError(f"Knowledge scenario disagrees with component: {record['id']}")
+    sources = record.get("sources")
+    if not isinstance(sources, list) or not sources:
+        raise ValueError(f"Knowledge has no source: {record['id']}")
+    for source in sources:
+        if (
+            not isinstance(source, dict)
+            or not isinstance(source.get("url"), str)
+            or not source["url"].startswith("https://")
+            or not isinstance(source.get("commit"), str)
+            or not re.fullmatch(r"[0-9a-f]{40}", source["commit"])
+        ):
+            raise ValueError(f"Knowledge requires source attribution and revision: {record['id']}")
+    verification = record.get("verification", {})
+    if not isinstance(verification, dict) or not isinstance(
+        verification.get("locally_verified"), bool
+    ):
+        raise ValueError(f"Knowledge requires an explicit verification state: {record['id']}")
+    if record["status"] == "imported" and verification["locally_verified"]:
+        raise ValueError(f"Imported knowledge must state locally_verified=false: {record['id']}")
 
 
 def knowledge_records() -> list[dict[str, Any]]:
     root = files("omnirsi").joinpath("data", "repo_packs")
     records = []
     seen = set()
-    for item in _walk(root):
-        if item.name != "experience.json":
+    for repo in REPO_TYPES:
+        knowledge = root.joinpath(repo, "knowledge")
+        if not knowledge.is_dir():
             continue
-        record = json.loads(item.read_text(encoding="utf-8"))
-        required = ("id", "title", "repo", "backend", "status", "sources", "summary")
-        if any(key not in record for key in required):
-            raise ValueError(f"Incomplete knowledge record: {item}")
-        if record["id"] in seen:
-            raise ValueError(f"Duplicate knowledge ID: {record['id']}")
-        if record["repo"] not in REPO_TYPES:
-            raise ValueError(f"Unknown knowledge repository: {record['repo']}")
-        if record["backend"] not in (*BACKENDS, "common"):
-            raise ValueError(f"Unknown knowledge backend: {record['backend']}")
-        if not record["sources"]:
-            raise ValueError(f"Knowledge has no source: {record['id']}")
-        if (
-            record["status"] == "imported"
-            and record.get("verification", {}).get("locally_verified") is not False
-        ):
-            raise ValueError(
-                f"Imported knowledge must state locally_verified=false: {record['id']}"
-            )
-        seen.add(record["id"])
-        records.append(record)
+        for parts, item in _walk(knowledge):
+            if not item.name.endswith(".json"):
+                continue
+            record = json.loads(item.read_text(encoding="utf-8"))
+            _validate_record(record, repo, parts)
+            if record["id"] in seen:
+                raise ValueError(f"Duplicate knowledge ID: {record['id']}")
+            seen.add(record["id"])
+            records.append(record)
     return records
 
 

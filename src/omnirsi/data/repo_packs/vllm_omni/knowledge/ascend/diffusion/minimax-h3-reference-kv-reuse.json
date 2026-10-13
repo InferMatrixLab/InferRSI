@@ -3,7 +3,7 @@
   "title": "MiniMax-H3 reference KV reuse must balance ownership after Ulysses",
   "backend": "ascend",
   "scenario": "diffusion.video_generation",
-  "summary": "An open reference-KV reuse PR fixes a slower pre-Ulysses prototype by caching full reference sequences per local head shard after All-to-All; reuse remains quality-sensitive and evidence is one-shot.",
+  "summary": "A reference-KV reuse candidate fixes a slower pre-Ulysses prototype by caching full reference sequences per local head shard after All-to-All; reuse remains quality-sensitive and evidence is one-shot.",
   "tags": [
     "minimax_h3",
     "ref2va",
@@ -15,8 +15,8 @@
   ],
   "sources": [
     {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/8072",
-      "type": "pull_request",
+      "url": "https://github.com/vllm-project/vllm-omni/",
+      "type": "upstream_report",
       "commit": "6de9a18572ba3211fc33f47c8e5beaea8d895e98",
       "merge_commit": null,
       "status": "open",
@@ -29,7 +29,7 @@
     ],
     "software": [
       "Hardware environment vLLM 0.28.0, vllm-omni abbreviated validation commit 85d63868",
-      "Current rebased PR head 6de9a18572ba3211fc33f47c8e5beaea8d895e98 targets vLLM 0.30 APIs; local rebase environment was incompatible"
+      "Rebased source revision at import 6de9a18572ba3211fc33f47c8e5beaea8d895e98 targets vLLM 0.30 APIs; local rebase environment was incompatible"
     ],
     "models": [
       "MiniMax-H3"
@@ -70,7 +70,7 @@
     "Compare trajectory/video/audio/temporal metrics, varied prompts/references and refresh policies before promotion."
   ],
   "limitations": [
-    "Open PR; hardware validation source differs from rebased PR head.",
+    "Unmerged candidate at import; hardware validation source differs from rebased Source revision.",
     "One-shot measurements after warmup cannot establish variance or production tail latency.",
     "Objective quality, host quantization E2E, remote reliability and cross-backend portability remain unverified."
   ],
@@ -80,6 +80,6 @@
   "status": "imported",
   "verification": {
     "locally_verified": false,
-    "evidence_level": "open_pr"
+    "evidence_level": "upstream_reported"
   }
 }

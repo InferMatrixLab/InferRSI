@@ -26,6 +26,13 @@ Use `harness/scenarios` and `model/protocols` / `model/validators` for new model
 `data/platform_packs` for hardware. Reuse the common AB/BA loop, cleanup and
 adjudication. See [extension contracts](architecture.md#where-to-extend).
 
+For knowledge, edit one named JSON record under
+`data/repo_packs/<repo>/knowledge/<backend>/<component>/` and add its navigation
+link to the pack README. Do not maintain a second per-entry Markdown summary.
+Keep IDs stable, omit PR links, retain source attribution and negative results,
+and qualify new backends independently. See the
+[knowledge maintenance guide](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
+
 ## Acceptance checklist
 
 Open an issue using the [acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml)

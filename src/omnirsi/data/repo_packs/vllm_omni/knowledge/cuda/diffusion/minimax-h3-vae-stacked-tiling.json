@@ -3,7 +3,7 @@
   "title": "MiniMax-H3 stacked VAE tiling trades activation memory for fewer decode calls",
   "backend": "cuda",
   "scenario": "diffusion.video_generation",
-  "summary": "An open stacked-tiling PR batches rank-local spatial tiles into one decoder call per temporal window; measured decode gains are exact for the reported latent but PP1 memory rises.",
+  "summary": "A stacked-tiling candidate batches rank-local spatial tiles into one decoder call per temporal window; measured decode gains are exact for the reported latent but PP1 memory rises.",
   "tags": [
     "minimax_h3",
     "vae",
@@ -14,8 +14,8 @@
   ],
   "sources": [
     {
-      "url": "https://github.com/vllm-project/vllm-omni/pull/7024",
-      "type": "pull_request",
+      "url": "https://github.com/vllm-project/vllm-omni/",
+      "type": "upstream_report",
       "commit": "b188874539903ecc04a8874b782d7d1a898d191c",
       "merge_commit": null,
       "status": "open_draft",
@@ -28,7 +28,7 @@
     ],
     "software": [
       "vLLM 0.28.0 benchmark environment",
-      "Base dff28e686711add0e929ce0c5660b09ef26c8c88 + PR head b188874539903ecc04a8874b782d7d1a898d191c",
+      "Base dff28e686711add0e929ce0c5660b09ef26c8c88 + Source revision b188874539903ecc04a8874b782d7d1a898d191c",
       "Exact decoder kernels from #6607; FP16 CUDA autocast"
     ],
     "models": [
@@ -66,7 +66,7 @@
     "Qualify PP2/PP8, smaller tile grids and OOM/fallback cases separately."
   ],
   "limitations": [
-    "Open/draft PR; branch/default/options may differ from current main.",
+    "Unmerged candidate at import; branch/default/options may differ from current main.",
     "Clean current-branch PP2/PP8 latency is reported pending.",
     "Reported exactness applies to this latent, autocast mode and decoder revision; portability is unverified."
   ],
@@ -76,6 +76,6 @@
   "status": "imported",
   "verification": {
     "locally_verified": false,
-    "evidence_level": "open_pr"
+    "evidence_level": "upstream_reported"
   }
 }

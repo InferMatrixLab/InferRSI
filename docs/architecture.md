@@ -172,17 +172,32 @@ change the AB/BA algorithm, process cleanup or evaluator.
 Package data is the canonical source for noneditable installations:
 
 ```text
-omnirsi/data/repo_packs/REPO/knowledge/experiences/BACKEND/diffusion/ENTRY/
-  experience.json      provenance, applicability, verification and claims
-  README.md            usage, validation and limitations
+omnirsi/data/repo_packs/REPO/knowledge/
+  README.md                       Organization and navigation only
+  BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
 omnirsi/data/platform_packs/BACKEND/pack.json
 ```
 
-A backend filter can retrieve common methods but cannot inherit another
-backend's validation. Imported skills are source material, not executable tool
-authority. CPU tests do not upgrade imported knowledge to a validated claim.
+JSON owns applicability, claims, recommendations, validation and limitations;
+`knowledge search`, `knowledge show` and human-readable `context` use that same
+record. Per-entry duplicate READMEs are removed. The loader validates that
+repository, backend, component and stable ID agree with the path.
+
+A backend filter includes that backend and repository-local `common` methods;
+scenario filters select exact workloads or component wildcards. Model, SKU,
+dtype and software prerequisites stay in `applicability`, not extra directory
+levels. A common method cannot inherit another backend's validation.
+
+Source attribution keeps repositories, revisions, dates and known authors;
+experience records and exported context omit PR links. Evidence levels describe
+guidance or reported measurements independently from a source's merge status.
+Imported skills are source material, not executable tool authority. CPU tests
+do not upgrade imported knowledge to a validated claim.
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
+
+See the [knowledge guide](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/README.md)
+for all entries, retrieval rules and the maintenance workflow.
 
 The earlier [component design](assets/component-architecture-en.svg) and
 [complete workflow](assets/gpu-workflow-en.svg) remain long-term references.

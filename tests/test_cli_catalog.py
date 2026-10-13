@@ -3,6 +3,7 @@
 import contextlib
 import io
 import json
+import re
 import shlex
 import subprocess
 import sys
@@ -10,6 +11,9 @@ import tempfile
 import unittest
 from pathlib import Path
 
+import pytest
+
+from omnirsi import catalog
 from omnirsi.arguments import make_spec, parser
 from omnirsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
 from omnirsi.cli import main
@@ -120,7 +124,57 @@ class CatalogTests(unittest.TestCase):
         self.assertIn("Backend: `ascend`", text)
         self.assertIn('"locally_verified": false', text)
         self.assertIn("399cc01d1bc4542964d91aaa17fb43862a8cf3b3", text)
+        self.assertIn("amy-why-3459", text)
+        self.assertNotIn("/pull/", text)
+        self.assertNotIn("open_pr", text)
         self.assertNotIn("Backend: `cuda`", text)
+
+
+def test_knowledge_has_one_canonical_record_and_complete_navigation():
+    root = PROJECT / "src/omnirsi/data/repo_packs/vllm_omni/knowledge"
+    records = knowledge_records()
+    paths = list(root.glob("*/*/*.json"))
+    assert len(records) == len(paths) == 12
+    assert list(root.rglob("*.md")) == [root / "README.md"]
+    index = (root / "README.md").read_text()
+    targets = set(re.findall(r"\]\(([^)]+\.json)\)", index))
+    assert targets == {path.relative_to(root).as_posix() for path in paths}
+    for record in records:
+        assert "/pull/" not in json.dumps(record)
+        assert record["verification"]["evidence_level"] in ("guidance", "upstream_reported")
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            assert main(["knowledge", "show", record["id"]]) == 0
+        assert json.loads(output.getvalue()) == record
+
+
+@pytest.mark.parametrize(
+    "field,value,error",
+    [
+        ("repo", "vllm", "scope disagrees"),
+        ("backend", "cuda", "scope disagrees"),
+        ("component", "audio", "scope disagrees"),
+        ("id", "different.record", "ID disagrees"),
+        ("scenario", "audio.generation", "scenario disagrees"),
+        ("sources", [], "has no source"),
+        ("verification", {"locally_verified": True}, "locally_verified=false"),
+        ("verification", {"locally_verified": "false"}, "explicit verification state"),
+    ],
+)
+def test_misfiled_or_overstated_record_cannot_leak_into_context(
+    tmp_path, monkeypatch, field, value, error
+):
+    record = get_knowledge("vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i")
+    record[field] = value
+    destination = (
+        tmp_path
+        / "data/repo_packs/vllm_omni/knowledge/ascend/diffusion/qwen-image-21-eager-t2i.json"
+    )
+    destination.parent.mkdir(parents=True)
+    destination.write_text(json.dumps(record))
+    monkeypatch.setattr(catalog, "files", lambda _: tmp_path)
+    with pytest.raises(ValueError, match=error):
+        search_knowledge(backend="cuda", scenario="diffusion.image_generation")
 
 
 class CLITests(unittest.TestCase):
