@@ -1,9 +1,7 @@
 """Local external-command runner for a prepared accelerator machine."""
 
-import hashlib
 import json
 import os
-import signal
 import subprocess
 import time
 import uuid
@@ -11,170 +9,11 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from .evaluation import evaluate, read_metric
+from .infra.artifacts import atomic_write_json as _write_json
+from .infra.processes import _stop_tree, _WindowsJob
+from .infra.targets import repository_identity
 from .reporting import write_report
 from .runspec import RunSpec
-
-
-def _write_json(path: Path, value: object) -> None:
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(
-        json.dumps(value, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8"
-    )
-    temporary.replace(path)
-
-
-def repository_identity(repo: str | Path, exclude: Path | None = None) -> dict:
-    """Fingerprint Git revision, tracked diff and nonignored untracked files."""
-    repo = Path(repo).resolve()
-    identity = {"path": str(repo), "available": False}
-
-    def git(*args: str) -> bytes:
-        result = subprocess.run(
-            ["git", "-C", str(repo), *args],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            timeout=15,
-            check=False,
-        )
-        if result.returncode:
-            raise ValueError(result.stderr.decode("utf-8", errors="replace").strip())
-        return result.stdout
-
-    try:
-        git_root = Path(os.fsdecode(git("rev-parse", "--show-toplevel")).strip()).resolve()
-        if git_root != repo:
-            raise ValueError("repo must be the root of its Git checkout")
-        head = git("rev-parse", "HEAD").decode("ascii").strip()
-        # Output roots may overlap source subdirectories. Only untracked
-        # generated artifacts can be excluded; tracked changes remain evidence.
-        diff = git("diff", "--binary", "HEAD", "--", ".")
-        untracked = []
-        for raw in git("ls-files", "--others", "--exclude-standard", "-z").split(b"\0"):
-            if not raw:
-                continue
-            name = os.fsdecode(raw)
-            path = repo / name
-            if exclude and path.absolute().is_relative_to(Path(exclude).resolve()):
-                continue
-            if path.is_symlink():
-                digest = hashlib.sha256(os.fsencode(os.readlink(path))).hexdigest()
-            else:
-                hasher = hashlib.sha256()
-                with path.open("rb") as file:
-                    for block in iter(lambda: file.read(1024 * 1024), b""):
-                        hasher.update(block)
-                digest = hasher.hexdigest()
-            untracked.append({"path": name, "sha256": digest})
-        dirty_data = {"diff_sha256": hashlib.sha256(diff).hexdigest(), "untracked": untracked}
-        dirty_hash = hashlib.sha256(json.dumps(dirty_data, sort_keys=True).encode()).hexdigest()
-        identity.update(
-            available=True,
-            head=head,
-            git_root=str(git_root),
-            dirty=bool(diff or untracked),
-            dirty_hash=dirty_hash,
-            untracked=untracked,
-            snapshot_hash=hashlib.sha256(f"{head}:{dirty_hash}".encode()).hexdigest(),
-        )
-    except (OSError, ValueError, subprocess.TimeoutExpired) as exc:
-        identity["error"] = str(exc)
-    return identity
-
-
-class _WindowsJob:
-    """A native Job Object owns descendants; taskkill may lack sandbox privileges."""
-
-    def __init__(self):
-        import ctypes
-        from ctypes import wintypes
-
-        class BasicLimits(ctypes.Structure):
-            _fields_ = [
-                ("PerProcessUserTimeLimit", ctypes.c_int64),
-                ("PerJobUserTimeLimit", ctypes.c_int64),
-                ("LimitFlags", wintypes.DWORD),
-                ("MinimumWorkingSetSize", ctypes.c_size_t),
-                ("MaximumWorkingSetSize", ctypes.c_size_t),
-                ("ActiveProcessLimit", wintypes.DWORD),
-                ("Affinity", ctypes.c_size_t),
-                ("PriorityClass", wintypes.DWORD),
-                ("SchedulingClass", wintypes.DWORD),
-            ]
-
-        class IOCounters(ctypes.Structure):
-            _fields_ = [
-                (name, ctypes.c_uint64)
-                for name in (
-                    "ReadOperationCount",
-                    "WriteOperationCount",
-                    "OtherOperationCount",
-                    "ReadTransferCount",
-                    "WriteTransferCount",
-                    "OtherTransferCount",
-                )
-            ]
-
-        class ExtendedLimits(ctypes.Structure):
-            _fields_ = [
-                ("BasicLimitInformation", BasicLimits),
-                ("IoInfo", IOCounters),
-                ("ProcessMemoryLimit", ctypes.c_size_t),
-                ("JobMemoryLimit", ctypes.c_size_t),
-                ("PeakProcessMemoryUsed", ctypes.c_size_t),
-                ("PeakJobMemoryUsed", ctypes.c_size_t),
-            ]
-
-        self.ctypes = ctypes
-        self.kernel = ctypes.WinDLL("kernel32", use_last_error=True)
-        self.kernel.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
-        self.kernel.CreateJobObjectW.restype = wintypes.HANDLE
-        self.kernel.SetInformationJobObject.argtypes = [
-            wintypes.HANDLE,
-            ctypes.c_int,
-            ctypes.c_void_p,
-            wintypes.DWORD,
-        ]
-        self.kernel.SetInformationJobObject.restype = wintypes.BOOL
-        self.kernel.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
-        self.kernel.AssignProcessToJobObject.restype = wintypes.BOOL
-        self.kernel.CloseHandle.argtypes = [wintypes.HANDLE]
-        self.kernel.CloseHandle.restype = wintypes.BOOL
-        self.handle = self.kernel.CreateJobObjectW(None, None)
-        if not self.handle:
-            raise ctypes.WinError(ctypes.get_last_error())
-        limits = ExtendedLimits()
-        limits.BasicLimitInformation.LimitFlags = 0x2000  # JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE
-        if not self.kernel.SetInformationJobObject(
-            self.handle, 9, ctypes.byref(limits), ctypes.sizeof(limits)
-        ):
-            failure = ctypes.WinError(ctypes.get_last_error())
-            self.close()
-            raise failure
-
-    def attach(self, process: subprocess.Popen) -> None:
-        process_handle = getattr(process, "_handle", None)
-        if process_handle is None:
-            raise OSError("Windows subprocess handle unavailable for Job Object supervision")
-        if not self.kernel.AssignProcessToJobObject(self.handle, int(process_handle)):
-            raise self.ctypes.WinError(self.ctypes.get_last_error())
-
-    def close(self) -> None:
-        if self.handle:
-            self.kernel.CloseHandle(self.handle)
-            self.handle = None
-
-
-def _stop_tree(process: subprocess.Popen, windows_job: _WindowsJob | None = None) -> None:
-    if windows_job is not None:
-        windows_job.close()
-    elif os.name != "nt":
-        try:
-            os.killpg(process.pid, signal.SIGKILL)
-        except ProcessLookupError:
-            pass
-    if process.poll() is None:
-        process.kill()
-    process.wait(timeout=10)
 
 
 def _execute(

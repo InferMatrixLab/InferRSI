@@ -50,9 +50,7 @@ class QwenTurboTests(unittest.TestCase):
                 patch.object(campaign, "guards", return_value={"guard": "fixed"}),
                 patch.object(campaign, "dependencies", return_value={"version": "fixed"}),
                 patch.object(campaign, "model_assets", return_value="fixed"),
-                patch.object(
-                    campaign.lifecycle, "preflight", side_effect=ValueError("CPU probe failure")
-                ),
+                patch.object(campaign, "preflight", side_effect=ValueError("CPU probe failure")),
             ):
                 campaign.run(args)
             self.assertTrue(output.is_file())
@@ -114,9 +112,7 @@ class QwenTurboTests(unittest.TestCase):
                 patch.object(campaign, "guards", return_value={"guard": "fixed"}),
                 patch.object(campaign, "dependencies", return_value={"version": "fixed"}),
                 patch.object(campaign, "model_assets", return_value="fixed"),
-                patch.object(
-                    campaign.lifecycle, "preflight", side_effect=ValueError("CPU probe failure")
-                ),
+                patch.object(campaign, "preflight", side_effect=ValueError("CPU probe failure")),
             ):
                 result = campaign.run(args)
             self.assertEqual(result["status"], "failed")

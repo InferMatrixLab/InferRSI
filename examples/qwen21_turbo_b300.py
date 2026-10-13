@@ -1,7 +1,7 @@
 """Frozen 720p-class Qwen-Image-2.1-Turbo online B300 campaign.
 
-Uses only stdlib; the sibling LTX helper supplies generic source/device/process
-ownership utilities, never LTX requests or model settings.
+Uses the stdlib OmniRSI infrastructure package for source/device/process
+ownership. New campaigns must freeze fresh helper hashes and references.
 """
 import argparse
 import ast
@@ -17,7 +17,8 @@ import sys
 import time
 import urllib.request
 
-import ltx25_b300 as lifecycle
+from omnirsi.infra import campaign as lifecycle
+from omnirsi.infra.platforms.cuda import qualify_devices
 
 MODEL = "Qwen/Qwen-Image-2.1-Turbo"
 REVISION = "d65dbc9a7e8f6b5479e33dee6030eaab2a906509"
@@ -104,7 +105,14 @@ def model_assets(model, cache):
 
 
 def guards():
-    return {p.name: lifecycle.sha256(p) for p in [Path(__file__), Path(lifecycle.__file__), Path(__file__).with_name('qwen21_turbo_quality.py')]}
+    # The frozen quality entry still imports its historical LTX utility file.
+    paths = [Path(__file__), Path(__file__).with_name('qwen21_turbo_quality.py'),
+             Path(__file__).with_name('ltx25_b300.py')]
+    return {**lifecycle.helper_hashes(), **{p.name: lifecycle.sha256(p) for p in paths}}
+
+
+def preflight():
+    return qualify_devices(count=4, device_model="B300")
 
 
 def image_request(port, item, destination, settings, timeout=900):
@@ -164,7 +172,7 @@ def run(args):
               'server_argv':argv,'samples_ms':[],'artifacts':[],'groups_ms':[],'warmup_samples_ms':[]}
     process = ownership = None
     try:
-        record['devices'] = lifecycle.preflight()
+        record['devices'] = preflight()
         with socket.socket() as probe:
             if probe.connect_ex(('127.0.0.1',args.port)) == 0:
                 raise ValueError('Port already occupied')
