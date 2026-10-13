@@ -1,0 +1,20 @@
+{
+  "purpose": "Functional modularization regression only; no new latency or hardware qualification claim",
+  "hypothesis": "Extracting request, sampling and process utilities preserves full native image outputs and artifact ownership",
+  "isolated_variable": "OmniRSI pre-refactor vs modular Qwen campaign runner",
+  "control_revision": "884ea897c768c8e75d94d4ddd2a26ba08aa21c78",
+  "candidate_revision": "da842f5361e684822bb278f1147db28ee23c0c24",
+  "engine_revision": "6550e3f626e5c38fb7bf8a487f397797447fde33",
+  "devices": "0,1,2,3",
+  "protocol": "Qwen-Image-2.1-Turbo, 1280x704, BF16, native 8 sigmas, TP1 Ulysses4, default communication, eager FA4, same model/runtime/cache",
+  "order": [
+    "legacy",
+    "modular"
+  ],
+  "requests_per_server": "6 warmups then 3 measured requests; retain first warmup and all 3 outputs",
+  "success": "Both runners complete; source/helpers/assets unchanged; owned processes cleaned; all 4 corresponding native RGBA images pixel-identical",
+  "stop": "Stop on readiness failure, source/asset/guard drift, foreign GPU process or output mismatch; no tuning/retries to improve latency",
+  "min_ssim": 1.0,
+  "min_psnr_db": 100.0,
+  "require_pixel_identity": true
+}

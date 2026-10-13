@@ -80,25 +80,26 @@ Ready to measure your own model? [Connect your benchmark and quality checks →]
 
 ## 🧩 Architecture
 
-**Profile → Optimize → Validate → Reuse.** The diagrams describe the target design; the [architecture guide](docs/architecture.md) maps it to the current implementation.
+**One experiment loop. Independent model, repository and hardware adapters.**
+The implemented [Harness × Model × Infra boundary](docs/architecture.md) keeps new
+campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
 
 <details>
-<summary><strong>Explore the component architecture</strong></summary>
+<summary><strong>See the implemented modules</strong></summary>
 
-![OmniRSI component architecture](docs/assets/component-architecture-en.svg)
-
-[Chinese original](docs/assets/component-architecture.svg)
+![Implemented module architecture](docs/assets/modular-components-en.svg)
 
 </details>
 
 <details>
-<summary><strong>Explore the complete optimization workflow</strong></summary>
+<summary><strong>Find the right directory to extend</strong></summary>
 
-![GPU inference optimization workflow](docs/assets/gpu-workflow-en.svg)
-
-[Chinese original](docs/assets/gpu-workflow.svg)
+![Module-to-directory map](docs/assets/modular-directory-map-en.svg)
 
 </details>
+
+[Extension guide and compatibility boundary →](docs/architecture.md#where-to-extend) ·
+[Original design diagrams (English / Chinese) →](docs/architecture.md#knowledge-and-evidence-ownership)
 
 <a id="docs"></a>
 

@@ -1,53 +1,190 @@
-# Architecture and first-release boundary
+# Modular architecture
 
-## Components
+The local experiment path now has concrete Harness, Model and Infra modules. The
+CLI, RunSpec, knowledge retrieval and existing command contracts remain stable.
+The diagrams below describe implemented code, with the historical compatibility
+boundary called out separately.
 
-![Component structure (English)](assets/component-architecture-en.svg)
+## Module responsibilities and dependencies
 
-[Original Chinese diagram](assets/component-architecture.svg).
+![Implemented modules and their dependencies](assets/modular-components-en.svg)
 
-The diagram is the target architecture from the reviewed plan. This first release maps its measurable slice to a few real modules rather than creating empty packages:
+| Layer | Owns | Does not own |
+| --- | --- | --- |
+| Entry and knowledge | CLI arguments, immutable RunSpec, cited knowledge/context export | Model execution or automatic source editing |
+| Harness | AB/BA order, deadlines, source checks, scenario composition, evidence, performance adjudication and reporting | Device-specific conditions, request schemas or kernel dispatch |
+| Model | Request payloads, metric schemas, output decoding and explicit quality checks | Scheduling, worker lifetime or hardware selection |
+| Infra | Repository identity, device discovery/qualification, process ownership, HTTP transport, storage and artifacts | Model constants, campaign gates or performance verdicts |
 
-| Responsibility | Initial implementation |
-| --- | --- |
-| CLI -> RunSpec | arguments.py / cli.py / contracts.py |
-| Repository/backend inspection | inspection.py and versioned descriptors |
-| Execution, local state and deadlines | execution.py and JSON evidence |
-| Independent metric/quality gates | evaluation.py |
-| Read-only knowledge retrieval and manual handoff | catalog.py / context command |
-| HTML evidence report | reporting.py |
-| Autonomous Agent/Planner, source patches, SSH executor, leases, Hub publication | Later work; not simulated |
+Dependencies flow from entrypoints to Harness, from scenarios to Model/Infra,
+and from Model to Infra utilities. Infra does not import Model or Harness. None
+of these shared packages imports a campaign from `examples/`.
 
-The local executor is suitable for installing directly on the user's prepared remote machine. Shared configuration uses CLI arguments; JSON is for immutable evidence and package metadata. Separate candidate cwd does not isolate Python imports, resource allocation or a pre-existing server; the caller prepares those explicitly.
+The caller still prepares the benchmark runtime and baseline/candidate source
+checkouts. Separate working directories alone do not isolate Python imports,
+resources or an existing server. The local executor can run directly on a
+prepared remote machine; SSH dispatch, distributed leases, automatic planning,
+patch generation and Hub publication remain future work.
 
-## Workflow
+## Directory map
 
-![Reviewed complete workflow (English)](assets/gpu-workflow-en.svg)
+![Implemented modules mapped to directories](assets/modular-directory-map-en.svg)
 
-[Original Chinese diagram](assets/gpu-workflow.svg).
+```text
+src/omnirsi/
+  cli.py, arguments.py       Existing CLI
+  runspec.py, contracts.py   Immutable experiment contract and compatibility export
+  catalog.py                Knowledge search and cited context
+  harness/
+    runner.py               One AB/BA loop; execute/snapshot adapter hooks
+    evaluation.py           Performance/quality/source-integrity adjudication
+    reporting.py            HTML evidence report
+    scenarios/
+      external.py           External benchmark/validator commands; metric-reader hook
+      media.py              Warmup seeds, first-response retention, sample/artifact groups
+  model/
+    protocols/
+      metrics.py            Finite positive dotted-key metric contract
+      image.py              OpenAI-style image payload and PNG response protocol
+    validators/
+      image.py              Explicit PNG dimensions/mode, hashes, RGB/alpha quality gates
+  infra/
+    executors/local.py      Real subprocesses and whole-run deadline
+    processes.py            Owned process groups; Windows jobs; server cleanup
+    targets/git.py          Repository identity and source snapshots
+    platforms/              Backend discovery registry; CUDA qualification
+    inspection.py           Environment inspection coordinator
+    commands.py             Bounded read-only probes
+    environment.py          Dependency versions and storage checks
+    http.py                 HTTP POST/download timing
+    artifacts.py            Hashing and evidence writes
+    campaign.py             Legacy runner utility facade; transitive helper hashes
+  data/
+    repo_packs/             Repository descriptors and versioned tuning knowledge
+    platform_packs/         Backend metadata and qualification context
+  execution.py              Compatibility entrypoint -> harness.runner
+  evaluation.py             Compatibility exports -> harness.evaluation
+  inspection.py             Compatibility entrypoint -> infra.inspection
+  reporting.py              Compatibility export -> harness.reporting
+examples/                   Campaign composition, model/revision pins, frozen validators
+benchmarks/harness/         Compatibility command entrypoints
+```
 
-The original workflow is retained as the long-term design reference. Its hardware panel illustrates the GPU lane. ROCm/Ascend have independent package-data namespaces and environment inspection, and must establish their own compatibility/evidence.
+## Where to extend
 
-The implemented path freezes the caller's external-command contract, fingerprints baseline/candidate source, measures AB/BA trials, runs explicit validation, applies gates and writes a report. Caller-supplied candidates and manual cited context bridge the planning/Agent stages; these stages are not automatically executed or falsely marked complete.
+| Add | Main extension locations | Required qualification |
+| --- | --- | --- |
+| Model or scenario | `model/protocols`, `model/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
+| Repository | `infra/targets`, a composed scenario, `data/repo_packs` | Stable source identity; command/result contract; environment isolation |
+| Hardware | `infra/platforms`, `data/platform_packs` | Device selection, process exclusivity and independent backend/model evidence |
 
-## Knowledge ownership
+The acceptance rule is: **a new model or hardware adapter must reuse the common
+AB/BA loop, process cleanup and performance adjudication.** The extension
+regression test composes a new metric schema, non-Git source adapter and backend
+probe through those interfaces while running real subprocesses. Its numbers are
+synthetic contract fixtures, not accelerator measurements.
 
-Package data is the canonical storage location:
+### Compose a new scenario
+
+`harness.runner.run_experiment(spec, environment, *, execute, snapshot)` accepts
+small callable adapters. For a new external benchmark format, reuse the standard
+executor and only replace metric interpretation:
+
+```python
+from functools import partial
+
+from omnirsi.harness.runner import run_experiment
+from omnirsi.harness.scenarios.external import execute_trial
+from omnirsi.model.protocols.metrics import read_metric
+
+
+def read_engine_metric(document, key):
+    normalized = {"metrics": {"latency_ms": float(document["duration_seconds"]) * 1000}}
+    return read_metric(normalized, key)
+
+
+run_dir = run_experiment(
+    spec,
+    environment,
+    execute=partial(execute_trial, metric_reader=read_engine_metric),
+)
+```
+
+The standard executor retains timeout, cancellation, logs, result paths and child
+cleanup. A custom `execute(command, cwd, trial_dir, deadline, metric_key)` must
+preserve that trial record contract. Prefer composing `execute_trial` over
+reimplementing process lifetime. Metric readers must preserve the finite,
+positive metric contract before returning a float.
+
+A new source adapter implements `snapshot(repo, excluded_run_dir)` and returns
+`available` plus a stable `snapshot_hash` and explanatory metadata. It must
+fingerprint relevant source, including changes between individual commands; it
+must not claim availability without a trustworthy identity. Git remains the
+default. Alternative adapters must define their own exclusion semantics.
+
+Image campaigns can compose `ImageProtocol.request` with `collect_samples`.
+The protocol receives model name, dimensions and sampling parameters from the
+campaign. The collector owns warmups, first-response retention, groups and
+artifact hashes; it accepts a request callback and file suffix, so it has no
+model/backend dispatch. The Qwen example now uses these shared modules.
+
+For new image quality checks, install `omnirsi[image]` and construct an explicit
+`ImageQualityGate` from the frozen campaign plan. No SSIM/PSNR threshold is
+selected by the shared validator. RGB and alpha are checked separately, and a
+campaign can additionally require exact pixels. Image dependencies are lazy;
+the default control package continues to require only the standard library.
+
+### Add a platform or repository
+
+Register a device probe in `infra.platforms.PLATFORM_PROBES`; supply the selected
+IDs, device model and bounded command runner. New backend names also need a
+catalog/CLI descriptor and a platform pack. Adding a device SKU within a backend
+is a parameter/configuration change. CUDA qualification takes an explicit device
+count and model; it contains no B300 or four-device default. ROCm and Ascend
+currently expose raw tool facts and require independent qualification. Discovery
+is not compatibility or performance certification.
+
+For a new repository, start with the Git target adapter if applicable, add the
+repository descriptor/knowledge pack and compose its benchmark scenario. Update
+catalog choices for a new named repository type. These registrations do not
+change the AB/BA algorithm, process cleanup or evaluator.
+
+## Compatibility and historical evidence
+
+- Existing CLI flags, root import paths, external JSON metrics, run artifacts,
+  cancellation handling and report generation are retained.
+- `examples/qwen21_turbo_b300.py` retains its command interface and campaign
+  settings while delegating lifecycle, requests and sampling to shared modules.
+- Historical `ltx25_quality.py`, `qwen21_turbo_quality.py` and
+  `qwen21_turbo_validation_adapter.py` remain byte-for-byte unchanged. Their
+  transitive historical `ltx25_b300.py` helper is also retained. That frozen
+  validator dependency is the intentional legacy exception; new shared code
+  does not import it.
+- The refactored Qwen runner hashes every Python module in the installed control
+  package, as well as its historical quality helper dependencies. A changed
+  implementation **requires fresh frozen references for a new campaign**. Do
+  not combine a new runner with an old guard-hash manifest or rewrite previous
+  evidence to make it pass. Replay historical campaigns with their original
+  frozen runner/validator bundle.
+
+## Knowledge and evidence ownership
+
+Package data is the canonical source for noneditable installations:
 
 ```text
 omnirsi/data/repo_packs/REPO/knowledge/experiences/BACKEND/diffusion/ENTRY/
-  experience.json      source, scope, applicability, verification, claims
-  README.md            how to use, remote validation, limitations
+  experience.json      provenance, applicability, verification and claims
+  README.md            usage, validation and limitations
 omnirsi/data/platform_packs/BACKEND/pack.json
 ```
 
-General guidance uses `diffusion.*`; concrete cases retain image/video task scope. A ROCm filter can retrieve common methods but cannot inherit a CUDA or Ascend case. SKU, software, model and workload constraints remain in the handoff and require manual qualification.
+A backend filter can retrieve common methods but cannot inherit another
+backend's validation. Imported skills are source material, not executable tool
+authority. CPU tests do not upgrade imported knowledge to a validated claim.
+Run evidence remains in the caller-selected run directory; frozen campaign
+plans/results/patches/validators remain under `evidence/`.
 
-Imported skills are source material, not executable tool authority. All seeded records remain imported; the CLI does not change them to validated based on unrelated tests.
-
-## Decisions
-
-- A standard-library control package keeps CPU development independent of large engine environments.
-- External command adapters preserve existing benchmarks without duplicating engine internals. The cost is caller-owned launch/quality protocols and environment fairness.
-- Local JSON evidence is sufficient for one serial experiment. Distributed leases, durable recovery and a multi-user state store require a later design.
-- Bundled canonical knowledge makes a noneditable wheel usable without a source checkout. References use pinned source commits and PR states; live upstream changes require a new import/review.
+The earlier [component design](assets/component-architecture-en.svg) and
+[complete workflow](assets/gpu-workflow-en.svg) remain long-term references.
+Their [Chinese component](assets/component-architecture.svg) and
+[Chinese workflow](assets/gpu-workflow.svg) originals are preserved.

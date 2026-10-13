@@ -1,0 +1,433 @@
+{
+  "scope": "Functional modularization regression only; no new latency or hardware qualification claim",
+  "control_revision": "884ea897c768c8e75d94d4ddd2a26ba08aa21c78",
+  "candidate_revision": "da842f5361e684822bb278f1147db28ee23c0c24",
+  "engine_revision": "6550e3f626e5c38fb7bf8a487f397797447fde33",
+  "protocol_sha256": "0683ed65858a90bc3ca78521f43777a4ec08ae316d78c1137671a8290db99b04",
+  "protocol": {
+    "model": "Qwen/Qwen-Image-2.1-Turbo",
+    "model_revision": "d65dbc9a7e8f6b5479e33dee6030eaab2a906509",
+    "width": 1280,
+    "height": 704,
+    "dtype": "bfloat16",
+    "true_cfg_scale": 1.0,
+    "sigmas": [
+      1.0,
+      0.978453,
+      0.95418,
+      0.926626,
+      0.89508,
+      0.845148,
+      0.704534,
+      0.414568
+    ],
+    "attention_backend": "FLASH_ATTN",
+    "prefix_kv_cache": "checkpoint_default_native",
+    "compile_policy": "enforce_eager",
+    "codec": "PNG",
+    "response_format": "b64_json",
+    "concurrency": 1,
+    "pixel_mode": "RGBA",
+    "output_compression": 100,
+    "prompts": [
+      {
+        "id": "prompt-000-seed-42",
+        "prompt": "A photorealistic red fox standing in a snowy forest at dawn, detailed fur, soft sunlight, a wide landscape composition.",
+        "seed": 42
+      },
+      {
+        "id": "prompt-001-seed-43",
+        "prompt": "A clean product photograph of a blue ceramic teapot and two white cups on a wooden table, natural window lighting.",
+        "seed": 43
+      },
+      {
+        "id": "prompt-002-seed-44",
+        "prompt": "A colorful travel poster of a rocky ocean coast at sunset with the exact headline \"OCEAN JOURNEY\", readable typography.",
+        "seed": 44
+      }
+    ],
+    "warmup_seeds": [
+      [
+        10042,
+        10043,
+        10044
+      ],
+      [
+        11042,
+        11043,
+        11044
+      ]
+    ],
+    "timing": "POST until complete HTTP JSON response downloaded; PNG decode/write outside timer",
+    "conditioning_scope": "Repeated prompts with new seeds; deterministic conditioning reuse allowed; final-image reuse forbidden"
+  },
+  "runs": {
+    "legacy": {
+      "status": "completed",
+      "process_to_ready_s": 38.026915704016574,
+      "metrics": {
+        "latency_ms": 276.1043736245483
+      },
+      "warmup_samples_ms": [
+        {
+          "prompt": "A photorealistic red fox standing in a snowy forest at dawn, detailed fur, soft sunlight, a wide landscape composition.",
+          "seed": 10042,
+          "latency_ms": 341.6591170243919
+        },
+        {
+          "prompt": "A clean product photograph of a blue ceramic teapot and two white cups on a wooden table, natural window lighting.",
+          "seed": 10043,
+          "latency_ms": 301.5936480369419
+        },
+        {
+          "prompt": "A colorful travel poster of a rocky ocean coast at sunset with the exact headline \"OCEAN JOURNEY\", readable typography.",
+          "seed": 10044,
+          "latency_ms": 302.6113109663129
+        },
+        {
+          "prompt": "A photorealistic red fox standing in a snowy forest at dawn, detailed fur, soft sunlight, a wide landscape composition.",
+          "seed": 11042,
+          "latency_ms": 276.6988129587844
+        },
+        {
+          "prompt": "A clean product photograph of a blue ceramic teapot and two white cups on a wooden table, natural window lighting.",
+          "seed": 11043,
+          "latency_ms": 274.9379751039669
+        },
+        {
+          "prompt": "A colorful travel poster of a rocky ocean coast at sunset with the exact headline \"OCEAN JOURNEY\", readable typography.",
+          "seed": 11044,
+          "latency_ms": 277.12517394684255
+        }
+      ],
+      "samples_ms": [
+        {
+          "group": 1,
+          "id": "prompt-000-seed-42",
+          "latency_ms": 277.00797701254487
+        },
+        {
+          "group": 1,
+          "id": "prompt-001-seed-43",
+          "latency_ms": 273.5423599369824
+        },
+        {
+          "group": 1,
+          "id": "prompt-002-seed-44",
+          "latency_ms": 277.7627839241177
+        }
+      ],
+      "source_integrity": {
+        "verified": true
+      },
+      "server_cleanup": {
+        "status": "completed",
+        "mode": "server_session",
+        "process_group_id": 2996365,
+        "term_sent": true,
+        "kill_sent": false,
+        "remaining_pids": [],
+        "server_returncode": 0
+      },
+      "final_integrity_checks": {
+        "source": {
+          "verified": true
+        },
+        "protected_sources": {
+          "verified": true
+        },
+        "guards": {
+          "verified": true
+        },
+        "dependencies": {
+          "verified": true
+        },
+        "model_assets": {
+          "verified": true
+        }
+      },
+      "guard_hashes": {
+        "qwen21_turbo_b300.py": "4c7189d3c2fec45a186ce986a4a00e2dc63cac301943ce434239d6529b7bd854",
+        "ltx25_b300.py": "91b84385a2bc4fcf55363bde47de8a95f6219c5f4f383d47554b9b94bb737573",
+        "qwen21_turbo_quality.py": "57fe0e3b0884bfd49e21cc128e06ea7c9bbf7dc969cde494d68bb75d295b92ba"
+      },
+      "dependency_versions": {
+        "torch": "2.13.0",
+        "vllm": "0.31.0",
+        "diffusers": "0.40.0",
+        "transformers": "5.14.1",
+        "triton": "3.7.1",
+        "nvidia-cuda-runtime-cu12": "not_installed",
+        "nvidia-cuda-runtime-cu13": "not_installed",
+        "nvidia-cudnn-cu12": "not_installed",
+        "nvidia-cudnn-cu13": "9.20.0.48",
+        "nvidia-nccl-cu12": "not_installed",
+        "nvidia-nccl-cu13": "2.29.7",
+        "flashinfer-python": "0.7.0.post1",
+        "Pillow": "12.3.0",
+        "numpy": "2.3.5",
+        "scikit-image": "0.26.0",
+        "flash-attn-4": "4.0.0b18",
+        "nvidia-cutlass-dsl": "4.7.1",
+        "kernels": "0.16.1"
+      },
+      "result_sha256": "fa0ce65399e968b181657a0415eb25d5ab0959a676dd6e2fe1e224f652a93e22"
+    },
+    "modular": {
+      "status": "completed",
+      "process_to_ready_s": 40.022939760936424,
+      "metrics": {
+        "latency_ms": 276.46250335965306
+      },
+      "warmup_samples_ms": [
+        {
+          "prompt": "A photorealistic red fox standing in a snowy forest at dawn, detailed fur, soft sunlight, a wide landscape composition.",
+          "seed": 10042,
+          "latency_ms": 346.4563899906352
+        },
+        {
+          "prompt": "A clean product photograph of a blue ceramic teapot and two white cups on a wooden table, natural window lighting.",
+          "seed": 10043,
+          "latency_ms": 296.67809791862965
+        },
+        {
+          "prompt": "A colorful travel poster of a rocky ocean coast at sunset with the exact headline \"OCEAN JOURNEY\", readable typography.",
+          "seed": 10044,
+          "latency_ms": 304.5604840153828
+        },
+        {
+          "prompt": "A photorealistic red fox standing in a snowy forest at dawn, detailed fur, soft sunlight, a wide landscape composition.",
+          "seed": 11042,
+          "latency_ms": 277.2866220911965
+        },
+        {
+          "prompt": "A clean product photograph of a blue ceramic teapot and two white cups on a wooden table, natural window lighting.",
+          "seed": 11043,
+          "latency_ms": 275.66876995842904
+        },
+        {
+          "prompt": "A colorful travel poster of a rocky ocean coast at sunset with the exact headline \"OCEAN JOURNEY\", readable typography.",
+          "seed": 11044,
+          "latency_ms": 276.7691609915346
+        }
+      ],
+      "samples_ms": [
+        {
+          "group": 1,
+          "id": "prompt-000-seed-42",
+          "latency_ms": 278.32504303660244
+        },
+        {
+          "group": 1,
+          "id": "prompt-001-seed-43",
+          "latency_ms": 273.856254061684
+        },
+        {
+          "group": 1,
+          "id": "prompt-002-seed-44",
+          "latency_ms": 277.2062129806727
+        }
+      ],
+      "source_integrity": {
+        "verified": true
+      },
+      "server_cleanup": {
+        "status": "completed",
+        "mode": "server_session",
+        "process_group_id": 2999090,
+        "term_sent": true,
+        "kill_sent": false,
+        "remaining_pids": [],
+        "server_returncode": 0
+      },
+      "final_integrity_checks": {
+        "source": {
+          "verified": true
+        },
+        "protected_sources": {
+          "verified": true
+        },
+        "guards": {
+          "verified": true
+        },
+        "dependencies": {
+          "verified": true
+        },
+        "model_assets": {
+          "verified": true
+        }
+      },
+      "guard_hashes": {
+        "omnirsi/__init__.py": "7b643386101f6a496a5c086f60ccc8e02d9cd3e5375f73b10758ff061d8128b4",
+        "omnirsi/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+        "omnirsi/arguments.py": "9f928df6c1010b811496fbe3c5a89d8ba62fa04617dd0fec9c45ebafe91664ae",
+        "omnirsi/catalog.py": "6d7006911a3f42ae5d9b8d2cd4af16758bfc97bbbf5cf54fd3755616ebcaeb7b",
+        "omnirsi/claim.py": "5f24c4fa91b48f0bb4d4554531607763fc8fc108e90f332816f06cfb520b5cc1",
+        "omnirsi/cli.py": "1265f1af4c49a69d0799c74795f260c1fbd4f9348d02372b0057a68ce72d7db1",
+        "omnirsi/contracts.py": "03000cb9246ce8c0967147533f7ad25df918ba2674839801453ffb870f496490",
+        "omnirsi/evaluation.py": "482c40710d428206c59fe3696703248cd86c4b3c7d19ad41017c1369bd6d780e",
+        "omnirsi/evidence_paths.py": "cc46231e0b8334ef5742defdda20e0093e22b30c86af59df1fb3ae4b5caa70fa",
+        "omnirsi/execution.py": "f43d8cbb4d43a72a7ff8a10b29a5fb9cf4cb22af54dd35943283c843fba0da92",
+        "omnirsi/harness/__init__.py": "81e7b86e083a6e35a456fe6098b7fcc123bbdd29ff6b762aaa6cffd46d9670eb",
+        "omnirsi/harness/evaluation.py": "b19bc0d3a9f50b6e8e789e7b2030f6883c8150337707cfebe4cd579af08804d2",
+        "omnirsi/harness/reporting.py": "14ea1fe7eec1b359592392e86ead904810153cceaa56ec984247616831d338d9",
+        "omnirsi/harness/runner.py": "46c082f82f3b893ad8e50689ff4ba9c7d3b438d28ff896a275bb222876bbedda",
+        "omnirsi/harness/scenarios/__init__.py": "4e97913c806077f0cadfeb29d986d2fa75b55ab8766cb86e6e3e9a195a9a1f5a",
+        "omnirsi/harness/scenarios/external.py": "84d5f6920501a9d882cc4fffbc721d2051fdbf7c90694bde9cbfba3c2b866304",
+        "omnirsi/harness/scenarios/media.py": "67d979a3ed6f13a8e3e1e40a304f78e5a3e6c2556b3aa8a11c41156745d7050a",
+        "omnirsi/infra/__init__.py": "8779897733779266841b0f79b84b1dc43f0fa57c013855c906c809829ecfc77c",
+        "omnirsi/infra/artifacts.py": "e72e1bebdbb88e42de430238489252386851f9e6645ed7780f2aad2e90338120",
+        "omnirsi/infra/campaign.py": "457a2a3954c40c347c7d5a6c853785113b1747605da45b14f9b5ed6e60252494",
+        "omnirsi/infra/commands.py": "1890f115b3a2c5c6832173bf60432ad595bd6bf1c69783ecd460c6f8961194f1",
+        "omnirsi/infra/environment.py": "60e46c2aefc216db202b41f44542e7b893e08e0721c667b9ccc50411d1ac84ee",
+        "omnirsi/infra/executors/__init__.py": "327c3cd5c821c832ff260a41dba0ee1e439cdabefc9edfb9cad1cd38d14bc87a",
+        "omnirsi/infra/executors/local.py": "fdee4db7eb903ad3b16fcec30fd812b4f9e49c8fc4b05487a574156925cf1f64",
+        "omnirsi/infra/http.py": "f65d6c2b55b6a89694caaf6dcdf7d74f417e9ced103eca1b3f218e305c6b6cb2",
+        "omnirsi/infra/inspection.py": "d857d604d3fcb5d861e916e39eb4f83af439042ca31abe350a655fa43b6dce5a",
+        "omnirsi/infra/platforms/__init__.py": "40b6783796ed066e1e4ce75a0bd9464ee01d0e024550c49f34f1f37f99ac5bd7",
+        "omnirsi/infra/platforms/cuda.py": "9e0e4276e1b2984605493b14b82fba3e86f6635204719c318302e624f66f8b6f",
+        "omnirsi/infra/processes.py": "93955ae7a28a5fe8c82cbc748198d6d70a4c1d8f898ac759d643c508bf53bfcc",
+        "omnirsi/infra/targets/__init__.py": "1f3ea75dded7c6cc967754c7b6d4f30ef00da8191a749938aabc3c6bb8f86eb3",
+        "omnirsi/infra/targets/git.py": "6327c4f126086f310b6de309fc7659c9759da28ed76efaeeb94a3d2fba29a0c2",
+        "omnirsi/inspection.py": "afa44bf4cdfbb58a318c21f9b292ca142d1bbb22750e35a4cc8244da5350ebb3",
+        "omnirsi/model/__init__.py": "3c1dba4f5159fd9fbc8d4d96e2a83c8441491c1b1dc7b42031a3fc1782ed9d9f",
+        "omnirsi/model/protocols/__init__.py": "5a2f54483b164de04e309dbebb87a700b213682b0f44a50d89a752dd71a4ce47",
+        "omnirsi/model/protocols/image.py": "251a1f8f885da2cd8e9d3baba766c525afe293091606b4e8668c43ba2cb7cb5f",
+        "omnirsi/model/protocols/metrics.py": "17db16d6ef15b41fb60d8f09507893accc43f9cb3ad686b8dc4e9839713ebc56",
+        "omnirsi/model/validators/__init__.py": "1d4b6ffa968e283219ddcc8a09de9280238a8d65ae2dc8cd2b60889877a8eb0b",
+        "omnirsi/model/validators/image.py": "79470b6b06a22d53ec6c40636a0b3d821a2e6ee2f7bb7aed3dac7241504add1a",
+        "omnirsi/reporting.py": "1f771890ab3e69b1aa9246b548a7825596bdf904f6c395dd218208084266853d",
+        "omnirsi/runspec.py": "dca0952425caf42095ef0c7e2feb8ef4740cc422ecb61e777f203962d9b87709",
+        "qwen21_turbo_b300.py": "0b51d63d5eff84ac6604d59c228c2dde394fb2667db97ffd9546bcb9955c119d",
+        "qwen21_turbo_quality.py": "57fe0e3b0884bfd49e21cc128e06ea7c9bbf7dc969cde494d68bb75d295b92ba",
+        "ltx25_b300.py": "91b84385a2bc4fcf55363bde47de8a95f6219c5f4f383d47554b9b94bb737573"
+      },
+      "dependency_versions": {
+        "torch": "2.13.0",
+        "vllm": "0.31.0",
+        "diffusers": "0.40.0",
+        "transformers": "5.14.1",
+        "triton": "3.7.1",
+        "nvidia-cuda-runtime-cu12": "not_installed",
+        "nvidia-cuda-runtime-cu13": "not_installed",
+        "nvidia-cudnn-cu12": "not_installed",
+        "nvidia-cudnn-cu13": "9.20.0.48",
+        "nvidia-nccl-cu12": "not_installed",
+        "nvidia-nccl-cu13": "2.29.7",
+        "flashinfer-python": "0.7.0.post1",
+        "Pillow": "12.3.0",
+        "numpy": "2.3.5",
+        "scikit-image": "0.26.0",
+        "flash-attn-4": "4.0.0b18",
+        "nvidia-cutlass-dsl": "4.7.1",
+        "kernels": "0.16.1"
+      },
+      "result_sha256": "e3f7cd27c58c92e24205ea592ffc7529efcc03828efc54575279bd5c9cb8da27"
+    }
+  },
+  "comparisons": [
+    {
+      "id": "first-request",
+      "reference_sha256": "c678383fbca3ceb50890baffb53039dbaddd4bc9cf6818d2219e84e9fbd1873f",
+      "candidate_sha256": "c678383fbca3ceb50890baffb53039dbaddd4bc9cf6818d2219e84e9fbd1873f",
+      "verdict": "PASS",
+      "channels": [
+        {
+          "channel": "rgb",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        },
+        {
+          "channel": "alpha",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        }
+      ],
+      "pixel_identical": true
+    },
+    {
+      "id": "prompt-000-seed-42",
+      "reference_sha256": "8bbc2fce9cecb6b170c598c5d0cbeff5e24de40bc4c681a0585c5bdb02152515",
+      "candidate_sha256": "8bbc2fce9cecb6b170c598c5d0cbeff5e24de40bc4c681a0585c5bdb02152515",
+      "verdict": "PASS",
+      "channels": [
+        {
+          "channel": "rgb",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        },
+        {
+          "channel": "alpha",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        }
+      ],
+      "pixel_identical": true
+    },
+    {
+      "id": "prompt-001-seed-43",
+      "reference_sha256": "b0e104ab4ae8ef73dcc76d52f09b09823d23df0ae5f7365b74c39a4dc94759ef",
+      "candidate_sha256": "b0e104ab4ae8ef73dcc76d52f09b09823d23df0ae5f7365b74c39a4dc94759ef",
+      "verdict": "PASS",
+      "channels": [
+        {
+          "channel": "rgb",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        },
+        {
+          "channel": "alpha",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        }
+      ],
+      "pixel_identical": true
+    },
+    {
+      "id": "prompt-002-seed-44",
+      "reference_sha256": "32f9bf14ee5430b5f0cd483b75dd3033d06e20d2df3b9f5c4b021d017a7a02bd",
+      "candidate_sha256": "32f9bf14ee5430b5f0cd483b75dd3033d06e20d2df3b9f5c4b021d017a7a02bd",
+      "verdict": "PASS",
+      "channels": [
+        {
+          "channel": "rgb",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        },
+        {
+          "channel": "alpha",
+          "ssim": 1.0,
+          "psnr_db": "inf",
+          "pixel_identical": true,
+          "max_abs_diff": 0.0,
+          "passed": true
+        }
+      ],
+      "pixel_identical": true
+    }
+  ],
+  "functional_verdict": "PASS",
+  "comparison_pairs": 4,
+  "latency_claim": "None: one functional run per runner, no formal performance inference"
+}
