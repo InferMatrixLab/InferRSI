@@ -152,8 +152,8 @@ class CLITests(unittest.TestCase):
             capture_output=True,
         )
         self.output_dir = self.root / "evidence"
-        benchmark = PROJECT / "examples/synthetic_benchmark.py"
-        validation = PROJECT / "examples/synthetic_validation.py"
+        benchmark = PROJECT / "tests/fixtures/synthetic_benchmark.py"
+        validation = PROJECT / "tests/fixtures/synthetic_validation.py"
         self.arguments = [
             "run",
             "--repo",

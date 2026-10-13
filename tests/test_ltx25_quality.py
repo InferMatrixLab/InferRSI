@@ -16,7 +16,7 @@ from contextlib import redirect_stdout
 from pathlib import Path
 from unittest.mock import patch
 
-SCRIPT = Path(__file__).resolve().parents[1] / "examples" / "ltx25_quality.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "legacy" / "ltx25_quality.py"
 SPEC = importlib.util.spec_from_file_location("ltx25_quality", SCRIPT)
 quality = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(quality)

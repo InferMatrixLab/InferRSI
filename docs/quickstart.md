@@ -14,7 +14,9 @@ omnirsi --help
 omnirsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
-Continue below to connect your own benchmark and quality checks.
+For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
+and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
+benchmark/quality command contract; set the acceptance threshold from your plan.
 
 ## The actual configuration interface
 
@@ -55,14 +57,14 @@ Existing vLLM-Omni diffusion benchmark JSON can be used directly with `--metric-
 ```bash
 omnirsi plan \
   --repo /work/vllm-omni-baseline --candidate-repo /work/vllm-omni-candidate \
-  --repo-type vllm_omni --backend cuda --device-ids 0,1 --device-model H200 \
-  --python /envs/baseline/bin/python --scenario diffusion.video_generation \
-  --model /models/MODEL --model-revision MODEL_SHA --workload-id FIXED_WORKLOAD_SHA \
+  --repo-type vllm_omni --backend cuda --device-ids 0,1,2,3 --device-model B300 \
+  --python /envs/baseline/bin/python --scenario diffusion.image_generation \
+  --model Qwen/Qwen-Image-2.1-Turbo --model-revision MODEL_SHA --workload-id FIXED_WORKLOAD_SHA \
   --baseline-command '/envs/baseline/bin/python /work/trials/baseline.py --output {result}' \
   --candidate-command '/envs/candidate/bin/python /work/trials/candidate.py --output {result}' \
   --validation-command '/envs/candidate/bin/python /work/trials/validate_quality.py' \
   --metric-key latency_mean --metric-unit s --comparison-scope http_e2e \
-  --direction minimize --repetitions 3 --min-improvement-pct 3 \
+  --direction minimize --repetitions 3 --min-improvement-pct "${TARGET_REDUCTION_PCT:?set from the frozen acceptance plan}" \
   --max-minutes 120 --output-dir /work/omnirsi-runs
 ```
 
@@ -92,8 +94,9 @@ A trial script can read `OMNIRSI_RESULT_PATH` when it constructs the native `--o
 ```bash
 omnirsi status --run-id RUN_ID --output-dir /work/omnirsi-runs
 omnirsi report --run-id RUN_ID --output-dir /work/omnirsi-runs
-omnirsi knowledge search 'MiniMax-H3' --repo-type vllm_omni --backend cuda
-omnirsi context 'MiniMax-H3' --repo-type vllm_omni --backend cuda --output /work/h3-context.md
+omnirsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
+omnirsi context --repo-type vllm_omni --backend cuda \
+  --scenario diffusion.image_generation --output /work/image-context.md
 ```
 
 Read `report.html`, execution logs, per-trial `source.json`, `source_checks.json`, validation logs and raw results. Retain committed source revisions or dirty source files/patches separately. Ctrl-C records cancellation and cleans owned child jobs; there is no `cancel` or `resume` subcommand in this first release.

@@ -20,7 +20,7 @@ Use when positioning a new RSI repo—not to replace acceptance evidence.
 
 - No numeric comparisons unless sourced from **our** `evidence/.../results/` with `PASS`.  
 - Label third-party numbers **unverified** if not reproduced under our RunSpec.  
-- Point readers to [docs/positioning.md](../../docs/positioning.md) for fill-in narrative.  
+- Use the [evidence and claim rules](../../docs/contributing.md#evidence-and-claims) when writing a comparison.
 
 ## Deliverable
 

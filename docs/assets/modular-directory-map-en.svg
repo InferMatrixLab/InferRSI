@@ -40,6 +40,7 @@
 <text x="700" y="717" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">data/platform_packs/ Backend descriptors</text>
 <text x="700" y="746" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1"></text>
 <text x="700" y="775" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">examples/           Campaign composition</text>
+<text x="700" y="804" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" fill="#91a8c4">tests/fixtures/legacy/  Frozen compatibility tests</text>
 <rect x="48" y="883" width="1224" height="116" rx="18" fill="#152c2a" stroke="#3e927f"/>
 <text x="72" y="918" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#69dfc4">ADD A MODEL</text>
 <text x="466" y="918" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="16" font-weight="700" fill="#77cafa">ADD A REPOSITORY</text>

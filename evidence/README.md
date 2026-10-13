@@ -1,6 +1,6 @@
 # Evidence tree
 
-First-class paths for every campaign (see [repo-template.md](../docs/repo-template.md) § Architecture).
+First-class paths for every campaign (see [contribution guide](../docs/contributing.md#evidence-and-claims)).
 
 | Segment | Purpose |
 | --- | --- |

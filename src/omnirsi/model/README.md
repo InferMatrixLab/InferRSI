@@ -5,6 +5,7 @@ quality checks with explicit campaign-supplied gates. The image validator's
 optional dependencies are available through `omnirsi[image]`.
 
 Model/revision pins and numeric acceptance gates stay in campaign plans. Frozen
-historical validators remain in `examples/`; new modules serve new campaigns.
+historical snapshots remain in `tests/fixtures/legacy/`; current examples and
+new modules serve new campaigns.
 
 See [the architecture and compatibility boundary](../../../docs/architecture.md).

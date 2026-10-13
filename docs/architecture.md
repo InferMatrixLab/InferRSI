@@ -66,7 +66,8 @@ src/omnirsi/
   evaluation.py             Compatibility exports -> harness.evaluation
   inspection.py             Compatibility entrypoint -> infra.inspection
   reporting.py              Compatibility export -> harness.reporting
-examples/                   Campaign composition, model/revision pins, frozen validators
+examples/                   Current Qwen runner, image validator and v4 adapter
+tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 benchmarks/harness/         Compatibility command entrypoints
 ```
 
@@ -155,17 +156,16 @@ change the AB/BA algorithm, process cleanup or evaluator.
   cancellation handling and report generation are retained.
 - `examples/qwen21_turbo_b300.py` retains its command interface and campaign
   settings while delegating lifecycle, requests and sampling to shared modules.
-- Historical `ltx25_quality.py`, `qwen21_turbo_quality.py` and
-  `qwen21_turbo_validation_adapter.py` remain byte-for-byte unchanged. Their
-  transitive historical `ltx25_b300.py` helper is also retained. That frozen
-  validator dependency is the intentional legacy exception; new shared code
-  does not import it.
-- The refactored Qwen runner hashes every Python module in the installed control
-  package, as well as its historical quality helper dependencies. A changed
-  implementation **requires fresh frozen references for a new campaign**. Do
-  not combine a new runner with an old guard-hash manifest or rewrite previous
-  evidence to make it pass. Replay historical campaigns with their original
-  frozen runner/validator bundle.
+- The LTX helper and quality script, plus the pre-cleanup Qwen quality script,
+  are preserved byte-for-byte under `tests/fixtures/legacy/` for historical
+  regression tests. The current Qwen quality entrypoint imports the same shared
+  artifact utilities directly; its numerical and manifest checks are unchanged.
+  Current examples no longer depend on LTX campaign code.
+- The Qwen runner hashes every Python module in the installed control package
+  plus its current runner and quality entrypoints. A changed implementation
+  **requires fresh frozen references for a new campaign**. Do not combine a new
+  runner with an old guard-hash manifest or rewrite previous evidence to make
+  it pass. Replay historical campaigns with their original source-pinned bundle.
 
 ## Knowledge and evidence ownership
 

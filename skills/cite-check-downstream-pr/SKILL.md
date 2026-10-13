@@ -24,4 +24,4 @@ Use when reviewing external PRs that claim performance or quality improvements t
 
 ## Reference
 
-[docs/downstream.md](../../docs/downstream.md)
+[docs/contributing.md#evidence-and-claims](../../docs/contributing.md#evidence-and-claims)

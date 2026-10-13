@@ -9,8 +9,8 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 | Start here | Purpose |
 | --- | --- |
 | [README.md](README.md) | Layout, dev smoke, copy checklist |
-| [docs/repo-template.md](docs/repo-template.md) | Playbook (PM, Arch, RSI, CI, Ops) |
-| [docs/using-the-scaffold.md](docs/using-the-scaffold.md) | Rename package, evidence campaigns, CI lanes |
+| [docs/contributing.md](docs/contributing.md) | Development, acceptance, evidence and CI |
+| [docs/architecture.md](docs/architecture.md) | Module boundaries and extension contracts |
 
 ## Four-lane CI
 
@@ -23,11 +23,11 @@ Default automation is **draft → ready → merge → nightly**. Keep **draft** 
 | Merge | [.github/workflows/ci-merge.yml](.github/workflows/ci-merge.yml) |
 | Nightly | [.github/workflows/ci-nightly.yml](.github/workflows/ci-nightly.yml) |
 
-Architecture and cost profile: [docs/scaffold-architecture.md](docs/scaffold-architecture.md).
+Architecture and cost profile: [docs/architecture.md](docs/architecture.md).
 
 ## Test ladder (L0–L4)
 
-Validation levels are defined in [docs/scaffold-test-design.md](docs/scaffold-test-design.md):
+Validation levels are defined in [validation levels](docs/contributing.md#validation-levels):
 
 | Level | Focus |
 | --- | --- |
@@ -47,7 +47,7 @@ Repo `tests/` are **scaffold smoke** (imports, layout, verdict enum); they are n
 
 ## Issue-scoped pins
 
-**Baseline SHA**, **candidate SHA**, campaign IDs, and numeric gates belong in **acceptance issues** only (checklist: [docs/issues-acceptance-checklist.md](docs/issues-acceptance-checklist.md); GitHub form: `.github/ISSUE_TEMPLATE/campaign-acceptance.yml`; pattern like issue **#3** on this repo).
+**Baseline SHA**, **candidate SHA**, campaign IDs, and numeric gates belong in **acceptance issues** only (checklist: [acceptance checklist](docs/contributing.md#acceptance-checklist); GitHub form: `.github/ISSUE_TEMPLATE/campaign-acceptance.yml`; pattern like issue **#3** on this repo).
 
 Use placeholders in docs and agent output, e.g. `<baseline_sha>`, `<candidate_sha>`, `<campaign-id>` — **never** commit real campaign SHAs into workflows, skills, recipes defaults, or this file.
 
@@ -55,7 +55,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 ## RSI contract
 
-- **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([docs/scaffold-test-design.md](docs/scaffold-test-design.md)).
+- **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
 - **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/omnirsi/`).
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`runspec.py`, campaign `plan/`).
 - **Evaluator + evidence win** — never treat agent narrative as `PASS`; verdicts follow frozen gates and `evidence/<campaign-id>/` artifacts.
@@ -64,12 +64,12 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 - Open or update an **acceptance issue before claiming `PASS`** (or publishing numbers).
 - Do **not** invent thresholds in the tree; pins and numeric gates stay **issue-scoped** only.
-- Public wording: [docs/claims.md](docs/claims.md) and [docs/demo-gate.md](docs/demo-gate.md).
+- Public wording: [evidence and claim rules](docs/contributing.md#evidence-and-claims).
 
 ## Research lock
 
 - Cite **acceptance issues + pinned SHAs** in downstream text; do not invent gain or quality bars.
-- **Public wording only after `PASS`** — follow [docs/claims.md](docs/claims.md) / [docs/demo-gate.md](docs/demo-gate.md); until then, label unverified or `INCONCLUSIVE`.
+- **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims); until then, label unverified or `INCONCLUSIVE`.
 - Use [skills/cite-check-downstream-pr](skills/cite-check-downstream-pr/SKILL.md) and [skills/competitor-scan](skills/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
 
 ## Evidence and clearing the bar
@@ -86,8 +86,7 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 | Topic | Doc |
 | --- | --- |
-| Claim wording vs ladder | [docs/claims.md](docs/claims.md) |
-| External demo / “production ready” | [docs/demo-gate.md](docs/demo-gate.md) |
+| Claim wording and external demo scope | [evidence and claim rules](docs/contributing.md#evidence-and-claims) |
 | Evidence layout | [evidence/README.md](evidence/README.md) |
 
 ## Skills
@@ -106,6 +105,6 @@ ruff check src tests
 
 ## Agent discipline
 
-1. Read playbook + test design before large code or CI changes.
+1. Read the contribution guide and validation levels before large code or CI changes.
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.

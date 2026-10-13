@@ -16,7 +16,7 @@ from unittest.mock import Mock, patch
 
 from omnirsi.execution import _execute, repository_identity
 
-SCRIPT = Path(__file__).resolve().parents[1] / "examples" / "ltx25_b300.py"
+SCRIPT = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "legacy" / "ltx25_b300.py"
 SPEC = importlib.util.spec_from_file_location("ltx25_campaign", SCRIPT)
 campaign = importlib.util.module_from_spec(SPEC)
 SPEC.loader.exec_module(campaign)

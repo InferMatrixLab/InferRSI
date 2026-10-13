@@ -1,6 +1,6 @@
 # Qwen-Image-2.1-Turbo on one Ascend 910B1
 
-This cohort is separate from the [B300 campaign](qwen21-turbo-b300-phase2-results.md). It does not replace that 384.16 → 266.60 ms PASS, and it does not meet a 30% reduction.
+This cohort is separate from the [B300 campaign](qwen-image-2.1-turbo-b300.md). It does not replace that 384.16 → 266.60 ms PASS, and it does not meet a 30% reduction.
 
 ## Provenance and verification scope
 

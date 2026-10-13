@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import sys
 
-import ltx25_b300 as lifecycle
+from omnirsi.infra import artifacts as lifecycle
 
 
 def load(path):

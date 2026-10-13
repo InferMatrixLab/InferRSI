@@ -106,9 +106,7 @@ def model_assets(model, cache):
 
 
 def guards():
-    # The frozen quality entry still imports its historical LTX utility file.
-    paths = [Path(__file__), Path(__file__).with_name('qwen21_turbo_quality.py'),
-             Path(__file__).with_name('ltx25_b300.py')]
+    paths = [Path(__file__), Path(__file__).with_name('qwen21_turbo_quality.py')]
     return {**lifecycle.helper_hashes(), **{p.name: lifecycle.sha256(p) for p in paths}}
 
 

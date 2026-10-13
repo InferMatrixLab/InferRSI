@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Scaffold manifest check
         run: |
-          test -f docs/repo-template.md
+          test -f docs/contributing.md
           test -f README.md
           test -d src/omnirsi/harness
           test -d src/omnirsi/model
