@@ -1,4 +1,4 @@
-"""Harness plane: runners, scenarios, validators, verdict logic."""
+"""Harness plane: scenario composition, AB/BA orchestration, verdicts and reports."""
 
 from omnirsi.claim import Verdict, parse_verdict
 

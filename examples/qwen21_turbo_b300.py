@@ -5,7 +5,6 @@ ownership. New campaigns must freeze fresh helper hashes and references.
 """
 import argparse
 import ast
-import base64
 import importlib.metadata
 import json
 import os
@@ -17,6 +16,8 @@ import sys
 import time
 import urllib.request
 
+from omnirsi.harness.scenarios.media import collect_samples
+from omnirsi.model.protocols.image import ImageProtocol
 from omnirsi.infra import campaign as lifecycle
 from omnirsi.infra.platforms.cuda import qualify_devices
 
@@ -116,25 +117,11 @@ def preflight():
 
 
 def image_request(port, item, destination, settings, timeout=900):
-    body = json.dumps({'model': MODEL, 'prompt': item['prompt'], 'seed': item['seed'], 'n': 1,
-                       'size': '1280x704', 'response_format': 'b64_json', 'true_cfg_scale': 1.0,
-                       'sigmas': settings['sigmas'], 'output_format':'png', 'output_compression':100}).encode()
-    request = urllib.request.Request(f'http://127.0.0.1:{port}/v1/images/generations', body,
-                                     {'Content-Type': 'application/json'})
-    start = time.perf_counter()
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        if response.status != 200:
-            raise ValueError('Image endpoint failed')
-        data = response.read()
-    elapsed = 1000 * (time.perf_counter() - start)
-    images = json.loads(data)['data']
-    if len(images) != 1:
-        raise ValueError('Expected exactly one completed image')
-    png = base64.b64decode(images[0]['b64_json'], validate=True)
-    if not png.startswith(b'\x89PNG\r\n\x1a\n'):
-        raise ValueError('Expected lossless PNG')
-    Path(destination).write_bytes(png)
-    return elapsed
+    protocol = ImageProtocol(MODEL, 1280, 704, {
+        'true_cfg_scale': 1.0, 'sigmas': settings['sigmas'],
+        'output_format': 'png', 'output_compression': 100,
+    })
+    return protocol.request(f'http://127.0.0.1:{port}', item, destination, timeout=timeout)
 
 
 def run(args):
@@ -200,29 +187,16 @@ def run(args):
                 if time.monotonic()>deadline: raise TimeoutError('Server readiness timeout')
                 time.sleep(1)
             record['process_to_ready_s'] = time.monotonic()-preparation_start
-            for seeds in settings['warmup_seeds']:
-                for item,seed in zip(settings['prompts'],seeds):
-                    path=media/'warmup.png'
-                    latency = image_request(args.port,{**item,'seed':seed},path,settings)
-                    record['warmup_samples_ms'].append({'prompt':item['prompt'],'seed':seed,'latency_ms':latency})
-                    if 'first_request' not in record:
-                        first = media/'first-request.png'
-                        path.rename(first)
-                        record['first_request']={'path':str(first),'sha256':lifecycle.sha256(first),'seed':seed,'latency_ms':latency}
-                        continue
-                    path.unlink()
-            if args.diagnostic:
-                urllib.request.urlopen(urllib.request.Request(f'http://127.0.0.1:{args.port}/start_profile',data=b''),timeout=60).close()
-            for group in range(args.repetitions):
-                values=[]
-                for item in settings['prompts']:
-                    path=media/f"group-{group+1:03d}-{item['id']}.png"
-                    latency=image_request(args.port,item,path,settings)
-                    values.append(latency)
-                    record['samples_ms'].append({'group':group+1,'id':item['id'],'latency_ms':latency})
-                    record['artifacts'].append({'group':group+1,'id':item['id'],'path':str(path),'sha256':lifecycle.sha256(path)})
-                    print(json.dumps({'group':group+1,'id':item['id'],'latency_ms':latency}),flush=True)
-                record['groups_ms'].append(mean(values))
+            def before_measure():
+                if args.diagnostic:
+                    urllib.request.urlopen(urllib.request.Request(f'http://127.0.0.1:{args.port}/start_profile',data=b''),timeout=60).close()
+
+            collect_samples(
+                lambda item, path: image_request(args.port, item, path, settings),
+                prompts=settings['prompts'], warmup_seeds=settings['warmup_seeds'],
+                repetitions=args.repetitions, media=media, record=record, suffix='.png',
+                before_measure=before_measure,
+            )
             if args.diagnostic:
                 urllib.request.urlopen(urllib.request.Request(f'http://127.0.0.1:{args.port}/stop_profile',data=b''),timeout=120).close()
             else: record['metrics']={'latency_ms':mean(record['groups_ms'])}

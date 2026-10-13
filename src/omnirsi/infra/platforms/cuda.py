@@ -45,6 +45,8 @@ def inspect_devices(*, device_ids, device_model, command):
 
 
 def qualify_devices(*, count: int, device_model: str):
+    if isinstance(count, bool) or not isinstance(count, int) or count < 1 or not device_model:
+        raise ValueError("A positive device count and device model are required")
     ids = [
         item.strip()
         for item in os.environ.get("CUDA_VISIBLE_DEVICES", "").split(",")

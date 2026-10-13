@@ -1,1 +1,1 @@
-"""Model plane: assets, revisions, quality protocols (stubs for new repos)."""
+"""Model plane: request/metric protocols and explicit quality validators."""

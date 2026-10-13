@@ -1,1 +1,1 @@
-"""Infra plane: backends, devices, executors, CI glue (stubs for new repos)."""
+"""Infrastructure plane: source identity, devices, transport and owned processes."""

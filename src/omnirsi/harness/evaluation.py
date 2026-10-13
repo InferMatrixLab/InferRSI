@@ -3,20 +3,8 @@
 import math
 
 from ..claim import Verdict
+from ..model.protocols.metrics import read_metric as read_metric
 from ..runspec import RunSpec
-
-
-def read_metric(result: dict, key: str) -> float:
-    value = result
-    for part in key.split("."):
-        if not isinstance(value, dict) or part not in value:
-            raise ValueError(f"missing metric: {key}")
-        value = value[part]
-    if isinstance(value, bool) or not isinstance(value, (int, float)):
-        raise ValueError(f"metric {key} must be a number")
-    if not math.isfinite(value) or value <= 0:
-        raise ValueError(f"metric {key} must be finite and positive")
-    return float(value)
 
 
 def _summary(trials: list[dict]) -> dict | None:
