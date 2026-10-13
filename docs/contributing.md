@@ -84,6 +84,17 @@ unverified. Imported reports do not become locally validated through CPU tests.
 External demos or production-readiness claims require a completed acceptance
 PASS and published evidence for the scope being claimed.
 
+Execution status and campaign verdict answer different questions. A crashed or
+interrupted measurement/validator leaves its execution status and error reason,
+but incomplete comparison evidence is **INCONCLUSIVE**, including when the
+available samples show a regression. A completed quality command rejecting its
+gate, or a complete comparison missing the frozen gain threshold, remains FAIL.
+
+Model integrity requires reading actual file bytes and comparing their SHA-256
+with the frozen manifest. Equal size/mtime is only a metadata check. Validate
+positive measured-image group coverage before accepting first-request quality;
+a retained warmup image cannot substitute for the measured workload.
+
 ## Validation levels
 
 | Level | Evidence | Scope |
@@ -106,8 +117,16 @@ explicit, separately budgeted experiments.
 - Enumerate all direct and transitive consumers, including other models. Map
   dtype/layout, fast/fallback, hooks, gradients and encoder/decoder contracts to
   tests. One successful Qwen image run does not validate every shared consumer.
+- Prefer ordinary imports at module scope. Keep imports lazy where a module's
+  transitive optional backend dependencies would otherwise break unsupported
+  platforms; document and test that exception.
+- Reuse the owning shared helper for identical kernel eligibility predicates.
+  Colocate a small ownership-only type with its consumer rather than creating a
+  module for possible future members.
 - Preserve eager rounding and reduction order in exact kernels. Operator checks
-  must be followed by full-model output comparison before promotion.
+  must be followed by full-model output comparison before promotion. Explain
+  BF16-to-FP32 round trips when they preserve materialized eager intermediates;
+  removing those casts can change output despite equivalent real arithmetic.
 - Record baseline failures and untested hardware honestly. Do not mark a failing
   suite green because the same failure also occurs on the baseline.
 - Freeze new references when helpers change; replay historical evidence with its

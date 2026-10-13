@@ -74,6 +74,24 @@ class ArtifactOwnershipTests(unittest.TestCase):
         result.write_text(json.dumps(payload))
         return result
 
+    def test_first_request_alone_cannot_pass_without_measured_outputs(self):
+        candidate = json.loads(self.candidate.read_text())
+        candidate.update(groups_ms=[], artifacts=[])
+        self.candidate.write_text(json.dumps(candidate))
+        with unittest.mock.patch.object(quality, "compare_images") as compare:
+            with self.assertRaisesRegex(ValueError, "Positive candidate measured group"):
+                quality.validate(self.reference, self.candidate, (1, 4))
+            compare.assert_not_called()
+
+    def test_incomplete_measured_group_cannot_pass(self):
+        candidate = json.loads(self.candidate.read_text())
+        candidate["artifacts"].pop()
+        self.candidate.write_text(json.dumps(candidate))
+        with unittest.mock.patch.object(quality, "compare_images") as compare:
+            with self.assertRaisesRegex(ValueError, "Wrong artifact count"):
+                quality.validate(self.reference, self.candidate, (1, 4))
+            compare.assert_not_called()
+
     def test_reference_files_cannot_stand_in_for_candidate_outputs(self):
         reference = json.loads(self.reference.read_text())
         candidate = json.loads(self.candidate.read_text())

@@ -39,6 +39,15 @@
         "timzsu"
       ],
       "accessed_at": "2026-10-13"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/",
+      "type": "review_guidance",
+      "commit": "e36d48ba47eef4b4954b6c4d97fd42471525fd30",
+      "authors": [
+        "timzsu"
+      ],
+      "accessed_at": "2026-10-13"
     }
   ],
   "applicability": {
@@ -94,6 +103,14 @@
     {
       "kind": "guidance",
       "description": "Prefer full-model E2E coverage for normal model behavior. Add focused tests for cache invalidation, errors, fallback selection and shared consumers only where E2E does not exercise the contract; avoid repeated production-shape matrices."
+    },
+    {
+      "kind": "guidance",
+      "description": "Prefer module-level imports for ordinary dependencies; retain documented lazy imports where transitive optional kernels or backend libraries would otherwise become unconditional platform requirements."
+    },
+    {
+      "kind": "guidance",
+      "description": "Share identical kernel eligibility predicates across consumers. Colocate small ownership-only types with their consumer instead of adding modules for speculative growth. Explain low-precision round trips that reproduce eager intermediate rounding."
     }
   ],
   "recommendations": [
@@ -112,7 +129,8 @@
     "Verify default dispatch does not load optional extensions and explicit common settings reach the selected backend without model or device-name predicates.",
     "Record source/environment/test commands and all skips or failures for every affected consumer; mark missing coverage INCONCLUSIVE rather than generalizing target-model E2E evidence.",
     "Verify that the candidate diff cannot edit its scoring benchmark or frozen quality criteria.",
-    "Map added tests to failure modes missing from existing E2E coverage and remove duplicated successful-path checks."
+    "Map added tests to failure modes missing from existing E2E coverage and remove duplicated successful-path checks.",
+    "Exercise imports with optional backend modules unavailable; preserve eager intermediate roundings and dropped-request weak-reference cleanup when consolidating helpers or ownership types."
   ],
   "limitations": [
     "This record imports review guidance; it is not a benchmark or an accelerator support claim.",

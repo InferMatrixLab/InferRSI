@@ -2,6 +2,7 @@
 
 import base64
 import json
+import os
 import sys
 import tempfile
 import unittest
@@ -210,6 +211,11 @@ class QwenTurboTests(unittest.TestCase):
             (root / "artifacts/model-assets.json").write_text(json.dumps(manifest))
             original = campaign.model_assets(model, root / "cache")
             self.assertEqual(len(original), 64)
+            # Same bytes/mtime metadata must not hide replacement weight contents.
+            weight.write_bytes(b"modified")
+            os.utime(weight, ns=(st.st_atime_ns, st.st_mtime_ns))
+            with self.assertRaisesRegex(ValueError, "SHA256 mismatch"):
+                campaign.model_assets(model, root / "cache")
             weight.write_bytes(b"changed")
             with self.assertRaisesRegex(ValueError, "changed"):
                 campaign.model_assets(model, root / "cache")

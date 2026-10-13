@@ -141,8 +141,7 @@ def run_experiment(
         result = evaluate(spec, baseline, candidate, validation, integrity)
         if error:
             result["reasons"].append(error)
-            if state == "failed":
-                result["verdict"] = "FAIL"
+            result["verdict"] = "INCONCLUSIVE"
         _write_json(run_dir / "evaluation.json", result)
         event("complete", state=state, verdict=result["verdict"])
         _write_json(

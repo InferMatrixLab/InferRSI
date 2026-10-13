@@ -42,9 +42,7 @@ def evaluate(
                 f"{label}: expected {spec.repetitions} trials, recorded {len(trials)}"
             )
         for index, trial in enumerate(trials, 1):
-            if trial.get("status") in {"failed", "timeout", "error"}:
-                failed.append(f"{label} trial {index}: {trial.get('status')}")
-            elif trial.get("status") != "completed":
+            if trial.get("status") != "completed":
                 incomplete.append(f"{label} trial {index}: {trial.get('status')}")
             if trial.get("metric") is None:
                 incomplete.append(
@@ -52,7 +50,7 @@ def evaluate(
                 )
     if validation is None:
         incomplete.append("quality validation command was not supplied")
-    elif validation.get("status") in {"failed", "timeout", "error"}:
+    elif validation.get("status") == "failed":
         failed.append(f"quality validation: {validation.get('status')}")
     elif validation.get("status") != "completed":
         incomplete.append(f"quality validation: {validation.get('status')}")
@@ -76,7 +74,10 @@ def evaluate(
                 f"measured gain {improvement:.6g}% must be positive and meet "
                 f"{spec.min_improvement_pct:.6g}% threshold"
             )
-    verdict = Verdict.FAIL if failed else Verdict.INCONCLUSIVE if incomplete else Verdict.PASS
+    # Execution failures describe missing evidence, not a failed performance gate.
+    # A completed quality command may reject its gate, but an interrupted one
+    # cannot establish a result. Incomplete evidence takes precedence either way.
+    verdict = Verdict.INCONCLUSIVE if incomplete else Verdict.FAIL if failed else Verdict.PASS
     return {
         "verdict": verdict.value,
         "reasons": failed + incomplete,

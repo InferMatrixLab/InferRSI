@@ -151,13 +151,14 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(result["verdict"], "INCONCLUSIVE")
         self.assertFalse(result["source_integrity"]["verified"])
 
-    def test_quality_failure_and_benchmark_failure_are_fail(self):
+    def test_quality_failure_is_fail_but_incomplete_benchmark_is_inconclusive(self):
         failure = (sys.executable, "-c", "import sys; print('failed evidence'); sys.exit(7)")
         path, evaluation = self.run_spec(validation_command=failure)
         self.assertEqual(evaluation["verdict"], "FAIL")
         self.assertIn("failed evidence", (path / "validation/stdout.log").read_text())
         path, evaluation = self.run_spec(baseline_command=failure)
-        self.assertEqual(evaluation["verdict"], "FAIL")
+        self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
+        self.assertEqual(json.loads((path / "status.json").read_text())["state"], "failed")
         self.assertFalse((path / "candidate").exists())
         self.assertEqual(
             json.loads((path / "baseline/trial-001/execution.json").read_text())["returncode"], 7
@@ -277,7 +278,7 @@ class RuntimeTests(unittest.TestCase):
         path, evaluation = self.run_spec(
             baseline_command=(sys.executable, "-c", parent, child), max_minutes=0.1, repetitions=1
         )
-        self.assertEqual(evaluation["verdict"], "FAIL")
+        self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertEqual(json.loads((path / "status.json").read_text())["state"], "timeout")
         child_pid = int((path / "baseline/trial-001/stdout.log").read_text().strip())
         self.assertFalse(process_running(child_pid), "benchmark descendant survived the timeout")
@@ -288,7 +289,7 @@ class RuntimeTests(unittest.TestCase):
             repetitions=1,
             max_minutes=0.25,
         )
-        self.assertEqual(evaluation["verdict"], "FAIL")
+        self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertEqual(
             json.loads((path / "validation/execution.json").read_text())["status"], "timeout"
         )
@@ -315,6 +316,20 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(json.loads((path / "status.json").read_text())["state"], "cancelled")
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertTrue((path / "report.html").exists())
+
+    def test_execution_exception_preserves_failed_status_and_inconclusive_verdict(self):
+        with patch("omnirsi.execution._execute", side_effect=OSError("executor unavailable")):
+            path, evaluation = self.run_spec()
+        status = json.loads((path / "status.json").read_text())
+        self.assertEqual(status["state"], "failed")
+        self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
+        self.assertIn("executor unavailable", evaluation["reasons"])
+        self.assertTrue((path / "report.html").exists())
+
+    def test_missing_quality_wins_over_observed_latency_regression(self):
+        _, evaluation = self.run_spec(candidate_command=benchmark(120), validation_command=None)
+        self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
+        self.assertTrue(any("measured gain" in reason for reason in evaluation["reasons"]))
 
     def test_report_escapes_html_and_is_regenerable(self):
         path, _ = self.run_spec(scenario="<script>alert('x')</script>", repetitions=1)

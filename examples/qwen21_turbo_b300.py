@@ -102,6 +102,8 @@ def model_assets(model, cache):
         stat = (model/item['path']).stat()
         if (stat.st_size, stat.st_mtime_ns) != (item['bytes'], item['mtime_ns']):
             raise ValueError('Model asset changed after SHA256 freeze')
+        if lifecycle.sha256(model/item['path']) != item.get('sha256'):
+            raise ValueError(f"Model asset SHA256 mismatch: {item['path']}")
     return lifecycle.sha256(manifest)
 
 

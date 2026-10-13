@@ -5,9 +5,9 @@ These are byte-for-byte snapshots from OmniRSI commit
 removing obsolete LTX examples. They are test inputs, not maintained campaigns:
 
 - `ltx25_b300.py` and `ltx25_quality.py`: historical helper and quality contracts.
-- `qwen21_turbo_quality.py`: pre-cleanup Qwen validator; tests compare its behavior
-  with the current example, whose only logic dependency change is importing the
-  extracted shared artifact helpers.
+- `qwen21_turbo_quality.py`: pre-cleanup Qwen validator; tests compare its numeric
+  formulas with the current example. The maintained example additionally rejects
+  incomplete measured-image coverage; this historical snapshot is unchanged.
 
 Do not format or edit these files. Historical campaigns still require their own
 original frozen source/input bundle; these snapshots do not replace old guards.

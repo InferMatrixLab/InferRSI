@@ -79,6 +79,8 @@ def validate(reference_path,candidate_path,expected_parallel=None,*,seen_paths=N
     expected={item['id'] for item in ref['protocol']['prompts']}
     if set(refs)!=expected or len(ref['artifacts'])!=3 or len(ref['groups_ms'])!=1:
         raise ValueError('Canonical reference coverage mismatch')
+    if not cand['groups_ms']:
+        raise ValueError('Positive candidate measured group count required')
     groups={item['group'] for item in cand['artifacts']}
     if groups!=set(range(1,len(cand['groups_ms'])+1)):raise ValueError('Missing candidate group')
     if len(cand['artifacts'])!=len(groups)*len(expected):raise ValueError('Wrong artifact count')
