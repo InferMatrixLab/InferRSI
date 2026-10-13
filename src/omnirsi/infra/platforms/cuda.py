@@ -7,6 +7,43 @@ import re
 import subprocess
 
 
+def inspect_devices(*, device_ids, device_model, command):
+    from . import tool_facts
+
+    device = tool_facts(
+        command(
+            ["nvidia-smi", "--query-gpu=index,uuid,name,driver_version", "--format=csv,noheader"]
+        )
+    )
+    probe = device["probe"]
+    if probe["returncode"] != 0:
+        return device
+    rows = []
+    for row in csv.reader(io.StringIO(probe["stdout"])):
+        fields = [value.strip() for value in row]
+        if len(fields) == 4 and fields[0].isdigit():
+            rows.append(dict(zip(("index", "uuid", "name", "driver_version"), fields)))
+    device["topology"] = command(["nvidia-smi", "topo", "-m"])
+    device["devices"] = rows
+    selected = [
+        row
+        for row in rows
+        if not device_ids or row["index"] in device_ids or row["uuid"] in device_ids
+    ]
+    device["selection_verified"] = bool(selected) and len(selected) == (
+        len(device_ids) if device_ids else len(rows)
+    )
+    if not device["selection_verified"]:
+        device["status"] = "unavailable"
+    elif device_model and any(
+        device_model.casefold() not in row["name"].casefold() for row in selected
+    ):
+        device["status"] = "device_model_mismatch"
+    else:
+        device["status"] = "available"
+    return device
+
+
 def qualify_devices(*, count: int, device_model: str):
     ids = [
         item.strip()
