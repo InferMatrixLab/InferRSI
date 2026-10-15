@@ -17,6 +17,11 @@ assert (
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
+assert files("omnirsi").joinpath("data", "knowledge_packs", "README.md").is_file()
+for tier, count in (("dependency", 6), ("peer", 5)):
+    imported = search_knowledge(tier=tier, limit=100)
+    assert len(imported) >= count, f"Missing installed {tier} records"
+    assert all(item["tier"] == tier for item in imported)
 ascend_image = search_knowledge(
     "Qwen-Image-2.1", repo="vllm_omni", backend="ascend", scenario="diffusion.image_generation"
 )

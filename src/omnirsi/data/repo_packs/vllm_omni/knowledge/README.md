@@ -1,5 +1,9 @@
 # vLLM-Omni knowledge
 
+This is the contribution tier of the [three-tier knowledge catalog](../../../knowledge_packs/README.md).
+The external dependency and peer tiers have separate source owners; existing
+records here keep their IDs, paths and verification state.
+
 Each named JSON file is the **single source of truth** for one reusable
 experience. This README explains organization and navigation; it does not
 duplicate findings, recommendations or validation plans. The previous
@@ -21,7 +25,7 @@ data/
 evidence/<campaign>/                   Frozen plans, artifacts and verdicts
 ```
 
-Only directories with records are created. All current records belong to
+Only directories with records are created. All records in this pack belong to
 vllm_omni/diffusion; common means common **within that repository**, not
 globally validated across repositories. ROCm currently retrieves common
 methods only. There are no ROCm-specific optimization results in this pack.
@@ -117,7 +121,6 @@ the reusable lesson and its boundaries.
 5. Add a navigation row here, then run the catalog/CLI tests and the
    noneditable-package resource check. No manual index of metrics is needed.
 
-Future repository-wide and backend-wide methods should stay in their owning
-packs. Introduce a cross-repository knowledge scope only when a concrete
-shared use case exists, with explicit retrieval rules and tests; do not use
-common as an implicit global inheritance mechanism.
+Repository-wide and backend-wide methods stay in their owning packs. External
+dependency and peer techniques have explicit source/tier filters in the
+three-tier catalog; common is never an implicit global inheritance mechanism.

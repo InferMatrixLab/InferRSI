@@ -8,6 +8,15 @@ from importlib.resources import files
 from typing import Any
 
 REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt")
+# Learning scope does not imply that a repository has a runnable target adapter.
+KNOWLEDGE_SCOPES = {
+    "contribution": (*REPO_TYPES, "vllm_ascend"),
+    "dependency": (
+        "flashinfer", "flashattention", "pytorch", "triton", "diffusers", "transformers"
+    ),
+    "peer": ("sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit"),
+}
+KNOWLEDGE_REPOS = tuple(repo for repos in KNOWLEDGE_SCOPES.values() for repo in repos)
 BACKENDS = ("cpu", "cuda", "rocm", "ascend")
 SCENARIO_ALIASES = {
     "diffusion.t2i": "diffusion.image_generation",
@@ -24,7 +33,9 @@ def _walk(root, prefix=()):
             yield parts, child
 
 
-def _validate_record(record: dict, repo: str, parts: tuple[str, ...]) -> None:
+def _validate_record(
+    record: dict, repo: str, parts: tuple[str, ...], tier: str = "contribution"
+) -> None:
     required = ("id", "title", "repo", "backend", "component", "scenario", "status", "summary")
     if not isinstance(record, dict) or any(
         not isinstance(record.get(key), str) or not record[key].strip() for key in required
@@ -32,6 +43,9 @@ def _validate_record(record: dict, repo: str, parts: tuple[str, ...]) -> None:
         raise ValueError(f"Incomplete knowledge record: {repo}/{'/'.join(parts)}")
     if record.get("schema_version") != 1:
         raise ValueError(f"Unsupported knowledge schema: {record['id']}")
+    # Existing schema-v1 records retain their IDs and default to contribution.
+    if record.get("tier", "contribution") != tier:
+        raise ValueError(f"Knowledge tier disagrees with path: {record['id']}")
     if len(parts) != 3:
         raise ValueError("Knowledge path must be BACKEND/COMPONENT/ENTRY.json")
     backend, component, filename = parts
@@ -66,22 +80,27 @@ def _validate_record(record: dict, repo: str, parts: tuple[str, ...]) -> None:
 
 
 def knowledge_records() -> list[dict[str, Any]]:
-    root = files("omnirsi").joinpath("data", "repo_packs")
+    data = files("omnirsi").joinpath("data")
     records = []
     seen = set()
-    for repo in REPO_TYPES:
-        knowledge = root.joinpath(repo, "knowledge")
-        if not knowledge.is_dir():
-            continue
-        for parts, item in _walk(knowledge):
-            if not item.name.endswith(".json"):
+    for tier, repos in KNOWLEDGE_SCOPES.items():
+        for repo in repos:
+            knowledge = (
+                data.joinpath("repo_packs", repo, "knowledge")
+                if tier == "contribution"
+                else data.joinpath("knowledge_packs", tier, repo)
+            )
+            if not knowledge.is_dir():
                 continue
-            record = json.loads(item.read_text(encoding="utf-8"))
-            _validate_record(record, repo, parts)
-            if record["id"] in seen:
-                raise ValueError(f"Duplicate knowledge ID: {record['id']}")
-            seen.add(record["id"])
-            records.append(record)
+            for parts, item in _walk(knowledge):
+                if not item.name.endswith(".json"):
+                    continue
+                record = json.loads(item.read_text(encoding="utf-8"))
+                _validate_record(record, repo, parts, tier)
+                if record["id"] in seen:
+                    raise ValueError(f"Duplicate knowledge ID: {record['id']}")
+                seen.add(record["id"])
+                records.append(record)
     return records
 
 
@@ -89,16 +108,21 @@ def search_knowledge(
     query: str = "",
     *,
     repo: str | None = None,
+    tier: str | None = None,
     backend: str | None = None,
     scenario: str | None = None,
     limit: int = 10,
 ) -> list[dict[str, Any]]:
     if limit < 1:
         raise ValueError("limit must be positive")
+    if tier is not None and tier not in KNOWLEDGE_SCOPES:
+        raise ValueError(f"Unknown knowledge tier: {tier}")
     scenario = SCENARIO_ALIASES.get(scenario, scenario)
     tokens = re.findall(r"[\w.-]+", query.casefold())
     scored = []
     for record in knowledge_records():
+        if tier and record.get("tier", "contribution") != tier:
+            continue
         if repo and record["repo"] != repo:
             continue
         if backend and record["backend"] not in (backend, "common"):

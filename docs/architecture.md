@@ -175,6 +175,10 @@ Package data is the canonical source for noneditable installations:
 omnirsi/data/repo_packs/REPO/knowledge/
   README.md                       Organization and navigation only
   BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
+omnirsi/data/knowledge_packs/
+  README.md                       Three-tier source navigation
+  dependency/REPO/BACKEND/COMPONENT/ENTRY.json
+  peer/REPO/BACKEND/COMPONENT/ENTRY.json
 omnirsi/data/platform_packs/BACKEND/pack.json
 ```
 
@@ -182,6 +186,11 @@ JSON owns applicability, claims, recommendations, validation and limitations;
 `knowledge search`, `knowledge show` and human-readable `context` use that same
 record. Per-entry duplicate READMEs are removed. The loader validates that
 repository, backend, component and stable ID agree with the path.
+The learning tier is an independent acquisition policy: contribution packs
+retain their paths, while external dependency/peer packs add source-owned
+candidates. Tier/source/backend/scenario filters intersect before ranking and
+limits; no downstream repository inherits external knowledge implicitly.
+Knowledge-only sources do not extend the executable repository registry.
 
 A backend filter includes that backend and repository-local `common` methods;
 scenario filters select exact workloads or component wildcards. Model, SKU,
@@ -196,7 +205,7 @@ do not upgrade imported knowledge to a validated claim.
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
 
-See the [knowledge guide](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/README.md)
+See the [knowledge guide](../src/omnirsi/data/knowledge_packs/README.md)
 for all entries, retrieval rules and the maintenance workflow.
 
 The earlier [component design](assets/component-architecture-en.svg) and

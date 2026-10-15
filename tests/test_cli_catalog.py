@@ -31,9 +31,10 @@ class CatalogTests(unittest.TestCase):
             self.assertFalse(record["verification"]["locally_verified"])
             for source in record["sources"]:
                 self.assertRegex(source["commit"], r"^[0-9a-f]{40}$")
-                self.assertTrue(
-                    source["url"].startswith("https://github.com/vllm-project/vllm-omni/")
-                )
+                if record["repo"] == "vllm_omni":
+                    self.assertTrue(
+                        source["url"].startswith("https://github.com/vllm-project/vllm-omni/")
+                    )
         rocm = search_knowledge(repo="vllm_omni", backend="rocm", limit=50)
         self.assertTrue(rocm)
         self.assertTrue(all(item["backend"] == "common" for item in rocm))
@@ -132,7 +133,7 @@ class CatalogTests(unittest.TestCase):
 
 def test_knowledge_has_one_canonical_record_and_complete_navigation():
     root = PROJECT / "src/omnirsi/data/repo_packs/vllm_omni/knowledge"
-    records = knowledge_records()
+    records = search_knowledge(repo="vllm_omni", limit=100)
     paths = list(root.glob("*/*/*.json"))
     assert len(records) == len(paths) == 12
     assert list(root.rglob("*.md")) == [root / "README.md"]

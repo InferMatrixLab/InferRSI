@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
-from .catalog import BACKENDS, REPO_TYPES
+from .catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 from .runspec import RunSpec
 
 
@@ -111,7 +111,8 @@ def parser() -> argparse.ArgumentParser:
     actions = knowledge.add_subparsers(dest="knowledge_action", required=True)
     search = actions.add_parser("search")
     search.add_argument("query", nargs="?", default="")
-    search.add_argument("--repo-type", choices=REPO_TYPES)
+    search.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
+    search.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
     search.add_argument("--backend", choices=BACKENDS)
     search.add_argument("--scenario")
     search.add_argument("--limit", type=int, default=10)
@@ -122,7 +123,8 @@ def parser() -> argparse.ArgumentParser:
         "context", help="Export cited knowledge for manual Codex/Agent handoff"
     )
     context.add_argument("query", nargs="?", default="")
-    context.add_argument("--repo-type", choices=REPO_TYPES, required=True)
+    context.add_argument("--repo-type", choices=KNOWLEDGE_REPOS, required=True)
+    context.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
     context.add_argument("--backend", choices=BACKENDS, required=True)
     context.add_argument("--scenario")
     context.add_argument("--limit", type=int, default=5)

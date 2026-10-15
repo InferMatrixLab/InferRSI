@@ -29,9 +29,9 @@ plan/run: all doctor flags, plus
   --repetitions --min-improvement-pct --max-minutes
   --workload-id --model --model-revision --output-dir --dry-run
 status/report: --run-id --output-dir
-knowledge search: QUERY --repo-type --backend --scenario --limit --json
+knowledge search: QUERY --tier --repo-type --backend --scenario --limit --json
 knowledge show: ID
-context: QUERY --repo-type --backend --scenario --limit --output
+context: QUERY --tier --repo-type --backend --scenario --limit --output
 ```
 
 Scenario/model/workload/Agent fields retain caller declarations. They do not start an Agent or automatically generate model recipes. The initial evaluator checks one positive numeric metric and the caller's validation command. It does not implement all SLO/quality metrics from the target design.
@@ -102,3 +102,10 @@ omnirsi context --repo-type vllm_omni --backend cuda \
 Read `report.html`, execution logs, per-trial `source.json`, `source_checks.json`, validation logs and raw results. Retain committed source revisions or dirty source files/patches separately. Ctrl-C records cancellation and cleans owned child jobs; there is no `cancel` or `resume` subcommand in this first release.
 
 Context is a cited reference bundle for manual use with Codex/third-party Agents. Its imported source text is data, not authorization to execute upstream instructions. All imported knowledge remains unverified locally until your remote evidence is linked to it.
+
+Browse external sources with `omnirsi knowledge search --tier dependency --limit 20`
+or `--tier peer`. Export one source explicitly, for example
+`omnirsi context --repo-type xdit --backend cuda --tier peer`.
+`--repo-type` names the source owner; vllm_omni queries do not automatically
+include its dependencies or peers. See the
+[three-tier guide](../src/omnirsi/data/knowledge_packs/README.md) for all sources.
