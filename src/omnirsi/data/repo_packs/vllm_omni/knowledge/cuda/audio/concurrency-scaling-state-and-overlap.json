@@ -10,8 +10,8 @@
   "summary": "Diagnose audio scaling with scheduler-step counts, admission/drain phases, mixed prefill/decode and codec overlap; isolate state, label and RNG ownership before qualifying same-source service throughput and complete audio quality.",
   "translations": {
     "zh-CN": {
-      "title": "音频并发扩展：混合预填充、状态归属和 codec 重叠",
-      "summary": "按调度轮而非图碎片计数，分开初始填充、持续接纳与排空阶段，分析混合预填充/解码和 codec 重叠；分别检查状态、标签及随机数归属，再以同源服务对照和完整音频质量验收。"
+      "title": "\u97f3\u9891\u5e76\u53d1\u6269\u5c55\uff1a\u6df7\u5408\u9884\u586b\u5145\u3001\u72b6\u6001\u5f52\u5c5e\u548c codec \u91cd\u53e0",
+      "summary": "\u6309\u8c03\u5ea6\u8f6e\u800c\u975e\u56fe\u788e\u7247\u8ba1\u6570\uff0c\u5206\u5f00\u521d\u59cb\u586b\u5145\u3001\u6301\u7eed\u63a5\u7eb3\u4e0e\u6392\u7a7a\u9636\u6bb5\uff0c\u5206\u6790\u6df7\u5408\u9884\u586b\u5145/\u89e3\u7801\u548c codec \u91cd\u53e0\uff1b\u5206\u522b\u68c0\u67e5\u72b6\u6001\u3001\u6807\u7b7e\u53ca\u968f\u673a\u6570\u5f52\u5c5e\uff0c\u518d\u4ee5\u540c\u6e90\u670d\u52a1\u5bf9\u7167\u548c\u5b8c\u6574\u97f3\u9891\u8d28\u91cf\u9a8c\u6536\u3002"
     }
   },
   "tags": [
@@ -33,7 +33,11 @@
     "rng_ownership",
     "hardware_counters",
     "static_sequence_bound",
-    "output_length_control"
+    "output_length_control",
+    "codec_batch_fragmentation",
+    "contention_control",
+    "reference_throughput",
+    "private_padding"
   ],
   "sources": [
     {
@@ -91,7 +95,13 @@
     "Use hardware counters on actual routed inputs to distinguish tensor arithmetic from expert-weight traffic. Report profiler replay policy, measured DRAM bytes and peak fraction, layer/input coverage and routing-count provenance; low tensor activity is not a directly recoverable speedup.",
     "Inspect static maximum sequence lengths separately from real packed token counts. Tighter graph bounds can remove inactive recurrent chunks and attention work without changing rows; validate every real and padding sequence fits, preserve a larger-bound fallback, and compare all state and outputs before service.",
     "For stochastic service A/B trials, retain generated-frame counts and request-length differences alongside frames/s and drain duration. Capture warmups and scheduling can change random draws, so a faster makespan alone does not prove a fixed-work kernel gain.",
-    "Separate replay streams and graph memory pools do not by themselves prove BLAS scratch isolation. Inspect the installed runtime capture/workspace ownership; where buffers are keyed by capture stream, test dedicated capture streams and record actual address ranges. Compare identical dynamic admissions, RNG, slot reuse and full mutable state before attributing a failure to workspace sharing."
+    "Separate replay streams and graph memory pools do not by themselves prove BLAS scratch isolation. Inspect the installed runtime capture/workspace ownership; where buffers are keyed by capture stream, test dedicated capture streams and record actual address ranges. Compare identical dynamic admissions, RNG, slot reuse and full mutable state before attributing a failure to workspace sharing.",
+    "An achieved isolated full-batch decode rate is a workload-specific reference, not a hardware upper bound or a service lower bound. Account for real prompt work, partial batches, codec interference and complete drain before judging the service target.",
+    "For asynchronous timelines, compute model/codec interval unions and their intersection before attributing elapsed time. Record actual decode steps, active rows, mixed token capacity and exact codec grouping rather than inferring GPU work from client concurrency.",
+    "Distinguish codec frame-bucket diversity from same-bucket partitioning. Log each ready group, chosen partition, actual request count and actual captured graph size; a planned oversized batch can be rounded differently by the graph dispatcher.",
+    "Compact packed recurrent chunk descriptors once per replay, preserve the original per-sequence recurrence ordering and arithmetic, and guard kernels that otherwise execute matrix work on invalid chunks. Recheck empty sequences, dynamic descriptor updates and larger-span fallback.",
+    "Reserved decode padding can use a shorter runtime attention context while preserving the largest capture plan, provided the graph explicitly identifies its private slots. Verify real outputs and all nonparticipating slots; do not infer a reserved range for arbitrary request-state callers.",
+    "Test stream contention on identical inputs and full restored state, comparing model-only, codec-only, serial and concurrent pair completion. A higher launch-stream priority is only a scheduling hint; query graph instantiation flags before interpreting priority trials."
   ],
   "validation_plan": [
     "L0: exercise partial batches, variable prompt boundaries, slot reuse, request cancellation and untouched-state checks before any service comparison.",
@@ -101,7 +111,9 @@
     "For stream overlap, hold request ordering, initial model/codec state and sampling counters fixed; compare generated codes, PCM, completion order and reused-slot state. Exact fixed-request replay does not replace quality under dynamic service admission.",
     "L1/L2: replay heterogeneous real prompts; inspect routing occupancy and graph kernels, and distinguish summed kernel time from elapsed time when streams overlap.",
     "L3/L4: score every output in the frozen corpus and repeated concurrency sweep; report acoustic frames/s, first playable audio latency, RTF, errors, WER and speaker similarity. Preserve rejected runs and source/environment provenance.",
-    "Promote a scheduling or kernel change only after a same-source end-to-end control/candidate comparison and complete repeated quality coverage meet the frozen gates. Operator checks, graph replay and a phase-selected trace cannot substitute for the full service result."
+    "Promote a scheduling or kernel change only after a same-source end-to-end control/candidate comparison and complete repeated quality coverage meet the frozen gates. Operator checks, graph replay and a phase-selected trace cannot substitute for the full service result.",
+    "Preserve an original bit-exact failure when investigating a changed batch shape or numerical backend. Identify real versus private scratch slots, quantify PCM and state errors, and use an independent higher-precision reference or causal isolation. A later diagnostic does not rewrite the failed gate and does not replace full WER/SIM.",
+    "When an isolated kernel improvement fails the full service throughput score, retain frame-count, length and drain differences and the failed score. Use fixed-input timing to test the operator hypothesis; do not rescue acceptance by discarding tails or substituting a selected-phase rate."
   ],
   "limitations": [
     "This record describes source-grounded mechanisms, not a reproduced speedup or a portable set of tuned constants.",
@@ -113,7 +125,9 @@
     "A whole-run average batch can be dominated by drain steps; a high batch in an admission subset does not establish an end-to-end speedup. Phase cuts are diagnostic scope, not permission to remove requests from acceptance metrics.",
     "A shared-execution prototype may change GEMM shapes, MoE implementation or random-number consumption. Keep those changes explicit, and keep timing from a device with observed external work unqualified even when numerical checks pass.",
     "A kernel reading nearly one active-expert weight footprint can remain bandwidth-limited despite low tensor activity; row padding or inactive experts must not be converted directly into a speedup claim.",
-    "A dedicated capture stream is a workspace-isolation hypothesis, not proof that prior quality failures were races. Require a fixed dynamic schedule and full service quality before attributing a cause or selecting overlap."
+    "A dedicated capture stream is a workspace-isolation hypothesis, not proof that prior quality failures were races. Require a fixed dynamic schedule and full service quality before attributing a cause or selecting overlap.",
+    "Configured or logged SM reservations may apply to a routing subkernel rather than expert GEMMs; inspect the actual dispatched branch before using such a setting as a resource-allocation explanation.",
+    "Native codec re-batching can change floating-point rounding. An error confined to a private scratch slot differs from a live-state error, but neither scratch analysis nor a high PCM SNR establishes full service quality."
   ],
   "verification": {
     "locally_verified": false,

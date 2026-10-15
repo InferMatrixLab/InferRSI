@@ -4,6 +4,6 @@ No winning candidate is nominated. Each experiment records its source revision b
 
 The implementation and rejected trials are reviewable in
 [runtime draft PR #1](https://github.com/david6666666/drama-3-single-b300-inference/pull/1).
-Published evidence is pinned at
-[`2669d4c`](https://github.com/david6666666/drama-3-single-b300-inference/tree/e58c8418005af8972d1616d5368009bc07dbe651/evidence/20261015-scale150).
+Latest published evidence is pinned at
+[`ab2d901`](https://github.com/david6666666/drama-3-single-b300-inference/tree/ab2d9015d6b0115530e675f25bbf5f188b1d65b1/evidence/20261016-ceiling).
 This is an evidence publication revision, not a nominated performance winner.

@@ -177,3 +177,63 @@ all-concurrency acceptance or proof about every historical quality failure.
 All new raw groups, diagnostics, source snapshots and limitations are indexed in
 [the published mixed investigation](https://github.com/david6666666/drama-3-single-b300-inference/tree/dfdd598a9810cf6e7b8aa6a102f6ab9270ff9cc6/evidence/20261016-mixed).
 The runtime PR remains draft and the campaign remains INCONCLUSIVE.
+
+
+## C64 reference-gap investigation, 2026-10-16
+
+The target remains6765.407 frames/s with native full-top8 computation and the
+frozen quality gates. The measured isolated B64 reference is approximately7734
+frames/s; it is neither a hardware upper bound nor a service guarantee. The
+complete1088 asynchronous trace replaces old synchronous timing proportions.
+Client continuous in-flight is about63.98, with only about6ms equivalent missing
+client-slot time. Client dispatch starvation is not supported as the major gap.
+
+Rich tracing separates183228 real prompt tokens from208384 captured rows and
+2122 codec frame-bucket groups from2265 actual graph calls. Only143 calls are
+avoidable same-bucket partitions; frame-bucket diversity accounts for833 groups
+beyond the emit count. Neither percentage is a time-saving estimate. The trace
+records multi-step decode explicitly instead of equating graph calls with steps.
+
+Compact GDN passes2099 exact checks. Mixed-layout and empty-convolution changes
+pass339 checks each and339 combined. Nevertheless, their full one-run GPU0
+candidate is4306.693 frames/s versus4371.393 for the same-source control; both
+score all1088 outputs and pass WER/SIM. The candidate's frame count is2.106%
+higher and drain1.092s longer. Preserve the failed full throughput score and the
+fixed-state graph improvement as different observations.
+
+Deferred codec host submission preserves the original producer event and passes
+414-event dynamic exact replay. Its GPU6 feasibility is4430.811 frames/s versus
+4366.914, but it produces2.677% more frames, takes1.197% longer and regresses TTFA.
+Both complete quality groups pass; this is not a fixed-work throughput win or a
+reason to change the default.
+
+A controlled native interference probe passes all60 code/PCM/state comparisons.
+Four B64 steps take33.33ms alone, versus34.65–36.92ms with three real F8 codec jobs
+of batch1–8. Concurrent pair completion is still better than serial. Model-high
+stream priority has no material gain; queried graph flags confirm launch-stream
+priority was the tested variable. This establishes contention for those fixed
+inputs, not the recoverability of every service overlap interval.
+
+The existing FI GDN adapter was tested on the current mixed path. An initial
+numeric gate fails on a private padding sequence and remains recorded as FAIL.
+A separate FP32-reference and padding-isolation diagnostic identifies the live
+versus unused domain, but final prefill hidden RRMS is0.09118. The local timing
+gain is only1.776%, below the predeclared5% criterion, so no full service trial or
+promotion follows. Do not silently reinterpret the original failure as success.
+
+Short reserved attention contexts pass 1023 exact checks across 9 cases and a
+complete GPU7 service/quality pair. Combining this with compact GDN, mixed layout
+and empty-convolution guards gives a same-source GPU0 one-pair result of
+4353.909 → 4591.038 frames/s. Candidate TTFA p50/p95 is 140.774/268.097 ms,
+mean RTF 0.295911, WER 1.925814%, SIM 63.693694. Both 1088-output quality groups
+pass, and the candidate's +0.858% generated frames are retained. The observed
+single-run +5.446% is not a repeated speedup claim. It is only 1.0179× the frozen
+vLLM baseline and fails the 1.5× target.
+
+Codec minimum-launch repartitioning changes 5/80 PCM outputs; the original exact
+gate remains FAIL even after identifying private scratch versus real final state.
+A new MoE residual fusion also fails its first exact static check; no timing is
+claimed for that candidate. Codec resource limiting remains experimental.
+No all-concurrency acceptance or successful README example is claimed; the
+campaign remains INCONCLUSIVE. Complete source, commands, numeric failures and
+full service/quality records are [published at the frozen runtime revision](https://github.com/david6666666/drama-3-single-b300-inference/tree/ab2d9015d6b0115530e675f25bbf5f188b1d65b1/evidence/20261016-ceiling).
