@@ -237,3 +237,46 @@ claimed for that candidate. Codec resource limiting remains experimental.
 No all-concurrency acceptance or successful README example is claimed; the
 campaign remains INCONCLUSIVE. Complete source, commands, numeric failures and
 full service/quality records are [published at the frozen runtime revision](https://github.com/david6666666/drama-3-single-b300-inference/tree/ab2d9015d6b0115530e675f25bbf5f188b1d65b1/evidence/20261016-ceiling).
+
+
+## Native pipeline, rounding and resource-allocation follow-up
+
+The corrected MoE residual fusion preserves the reference compiler's native BF16
+FMA and passes2374 exact checks. The original separate-operation failure remains
+archived. Explicit reserved-slot routing passes2574 production checks while
+preserving every real full-top8 route and native activation/scales; its local
+benefit is limited to partially populated decode batches.
+
+The checkpoint embeds semantic/code1 for the next backbone. A native two-frame
+pipeline can therefore overlap its next backbone with eight remaining tower
+layers. Its production gate passes3689 exact checks, including slot reuse,
+max_frames and a separately injected first-EOS boundary. A callback-local buffer
+had been allocated on the main stream and consumed on an auxiliary stream after
+its reference expired. Retaining its lifetime is supported by a one-variable335
+exact-check diagnostic. An additional validation failure came from an eager call
+rebinding a Python tensor attribute; graph replay still updated the old captured
+storage. Both failed records remain, and the corrected validator pins addresses.
+These are model correctness gates; complete service evaluation is still separate.
+
+An actual emission ledger leaves47.58% of supported ordinary calls not already
+blocked by known audio boundaries. This is an upper bound, not actual pair use.
+Correlated chunk phases contradict an independent-row estimate. New capture
+warmups also advance the global sampling counter, so the service comparison must
+retain output lengths and cannot be labeled fixed-output merely because inputs
+match.
+
+Native codec resource caps require capture-time kernel assignment. NCU verifies
+all284 nodes of the inspected native B4/F8 graph. The full dynamic diagnostic
+covers46 captures and28 actual shapes, preserving414 trace entries,80 full PCM
+outputs and all model/codec state across normal/capped-sync/poll/thread modes.
+The complete service pair observes4412.554→4470.317 frames/s, with fewer output
+frames and arm-specific measured-cost DP feedback. Both1088-output quality groups
+pass (WER1.909068%/1.565771%, SIM63.902018/64.244919); the candidate remains below
+the baseline and target. Adjacent codec group coalescing likewise passes complete
+quality but regresses4513.299→4414.243 frames/s. Neither changes the campaign verdict.
+
+The best complete single-run quality-qualified observation remains4591.038frames/s,
+and the all-concurrency three-repeat requirement remains incomplete. All new raw
+results, preserved failures, source snapshots and limitations are
+[pinned in runtime evidence](https://github.com/david6666666/drama-3-single-b300-inference/tree/171acc82460f479b56372a57d9f7de7a154795aa/evidence/20261016-ceiling).
+No successful README example is added; the campaign remains INCONCLUSIVE.

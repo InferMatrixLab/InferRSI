@@ -3,8 +3,8 @@
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
   "reason": "The four-change native C64 candidate passes complete one-group quality and observes 4591.04 frames/s, only 1.0179x the frozen vLLM baseline and below 6765.41; the required all-concurrency repeated matrix is not complete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "ab2d9015d6b0115530e675f25bbf5f188b1d65b1",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/ab2d9015d6b0115530e675f25bbf5f188b1d65b1/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "171acc82460f479b56372a57d9f7de7a154795aa",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/171acc82460f479b56372a57d9f7de7a154795aa/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -59,5 +59,32 @@
   "controlled_codec_contention_checks": 60,
   "codec_minlaunch_original_exact_gate_passes": false,
   "moe_residual_initial_exact_gate_passes": false,
-  "all_concurrency_target_status": "INCONCLUSIVE"
+  "all_concurrency_target_status": "INCONCLUSIVE",
+  "moe_residual_corrected_exact_checks": 2374,
+  "moe_residual_corrected_exact_gate_passes": true,
+  "reserved_padding_router_production_exact_checks": 2574,
+  "native_frame_pipeline_production_exact_checks": 3689,
+  "native_frame_pipeline_service_complete": false,
+  "recent_codec_service_trials": {
+    "adjacent_coalescing": {
+      "source_sha": "69d636ef11875add6e4edf7c9bb028b9574143a3",
+      "repeats_per_arm": 1,
+      "quality_samples_per_arm": 1088,
+      "control_frames_s": 4513.299150726729,
+      "candidate_frames_s": 4414.243311954199,
+      "both_complete_quality_pass": true,
+      "target_met": false,
+      "raw_summary": "coalescing-native-service-summary.json"
+    },
+    "native_48sm": {
+      "source_sha": "69d636ef11875add6e4edf7c9bb028b9574143a3",
+      "repeats_per_arm": 1,
+      "quality_samples_per_arm": 1088,
+      "control_frames_s": 4412.554410530426,
+      "candidate_frames_s": 4470.316688552834,
+      "both_complete_quality_pass": true,
+      "target_met": false,
+      "raw_summary": "green-sm-service-summary.json"
+    }
+  }
 }
