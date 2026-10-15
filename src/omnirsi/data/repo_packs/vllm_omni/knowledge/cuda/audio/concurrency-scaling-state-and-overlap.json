@@ -7,11 +7,11 @@
   "component": "audio",
   "scenario": "audio.*",
   "status": "imported",
-  "summary": "Diagnose audio service scaling by batch occupancy, mixed prefill and codec overlap; check state ownership, unchanged numerical controls and fixed-request replay, then qualify complete audio quality and service throughput.",
+  "summary": "Diagnose audio scaling with scheduler-step counts, admission/drain phases, mixed prefill/decode and codec overlap; isolate state, label and RNG ownership before qualifying same-source service throughput and complete audio quality.",
   "translations": {
     "zh-CN": {
       "title": "音频并发扩展：混合预填充、状态归属和 codec 重叠",
-      "summary": "按实际批大小、混合预填充和 codec 重叠拆解音频并发扩展；检查状态归属、未修改实现的数值对照和固定请求重放，再验收完整音频质量与服务吞吐。"
+      "summary": "按调度轮而非图碎片计数，分开初始填充、持续接纳与排空阶段，分析混合预填充/解码和 codec 重叠；分别检查状态、标签及随机数归属，再以同源服务对照和完整音频质量验收。"
     }
   },
   "tags": [
@@ -25,7 +25,15 @@
     "state_ownership",
     "control_run",
     "layer_parity",
-    "fixed_request_replay"
+    "fixed_request_replay",
+    "scheduler_step",
+    "piecewise_graph",
+    "admission_phase",
+    "mixed_backbone",
+    "rng_ownership",
+    "hardware_counters",
+    "static_sequence_bound",
+    "output_length_control"
   ],
   "sources": [
     {
@@ -39,6 +47,24 @@
       "type": "source",
       "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
       "accessed_at": "2026-10-15"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L1-L28",
+      "type": "source",
+      "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+      "accessed_at": "2026-10-16"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/model_state.py#L264-L379",
+      "type": "source",
+      "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+      "accessed_at": "2026-10-16"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/d6ed4f4844fbc41573ffc03247e5b2ff0a38d322/vllm_omni/model_executor/models/fish_omni/fish_omni_model.py#L425-L478",
+      "type": "source",
+      "commit": "d6ed4f4844fbc41573ffc03247e5b2ff0a38d322",
+      "accessed_at": "2026-10-16"
     }
   ],
   "applicability": {
@@ -55,17 +81,27 @@
   },
   "recommendations": [
     "Measure low and high concurrency independently. Attribute pure decode, prompt work, admission gaps and codec work using actual active batch sizes, not the configured capacity alone.",
+    "Count scheduler steps from the owning CPU execution annotation or scheduler metadata. A PIECEWISE step can launch many graph fragments; grouping kernel names or graph launches is not a step count. Correlate optional GPU spans explicitly and preserve their scope.",
+    "Separate initial fill, ongoing request admission and final drain before interpreting batch occupancy. Retain whole-run statistics and phase definitions; client in-flight counts include queueing and codec work and are not direct active-model counts or proof of a steady state.",
+    "A mixed backbone can share projection and MoE execution across prompt and decode rows while keeping causal attention and recurrent updates segmented. Measure whether joint rows amortize work on the real workload; preserving the expert count alone does not preserve backend dispatch or rounding.",
     "The source deployment combines chunked prefill, asynchronous CPU scheduling, FULL decode graphs, PIECEWISE mixed graphs, and a stateful codec on overlapping CUDA execution. Test these mechanisms individually when porting the design.",
     "Preserve decode-first ordering and per-request state indices in a mixed step. Each convolution and recurrent state must advance exactly once; fresh state rows must be reset without affecting other requests.",
     "Keep acoustic prompt rows in cache identity: the source disables prefix caching because token-ID hashing does not cover their code values.",
-    "Retain the codec chunk ramp, left context, complete emitted audio and preparation costs while comparing schedules. Do not substitute a kernel timing or text-token rate for playable-audio service throughput."
+    "Retain the codec chunk ramp, left context, complete emitted audio and preparation costs while comparing schedules. Do not substitute a kernel timing or text-token rate for playable-audio service throughput.",
+    "Use hardware counters on actual routed inputs to distinguish tensor arithmetic from expert-weight traffic. Report profiler replay policy, measured DRAM bytes and peak fraction, layer/input coverage and routing-count provenance; low tensor activity is not a directly recoverable speedup.",
+    "Inspect static maximum sequence lengths separately from real packed token counts. Tighter graph bounds can remove inactive recurrent chunks and attention work without changing rows; validate every real and padding sequence fits, preserve a larger-bound fallback, and compare all state and outputs before service.",
+    "For stochastic service A/B trials, retain generated-frame counts and request-length differences alongside frames/s and drain duration. Capture warmups and scheduling can change random draws, so a faster makespan alone does not prove a fixed-work kernel gain.",
+    "Separate replay streams and graph memory pools do not by themselves prove BLAS scratch isolation. Inspect the installed runtime capture/workspace ownership; where buffers are keyed by capture stream, test dedicated capture streams and record actual address ranges. Compare identical dynamic admissions, RNG, slot reuse and full mutable state before attributing a failure to workspace sharing."
   ],
   "validation_plan": [
     "L0: exercise partial batches, variable prompt boundaries, slot reuse, request cancellation and untouched-state checks before any service comparison.",
+    "For mixed execution, check state slots, teacher-forced labels and sampling/RNG ownership separately. Compare each changed layer on identical inputs, snapshot untouched slots before replay, exercise prompt boundaries and slot reuse, and preserve sampling-row and counter ordering in deterministic controls.",
+    "Record the model batch, prompt token budget and admission phase for every diagnosed scheduler step. Use a continuously replenished workload when investigating sustained scheduling; distinguish scheduled prompt chunks from unique requests and retain the final drain rather than silently filtering it.",
     "When batched and single-request outputs differ, preserve the failed comparison and run the unchanged implementation through the same check. Isolate each changed operator on identical layer inputs to separate new errors from accumulated floating-point and routing differences; never silently relax its numeric threshold.",
     "For stream overlap, hold request ordering, initial model/codec state and sampling counters fixed; compare generated codes, PCM, completion order and reused-slot state. Exact fixed-request replay does not replace quality under dynamic service admission.",
     "L1/L2: replay heterogeneous real prompts; inspect routing occupancy and graph kernels, and distinguish summed kernel time from elapsed time when streams overlap.",
-    "L3/L4: score every output in the frozen corpus and repeated concurrency sweep; report acoustic frames/s, first playable audio latency, RTF, errors, WER and speaker similarity. Preserve rejected runs and source/environment provenance."
+    "L3/L4: score every output in the frozen corpus and repeated concurrency sweep; report acoustic frames/s, first playable audio latency, RTF, errors, WER and speaker similarity. Preserve rejected runs and source/environment provenance.",
+    "Promote a scheduling or kernel change only after a same-source end-to-end control/candidate comparison and complete repeated quality coverage meet the frozen gates. Operator checks, graph replay and a phase-selected trace cannot substitute for the full service result."
   ],
   "limitations": [
     "This record describes source-grounded mechanisms, not a reproduced speedup or a portable set of tuned constants.",
@@ -73,7 +109,11 @@
     "Changing state precision, codec precision or FP8 execution can affect generated samples. Operator parity alone does not establish end-to-end audio quality.",
     "A faster isolated operation can still regress service throughput. Recheck the unchanged serving configuration and complete audio quality before choosing a fused kernel or a different batch policy.",
     "CUDA event spans can include host-submission gaps. Do not label their union as SM utilization, or count overlapped codec duration again as an available end-to-end speedup.",
-    "Qualification of another engine or a different GPU requires its own acceptance issue and complete evidence."
+    "Qualification of another engine or a different GPU requires its own acceptance issue and complete evidence.",
+    "A whole-run average batch can be dominated by drain steps; a high batch in an admission subset does not establish an end-to-end speedup. Phase cuts are diagnostic scope, not permission to remove requests from acceptance metrics.",
+    "A shared-execution prototype may change GEMM shapes, MoE implementation or random-number consumption. Keep those changes explicit, and keep timing from a device with observed external work unqualified even when numerical checks pass.",
+    "A kernel reading nearly one active-expert weight footprint can remain bandwidth-limited despite low tensor activity; row padding or inactive experts must not be converted directly into a speedup claim.",
+    "A dedicated capture stream is a workspace-isolation hypothesis, not proof that prior quality failures were races. Require a fixed dynamic schedule and full service quality before attributing a cause or selecting overlap."
   ],
   "verification": {
     "locally_verified": false,
