@@ -1,10 +1,10 @@
 {
   "verdict": "INCONCLUSIVE",
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
-  "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native PDL/metadata-readiness and dense-algorithm candidates also fail local continuation; the required all-concurrency repeated matrix remains incomplete.",
+  "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not repeated acceptance), below6765.41. Actual residency counters do not establish proportional issue progress. Route-address caching, ordered finalizer fusion and complete mixed row compaction miss their declared local continuation gates. The repeated all-concurrency matrix remains incomplete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "22403f7589a1c9ca6264b003199d078c636196ed",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/22403f7589a1c9ca6264b003199d078c636196ed/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "f5448f0f8cad850ea06b9476f80eb5bb17629c68",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/f5448f0f8cad850ea06b9476f80eb5bb17629c68/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -454,5 +454,88 @@
     "service_claim": false,
     "raw_report": "native-lt-real-contract/summary.md",
     "library_identity_correction": "native-lt-dtype-contract/same-library-capability.json"
+  },
+  "m128_current_node_counters": {
+    "source_sha": "95fcb0ef2662f2caf9bfb7fe6863dc3ad7805b1b",
+    "records": 8,
+    "correctness_ownership_checks": 404,
+    "replay_passes_per_node": 4,
+    "actual_cta_residency_increase_observed": true,
+    "instruction_issue_increase_established": false,
+    "large_weight_traffic_reduction_observed": false,
+    "node_timings_are_service_gain": false,
+    "raw_report": "expert-m128-ncu-node-v2/summary.md"
+  },
+  "m128_route_address_cache": {
+    "exact_checks": 1516,
+    "screen_checks": 146,
+    "real_cases": 3,
+    "repetitions_per_case": 1,
+    "latency_reduction_percent": [
+      3.042444774579325,
+      2.7996113332849597,
+      4.185903171549943
+    ],
+    "local_feasibility_gate_pass": false,
+    "runtime_promoted": false,
+    "raw_report": "expert-m128-route-cache/summary.md"
+  },
+  "native_fc1_instruction_sampling": {
+    "status": "INCONCLUSIVE",
+    "executed_records": 1,
+    "native_exact_checks": 80,
+    "total_samples": 4815,
+    "long_scoreboard_samples": 3503,
+    "dropped_bytes": 0,
+    "candidate_status": "NOT_RUN_PROTOCOL_STOP",
+    "specific_load_attribution_established": false,
+    "reason": "Initial direct-offset gate cannot map loaded addresses; later CPU metadata finds an explicit function base, but21 sampled addresses remain outside the function and two pass counters disagree. No resampling or unsupported attribution.",
+    "raw_report": "expert-m128-fc1-pcsampling/summary.md"
+  },
+  "native_finalizer_norm_fusion": {
+    "exact_and_provenance_checks": 1355,
+    "real_cases": 3,
+    "repetitions_per_case": 1,
+    "saved_microseconds": [
+      1.05728,
+      1.03648,
+      1.80096
+    ],
+    "required_microseconds_per_case": 2.5,
+    "local_feasibility_gate_pass": false,
+    "original_native_control_abi_failure_preserved": true,
+    "runtime_promoted": false,
+    "raw_report": "native-finalize-norm-v3/summary.md"
+  },
+  "native_causal_prefix_row_reuse": {
+    "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
+    "admission_groups_are_fifo_proxy": true,
+    "input_identity_row_layer_checks": 74120,
+    "nonshared_negative_controls": 3360,
+    "compact_native_parts_checks": 5393,
+    "full_mixed_checks": 957,
+    "all111_model_request_states_exact": true,
+    "full_rows": 1600,
+    "compact_capacity": 1088,
+    "real_cases": 3,
+    "repetitions_per_case": 1,
+    "replays_per_arm": 100,
+    "median_latency_reduction_percent": [
+      3.889393468317781,
+      3.9219491387926686,
+      4.358006471022313
+    ],
+    "full_state_restored_before_every_timed_replay": true,
+    "local_feasibility_gate_pass": false,
+    "runtime_promoted": false,
+    "service_claim": false,
+    "raw_report": "native-row-reuse-mixed/results.md"
+  },
+  "native_tower_budget_audit": {
+    "cpu_only": true,
+    "new_gpu_runs": false,
+    "new_credible_small_fusion_budget_over_0_3ms": false,
+    "old_trace_not_current_service_roofline": true,
+    "raw_report": "native-tower-budget-audit/summary.md"
   }
 }
