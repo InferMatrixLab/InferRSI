@@ -333,3 +333,41 @@ include all acoustic code rows. A valid suffix executor needs prefix K/V,
 convolution history and recurrent state, correct teacher labels and independent
 writable branch state. Count extra model traversals and precision boundaries
 before translating duplicate-row counts into a latency forecast.
+
+
+## Native arithmetic compatibility is an explicit implementation boundary
+
+The resident-MoE arithmetic foundation now has expanded component evidence.
+FC1's first discrepancy contains a physical16-element store permutation and a
+quantization-scale formula mismatch. Correcting those passes a single expert,
+but a subsequent zero-input expansion still fails. Native SASS lacks the
+candidate's tiny-amplitude clamp. A separate correction passes438 checks over
+15 native layer/routing fixtures plus original-native zero and near-threshold
+references. FC2's corrected physical BF16 store passes306 expanded checks, and
+a shared-memory activation body passes2063. Every original failure is retained.
+Do not substitute a plausible library reimplementation for the actual frozen
+native arithmetic reference; test layouts, scales, signed zero, partial routes,
+changed graph metadata and retained storage before timing.
+
+Resource capacity must include dynamic register allocation and actual TMEM,
+not only a cubin's static register header or shared bytes. The current FC1 roles
+request53248 registers per CTA, so its small shared-memory working set does not
+establish two-CTA residency. Shared intermediates require producer publication,
+consumer-completion synchronization and explicit lifetime reuse. Individually
+exact stages do not establish a connected cluster or end-to-end performance.
+
+An independent H/O GDN fusion keeps original BF16 intermediate rounding and
+passes90 real layer cases plus complete graph/state checks per variant. Yet
+three repetitions show no useful complete-MixedGraph reduction. The first V32
+variant doubles QK calculation relative to original O V64. Preserving V64
+removes that duplication but raises shared/TMEM allocation and still regresses
+the primary shape slightly. Eliminated intermediate bytes are not guaranteed
+DRAM savings or speed: live values, resident blocks and chunk parallelism also
+change. Both candidates stay out of production. No more tile sweep follows
+these negative results, and none changes service acceptance or quality bounds.
+
+The component evidence is
+[pinned with all raw gates and repetitions](https://github.com/david6666666/drama-3-single-b300-inference/tree/f1dc31d57e4d29699a5bfbe5b0fc29ed5e163333/evidence/20261016-ceiling).
+The complete resident implementation remains in progress. C64 still needs
+6765.407frames/s, all-concurrency repeated acceptance remains incomplete, and
+no successful README example is claimed.

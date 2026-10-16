@@ -3,8 +3,8 @@
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
   "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native cache and partition candidates fail local/service performance promotion; the required all-concurrency repeated matrix remains incomplete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "245629abae234866de4cbb589bff6587d0a5c85a",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/245629abae234866de4cbb589bff6587d0a5c85a/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "f1dc31d57e4d29699a5bfbe5b0fc29ed5e163333",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/f1dc31d57e4d29699a5bfbe5b0fc29ed5e163333/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -215,5 +215,54 @@
     "timing_run": false,
     "runtime_promoted": false,
     "raw_report": "expert-fc1-native/layout-audit.json"
+  },
+  "resident_native_components": {
+    "source_sha": "95fcb0ef2662f2caf9bfb7fe6863dc3ad7805b1b",
+    "fc1_v2_single_expert_exact_checks": 42,
+    "fc1_zero_expansion_original_gate_pass": false,
+    "fc1_v3_expanded_exact_checks": 438,
+    "fc1_v3_native_oracle_cases": 15,
+    "fc1_v3_synthetic_zero_and_near_threshold_cases": 3,
+    "fc2_original_gate_pass": false,
+    "fc2_v2_single_expert_exact_checks": 40,
+    "fc2_expanded_exact_checks": 306,
+    "fc2_native_oracle_cases": 15,
+    "shared_activation_exact_checks": 2063,
+    "shared_activation_cases": 137,
+    "fc1_dynamic_register_budget_per_cta": 53248,
+    "full_resident_chain_exact_pass": false,
+    "timing_run": false,
+    "runtime_promoted": false,
+    "raw_report": "expert-resident-implementation-plan.md",
+    "preserved_failures": [
+      "expert-fc1-native",
+      "expert-fc1-expanded",
+      "expert-fc2-native"
+    ]
+  },
+  "gdn_prefill_ho_fusion": {
+    "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
+    "variants": [
+      "V32",
+      "V64"
+    ],
+    "synthetic_exact_checks_per_variant": 57,
+    "real_exact_checks_per_variant": 522,
+    "timed_trajectory_exact_checks_per_variant": 1026,
+    "actual_gdn_layer_cases_per_variant": 90,
+    "complete_mixed_graph_shapes": 3,
+    "timing_repetitions_per_shape": 3,
+    "replays_per_timing_measurement": 20,
+    "both_local_continuation_gates_pass": false,
+    "v32_d58p6_native_ms": 26.35557861328125,
+    "v32_d58p6_candidate_ms": 26.49036560058594,
+    "v64_d58p6_native_ms": 26.355218505859376,
+    "v64_d58p6_candidate_ms": 26.420693969726564,
+    "runtime_promoted": false,
+    "is_service_acceptance": false,
+    "raw_reports": [
+      "gdn-fused-prefill/report.md",
+      "gdn-fused-prefill-o64/report.md"
+    ]
   }
 }
