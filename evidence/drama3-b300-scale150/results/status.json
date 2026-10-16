@@ -1,10 +1,10 @@
 {
   "verdict": "INCONCLUSIVE",
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
-  "reason": "Best complete-quality C64 remains4726.77 frames/s (one observation), below6765.41. A new inverse-row adapter passes repeated complete mixed-graph checks with6.23\u20136.77% local latency reductions; general-shape runtime and service qualification are pending. Transparent compressed allocation passes native MoE checks but fails its performance gate. The repeated all-concurrency matrix remains incomplete.",
+  "reason": "Optimization paused at user request. Best complete-quality C64 remains 4726.77 frames/s (one observation), below 6765.41. Production prefix reuse passes 9974 checks and both complete 1088-output quality groups, but the single service pair falls from 4674.81 to 4534.13 frames/s. Its continuation gate fails and the feature stays default-off. A comparable latest three-framework/all-concurrency matrix is not available.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "0dd72e518167c7a888db9b63f0fb90cc2087f187",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/0dd72e518167c7a888db9b63f0fb90cc2087f187/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "47c3d2ec4e3406d8a71fccc3cb4967783c2650f5",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/47c3d2ec4e3406d8a71fccc3cb4967783c2650f5/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -602,5 +602,47 @@
     "model_wide_compression_ratio_established": false,
     "pruning_qualified": false,
     "raw_report": "native-zero-structure/summary.md"
+  },
+  "optimization_status": "PAUSED_AT_USER_REQUEST",
+  "pause_date": "2026-10-16",
+  "current_results_readme_published": true,
+  "native_row_reuse_production": {
+    "source_sha": "345c6a18f200853489a9ac8a86bbe0682ebe484d",
+    "finite_buckets": 5,
+    "exact_checks": 9974,
+    "exact_cases": 30,
+    "initial_harness_failure_preserved": true,
+    "harness_fix": "Align full physical padding input history in both arms; production source and numerical threshold unchanged.",
+    "service_repeats_per_arm": 1,
+    "service_requests_per_arm": 1088,
+    "control_frames_s": 4674.814976500572,
+    "candidate_frames_s": 4534.131006011372,
+    "candidate_control_ratio": 0.9699059810502892,
+    "control_wer_percent": 1.4652934773507493,
+    "candidate_wer_percent": 1.6829942225571466,
+    "control_sim": 64.18842814473764,
+    "candidate_sim": 64.20202142876737,
+    "quality_complete_both_arms": true,
+    "quality_pass_both_arms": true,
+    "continuation_gate_pass": false,
+    "default_enabled": false,
+    "three_service_rounds_run": false,
+    "raw_summary": "native-row-reuse-service/summary.json"
+  },
+  "native_sf_tile_cache": {
+    "exact_checks": 1518,
+    "post_timing_checks": 148,
+    "per_case_latency_reduction_percent": [
+      3.45052,
+      4.17282,
+      4.42398
+    ],
+    "continuation_gate_pass": false,
+    "service_run": false
+  },
+  "native_grouped_simt": {
+    "gpu_run": false,
+    "production_changed": false,
+    "scope": "Fixed eight-lane mapping closed at CPU/AOT budget analysis; 384 selected FC2 BF16 values agree, full FC1/native MoE parity unestablished."
   }
 }

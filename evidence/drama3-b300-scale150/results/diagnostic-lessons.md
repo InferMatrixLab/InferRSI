@@ -645,3 +645,57 @@ acceptance still pending. These results refine portable experiment guidance;
 the imported catalog's verification status remains unchanged.
 
 The new adapter and allocation evidence is [pinned at runtime 0dd72e5](https://github.com/david6666666/drama-3-single-b300-inference/tree/0dd72e518167c7a888db9b63f0fb90cc2087f187/evidence/20261016-ceiling).
+
+
+## Production prefix reuse: correct graphs can still lose at service level
+
+At the user-requested pause, the five-bucket production integration passes 9974
+checks over 30 cases, both graph-capture orders, all 111 mutable states, retained
+output lifetimes, untouched slots and no-reuse fallbacks. The initial harness
+failure remains archived: two arms had different private padding input histories.
+One reused graph retained 53 differing padded prompt rows from a previous case,
+while the newly captured compact graph started with EOS/zero padding. Public
+outputs and real state matched but private GDN history differed. The corrected
+harness resets full physical input rows identically, validates their identity,
+and reruns the failed case with an unchanged A/A control. It does not change
+production math, filter scratch state or loosen the numeric gate.
+
+The same frozen production source is then compared with reuse off versus on:
+one B300, C64, 64 warmup requests and all 1088 measured requests per arm.
+Throughput falls 4674.814977→4534.131006 frames/s, ratio 0.969905981, below the
+frozen 1.01 continuation gate. TTFA p50/p95 changes 148.562946/274.704463 to
+151.265127/273.353699 ms; mean RTF changes 0.290890 to 0.290618. Both full quality
+groups pass: WER 1.465293%/1.682994%, SIM 64.188428/64.202021. No three-round
+service trial follows and the feature stays default-off.
+
+Reuse activates in 130/200 lifetime opportunities and removes 36096 MoE rows,
+but logical work removal does not establish a throughput gain. Outputs differ
+(102266/102637 returned frames), and last-dispatch-to-final-completion differs
+(1.0461/1.8441 s). The tail remains included. Client accounting cannot identify
+a GPU cause or justify replacing the failed score with an intake-only rate.
+CPU plan construction totals 29.439 ms, excluding later validation/H2D; complete
+service timing includes all of them. Sampled process-memory peaks rise about
+700 MiB and are not exact allocator peaks. All 1808 frozen dependency hashes and
+four completed service/quality runners are checked after cleanup.
+
+A separate producer scale-tile-cache screen passes 1518 native checks and 148
+post-timing checks. Its three complete-body latency reductions are 3.45%, 4.17%
+and 4.42%, all below the frozen 5% gate. It stops without repeated/model/service
+promotion. Comparison with an earlier metadata-ready screen is not a controlled
+causal subtraction. A fixed eight-lane FP8 SIMT proposal also stops, at CPU/AOT:
+conversion and accumulation instruction cost already exceeds the historical
+native GEMM budget under its optimistic issue model. This is conditional on that
+mapping, not a universal hardware limit. The selected FC2 BF16 values matching
+does not prove the original FC1 FP8 boundary or whole-model equivalence.
+
+The user now requests current-results documentation rather than continued
+optimization. The runtime README publishes its actual architecture, explicit
+configuration/optimization status and available metrics. The repeated 1088
+coded-reference standalone/vLLM matrix and historical 192 raw-reference SGLang
+matrix are separated, and the newer single C64 trials do not overwrite either.
+All 63 runs' four metrics were recomputed from 49,728 raw successful records.
+This is documentation validation, not a matched three-framework benchmark or
+acceptance PASS. The success example remains absent and imported catalog
+verification stays false. No further GPU experiment is scheduled.
+
+The final service, CPU and documentation snapshot is [pinned at runtime 47c3d2e](https://github.com/david6666666/drama-3-single-b300-inference/tree/47c3d2ec4e3406d8a71fccc3cb4967783c2650f5/evidence/20261016-ceiling).
