@@ -654,8 +654,8 @@ checks over 30 cases, both graph-capture orders, all 111 mutable states, retaine
 output lifetimes, untouched slots and no-reuse fallbacks. The initial harness
 failure remains archived: two arms had different private padding input histories.
 One reused graph retained 53 differing padded prompt rows from a previous case,
-while the newly captured compact graph started with EOS/zero padding. Public
-outputs and real state matched but private GDN history differed. The corrected
+while the newly captured compact graph started with EOS/zero padding. Both public hidden outputs matched; the saved GDN0 mismatch was confined to
+private slot 143. Later states were not checked after the first failure. The corrected
 harness resets full physical input rows identically, validates their identity,
 and reruns the failed case with an unchanged A/A control. It does not change
 production math, filter scratch state or loosen the numeric gate.
