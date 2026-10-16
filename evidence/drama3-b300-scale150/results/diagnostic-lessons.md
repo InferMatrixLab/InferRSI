@@ -442,3 +442,22 @@ candidate has a separate protocol; it cannot retroactively pass either failed
 complete-call experiment.
 
 Completed-call evidence and the resource correction are [pinned at runtime 13d0566](https://github.com/david6666666/drama-3-single-b300-inference/tree/13d0566bf71b2ccf634c79cdef3aea938decc96e/evidence/20261016-ceiling).
+
+
+## Enabled PDL still requires a useful dependency schedule
+
+A separate M128 PDL-enabled candidate passes1498 exact checks, including empty
+work and graph reuse with changed metadata. Its preliminary three real cases
+reduce latency by1.988%,3.832%,6.315% in one AB round; the first two miss the5%
+continuation criterion. Thus three-repetition timing and pressure-case timing
+are not run. The raw feasibility schema's vacuous stress flag does not establish
+stress performance. Preserve this scope explicitly when summarizing results.
+
+Inspect where dependencies wait, not just whether PDL is enabled. The native FC2
+can start weight loading before consumer waits, while this prototype blocks at
+entry. Moving that wait requires an explicit proof for metadata visibility and
+retained waits before activation-dependent reads. Neither machine-code inspection
+nor an enabled launch flag proves useful overlap or a safe replacement schedule.
+The follow-up remains a hypothesis, with unchanged service and quality targets.
+
+The PDL feasibility and dependency audit are [pinned at runtime e347d15](https://github.com/david6666666/drama-3-single-b300-inference/tree/e347d15f872e685f66b2cecf37318a4565fd8f8f/evidence/20261016-ceiling).

@@ -3,8 +3,8 @@
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
   "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native cache and partition candidates fail local/service performance promotion; the required all-concurrency repeated matrix remains incomplete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "13d0566bf71b2ccf634c79cdef3aea938decc96e",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/13d0566bf71b2ccf634c79cdef3aea938decc96e/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "e347d15f872e685f66b2cecf37318a4565fd8f8f",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/e347d15f872e685f66b2cecf37318a4565fd8f8f/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -378,5 +378,22 @@
     "vendor_fc1_register_reconfiguration_instructions": 8,
     "source_hint_occupancy_inference_withdrawn": true,
     "raw_report": "register-lowering-audit/report.md"
+  },
+  "m128_pdl_feasibility": {
+    "source_sha": "95fcb0ef2662f2caf9bfb7fe6863dc3ad7805b1b",
+    "exact_checks": 1498,
+    "feasibility_checks": 146,
+    "real_cases": 3,
+    "repetitions_per_real_case": 1,
+    "latency_reduction_percent": [
+      1.987855839136543,
+      3.8322422395693723,
+      6.314802520510742
+    ],
+    "local_feasibility_gate_pass": false,
+    "pressure_performance_status": "NOT_RUN",
+    "three_repetition_timing_run": false,
+    "runtime_promoted": false,
+    "raw_report": "expert-m128-pdl/summary.md"
   }
 }

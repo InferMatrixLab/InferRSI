@@ -109,7 +109,10 @@
     "Separate queued work from runnable admission when deciding whether to launch a bounded multi-step graph. Reuse the actual capacity, minimum-batch, minimum-running and oldest-age predicate; preserve pending-arrival and audio/completion boundaries. Record mutually exclusive decisions separately from overlapping context counters, and measure any extra admission delay.",
     "Inspect compiled codec graphs for repeated casts of immutable Linear weights. Caching the existing autocast result can remove traffic without changing GEMM precision, but retain original reference/encoding modules and native norm/layer-scale precision. A compiler option alone is not proof that casts disappeared; inspect dispatched kernels and validate full codec state.",
     "Inspect production-specialization register/shared-memory allocation when fusing recurrent operations. A debug output can change allocation, and removing launches can lose throughput through reduced residency or added synchronization; compile and measure the actual deployed specialization.",
-    "Control native algorithm-plan caches when comparing autotuning modes. Verify the installed cache key and lookup order: a flag change after control warmup may reuse the same plan. Isolate per-thread caches using fresh host threads where the implementation supports that scope, retain compilation/preparation costs, and do not clear shared system caches."
+    "Control native algorithm-plan caches when comparing autotuning modes. Verify the installed cache key and lookup order: a flag change after control warmup may reuse the same plan. Isolate per-thread caches using fresh host threads where the implementation supports that scope, retain compilation/preparation costs, and do not clear shared system caches.",
+    "Use final SASS and actual launch resource attributes to audit register and shared-memory use. Source or intermediate-code register hints may not reach machine code; their sum cannot establish resident-block counts or an occupancy improvement.",
+    "Treat native routing metadata as a per-call ownership map: physical rows can be permuted legally. Validate bounds, token/expert bijection and valid-row prefixes using each implementation's own current map before comparing logical values; never infer a permutation from output values.",
+    "Compare complete calls at the same input/output boundary while retaining the baseline's production features, including programmatic dependent launch (PDL). Record candidate limitations explicitly; exact components, fewer global buffers or a faster fused kernel do not establish complete-call or service gains."
   ],
   "validation_plan": [
     "L0: exercise partial batches, variable prompt boundaries, slot reuse, request cancellation and untouched-state checks before any service comparison.",
@@ -139,7 +142,8 @@
     "A dedicated capture stream is a workspace-isolation hypothesis, not proof that prior quality failures were races. Require a fixed dynamic schedule and full service quality before attributing a cause or selecting overlap.",
     "Configured or logged SM reservations may apply to a routing subkernel rather than expert GEMMs; inspect the actual dispatched branch before using such a setting as a resource-allocation explanation.",
     "Native codec re-batching can change floating-point rounding. An error confined to a private scratch slot differs from a live-state error, but neither scratch analysis nor a high PCM SNR establishes full service quality.",
-    "A selected-phase delivery rate can explain a changing service score but is not GPU effective batch or a replacement acceptance metric. High client occupancy only rules out client starvation within its measured scope."
+    "A selected-phase delivery rate can explain a changing service score but is not GPU effective batch or a replacement acceptance metric. High client occupancy only rules out client starvation within its measured scope.",
+    "Repository-local issue evidence for the machine-code, live-metadata and complete-call lessons is recorded in evidence/drama3-b300-scale150/results/diagnostic-lessons.md#complete-call-evidence-rejects-both-initial-native-moe-candidates. Its scoped results do not promote this imported guidance to a locally verified optimization."
   ],
   "verification": {
     "locally_verified": false,
