@@ -280,3 +280,56 @@ and the all-concurrency three-repeat requirement remains incomplete. All new raw
 results, preserved failures, source snapshots and limitations are
 [pinned in runtime evidence](https://github.com/david6666666/drama-3-single-b300-inference/tree/171acc82460f479b56372a57d9f7de7a154795aa/evidence/20261016-ceiling).
 No successful README example is added; the campaign remains INCONCLUSIVE.
+
+
+## Native structure follow-up: correctness and performance remain separate
+
+Issue#10 remains INCONCLUSIVE. Distinguishing queued admission from runnable
+admission raises two-frame eligibility from139/1902 to625/1246 lifetime ordinary
+launch decisions, including warmup. The complete1088-request pair observes
+4481.280→4583.673frames/s with both quality groups passing, but p50/p95 first
+audio rises. One feasibility pair is not a repeated gain or final acceptance.
+
+Private native-BF16 Linear parameter caching removes40 repeat autocast kernels
+from the codec. Original FP32 codec parameters, norm/layer-scale arithmetic and
+reference encoding remain unchanged. Local273 exact checks,46 captured shapes,
+and fixed80-request/414-entry dynamic replay pass. Yet full service observes
+4726.771→4585.126frames/s with all1088 outputs scored in each arm and quality
+passing. Output lengths and delivery tails differ; do not attribute the entire
+service delta to codec compute. The cache remains default off. The control is
+the best complete-quality single observation, not a claimed repeatable winner.
+
+Preserving native GDN warp/reduction order restores exact real-layer and full
+state results, while fused recurrence/norm is slower. Resource accounting must
+use the production specialization (182 registers/thread), not a debug output
+variant (177). A CPU lifetime change raises allocation to185 and is stopped.
+Shared MoE metadata removes duplicate routing work but the complete partition
+path still loses to native. Neither fewer launches nor exact outputs imply a
+performance gain. New resident-expert proposals remain unverified CPU designs.
+
+Autotuning comparisons must control algorithm-plan caches, not merely switch a
+flag. The first native cuDNN comparison reused a thread-local cache populated by
+control; its benchmark flag was absent from the key. Fresh host threads expose
+a PCM exact mismatch before timing. Preserve the original result and explicit
+correction, and keep a failed exact check distinct from unmeasured task quality.
+No user quality bound, precision boundary, expert count or acceptance gate is
+changed. Detailed artifacts are pinned by status.json's runtime evidence commit.
+
+The cache control follows the installed [pinned PyTorch implementation](https://github.com/pytorch/pytorch/blob/cf30153c4c131c8164ee7798e5022d810682e2cb/aten/src/ATen/native/cudnn/Conv_v8.cpp); this dependency source is kept in issue-scoped evidence rather than the vLLM-only imported source list.
+
+
+A fixed-work replay now separates causal codec contention from variable-length
+service scores. All4,177 exact checks pass on80 requests/414 trace entries;
+normal overlap lengthens model spans yet remains faster than serialization.
+Native weight caching reduces isolated codec time but only0.402% of combined
+wall time in this fixture. Its packed-prefill/single-step scope excludes the
+current mixed/frame-pipeline executor, whose separate event ledger is retained.
+Never present this replay as a complete service benchmark.
+
+Prefix reuse opportunities must be evaluated against arrival groups. Adjacent
+identical references can be simultaneous cold misses; completed-prefix hits and
+same-group deduplication require different state ownership. Cache identity must
+include all acoustic code rows. A valid suffix executor needs prefix K/V,
+convolution history and recurrent state, correct teacher labels and independent
+writable branch state. Count extra model traversals and precision boundaries
+before translating duplicate-row counts into a latency forecast.

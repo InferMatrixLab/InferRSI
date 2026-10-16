@@ -105,7 +105,11 @@
     "For cross-stream model pipelines, establish both execution dependencies and allocation lifetimes. Retain a producer tensor until every consumer stream has finished; an event wait alone does not stop the allocator from reusing callback-local storage.",
     "Derive inter-frame dependencies from the actual embedding and sampled-code paths before declaring a whole tower serial. Keep next-frame positions, attention workspaces, recurrent states and sampling counters independent until their required joins.",
     "When changing codec resource allocation, verify actual captured kernel assignments and preserve the normal partition policy. If its measured cost table changes partitions, report that feedback explicitly rather than claiming a fixed-partition comparison.",
-    "Estimate temporal batching eligibility from observed chunk phases, admission and completion boundaries. Requests can have correlated emission phases; an independent per-row probability model can badly misestimate useful coverage."
+    "Estimate temporal batching eligibility from observed chunk phases, admission and completion boundaries. Requests can have correlated emission phases; an independent per-row probability model can badly misestimate useful coverage.",
+    "Separate queued work from runnable admission when deciding whether to launch a bounded multi-step graph. Reuse the actual capacity, minimum-batch, minimum-running and oldest-age predicate; preserve pending-arrival and audio/completion boundaries. Record mutually exclusive decisions separately from overlapping context counters, and measure any extra admission delay.",
+    "Inspect compiled codec graphs for repeated casts of immutable Linear weights. Caching the existing autocast result can remove traffic without changing GEMM precision, but retain original reference/encoding modules and native norm/layer-scale precision. A compiler option alone is not proof that casts disappeared; inspect dispatched kernels and validate full codec state.",
+    "Inspect production-specialization register/shared-memory allocation when fusing recurrent operations. A debug output can change allocation, and removing launches can lose throughput through reduced residency or added synchronization; compile and measure the actual deployed specialization.",
+    "Control native algorithm-plan caches when comparing autotuning modes. Verify the installed cache key and lookup order: a flag change after control warmup may reuse the same plan. Isolate per-thread caches using fresh host threads where the implementation supports that scope, retain compilation/preparation costs, and do not clear shared system caches."
   ],
   "validation_plan": [
     "L0: exercise partial batches, variable prompt boundaries, slot reuse, request cancellation and untouched-state checks before any service comparison.",
@@ -119,7 +123,8 @@
     "Preserve an original bit-exact failure when investigating a changed batch shape or numerical backend. Identify real versus private scratch slots, quantify PCM and state errors, and use an independent higher-precision reference or causal isolation. A later diagnostic does not rewrite the failed gate and does not replace full WER/SIM.",
     "When an isolated kernel improvement fails the full service throughput score, retain frame-count, length and drain differences and the failed score. Use fixed-input timing to test the operator hypothesis; do not rescue acceptance by discarding tails or substituting a selected-phase rate.",
     "A capture-versus-eager validator must retain references to the captured buffers: replay updates captured storage, while eager Python execution can rebind object attributes. Preserve any failing run and prove a validator-handle mistake before replacing its result.",
-    "Check compiler FMA contraction and intermediate rounding when fusing native arithmetic. A source-level cast sequence need not imply separate machine operations. Keep original failures and distinguish an explicit correction from a separately declared higher-precision numerical diagnostic."
+    "Check compiler FMA contraction and intermediate rounding when fusing native arithmetic. A source-level cast sequence need not imply separate machine operations. Keep original failures and distinguish an explicit correction from a separately declared higher-precision numerical diagnostic.",
+    "Expand numerical checks across independently prepared real fixtures, layers and partial batches before timing. A single fixture can pass while another exposes small-magnitude per-head errors or a worse independent-reference error; retain both outcomes and preserve the predeclared gate."
   ],
   "limitations": [
     "This record describes source-grounded mechanisms, not a reproduced speedup or a portable set of tuned constants.",
@@ -133,7 +138,8 @@
     "A kernel reading nearly one active-expert weight footprint can remain bandwidth-limited despite low tensor activity; row padding or inactive experts must not be converted directly into a speedup claim.",
     "A dedicated capture stream is a workspace-isolation hypothesis, not proof that prior quality failures were races. Require a fixed dynamic schedule and full service quality before attributing a cause or selecting overlap.",
     "Configured or logged SM reservations may apply to a routing subkernel rather than expert GEMMs; inspect the actual dispatched branch before using such a setting as a resource-allocation explanation.",
-    "Native codec re-batching can change floating-point rounding. An error confined to a private scratch slot differs from a live-state error, but neither scratch analysis nor a high PCM SNR establishes full service quality."
+    "Native codec re-batching can change floating-point rounding. An error confined to a private scratch slot differs from a live-state error, but neither scratch analysis nor a high PCM SNR establishes full service quality.",
+    "A selected-phase delivery rate can explain a changing service score but is not GPU effective batch or a replacement acceptance metric. High client occupancy only rules out client starvation within its measured scope."
   ],
   "verification": {
     "locally_verified": false,

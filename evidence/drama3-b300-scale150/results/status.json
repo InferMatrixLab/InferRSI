@@ -1,10 +1,10 @@
 {
   "verdict": "INCONCLUSIVE",
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
-  "reason": "The four-change native C64 candidate passes complete one-group quality and observes 4591.04 frames/s, only 1.0179x the frozen vLLM baseline and below 6765.41; the required all-concurrency repeated matrix is not complete.",
+  "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native cache and partition candidates fail local/service performance promotion; the required all-concurrency repeated matrix remains incomplete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "171acc82460f479b56372a57d9f7de7a154795aa",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/171acc82460f479b56372a57d9f7de7a154795aa/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "245629abae234866de4cbb589bff6587d0a5c85a",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/245629abae234866de4cbb589bff6587d0a5c85a/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -64,7 +64,7 @@
   "moe_residual_corrected_exact_gate_passes": true,
   "reserved_padding_router_production_exact_checks": 2574,
   "native_frame_pipeline_production_exact_checks": 3689,
-  "native_frame_pipeline_service_complete": false,
+  "native_frame_pipeline_service_complete": true,
   "recent_codec_service_trials": {
     "adjacent_coalescing": {
       "source_sha": "69d636ef11875add6e4edf7c9bb028b9574143a3",
@@ -86,5 +86,134 @@
       "target_met": false,
       "raw_summary": "green-sm-service-summary.json"
     }
+  },
+  "native_frame_pipeline_service_trial": {
+    "source_sha": "a7118fb7eb748d08c3b774fa6c9189b6eab0d9cc",
+    "repeats_per_arm": 1,
+    "quality_samples_per_arm": 1088,
+    "control_frames_s": 4576.835318240403,
+    "candidate_frames_s": 4580.029569444877,
+    "candidate_wer_percent": 2.277484719082308,
+    "candidate_sim": 63.90760645840098,
+    "both_complete_quality_pass": true,
+    "pairs_selected": 159,
+    "ordinary_launch_decisions": 1710,
+    "decision_scope": "64 warmup plus1088 measured requests; combined waiting-or-pending blocks cannot identify recoverable waiting-only cases",
+    "target_met": false,
+    "raw_summary": "pipeline-service-summary.json"
+  },
+  "gdn_fused_norm_expanded_numeric_gate_pass": false,
+  "gdn_fused_norm_timing_qualified": false,
+  "expert_partition_native_checks": 135,
+  "expert_partition_local_performance_gate_pass": false,
+  "native_deferred_waiting_trial": {
+    "source_sha": "95fcb0ef2662f2caf9bfb7fe6863dc3ad7805b1b",
+    "control_frames_s": 4481.280462849354,
+    "candidate_frames_s": 4583.673173280921,
+    "candidate_ttfa_p50_ms": 146.27732400549576,
+    "candidate_ttfa_p95_ms": 274.84844140708003,
+    "candidate_rtf_mean": 0.2895720557859185,
+    "candidate_wer_percent": 1.833710123084652,
+    "candidate_sim": 64.12095218902344,
+    "repeats_per_arm": 1,
+    "quality_samples_per_arm": 1088,
+    "both_complete_quality_pass": true,
+    "target_met": false,
+    "raw_summary": "pipeline-admission-service-summary.json"
+  },
+  "native_codec_cached_linear": {
+    "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
+    "local_exact_checks": 273,
+    "full_captured_shapes_exact": 46,
+    "dynamic_requests": 80,
+    "dynamic_trace_entries": 414,
+    "all_dynamic_modes_exact": true,
+    "original_fp32_codec_preserved": true,
+    "service_complete": true,
+    "target_met": false,
+    "raw_gate": "codec-cache-dynamic/result.json",
+    "quality_samples_per_arm": 1088,
+    "both_complete_quality_pass": true,
+    "control_frames_s": 4726.77149517109,
+    "candidate_frames_s": 4585.126355696841,
+    "candidate_wer_percent": 2.0179184459516035,
+    "candidate_sim": 63.86089451267617,
+    "repeats_per_arm": 1,
+    "performance_promoted": false,
+    "raw_summary": "codec-cache-service-summary.json"
+  },
+  "best_observed_complete_quality_c64": {
+    "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
+    "configuration": "codec-cache-service control: cached-linear off; native frame pipeline and deferred waiting on",
+    "gpu": "GPU6",
+    "frames_s": 4726.77149517109,
+    "ttfa_p50_ms": 145.6451045232825,
+    "ttfa_p95_ms": 273.6818287463342,
+    "rtf_mean": 0.28813005589917623,
+    "wer_percent": 1.5992631667085322,
+    "sim": 64.41275850157527,
+    "repetitions": 1,
+    "all_outputs_scored": 1088,
+    "is_formal_acceptance": false,
+    "target_met": false,
+    "raw_summary": "codec-cache-service-summary.json"
+  },
+  "gdn_native_warp_tiles": {
+    "layer_cases_exact": 180,
+    "full_graph_cases_exact": 6,
+    "steps_per_graph_case": 8,
+    "local_time_relative_increase": 0.06369973429084452,
+    "production_registers_per_thread": 182,
+    "late_layout_registers_per_thread": 185,
+    "local_performance_pass": false,
+    "runtime_promoted": false,
+    "raw_report": "gdn-fused-norm/warp-tiles-result-report.md"
+  },
+  "expert_metadata_rebase": {
+    "exact_checks": 1373,
+    "local_performance_pass": false,
+    "runtime_promoted": false,
+    "raw_report": "expert-metadata-rebase/summary.md"
+  },
+  "codec_fresh_cudnn_selection": {
+    "original_same_thread_cache_confounded": true,
+    "fresh_thread_exact_pass": false,
+    "timing_run": false,
+    "runtime_promoted": false,
+    "raw_report": "codec-cudnn-fresh-thread/summary.md"
+  },
+  "current_pipeline_timeline": {
+    "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
+    "requests": 1088,
+    "is_acceptance": false,
+    "model_union_s": 21.289383056640624,
+    "codec_only_s": 0.970009521484375,
+    "neither_model_codec_s": 0.613250732421875,
+    "raw_report": "current-pipeline-timeline-results.md"
+  },
+  "fixed_native_work_contention": {
+    "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
+    "requests": 80,
+    "trace_entries": 414,
+    "exact_checks": 4177,
+    "all_modes_exact": true,
+    "includes_current_mixed_pipeline": false,
+    "is_service_acceptance": false,
+    "raw_report": "cpu-service-ceiling/fixed-work/results.md"
+  },
+  "reference_prefix_feasibility": {
+    "cpu_only": true,
+    "runtime_implemented": false,
+    "cold_reuse_prompt_row_fraction": 0.34421045803919875,
+    "admission_groups_are_fifo_proxy": true,
+    "raw_report": "reference-prefix/feasibility.md"
+  },
+  "resident_fc1_prototype": {
+    "original_exact_gate_pass": false,
+    "cpu_layout_corrected_bytes": 8192,
+    "original_scales_differ": 35,
+    "timing_run": false,
+    "runtime_promoted": false,
+    "raw_report": "expert-fc1-native/layout-audit.json"
   }
 }
