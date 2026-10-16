@@ -3,8 +3,8 @@
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
   "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native cache and partition candidates fail local/service performance promotion; the required all-concurrency repeated matrix remains incomplete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "f1dc31d57e4d29699a5bfbe5b0fc29ed5e163333",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/f1dc31d57e4d29699a5bfbe5b0fc29ed5e163333/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "02aa9198d8c1d0e0ef5ba28b1cc64d2c0776fb8b",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/02aa9198d8c1d0e0ef5ba28b1cc64d2c0776fb8b/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -238,7 +238,24 @@
       "expert-fc1-native",
       "expert-fc1-expanded",
       "expert-fc2-native"
-    ]
+    ],
+    "shared_activation_dsl_exact_checks": 2066,
+    "shared_activation_dsl_cases": 137,
+    "resident_single_expert_exact_checks": 489,
+    "resident_single_expert_valid_rows": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8
+    ],
+    "resident_single_expert_total_shared_bytes": 79488,
+    "resident_full_256_experts_gate_pass": false,
+    "original_host_abi_attempt_failed_before_kernel": true
   },
   "gdn_prefill_ho_fusion": {
     "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
@@ -263,6 +280,39 @@
     "raw_reports": [
       "gdn-fused-prefill/report.md",
       "gdn-fused-prefill-o64/report.md"
-    ]
+    ],
+    "independent_cpu_review_pass_with_evidence_limits": true,
+    "process_ownership_evidence": "Pre/post process checks only; no continuous audit proves full-interval exclusivity",
+    "independent_review": "gdn-fused-prefill/independent-review.md"
+  },
+  "m128_native_resource_experiment": {
+    "source_sha": "95fcb0ef2662f2caf9bfb7fe6863dc3ad7805b1b",
+    "original_fc1_layout_gate_pass": false,
+    "fc2_single_expert_exact_checks": 39,
+    "fc2_expanded_exact_checks": 306,
+    "fc2_oracles": 15,
+    "layers": [
+      0,
+      19,
+      39
+    ],
+    "experts": 256,
+    "mma": [
+      128,
+      8,
+      32
+    ],
+    "original_mma": [
+      64,
+      8,
+      32
+    ],
+    "K_scale_block": 128,
+    "actual_threads_per_cta": 384,
+    "declared_register_budget_per_cta": 32768,
+    "observed_occupancy_claim": false,
+    "runtime_promoted": false,
+    "timing_run": false,
+    "raw_report": "expert-m128-fc2-expanded/report.md"
   }
 }

@@ -371,3 +371,31 @@ The component evidence is
 The complete resident implementation remains in progress. C64 still needs
 6765.407frames/s, all-concurrency repeated acceptance remains incomplete, and
 no successful README example is claimed.
+
+
+## Resident composition and M128 layout/resource evidence
+
+The selected-expert resident FC1/activation/FC2 chain now passes489 exact checks
+for valid rows0–8, including graph replay, five original numeric boundaries and
+ownership. The native finalizer check substitutes only tested branches into an
+otherwise native oracle and is explicitly oracle-assisted. Full256 routing and
+performance are not implied. Actual complete launch uses79,488bytes perCTA and
+one outer-owned TMEM allocation, not a sum of individual component estimates.
+The initial host invocation passed compile-time constants to the runtime ABI;
+its failure occurred before candidate kernel execution and remains archived.
+
+An independently validated CuTe activation translation passes2066 checks; the
+previous C++ helper's2063 checks were not inherited. A separate M128 FC1 attempt
+fails its exact gate because four TMEM slices were stored as adjacent channels.
+A fixed32-channel permutation explains the observed bytes but does not pass the
+checker. The corresponding corrected M128 FC2 store preserves original K32/K128
+arithmetic and passes306 expanded checks across15native oracles/all256experts.
+Four160-register epilogue warps plus eight48-register roles budget32,768registers
+perCTA, versus53,248 for the M64 organization. That offers a two-CTA capacity
+hypothesis, not measured occupancy or service throughput.
+
+The GDN H/O negative experiments were independently recomputed. Their pre/post
+GPU process checks do not prove uninterrupted exclusivity; reports now state
+that limitation. Both original local continuation gates still fail. Every new
+component result remains below full-service acceptance scope, and C64's6765.407
+frames/s target and confirmed WER/SIM requirements are unchanged.
