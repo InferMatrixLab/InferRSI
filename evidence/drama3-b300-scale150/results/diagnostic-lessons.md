@@ -461,3 +461,59 @@ nor an enabled launch flag proves useful overlap or a safe replacement schedule.
 The follow-up remains a hypothesis, with unchanged service and quality targets.
 
 The PDL feasibility and dependency audit are [pinned at runtime e347d15](https://github.com/david6666666/drama-3-single-b300-inference/tree/e347d15f872e685f66b2cecf37318a4565fd8f8f/evidence/20261016-ceiling).
+
+
+## Metadata readiness and loaded-library identity
+
+The separate metadata-ready FC2 candidate passes 1516 exact checks, including
+all 15 layer/routing fixtures and the same captured graph moving from empty to
+positive work and back. The graph guard records every metadata producer from
+capture, adds a DEFAULT full-memory edge to FC2, and retains the original body
+PROGRAMMATIC dependencies and their ports. Independent weight loading may start
+earlier, but activation-dependent reads keep their original waits. The empty
+probe has six captured metadata copies and two GEMMs; it does not assume empty
+activation/finalizer semantics. Shape/configuration validators and retained IO
+are checked before restricted execution and graph instantiation.
+
+One AB screening of the three real layers reduces complete-MoE latency by
+2.7294%, 3.1834% and 4.1453%. Every result misses the frozen 5% continuation gate,
+so the launcher stops. Stress correctness is covered, while all 12 stress
+performance cases and three-repetition timing are NOT_RUN, with an explicit
+null stress-performance verdict. Input quantization and logits-to-top8 are
+excluded equally from this local boundary. The conditional outer-model graph
+integration design is CPU-only and is not implemented. No service or quality
+promotion follows. Raw scope and commands are retained in
+`expert-m128-pdl-metadata-ready/summary.md`; independent recomputation is in
+`metadata-ready-independent-screen-review.json` under the pinned runtime tree.
+
+A separate bounded dense-projection investigation first finds no algorithm
+meeting the strict capability filter. The numerical follow-up keeps exactly two
+serialized descriptors and their original BF16 input/output, FP32 compute and
+reduction contracts. They pass 84 eager byte comparisons and 84 captured-graph
+output/owner/guard/RNG checks on actual model projections. The non-split family
+runs 30 calls in 0.3319395 ms with F.linear versus 0.3319917 ms explicitly; the
+FP32-workspace split family runs 54 calls in 0.4124048 versus 0.4125987 ms. Neither
+is selected. The final 223-call sequence has `replaced_calls=0`: both arms are
+F.linear, so its roughly 0.0265 ms difference is A/A variation, not a saving.
+The declared 0.3 ms continuation budget is unmet; no repeated or service trial
+follows. These intercepted `model.linear` calls do not cover direct matrix
+operations in every module. See `native-lt-real-contract/summary.md`.
+
+Library identity is part of the numerical contract. Python Torch and ctypes
+load the environment's cuBLASLt 13.1.1, while the initial C++ query accidentally
+loads system 13.7 because inherited loader search paths override its RUNPATH.
+A child-only path correction repeats the query against the same 13.1.1 binary;
+the original cross-version evidence remains preserved. Matching library
+identity does not resolve the reported input-precision capability discrepancy.
+The two descriptors therefore remain numerical diagnostics, without native
+runtime qualification, despite their finite-fixture byte equality. The
+correction is recorded in `native-lt-dtype-contract/same-library-capability.json`.
+
+Both experiments retain sampled process audits, which are not proof of
+continuous exclusivity. Best complete-quality C64 observation remains 4726.771
+frames/s versus the unchanged 6765.407 target. Repeated all-concurrency
+acceptance and a successful README example remain incomplete. These scoped
+results add portable review rules without changing imported catalog sources,
+verification status, the original frozen plan or its validator.
+
+The metadata-ready and dense-algorithm records are [pinned at runtime 22403f7](https://github.com/david6666666/drama-3-single-b300-inference/tree/22403f7589a1c9ca6264b003199d078c636196ed/evidence/20261016-ceiling).

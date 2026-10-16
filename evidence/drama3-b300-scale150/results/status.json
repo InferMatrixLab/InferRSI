@@ -1,10 +1,10 @@
 {
   "verdict": "INCONCLUSIVE",
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
-  "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native cache and partition candidates fail local/service performance promotion; the required all-concurrency repeated matrix remains incomplete.",
+  "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native PDL/metadata-readiness and dense-algorithm candidates also fail local continuation; the required all-concurrency repeated matrix remains incomplete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "e347d15f872e685f66b2cecf37318a4565fd8f8f",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/e347d15f872e685f66b2cecf37318a4565fd8f8f/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "22403f7589a1c9ca6264b003199d078c636196ed",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/22403f7589a1c9ca6264b003199d078c636196ed/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -395,5 +395,64 @@
     "three_repetition_timing_run": false,
     "runtime_promoted": false,
     "raw_report": "expert-m128-pdl/summary.md"
+  },
+  "m128_metadata_ready_feasibility": {
+    "source_sha": "95fcb0ef2662f2caf9bfb7fe6863dc3ad7805b1b",
+    "exact_checks": 1516,
+    "feasibility_checks": 146,
+    "real_cases": 3,
+    "repetitions_per_real_case": 1,
+    "latency_reduction_percent": [
+      2.7293825103491987,
+      3.1834168849136812,
+      4.145321869647645
+    ],
+    "local_feasibility_gate_pass": false,
+    "pressure_performance_status": "NOT_RUN",
+    "pressure_performance_gate_pass": null,
+    "three_repetition_timing_run": false,
+    "same_graph_empty_positive_empty_exact": true,
+    "metadata_full_dependency_provenance_checked": true,
+    "runtime_promoted": false,
+    "raw_report": "expert-m128-pdl-metadata-ready/summary.md",
+    "independent_cpu_review": "metadata-ready-independent-screen-review.json",
+    "runtime_integration_design_only": true
+  },
+  "native_lt_restricted_projection": {
+    "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
+    "scope": "Intercepted model.linear sequence only; not all dense GPU work or a service benchmark",
+    "strict_filter_candidate_count": 0,
+    "descriptor_diagnostic_candidate_count": 2,
+    "eager_exact_cases": 84,
+    "graph_exact_cases": 84,
+    "repetitions_per_family": 1,
+    "families": [
+      {
+        "family": "non_split",
+        "calls": 30,
+        "baseline_ms": 0.3319395065307617,
+        "candidate_ms": 0.3319916915893555
+      },
+      {
+        "family": "fp32_split",
+        "calls": 54,
+        "baseline_ms": 0.41240478515625,
+        "candidate_ms": 0.41259872436523437
+      }
+    ],
+    "whole_sequence_calls": 223,
+    "replaced_calls": 0,
+    "whole_sequence_is_control_control": true,
+    "whole_sequence_difference_is_gain": false,
+    "local_feasibility_gate_pass": false,
+    "actual_python_library_version": 130101,
+    "initial_cpp_library_version": 130700,
+    "same_library_recheck_version": 130101,
+    "capability_semantics": "UNRESOLVED_INPUT16F_FLAG",
+    "native_runtime_qualification": false,
+    "runtime_promoted": false,
+    "service_claim": false,
+    "raw_report": "native-lt-real-contract/summary.md",
+    "library_identity_correction": "native-lt-dtype-contract/same-library-capability.json"
   }
 }
