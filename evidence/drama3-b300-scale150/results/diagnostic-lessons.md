@@ -588,3 +588,60 @@ the seven-concurrency repeated quality/performance gate remains incomplete.
 Catalog provenance and imported/unverified status are unchanged.
 
 The current counters and staged-prefix records are [pinned at runtime f5448f0](https://github.com/david6666666/drama-3-single-b300-inference/tree/f5448f0f8cad850ea06b9476f80eb5bb17629c68/evidence/20261016-ceiling).
+
+
+## Inverse-row consumption and transparent compressed allocation
+
+A new prefix adapter preserves the failed expanded-adapter result and removes
+its avoidable copies. Native compact MoE outputs are consumed through an inverse
+row map in the original combination/residual/RMSNorm arithmetic. All1600 residual
+and normalized rows remain, including every decode and original padding row;
+top8, FP8 bytes/scales and numerical boundaries are unchanged. Gathering slots
+once per replay and eliminating120 component expansions reduces adapter launches
+from200 to41. Retained artifact buffers fall704027456→441087536 bytes. Logical
+eliminated copy bytes are not measured DRAM savings.
+
+The initial screen passes603 exact checks and the frozen5% threshold. A separate
+frozen AB/BA/AB protocol then passes2430 checks across three real FIFO proxy
+cases, including reversed order/reused slots and changed conditioning. Every
+pair checks complete graph outputs,111 mutable states, RNG and guards; every
+replay restores the same initial state before its start event. All nine pairs
+reduce latency6.2256–6.7673%, with per-case three-round medians6.2555%,6.2599%,
+and6.7568%. This is one process with reused captures, not independent process
+replications. The boundary includes backbone, teacher tower and adapter; it
+excludes state restores, host admission, separate sampling towers and codec.
+Arbitrary shapes, actual scheduler membership and service throughput remain
+unqualified. Actual JIT resource/binary records are kept separate from AOT.
+
+A different hypothesis tests transparent memory compression while preserving
+native computation. Context-free capability queries and bounded CPU entropy
+samples are followed by47 GPU allocation/lifetime checks. A new complete native
+MoE gate passes3417 checks over15 real/routing fixtures using original tactic(8,5)
+and PDL. The only change is VMM NONE versus GENERIC backing storage for original
+w1/w2 bytes; scales remain identical. All twelve actual allocation flags, original
+weight bytes, live routing maps, intermediates, top8 finalization, guards, RNG,
+owner lifetimes and final cleanup pass.
+
+Its single AB100 screen observes120.874557→120.099201µs forL0,
+100.473280→100.696316µs forL19 and80.344324→80.093756µs forL39. The three-call
+sequence changes295.408325→295.115204µs, only0.0992%, failing the frozen5% gate.
+There are no additional timing rounds or runtime promotion. The sequence contains
+three fixed-input native bodies, not backbone dataflow across three layers;
+common input quantization/logits routing are excluded equally. Actual compression
+flags and mapped capacity do not measure physical compression ratio. No counters
+identify the cause of the negligible timing difference.
+
+The allocator retains the owning primary context and DLPack tensor owners,
+distinguishes unconsumed capsules from transferred owners, and destroys captured
+graphs before allocations. Final native gate counters are live0/destroyed12/
+cleanup_errors0; sampled GPU ownership and an empty post-run list are not proof
+of uninterrupted exclusivity. A CPU follow-up preserves45 original FP8 matrices
+and signed zero in all roundtrips. Complete zero channels are concentrated in
+its L0 samples; the fixed sample is not a whole-model compression or pruning
+budget. No original model computation is removed.
+
+Best full-quality C64 remains4726.771frames/s, with6765.407 and all-concurrency
+acceptance still pending. These results refine portable experiment guidance;
+the imported catalog's verification status remains unchanged.
+
+The new adapter and allocation evidence is [pinned at runtime 0dd72e5](https://github.com/david6666666/drama-3-single-b300-inference/tree/0dd72e518167c7a888db9b63f0fb90cc2087f187/evidence/20261016-ceiling).
