@@ -10,6 +10,7 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 | --- | --- |
 | [README.md](README.md) | Layout, dev smoke, copy checklist |
 | [docs/contributing.md](docs/contributing.md) | Development, acceptance, evidence and CI |
+| [docs/agent-collaboration.md](docs/agent-collaboration.md) | Issue-led human–agent collaboration |
 | [docs/architecture.md](docs/architecture.md) | Module boundaries and extension contracts |
 
 ## Four-lane CI

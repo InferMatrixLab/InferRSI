@@ -16,6 +16,9 @@ pytest
 git commit -s
 ```
 
+Issue-led ownership, review and completion conventions for humans and agents
+are in [agent collaboration](agent-collaboration.md).
+
 `image` is optional for the control CLI and required to run PNG quality tests.
 Synthetic benchmark scripts belong in `tests/fixtures/`; historical validator
 snapshots in `tests/fixtures/legacy/` remain byte-for-byte frozen. Current runnable
