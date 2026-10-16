@@ -20,11 +20,19 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 
 | Role | Responsibility |
 | --- | --- |
+| Accountable agent (parent) | Own the Issue outcome, plan and remaining criteria; implement or delegate bounded slices and independent review; report completion for acceptance. |
 | Implementer | Own a bounded slice; plan, research, coordinate, change, check and report actual results. |
 | Reviewer | Independently inspect accepted requirements, actual diff, affected consumers and evidence; return revision-scoped findings and a recommendation. |
 | Integrator | Verify authorization, current head/base, dependencies and applicable review/check results; integrate or report a blocker. |
 
-Roles are responsibilities, not three mandatory agents or services. Separate
+Assign the accountable agent to the Issue, not only its first PR. One Issue may
+have several delivery PRs; a delegated subagent stays within its slice and
+reports to the parent. The parent sends review tasks with accepted criteria,
+exact head/base revisions, diff and check evidence, without prescribing the
+verdict. If independent review is unavailable, report that gap rather than
+relabel self-review.
+
+Roles are responsibilities, not mandatory separate agents or services. Separate
 agents may act under one account; an author's role switch is still self-review.
 A substantive reviewer edit makes that reviewer a contributor requiring
 appropriate independent review. Review recommendation is not merge permission.
@@ -49,18 +57,21 @@ Shared-owner coordination is conditional; unresolved dependencies do not authori
 
 ```mermaid
 flowchart TB
-    H["Authorized owner"] -->|"Scope and delegation"| I["Issue"]
-    I --> A["Implementer"]
-    A --> R["Independent review"]
-    R -->|"Fixes needed"| A
-    R -->|"Recommendation"| G["Integrator checks existing authority and evidence"]
+    H["Authorized owner"] -->|"Scope and delegation"| I["Issue: goal and criteria"]
+    I --> A["Accountable agent / parent"]
+    A -->|"Implement or delegate"| W["Bounded PR slice"]
+    A -->|"Delegate review with criteria and revisions"| R["Independent reviewer"]
+    W -->|"Diff and evidence"| R
+    R -->|"Findings and recommendation"| A
+    A -->|"Resolve findings; refresh affected evidence"| W
+    A --> G["Integrator checks authority and evidence"]
     G -->|"Conditions satisfied"| P["Merged PR"]
-    P --> S["Goal evidence and remaining gaps"]
+    P --> S["Parent assesses whole Issue and remaining gaps"]
     S --> O["Acceptance owner or authorized delegate"]
     O -->|"Goal accepted; closure authorized"| C["Close Issue"]
 ```
 
-No human-per-PR gate. Blocked integration or incomplete goals remain open; material scope exceptions return to the authorized owner.
+Review reports remain attributable and available to the integrator; the parent cannot substitute its own approval for independent findings. No human-per-PR gate. Blocked integration or incomplete goals remain open; material scope exceptions return to the authorized owner.
 
 ### Agent–Agent: isolated work and conditional handoff
 
@@ -83,7 +94,7 @@ sequenceDiagram
 
 ## Working rules
 
-1. **Scope:** identify requirements, exclusions, owner and relevant dependencies. Keep each PR a coherent delivery slice; small follow-ups may reuse an Issue.
+1. **Scope:** identify requirements, exclusions, owner and relevant dependencies. The accountable agent tracks Issue-level criteria and delegates bounded work; PR readiness and Issue completion are reported separately. Keep each PR a coherent delivery slice; small follow-ups may reuse an Issue.
 2. **Isolation:** concurrent writers use separate working directories/indexes and private scratch files. Branch names alone are insufficient. Inspect staged/committed content and coordinate shared IDs, schemas and interfaces.
 3. **Evidence:** link checks to actual checked content and relevant environment/test definitions. Distinguish passed, failed, cancelled, skipped, timed-out and not-run. H/B/T—reviewed head, assessed base, tested content—may come from existing records, not mandatory worksheets.
 4. **Refresh:** reassess affected evidence after relevant head/base/content/environment/check changes. Refresh checks or explain continued applicability. Neither blanket reuse nor full hardware reruns is the default; changed hashes alone prove neither content change nor equivalence.
@@ -92,9 +103,9 @@ sequenceDiagram
 
 ## Records
 
-- **Issue:** goal/criteria; scope; accountable account and actor if known; acceptance/delegation link; completion/closure owner. Unknown fields may remain TBD while proposed. Ordinary work starts from the [scoped-task template](../.github/ISSUE_TEMPLATE/scoped-task.md); baseline-vs-candidate campaigns use the [campaign acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml).
+- **Issue:** goal/criteria; scope; accountable account and parent agent if assigned; acting contributor if known; acceptance/delegation link; completion/closure owner. Unknown fields may remain TBD while proposed. Ordinary work starts from the [scoped-task template](../.github/ISSUE_TEMPLATE/scoped-task.md); baseline-vs-candidate campaigns use the [campaign acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml).
 - **PR:** governing Issue; delivered artifacts; checks/results/limitations; dependencies and gaps. Add requirement-to-artifact mapping only when useful, and handoff fields only when applicable. No author-prefilled independent approval. Start from the [PR template](../.github/PULL_REQUEST_TEMPLATE.md).
-- **Commit:** short descriptive subject; why/what and Issue reference when useful. Preserve the required DCO sign-off (`git commit -s`); never invent a signing identity.
+- **Commit:** short descriptive subject; why/what and Issue reference when useful. Preserve author identity and the required DCO sign-off (`git commit -s`); never invent a signing identity. Agent-assisted commits identify material agent contributors with `Agent-assisted-by: <actual agent name> (<role>)` trailers; repeat for multiple contributors and retain attribution when squashing. A known model/version is optional. The trailer is self-reported provenance, not cryptographic signing, independent review or approval; review attribution belongs on the revision-scoped review record.
 
 Labels document coordination intent; they do not grant it. Reuse existing labels
 where adequate: type (`bug`, `enhancement`, `documentation`, optionally `rfc`),
@@ -111,22 +122,28 @@ repository.**
 
 Suppose a PR changing `src/omnirsi/harness/runner.py` was reviewed at head `H1`
 against base `B1`, then is rebased onto `B2` (new head `H2`) because `B2` touched
-the same file. Rule 4 asks what changed, not for a blanket rerun:
+the same file. Rule 4 asks what changed, not for a blanket rerun, and a
+file-only comparison is insufficient on its own:
 
-- Compare the affected files between `H1` and `H2`. If the delta is empty and dependencies are unchanged, the earlier review and CI remain applicable; cite them with their original run and state that reasoning in the PR.
-- If the delta is non-empty, refresh the affected checks on `H2` — for example `ruff check src tests` plus the relevant `pytest` selection — and report which content each result ran on.
+- Assess affected content, dependencies, environment and check definitions together: the `H1..H2` delta of the affected files, whether `B1..B2` changed anything the checks depend on (imports, fixtures, CI workflow steps, tool versions), and whether the earlier check definitions still test the same contract.
+- If that assessment supports reuse, the earlier review and CI **may** remain applicable — say so with an explicit reason, and name in the PR exactly which earlier evidence is reused and why.
+- If it does not, refresh the affected checks on `H2` — for example `ruff check src tests` plus the relevant `pytest` selection — and report which content each result ran on.
 - Either way, distinguish passed, skipped and not-run checks instead of implying a full rerun. A changed hash alone proves neither content change nor equivalence.
 
 ## Historical evidence and limits
 
-These conventions are OmniRSI proposals informed by the reviewed C1–C7 case pack
-from two pinned snapshots: the
+These conventions are OmniRSI proposals informed by the reviewed C1–C7 case pack.
+The two pinned snapshots — the
 [Magpie repository](https://github.com/yetone/magpie/tree/778000326adaa49cd790846acd2d535572ad5ceb)
 and the separate
-[release-workflow repository](https://github.com/yetone/magpie-releases/tree/fc85a074b1ba73417d2afda783e1c0a27ed79a1f).
-The per-case summary and limits live in
-[RFC #21](https://github.com/InferMatrixLab/OmniRSI/issues/21): C1–C3 inform
-ownership and review; C4–C5, CI trade-offs; C6, completion states; C7, learning.
+[release-workflow repository](https://github.com/yetone/magpie-releases/tree/fc85a074b1ba73417d2afda783e1c0a27ed79a1f)
+— identify lineage; they are not themselves a link to the case pack. The
+accessible extraction with exact case readsets (original commit, PR and run
+links, per-case limits) is the "Reviewed case pointers" section of
+[RFC #21](https://github.com/InferMatrixLab/OmniRSI/issues/21); the full
+reviewed pack with its detailed readset remains with its owner and is not
+imported here. C1–C3 inform ownership and review; C4–C5, CI trade-offs; C6,
+completion states; C7, learning.
 
 They are proposals, not demonstrated Magpie enforcement or a causal speedup.
 Described practice, inspected implementation, observed records and proposed

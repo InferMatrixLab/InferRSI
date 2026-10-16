@@ -36,10 +36,12 @@ explanation only when a material integration identity question remains. -->
 - **Goal ready for acceptance?** Not claimed / Proposed with evidence link
 
 <!-- Do not self-declare independent approval or authorized merge. A merged PR
-need not close its parent Issue. Commits must retain DCO sign-off. -->
+need not close its parent Issue. Commits must retain DCO sign-off; agent-assisted
+commits add `Agent-assisted-by: <actual agent name> (<role>)` trailers. -->
 
 ## Handoff (only when an actual handoff or decision changed)
 
-- **Decision delta / acceptance link:**
-- **Recipient; communicated vs applied/pending/unknown:**
+- **Accepted decision / status and link:**
+- **Recipient and communication status:**
+- **Application status and artifact/evidence:** applied / pending / unknown
 - **Relevant workspace state and next action:**

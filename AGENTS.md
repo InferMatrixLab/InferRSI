@@ -109,3 +109,4 @@ ruff check src tests
 1. Read the contribution guide and validation levels before large code or CI changes.
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.
+4. Work Issue-first: confirm the governing Issue's accepted scope before changing code, keep each change a bounded delegated slice with independent review, and report PR readiness and Issue completion separately — see [agent collaboration](docs/agent-collaboration.md).

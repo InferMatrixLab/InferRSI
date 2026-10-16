@@ -26,7 +26,8 @@ Conventions: docs/agent-collaboration.md -->
 
 - **Proposed by / actual requester:**
 - **Status:** Proposed / Accepted / Deferred / Rejected
-- **Accountable implementer (if assigned):**
+- **Accountable parent (Issue-level owner, if assigned):**
+- **Slice implementer(s) / acting contributor (if assigned):**
 - **Goal-acceptance owner:**
 - **Accepted decision or scoped delegation:** Not yet granted / `<link>`
 
