@@ -3,8 +3,8 @@
   "acceptance_issue": "https://github.com/ThinkFlowLab/OmniRSI/issues/10",
   "reason": "Best complete-quality C64 observation is4726.77 frames/s (one control arm, not a repeatable improvement claim), below6765.41. Native cache and partition candidates fail local/service performance promotion; the required all-concurrency repeated matrix remains incomplete.",
   "runtime_pull_request": "https://github.com/david6666666/drama-3-single-b300-inference/pull/1",
-  "runtime_evidence_commit": "02aa9198d8c1d0e0ef5ba28b1cc64d2c0776fb8b",
-  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/02aa9198d8c1d0e0ef5ba28b1cc64d2c0776fb8b/evidence/20261016-ceiling",
+  "runtime_evidence_commit": "13d0566bf71b2ccf634c79cdef3aea938decc96e",
+  "runtime_evidence": "https://github.com/david6666666/drama-3-single-b300-inference/tree/13d0566bf71b2ccf634c79cdef3aea938decc96e/evidence/20261016-ceiling",
   "baseline_quality_groups": 21,
   "baseline_scored_waveforms": 22848,
   "packed_layer_graph_ownership_checks": 5076,
@@ -206,7 +206,12 @@
     "runtime_implemented": false,
     "cold_reuse_prompt_row_fraction": 0.34421045803919875,
     "admission_groups_are_fifo_proxy": true,
-    "raw_report": "reference-prefix/feasibility.md"
+    "raw_report": "reference-prefix/feasibility.md",
+    "conservative_c128_cpu_boundary_checks": 3645,
+    "ready_only_optimistic_seconds": 0.243,
+    "ready_plus_same_group_optimistic_seconds": 1.235,
+    "estimates_are_not_measured_savings": true,
+    "implementation_proposal": "reference-prefix/implementation-proposal.md"
   },
   "resident_fc1_prototype": {
     "original_exact_gate_pass": false,
@@ -229,15 +234,16 @@
     "fc2_native_oracle_cases": 15,
     "shared_activation_exact_checks": 2063,
     "shared_activation_cases": 137,
-    "fc1_dynamic_register_budget_per_cta": 53248,
-    "full_resident_chain_exact_pass": false,
-    "timing_run": false,
+    "full_resident_chain_exact_pass": true,
+    "timing_run": true,
     "runtime_promoted": false,
     "raw_report": "expert-resident-implementation-plan.md",
     "preserved_failures": [
       "expert-fc1-native",
       "expert-fc1-expanded",
-      "expert-fc2-native"
+      "expert-fc2-native",
+      "expert-resident-chain",
+      "expert-resident-timing"
     ],
     "shared_activation_dsl_exact_checks": 2066,
     "shared_activation_dsl_cases": 137,
@@ -254,8 +260,47 @@
       8
     ],
     "resident_single_expert_total_shared_bytes": 79488,
-    "resident_full_256_experts_gate_pass": false,
-    "original_host_abi_attempt_failed_before_kernel": true
+    "resident_full_256_experts_gate_pass": true,
+    "original_host_abi_attempt_failed_before_kernel": true,
+    "fc1_source_register_hint_sum_not_allocation": 53248,
+    "full_resident_chain_checks": 1371,
+    "zero_debug_checks": 1262,
+    "local_performance_gate_pass": false,
+    "raw_full_report": "expert-resident-full/summary.md",
+    "raw_timing_report": "expert-resident-timing-v2/summary.md",
+    "register_interpretation_correction": "register-lowering-audit/report.md",
+    "real_complete_call_medians": [
+      {
+        "case": "L0/real",
+        "primary_real": true,
+        "median_ms": {
+          "native": 0.12129887580871582,
+          "resident": 0.13847359657287597
+        },
+        "latency_reduction": -0.14159010666549054,
+        "case_continuation_pass": false
+      },
+      {
+        "case": "L19/real",
+        "primary_real": true,
+        "median_ms": {
+          "native": 0.1005072021484375,
+          "resident": 0.122128324508667
+        },
+        "latency_reduction": -0.21512012968282201,
+        "case_continuation_pass": false
+      },
+      {
+        "case": "L39/real",
+        "primary_real": true,
+        "median_ms": {
+          "native": 0.08140735626220703,
+          "resident": 0.11161855697631835
+        },
+        "latency_reduction": -0.3711114339200905,
+        "case_continuation_pass": false
+      }
+    ]
   },
   "gdn_prefill_ho_fusion": {
     "source_sha": "e7cda1eba083603b88e1f2e89688e1ff2ced7fc2",
@@ -309,10 +354,29 @@
     ],
     "K_scale_block": 128,
     "actual_threads_per_cta": 384,
-    "declared_register_budget_per_cta": 32768,
     "observed_occupancy_claim": false,
     "runtime_promoted": false,
-    "timing_run": false,
-    "raw_report": "expert-m128-fc2-expanded/report.md"
+    "timing_run": true,
+    "raw_report": "expert-m128-body-timing/report.md",
+    "source_register_hint_sum_not_allocation": 32768,
+    "fc1_selected_expert_checks": 542,
+    "fc1_expanded_checks": 447,
+    "full_body_checks": 1253,
+    "timing_checks": 626,
+    "local_performance_gate_pass": false,
+    "real_latency_reduction_percent": [
+      1.304,
+      0.569,
+      2.871
+    ],
+    "register_interpretation_correction": "register-lowering-audit/report.md"
+  },
+  "register_allocation_audit": {
+    "cpu_only": true,
+    "cubins_reproduced": 6,
+    "prototype_register_reconfiguration_instructions": 0,
+    "vendor_fc1_register_reconfiguration_instructions": 8,
+    "source_hint_occupancy_inference_withdrawn": true,
+    "raw_report": "register-lowering-audit/report.md"
   }
 }

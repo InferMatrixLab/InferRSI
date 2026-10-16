@@ -349,10 +349,10 @@ Do not substitute a plausible library reimplementation for the actual frozen
 native arithmetic reference; test layouts, scales, signed zero, partial routes,
 changed graph metadata and retained storage before timing.
 
-Resource capacity must include dynamic register allocation and actual TMEM,
-not only a cubin's static register header or shared bytes. The current FC1 roles
-request53248 registers per CTA, so its small shared-memory working set does not
-establish two-CTA residency. Shared intermediates require producer publication,
+Resource capacity must be checked in final machine code and launch attributes.
+Correction: the FC1 source hints sum to53248, but the tested CUBIN reports REG32
+and contains no SASS register-reconfiguration instruction. The source-hint sum
+does not prove actual allocation or a one-CTA restriction. Shared intermediates require producer publication,
 consumer-completion synchronization and explicit lifetime reuse. Individually
 exact stages do not establish a connected cluster or end-to-end performance.
 
@@ -368,7 +368,7 @@ these negative results, and none changes service acceptance or quality bounds.
 
 The component evidence is
 [pinned with all raw gates and repetitions](https://github.com/david6666666/drama-3-single-b300-inference/tree/f1dc31d57e4d29699a5bfbe5b0fc29ed5e163333/evidence/20261016-ceiling).
-The complete resident implementation remains in progress. C64 still needs
+The component-only stage is superseded by the complete-call results below. C64 still needs
 6765.407frames/s, all-concurrency repeated acceptance remains incomplete, and
 no successful README example is claimed.
 
@@ -390,12 +390,55 @@ fails its exact gate because four TMEM slices were stored as adjacent channels.
 A fixed32-channel permutation explains the observed bytes but does not pass the
 checker. The corresponding corrected M128 FC2 store preserves original K32/K128
 arithmetic and passes306 expanded checks across15native oracles/all256experts.
-Four160-register epilogue warps plus eight48-register roles budget32,768registers
-perCTA, versus53,248 for the M64 organization. That offers a two-CTA capacity
-hypothesis, not measured occupancy or service throughput.
+The32,768 versus53,248 source-hint sums originally motivated a capacity
+hypothesis. Final machine-code inspection rejects that occupancy inference;
+the explicit correction and actual resource facts are recorded below.
 
 The GDN H/O negative experiments were independently recomputed. Their pre/post
 GPU process checks do not prove uninterrupted exclusivity; reports now state
 that limitation. Both original local continuation gates still fail. Every new
 component result remains below full-service acceptance scope, and C64's6765.407
 frames/s target and confirmed WER/SIM requirements are unchanged.
+
+
+## Complete-call evidence rejects both initial native MoE candidates
+
+The resident chain now passes1371 full256-expert boundary/ownership checks;
+its build without global debug exports passes1262 more, including empty work.
+Yet all15 complete-call scenarios regress across three alternating repetitions.
+Real layers0/19/39 are14.16%,21.51%,37.11% slower than the optimized vendor path.
+Global intermediate traffic is a small part of expert-weight traffic. A fused
+implementation also changes phase serialization, cluster synchronization and
+PDL behavior; eliminating buffers alone does not imply a net speedup.
+
+The M128 global-buffer body passes1253 checks and626 timed-run checks but only
+reduces latency by1.304%,0.569%,2.871% in the three real cases. Each misses the
+predeclared5% continuation gate. Preserve that failure even though some synthetic
+routing cases improve more. Neither implementation is promoted into the service.
+
+Native routing metadata can legally change physical row order between calls.
+Check actual-map bijection, token/expert ownership, bounds and prefix counts
+before comparing logical intermediate bytes. An archived physical mapping is
+not an invariant. Both original harness failures remain preserved; no mapping
+was inferred from output values and no numeric tolerance was relaxed.
+
+Final SASS also corrects the earlier register explanation. The tested M64/M128
+Prims TS and resident CUBINs report REG30–32 and no register-reconfiguration
+instructions. Vendor FC1 reports REG128 and eight `USETMAXREG` instructions.
+Searching only for `SETMAXNREG` misses that Blackwell spelling. The source
+53,248→32,768 hint sums do not establish occupancy doubling. Actual thread and
+shared-memory changes remain facts; performance attribution requires controls.
+
+A more concrete prefix proposal preserves original prefill on misses and exports
+FP32 recurrent state at an aligned internal boundary. Its CPU-only conservative
+ready-cache budget is roughly0.243s; adding same-group forks gives roughly1.235s.
+These are optimistic estimates, not observed savings. Same-group sharing needs
+per-layer state forks and suffix-aware kernels; ordinary cache insertion does
+not provide it. This route alone does not explain the missing service budget.
+
+C64's target remains6765.407 frames/s, best complete-quality observation remains
+4726.771, and all-concurrency repeated acceptance is incomplete. The next PDL
+candidate has a separate protocol; it cannot retroactively pass either failed
+complete-call experiment.
+
+Completed-call evidence and the resource correction are [pinned at runtime 13d0566](https://github.com/david6666666/drama-3-single-b300-inference/tree/13d0566bf71b2ccf634c79cdef3aea938decc96e/evidence/20261016-ceiling).
