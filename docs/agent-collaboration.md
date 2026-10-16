@@ -149,5 +149,5 @@ completion states; C7, learning.
 They are proposals, not demonstrated Magpie enforcement or a causal speedup.
 Described practice, inspected implementation, observed records and proposed
 adaptations remain distinct evidence classes; see #21 for the per-case limits,
-including the unresolved C1 root cause and the absence of a demonstrated
-simultaneous deployment.
+including the unresolved C1 root cause and the unestablished final
+tested/merged equivalence.
