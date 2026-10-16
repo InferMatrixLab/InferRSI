@@ -37,7 +37,9 @@ explanation only when a material integration identity question remains. -->
 
 <!-- Do not self-declare independent approval or authorized merge. A merged PR
 need not close its parent Issue. Commits must retain DCO sign-off; agent-assisted
-commits add `Agent-assisted-by: <actual agent name> (<role>)` trailers. -->
+commits add `Agent-assisted-by: <actual agent name> (<role>)` trailers. Keep
+governing Issue references in this PR body, out of commit subjects, bodies,
+trailers and the final squash message; integration is a squash merge. -->
 
 ## Handoff (only when an actual handoff or decision changed)
 

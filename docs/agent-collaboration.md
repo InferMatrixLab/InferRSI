@@ -105,7 +105,8 @@ sequenceDiagram
 
 - **Issue:** goal/criteria; scope; accountable account and parent agent if assigned; acting contributor if known; acceptance/delegation link; completion/closure owner. Unknown fields may remain TBD while proposed. Ordinary work starts from the [scoped-task template](../.github/ISSUE_TEMPLATE/scoped-task.md); baseline-vs-candidate campaigns use the [campaign acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml).
 - **PR:** governing Issue; delivered artifacts; checks/results/limitations; dependencies and gaps. Add requirement-to-artifact mapping only when useful, and handoff fields only when applicable. No author-prefilled independent approval. Start from the [PR template](../.github/PULL_REQUEST_TEMPLATE.md).
-- **Commit:** short descriptive subject; why/what and Issue reference when useful. Preserve author identity and the required DCO sign-off (`git commit -s`); never invent a signing identity. Agent-assisted commits identify material agent contributors with `Agent-assisted-by: <actual agent name> (<role>)` trailers; repeat for multiple contributors and retain attribution when squashing. A known model/version is optional. The trailer is self-reported provenance, not cryptographic signing, independent review or approval; review attribution belongs on the revision-scoped review record.
+- **Commit:** short descriptive subject; why/what when useful. Keep governing Issue references out of commit subjects, bodies and trailers — the PR body carries them. Preserve author identity and the required DCO sign-off (`git commit -s`); never invent a signing identity. Agent-assisted commits identify material agent contributors with `Agent-assisted-by: <actual agent name> (<role>)` trailers; repeat for multiple contributors and retain attribution when squashing. A known model/version is optional. The trailer is self-reported provenance, not cryptographic signing, independent review or approval; review attribution belongs on the revision-scoped review record.
+- **Squash merge:** the required integration method. Before an authorized merge, prepare a concise squash message: subject plus a short summary, no governing Issue references, no redundant intermediate-commit messages; preserve the required DCO sign-off and material `Agent-assisted-by` attribution. Never invent identities or sign-offs.
 
 Labels document coordination intent; they do not grant it. Reuse existing labels
 where adequate: type (`bug`, `enhancement`, `documentation`, optionally `rfc`),
@@ -137,12 +138,12 @@ The two pinned snapshots — the
 [Magpie repository](https://github.com/yetone/magpie/tree/778000326adaa49cd790846acd2d535572ad5ceb)
 and the separate
 [release-workflow repository](https://github.com/yetone/magpie-releases/tree/fc85a074b1ba73417d2afda783e1c0a27ed79a1f)
-— identify lineage; they are not themselves a link to the case pack. The
-accessible extraction with exact case readsets (original commit, PR and run
-links, per-case limits) is the "Reviewed case pointers" section of
-[RFC #21](https://github.com/InferMatrixLab/OmniRSI/issues/21); the full
-reviewed pack with its detailed readset remains with its owner and is not
-imported here. C1–C3 inform ownership and review; C4–C5, CI trade-offs; C6,
+— identify lineage; they are not themselves a link to the case pack. An
+accessible case summary with concrete source pointers and stated limits — the
+"Reviewed case pointers" section of
+[RFC #21](https://github.com/InferMatrixLab/OmniRSI/issues/21) — covers C1–C7
+at the level this guide relies on; the full reviewed pack remains with its
+owner and is not imported here. C1–C3 inform ownership and review; C4–C5, CI trade-offs; C6,
 completion states; C7, learning.
 
 They are proposals, not demonstrated Magpie enforcement or a causal speedup.
