@@ -262,3 +262,17 @@ The [knowledge-base contract](knowledge-base.md) owns field and mode semantics.
 Missing early six-paper input stays blocked. Historical reports and A–F readsets,
 comparisons and cases remain preserved; catalog translation/import does not add
 independent corroboration or a new source-mechanism count.
+
+## Issue #27 reconciliation: Drama3 NPU readiness
+
+Supplement scope only; **no new mined coverage or measured cell is credited**.
+The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) maps the
+RFC-pinned GPU source and existing imported records to a stage/state execution
+map, a state-correctness contract and a measurement/quality contract.
+
+| Source group | Pin / scope | Lineage note |
+|---|---|---|
+| david6666666/drama-3-single-b300-inference | `58a1882a4d941f8d21bfce6be37d3d5e7c9fde80`; RFC-selected commits only (`a6e660cc`, `ec51ba1e`, `a7118fb7`, `6ff8d808`, `33f6d723`) and `benchmark.py`/results; no broad history scan | External GPU reference engine motivating NPU questions; shares the design family of the existing `vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap` import (not independent corroboration) |
+
+The two primary matrices are unchanged in authority; this is a reconciliation
+note, not a third inventory. All NPU status for Drama3 remains `unverified`.

@@ -281,3 +281,14 @@ supply scoped architecture, tuning and validation navigation, including their
 bilingual procedures. They do not qualify every backend listed by their upstream
 projects. Main-only contribution, dependency and peer material remains at its
 original owners rather than duplicated under local skills.
+
+## Issue #27: Drama3 NPU readiness (guidance only, no new coverage)
+
+The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) is a scoped task
+artifact: a stage/state execution map, a state-correctness contract (with a
+CPU-only reference fixture) and a measurement/quality contract reusing the pinned
+GPU `benchmark.py` and the frozen `evidence/drama3-b300-scale150` validator. It
+adds **no 🟢 cell and no measured NPU coverage**; every Drama3 NPU status is
+`unverified`, and target qualification is pending the owner-resolved
+hardware/software/model/service/evaluation/authority tuple. The five resource
+rows above remain authoritative; the two-matrix contract is unchanged.
