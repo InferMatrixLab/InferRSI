@@ -140,9 +140,13 @@ def test_buggy_layout_overwrites_a_live_request(count: int) -> None:
 
 @pytest.mark.parametrize("count", [5, 6, 7])
 def test_fixed_layout_preserves_every_live_request(count: int) -> None:
-    """The repaired layout leaves all live recurrent/conv/KV state untouched."""
+    """The repaired layout leaves all live recurrent/conv/KV state untouched.
+
+    ``wrap=True`` keeps the real modulo suffix mapping active; the repair holds
+    because every assigned slot stays below the mirror boundary.
+    """
     arena, protected = run_partial_prefill(
-        wrap=False, padding_reserve=BATCH, assign=fixed_padding_slots, count=count
+        wrap=True, padding_reserve=BATCH, assign=fixed_padding_slots, count=count
     )
     for row in protected:
         for kind in STATE_KINDS:
@@ -151,7 +155,7 @@ def test_fixed_layout_preserves_every_live_request(count: int) -> None:
 
 def test_fixed_assignment_rejects_live_slot_overlap() -> None:
     """Requesting padding slots that collide with live slots is an explicit error."""
-    arena = PrefillArena(wrap=False, padding_reserve=BATCH)
+    arena = PrefillArena(wrap=True, padding_reserve=BATCH)
     overlapping = [PRIMARY_ROWS, PRIMARY_ROWS + 1]
     with pytest.raises(ValueError, match="reserved primary state slots"):
         fixed_padding_slots(arena, overlapping, padding=2)

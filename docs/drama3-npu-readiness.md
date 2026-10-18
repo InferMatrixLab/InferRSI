@@ -62,7 +62,7 @@ facts only. Gap class is one of *knowledge* (K), *code integration* (C),
 
 | Stage | Entry / operator / dtype / persistent state (source facts) | Existing knowledge | NPU status | Gap class |
 |---|---|---|---|---|
-| Reference preparation | Reference audio/codes + text encoded once; `benchmark.py` sends `ref_audio_codes`/`references[vq_codes]`; separately stated cold inline-audio cost | `concurrency_scaling_*`, `streaming_serving_measurement` | unverified | K + E |
+| Reference preparation | Reference audio/codes + text encoded once; with reference codes `benchmark.py` sends `ref_audio_codes` (vllm/standalone) or `references[vq_codes]` (sglang), with inline audio `ref_audio` (vllm) or `references[{audio}]`; cold inline-audio has a separately stated cost | `concurrency_scaling_*`, `streaming_serving_measurement` | unverified | K + E |
 | Backbone (mixed prefill/decode) | Chunked prefill, async CPU scheduling, FULL decode graphs + PIECEWISE mixed graphs; per-request state indices | `concurrency_scaling_*`; `ascend-graph-mode`, `ascend-aclgraph-capture-replay` | unverified | C + M |
 | GDN / recurrent + full attention | Recurrent + convolution state per request; independent GDN **suffix** sequence per padded row; teacher-forced prompt tower | `concurrency_scaling_*` (state ownership); commit `a6e660cc` | unverified | C + K |
 | MoE | Native FP8 routed experts (all 8 routed), per-call routing metadata can permute physical rows; BF16 dense weights | `concurrency_scaling_*` (FP8 MoE); `ascend-operator-tuning`, `ascend-model-adaptation` | unverified | C + M |
@@ -153,13 +153,26 @@ Reuse the pinned GPU benchmark client
 [`src/drama3/benchmark.py@58a1882a`](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/src/drama3/benchmark.py)
 and the existing frozen validator
 [`evidence/drama3-b300-scale150/validator/validate.py`](../evidence/drama3-b300-scale150/validator/validate.py).
-**Interface mapping (no new adapter):** `benchmark.py` emits `summary.json` and
-per-run `{label}.jsonl` records whose fields (`audio_samples`, `ttfa_s`,
-`last_audio_s`, `completion_s`, `rtf`, `acoustic_frames`, `audio_duration_s`,
-`audio_sha256`, `success`, `http_status`) are exactly what `validate.py` already
-consumes. The client's `--backend {sglang,vllm,standalone}` already shapes the
-request body for vLLM-Omni and SGLang-Omni, so both are drivable without a
-wrapper. See §5.
+
+**What interoperates (no request/record adapter):** `benchmark.py` emits
+`summary.json` and per-run `{label}.jsonl` records (`sample_id`, `request_id`,
+`audio_samples`, `ttfa_s`, `last_audio_s`, `completion_s`, `rtf`,
+`acoustic_frames`, `audio_duration_s`, `audio_sha256`, `success`, `http_status`;
+summary `concurrency`/`repeat`/`makespan_s`/`throughput_frames_s`/`ttfa_p50_ms`/
+`ttfa_p95_ms`/`rtf_mean`/`valid`/`failed`/`requests`/`completed`). These are what
+the validator's **`load_runtime`** record/summary checks consume (frame/duration/
+RTF/TTFA/throughput recomputation and completeness). The client's
+`--backend {sglang,vllm,standalone}` already shapes the request body for
+vLLM-Omni and SGLang-Omni, so both are drivable without a wrapper.
+
+**What is NOT reusable as-is (identified target gap):** the validator's
+`validate()` entrypoint is bound to the GPU issue-#10 campaign — it loads the
+fixed `../plan/plan.json` (B300 `target_frames_s`), requires run controls, corpus
+SHA and baseline SHA to equal that plan, enforces the **1.5× gate**
+(`t >= b * 1.5`), and consumes a separate `evaluate_audio` quality document
+(`asr`/`groups`/`wer`/`similarity`). A Drama3 NPU run therefore needs a
+**target-specific plan and verdict** (and a quality-document producer), owned by
+the next authorized scope — not a reuse of this frozen GPU verdict. See §5.
 
 Frozen semantics (source-defined; reuse as-is):
 
@@ -203,12 +216,17 @@ trade-offs are frozen only by the owner before optimization acceptance.
 
 ## 5 · Minimal instrument supplementation and handoff (Deliverable D)
 
-**No new adapter is justified by current evidence.** The benchmark client and the
-frozen validator already interoperate (§4), and the client already shapes vLLM/
-SGLang request bodies. Adding a wrapper would be a placeholder. An adapter is
-warranted only if a concrete interface gap is demonstrated on the target — for
-example, a response schema that does not expose PCM headers the client expects,
-or a validator field the target cannot emit. If that occurs, follow the
+**No new request/record adapter is justified by current evidence.** The benchmark
+client's record/summary schema already matches the validator's `load_runtime`
+checks (§4), and the client already shapes vLLM/SGLang request bodies. Adding a
+request-shape wrapper would be a placeholder. A target-specific **plan and verdict
+(and a quality-document producer)** is required because the validator's
+`validate()` entrypoint is bound to the frozen GPU campaign (§4) — this is an
+identified gap for the next scope, not a reuse of the GPU verdict, and not a
+request/record adapter. Any further adapter is warranted only if a concrete
+interface gap is demonstrated on the target — for example, a response schema that
+does not expose PCM headers the client expects, or a validator record field the
+target cannot emit. If that occurs, follow the
 [`qwen21_turbo_validation_adapter`](../examples/qwen21_turbo_validation_adapter.py)
 precedent: real inputs/outputs, explicit unsupported modes, focused positive/
 negative tests, no manufactured success data.
@@ -217,12 +235,14 @@ negative tests, no manufactured success data.
 
 1. **Reusable immediately:** the state-ownership invariants and representative
    paths (§3) with the CPU contract fixture; the measurement/quality semantics
-   and the `benchmark.py`→`validate.py` interface mapping (§4); all reused Ascend/
-   CANN/TorchNPU/measurement skills and the imported audio records (§1).
+   and the `benchmark.py`→`load_runtime` record/summary mapping (§4); all reused
+   Ascend/CANN/TorchNPU/measurement skills and the imported audio records (§1).
 2. **Blocked / unrun target checks:** on-device prefill/decode noninterference,
    capture/replay parity, codec capture-workspace ownership, cross-stream
    producer lifetime, BF16 FMA/accumulation parity, and the full L3/L4 service +
-   quality sweep. None has NPU evidence.
+   quality sweep. A **target-specific measurement plan, verdict and
+   quality-document producer** are also required (the frozen `validate()` is
+   GPU-campaign-bound). None has NPU evidence.
 3. **Executable vs specification-only:** executable now (CPU) = the contract
    fixture and the existing frozen validator against recorded evidence.
    Specification-only = everything requiring the target runtime, device memory or
@@ -240,6 +260,7 @@ negative tests, no manufactured success data.
 | Service feature set | owner | Confirm streaming behavior, voice refs, concurrency set, caps, cancellation | Workload/measurement cannot be frozen |
 | Comparator eligibility | owner | Name eligible vLLM-Omni/SGLang-Omni revisions + viable target paths | Baseline comparison undefined |
 | Evaluation policy | owner | Approve WER/SIM tool + tolerance, latency constraints, repetition plan | No quality gate; GPU thresholds not inherited |
+| Target measurement plan + verdict | next authorized scope | Author a target-specific plan/verdict + quality-document producer (frozen `validate()` is GPU-campaign-bound; `load_runtime` schema is reusable) | No eligible PASS/FAIL verdict until authored |
 | Service objective (optimization) | owner | Freeze objective + latency/quality trade-offs | Optimization acceptance cannot proceed |
 | Authority / budget | owner | Grant execution host/store/output, install permission, resource/time budget, publication/integration authority | Execution scope not authorized |
 
