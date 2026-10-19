@@ -129,3 +129,14 @@ The daily contribution-tier workflow is specified in
 [the 06:00 learning prompt](../../../../docs/daily-learning-prompt.md). Its
 assessment gates, isolation and persistent orchestrator are prerequisites,
 not capabilities provided by this catalog refactor.
+
+## Qwen3-TTS Ascend source import
+
+These peer candidates describe a standalone engine, not a registered runtime target.
+All remain imported and locally unverified; downstream support requires separate validation.
+
+| Tier | Source | Card |
+| --- | --- | --- |
+| peer | qwen3_tts_engine | [Qwen3-TTS codec: cache fixed codebooks and retain request-owned causal state](peer/qwen3_tts_engine/ascend/audio/codec-constants-and-state.json) |
+| peer | qwen3_tts_engine | [Qwen3-TTS NPU graphs: batch prefill while preserving request state](peer/qwen3_tts_engine/ascend/audio/graph-batching-state-ownership.json) |
+| peer | qwen3_tts_engine | [Qwen3-TTS CustomVoice: cache only model-fixed prompt embeddings](peer/qwen3_tts_engine/ascend/audio/fixed-customvoice-prompt.json) |

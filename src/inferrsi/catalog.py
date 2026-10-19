@@ -16,7 +16,7 @@ KNOWLEDGE_SCOPES = {
     "dependency": (
         "flashinfer", "flashattention", "pytorch", "triton", "diffusers", "transformers"
     ),
-    "peer": ("sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit"),
+    "peer": ("sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit", "qwen3_tts_engine"),
 }
 KNOWLEDGE_REPOS = tuple(
     dict.fromkeys(repo for repos in KNOWLEDGE_SCOPES.values() for repo in repos)

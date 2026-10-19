@@ -92,6 +92,26 @@ remains unmet and optimization is paused.
 
 [Architecture & quickstart →](https://github.com/david6666666/drama-3-single-b300-inference#architecture) · [Recorded comparison →](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/README.md#performance) · [Optimization lessons](evidence/drama3-b300-scale150/results/diagnostic-lessons.md) · [Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/10)
 
+### Qwen3-TTS CustomVoice on Ascend: imported optimization techniques
+
+The [standalone Qwen3-TTS engine](https://github.com/InferMatrixLab/qwen3-tts-engine)
+contributes three searchable peer-technique records: codec constant/state reuse,
+graph batching with request-owned state, and fixed CustomVoice prompt preparation.
+These are source-backed transfer candidates, not a built-in InferRSI runtime.
+
+The import's performance verdict is **INCONCLUSIVE**; accelerator inference and
+audio-quality validation were not rerun. Historical combined-engine reports do
+not establish per-feature or downstream framework gains.
+
+[Evidence and reproduction index](evidence/qwen3-tts-ascend-import/results/README.md) ·
+[Knowledge records](src/inferrsi/data/knowledge_packs/README.md#qwen3-tts-ascend-source-import) ·
+[Scope issue](https://github.com/InferMatrixLab/InferRSI/issues/35)
+
+```bash
+inferrsi knowledge search 'Qwen3-TTS' --tier peer \
+  --repo-type qwen3_tts_engine --backend ascend --scenario audio.tts
+```
+
 <a id="quickstart"></a>
 
 ## 🚀 Quickstart

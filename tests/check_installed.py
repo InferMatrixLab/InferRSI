@@ -29,6 +29,12 @@ for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
     assert len(imported) >= count, f"Missing installed {tier} records"
     assert all(item["tier"] == tier for item in imported)
+qwen_tts = search_knowledge(
+    "Qwen3-TTS", tier="peer", repo="qwen3_tts_engine",
+    backend="ascend", scenario="audio.tts", limit=10,
+)
+assert len(qwen_tts) == 3, "Missing installed Qwen3-TTS peer techniques"
+assert all(not record["verification"]["locally_verified"] for record in qwen_tts)
 package = files("inferrsi")
 library = package.joinpath("data", "skill_library")
 manifest = json.loads(library.joinpath("source-manifest.json").read_text(encoding="utf-8"))
