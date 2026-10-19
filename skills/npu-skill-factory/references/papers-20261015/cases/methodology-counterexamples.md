@@ -1,6 +1,6 @@
 # Candidate cases: where seemingly useful rules fail
 
-Status: candidate. Local validation: not_run. These are paper-reported historical cases, not OmniRSI executions. P sections are proposed interpretations and boundaries.
+Status: candidate. Local validation: not_run. These are paper-reported historical cases, not InferRSI executions. P sections are proposed interpretations and boundaries.
 
 ## E-C1 — A useful default becomes an unjustified ban
 

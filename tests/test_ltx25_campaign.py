@@ -14,7 +14,9 @@ from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from omnirsi.execution import _execute, repository_identity
+import inferrsi
+from inferrsi import execution
+from inferrsi.execution import _execute, repository_identity
 
 SCRIPT = Path(__file__).resolve().parents[1] / "tests" / "fixtures" / "legacy" / "ltx25_b300.py"
 SPEC = importlib.util.spec_from_file_location("ltx25_campaign", SCRIPT)
@@ -33,6 +35,11 @@ def live_process(pid):
 
 class CampaignTests(unittest.TestCase):
     def setUp(self):
+        # The frozen helper imports its historical package name. Confine that
+        # alias to these archived-protocol tests; the installed API is inferrsi.
+        aliases = patch.dict(sys.modules, {"omnirsi": inferrsi, "omnirsi.execution": execution})
+        aliases.start()
+        self.addCleanup(aliases.stop)
         self.temporary = tempfile.TemporaryDirectory()
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name).resolve()
@@ -44,7 +51,7 @@ class CampaignTests(unittest.TestCase):
         self.git("add", ".")
         self.git(
             "-c",
-            "user.name=OmniRSI test",
+            "user.name=InferRSI test",
             "-c",
             "user.email=test@example.invalid",
             "-c",
@@ -558,20 +565,21 @@ class LinuxLifecycleTests(unittest.TestCase):
             encoding="utf-8",
         )
         owner = self.root / "ownership.json"
-        result = _execute(
-            (
-                sys.executable,
-                str(helper),
-                str(self.server),
-                str(self.pids),
-                str(self.root / "server.log"),
-                str(owner),
-            ),
-            self.root,
-            self.root / "trial",
-            time.monotonic() + 5,
-            None,
-        )
+        with patch.dict(os.environ, {"OMNIRSI_RESULT_PATH": "legacy-fixture"}):
+            result = _execute(
+                (
+                    sys.executable,
+                    str(helper),
+                    str(self.server),
+                    str(self.pids),
+                    str(self.root / "server.log"),
+                    str(owner),
+                ),
+                self.root,
+                self.root / "trial",
+                time.monotonic() + 5,
+                None,
+            )
         self.assertEqual(result["status"], "timeout")
         ownership = json.loads(owner.read_text())
         pids = json.loads(self.pids.read_text())

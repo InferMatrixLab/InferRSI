@@ -1,6 +1,6 @@
 # Pack F — which part of an improver should adapt?
 
-Candidate; empirically unvalidated. **F** = historical paper fact; **P** = proposed OmniRSI rule. Exact pins, read locators and evidence context are in [source notes](references/source-notes.md). Existing RRSI/search-policy references were inspected first; this pack contributes missing paper-level interfaces, acceptance conditions and counter-evidence rather than another repository summary.
+Candidate; empirically unvalidated. **F** = historical paper fact; **P** = proposed InferRSI rule. Exact pins, read locators and evidence context are in [source notes](references/source-notes.md). Existing RRSI/search-policy references were inspected first; this pack contributes missing paper-level interfaces, acceptance conditions and counter-evidence rather than another repository summary.
 
 ## F/P comparison
 

@@ -1,4 +1,4 @@
-# OmniRSI Phase 1 Report — Meta-Skill Bootstrap
+# InferRSI Phase 1 Report — Meta-Skill Bootstrap
 
 > Historical snapshot from 2026-10-14. Its inventory, proposed next steps and
 > sibling-workstream reports are not current implementation or validation status.
@@ -10,15 +10,15 @@
 
 **Branch:** `opus/meta-skill-bootstrap`
 **Date:** 2026-10-14
-**Base:** `4c8e1285` (ThinkFlowLab/OmniRSI main)
+**Base:** `4c8e1285` (InferMatrixLab/InferRSI main)
 
 ---
 
 ## Executive summary
 
-This branch adds three candidate meta-skills to OmniRSI and a design document
+This branch adds three candidate meta-skills to InferRSI and a design document
 for the NPU skill factory, without duplicating the existing runner, evidence,
-or verdict infrastructure. The sibling workstream (`Dong1017/OmniRSI @
+or verdict infrastructure. The sibling workstream (`Dong1017/InferRSI @
 codex/skill-eval-bootstrap`) has already implemented the distillation and
 evaluation runner; this branch's role is to provide the skill content and
 the design contract that runner operates against.
@@ -163,7 +163,7 @@ Verdict: **INCONCLUSIVE** (no agent benchmark run with vs. without the skill).
 - This skill's history is Magpie-specific. A new repository needs its own evolution
   analysis before this skill is useful as a conditioning document for that repo.
 - The LearningToCommit temporal-split evaluation is expensive (requires running
-  an agent on multiple historical tasks). No benchmark has been run on OmniRSI
+  an agent on multiple historical tasks). No benchmark has been run on InferRSI
   yet with and without the skill.
 - Repair-latency and merge-cadence results are correlation, not causation.
 
@@ -180,13 +180,13 @@ patch minimality as primary metrics.
 
 ### PR #9 reconciliation
 
-PR #9 (`4ad551a9`, david6666666) adds `src/omnirsi/data/skill_library/` with 42
+PR #9 (`4ad551a9`, david6666666) adds `src/inferrsi/data/skill_library/` with 42
 bilingual skill documents (21 per language) for 5 inference engines, a
 `source-manifest.json`, and knowledge JSON records in 4 new `repo_packs/` entries.
 It extends `catalog.py` to add `strata, sglang, sglang_omni` to `REPO_TYPES`.
 It does **not** add generation, evaluation, or evolution machinery.
 
-The sibling workstream (`Dong1017/OmniRSI @ codex/skill-eval-bootstrap`) adds
+The sibling workstream (`Dong1017/InferRSI @ codex/skill-eval-bootstrap`) adds
 `skill_distill.py`, `skill_eval.py`, `schemas/skill-bundle.json`, and a completed
 pilot in `evidence/skill-bootstrap-20261014/`. It is based on the upstream
 pre-PR#9 tree (commits 1eae6e7 and older are shared; 4c8e128 is not).
@@ -251,7 +251,7 @@ Accept criterion (adapted from SkillOpt `gate.py`):
 
 1. Verify `profiling-analyze` temporal cutoff via `git log` on the MindIE-SD clone.
 2. Archive MindIE-SD source at `cutoff_commit` excluding the skill file.
-3. Run `python -m omnirsi.harness.skill_distill` (sibling workstream) targeting
+3. Run `python -m inferrsi.harness.skill_distill` (sibling workstream) targeting
    `profiling-analyze` capability.
 4. Run the three-variant experiment on ≥3 Tier A CANN profiling tasks.
 
@@ -289,7 +289,7 @@ experiment is the correct test because the human skill encodes unrecoverable NPU
 knowledge — if the distilled version covers the CANN field-aliasing rules and
 silent-failure patterns, that is evidence of genuine value recovery.
 
-**Q4. How should OmniRSI distinguish imported knowledge, candidate skills, and promoted executable skills?**
+**Q4. How should InferRSI distinguish imported knowledge, candidate skills, and promoted executable skills?**
 
 Three distinct artifact kinds with separate locations and promotion criteria:
 - **Imported knowledge** (`repo_packs/`, `skill_library/`): status = `imported`,
@@ -318,7 +318,7 @@ second if the question is operator performance. `triton-ascend` is third for
 Triton-native kernel writing. Clone sparse (only `.agents/` and relevant source
 paths) and state the specific capability question before cloning.
 
-**Q7. Which part of the current OmniRSI substrate is the largest blocker to true skill/harness RSI?**
+**Q7. Which part of the current InferRSI substrate is the largest blocker to true skill/harness RSI?**
 
 The skill evaluation pipeline requires a live agent (Codex or equivalent) that
 can write to a workspace, which is environment-gated (the sibling workstream's
@@ -335,7 +335,7 @@ either Tier A only or INCONCLUSIVE due to environment, not algorithm.
 
 | Stage | Status | Evidence |
 |-------|--------|---------|
-| 0. Audit OmniRSI + PR #9 | Complete | This report |
+| 0. Audit InferRSI + PR #9 | Complete | This report |
 | 1. Performance ceiling skill | Candidate | `skills/performance-ceiling-analysis/SKILL.md` |
 | 2. Magpie evolution skill | Candidate | `skills/repository-evolution-analysis/SKILL.md` |
 | 3. Skill factory design + lifecycle | Candidate | `skills/npu-skill-factory/SKILL.md` |

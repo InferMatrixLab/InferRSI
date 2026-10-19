@@ -16,7 +16,7 @@ answer: *does meaningful headroom exist, where is it, and is a requested
 speedup such as 2× plausible?*
 
 Do not use it to benchmark or compare two already-built candidates — that is
-the job of OmniRSI's AB/BA harness and `rsi-evidence` skill.
+the job of InferRSI's AB/BA harness and `rsi-evidence` skill.
 
 ## Evidence to inspect first
 

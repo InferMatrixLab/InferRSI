@@ -6,7 +6,7 @@ Python; it requires no conversation or workflow object.
 
 ```python
 from pathlib import Path
-from omnirsi.knowledge_operations import KnowledgeReader
+from inferrsi.knowledge_operations import KnowledgeReader
 
 reader = KnowledgeReader(skill_root=Path("skills"))
 result = reader.collect(ids=["calibrate-serving-simulation"], material=True, limit=1)
@@ -79,3 +79,35 @@ Both adapters are read-only: no reader call writes to the checkout, the installe
 package, evidence or either matrix. The separate writer slice retains immutable
 store-owned candidate bundles in one authorized store. Reading or collecting
 supplied code never runs it or grants permissions.
+
+## Retrieve diagnostic options
+
+Rejected directions use the same checkout Case bundles as other observations:
+
+```python
+reader = KnowledgeReader(skill_root=Path("skills"))
+options = reader.collect("Ascend OOM", kind="case", material=True, limit=3)
+item = options["items"][0]  # Inspect no_match/omissions first in a general client.
+case = reader.read(item["ref"], revision=item["revision"])
+```
+
+Other example queries are `B300 RMSNorm` and `Drama3 prefix reuse`. Query terms
+match metadata and entry content as substrings; combine a mechanism and context
+to narrow results. An explicit ID such as
+`checkout:case.qwen-ascend-rejected-directions` selects exactly one record.
+Package repo/backend/scenario filters still exclude checkout cases; inspect the
+returned applicability rather than assuming those filters qualify a case.
+
+For explicit CLI resource-path resolution from the full checkout:
+
+```bash
+inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md
+inferrsi skills reference optimization-search-policy ../inference-optimization-casebook/cases/drama3-rejected-directions.md
+```
+
+These commands return a `path` for your file reader; they do not load the body
+or execute it. The Python `read` example above returns the selected case bundle.
+
+Read observations, limitations and suggested revisit conditions before acting.
+The cases are checkout resources, not additional wheel catalog records. They
+retain their original verdict/verification scope; retrieval is not an experiment.

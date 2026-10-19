@@ -11,7 +11,7 @@ Model enough to reject impossible choices and cheaply compare plausible ones; us
 - **FlashVector → layer-aware redirection.** A kernel improvement can expose host preparation or configuration bottlenecks. Rank impact against measured uncertainty, preserve semantic/lifetime conditions, verify globally, and retune after code changes. Local and full-stack denominators remain separate. [F1–F4](references/flashvector.md)
 - **Agentic Kernel Optimization → regime dispatch and search correction.** Profiler/history-driven candidates, exactness gates and semantic shortcuts can matter more than endless local parameter changes. Cumulative trajectories are not controlled ablations; structural future directions stay unmeasured. [M1–M8](references/agentic-kernel.md)
 
-## What this adds to existing OmniRSI intelligence
+## What this adds to existing InferRSI intelligence
 
 The existing analytical/empirical/Amdahl ceiling hierarchy remains intact. This pack adds a **prediction calibration boundary**, **final-artifact preservation evidence**, **measurement-integrity failure cases**, and **cross-layer/regime redirection rules**. It does not fill missing hardware measurement cells. [Prior overlap and merge targets](references/prior-coverage.md)
 

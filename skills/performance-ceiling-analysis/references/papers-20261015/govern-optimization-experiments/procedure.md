@@ -23,4 +23,4 @@ Paper-specific two-hour budgets,15-minute validation reserves,95% quality thresh
 
 ## Resource contract
 
-This procedure and its local `references/source-notes.md` are sufficient for selective consumption. The rest of Pack A supplies optional comparisons and integration notes; no parent-folder file is required to interpret the procedure or its source limits. Existing OmniRSI skill names above are reconciliation targets, not runtime dependencies.
+This procedure and its local `references/source-notes.md` are sufficient for selective consumption. The rest of Pack A supplies optional comparisons and integration notes; no parent-folder file is required to interpret the procedure or its source limits. Existing InferRSI skill names above are reconciliation targets, not runtime dependencies.

@@ -1,4 +1,4 @@
-# OmniRSI SearchSpace Matrix
+# InferRSI SearchSpace Matrix
 
 **Branch:** `opus/meta-skill-bootstrap` | **Integration date:** 2026-10-16 | **Comparison anchor:** `d96ff8d3`
 
@@ -34,7 +34,7 @@ The primary compute and HBM resource. Most current work lives here.
 | **Optimize** | Casebook of past NPU optimization decisions: AI-CPU fallback, memory-bound, comm-exposed, graph-compilation, scheduling idle gaps | `ascend-optimization-casebook`, `inference-optimization-casebook` | Five bottleneck classes with symptom→diagnosis→action→evidence schema | MindIE-SD profiling-analyze + dit-perf-opt + perf-gate + dit-parallel-opt @ 8481d39b | 🟢 |
 | **Optimize** | Bounded experiment selection, distinct mechanism hypotheses, incumbent preservation and final-artifact integrity | `optimization-search-policy` | Methodology provenance stays in Reference Matrix §2; no hardware coverage from agent-paper scores | vllm-evolve @ 43cc82c; scoped A/F paper amendments | 🟢 (procedure only) |
 | **Optimize** | Bounded multistream overlap: dependency-DAG constrained (data/state/event/collective_order edges; shared input ≠ dependency), minimal-first, execution-mode sync contract (eager streams vs TorchAir) | `cann-attribution-overlap` | Metric separation (wall / union-of-busy / summed durations / summed duration+wait; repeated-instance product = estimate); device-memory domain qualification; formula conflicts carried unresolved | cann/oam-tools @ 8440935f (pack-mediated, wave 6) | 🟢 |
-| **Verify** | Evidence taxonomy (L0 correctness → L5 production), claim-evidence matching | `dense-performance-evidence`, `rsi-evidence`, `claim-contract` | OmniRSI PASS/FAIL/INCONCLUSIVE protocol | OmniRSI @ 4c8e1285 | 🟢 |
+| **Verify** | Evidence taxonomy (L0 correctness → L5 production), claim-evidence matching | `dense-performance-evidence`, `rsi-evidence`, `claim-contract` | InferRSI PASS/FAIL/INCONCLUSIVE protocol | InferRSI @ 4c8e1285 | 🟢 |
 | **Verify** | Same-window A/B protocol, noise floor, acceptance-state discipline; correctness-first overlap acceptance (fallback works, no KV/state reorder, actual overlap, no outside-module regression) | `ascend-optimization-casebook` (evidence-required section per case), `dense-performance-evidence`, `rsi-evidence`, `cann-attribution-overlap` | MindIE-SD perf-gate protocol: exploration vs acceptance state, three-proof requirement | MindIE-SD perf-gate @ 8481d39b; cann/oam-tools @ 8440935f | 🟢 |
 | **Observe / Configure / Optimize** | DALI CPU/GPU queue overlap and operator buffer sizing under explicit executor-mode gates | `training-input-pipeline` | Separated queues require async+pipelined and non-dynamic mode; output synchronization retained | Reference B1, DALI @ 6fe47c48d3b0 | 🟢 (Python API evidence, not C++/device validation) |
 | **Diagnose / Configure / Optimize** | Training capacity versus throughput, parameter/optimizer tier budgets, recomputation/offload choices; DCP exposed staging pause | `training-resource-budget`, `dcp-async-save-performance` | DeepSpeed stage gates; expert MFU/HFU denominator discipline; historical MindSpeed case only | Reference CR1, CR6, CR5, C1 async-only | 🟢 (MindSpeed implementation/current support unresolved) |
@@ -228,7 +228,7 @@ third authoritative matrix. Narrow offline checks do not promote skills.
 - Kernel writing (Triton/CuTe/AscendC routing, 6 correctness rules, verify-before-benchmark workflow)
 - Search policy (phase-locked round, RRSI constraints, CRISP critical-step)
 - Skill evolution (Trace2Skill pool consolidation, SkillOpt bounded edit)
-- Benchmark design (goodput, three-regime, OmniRSI evidence trail)
+- Benchmark design (goodput, three-regime, InferRSI evidence trail)
 - Repository intelligence (LTC temporal split, Magpie patterns, Change2Task, Chronos)
 - Operator tuning campaign (accuracy gate, staged escalation, metric contract, routing tables)
 - AscendC tiling design (four-element template, fullload-vs-split, per-class routing, chip-generation tables)
@@ -268,13 +268,21 @@ for translation, filename, package installation or an unexamined trace.
 
 | Resource | Stage / named subtargets | Existing canonical support | Boundary |
 |---|---|---|---|
-| Accelerator | Diagnose/Configure/Verify: attention-generation dispatch, paged-decode planning, compiler guards, KV strategies, fusion resource limits | [Dependency records](../src/omnirsi/data/knowledge_packs/README.md); FlashAttention, FlashInfer, PyTorch, Transformers, Triton | Source guidance only; selected backend, pointer lifetime, precision and resource envelope require target validation |
-| Accelerator | Configure/Optimize/Verify: residual reuse, KV compression, sequence partition and pipeline freshness | [Peer records](../src/omnirsi/data/knowledge_packs/README.md); Cache-DiT, LMDeploy, xDiT | Approximation/capacity gains do not establish latency or quality gains; preserved LMDeploy regression |
-| RAM / Host | Diagnose/Configure: group offload staging, CPU expert work, host prefix residency | Diffusers dependency card; [Strata tuning](../src/omnirsi/data/repo_packs/strata/knowledge/common/llm/controlled-execution-tuning.json); SGLang HiCache peer card | Host budget and transfer/recompute cost remain distinct from device HBM |
-| SSD / Storage | Configure/Verify: prefix L3 sharing, prefetch/layout/eviction and hit-state comparisons | [SGLang HiCache](../src/omnirsi/data/knowledge_packs/peer/sglang/cuda/llm/hierarchical-prefix-cache.json) | Storage backend qualification pending; larger private host cache is not cross-instance sharing |
-| Communication / Network | Diagnose/Configure/Verify: disaggregated KV transfer, topology-dependent sequence parallelism | [TRT-LLM disaggregation](../src/omnirsi/data/knowledge_packs/peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json); [xDiT](../src/omnirsi/data/knowledge_packs/peer/xdit/cuda/diffusion/parallelism-freshness-and-topology.json) | Interconnect/layout/queue cost, backpressure and recovery; H2D/IPC are not counted here |
+| Accelerator | Diagnose/Configure/Verify: attention-generation dispatch, paged-decode planning, compiler guards, KV strategies, fusion resource limits | [Dependency records](../src/inferrsi/data/knowledge_packs/README.md); FlashAttention, FlashInfer, PyTorch, Transformers, Triton | Source guidance only; selected backend, pointer lifetime, precision and resource envelope require target validation |
+| Accelerator | Configure/Optimize/Verify: residual reuse, KV compression, sequence partition and pipeline freshness | [Peer records](../src/inferrsi/data/knowledge_packs/README.md); Cache-DiT, LMDeploy, xDiT | Approximation/capacity gains do not establish latency or quality gains; preserved LMDeploy regression |
+| RAM / Host | Diagnose/Configure: group offload staging, CPU expert work, host prefix residency | Diffusers dependency card; [Strata tuning](../src/inferrsi/data/repo_packs/strata/knowledge/common/llm/controlled-execution-tuning.json); SGLang HiCache peer card | Host budget and transfer/recompute cost remain distinct from device HBM |
+| SSD / Storage | Configure/Verify: prefix L3 sharing, prefetch/layout/eviction and hit-state comparisons | [SGLang HiCache](../src/inferrsi/data/knowledge_packs/peer/sglang/cuda/llm/hierarchical-prefix-cache.json) | Storage backend qualification pending; larger private host cache is not cross-instance sharing |
+| Communication / Network | Diagnose/Configure/Verify: disaggregated KV transfer, topology-dependent sequence parallelism | [TRT-LLM disaggregation](../src/inferrsi/data/knowledge_packs/peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json); [xDiT](../src/inferrsi/data/knowledge_packs/peer/xdit/cuda/diffusion/parallelism-freshness-and-topology.json) | Interconnect/layout/queue cost, backpressure and recovery; H2D/IPC are not counted here |
 | OS / System | No new OS-control mechanism credited | Existing OS-specific rows retained | Process/stage ownership and installed access are not scheduler-priority or cgroup evidence |
-| Accelerator / Host | Observe/Verify: actual active batch, admission/drain scope and state lifetime | [Shared internal case](../skills/inference-optimization-casebook/cases/admission-drain-occupancy.md); [main audio guidance](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/cuda/audio/concurrency-scaling-state-and-overlap.json) | Recorded observation versus interpretation; frozen evidence preserved, no new service gain |
+| Accelerator / Host | Observe/Verify: actual active batch, admission/drain scope and state lifetime | [Shared internal case](../skills/inference-optimization-casebook/cases/admission-drain-occupancy.md); [main audio guidance](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/cuda/audio/concurrency-scaling-state-and-overlap.json) | Recorded observation versus interpretation; frozen evidence preserved, no new service gain |
+
+The existing casebook/search-policy path now also exposes rejected directions
+for [Qwen B300](../skills/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
+[Qwen Ascend](../skills/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
+and [Drama3](../skills/inference-optimization-casebook/cases/drama3-rejected-directions.md).
+They inform Observe/Diagnose/Verify under their recorded Accelerator/Host scope;
+no new green coverage, Network/OS capability or measured gain is credited.
+Current applicability and a changed condition must be established before retry.
 
 The 15 contribution abstracts for Strata, vLLM, SGLang, SGLang-Omni and vLLM-Omni
 supply scoped architecture, tuning and validation navigation, including their

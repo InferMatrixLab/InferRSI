@@ -1,0 +1,516 @@
+from __future__ import annotations
+
+import hashlib
+import json
+import re
+import sqlite3
+from dataclasses import dataclass
+from importlib.resources import files
+from pathlib import Path, PurePosixPath
+
+from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records
+
+AUTHORITIES = ("package", "checkout", "store")
+IDENTITY = r"[a-z0-9][a-z0-9._-]*"
+
+
+class RevisionConflict(ValueError):
+    pass
+
+
+class IdentityError(ValueError):
+    def __init__(self, code: str, message: str):
+        super().__init__(message)
+        self.code = code
+
+
+def safe_path(value: str) -> str:
+    path = PurePosixPath(value)
+    if (
+        not value
+        or "\\" in value
+        or ":" in value
+        or path.is_absolute()
+        or any(part in ("", ".", "..") for part in value.split("/"))
+    ):
+        raise ValueError(f"Unsafe bundle path: {value}")
+    return value
+
+
+def _json(value: object) -> bytes:
+    return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
+
+
+def _hash(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
+
+
+def _sources(records: list[dict]) -> list[dict]:
+    result = []
+    for record in records:
+        source = dict(record)
+        kind = source.get("type")
+        if kind in ("source", "source_code", "technical_document") and "commit" in source:
+            source["original_type"] = kind
+            kind = "git"
+        if kind is None and "commit" in source:
+            kind = "git"
+        if kind not in ("git", "paper", "document", "internal", "unknown"):
+            # Legacy types keep their original label; nothing is inferred from them.
+            source["original_type"] = kind
+            kind = "unknown"
+        source["type"] = kind
+        if kind == "git":
+            commit = source.get("commit")
+            if not isinstance(commit, str) or not re.fullmatch(r"[0-9a-f]{7,40}", commit):
+                raise ValueError("Git source requires a real commit or explicit historical prefix")
+            source["revision_precision"] = "full" if len(commit) == 40 else "prefix"
+        elif kind == "paper":
+            if not source.get("id") or "version" not in source:
+                raise ValueError("Paper source requires ID and explicit version (null if unknown)")
+            if "commit" in source:
+                raise ValueError("Paper versions are not Git commits")
+        elif kind == "document":
+            if not source.get("url") or not any(k in source for k in ("version", "sha256")):
+                raise ValueError("Document source requires URL and version or snapshot identity")
+        elif kind == "internal":
+            if not source.get("artifact") or not any(k in source for k in ("issue", "run")):
+                raise ValueError("Internal source requires artifact and issue/run identity")
+        result.append(source)
+    return result
+
+
+@dataclass(frozen=True)
+class Bundle:
+    metadata: dict
+    content: dict[str, bytes]
+    dependencies: dict[str, str]
+
+    def manifest(self) -> dict:
+        record = self.metadata
+        if not isinstance(record.get("id"), str) or not re.fullmatch(IDENTITY, record["id"]):
+            raise ValueError("Invalid bundle identity")
+        if record.get("kind") not in ("skill", "knowledge", "case"):
+            raise ValueError("Invalid bundle kind")
+        for field in (
+            "sources",
+            "applicability",
+            "state",
+            "limitations",
+            "attribution",
+            "entrypoint",
+        ):
+            if field not in record:
+                raise ValueError(f"Missing normalized field: {field}")
+        for field in ("state", "entrypoint"):
+            if not isinstance(record[field], str) or not record[field]:
+                raise ValueError(f"Normalized {field} must be a nonempty string")
+        if not isinstance(record["limitations"], list):
+            raise ValueError("Normalized limitations must be a list")
+        if not isinstance(record["sources"], list) or not record["sources"]:
+            raise ValueError("Bundle requires sources, including explicit unknown provenance")
+        _sources(record["sources"])
+        for path, data in self.content.items():
+            safe_path(path)
+            if not isinstance(data, bytes):
+                raise ValueError("Bundle content must be bytes")
+        if record["entrypoint"] not in self.content:
+            raise ValueError("Missing entrypoint in complete bundle")
+        for required in record.get("required_resources", []):
+            if safe_path(required) not in self.content:
+                raise ValueError(f"Missing required resource: {required}")
+        for dependency, revision in self.dependencies.items():
+            safe_path(dependency)
+            if not re.fullmatch(r"sha256:[0-9a-f]{64}", revision):
+                raise ValueError("Dependency requires a resolved content revision")
+            if dependency in self.content:
+                actual = "sha256:" + _hash(self.content[dependency])
+            else:
+                members = {
+                    path: _hash(data)
+                    for path, data in sorted(self.content.items())
+                    if path.startswith(dependency + "/")
+                }
+                if not members:
+                    raise ValueError(f"Missing dependency: {dependency}")
+                actual = "sha256:" + _hash(_json(members))
+            if actual != revision:
+                raise RevisionConflict(f"Dependency bytes disagree with revision: {dependency}")
+        return {
+            "metadata": record,
+            "resources": {path: _hash(data) for path, data in sorted(self.content.items())},
+            "dependencies": dict(sorted(self.dependencies.items())),
+        }
+
+    @property
+    def revision(self) -> str:
+        return "sha256:" + _hash(_json(self.manifest()))
+
+    def view(self, *, material: bool = False) -> dict:
+        manifest = self.manifest()
+        result = {
+            **self.metadata,
+            "revision": "sha256:" + _hash(_json(manifest)),
+            "resources": manifest["resources"],
+            "dependencies": manifest["dependencies"],
+        }
+        if material:
+            result["content"] = self.content[self.metadata["entrypoint"]].decode("utf-8")
+        return result
+
+
+INCIDENTAL = ("__pycache__", ".DS_Store")
+
+
+def _tree(node, prefix: str) -> dict[str, bytes]:
+    result = {}
+    for child in sorted(node.iterdir(), key=lambda p: p.name):
+        if child.name in INCIDENTAL or child.name.endswith(".pyc"):
+            continue
+        path = safe_path(f"{prefix}/{child.name}")
+        if isinstance(child, Path) and child.is_symlink():
+            raise ValueError(f"Symlink resource is not supported: {path}")
+        if child.is_dir():
+            result.update(_tree(child, path))
+        else:
+            result[path] = child.read_bytes()
+    return result
+
+
+class KnowledgeReader:
+    def __init__(self, *, skill_root: Path | None = None, store=None):
+        self.skill_root = skill_root.resolve() if skill_root is not None else None
+        if store is not None and store.skill_root != self.skill_root:
+            raise ValueError("Store must reserve identities from the same checkout")
+        self.store = store
+        self._records: dict[str, dict] | None = None
+        self._library: tuple[dict[str, bytes], str] | None = None
+
+    def records(self) -> dict[str, dict]:
+        """Installed catalog records, read once per reader (one package snapshot)."""
+        if self._records is None:
+            self._records = {record["id"]: record for record in knowledge_records()}
+        return self._records
+
+    def _skill_library(self) -> tuple[dict[str, bytes], str]:
+        if self._library is None:
+            root = files("inferrsi").joinpath("data", "skill_library")
+            library = _tree(root, "data/skill_library")
+            digest = _hash(_json({path: _hash(data) for path, data in sorted(library.items())}))
+            self._library = (library, "sha256:" + digest)
+        return self._library
+
+    def owners(self) -> dict[str, list[str]]:
+        """Map each public ID to every authority that owns it."""
+        result: dict[str, list[str]] = {}
+        for identity in self.records():
+            result.setdefault(identity, []).append("package")
+        if self.skill_root is not None:
+            from .skill_catalog import skill_records
+
+            local = [record["name"] for record in skill_records(self.skill_root)]
+            local.extend(self._cases())
+            if len(set(local)) != len(local):
+                raise IdentityError("collision", "Duplicate identity inside the checkout")
+            for identity in local:
+                result.setdefault(identity, []).append("checkout")
+        if self.store is not None:
+            for identity in self.store.identities():
+                result.setdefault(identity, []).append("store")
+        return result
+
+    def identities(self) -> list[str]:
+        return sorted(f"{a}:{i}" for i, authorities in self.owners().items() for a in authorities)
+
+    def resolve(self, reference: str, owners: dict[str, list[str]] | None = None) -> str:
+        """Return the qualified `authority:id`; ambiguity is an error, never precedence."""
+        authority, qualified, identity = reference.rpartition(":")
+        if not re.fullmatch(IDENTITY, identity) or (qualified and authority not in AUTHORITIES):
+            raise IdentityError("invalid_identity", f"Invalid identity: {reference}")
+        found = (self.owners() if owners is None else owners).get(identity, [])
+        if qualified:
+            if authority not in found:
+                raise IdentityError("unknown_identity", f"Unknown identity: {reference}")
+            return reference
+        if not found:
+            raise IdentityError("unknown_identity", f"Unknown identity: {identity}")
+        if len(found) > 1:
+            choices = ", ".join(f"{a}:{identity}" for a in found)
+            raise IdentityError(
+                "ambiguous_identity", f"Ambiguous identity {identity}; qualify one of: {choices}"
+            )
+        return f"{found[0]}:{identity}"
+
+    def _cases(self) -> dict[str, Path]:
+        result = {}
+        if self.skill_root is not None:
+            for path in sorted(self.skill_root.glob("*/cases/*.json")):
+                record = json.loads(path.read_text(encoding="utf-8"))
+                if record.get("kind") == "case":
+                    if record["id"] in result:
+                        raise ValueError(f"Duplicate case identity: {record['id']}")
+                    result[record["id"]] = path
+        return result
+
+    def read(self, reference: str, *, revision: str | None = None) -> Bundle:
+        return self._read(self.resolve(reference), revision)
+
+    def _read(self, qualified: str, revision: str | None) -> Bundle:
+        authority, _, identity = qualified.partition(":")
+        if authority == "store":
+            return self.store.read(identity, revision=revision)
+        bundle = self._checkout(identity) if authority == "checkout" else self._knowledge(identity)
+        if revision is not None and bundle.revision != revision:
+            raise RevisionConflict(
+                f"Revision unavailable in this snapshot: {qualified} at {revision}"
+            )
+        return bundle
+
+    def _checkout(self, identity: str) -> Bundle:
+        cases = self._cases()
+        if identity in cases:
+            path = cases[identity]
+            record = json.loads(path.read_text(encoding="utf-8"))
+            for field in ("references", "dependencies"):
+                if field in record:
+                    raise ValueError(f"Case {field} are not supported; declare required_resources")
+            declared = record.get("required_resources", [])
+            if not isinstance(declared, list) or any(not isinstance(p, str) for p in declared):
+                raise ValueError("Case required_resources must be a string list")
+            if len(set(declared)) != len(declared):
+                raise ValueError("Case required_resources must not repeat a path")
+            relative = safe_path(record["content"])
+            required = [relative, "case.json", *(p for p in declared if p != relative)]
+            content = {"case.json": path.read_bytes()}
+            for resource in [relative, *required[2:]]:
+                safe_path(resource)
+                if resource == "case.json":
+                    raise ValueError("Case resource collides with its case.json record")
+                resource_path = path.parent / resource
+                if resource_path.is_symlink() or not resource_path.resolve().is_relative_to(
+                    self.skill_root
+                ):
+                    raise ValueError(f"Case resource escapes the skills root: {resource}")
+                if not resource_path.is_file():
+                    raise ValueError(f"Missing case resource: {resource}")
+                content[resource] = resource_path.read_bytes()
+            return Bundle(
+                {
+                    **record,
+                    "entrypoint": relative,
+                    "sources": _sources(record["sources"]),
+                    "required_resources": required,
+                },
+                content,
+                {},
+            )
+        return self._skill(identity)
+
+    def _knowledge(self, identity: str) -> Bundle:
+        record = self.records().get(identity)
+        if record is None:
+            raise IdentityError("unknown_identity", f"Unknown knowledge ID: {identity}")
+        content = {"record.json": _json(record)}
+        dependencies = {}
+        if record.get("skill_documents"):
+            # The whole imported library is one explicit dependency so bilingual
+            # references and licenses stay a complete closure.
+            library, digest = self._skill_library()
+            content.update(library)
+            dependencies["data/skill_library"] = digest
+            documents = record["skill_documents"]
+            if not isinstance(documents, dict):
+                raise ValueError(f"skill_documents must map editions to paths: {identity}")
+            for target in documents.values():
+                if not isinstance(target, str) or safe_path(target) not in library:
+                    raise ValueError(f"Missing declared skill document: {target}")
+        return Bundle(
+            {
+                "id": identity,
+                "kind": "knowledge",
+                "entrypoint": "record.json",
+                "origin": ["external"],
+                "sources": _sources(record["sources"]),
+                "applicability": record.get("applicability", {}),
+                "state": record["status"],
+                "limitations": record.get("limitations", [])
+                + [
+                    "Imported guidance; reading does not validate or execute it.",
+                    "Historical revisions require the matching installed snapshot "
+                    "or a retained store.",
+                ],
+                "attribution": record["sources"],
+                "verification": record["verification"],
+                "tier": record.get("tier", "contribution"),
+                "repo": record["repo"],
+                "backend": record["backend"],
+                "scenario": record["scenario"],
+                "title": record["title"],
+                "skill_documents": record.get("skill_documents", {}),
+                "required_resources": sorted(content),
+            },
+            content,
+            dependencies,
+        )
+
+    def _skill(self, identity: str) -> Bundle:
+        from .skill_catalog import get_skill, skill_metadata, skill_reference
+
+        root = self.skill_root
+        record = get_skill(root, identity)
+        content = _tree(root / identity, identity)
+        metadata = skill_metadata(root, identity)
+        dependencies = {}
+        for reference in metadata.get("references", []):
+            path = skill_reference(root, identity, reference)
+            key = path.relative_to(root).as_posix()
+            content[key] = path.read_bytes()
+            dependencies[key] = "sha256:" + _hash(content[key])
+        return Bundle(
+            {
+                "id": identity,
+                "kind": "skill",
+                "entrypoint": f"{identity}/SKILL.md",
+                "title": record["description"],
+                "origin": metadata.get("origin", ["unknown"]),
+                "sources": _sources(metadata.get("sources", []))
+                or [
+                    {
+                        "type": "unknown",
+                        "note": "Legacy provenance remains in procedure/readsets",
+                    }
+                ],
+                "applicability": metadata.get("applicability", {}),
+                "state": record.get("status", "unspecified"),
+                "limitations": metadata.get("limitations", [])
+                + [
+                    "Checkout-only local skill; no automatic execution or promotion.",
+                    "Only declared references are required; "
+                    "other cross-skill links are navigation.",
+                    "Historical revisions require a matching checkout or a retained store.",
+                ],
+                "attribution": metadata.get("sources", []),
+                "empirical_validation": metadata.get("empirical_validation", "unknown"),
+                "required_resources": sorted(content),
+            },
+            content,
+            dependencies,
+        )
+
+    def resource(self, identity: str, path: str, *, revision: str) -> bytes:
+        safe_path(path)
+        bundle = self.read(identity, revision=revision)
+        if path not in bundle.content:
+            raise ValueError(f"Unknown resource: {path}")
+        return bundle.content[path]
+
+    def collect(
+        self,
+        query: str = "",
+        *,
+        ids: list[str] | None = None,
+        revisions: dict[str, str] | None = None,
+        kind: str | None = None,
+        repo: str | None = None,
+        tier: str | None = None,
+        backend: str | None = None,
+        scenario: str | None = None,
+        limit: int = 10,
+        max_bytes: int | None = None,
+        material: bool = False,
+    ) -> dict:
+        if limit < 1 or (max_bytes is not None and max_bytes < 1):
+            raise ValueError("Collect limits must be positive")
+        if kind not in (None, "skill", "knowledge", "case"):
+            raise ValueError("Unknown content kind")
+        revisions = revisions or {}
+        if ids is not None and len(set(ids)) != len(ids):
+            raise ValueError("Duplicate requested identity")
+        owners = self.owners()
+        requested = ids if ids is not None else self.identities()
+        if set(revisions) - set(requested):
+            raise ValueError("Revision requested for an unselected identity")
+        collisions = sorted(i for i, authorities in owners.items() if len(authorities) > 1)
+        if tier is not None and tier not in KNOWLEDGE_SCOPES:
+            raise ValueError(f"Unknown knowledge tier: {tier}")
+        scenario = SCENARIO_ALIASES.get(scenario, scenario)
+        package_filters = any(value is not None for value in (repo, tier, backend, scenario))
+
+        def matches(metadata: dict, authority: str) -> bool:
+            declared = metadata.get("scenario")
+            declared = declared if isinstance(declared, str) else ""
+            return not (
+                (kind and metadata.get("kind") != kind)
+                or (package_filters and authority != "package")
+                or (repo and metadata.get("repo") != repo)
+                or (tier and metadata.get("tier", "contribution") != tier)
+                or (backend and metadata.get("backend") not in (backend, "common"))
+                or not (
+                    scenario is None
+                    or declared == scenario
+                    or (declared.endswith(".*") and scenario.startswith(declared[:-1]))
+                )
+            )
+
+        cases = self._cases() if kind else {}
+        selected, omitted, seen = [], [], set()
+        used = 0
+        for reference in requested:
+            try:
+                qualified = self.resolve(reference, owners)
+                if qualified in seen:
+                    raise IdentityError("duplicate_identity", f"Already selected: {qualified}")
+                seen.add(qualified)
+                authority, _, identity = qualified.partition(":")
+                # Cheap metadata checks first, so filtered items never load resource bytes.
+                if authority == "package":
+                    early = {**self.records()[identity], "kind": "knowledge"}
+                elif authority == "checkout":
+                    early = {"kind": "case" if identity in cases else "skill"}
+                else:
+                    early = None
+                if early is not None and not matches(early, authority):
+                    if ids is not None:
+                        omitted.append({"id": reference, "reason": "filters"})
+                    continue
+                bundle = self._read(qualified, revisions.get(reference))
+                view = {**bundle.view(material=material), "authority": authority, "ref": qualified}
+                entry = bundle.content[bundle.metadata["entrypoint"]]
+                haystack = (_json(bundle.metadata) + entry).decode("utf-8", "replace").casefold()
+            except IdentityError as exc:
+                omitted.append({"id": reference, "reason": exc.code, "detail": str(exc)})
+                continue
+            except RevisionConflict as exc:
+                omitted.append(
+                    {"id": reference, "reason": "unavailable_revision", "detail": str(exc)}
+                )
+                continue
+            except (ValueError, KeyError, TypeError, AttributeError, OSError, sqlite3.Error) as exc:
+                omitted.append({"id": reference, "reason": "invalid", "detail": str(exc)})
+                continue
+            if not matches(view, authority):
+                if ids is not None:
+                    omitted.append({"id": reference, "reason": "filters"})
+                continue
+            if any(token not in haystack for token in query.casefold().split()):
+                if ids is not None:
+                    omitted.append({"id": reference, "reason": "query"})
+                continue
+            size = len(_json(view))
+            if len(selected) >= limit or (max_bytes is not None and used + size > max_bytes):
+                omitted.append({"id": reference, "reason": "output_limit"})
+                continue
+            selected.append(view)
+            used += size
+        return {
+            "items": selected,
+            "omissions": omitted,
+            "no_match": not selected,
+            "collisions": collisions,
+            "material_bytes": used,
+            "limitations": [
+                "No crawling, ranking model or conversation state; deterministic identity order.",
+                "max_bytes bounds item payloads, not omission/control metadata.",
+                "Read references must be resolved with their returned exact revision.",
+            ],
+        }

@@ -1,6 +1,6 @@
 from benchmarks.harness.stub_runner import dry_run_verdict
-from omnirsi.claim import Verdict
-from omnirsi.runspec import RunSpec
+from inferrsi.claim import Verdict
+from inferrsi.runspec import RunSpec
 
 
 def test_stub_returns_inconclusive() -> None:

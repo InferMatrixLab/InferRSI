@@ -2,7 +2,7 @@
 
 # Pack D incremental integration proposals
 
-Status: candidate; empirical_validation: not_run. No matrix, OmniRSI file, installed skill or PR was changed.
+Status: candidate; empirical_validation: not_run. No matrix, InferRSI file, installed skill or PR was changed.
 
 ## Prior coverage and incremental value
 

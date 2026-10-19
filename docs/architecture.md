@@ -67,7 +67,7 @@ patch generation and Hub publication remain future work.
 ![Implemented modules mapped to directories](assets/modular-directory-map-en.svg)
 
 ```text
-src/omnirsi/
+src/inferrsi/
   cli.py, arguments.py       Existing CLI
   runspec.py, contracts.py   Immutable experiment contract and compatibility export
   catalog.py                Knowledge search and cited context
@@ -133,9 +133,9 @@ executor and only replace metric interpretation:
 ```python
 from functools import partial
 
-from omnirsi.harness.runner import run_experiment
-from omnirsi.harness.scenarios.external import execute_trial
-from omnirsi.model.protocols.metrics import read_metric
+from inferrsi.harness.runner import run_experiment
+from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.model.protocols.metrics import read_metric
 
 
 def read_engine_metric(document, key):
@@ -168,7 +168,7 @@ campaign. The collector owns warmups, first-response retention, groups and
 artifact hashes; it accepts a request callback and file suffix, so it has no
 model/backend dispatch. The Qwen example now uses these shared modules.
 
-For new image quality checks, install `omnirsi[image]` and construct an explicit
+For new image quality checks, install `inferrsi[image]` and construct an explicit
 `ImageQualityGate` from the frozen campaign plan. No SSIM/PSNR threshold is
 selected by the shared validator. RGB and alpha are checked separately, and a
 campaign can additionally require exact pixels. Image dependencies are lazy;
@@ -211,14 +211,14 @@ change the AB/BA algorithm, process cleanup or evaluator.
 Package data is the canonical source for noneditable installations:
 
 ```text
-omnirsi/data/repo_packs/REPO/knowledge/
+inferrsi/data/repo_packs/REPO/knowledge/
   README.md                       Organization and navigation only
   BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
-omnirsi/data/knowledge_packs/
+inferrsi/data/knowledge_packs/
   README.md                       Three-tier source navigation
   dependency/REPO/BACKEND/COMPONENT/ENTRY.json
   peer/REPO/BACKEND/COMPONENT/ENTRY.json
-omnirsi/data/platform_packs/BACKEND/pack.json
+inferrsi/data/platform_packs/BACKEND/pack.json
 ```
 
 JSON owns applicability, claims, recommendations, validation and limitations;
@@ -253,7 +253,7 @@ of the optional parser.
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
 
-See the [knowledge guide](../src/omnirsi/data/knowledge_packs/README.md)
+See the [knowledge guide](../src/inferrsi/data/knowledge_packs/README.md)
 for all entries, retrieval rules and the maintenance workflow.
 
 The earlier [component design](assets/component-architecture-en.svg) and

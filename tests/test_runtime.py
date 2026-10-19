@@ -10,9 +10,9 @@ from dataclasses import replace
 from pathlib import Path
 from unittest.mock import patch
 
-from omnirsi.contracts import RunSpec
-from omnirsi.execution import repository_identity, run_experiment
-from omnirsi.reporting import write_report
+from inferrsi.contracts import RunSpec
+from inferrsi.execution import repository_identity, run_experiment
+from inferrsi.reporting import write_report
 
 
 def benchmark(value: object) -> tuple[str, ...]:
@@ -65,7 +65,7 @@ class RuntimeTests(unittest.TestCase):
         self.git("add", "source.txt")
         self.git(
             "-c",
-            "user.name=OmniRSI test",
+            "user.name=InferRSI test",
             "-c",
             "user.email=test@example.invalid",
             "-c",
@@ -128,7 +128,7 @@ class RuntimeTests(unittest.TestCase):
         self.git("add", "src/implementation.py")
         self.git(
             "-c",
-            "user.name=OmniRSI test",
+            "user.name=InferRSI test",
             "-c",
             "user.email=test@example.invalid",
             "-c",
@@ -188,7 +188,7 @@ class RuntimeTests(unittest.TestCase):
     def test_result_environment_variable_is_supported(self):
         code = (
             "import json, os, pathlib; "
-            "pathlib.Path(os.environ['OMNIRSI_RESULT_PATH']).write_text(json.dumps({'metrics':{'latency_ms':80}}))"
+            "pathlib.Path(os.environ['INFERRSI_RESULT_PATH']).write_text(json.dumps({'metrics':{'latency_ms':80}}))"
         )
         _, evaluation = self.run_spec(candidate_command=(sys.executable, "-c", code), repetitions=1)
         self.assertEqual(evaluation["verdict"], "PASS")
@@ -311,14 +311,14 @@ class RuntimeTests(unittest.TestCase):
         )
 
     def test_keyboard_interrupt_preserves_cancelled_run(self):
-        with patch("omnirsi.execution._execute", side_effect=KeyboardInterrupt):
+        with patch("inferrsi.execution._execute", side_effect=KeyboardInterrupt):
             path, evaluation = self.run_spec()
         self.assertEqual(json.loads((path / "status.json").read_text())["state"], "cancelled")
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertTrue((path / "report.html").exists())
 
     def test_execution_exception_preserves_failed_status_and_inconclusive_verdict(self):
-        with patch("omnirsi.execution._execute", side_effect=OSError("executor unavailable")):
+        with patch("inferrsi.execution._execute", side_effect=OSError("executor unavailable")):
             path, evaluation = self.run_spec()
         status = json.loads((path / "status.json").read_text())
         self.assertEqual(status["state"], "failed")

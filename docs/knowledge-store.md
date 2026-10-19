@@ -9,8 +9,8 @@ PR path.
 
 ```python
 from pathlib import Path
-from omnirsi.knowledge_operations import Bundle, KnowledgeReader
-from omnirsi.knowledge_store import KnowledgeStore
+from inferrsi.knowledge_operations import Bundle, KnowledgeReader
+from inferrsi.knowledge_store import KnowledgeStore
 
 skills = Path("skills")
 store = KnowledgeStore(Path("/authorized/local/knowledge-workspace"), skill_root=skills)
@@ -56,7 +56,7 @@ the store and a read-only adapter is reported as ambiguous, never shadowed.
 
 - Scope: cooperating processes/threads using this API on one local SQLite file;
   no network-filesystem, distributed-store or hostile filesystem-owner guarantee.
-- The workspace must already exist and lie outside the installed `omnirsi`
+- The workspace must already exist and lie outside the installed `inferrsi`
   package, the checkout containing `skill_root` and, for a source or editable
   install, the checkout containing the package (these hold evidence and both
   matrices). That package checkout is the nearest ancestor holding both

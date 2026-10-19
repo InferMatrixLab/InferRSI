@@ -2,7 +2,7 @@
 
 # Pack B integration proposal: admission, batching, preemption, migration, elasticity
 
-Status: candidate. Empirical validation: not_run. Scope completed: **four papers only**. This directory contains newly authored synthesis/proposals, not source-paper caches or a framework change. Nothing is installed, deployed, reproduced, submitted as a PR, or edited in OmniRSI.
+Status: candidate. Empirical validation: not_run. Scope completed: **four papers only**. This directory contains newly authored synthesis/proposals, not source-paper caches or a framework change. Nothing is installed, deployed, reproduced, submitted as a PR, or edited in InferRSI.
 
 ## Deliverables and why they exist
 

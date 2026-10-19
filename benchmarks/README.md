@@ -1,6 +1,6 @@
 # Benchmarks
 
-Campaign and bench **harness stubs**—orchestration only. This directory does not pin OmniRSI or downstream project SHAs; acceptance issues supply baseline/candidate revisions and gate definitions.
+Campaign and bench **harness stubs**—orchestration only. This directory does not pin InferRSI or downstream project SHAs; acceptance issues supply baseline/candidate revisions and gate definitions.
 
 ## Layout
 

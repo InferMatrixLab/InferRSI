@@ -6,7 +6,7 @@ This cohort is separate from the [B300 campaign](qwen-image-2.1-turbo-b300.md). 
 
 These are measurements reported by [amy-why-3459](https://github.com/amy-why-3459) in [vllm-omni#8729](https://github.com/vllm-project/vllm-omni/pull/8729), imported through [david6666666/OmniRSI#1](https://github.com/david6666666/OmniRSI/pull/1). The source head is pinned below. All latency, pixel-identity and quality-gate statements in the following tables are attributed to that report.
 
-This integration verifies documentation, knowledge retrieval and package resources; it does not rerun NPU inference. Raw per-request timings, RGBA outputs and a frozen validator are not included in this import. The knowledge record therefore remains `status=imported`, `verification.locally_verified=false`. OmniRSI acceptance is **INCONCLUSIVE**; the author's reported 30% target remains unmet. The original report does not establish the B300 campaign's HTTP timing boundary.
+This integration verifies documentation, knowledge retrieval and package resources; it does not rerun NPU inference. Raw per-request timings, RGBA outputs and a frozen validator are not included in this import. The knowledge record therefore remains `status=imported`, `verification.locally_verified=false`. InferRSI acceptance is **INCONCLUSIVE**; the author's reported 30% target remains unmet. The original report does not establish the B300 campaign's HTTP timing boundary.
 
 ## Setup
 
@@ -56,7 +56,7 @@ A timed first request on the RoPE + VAE stack spent about 550 ms in prompt encod
 Ascend image-generation context:
 
 ```bash
-python -m omnirsi context --repo-type vllm_omni --backend ascend \
+python -m inferrsi context --repo-type vllm_omni --backend ascend \
   --scenario diffusion.image_generation --output diffusion-context.md
 ```
 

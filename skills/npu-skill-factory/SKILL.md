@@ -1,6 +1,6 @@
 ---
 name: npu-skill-factory
-description: 'Design and operation of the OmniRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus selection, hide-and-re-distill procedure, and skill evolution cycle. Use when deciding where new skill artifacts belong, how to distill a candidate skill, or how to run the No-Skill vs Human-Skill vs Distilled-Skill comparison.
+description: 'Design and operation of the InferRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus selection, hide-and-re-distill procedure, and skill evolution cycle. Use when deciding where new skill artifacts belong, how to distill a candidate skill, or how to run the No-Skill vs Human-Skill vs Distilled-Skill comparison.
 
   '
 ---
@@ -63,13 +63,13 @@ authorized evaluation trail remains unvalidated regardless of packaging.
 
 | Artifact | Location | Format |
 |----------|----------|--------|
-| Knowledge records (experience) | `src/omnirsi/data/repo_packs/<repo>/knowledge/<backend>/<component>/<name>.json` | Validated JSON (catalog.py schema) |
-| Bilingual skill library | `src/omnirsi/data/skill_library/en/<repo>/` and `zh-CN/<repo>/` | SKILL.md + references/ + scripts/ |
+| Knowledge records (experience) | `src/inferrsi/data/repo_packs/<repo>/knowledge/<backend>/<component>/<name>.json` | Validated JSON (catalog.py schema) |
+| Bilingual skill library | `src/inferrsi/data/skill_library/en/<repo>/` and `zh-CN/<repo>/` | SKILL.md + references/ + scripts/ |
 | Skill bundle (distillation output) | `evidence/<campaign-id>/plan/agent-source-candidates/` | schema-validated JSON bundle |
 | Human reference skill | `evidence/<campaign-id>/plan/human-<name>/SKILL.md` | SKILL.md + references/ |
 | Candidate skill under evaluation | `evidence/<campaign-id>/plan/agent-source-candidates/<name>/` | SKILL.md + references/ |
-| Promoted skill | `skills/<name>/SKILL.md` + `metadata.json` | OmniRSI skill format |
-| Skill evaluation evidence | `evidence/<campaign-id>/results/` | per OmniRSI evidence tree |
+| Promoted skill | `skills/<name>/SKILL.md` + `metadata.json` | InferRSI skill format |
+| Skill evaluation evidence | `evidence/<campaign-id>/results/` | per InferRSI evidence tree |
 
 Source: PR #9 `skill_library/` layout (source-grounded, pr/9 @ 4ad551a9);
 sibling workstream `evidence/skill-bootstrap-20261014/` (observed @ 82218b4).
@@ -179,7 +179,7 @@ same base commit, same budgets.
 
 Tier A tasks: CPU/static correctness only. Tier B tasks: require NPU device.
 
-**Accept criterion (SkillOpt-derived, adapted for OmniRSI):**
+**Accept criterion (SkillOpt-derived, adapted for InferRSI):**
 The distilled skill is accepted for promotion when, on a held-out task set:
 ```
 task_success(distilled) > task_success(no_skill)

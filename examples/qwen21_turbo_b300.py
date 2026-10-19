@@ -1,6 +1,6 @@
 """Frozen 720p-class Qwen-Image-2.1-Turbo online B300 campaign.
 
-Uses the stdlib OmniRSI infrastructure package for source/device/process
+Uses the stdlib InferRSI infrastructure package for source/device/process
 ownership. New campaigns must freeze fresh helper hashes and references.
 """
 import argparse
@@ -16,10 +16,10 @@ import sys
 import time
 import urllib.request
 
-from omnirsi.harness.scenarios.media import collect_samples
-from omnirsi.model.protocols.image import ImageProtocol
-from omnirsi.infra import campaign as lifecycle
-from omnirsi.infra.platforms.cuda import qualify_devices
+from inferrsi.harness.scenarios.media import collect_samples
+from inferrsi.model.protocols.image import ImageProtocol
+from inferrsi.infra import campaign as lifecycle
+from inferrsi.infra.platforms.cuda import qualify_devices
 
 MODEL = "Qwen/Qwen-Image-2.1-Turbo"
 REVISION = "d65dbc9a7e8f6b5479e33dee6030eaab2a906509"

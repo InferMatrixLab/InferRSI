@@ -1,6 +1,6 @@
 <div align="center">
 
-![OmniRSI — Faster inference. Verifiable progress.](docs/assets/omnirsi-banner.svg)
+![InferRSI — Faster inference. Verifiable progress.](docs/assets/inferrsi-banner.svg)
 
 **Turn inference bottlenecks into verified improvements.**
 
@@ -8,21 +8,21 @@
 [![CLI](https://img.shields.io/badge/Interface-CLI-14B8A6?style=flat-square)](docs/quickstart.md)
 [![vLLM-Omni PR](https://img.shields.io/badge/vLLM--Omni-Upstream_PR-8B5CF6?style=flat-square)](https://github.com/vllm-project/vllm-omni/pull/8739)
 
-[Why OmniRSI](#why-omnirsi) · [Results](#results) · [Quickstart](#quickstart) · [Architecture](#architecture) · [Docs](#docs)
+[Why InferRSI](#why-inferrsi) · [Results](#results) · [Quickstart](#quickstart) · [Architecture](#architecture) · [Docs](#docs)
 
 </div>
 
-OmniRSI is a **CLI workbench for inference optimization with coding agents**. Bring your benchmark and quality checks; compare implementations, trace every gain to its source, and carry useful tuning lessons into the next experiment.
+InferRSI is a **CLI workbench for inference optimization with coding agents**. Bring your benchmark and quality checks; compare implementations, trace every gain to its source, and carry useful tuning lessons into the next experiment.
 
-<a id="why-omnirsi"></a>
+<a id="why-inferrsi"></a>
 
-## ⚡ Why OmniRSI
+## ⚡ Why InferRSI
 
 - **Profile first.** Ground each optimization in measured bottlenecks and sourced tuning knowledge.
 - **Prove the gain.** Run repeated A/B comparisons with quality gates, source fingerprints, and an HTML evidence report.
 - **Keep the lessons.** Search prior experience and export cited context for Codex or other coding agents.
 
-You drive profiling and code changes; OmniRSI runs and evaluates the benchmark and validation commands you provide.
+You drive profiling and code changes; InferRSI runs and evaluates the benchmark and validation commands you provide.
 
 ## Three objectives of the current WIP
 
@@ -64,7 +64,7 @@ new Magpie coordination evidence is still pending.
 
 Recorded local campaign: five alternating AB/BA groups, warmed repeated prompts with new seeds, and complete RGBA PNG responses. Accuracy checks cover 40 formal images and 4 held-out images. Latencies are medians of trial means for this workload.
 
-[Results, source pins & every iteration →](docs/qwen-image-2.1-turbo-b300.md) · [Acceptance issue](https://github.com/ThinkFlowLab/OmniRSI/issues/3) · [Upstream PR](https://github.com/vllm-project/vllm-omni/pull/8739)
+[Results, source pins & every iteration →](docs/qwen-image-2.1-turbo-b300.md) · [Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/3) · [Upstream PR](https://github.com/vllm-project/vllm-omni/pull/8739)
 
 ### Ascend NPU: up to 22.0% reported latency reduction
 
@@ -90,7 +90,7 @@ quality scores, actual repeat counts and failed-run records.
 Campaign status is **INCONCLUSIVE**: the original all-concurrency throughput target
 remains unmet and optimization is paused.
 
-[Architecture & quickstart →](https://github.com/david6666666/drama-3-single-b300-inference#architecture) · [Recorded comparison →](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/README.md#performance) · [Optimization lessons](evidence/drama3-b300-scale150/results/diagnostic-lessons.md) · [Acceptance issue](https://github.com/InferMatrixLab/OmniRSI/issues/10)
+[Architecture & quickstart →](https://github.com/david6666666/drama-3-single-b300-inference#architecture) · [Recorded comparison →](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/README.md#performance) · [Optimization lessons](evidence/drama3-b300-scale150/results/diagnostic-lessons.md) · [Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/10)
 
 <a id="quickstart"></a>
 
@@ -104,14 +104,14 @@ source .venv/bin/activate
 python -m pip install .
 
 # Explore tuning knowledge, then export context for your coding agent.
-omnirsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
-omnirsi context --repo-type vllm_omni --backend cuda --output context.md
+inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
+inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 ```
 
 For Ascend image-generation context:
 
 ```bash
-omnirsi context --repo-type vllm_omni --backend ascend \
+inferrsi context --repo-type vllm_omni --backend ascend \
   --scenario diffusion.image_generation --output ascend-context.md
 ```
 
@@ -123,9 +123,9 @@ Install the optional parser with `python -m pip install '.[skills]'`. From this
 checkout (or pass `--root /path/to/skills` before the subcommand):
 
 ```bash
-omnirsi skills list --json
-omnirsi skills show weight-loading-optimization
-omnirsi skills resource <skill-name> <relative-resource-path>
+inferrsi skills list --json
+inferrsi skills show weight-loading-optimization
+inferrsi skills resource <skill-name> <relative-resource-path>
 ```
 
 Listing reads frontmatter and local sidecar metadata only. `show` explicitly selects one instruction body
@@ -174,10 +174,10 @@ campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
 | [Quickstart](docs/quickstart.md) | Installation, real A/B experiments, and reports |
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
-| [Knowledge base](src/omnirsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
+| [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
 | [Daily learning prompt](docs/daily-learning-prompt.md) | 06:00 Asia/Shanghai L2C + performance workflow and prerequisites |
-| [Five-engine knowledge library (English / 中文)](src/omnirsi/data/skill_library/README.md) | Strata, vLLM, SGLang and both Omni engines: skills, search spaces, sources and CLI retrieval |
-| [vLLM-Omni experience records](src/omnirsi/data/repo_packs/vllm_omni/knowledge/README.md) | Backend-scoped tuning methods, sources, and applicability |
+| [Five-engine knowledge library (English / 中文)](src/inferrsi/data/skill_library/README.md) | Strata, vLLM, SGLang and both Omni engines: skills, search spaces, sources and CLI retrieval |
+| [vLLM-Omni experience records](src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md) | Backend-scoped tuning methods, sources, and applicability |
 | [Contributor guide](docs/contributing.md) | Development workflow, evidence contracts, and CI |
 
-**Build with us.** Bring a bottleneck, a reproducible optimization, or a tuning lesson. [Open an issue →](https://github.com/ThinkFlowLab/OmniRSI/issues) Use `git commit -s` for contributions.
+**Build with us.** Bring a bottleneck, a reproducible optimization, or a tuning lesson. [Open an issue →](https://github.com/InferMatrixLab/InferRSI/issues) Use `git commit -s` for contributions.

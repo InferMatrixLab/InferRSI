@@ -1,0 +1,18 @@
+{
+  "id": "case.qwen-b300-rejected-directions",
+  "kind": "case",
+  "origin": ["internal"],
+  "state": "historical_observation",
+  "content": "qwen-b300-rejected-directions.md",
+  "sources": [{
+    "type": "git",
+    "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-b300.md#optimization-ledger",
+    "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+    "paths": ["docs/qwen-image-2.1-turbo-b300.md"],
+    "issue": "https://github.com/InferMatrixLab/InferRSI/issues/3"
+  }],
+  "applicability": ["Qwen-Image-2.1-Turbo, four B300, BF16, native eight steps", "Only the source ledger's individual trials and controls"],
+  "tags": ["negative-evidence", "quality-rejection", "no-demonstrated-gain", "confounded-run", "RoPE", "CUDA-Graph"],
+  "limitations": ["The final campaign PASS does not qualify each rejected direction", "Exploratory trial timings are not additive gains or causal comparisons", "No experiment was rerun for this extraction"],
+  "attribution": "Historical issue #3 optimization ledger; revisit checks are current diagnostic suggestions"
+}

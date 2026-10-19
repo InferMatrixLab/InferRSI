@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1140" viewBox="0 0 1440 1140" role="img" aria-labelledby="component-title component-desc">
-<title id="component-title">OmniRSI 组件结构：CLI args、公共控制核心、多仓库与多加速器适配</title>
+<title id="component-title">InferRSI 组件结构：CLI args、公共控制核心、多仓库与多加速器适配</title>
 <desc id="component-desc">用户通过 CLI args 提供配置。Controller 管理状态和预算，Agent 产生候选，TargetAdapter 与 PlatformAdapter 提供仓库和设备计划，Runner 执行，Evaluator 判断证据，Knowledge、Storage、Reporting 和 Skill Hub 保存并复用结果。</desc>
 <defs>
 <marker id="component-arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#2864D9"/></marker>
 <marker id="component-arrow-green" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#168168"/></marker>
 </defs><g font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif"><rect width="1440" height="1140" fill="#FFFFFF"/>
-<text x="60" y="42" font-size="31" font-weight="700" fill="#172B42" text-anchor="start">OmniRSI · 组件结构</text>
+<text x="60" y="42" font-size="31" font-weight="700" fill="#172B42" text-anchor="start">InferRSI · 组件结构</text>
 <text x="1380" y="41" font-size="19" font-weight="400" fill="#536A80" text-anchor="end">CLI args → RunSpec → 受控实验 → 可复用经验</text>
 <rect x="60" y="70" width="1320" height="100" rx="16" fill="#F0F6FF" stroke="#2864D9" stroke-width="2"/>
 <text x="84" y="113" font-size="27" font-weight="700" fill="#2864D9" text-anchor="start">CLI / arguments.py</text>

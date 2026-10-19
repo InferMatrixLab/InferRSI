@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from omnirsi.knowledge_operations import (
+from inferrsi.knowledge_operations import (
     IdentityError,
     KnowledgeReader,
     RevisionConflict,

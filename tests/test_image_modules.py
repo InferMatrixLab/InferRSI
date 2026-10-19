@@ -7,10 +7,10 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
-from omnirsi.harness.scenarios.media import collect_samples
-from omnirsi.infra.artifacts import sha256
-from omnirsi.model.protocols.image import ImageProtocol
-from omnirsi.model.validators.image import ImageQualityGate, compare_images
+from inferrsi.harness.scenarios.media import collect_samples
+from inferrsi.infra.artifacts import sha256
+from inferrsi.model.protocols.image import ImageProtocol
+from inferrsi.model.validators.image import ImageQualityGate, compare_images
 
 
 def test_image_protocol_and_sample_collection_use_real_http(tmp_path):

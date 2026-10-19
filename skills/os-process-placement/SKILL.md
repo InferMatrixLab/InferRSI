@@ -120,7 +120,7 @@ Default values observed across sources:
 | `CPU_AFFINITY_CONF` | 1 | wan-ascend-adaptation, ascend-migration-analysis | NPU host-thread affinity |
 
 Rules:
-- Fix the thread count for every run in a measurement campaign (OmniRSI run
+- Fix the thread count for every run in a measurement campaign (InferRSI run
   templates pin `OMP_NUM_THREADS=4` into each command) — uncontrolled thread
   counts pollute host-side variance.
 - Container defaults (Dockerfile `ENV OMP_NUM_THREADS=1`) are a floor, not a

@@ -11,11 +11,11 @@ This file is a readset/crosswalk, not a new maintained matrix. Inventory-level s
 
 Vidur was an explicitly unread next gate in Sarathi-Serve's scheduling extraction. Pack A closes that paper-reading gate with calibration/simulation evidence; it does not reread or replace Sarathi/DistServe mechanisms. The other three Pack A titles/IDs had no prior extraction in those readsets.
 
-**Verified prior artifact locators, outside this standalone pack:** `choose-prefill-decode-schedule/SKILL.md`, `choose-prefill-decode-schedule/references/source-notes.md`, and `notes/scheduling.md` within the earlier `omnirsi-paper-delivery` bundle. Link them during integration using the owner's actual artifact destination. Local scratch paths are locators, not assumed shareable URLs.
+**Verified prior artifact locators, outside this standalone pack:** `choose-prefill-decode-schedule/SKILL.md`, `choose-prefill-decode-schedule/references/source-notes.md`, and `notes/scheduling.md` within the earlier `inferrsi-paper-delivery` bundle. Link them during integration using the owner's actual artifact destination. Local scratch paths are locators, not assumed shareable URLs.
 
 ## Earlier implementation discovery inspected
 
-`source-notes/omnirsi-engine-references.md` and `source-notes/omnirsi-npu-references.md` were searched/read for overlap. Their serving scheduler/connector and NPU implementation boundaries remain separate evidence. Pack A establishes no latest engine behavior, NPU compatibility, SSD coverage or network tuning mechanism. The separately present `omnirsi-candidate-bundles` inventory was checked; its vLLM and NPU lifecycle candidates are not replaced.
+`source-notes/inferrsi-engine-references.md` and `source-notes/inferrsi-npu-references.md` were searched/read for overlap. Their serving scheduler/connector and NPU implementation boundaries remain separate evidence. Pack A establishes no latest engine behavior, NPU compatibility, SSD coverage or network tuning mechanism. The separately present `inferrsi-candidate-bundles` inventory was checked; its vLLM and NPU lifecycle candidates are not replaced.
 
 ## Supplied matrix / handoff overlap
 

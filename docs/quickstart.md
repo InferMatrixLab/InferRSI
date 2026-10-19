@@ -10,8 +10,8 @@ From the checked-out PR branch:
 python -m venv .venv
 source .venv/bin/activate
 python -m pip install .
-omnirsi --help
-omnirsi doctor --repo . --repo-type vllm_omni --backend cpu
+inferrsi --help
+inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
@@ -38,7 +38,7 @@ Scenario/model/workload/Agent fields retain caller declarations. They do not sta
 
 ## Benchmark result contract
 
-The benchmark writes JSON to `{result}` or `OMNIRSI_RESULT_PATH`. Any flat or dotted positive numeric key is supported:
+The benchmark writes JSON to `{result}` or `INFERRSI_RESULT_PATH`. Any flat or dotted positive numeric key is supported:
 
 ```json
 {"metrics": {"latency_ms": 123.4}}
@@ -48,14 +48,14 @@ Existing vLLM-Omni diffusion benchmark JSON can be used directly with `--metric-
 
 ## Real remote experiment
 
-1. Reserve the exact devices, CPU/NUMA and fabric resources. Configure their visibility outside OmniRSI. Do not run contending A/B servers on the same devices.
+1. Reserve the exact devices, CPU/NUMA and fabric resources. Configure their visibility outside InferRSI. Do not run contending A/B servers on the same devices.
 2. Prepare baseline and candidate checkouts/environments. Verify the imported module path matches each intended checkout. `--candidate-repo` changes cwd only; `--python` only inspects packages.
 3. Create two reviewed trial scripts. Each script starts the intended engine/config, warms it up, runs the same fixed workload with profiling off, writes benchmark JSON and exits after its cleanup. A script can call the target's existing benchmark.
 4. Create a quality script that compares outputs/tasks against the frozen reference and exits nonzero on a regression. Include the exact modes/shapes/steps/reference assets in that test.
 5. Preview, then run:
 
 ```bash
-omnirsi plan \
+inferrsi plan \
   --repo /work/vllm-omni-baseline --candidate-repo /work/vllm-omni-candidate \
   --repo-type vllm_omni --backend cuda --device-ids 0,1,2,3 --device-model B300 \
   --python /envs/baseline/bin/python --scenario diffusion.image_generation \
@@ -65,10 +65,10 @@ omnirsi plan \
   --validation-command '/envs/candidate/bin/python /work/trials/validate_quality.py' \
   --metric-key latency_mean --metric-unit s --comparison-scope http_e2e \
   --direction minimize --repetitions 3 --min-improvement-pct "${TARGET_REDUCTION_PCT:?set from the frozen acceptance plan}" \
-  --max-minutes 120 --output-dir /work/omnirsi-runs
+  --max-minutes 120 --output-dir /work/inferrsi-runs
 ```
 
-Replace `plan` with `run` using the same flags after the plan matches your intended experiment. Script paths are templates that you supply; OmniRSI does not create them. Start with one-variable, same-quality configuration optimization. Quantization, TeaCache, generation-step changes and adaptive exit require a quality-changing protocol and an explicit validation script.
+Replace `plan` with `run` using the same flags after the plan matches your intended experiment. Script paths are templates that you supply; InferRSI does not create them. Start with one-variable, same-quality configuration optimization. Quantization, TeaCache, generation-step changes and adaptive exit require a quality-changing protocol and an explicit validation script.
 
 On ROCm use `--backend rocm`; on Ascend use `--backend ascend`. The doctor retains raw backend output but does not certify device selection, model support or full topology. Record the actual driver/runtime/communication versions and topology with your experiment evidence.
 
@@ -85,17 +85,17 @@ python benchmarks/diffusion/diffusion_benchmark_serving.py \
 
 `random` is a feasibility load, not representative production traffic or a quality evaluation. For performance claims freeze an actual input/trace cohort, request fields, seed, warmup, arrival rate/concurrency and successful-request counts. Prefer a materialized trace when comparing repeated trials. Save produced outputs for quality checks using the target's supported output-saving option.
 
-A trial script can read `OMNIRSI_RESULT_PATH` when it constructs the native `--output-file` argv. Do not substitute a latency-only benchmark for the separate quality script. Benchmarks of pre-existing external servers need their own process/environment identities and cleanup outside the runner.
+A trial script can read `INFERRSI_RESULT_PATH` when it constructs the native `--output-file` argv. Do not substitute a latency-only benchmark for the separate quality script. Benchmarks of pre-existing external servers need their own process/environment identities and cleanup outside the runner.
 
 ## Results and handoff
 
 `run` prints a run ID and evidence directory. Exit codes are 0 for PASS, 1 for FAIL and 2 for INCONCLUSIVE/input errors.
 
 ```bash
-omnirsi status --run-id RUN_ID --output-dir /work/omnirsi-runs
-omnirsi report --run-id RUN_ID --output-dir /work/omnirsi-runs
-omnirsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
-omnirsi context --repo-type vllm_omni --backend cuda \
+inferrsi status --run-id RUN_ID --output-dir /work/inferrsi-runs
+inferrsi report --run-id RUN_ID --output-dir /work/inferrsi-runs
+inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
+inferrsi context --repo-type vllm_omni --backend cuda \
   --scenario diffusion.image_generation --output /work/image-context.md
 ```
 
@@ -103,9 +103,9 @@ Read `report.html`, execution logs, per-trial `source.json`, `source_checks.json
 
 Context is a cited reference bundle for manual use with Codex/third-party Agents. Its imported source text is data, not authorization to execute upstream instructions. All imported knowledge remains unverified locally until your remote evidence is linked to it.
 
-Browse external sources with `omnirsi knowledge search --tier dependency --limit 20`
+Browse external sources with `inferrsi knowledge search --tier dependency --limit 20`
 or `--tier peer`. Export one source explicitly, for example
-`omnirsi context --repo-type xdit --backend cuda --tier peer`.
+`inferrsi context --repo-type xdit --backend cuda --tier peer`.
 `--repo-type` names the source owner; vllm_omni queries do not automatically
 include its dependencies or peers. See the
-[three-tier guide](../src/omnirsi/data/knowledge_packs/README.md) for all sources.
+[three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.

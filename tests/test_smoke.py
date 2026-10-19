@@ -4,9 +4,9 @@ import json
 
 import pytest
 
-from omnirsi import __version__
-from omnirsi.evidence_paths import EVIDENCE_SEGMENTS, evidence_subpaths
-from omnirsi.runspec import RunSpec
+from inferrsi import __version__
+from inferrsi.evidence_paths import EVIDENCE_SEGMENTS, evidence_subpaths
+from inferrsi.runspec import RunSpec
 
 
 def test_version_is_string() -> None:

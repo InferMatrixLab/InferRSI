@@ -1,7 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1080" viewBox="0 0 1320 1080" role="img" aria-labelledby="title desc"><title id="title">OmniRSI implemented module architecture</title><desc id="desc">The entry layer composes Harness, Model and Infra. Shared modules are implemented; historical validators remain frozen. Automatic agents and distributed executors are future work.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1080" viewBox="0 0 1320 1080" role="img" aria-labelledby="title desc"><title id="title">InferRSI implemented module architecture</title><desc id="desc">The entry layer composes Harness, Model and Infra. Shared modules are implemented; historical validators remain frozen. Automatic agents and distributed executors are future work.</desc>
 <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#667b9e" stroke-width="1.5"/></marker></defs>
 <rect width="1320" height="1080" fill="#0b1220"/>
-<text x="48" y="56" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#69dfc4">OMNIRSI / IMPLEMENTED ARCHITECTURE</text>
+<text x="48" y="56" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#69dfc4">INFERRSI / IMPLEMENTED ARCHITECTURE</text>
 <text x="48" y="103" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="36" font-weight="700" fill="#f4f7fc">One experiment loop. Independent extension boundaries.</text>
 <rect x="48" y="140" width="1224" height="106" rx="18" fill="#142139" stroke="#30435f"/>
 <text x="72" y="175" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#a6bfff">ENTRY + KNOWLEDGE</text>

@@ -76,6 +76,28 @@ not for bounding the search. A synonym or colloquial term in the body text
 would be missed by a structured-field-only query.
 Source: perf-optimization-casebook @ f33e0e5f, §how-to-use.
 
+## Recorded diagnostic options
+
+Current owner-local records retain rejected directions alongside their limits:
+
+- [Qwen B300](cases/qwen-b300-rejected-directions.md): full-image rejection,
+  graph/copy overhead, unintegrated leads and confounded trials.
+- [Qwen Ascend](cases/qwen-ascend-rejected-directions.md): reported OOM,
+  attention/cache alternatives and missing gain on one 910B1 cohort.
+- [Drama3 B300](cases/drama3-rejected-directions.md): invalid controls,
+  correct kernels without service gain, prefix reuse and analytical rejection.
+
+Each `.json` sibling owns identity, origin, source pins and limitations; the
+Markdown owns the observation and suggested revisit check. Read them as
+diagnostic options, not a permanent blacklist. A discarded implementation does
+not rule out another implementation of the same mechanism. A confounded run,
+missing experiment and failed gate are different evidence states.
+
+Before retrying, state which condition changed or which uncertainty a bounded
+check will resolve. Preserve the original result, run an unchanged control and
+choose the least expensive discriminating check. Only new complete evidence can
+qualify a new scope; reading these records does not reopen a paused campaign.
+
 ## Adapt, do not copy
 
 A case is a precedent, not a guaranteed config. The procedure and expected

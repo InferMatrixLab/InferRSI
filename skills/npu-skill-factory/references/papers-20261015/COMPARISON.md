@@ -19,7 +19,7 @@ All destinations below are P, candidate/not_run. The underlying F records and ex
 
 ## P — Reconciliation rather than a universal winner
 
-Broad offline consolidation and cautious incremental editing solve different problems. Use consolidation to assemble a coherent candidate from an independent evidence pool. Use bounded updates to preserve an incumbent whose value is already known. The combination is a proposal here; none of these four papers establishes that this combined policy is optimal for OmniRSI.
+Broad offline consolidation and cautious incremental editing solve different problems. Use consolidation to assemble a coherent candidate from an independent evidence pool. Use bounded updates to preserve an incumbent whose value is already known. The combination is a proposal here; none of these four papers establishes that this combined policy is optimal for InferRSI.
 
 A historical merge, static documentation check, execution correctness check, held-out behavioral win, and cross-model transfer result answer different questions. Keep separate fields for each rather than a single “verified” flag. Make source availability and empirical validity independent of whether an artifact has been extracted.
 

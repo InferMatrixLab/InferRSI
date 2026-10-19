@@ -6,12 +6,12 @@ from pathlib import Path
 
 import pytest
 
-from omnirsi import catalog
-from omnirsi.arguments import parser
-from omnirsi.catalog import get_knowledge, repository_pack, search_knowledge
-from omnirsi.cli import main
+from inferrsi import catalog
+from inferrsi.arguments import parser
+from inferrsi.catalog import get_knowledge, repository_pack, search_knowledge
+from inferrsi.cli import main
 
-ROOT = Path(__file__).resolve().parents[1] / "src/omnirsi/data/knowledge_packs"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/knowledge_packs"
 
 
 def test_external_snapshot_has_complete_navigation_and_pinned_sources():

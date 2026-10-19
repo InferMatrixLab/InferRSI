@@ -1,6 +1,6 @@
 # Pack C: pinned sources and actual readset
 
-Status: candidate; empirical_validation: not_run. F = source-reported design, analysis, or observation. P = proposed application. Research date: 2026-10-15 UTC. These are historical designs, not current implementation or NPU-compatibility claims. Only five assigned papers and their original arXiv records were researched. No implementation source was needed. No installation, benchmark, reproduction, hardware task, framework change, matrix edit, OmniRSI change, or PR was performed. PDF extraction/rendering and artifact checks are document operations, not empirical validation.
+Status: candidate; empirical_validation: not_run. F = source-reported design, analysis, or observation. P = proposed application. Research date: 2026-10-15 UTC. These are historical designs, not current implementation or NPU-compatibility claims. Only five assigned papers and their original arXiv records were researched. No implementation source was needed. No installation, benchmark, reproduction, hardware task, framework change, matrix edit, InferRSI change, or PR was performed. PDF extraction/rendering and artifact checks are document operations, not empirical validation.
 
 Activation checkpoints here retain intermediate tensors for recomputation inside training. They are not persistent recovery checkpoints or durability mechanisms.
 

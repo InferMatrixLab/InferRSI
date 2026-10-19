@@ -11,4 +11,4 @@ Three selectively consumable candidate bundles:
 - [Govern optimization experiments](govern-optimization-experiments/procedure.md)
 - [Redirect cross-layer optimization](redirect-cross-layer-optimization/procedure.md)
 
-Each skill includes its own reference notes. Full pack source audits retain finer numerical evidence and unresolved discrepancies. No original papers, source-cache files or executable optimization tooling are bundled. No installations, reproductions, hardware runs, OmniRSI edits, PRs or matrix changes were made.
+Each skill includes its own reference notes. Full pack source audits retain finer numerical evidence and unresolved discrepancies. No original papers, source-cache files or executable optimization tooling are bundled. No installations, reproductions, hardware runs, InferRSI edits, PRs or matrix changes were made.

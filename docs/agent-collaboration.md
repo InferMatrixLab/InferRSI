@@ -2,7 +2,7 @@
 
 Conventions for coordinating humans and agents through Issues and PRs, delivered
 per the collaboration RFC
-([#21](https://github.com/InferMatrixLab/OmniRSI/issues/21)). They are
+([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)). They are
 documentation only: no new automation, permissions, merge gates or CI lanes.
 Campaign acceptance, DCO, CI lanes and evidence rules stay in
 [contributing](contributing.md); the agent entry contract stays in
@@ -99,7 +99,7 @@ sequenceDiagram
 3. **Evidence:** link checks to actual checked content and relevant environment/test definitions. Distinguish passed, failed, cancelled, skipped, timed-out and not-run. H/B/T—reviewed head, assessed base, tested content—may come from existing records, not mandatory worksheets.
 4. **Refresh:** reassess affected evidence after relevant head/base/content/environment/check changes. Refresh checks or explain continued applicability. Neither blanket reuse nor full hardware reruns is the default; changed hashes alone prove neither content change nor equivalence.
 5. **Handoff:** only for an actual transfer or accepted decision change, record the delta, recipient and next action. Keep acceptance status/link, communication status and application status separate. "Applied" needs artifact/evidence; otherwise retain pending or unknown. No full conversation traces or new ledger.
-6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use non-closing `Refs #N` until closure is authorized. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/OmniRSI/issues/17) are optional; no automatic promotion.
+6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use non-closing `Refs #N` until closure is authorized. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/InferRSI/issues/17) are optional; no automatic promotion.
 
 ## Records
 
@@ -121,7 +121,7 @@ decision, not part of these conventions.
 **Hypothetical illustration only; it records no actual PR, run or result in this
 repository.**
 
-Suppose a PR changing `src/omnirsi/harness/runner.py` was reviewed at head `H1`
+Suppose a PR changing `src/inferrsi/harness/runner.py` was reviewed at head `H1`
 against base `B1`, then is rebased onto `B2` (new head `H2`) because `B2` touched
 the same file. Rule 4 asks what changed, not for a blanket rerun, and a
 file-only comparison is insufficient on its own:
@@ -133,7 +133,7 @@ file-only comparison is insufficient on its own:
 
 ## Historical evidence and limits
 
-These conventions are OmniRSI proposals informed by the reviewed C1–C7 case pack.
+These conventions are InferRSI proposals informed by the reviewed C1–C7 case pack.
 The two pinned snapshots — the
 [Magpie repository](https://github.com/yetone/magpie/tree/778000326adaa49cd790846acd2d535572ad5ceb)
 and the separate
@@ -141,7 +141,7 @@ and the separate
 — identify lineage; they are not themselves a link to the case pack. An
 accessible case summary with concrete source pointers and stated limits — the
 "Reviewed case pointers" section of
-[RFC #21](https://github.com/InferMatrixLab/OmniRSI/issues/21) — covers C1–C7
+[RFC #21](https://github.com/InferMatrixLab/InferRSI/issues/21) — covers C1–C7
 at the level this guide relies on; the full reviewed pack remains with its
 owner and is not imported here. C1–C3 inform ownership and review; C4–C5, CI trade-offs; C6,
 completion states; C7, learning.

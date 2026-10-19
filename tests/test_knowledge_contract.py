@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from omnirsi.skill_catalog import skill_records, skill_reference
+from inferrsi.skill_catalog import skill_records, skill_reference
 
 ROOT = Path(__file__).resolve().parents[1] / "skills"
 

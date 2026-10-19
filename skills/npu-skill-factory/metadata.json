@@ -49,7 +49,7 @@
     "note": "Historical repository extraction and sibling schema at 82218b4, not a current local factory implementation. Reviewed paper additions and exact versions live in references/papers-20261015/references/readset.md and docs/reference-matrix.md; no efficacy or paper-to-code equivalence established."
   },
   "applicability": {
-    "scope": "OmniRSI skill lifecycle management",
+    "scope": "InferRSI skill lifecycle management",
     "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
   },
   "tags": [

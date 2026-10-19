@@ -12,7 +12,7 @@ def test_evidence_template_segments() -> None:
 
 
 def test_sias_readmes() -> None:
-    pkg = REPO_ROOT / "src" / "omnirsi"
+    pkg = REPO_ROOT / "src" / "inferrsi"
     for plane in ("harness", "model", "infra"):
         assert (pkg / plane / "README.md").is_file()
 

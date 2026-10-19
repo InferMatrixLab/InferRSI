@@ -66,7 +66,7 @@ The accounting discipline (MindIE-SD host-overhead-account):
   double counting; timing points inside async branches; comparing absolute
   values across windows (same-window A/B only); mixing fixed into per-request;
   trusting unmeasured segments; skipping the warmup hit check.
-- Benchmark hygiene (OmniRSI): report preparation/startup/readiness, warmups,
+- Benchmark hygiene (InferRSI): report preparation/startup/readiness, warmups,
   and measured work as separate numbers.
 
 ## 3. Weight acquisition and verification

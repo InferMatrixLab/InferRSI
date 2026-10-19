@@ -35,7 +35,7 @@ These are editorial requirements. This pack does not add a catalog, database, ro
 
 ## Resource benefit and cost
 
-Potential benefit is less repeated rediscovery and fewer conflicting instructions. Cost includes investigating causes, retaining provenance, deduplicating, and evaluating candidate changes. Selective reading can reduce context burden, but instruction-guided agents may also perform more work. No break-even point is known for OmniRSI.
+Potential benefit is less repeated rediscovery and fewer conflicting instructions. Cost includes investigating causes, retaining provenance, deduplicating, and evaluating candidate changes. Selective reading can reduce context burden, but instruction-guided agents may also perform more work. No break-even point is known for InferRSI.
 
 ## Limits and counter-signals
 

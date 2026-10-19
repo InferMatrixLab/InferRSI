@@ -1,6 +1,6 @@
 ---
 name: inference-benchmark-design
-description: 'How to design a benchmark for inference serving that produces trustworthy, actionable results. Covers workload regime selection, SLO-aware metrics, trace replay, multi-seed evaluation, inconclusive handling, and the common mistakes that invalidate benchmark results. Drawn from vllm-evolve and OmniRSI''s evidence framework.
+description: 'How to design a benchmark for inference serving that produces trustworthy, actionable results. Covers workload regime selection, SLO-aware metrics, trace replay, multi-seed evaluation, inconclusive handling, and the common mistakes that invalidate benchmark results. Drawn from vllm-evolve and InferRSI''s evidence framework.
 
   '
 ---
@@ -8,7 +8,7 @@ description: 'How to design a benchmark for inference serving that produces trus
 # Inference Benchmark Design
 
 Status: candidate. Source-grounded from vllm-evolve @ 43cc82c and
-OmniRSI evidence framework @ 4c8e1285.
+InferRSI evidence framework @ 4c8e1285.
 
 ## Core principle: goodput over throughput
 
@@ -134,9 +134,9 @@ and [source audit](../performance-ceiling-analysis/references/papers-20261015/re
 retain author-reported evidence and counterexamples. No local experiment is
 established by integrating these notes.
 
-## Evidence trail requirements (OmniRSI compatibility)
+## Evidence trail requirements (InferRSI compatibility)
 
-A benchmark campaign that claims PASS under OmniRSI's evidence framework
+A benchmark campaign that claims PASS under InferRSI's evidence framework
 must produce:
 ```
 evidence/<campaign-id>/
@@ -158,7 +158,7 @@ evidence/<campaign-id>/
 
 A run without a frozen RunSpec is INCONCLUSIVE regardless of the metric values.
 A run whose validator was modified after the plan was frozen is INCONCLUSIVE.
-Source: OmniRSI AGENTS.md and rsi-evidence skill @ 4c8e1285.
+Source: InferRSI AGENTS.md and rsi-evidence skill @ 4c8e1285.
 
 ## Scoped internal experience
 

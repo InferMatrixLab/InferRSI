@@ -5,7 +5,7 @@ with all 44 formal/held-out output files matching the canonical RGB and alpha
 pixels exactly.** This is warm repeated-prompt inference under the controls
 below, not a general cold-prompt or production-tail claim.
 
-[Acceptance issue](https://github.com/ThinkFlowLab/OmniRSI/issues/3) ·
+[Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/3) ·
 [Upstream optimization PR](https://github.com/vllm-project/vllm-omni/pull/8739) ·
 [Ascend cohort](qwen-image-2.1-turbo-ascend.md)
 
@@ -62,7 +62,7 @@ and their [separately pinned rebase results](https://github.com/vllm-project/vll
 The default-main → explicit-symmem PR recipe changes a communication flag;
 do not call its reduction a matched-configuration code-only gain.
 
-For a new OmniRSI campaign, install the control package in the prepared inference
+For a new InferRSI campaign, install the control package in the prepared inference
 environment, reserve idle devices, pin the engine/model/runtime and freeze new
 helpers and canonical images before search. Keep source, cache and output paths
 separate. The current helper hashes the installed control package transitively.
@@ -71,7 +71,7 @@ current helpers.
 
 ```bash
 # Use absolute paths to prepared local resources.
-export RSI_REPO=/path/to/OmniRSI
+export RSI_REPO=/path/to/InferRSI
 export INFERENCE_PY=/path/to/prepared-env/bin/python
 export ENGINE_REPO=/path/to/pinned/vllm-omni
 export CAMPAIGN=/path/to/new-campaign
@@ -144,7 +144,7 @@ paths, then validate the complete manifest:
 Use the [CLI run contract](quickstart.md#real-remote-experiment) for five fresh
 alternating AB/BA groups and an explicit quality command. Freeze the 30% target
 against a fresh original-source baseline before search. Current aggregate
-validation accepts `--omnirsi-run --output {result}`; the
+validation accepts `--inferrsi-run --output {result}`; the
 [v4 directory adapter](../examples/qwen21_turbo_validation_adapter.py) is only for
 the historical validator's run-root convention. It requires ten complete trial
 reports and all 40 comparisons, without changing numerical gates.

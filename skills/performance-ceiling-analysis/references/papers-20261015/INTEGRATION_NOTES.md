@@ -31,7 +31,7 @@ Each skill folder is self-contained for selective consumption; parent-pack links
 ## Knowledge and cases
 
 - [Bounds/predictions supplement](knowledge/bounds-predictions-and-decisions.md) preserves the existing analytical/empirical/Amdahl hierarchy and adds evidence labels/calibration fields. It supplies no missing NPU/B300 measurements.
-- [Six decision cases](cases/decision-cases.md) exercise near-capacity error, lost final validity, fake timing boundaries, CPU redirection, an SLO-inconsistent table row and shortcut-dominated kernel averages. These are candidate review cases, not tests run against OmniRSI.
+- [Six decision cases](cases/decision-cases.md) exercise near-capacity error, lost final validity, fake timing boundaries, CPU redirection, an SLO-inconsistent table row and shortcut-dominated kernel averages. These are candidate review cases, not tests run against InferRSI.
 
 ## Source warnings that must survive distillation
 

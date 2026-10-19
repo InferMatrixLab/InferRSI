@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 import sys
 
-from omnirsi.infra import artifacts as lifecycle
+from inferrsi.infra import artifacts as lifecycle
 
 
 def load(path):
@@ -98,7 +98,7 @@ def validate(reference_path,candidate_path,expected_parallel=None,*,seen_paths=N
     return {'verdict':'PASS' if all(x['verdict']=='PASS' for x in results) else 'FAIL','comparisons':results}
 
 
-def omnirsi_manifests(result_path):
+def inferrsi_manifests(result_path):
     # Validation result lives at RUN/validation/result.json, not RUN/result.json.
     root=Path(result_path).resolve().parent.parent
     repetitions=json.loads((root/'run.lock.json').read_text())['repetitions']
@@ -121,16 +121,16 @@ def main():
     p=argparse.ArgumentParser(description=__doc__)
     p.add_argument('--reference-manifest',required=True)
     p.add_argument('--candidate-manifest')
-    p.add_argument('--omnirsi-run',action='store_true')
+    p.add_argument('--inferrsi-run',action='store_true')
     p.add_argument('--expected-parallel')
     p.add_argument('--output',required=True)
     args=p.parse_args()
     try:
         parallel=tuple(map(int,args.expected_parallel.split(','))) if args.expected_parallel else None
-        if args.omnirsi_run:
-            paths=omnirsi_manifests(os.environ['OMNIRSI_RESULT_PATH'])
+        if args.inferrsi_run:
+            paths=inferrsi_manifests(os.environ['INFERRSI_RESULT_PATH'])
         elif args.candidate_manifest:paths=[Path(args.candidate_manifest)]
-        else:raise ValueError('Candidate manifest or complete OmniRSI run required')
+        else:raise ValueError('Candidate manifest or complete InferRSI run required')
         seen_paths = set()
         reports=[{'manifest':str(path),**validate(args.reference_manifest,path,parallel,seen_paths=seen_paths)} for path in paths]
         result={'verdict':'PASS' if all(r['verdict']=='PASS' for r in reports) else 'FAIL','min_ssim':0.99,'min_psnr_db':35,'reports':reports}

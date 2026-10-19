@@ -7,27 +7,29 @@ import sys
 from importlib.resources import as_file, files
 from pathlib import Path
 
-import omnirsi
-from omnirsi.catalog import knowledge_records, repository_pack, search_knowledge
-from omnirsi.cli import main
+import inferrsi
+from inferrsi.catalog import knowledge_records, repository_pack, search_knowledge
+from inferrsi.cli import main
 
-assert Path(omnirsi.__file__).resolve().parent.parent.name != "src", (
+assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
 assert len(records) >= 10, "Knowledge is missing from the installation"
 assert (
-    files("omnirsi").joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md").is_file()
+    files("inferrsi")
+    .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
+    .is_file()
 )
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
-assert files("omnirsi").joinpath("data", "knowledge_packs", "README.md").is_file()
+assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
     assert len(imported) >= count, f"Missing installed {tier} records"
     assert all(item["tier"] == tier for item in imported)
-package = files("omnirsi")
+package = files("inferrsi")
 library = package.joinpath("data", "skill_library")
 manifest = json.loads(library.joinpath("source-manifest.json").read_text(encoding="utf-8"))
 assert len(manifest["sources"]) == 5
@@ -67,7 +69,7 @@ assert [item["id"] for item in ascend_image] == [
     "vllm_omni.ascend.diffusion.qwen_image_21_eager_t2i"
 ]
 assert (
-    files("omnirsi")
+    files("inferrsi")
     .joinpath(
         "data",
         "repo_packs",
@@ -79,4 +81,4 @@ assert (
     )
     .is_file()
 )
-print(f"Installed package: {omnirsi.__file__}; {len(records)} source-grounded records available.")
+print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")

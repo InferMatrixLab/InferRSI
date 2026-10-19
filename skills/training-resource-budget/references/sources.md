@@ -45,5 +45,5 @@ account is included; no implementation text or headline percentage is copied.
 
 DeepSpeed configuration is source code plus matched field documentation.
 Stas material is attributed expert methodology. MindSpeed is a historical
-author-described case. None is a measured OmniRSI gain, a runtime qualification
+author-described case. None is a measured InferRSI gain, a runtime qualification
 or an automatic authorization to execute the original runbooks.

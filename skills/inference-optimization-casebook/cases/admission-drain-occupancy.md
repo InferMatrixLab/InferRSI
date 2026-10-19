@@ -42,9 +42,9 @@ plan; another engine or device needs its own evidence.
 
 ## Preserved evidence
 
-- [Acceptance issue #10](https://github.com/ThinkFlowLab/OmniRSI/issues/10).
-- [Original diagnostic section at the inspected repository snapshot](https://github.com/ThinkFlowLab/OmniRSI/blob/c13027983b853fee3700de6aabde52b72e61885a/evidence/drama3-b300-scale150/results/diagnostic-lessons.md#continuous-admission-profile-and-mixed-backbone-2026-10-16).
-- [Frozen plan](https://github.com/ThinkFlowLab/OmniRSI/blob/c13027983b853fee3700de6aabde52b72e61885a/evidence/drama3-b300-scale150/plan/plan.json).
+- [Acceptance issue #10](https://github.com/InferMatrixLab/InferRSI/issues/10).
+- [Original diagnostic section at the inspected repository snapshot](https://github.com/InferMatrixLab/InferRSI/blob/c13027983b853fee3700de6aabde52b72e61885a/evidence/drama3-b300-scale150/results/diagnostic-lessons.md#continuous-admission-profile-and-mixed-backbone-2026-10-16).
+- [Frozen plan](https://github.com/InferMatrixLab/InferRSI/blob/c13027983b853fee3700de6aabde52b72e61885a/evidence/drama3-b300-scale150/plan/plan.json).
 - Original artifact identity: `drama3-mixed-20261016/vllm-continuous-schedule.json`.
   Recorded raw trace SHA256:
   `29e5cafe329cb85eaba69db7536a28a83fb7e3ac29bc154fc8747f317f6a4b3f`;

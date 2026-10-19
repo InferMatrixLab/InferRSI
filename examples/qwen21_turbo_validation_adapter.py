@@ -1,7 +1,8 @@
 """Adapt the historical frozen v4 quality CLI's run-root environment.
 
 The validator itself remains unchanged. v4 interprets OMNIRSI_RESULT_PATH's
-parent as the run root, whereas the runner supplies RUN/validation/result.json.
+parent as the run root, whereas the current runner supplies INFERRSI_RESULT_PATH
+as RUN/validation/result.json. Translate only at this historical boundary.
 """
 
 import argparse
@@ -28,7 +29,7 @@ def main():
     parser.add_argument("--validator", required=True)
     parser.add_argument("--output", required=True)
     args, remaining = parser.parse_known_args()
-    env = validation_environment(os.environ["OMNIRSI_RESULT_PATH"], os.environ)
+    env = validation_environment(os.environ["INFERRSI_RESULT_PATH"], os.environ)
     command = [sys.executable, args.validator, *remaining, "--output", args.output]
     completed = subprocess.run(command, env=env, check=False)
     if completed.returncode:

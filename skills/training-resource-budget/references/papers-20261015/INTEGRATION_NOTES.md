@@ -2,7 +2,7 @@
 
 # Pack C integration proposals
 
-Status: candidate; empirical_validation: not_run. Independent five-paper, fulltext-derived expansion. F = source facts/models/results; P = proposed operational rules. No empirical validation, install, reproduction, framework run, hardware work, OmniRSI modification, matrix edit or PR has occurred. Source PDFs/text/render caches are outside this deliverable tree and are not redistributed.
+Status: candidate; empirical_validation: not_run. Independent five-paper, fulltext-derived expansion. F = source facts/models/results; P = proposed operational rules. No empirical validation, install, reproduction, framework run, hardware work, InferRSI modification, matrix edit or PR has occurred. Source PDFs/text/render caches are outside this deliverable tree and are not redistributed.
 
 ## Deliverable routes
 

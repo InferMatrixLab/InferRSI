@@ -3,8 +3,8 @@ from pathlib import Path
 
 import pytest
 
-from omnirsi.cli import main
-from omnirsi.skill_catalog import (
+from inferrsi.cli import main
+from inferrsi.skill_catalog import (
     get_skill,
     skill_instructions,
     skill_records,

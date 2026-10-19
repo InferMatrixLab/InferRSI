@@ -10,12 +10,12 @@ from unittest.mock import patch
 
 import pytest
 
-from omnirsi.harness.runner import run_experiment
-from omnirsi.harness.scenarios.external import execute_trial
-from omnirsi.infra.platforms import PLATFORM_PROBES, inspect_device
-from omnirsi.infra.platforms.cuda import qualify_devices
-from omnirsi.model.protocols.metrics import read_metric
-from omnirsi.runspec import RunSpec
+from inferrsi.harness.runner import run_experiment
+from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.infra.platforms import PLATFORM_PROBES, inspect_device
+from inferrsi.infra.platforms.cuda import qualify_devices
+from inferrsi.model.protocols.metrics import read_metric
+from inferrsi.runspec import RunSpec
 
 
 def test_new_scenario_target_and_backend_share_abba_and_verdict(tmp_path):
@@ -91,20 +91,20 @@ def test_cuda_qualification_accepts_campaign_supplied_count_and_sku(monkeypatch)
     monkeypatch.setenv("CUDA_VISIBLE_DEVICES", "GPU-fixture")
     device = subprocess.CompletedProcess([], 0, "0, GPU-fixture, NVIDIA H100 SXM, driver\n", "")
     empty = subprocess.CompletedProcess([], 0, "", "")
-    with patch("omnirsi.infra.platforms.cuda.subprocess.run", side_effect=[device, empty]):
+    with patch("inferrsi.infra.platforms.cuda.subprocess.run", side_effect=[device, empty]):
         selected = qualify_devices(count=1, device_model="H100")
     assert selected[0]["uuid"] == "GPU-fixture"
     busy = subprocess.CompletedProcess([], 0, "GPU-fixture, 123, other-work\n", "")
-    with patch("omnirsi.infra.platforms.cuda.subprocess.run", side_effect=[device, busy]):
+    with patch("inferrsi.infra.platforms.cuda.subprocess.run", side_effect=[device, busy]):
         with pytest.raises(ValueError, match="already has a compute process"):
             qualify_devices(count=1, device_model="H100")
 
 
 def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
-    root = Path(__file__).resolve().parents[1] / "src/omnirsi"
+    root = Path(__file__).resolve().parents[1] / "src/inferrsi"
     for plane in ("infra", "model", "harness"):
         for path in (root / plane).rglob("*.py"):
-            package = ".".join(("omnirsi", *path.relative_to(root).parts[:-1]))
+            package = ".".join(("inferrsi", *path.relative_to(root).parts[:-1]))
             for node in ast.walk(ast.parse(path.read_text())):
                 if isinstance(node, ast.Import):
                     names = [alias.name for alias in node.names]
@@ -121,12 +121,12 @@ def test_shared_layers_do_not_import_campaigns_or_reverse_dependencies():
                     assert "examples" not in name.split("."), (path, name)
                     assert "ltx25" not in name and "qwen21" not in name, (path, name)
                     if plane == "infra":
-                        assert not name.startswith(("omnirsi.harness", "omnirsi.model")), (
+                        assert not name.startswith(("inferrsi.harness", "inferrsi.model")), (
                             path,
                             name,
                         )
                     if plane == "model":
-                        assert not name.startswith("omnirsi.harness"), (path, name)
+                        assert not name.startswith("inferrsi.harness"), (path, name)
 
 
 def test_control_imports_need_no_inference_or_image_dependencies():
@@ -134,8 +134,8 @@ def test_control_imports_need_no_inference_or_image_dependencies():
         [
             sys.executable,
             "-c",
-            "import sys; import omnirsi.cli; "
-            "import omnirsi.model.validators.image; "
+            "import sys; import inferrsi.cli; "
+            "import inferrsi.model.validators.image; "
             "assert not {'torch', 'vllm', 'numpy', 'PIL', 'skimage'}.intersection(sys.modules)",
         ],
         check=False,

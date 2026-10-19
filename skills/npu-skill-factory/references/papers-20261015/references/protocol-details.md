@@ -1,6 +1,6 @@
 # Protocol details and unreported quantities
 
-F entries below are author-reported protocol details, not recommended OmniRSI settings. P entries identify what cannot safely be inferred. Local validation: not_run.
+F entries below are author-reported protocol details, not recommended InferRSI settings. P entries identify what cannot safely be inferred. Local validation: not_run.
 
 ## Repo-To-Skill
 

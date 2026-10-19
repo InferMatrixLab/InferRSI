@@ -13,10 +13,10 @@ from pathlib import Path
 
 import pytest
 
-from omnirsi import catalog
-from omnirsi.arguments import make_spec, parser
-from omnirsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
-from omnirsi.cli import main
+from inferrsi import catalog
+from inferrsi.arguments import make_spec, parser
+from inferrsi.catalog import get_knowledge, knowledge_records, repository_pack, search_knowledge
+from inferrsi.cli import main
 
 PROJECT = Path(__file__).resolve().parents[1]
 SOURCE_REPOSITORIES = {
@@ -141,7 +141,7 @@ class CatalogTests(unittest.TestCase):
 
 
 def test_knowledge_has_one_canonical_record_and_complete_navigation():
-    packs = PROJECT / "src/omnirsi/data/repo_packs"
+    packs = PROJECT / "src/inferrsi/data/repo_packs"
     records = search_knowledge(tier="contribution", limit=100)
     assert len(records) == len(list(packs.glob("*/knowledge/*/*/*.json")))
     for repo in {record["repo"] for record in records}:
@@ -192,7 +192,7 @@ def test_misfiled_or_overstated_record_cannot_leak_into_context(
 
 class CLITests(unittest.TestCase):
     def setUp(self):
-        self.temporary = tempfile.TemporaryDirectory(prefix="omnirsi-cli-")
+        self.temporary = tempfile.TemporaryDirectory(prefix="inferrsi-cli-")
         self.addCleanup(self.temporary.cleanup)
         self.root = Path(self.temporary.name)
         self.repo = self.root / "source"
@@ -206,7 +206,7 @@ class CLITests(unittest.TestCase):
                 "-c",
                 "core.hooksPath=" + str(self.root / "no-hooks"),
                 "-c",
-                "user.name=OmniRSI Test",
+                "user.name=InferRSI Test",
                 "-c",
                 "user.email=test@example.invalid",
                 "commit",

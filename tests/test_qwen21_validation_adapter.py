@@ -17,8 +17,9 @@ class ValidationAdapterTests(unittest.TestCase):
             (root / "run.lock.json").write_text(json.dumps({"repetitions": 5}))
             result = root / "validation/result.json"
             env = adapter.validation_environment(
-                result, {"OMNIRSI_RESULT_PATH": str(result), "CONTROL": "frozen"}
+                result, {"INFERRSI_RESULT_PATH": str(result), "CONTROL": "frozen"}
             )
+            self.assertEqual(env["INFERRSI_RESULT_PATH"], str(result))
             self.assertEqual(Path(env["OMNIRSI_RESULT_PATH"]).parent, root)
             self.assertEqual(env["CONTROL"], "frozen")
             self.assertFalse((root / "v4-root-adapter.json").exists())

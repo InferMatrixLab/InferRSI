@@ -146,7 +146,7 @@ protocol/denominator mismatch stays unresolved.
 [Paper-method comparison](../npu-skill-factory/references/papers-20261015/COMPARISON.md)
 and [protocol details](../npu-skill-factory/references/papers-20261015/references/protocol-details.md)
 provide the reviewed evidence; neither upstream scores nor local packaging checks
-promote an OmniRSI candidate. For performance predictions, distinguish physical
+promote an InferRSI candidate. For performance predictions, distinguish physical
 bounds, observed envelopes, simulator predictions and measured application results
 as in [ceiling analysis](../performance-ceiling-analysis/SKILL.md).
 

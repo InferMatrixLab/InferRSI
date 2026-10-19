@@ -7,7 +7,7 @@ from importlib import metadata
 from pathlib import Path
 from unittest.mock import patch
 
-from omnirsi.inspection import inspect_environment
+from inferrsi.inspection import inspect_environment
 
 
 class InspectionTests(unittest.TestCase):
@@ -23,10 +23,10 @@ class InspectionTests(unittest.TestCase):
 
         with (
             patch(
-                "omnirsi.execution.repository_identity",
+                "inferrsi.execution.repository_identity",
                 return_value={"available": True, "head": "test"},
             ),
-            patch("omnirsi.inspection._command", side_effect=command),
+            patch("inferrsi.inspection._command", side_effect=command),
         ):
             return inspect_environment(".", "vllm_omni", "cuda", device_ids=ids, device_model=model)
 

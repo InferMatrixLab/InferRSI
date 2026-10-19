@@ -408,7 +408,7 @@ class QualityTests(unittest.TestCase):
             len({argv[argv.index("-filter_complex") - 1] for argv in self.video_calls}), 12
         )
 
-    def test_omnirsi_validation_uses_environment_run_root_and_all_trials(self):
+    def test_legacy_validation_uses_environment_run_root_and_all_trials(self):
         run = self.make_run()
         validation = run / "validation" / "result.json"
         validation.parent.mkdir()
@@ -504,7 +504,7 @@ class QualityTests(unittest.TestCase):
                 "--output",
                 str(self.output),
                 "--ffprobe",
-                "omnirsi-missing-ffprobe-executable",
+                "inferrsi-missing-ffprobe-executable",
             ],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,

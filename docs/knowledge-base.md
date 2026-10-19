@@ -1,6 +1,6 @@
 # Knowledge base contract
 
-This implements the K0/K1 content foundation of [RFC #17](https://github.com/InferMatrixLab/OmniRSI/issues/17).
+This implements the K0/K1 content foundation of [RFC #17](https://github.com/InferMatrixLab/InferRSI/issues/17).
 The coding agent owns planning and conversation and acts within explicit scope
 and delegated authority. Reading material never executes a helper or grants
 permission to change a target system.
@@ -16,11 +16,11 @@ skills/<id>/SKILL.md                 Local name, description, substantive proced
 skills/<id>/metadata.json            Local provenance, state and relationships
 skills/<id>/references/              Owner's mechanisms, readsets and comparisons
 skills/<id>/cases/                   Owner's scoped cases (optional)
-src/omnirsi/catalog.py               Installed knowledge reader
-src/omnirsi/skill_catalog.py         Explicit checkout skill reader
-src/omnirsi/data/repo_packs/         Contribution records and existing public IDs
-src/omnirsi/data/knowledge_packs/    Dependency and peer records
-src/omnirsi/data/skill_library/      Imported bilingual procedures, licenses, helpers
+src/inferrsi/catalog.py               Installed knowledge reader
+src/inferrsi/skill_catalog.py         Explicit checkout skill reader
+src/inferrsi/data/repo_packs/         Contribution records and existing public IDs
+src/inferrsi/data/knowledge_packs/    Dependency and peer records
+src/inferrsi/data/skill_library/      Imported bilingual procedures, licenses, helpers
 evidence/<campaign-id>/             Frozen plans, results, patches and validators
 docs/reference-matrix.md            Sources, inspected scope and extraction
 docs/searchspace-matrix.md          Resource × optimization-stage coverage
@@ -138,7 +138,7 @@ Local `resource` access remains restricted to the selected skill. Declared
 cross-skill `reference` access is restricted to the complete selected skills root:
 
 ```bash
-omnirsi skills --root /path/to/skills reference inference-benchmark-design \
+inferrsi skills --root /path/to/skills reference inference-benchmark-design \
   ../inference-optimization-casebook/cases/admission-drain-occupancy.md
 ```
 
@@ -146,6 +146,33 @@ Missing dependencies, undeclared references and escapes are errors. Checkout is
 the declared local-profile mode. A single copied skill folder with external links
 is **not** advertised as a standalone export. Package catalog/library access stays
 available after noneditable installation; local `skills/` is not wheel data.
+
+## Negative results as diagnostic options
+
+The existing Case authority now also holds scoped rejected directions for
+[Qwen B300](../skills/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
+[Qwen Ascend](../skills/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
+and [Drama3 B300](../skills/inference-optimization-casebook/cases/drama3-rejected-directions.md).
+The records cite exact source summaries; they add no hardware validation.
+Observation, original disposition and newly suggested revisit checks stay
+separate. Raw evidence remains at its existing frozen owner.
+
+This design uses failure as conditional evidence. Under comparable conditions,
+it can reduce redundant work and suggest a cheap discriminating check. A hard
+blacklist would overgeneralize across revisions, hardware and implementations;
+an unqualified transcript dump would mix environment failures with algorithmic
+ones. Reusing owner-local cases also keeps the existing source/revision rules
+and avoids a second negative-result database. These are design arguments, not
+a measured improvement in agent performance.
+
+Read the case before choosing a candidate. State the applicable signal,
+counter-signal, changed condition and next check; distinguish quality rejection,
+missing gain, resource failure, confounding, missing integration and analytical
+rejection. Confirm a new root cause with its own evidence. A retry needs its
+own authorized scope and frozen controls. Cases do not change PASS / FAIL /
+INCONCLUSIVE, promote a candidate, resume paused work or automatically route
+tasks. [Collect examples](knowledge-operations.md#retrieve-diagnostic-options)
+and the existing search-policy references expose the records explicitly.
 
 ## Implemented operations and bounded follow-ups
 
@@ -159,7 +186,7 @@ The writer will not edit site-packages, frozen evidence or source checkouts.
 A version field alone provides no concurrency guarantee. No automatic promotion
 or LLM generation is required.
 
-[Issue #15](https://github.com/InferMatrixLab/OmniRSI/issues/15) can consume the field
+[Issue #15](https://github.com/InferMatrixLab/InferRSI/issues/15) can consume the field
 ownership, source-linked references and scoped case pattern here. Its mandatory
 perf-loop, fixed skill count, global numeric policies and separate case registry
 are not imported. Exactly two primary matrices remain; HBM is not host RAM and

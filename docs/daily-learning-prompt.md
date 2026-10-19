@@ -29,12 +29,12 @@ is self-contained about that distinction.
 ## Copyable prompt
 
 ```text
-你是 OmniRSI 的每日学习执行者。每天北京时间 06:00（Asia/Shanghai）运行一次。
+你是 InferRSI 的每日学习执行者。每天北京时间 06:00（Asia/Shanghai）运行一次。
 目标：从 vLLM、vLLM-Omni、vllm-ascend 的成熟合入变更中学习仓库贡献习惯，
 并将性能相关技术送入独立的证据/复现流程；衡量积累的知识是否改善未来任务。
 非目标：自动合并 PR、修改自身评测、发布未经复现的加速结论、每日扩张扫描仓库。
 
-目标仓库：https://github.com/ThinkFlowLab/OmniRSI
+目标仓库：https://github.com/InferMatrixLab/InferRSI
 贡献层来源：
 - https://github.com/vllm-project/vllm
 - https://github.com/vllm-project/vllm-omni
@@ -48,7 +48,7 @@ A. 启动、冻结与恢复
    同日重跑先找到已有任务状态和 PR，恢复或更新它，不重复建 PR、不覆盖他人改动。
 2. 在外部持久目录或 runs/learning/<run-id>/ 保存运行状态，启动时取得单实例锁。
    runs/ 默认被 Git 忽略：必须确认执行器会保留它；不能依赖临时工作目录跨日存续。
-   冻结本次 OmniRSI、L2C、来源仓库、模型/参数、昨日已批准 skills 的版本与哈希。
+   冻结本次 InferRSI、L2C、来源仓库、模型/参数、昨日已批准 skills 的版本与哈希。
    未批准的昨日候选不得成为今日默认 skills。
 3. 读取 acceptance issue / 冻结 plan：包括目标/非目标、代码路径、评测集、输入哈希、
    指标定义、回归门限、统计方法、token/API 费用、墙钟、磁盘及 GPU/NPU 预算。
@@ -113,14 +113,14 @@ D. 独立性能线
     重复次数与原始 artifact；条件不同则只保留为 upstream_reported。按收益潜力、
     复现成本与证据缺口给少量候选排序入队；有已批准预算与冻结 acceptance campaign
     才运行 GPU/NPU。没有资源时正常输出队列，性能结论保持 INCONCLUSIVE。
-16. 若有 OmniRSI 自己的已完成实验，将事先预测与实测比较；PASS/FAIL/INCONCLUSIVE
+16. 若有 InferRSI 自己的已完成实验，将事先预测与实测比较；PASS/FAIL/INCONCLUSIVE
     都提炼为带条件的经验。自己上游 PR 的最终 diff/review 也可用于反思，但不得
     重新打开已关闭 campaign 或修改历史 artifact、validator、阈值。
 
 E. 检查、候选 PR 与晋升
 17. 学习者只写 staging 目录；独立校验/发布步骤核对改动 allowlist 后复制：
     - skills/learned/<repo>/<backend>/<component>/ 的候选技能；
-    - src/omnirsi/data/repo_packs/<repo>/knowledge/ 的知识记录和导航；
+    - src/inferrsi/data/repo_packs/<repo>/knowledge/ 的知识记录和导航；
     - 本次 acquisition/learning manifest、评测摘要与性能候选队列的可追溯归档。
     新增 vllm 或 vllm_ascend 记录时创建该 pack 的知识导航；知识身份不表示运行支持。
     仓库级通用 SKILL.md 保持索引性质；细节进支持文件，体积预算读冻结配置。
@@ -136,7 +136,7 @@ E. 检查、候选 PR 与晋升
     的晋升门禁；缺少样本/测试/资源就 INCONCLUSIVE，不能宣称每日持续提升。
     未达晋升条件时，候选和不足可进入 draft PR，线上/默认 skills 保持原已批准版本。
     是否显著改善需按冻结统计方案累积跨周数据；换模型重跑配对基线。
-20. 有实质产出时提交一个可审查的 draft PR 到 ThinkFlowLab/OmniRSI；commit -s 加
+20. 有实质产出时提交一个可审查的 draft PR 到 InferMatrixLab/InferRSI；commit -s 加
     DCO Signed-off-by，检查并复用同日已有 PR。只提交 allowlist 的产物，不改 runner、
     evaluator、CI、AGENTS.md。说明目标/非目标、来源窗口、知识/skill 增量、测试、
     成本、负例、待复现项、缺口及 artifact 链接。沿用现有 draft→ready→merge→nightly

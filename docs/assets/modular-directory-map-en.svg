@@ -1,9 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1160" viewBox="0 0 1320 1160" role="img" aria-labelledby="title desc"><title id="title">OmniRSI module-to-directory map</title><desc id="desc">Implemented Harness, Model and Infra modules map to package directories. Model, repository and hardware additions extend adapters while shared orchestration remains unchanged.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1320" height="1160" viewBox="0 0 1320 1160" role="img" aria-labelledby="title desc"><title id="title">InferRSI module-to-directory map</title><desc id="desc">Implemented Harness, Model and Infra modules map to package directories. Model, repository and hardware additions extend adapters while shared orchestration remains unchanged.</desc>
 <defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="none" stroke="#667b9e" stroke-width="1.5"/></marker></defs>
 <rect width="1320" height="1160" fill="#0b1220"/>
-<text x="48" y="56" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#69dfc4">OMNIRSI / WHERE TO EXTEND</text>
+<text x="48" y="56" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#69dfc4">INFERRSI / WHERE TO EXTEND</text>
 <text x="48" y="103" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="38" font-weight="700" fill="#f4f7fc">A directory map for the next campaign.</text>
-<text x="48" y="137" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#91a8c4">Package root: src/omnirsi/   •   All solid panels below contain implemented modules.</text>
+<text x="48" y="137" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="18" font-weight="400" fill="#91a8c4">Package root: src/inferrsi/   •   All solid panels below contain implemented modules.</text>
 <rect x="48" y="170" width="596" height="298" rx="18" fill="#142139" stroke="#30435f"/>
 <text x="72" y="207" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="25" font-weight="700" fill="#77cafa">harness/</text>
 <text x="72" y="237" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#91a8c4">Experiment composition</text>

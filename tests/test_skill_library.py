@@ -9,10 +9,10 @@ from urllib.parse import unquote, urlsplit
 
 import pytest
 
-from omnirsi.catalog import get_knowledge, knowledge_records, search_knowledge
-from omnirsi.cli import main
+from inferrsi.catalog import get_knowledge, knowledge_records, search_knowledge
+from inferrsi.cli import main
 
-PACKAGE = Path(__file__).resolve().parents[1] / "src/omnirsi"
+PACKAGE = Path(__file__).resolve().parents[1] / "src/inferrsi"
 LIBRARY = PACKAGE / "data/skill_library"
 REPOSITORIES = ("strata", "vllm", "sglang", "sglang_omni", "vllm_omni")
 

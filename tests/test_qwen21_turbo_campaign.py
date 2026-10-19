@@ -71,14 +71,14 @@ class QwenTurboTests(unittest.TestCase):
                 (trial / "execution.json").write_text(
                     json.dumps({"status": "completed", "returncode": 0})
                 )
-            paths = quality.omnirsi_manifests(root / "validation/result.json")
+            paths = quality.inferrsi_manifests(root / "validation/result.json")
             self.assertEqual(
                 paths,
                 [root / "baseline/trial-001/result.json", root / "candidate/trial-001/result.json"],
             )
             (root / "candidate/trial-002").mkdir()
             with self.assertRaisesRegex(ValueError, "coverage"):
-                quality.omnirsi_manifests(root / "validation/result.json")
+                quality.inferrsi_manifests(root / "validation/result.json")
 
     def test_precreated_runner_directory_preserves_failure_evidence(self):
         with tempfile.TemporaryDirectory() as temp:

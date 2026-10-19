@@ -2,7 +2,7 @@
 
 # Pack D: Attention bottlenecks after IO reduction
 
-Status: **candidate**. Empirical validation: **not_run**. Read-only paper extraction completed 2026-10-15; no implementation, benchmark, hardware run, installation, or OmniRSI change.
+Status: **candidate**. Empirical validation: **not_run**. Read-only paper extraction completed 2026-10-15; no implementation, benchmark, hardware run, installation, or InferRSI change.
 
 Approved corpus only: FlashAttention `2205.14135v2`, FlashAttention-2 `2307.08691v1`, FlashAttention-3 `2407.08608v2`. Their PDF version stamps were directly checked. This is a historical, version-specific extraction, not a statement about current libraries.
 

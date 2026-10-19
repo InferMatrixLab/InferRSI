@@ -4,7 +4,7 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 ## What this repo is
 
-**OmniRSI** is ThinkFlowLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/omnirsi/` (rename on copy), with recipes, benchmarks, and a first-class `evidence/` tree.
+**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/inferrsi/` (rename on copy), with recipes, benchmarks, and a first-class `evidence/` tree.
 
 | Start here | Purpose |
 | --- | --- |
@@ -57,7 +57,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 ## RSI contract
 
 - **Freeze gates before search** — checklist and `validator/` locked in `plan/` before Phase 3 candidate experiments ([validation levels](docs/contributing.md#validation-levels)).
-- **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/omnirsi/`).
+- **One plane per campaign step** — change only the declared SIAS plane per step: `harness` | `model` | `infra` (under `src/inferrsi/`).
 - **Emit RunSpec snapshots** — record repo × revision × backend × device × model × scenario (`runspec.py`, campaign `plan/`).
 - **Evaluator + evidence win** — never treat agent narrative as `PASS`; verdicts follow frozen gates and `evidence/<campaign-id>/` artifacts.
 
@@ -75,7 +75,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 ## Evidence and clearing the bar
 
-Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/omnirsi/claim.py`).
+Verdicts are **`PASS`**, **`FAIL`**, or **`INCONCLUSIVE`** only (`src/inferrsi/claim.py`).
 
 A public **`PASS`** requires:
 

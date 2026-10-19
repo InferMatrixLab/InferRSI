@@ -31,4 +31,4 @@ Stop predictive certification if profiles are missing, topology is substituted, 
 
 ## Resource contract
 
-This folder and its local `references/source-notes.md` are sufficient for selective consumption. Optional comparison notes and cases are linked through the owning ceiling skill; the local source notes retain the calibration procedure's evidence and limits. Existing OmniRSI skill names above are reconciliation targets, not runtime dependencies.
+This folder and its local `references/source-notes.md` are sufficient for selective consumption. Optional comparison notes and cases are linked through the owning ceiling skill; the local source notes retain the calibration procedure's evidence and limits. Existing InferRSI skill names above are reconciliation targets, not runtime dependencies.

@@ -32,7 +32,7 @@ Baseline and candidate revisions are **owned by the acceptance issue** for that 
 
 ## RunSpec
 
-Freeze **repo × revision × backend × device × model × scenario** before comparing results. Reference `omnirsi.runspec.RunSpec` or your renamed package.
+Freeze **repo × revision × backend × device × model × scenario** before comparing results. Reference `inferrsi.runspec.RunSpec` or your renamed package.
 
 ## Runtime and upstream review gates
 

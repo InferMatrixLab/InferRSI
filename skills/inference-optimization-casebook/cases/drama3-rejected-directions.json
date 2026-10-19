@@ -1,0 +1,18 @@
+{
+  "id": "case.drama3-rejected-directions",
+  "kind": "case",
+  "origin": ["internal"],
+  "state": "historical_observation",
+  "content": "drama3-rejected-directions.md",
+  "sources": [{
+    "type": "git",
+    "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/evidence/drama3-b300-scale150/results/diagnostic-lessons.md",
+    "commit": "d51c941dc57807c1e16ea698cd9291f414110c45",
+    "paths": ["evidence/drama3-b300-scale150/results/diagnostic-lessons.md"],
+    "issue": "https://github.com/InferMatrixLab/InferRSI/issues/10"
+  }],
+  "applicability": ["Drama3 standalone native-computation runtime on one B300", "Only each cited microbenchmark, fixed-state diagnostic or complete service trial"],
+  "tags": ["negative-evidence", "service-regression", "quality-rejection", "harness-mismatch", "prefix-reuse", "memory-compression", "analysis-only"],
+  "limitations": ["Campaign remains INCONCLUSIVE and optimization is paused", "Individual completed gate failures do not complete the all-concurrency acceptance matrix", "Repository summary inspected; external raw traces and runtime artifacts not rerun or rehashed", "No root cause inferred from client accounting or cross-screen timing subtraction"],
+  "attribution": "Issue #10 diagnostic lessons, including runtime 47c3d2ec4e3406d8a71fccc3cb4967783c2650f5; revisit checks are current suggestions"
+}

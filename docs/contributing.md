@@ -1,6 +1,6 @@
 # Contributing
 
-OmniRSI connects optimization conditions, measurements and verdicts. Start with
+InferRSI connects optimization conditions, measurements and verdicts. Start with
 [quickstart](quickstart.md), the [module boundaries](architecture.md), and the
 [Qwen B300](qwen-image-2.1-turbo-b300.md) or
 [Qwen Ascend](qwen-image-2.1-turbo-ascend.md) case that matches your hardware.
@@ -33,13 +33,13 @@ For knowledge, edit one named JSON record under
 `data/repo_packs/<repo>/knowledge/<backend>/<component>/` for contribution sources,
 or `data/knowledge_packs/<dependency|peer>/<repo>/<backend>/<component>/` for
 external sources, and add its navigation link to the owning README. See the
-[three learning tiers](../src/omnirsi/data/knowledge_packs/README.md).
+[three learning tiers](../src/inferrsi/data/knowledge_packs/README.md).
 Do not maintain a second per-entry Markdown summary.
 Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the
-[knowledge maintenance guide](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
+[knowledge maintenance guide](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
 
-The [bilingual engine library](../src/omnirsi/data/skill_library/README.md) holds
+The [bilingual engine library](../src/inferrsi/data/skill_library/README.md) holds
 detailed source-grounded procedures. Catalog abstracts link to both editions via
 package-relative `skill_documents`; update the affected abstract and language
 pair together. Source snapshot revisions there identify research evidence, not
@@ -161,7 +161,7 @@ Keep the existing four lanes:
 Do not add default model downloads, GPU jobs or campaign thresholds to these
 lanes. Dependency drift and hardware qualification require their own evidence.
 
-When copying the repository, rename `src/omnirsi`, update package metadata,
+When copying the repository, rename `src/inferrsi`, update package metadata,
 imports and tests, and keep the three module boundaries explicit. Copy the
 [evidence template](../evidence/_template/) for each campaign. Reuse portable
 [skills](../skills/) as workflow guidance; keep campaign pins out of them.
