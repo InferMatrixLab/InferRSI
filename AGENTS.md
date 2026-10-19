@@ -110,3 +110,13 @@ ruff check src tests
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.
 4. Work Issue-first: confirm the governing Issue's accepted scope before changing code, keep each change a bounded delegated slice with independent review, and report PR readiness and Issue completion separately — see [agent collaboration](docs/agent-collaboration.md).
+
+## Privacy and security
+
+Follow [privacy and security rules](docs/privacy-security.md) for every new or
+modified artifact, including logs, evidence and PR text. Use placeholders for
+real addresses, IPs, hostnames, usernames and personal paths; never embed or
+disclose credentials. Inject secrets at runtime, redact before capture/sharing,
+and check artifacts before publication. Preserve evidence verdicts and public
+source attribution. Required DCO identity remains valid. Existing sensitive
+content is not permission to copy it; historical cleanup is separately scoped.

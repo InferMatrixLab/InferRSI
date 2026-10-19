@@ -19,6 +19,10 @@ git commit -s
 Issue-led ownership, review and completion conventions for humans and agents
 are in [agent collaboration](agent-collaboration.md).
 
+Apply [privacy and security rules](privacy-security.md) before capturing logs,
+recording evidence or sharing changes. Use placeholders for private connection
+details, inject credentials securely at runtime and review artifacts for leaks.
+
 `image` is optional for the control CLI and required to run PNG quality tests.
 Synthetic benchmark scripts belong in `tests/fixtures/`; historical validator
 snapshots in `tests/fixtures/legacy/` remain byte-for-byte frozen. Current runnable
