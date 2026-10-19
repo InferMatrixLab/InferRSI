@@ -23,7 +23,9 @@ def test_maintained_documentation_links_resolve() -> None:
     documents += list((REPO_ROOT / "skills").rglob("*.md"))
     documents += [REPO_ROOT / "evidence/README.md"]
     for document in documents:
-        for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", document.read_text()):
+        for target in re.findall(
+            r"\[[^\]]*\]\(([^\s)]+)\)", document.read_text(encoding="utf-8")
+        ):
             parsed = urlsplit(target)
             if parsed.scheme or not parsed.path:
                 continue
