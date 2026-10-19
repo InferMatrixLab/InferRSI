@@ -18,6 +18,23 @@ For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
 benchmark/quality command contract; set the acceptance threshold from your plan.
 
+## Discover knowledge and skills
+
+Read-only discovery and export — the [operation guide](operations.md) maps every
+entry point, effect class and boundary:
+
+```bash
+inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
+inferrsi context --repo-type vllm_omni --backend cuda --output context.md
+inferrsi skills list --json   # requires python -m pip install '.[skills]'
+```
+
+Normalized Collect, exact-revision reads and resource access are implemented as
+the Python `KnowledgeReader` ([contract](knowledge-operations.md)); authorized
+local candidate Create/Update is the Python `KnowledgeStore`
+([contract](knowledge-store.md)). No CLI route exists for these operations yet
+([#32](https://github.com/InferMatrixLab/InferRSI/issues/32)).
+
 ## The actual configuration interface
 
 ```text

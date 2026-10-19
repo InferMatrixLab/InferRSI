@@ -24,6 +24,16 @@ InferRSI is a **CLI workbench for inference optimization with coding agents**. B
 
 You drive profiling and code changes; InferRSI runs and evaluates the benchmark and validation commands you provide.
 
+## Choose your starting path
+
+| You want to… | Start at |
+| --- | --- |
+| Modify InferRSI itself | [Contributor guide](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md), under an accepted Issue scope |
+| Use the Workbench to run experiments | [Quickstart](docs/quickstart.md): prepared target environment, benchmark/quality contracts, authorized experiment, recorded evidence |
+| Deliver an independent inference engine | [Engine delivery template](docs/template/README.md): copyable scaffold and recipe handoff; no InferRSI runtime dependency |
+
+For every CLI/Python operation — discovery, normalized reads, store candidates, experiments — see the [operation guide](docs/operations.md).
+
 ## Three objectives of the current WIP
 
 These objectives frame the candidate-intelligence work; they are not another
@@ -136,8 +146,11 @@ selection or update. Reading instructions does not authorize their commands.
 This generated catalog projects metadata; the Reference and SearchSpace
 matrices remain the two authoritative matrices. Offline integration checks do
 not validate candidate effectiveness. See the [knowledge-base contract](docs/knowledge-base.md)
-for field ownership, legacy compatibility, shared checkout references and the
-separate read/Collect and writable-store follow-ups to RFC #17.
+for field ownership, legacy compatibility and shared checkout references.
+Normalized reads and bounded Collect ([`KnowledgeReader`](docs/knowledge-operations.md))
+and authorized local Create/Update ([`KnowledgeStore`](docs/knowledge-store.md))
+are implemented Python interfaces; a thin CLI route is tracked in
+[#32](https://github.com/InferMatrixLab/InferRSI/issues/32).
 
 
 <a id="architecture"></a>
@@ -172,6 +185,7 @@ campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
 | Start here | What you will find |
 | --- | --- |
 | [Quickstart](docs/quickstart.md) | Installation, real A/B experiments, and reports |
+| [Operation guide](docs/operations.md) | Every CLI/Python operation: entry point, effect class, boundary and example |
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |

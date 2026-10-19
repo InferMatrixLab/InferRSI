@@ -38,8 +38,10 @@ Paper knowledge does not supply repository-only schema fields such as a Git SHA,
 so it remains linked Markdown rather than a parallel registry or fabricated
 `repo_packs` record. The [knowledge-base contract](knowledge-base.md) defines
 local sidecar ownership, typed source examples, shared checkout references and
-legacy package compatibility. Normalized Collect and a writable store are separate
-follow-ups; existing commands remain supported.
+legacy package compatibility. Normalized reads and bounded Collect
+([knowledge-operations.md](knowledge-operations.md)) and the authorized local
+store ([knowledge-store.md](knowledge-store.md)) are implemented Python
+interfaces; existing CLI commands remain supported.
 
 ## Module responsibilities and dependencies
 
@@ -72,6 +74,8 @@ src/inferrsi/
   runspec.py, contracts.py   Immutable experiment contract and compatibility export
   catalog.py                Knowledge search and cited context
   skill_catalog.py          Explicit local skill metadata/instructions/resource resolution
+  knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
+  knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
   harness/
     runner.py               One AB/BA loop; execute/snapshot adapter hooks
     evaluation.py           Performance/quality/source-integrity adjudication
