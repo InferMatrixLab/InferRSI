@@ -126,7 +126,11 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
   is a pure-Python reference arena that **reproduces the collision** with the
   original top-of-arena assignment (a live request's state is overwritten) and
   **preserves all live state** with the reserved-band layout, across partial
-  counts `{5,6,7}`, plus an explicit overlap-rejection check.
+  counts `{5,6,7}`. It asserts that padding primaries and suffixes are disjoint
+  from every live primary and suffix, shows the repaired assignment is rejected
+  when no reserved band exists, and checks explicit overlap rejection. In this
+  abstraction the enlarged arena alone also avoids the collision, so the fixture
+  does not isolate the band placement as independently necessary.
 - **Target-dependent checks still required (not covered by the fixture):** real
   recurrent/conv/KV tensors on the selected NPU runtime; ACL/CUDA-graph
   capture-vs-replay snapshots of untouched slots (replay-specific writes are
@@ -176,13 +180,19 @@ summary `concurrency`/`repeat`/`makespan_s`/`throughput_frames_s`/`ttfa_p50_ms`/
 `ttfa_p95_ms`/`rtf_mean`/`valid`/`failed`/`requests`/`completed`). These are what
 the validator's **`load_runtime`** record/summary checks consume (frame/duration/
 RTF/TTFA/throughput recomputation and completeness). Calling `load_runtime`
-still requires a plan mapping (`concurrency`, `repetitions`,
+still requires a 40-hex source pin, a plan mapping (`concurrency`, `repetitions`,
 `controls.sampling.max_frames`), a `sample_id → text` corpus and quality documents
-in the `evaluate_audio` schema; it hard-codes 2048 samples/frame and 44100 Hz and
-rejects any failed request, so a run with failures can only be INCONCLUSIVE under
-it and must keep its failure records separately. The client's
-`--backend {sglang,vllm,standalone}` already shapes the request body for
-vLLM-Omni and SGLang-Omni, so both are drivable without a wrapper.
+in the `evaluate_audio` schema. It requires exactly one summary row per
+concurrency × repetition and one record per corpus sample, so the client must run
+with `--requests` equal to the corpus size and `--repeats` equal to the plan's
+repetitions (its default of 192 requests cycles samples). It hard-codes 2048
+samples/frame and 44100 Hz and rejects any failed request, so a run with failures
+can only be INCONCLUSIVE under it and must keep its failure records separately.
+The client's `--backend {sglang,vllm,standalone}` shapes the request body for
+vLLM-Omni and SGLang-Omni. Target response compatibility remains unverified: the
+client fixes the served model name `fishaudio/drama-3`, the `/v1/audio/speech`
+and `/health` endpoints, `audio/pcm` content and `x-sample-rate`/`x-channels`/
+`x-bit-depth` headers matching 44100 Hz mono 16-bit.
 
 **What is NOT reusable as-is (identified target gap):** the validator's
 `validate()` entrypoint is bound to the GPU issue-#10 campaign — it loads the
@@ -193,23 +203,30 @@ SHA and baseline SHA to equal that plan, enforces the **1.5× gate**
 **target-specific plan and verdict** (and a quality-document producer), owned by
 the next authorized scope — not a reuse of this frozen GPU verdict. See §5.
 
-Frozen semantics (source-defined; reuse as-is):
+Measurement semantics. Frame, duration, throughput, RTF and warmup/connection
+are defined by the pinned client; TTFA notes the client's actual boundary; the
+quality bullet is an Issue #27 requirement that the client does not implement:
 
 - **Frame:** `returned_waveform_samples / 2048`, excludes EOS. Do not inherit a
   samples-per-frame constant blindly — it is the codec contract value `2048`.
 - **Audio duration:** `samples / 44100` (44100 Hz mono 16-bit PCM).
 - **Throughput:** `Σ samples / 2048 / makespan`, where makespan is the **complete
   measured window including fill/drain and failed requests**.
-- **TTFA:** dispatch to first usable audio chunk; transport/encoding boundary
-  stated. Report p50/p95 from enough request samples.
+- **TTFA:** the client measures dispatch to the first non-empty PCM transport
+  chunk (possibly a few bytes), not a decoded usable-audio boundary; a target
+  plan must state which boundary it gates. Report p50/p95 from enough request
+  samples.
 - **RTF:** per-request dispatch-to-last-audio / returned audio duration; state
   run-mean/repetition aggregation.
 - **Warmup / connection:** `max(warmup, concurrency)` warmup requests, fresh TCP
   per request, no retries; optional reference warmup separated.
-- **Quality:** score every output (WER corpus + speaker similarity), retain
-  invalid/empty/truncated/excessive-silence outputs; keep failed requests,
-  incomplete repetitions and unknown finish reasons. Never fabricate successful
-  measurements.
+- **Quality (Issue requirement):** score every output (WER corpus + speaker
+  similarity), retain invalid/empty/truncated/excessive-silence outputs; keep
+  failed requests, incomplete repetitions and unknown finish reasons. Never
+  fabricate successful measurements. The client records empty PCM as a failure
+  without audio, saves WAV only for successful rows and reports
+  `finish_reason="unavailable_in_raw_pcm"`, so the target quality producer must
+  supply these records.
 
 **Baseline eligibility (explicit):** eligible comparators are exact vLLM-Omni /
 SGLang-Omni revisions on the target, plus the standalone engine where authorized.
@@ -263,8 +280,9 @@ negative tests, no manufactured success data.
    quality-document producer** are also required (the frozen `validate()` is
    GPU-campaign-bound). None has NPU evidence.
 3. **Executable vs specification-only:** executable now (CPU) = the contract
-   fixture, and the frozen validator only against the recorded GPU campaign
-   evidence it was frozen for.
+   fixture. The frozen validator applies only to the GPU campaign it was frozen
+   for, whose runtime records are external to this repository; it was not run in
+   this scope.
    Specification-only = everything requiring the target runtime, device memory or
    graph execution.
 4. **Needed next:** the §4 TBD tuple (hardware/software/model/service/evaluation/
@@ -280,7 +298,7 @@ negative tests, no manufactured success data.
 | Service feature set | owner | Confirm streaming behavior, voice refs, concurrency set, caps, cancellation | Workload/measurement cannot be frozen |
 | Comparator eligibility | owner | Name eligible vLLM-Omni/SGLang-Omni revisions + viable target paths | Baseline comparison undefined |
 | Evaluation policy | owner | Approve WER/SIM tool + tolerance, latency constraints, repetition plan | No quality gate; GPU thresholds not inherited |
-| Target measurement plan + verdict | next authorized scope | Author a target-specific plan/verdict + quality-document producer (frozen `validate()` is GPU-campaign-bound; `load_runtime` schema is reusable) | No eligible PASS/FAIL verdict until authored |
+| Target measurement plan + verdict | owner (`@Dong1017`) assigns within the next authorized scope | Author a target-specific plan/verdict + quality-document producer (frozen `validate()` is GPU-campaign-bound; `load_runtime` schema is reusable) | No eligible PASS/FAIL verdict until authored |
 | Service objective (optimization) | owner | Freeze objective + latency/quality trade-offs | Optimization acceptance cannot proceed |
 | Authority / budget | owner | Grant execution host/store/output, install permission, resource/time budget, publication/integration authority | Execution scope not authorized |
 

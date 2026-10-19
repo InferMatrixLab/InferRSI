@@ -82,12 +82,13 @@ def buggy_padding_slots(arena: PrefillArena, live_slots: list[int], padding: int
 
 
 def fixed_padding_slots(arena: PrefillArena, live_slots: list[int], padding: int) -> list[int]:
-    """Repaired assignment: a dedicated reserved band above the primary rows.
+    """Repaired assignment: the top of a dedicated band above the primary rows.
 
     Both the padding primaries and their mirrored suffixes stay clear of every
     live request. Overlap with any live slot is rejected rather than used.
     """
-    slots = list(range(PRIMARY_ROWS, PRIMARY_ROWS + padding))
+    padding_end = PRIMARY_ROWS + arena.padding_reserve
+    slots = list(range(padding_end - padding, padding_end))
     if set(live_slots) & set(slots):
         raise ValueError("Prefill padding requires reserved primary state slots")
     return slots
@@ -99,8 +100,8 @@ def run_partial_prefill(*, wrap: bool, padding_reserve: int, assign, count: int)
     Real requests occupy ``[0, count)``. Other in-flight requests occupy the low
     rows ``[count, BATCH)`` that the source regression protects, plus a high-slot
     request in ``[PRIMARY_ROWS - padding, PRIMARY_ROWS)`` — the slots the historical
-    mirror-wrap lands on. Returns the arena and the live rows that must remain
-    owned by their original requests.
+    mirror-wrap lands on. Returns the arena, the live rows that must remain owned
+    by their original requests, every live slot and the padding slots used.
     """
     arena = PrefillArena(wrap=wrap, padding_reserve=padding_reserve)
     padding = BATCH - count
@@ -115,18 +116,25 @@ def run_partial_prefill(*, wrap: bool, padding_reserve: int, assign, count: int)
     live_slots = real_slots + protected
     for slot in real_slots:
         arena.write_row(slot, f"real-{slot}")
-    for slot in assign(arena, live_slots, padding):
+    padding_slots = assign(arena, live_slots, padding)
+    for slot in padding_slots:
         arena.write_row(slot, "padding")
 
-    return arena, protected
+    return arena, protected, live_slots, padding_slots
+
+
+def footprint(arena: PrefillArena, slots: list[int]) -> set[int]:
+    """Every primary and suffix slot touched by ``slots``."""
+    return set(slots) | {arena.suffix(slot) for slot in slots}
 
 
 @pytest.mark.parametrize("count", [5, 6, 7])
 def test_buggy_layout_overwrites_a_live_request(count: int) -> None:
     """The original top-of-arena padding corrupts an unrelated live request."""
-    arena, protected = run_partial_prefill(
+    arena, protected, live_slots, padding_slots = run_partial_prefill(
         wrap=True, padding_reserve=0, assign=buggy_padding_slots, count=count
     )
+    assert footprint(arena, padding_slots) & footprint(arena, live_slots)
     corrupted = [
         row
         for row in protected
@@ -145,18 +153,32 @@ def test_fixed_layout_preserves_every_live_request(count: int) -> None:
     ``wrap=True`` keeps the real modulo suffix mapping active; the repair holds
     because every assigned slot stays below the mirror boundary.
     """
-    arena, protected = run_partial_prefill(
+    arena, protected, live_slots, padding_slots = run_partial_prefill(
         wrap=True, padding_reserve=BATCH, assign=fixed_padding_slots, count=count
     )
+    assert not footprint(arena, padding_slots) & footprint(arena, live_slots)
     for row in protected:
         for slot in (row, arena.suffix(row)):
             for kind in STATE_KINDS:
                 assert arena.state[kind][slot] == f"live-{row}", (count, row, slot, kind)
+    for row in range(count):
+        for slot in (row, arena.suffix(row)):
+            for kind in STATE_KINDS:
+                assert arena.state[kind][slot] == f"real-{row}", (count, row, slot, kind)
+
+
+@pytest.mark.parametrize("count", [5, 6, 7])
+def test_fixed_assignment_without_reserved_band_is_rejected(count: int) -> None:
+    """Without the reserved band the repaired assignment refuses live slots."""
+    with pytest.raises(ValueError, match="reserved primary state slots"):
+        run_partial_prefill(
+            wrap=True, padding_reserve=0, assign=fixed_padding_slots, count=count
+        )
 
 
 def test_fixed_assignment_rejects_live_slot_overlap() -> None:
     """Requesting padding slots that collide with live slots is an explicit error."""
     arena = PrefillArena(wrap=True, padding_reserve=BATCH)
-    overlapping = [PRIMARY_ROWS, PRIMARY_ROWS + 1]
+    overlapping = [PRIMARY_ROWS + BATCH - 2, PRIMARY_ROWS + BATCH - 1]
     with pytest.raises(ValueError, match="reserved primary state slots"):
         fixed_padding_slots(arena, overlapping, padding=2)
