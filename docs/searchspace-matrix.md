@@ -295,7 +295,8 @@ original owners rather than duplicated under local skills.
 The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) is a scoped task
 artifact: a stage/state execution map, a state-correctness contract (with a
 CPU-only reference fixture) and a measurement/quality contract reusing the pinned
-GPU `benchmark.py` and the frozen `evidence/drama3-b300-scale150` validator. It
+GPU `benchmark.py` and only the `load_runtime` record/summary checks of the frozen
+`evidence/drama3-b300-scale150` validator; a target plan/verdict remains a gap. It
 adds **no 🟢 cell and no measured NPU coverage**; every Drama3 NPU status is
 `unverified`, and target qualification is pending the owner-resolved
 hardware/software/model/service/evaluation/authority tuple. The five resource

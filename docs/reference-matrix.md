@@ -282,5 +282,9 @@ map, a state-correctness contract and a measurement/quality contract.
 |---|---|---|
 | david6666666/drama-3-single-b300-inference | `58a1882a4d941f8d21bfce6be37d3d5e7c9fde80`; RFC-selected commits only (`a6e660cc`, `ec51ba1e`, `a7118fb7`, `6ff8d808`, `33f6d723`) and `benchmark.py`/results; no broad history scan | External GPU reference engine motivating NPU questions; shares the design family of the existing `vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap` import (not independent corroboration) |
 
+The supplement links the existing
+[Drama3 B300 rejected-directions case](../skills/inference-optimization-casebook/cases/drama3-rejected-directions.md)
+rather than restating it; that case shares this campaign lineage.
+
 The two primary matrices are unchanged in authority; this is a reconciliation
 note, not a third inventory. All NPU status for Drama3 remains `unverified`.

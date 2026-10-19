@@ -1,7 +1,9 @@
 # Drama3 NPU task readiness — knowledge/instrument supplement
 
-**Governing Issue:** [#27](https://github.com/InferMatrixLab/OmniRSI/issues/27) ·
-**Acting parent agent:** Cursor agent (Claude Opus 5.5) under `@Dong1017` ·
+**Governing Issue:** [#27](https://github.com/InferMatrixLab/InferRSI/issues/27) ·
+**Acting parent agent:** Cursor agent (Claude Opus 5.5) under `@Dong1017`; the
+original session authored the first revision and a continuation session
+reconciled it with the InferRSI rename ·
 **Status:** preparation supplement (Issue §7 outcome 1). This document is
 source-grounded guidance and a qualification handoff. It is **not** Drama3 NPU
 support, NPU validation or a performance result.
@@ -12,22 +14,26 @@ runs, environment installation, standalone-engine implementation and kernel
 generation are **out of scope** and remain for a separately authorized execution
 scope. Merge, goal acceptance and closure are separately authorized.
 
-This supplement reconciles against current `upstream/main`
-`d51c941dc57807c1e16ea698cd9291f414110c45`, which equals the RFC's `d51c941`
-inspection pin (no reconciliation delta).
+The original inspection baseline is the RFC pin
+`d51c941dc57807c1e16ea698cd9291f414110c45` (OmniRSI, now InferRSI). This revision
+is reconciled with InferRSI `main` at
+`bd5e356ac9267362c80f27adba61d76e047583c7`, which adds the maintained-package
+rename to `inferrsi` and the scoped Drama3 diagnostic case reused in §1 and §3.
+Frozen evidence keeps its recorded names.
 
 ---
 
 ## 1 · Source lineage and reuse
 
-Three records describe the same GPU design family. They share lineage and do
+These records describe the same GPU design family. They share lineage and do
 **not** independently corroborate one another, and none is NPU evidence.
 
 | Source | Pin | Role here | Status |
 |---|---|---|---|
 | [david6666666/drama-3-single-b300-inference](https://github.com/david6666666/drama-3-single-b300-inference/tree/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80) | `58a1882a` (RFC-pinned) | GPU reference engine motivating the NPU questions; Python engine with persistent request state, CUDA Graphs, incremental audio decoding, native FP8 routed experts | external source; inspected only at the RFC-selected commits below |
-| [`vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap`](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/cuda/audio/concurrency-scaling-state-and-overlap.json) | vllm-omni `fish_omni@d6ed4f4` | Existing imported record for the same audio design family (stage/state ownership, mixed prefill, codec overlap, workspace isolation, prefix reuse, FP8 MoE) | `imported`, `locally_verified=false`, CUDA |
+| [`vllm_omni.cuda.audio.concurrency_scaling_state_and_overlap`](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/cuda/audio/concurrency-scaling-state-and-overlap.json) | vllm-omni `fish_omni@d6ed4f4` | Existing imported record for the same audio design family (stage/state ownership, mixed prefill, codec overlap, workspace isolation, prefix reuse, FP8 MoE) | `imported`, `locally_verified=false`, CUDA |
 | [`evidence/drama3-b300-scale150/`](../evidence/drama3-b300-scale150/) | issue #10 campaign | Frozen GPU plan + validator + diagnostic lessons from the GPU campaign | campaign **INCONCLUSIVE**; GPU-only |
+| [`case.drama3-rejected-directions`](../skills/inference-optimization-casebook/cases/drama3-rejected-directions.md) | InferRSI `d51c941` diagnostic ledger | Authoritative casebook entry for the campaign's rejected directions and invalid controls (async overlap/shared capture workspace, production prefix reuse, padding-history harness mismatch); reused here, not restated | `historical_observation`; derived from the campaign above, so same lineage |
 
 RFC-selected commit chain inspected for this supplement (direct inspection
 limited to concrete questions; no broad history scan, no readset expansion):
@@ -41,15 +47,15 @@ limited to concrete questions; no broad history scan, no readset expansion):
 | Exact prefix reuse service screen | [`native-row-reuse-service/summary.md`](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/evidence/20261016-ceiling/results/native-row-reuse-service/summary.md) | Do planning/mapping/memory/transfer/drain costs erase local graph savings? |
 | Shared reference-code adapter / result limits | [`33f6d723`](https://github.com/david6666666/drama-3-single-b300-inference/commit/33f6d7237196520be9f457d86df161264cbb087e) · [`current-results.md`](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/docs/current-results.md) | Do baselines receive equivalent inputs; are failed/incomplete runs and baseline revisions retained? |
 
-Reused OmniRSI material (amend/relink, not duplicate): Ascend/CANN skills
+Reused InferRSI material (amend/relink, not duplicate): Ascend/CANN skills
 (`ascend-model-adaptation`, `ascend-graph-mode`, `ascend-aclgraph-capture-replay`,
 `ascend-operator-tuning`, `ascend-device-health`, `cann-attribution-overlap`),
 TorchNPU allocator skills (`torchnpu-device-memory-lifecycle`,
 `torchnpu-pinned-host-memory-lifecycle`), measurement/evidence skills
 (`inference-benchmark-design`, `dense-performance-evidence`, `rsi-evidence`),
 and the omni/audio records
-([`stage_ownership_and_search`](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/common/omni/stage-ownership-and-search.json),
-[`streaming_serving_measurement`](../src/omnirsi/data/repo_packs/vllm_omni/knowledge/common/audio/streaming-serving-measurement.json)).
+([`stage_ownership_and_search`](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/common/omni/stage-ownership-and-search.json),
+[`streaming_serving_measurement`](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/common/audio/streaming-serving-measurement.json)).
 
 ---
 
@@ -127,6 +133,10 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
   invisible to eager-only checks); real GDN suffix allocation on-device; slot
   reuse across two generations. **The fixture carries no NPU arithmetic,
   graph-safety or allocator credit.**
+- **Control discipline:** before attributing a target mismatch to production
+  math, reset complete physical input rows and run an A/A control; the GPU
+  campaign's initial prefix-reuse comparison differed only in private padding
+  history ([casebook row](../skills/inference-optimization-casebook/cases/drama3-rejected-directions.md)).
 
 ### Representative path: one decode step
 
@@ -140,7 +150,11 @@ Grounded in commit [`a6e660cc`](https://github.com/david6666666/drama-3-single-b
   producer buffer (`a7118fb7`).
 - **Target-dependent checks required:** on-device capture/replay parity, dedicated
   codec capture workspace, cross-stream producer lifetime, BF16 FMA/accumulation
-  parity against a higher-precision reference (`6ff8d808`).
+  parity against a higher-precision reference (`6ff8d808`). The GPU dedicated-
+  capture finding and its limits (one reproducer, not every historical WER
+  failure) stay in the
+  [casebook](../skills/inference-optimization-casebook/cases/drama3-rejected-directions.md);
+  NPU workspace ownership must be established on the target runtime.
 
 Reuse the imported record's L0–L4 `validation_plan` for the broader matrix; CPU
 fixtures establish contract/reference logic only.
@@ -161,7 +175,12 @@ and the existing frozen validator
 summary `concurrency`/`repeat`/`makespan_s`/`throughput_frames_s`/`ttfa_p50_ms`/
 `ttfa_p95_ms`/`rtf_mean`/`valid`/`failed`/`requests`/`completed`). These are what
 the validator's **`load_runtime`** record/summary checks consume (frame/duration/
-RTF/TTFA/throughput recomputation and completeness). The client's
+RTF/TTFA/throughput recomputation and completeness). Calling `load_runtime`
+still requires a plan mapping (`concurrency`, `repetitions`,
+`controls.sampling.max_frames`), a `sample_id → text` corpus and quality documents
+in the `evaluate_audio` schema; it hard-codes 2048 samples/frame and 44100 Hz and
+rejects any failed request, so a run with failures can only be INCONCLUSIVE under
+it and must keep its failure records separately. The client's
 `--backend {sglang,vllm,standalone}` already shapes the request body for
 vLLM-Omni and SGLang-Omni, so both are drivable without a wrapper.
 
@@ -244,7 +263,8 @@ negative tests, no manufactured success data.
    quality-document producer** are also required (the frozen `validate()` is
    GPU-campaign-bound). None has NPU evidence.
 3. **Executable vs specification-only:** executable now (CPU) = the contract
-   fixture and the existing frozen validator against recorded evidence.
+   fixture, and the frozen validator only against the recorded GPU campaign
+   evidence it was frozen for.
    Specification-only = everything requiring the target runtime, device memory or
    graph execution.
 4. **Needed next:** the §4 TBD tuple (hardware/software/model/service/evaluation/

@@ -140,7 +140,7 @@ def test_buggy_layout_overwrites_a_live_request(count: int) -> None:
 
 @pytest.mark.parametrize("count", [5, 6, 7])
 def test_fixed_layout_preserves_every_live_request(count: int) -> None:
-    """The repaired layout leaves all live recurrent/conv/KV state untouched.
+    """The repaired layout leaves all live primary and suffix state untouched.
 
     ``wrap=True`` keeps the real modulo suffix mapping active; the repair holds
     because every assigned slot stays below the mirror boundary.
@@ -149,8 +149,9 @@ def test_fixed_layout_preserves_every_live_request(count: int) -> None:
         wrap=True, padding_reserve=BATCH, assign=fixed_padding_slots, count=count
     )
     for row in protected:
-        for kind in STATE_KINDS:
-            assert arena.state[kind][row] == f"live-{row}", (count, row, kind)
+        for slot in (row, arena.suffix(row)):
+            for kind in STATE_KINDS:
+                assert arena.state[kind][slot] == f"live-{row}", (count, row, slot, kind)
 
 
 def test_fixed_assignment_rejects_live_slot_overlap() -> None:
