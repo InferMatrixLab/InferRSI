@@ -5,6 +5,7 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -300,3 +301,54 @@ def test_package_only_collect_without_checkout_or_yaml(tmp_path):
         check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_read_only_store_requires_existing_database_and_creates_nothing(tmp_path):
+    workspace = tmp_path / "empty"
+    workspace.mkdir()
+    with pytest.raises(ValueError, match="existing database"):
+        KnowledgeStore(workspace, skill_root=ROOT, read_only=True)
+    assert list(workspace.iterdir()) == []
+
+
+def test_read_only_store_serves_reads_without_modification(tmp_path):
+    # Spaces and non-ASCII in the workspace exercise the read-only file: URI quoting.
+    workspace = tmp_path / "space store 文本"
+    workspace.mkdir()
+    store = store_at(workspace)
+    revision = store.create(adaptation())
+    expected = store.resource(LOCAL, NOTES, revision=revision)
+    digest = hashlib.sha256(store.database.read_bytes()).hexdigest()
+    viewer = KnowledgeStore(workspace, skill_root=ROOT, read_only=True)
+    assert viewer.identities() == [LOCAL]
+    assert viewer.read(LOCAL).revision == revision
+    assert viewer.read(LOCAL, revision=revision).content[NOTES] == expected
+    assert viewer.resource(LOCAL, NOTES, revision=revision) == expected
+    assert [entry["revision"] for entry in viewer.history(LOCAL)] == [revision]
+    item = viewer.collect(ids=[LOCAL], revisions={LOCAL: revision}, material=True)["items"][0]
+    assert (item["authority"], item["revision"]) == ("store", revision)
+    with closing(viewer._connect()) as connection:
+        with pytest.raises(sqlite3.OperationalError, match="readonly"):
+            connection.execute("CREATE TABLE forbidden (id TEXT)")
+    assert hashlib.sha256(viewer.database.read_bytes()).hexdigest() == digest
+    assert sorted(p.name for p in workspace.iterdir()) == ["knowledge.sqlite3"]
+
+
+def test_read_only_store_rejects_writes(tmp_path):
+    store = store_at(tmp_path)
+    revision = store.create(adaptation())
+    viewer = KnowledgeStore(tmp_path, skill_root=ROOT, read_only=True)
+    with pytest.raises(ValueError, match="read-only"):
+        viewer.create(adaptation())
+    with pytest.raises(ValueError, match="read-only"):
+        viewer.update(adaptation(), expected=revision, reason="amend", evidence=[])
+    assert [entry["revision"] for entry in viewer.history(LOCAL)] == [revision]
+
+
+def test_default_writer_construction_still_initializes_database(tmp_path):
+    workspace = tmp_path / "writer"
+    workspace.mkdir()
+    store = KnowledgeStore(workspace, skill_root=ROOT)
+    assert store.database.is_file()
+    assert store.identities() == []
+    assert sorted(p.name for p in workspace.iterdir()) == ["knowledge.sqlite3"]

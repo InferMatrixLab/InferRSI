@@ -125,7 +125,11 @@ def parser() -> argparse.ArgumentParser:
         "knowledge", help="Search or inspect source-grounded imported experience"
     )
     actions = knowledge.add_subparsers(dest="knowledge_action", required=True)
-    search = actions.add_parser("search")
+    search = actions.add_parser(
+        "search",
+        help="Search installed package records only; the repo/tier/backend/scenario "
+        "filters exclude checkout and store items",
+    )
     search.add_argument("query", nargs="?", default="")
     search.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
     search.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
@@ -135,6 +139,66 @@ def parser() -> argparse.ArgumentParser:
     search.add_argument("--json", action="store_true")
     show = actions.add_parser("show")
     show.add_argument("id")
+
+    collect = commands.add_parser(
+        "collect",
+        help="Collect explicitly selected sources as a revision-pinned envelope; "
+        "package-only unless --skill-root or --store adds them",
+    )
+    collect.add_argument("query", nargs="?", default="")
+    collect.add_argument("--kind", choices=("skill", "knowledge", "case"))
+    collect.add_argument(
+        "--id", action="append", dest="ids", metavar="ID", help="Exact requested identity"
+    )
+    collect.add_argument(
+        "--revision",
+        action="append",
+        dest="revisions",
+        metavar="ID=REV",
+        help="Pin a requested ID to its exact revision",
+    )
+    collect.add_argument("--limit", type=int, default=10)
+    collect.add_argument("--max-bytes", type=int)
+    collect.add_argument("--material", action="store_true")
+    collect.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    collect.add_argument(
+        "--store",
+        type=Path,
+        help="Open an existing store read-only; its database must already exist",
+    )
+    collect.add_argument("--json", action="store_true")
+
+    read = commands.add_parser(
+        "read",
+        help="Read one bundle; select sources explicitly with --skill-root/--store",
+    )
+    read.add_argument("id")
+    read.add_argument("--revision", help="Exact revision returned by collect or read")
+    read.add_argument("--material", action="store_true")
+    read.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    read.add_argument(
+        "--store",
+        type=Path,
+        help="Open an existing store read-only; its database must already exist",
+    )
+
+    resource = commands.add_parser(
+        "resource",
+        help="Write one raw bundle resource of an exact revision to --output",
+    )
+    resource.add_argument("id")
+    resource.add_argument("path")
+    resource.add_argument(
+        "--revision", required=True, help="Exact revision returned by collect or read"
+    )
+    resource.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    resource.add_argument(
+        "--store",
+        type=Path,
+        help="Open an existing store read-only; its database must already exist",
+    )
+    resource.add_argument("--output", type=Path, required=True, help="File receiving the raw bytes")
+
     context = commands.add_parser(
         "context", help="Export cited knowledge for manual Codex/Agent handoff"
     )

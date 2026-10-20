@@ -40,7 +40,7 @@ class KnowledgeStore:
     store candidate cannot shadow them. Repository-owned amendments use PRs.
     """
 
-    def __init__(self, workspace: Path, *, skill_root: Path | None):
+    def __init__(self, workspace: Path, *, skill_root: Path | None, read_only: bool = False):
         # The caller authorizes an existing dedicated directory; none is created or guessed.
         workspace = Path(workspace)
         if workspace.is_symlink() or not workspace.is_dir():
@@ -51,9 +51,15 @@ class KnowledgeStore:
                 raise ValueError(f"Store workspace must be outside read-only sources: {root}")
         self.skill_root = Path(skill_root).resolve() if skill_root is not None else None
         self.adapters = KnowledgeReader(skill_root=self.skill_root)
+        self.read_only = read_only
         self.database = self.workspace / "knowledge.sqlite3"
         if self.database.is_symlink():
             raise ValueError("Store database cannot be a symlink")
+        if read_only:
+            # Reading an existing store must not create or migrate anything.
+            if not self.database.is_file():
+                raise ValueError(f"Read-only store requires an existing database: {self.database}")
+            return
         with closing(self._connect()) as connection, connection:
             connection.executescript(
                 "CREATE TABLE IF NOT EXISTS revisions ("
@@ -71,7 +77,12 @@ class KnowledgeStore:
     def _connect(self):
         if self.database.is_symlink() or self.database.resolve().parent != self.workspace:
             raise ValueError("Store database escapes the authorized workspace")
-        connection = sqlite3.connect(self.database, timeout=5)
+        if self.read_only:
+            # mode=ro fails every write at the SQLite level; as_uri() percent-encodes
+            # spaces and non-ASCII so the file: URI stays valid on Windows too.
+            connection = sqlite3.connect(self.database.as_uri() + "?mode=ro", uri=True, timeout=5)
+        else:
+            connection = sqlite3.connect(self.database, timeout=5)
         connection.execute("PRAGMA foreign_keys=ON")
         return connection
 
@@ -86,9 +97,13 @@ class KnowledgeStore:
         return self.reader().collect(query, **options)
 
     def create(self, bundle: Bundle) -> str:
+        if self.read_only:
+            raise ValueError("Store is read-only; create requires a writable store")
         return self._publish(bundle, expected=None, reason="create", evidence=[])
 
     def update(self, bundle: Bundle, *, expected: str, reason: str, evidence: list[dict]) -> str:
+        if self.read_only:
+            raise ValueError("Store is read-only; update requires a writable store")
         if not expected or not reason.strip():
             raise ValueError("Update requires expected old revision and reason")
         if not isinstance(evidence, list):

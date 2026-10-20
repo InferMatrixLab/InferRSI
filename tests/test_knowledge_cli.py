@@ -1,0 +1,172 @@
+"""CLI contracts for the collect / read / resource knowledge commands."""
+
+import contextlib
+import io
+import json
+import tempfile
+from pathlib import Path
+
+import pytest
+
+from inferrsi.cli import main
+from inferrsi.knowledge_operations import Bundle, KnowledgeReader
+from inferrsi.knowledge_store import KnowledgeStore
+
+REPO = Path(__file__).resolve().parents[1]
+SKILLS = REPO / "skills"
+SOURCE = "calibrate-serving-simulation"
+LOCAL = f"{SOURCE}-local"
+
+
+def run_cli(*argv):
+    stdout, stderr = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        code = main(list(argv))
+    return code, stdout.getvalue(), stderr.getvalue()
+
+
+def run_cli_error(*argv):
+    stdout, stderr = io.StringIO(), io.StringIO()
+    with contextlib.redirect_stdout(stdout), contextlib.redirect_stderr(stderr):
+        with pytest.raises(SystemExit) as error:
+            main(list(argv))
+    assert error.value.code == 2
+    return stderr.getvalue()
+
+
+def local_candidate(source: Bundle) -> Bundle:
+    return Bundle(
+        {
+            **source.metadata,
+            "id": LOCAL,
+            "state": "candidate",
+            "derived_from": [{"ref": f"checkout:{SOURCE}", "revision": source.revision}],
+        },
+        dict(source.content),
+        dict(source.dependencies),
+    )
+
+
+def test_collect_defaults_to_package_with_query_and_limit():
+    code, stdout, _ = run_cli("collect", "Qwen", "--limit", "3", "--json")
+    assert code == 0
+    envelope = json.loads(stdout)
+    assert envelope["items"] and len(envelope["items"]) <= 3
+    assert all(item["authority"] == "package" for item in envelope["items"])
+
+
+def test_collect_reports_explicit_no_match_with_omission_reason():
+    code, stdout, _ = run_cli("collect", "--id", "not-a-real-id", "--json")
+    assert code == 0
+    envelope = json.loads(stdout)
+    assert envelope["no_match"]
+    assert envelope["omissions"][0]["reason"] == "unknown_identity"
+
+
+def test_collect_selects_explicit_checkout_identity():
+    code, stdout, _ = run_cli(
+        "collect", "--id", f"checkout:{SOURCE}", "--skill-root", str(SKILLS)
+    )
+    assert code == 0
+    line = stdout.strip().splitlines()[0].split("\t")
+    assert line[0] == f"checkout:{SOURCE}"
+    assert line[1].startswith("sha256:")
+
+
+def test_read_returns_bundle_view_and_rejects_wrong_revision():
+    code, stdout, _ = run_cli("read", SOURCE, "--skill-root", str(SKILLS), "--material")
+    assert code == 0
+    view = json.loads(stdout)
+    assert view["id"] == SOURCE
+    assert view["revision"].startswith("sha256:")
+    assert view["content"]
+    stderr = run_cli_error(
+        "read", SOURCE, "--revision", f"sha256:{'0' * 64}", "--skill-root", str(SKILLS)
+    )
+    assert "unavailable" in stderr
+
+
+def test_resource_writes_exact_bytes_of_requested_revision():
+    bundle = KnowledgeReader(skill_root=SKILLS).read(SOURCE)
+    entrypoint = bundle.metadata["entrypoint"]
+    with tempfile.TemporaryDirectory() as directory:
+        destination = Path(directory) / "entry.md"
+        code, stdout, _ = run_cli(
+            "resource",
+            SOURCE,
+            entrypoint,
+            "--revision",
+            bundle.revision,
+            "--skill-root",
+            str(SKILLS),
+            "--output",
+            str(destination),
+        )
+        assert code == 0
+        assert destination.read_bytes() == bundle.content[entrypoint]
+        assert json.loads(stdout)["resource"] == str(destination.resolve())
+
+
+def test_store_source_requires_existing_database_and_reads_candidates(tmp_path):
+    workspace = tmp_path / "store"
+    workspace.mkdir()
+    source = KnowledgeReader(skill_root=SKILLS).read(SOURCE)
+    revision = KnowledgeStore(workspace, skill_root=SKILLS).create(local_candidate(source))
+    code, stdout, _ = run_cli(
+        "collect",
+        "--id",
+        f"store:{LOCAL}",
+        "--skill-root",
+        str(SKILLS),
+        "--store",
+        str(workspace),
+        "--json",
+    )
+    assert code == 0
+    item = json.loads(stdout)["items"][0]
+    assert (item["authority"], item["revision"]) == ("store", revision)
+    code, stdout, _ = run_cli(
+        "read",
+        f"store:{LOCAL}",
+        "--revision",
+        revision,
+        "--skill-root",
+        str(SKILLS),
+        "--store",
+        str(workspace),
+    )
+    assert code == 0
+    assert json.loads(stdout)["id"] == LOCAL
+    empty = tmp_path / "empty"
+    empty.mkdir()
+    stderr = run_cli_error("read", LOCAL, "--store", str(empty))
+    assert "existing database" in stderr
+    assert list(empty.iterdir()) == []
+
+
+def test_ambiguous_identity_error_names_qualified_choices(tmp_path):
+    package_id = KnowledgeReader().identities()[0].partition(":")[2]
+    cases = tmp_path / "owner" / "cases"
+    cases.mkdir(parents=True)
+    (tmp_path / "owner" / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: test\n---\nBody", encoding="utf-8"
+    )
+    (cases / "note.md").write_text("observation", encoding="utf-8")
+    (cases / "note.json").write_text(
+        json.dumps(
+            {
+                "id": package_id,
+                "kind": "case",
+                "state": "historical_observation",
+                "content": "note.md",
+                "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+                "applicability": [],
+                "limitations": [],
+                "attribution": "fixture",
+            }
+        ),
+        encoding="utf-8",
+    )
+    stderr = run_cli_error("read", package_id, "--skill-root", str(tmp_path))
+    assert "Ambiguous" in stderr
+    assert f"package:{package_id}" in stderr and f"checkout:{package_id}" in stderr
