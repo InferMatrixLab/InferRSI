@@ -25,20 +25,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/cgroup-resource-controls/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/cgroup-resource-controls/SKILL.md",
-        "skills/cgroup-resource-controls/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md"
+  },
   "checkout_ref": "checkout:cgroup-resource-controls",
   "source_files": {
-    "skills/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
-    "skills/cgroup-resource-controls/metadata.json": "c0d8e7c8dc5018e1dade0c55b1fbe2ac8427c8678ae60af8244436b0886e6716"
+    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
+    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json": "e0cf9b8e1b92899da1564df2f2fd5c842fa2113925b188358c4984f5e31712ce",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "cgroup-resource-controls",
@@ -71,20 +76,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

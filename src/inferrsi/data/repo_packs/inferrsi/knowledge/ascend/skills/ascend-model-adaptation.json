@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "id": "inferrsi.common.skills.ascend_model_adaptation",
+  "id": "inferrsi.ascend.skills.ascend_model_adaptation",
   "title": "ascend-model-adaptation",
   "repo": "inferrsi",
   "tier": "contribution",
-  "backend": "common",
+  "backend": "ascend",
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
@@ -22,20 +22,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-model-adaptation/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/ascend-model-adaptation/SKILL.md",
-        "skills/ascend-model-adaptation/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "d9e81a63981819fac8f5a21dca9c90f86e26788f58339d3a9c8e66319c178472"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md"
+  },
   "checkout_ref": "checkout:ascend-model-adaptation",
   "source_files": {
-    "skills/ascend-model-adaptation/SKILL.md": "d9e81a63981819fac8f5a21dca9c90f86e26788f58339d3a9c8e66319c178472",
-    "skills/ascend-model-adaptation/metadata.json": "519573465e92bd5c6ce8c38c2b4969e4b23405f7789d06f9439201e263684c7b"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "d9e81a63981819fac8f5a21dca9c90f86e26788f58339d3a9c8e66319c178472",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "4c6d0c901f0b3858c7dc337c86d892194e4102c8b349932a4caf1a811c99b1ed",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "ascend-model-adaptation",
@@ -65,20 +70,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

@@ -22,20 +22,27 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/checkpoint-recovery-consistency/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/checkpoint-recovery-consistency/SKILL.md",
-        "skills/checkpoint-recovery-consistency/metadata.json"
+        "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json",
+        "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "30d55d7d0475d95f369f7c9aa3e594406a9407ded2a4e623df0c39cd487ba724"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md"
+  },
   "checkout_ref": "checkout:checkpoint-recovery-consistency",
   "source_files": {
-    "skills/checkpoint-recovery-consistency/SKILL.md": "30d55d7d0475d95f369f7c9aa3e594406a9407ded2a4e623df0c39cd487ba724",
-    "skills/checkpoint-recovery-consistency/metadata.json": "1ca76d4c1067db46ce7e751f58135ee3a9a84e7f60241f2c63d3d9998e598b3a"
+    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md": "30d55d7d0475d95f369f7c9aa3e594406a9407ded2a4e623df0c39cd487ba724",
+    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json": "5c18a225cd3b88051c57cb29d3d9cca3dcf18826aff86cef1cec39f315a1fc1d",
+    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md": "7c95f3058bbfeda1dd7e83d05917a94be0548350c95d7066dd5bf49cb232775a",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "checkpoint-recovery-consistency",
@@ -67,20 +74,20 @@
       "references/sources.md"
     ],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

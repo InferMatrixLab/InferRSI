@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "id": "inferrsi.common.skills.ascend_device_health",
+  "id": "inferrsi.ascend.skills.ascend_device_health",
   "title": "ascend-device-health",
   "repo": "inferrsi",
   "tier": "contribution",
-  "backend": "common",
+  "backend": "ascend",
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
@@ -23,20 +23,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-device-health/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/ascend-device-health/SKILL.md",
-        "skills/ascend-device-health/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-device-health/SKILL.md"
+  },
   "checkout_ref": "checkout:ascend-device-health",
   "source_files": {
-    "skills/ascend-device-health/SKILL.md": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a",
-    "skills/ascend-device-health/metadata.json": "81cea5ca72d49ac8020336429024507f926dee0fa26f481f6b4a0dc89653302a"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json": "2c23209ef418287f1023f53eba4eda66551f09ab102a61c879df27c25365e757",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "ascend-device-health",
@@ -67,20 +72,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

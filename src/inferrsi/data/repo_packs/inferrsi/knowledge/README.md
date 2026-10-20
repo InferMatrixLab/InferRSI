@@ -1,8 +1,9 @@
 # InferRSI skill discovery index
 
-Generated metadata for every root `skills/` entry. The source procedures,
-references and cases remain authoritative in the checkout; their bodies
-are not redistributed by this index. The reference and searchspace matrices
+Generated abstracts for all 48 registered skills in `data/skill_library/`.
+Their complete procedures, references and cases ship in the same package.
+`skill-index.json` maps stable skill IDs to categorized directories. The
+reference and searchspace matrices
 remain the maintained knowledge views. Do not edit generated files by hand.
 
 Index status `imported` and `locally_verified: false` describe these discovery
@@ -11,76 +12,76 @@ are preserved under `skill_metadata`; absent fields remain absent. Unknown
 licenses remain unknown. Indexing grants no execution permission or validation.
 
 These are knowledge abstracts (`--kind knowledge`), with namespaced package
-IDs distinct from their `checkout_ref` skills. `common` and `skills.discovery`
-describe the index, not hardware or task applicability.
+IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
+procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [ac70272978965f0043dcc2ead81afb813c69f63c](https://github.com/InferMatrixLab/InferRSI/tree/ac70272978965f0043dcc2ead81afb813c69f63c/skills).
+Source snapshot: [ba5290acecb9688dfdc6225dba83d8a6a23dee22](https://github.com/InferMatrixLab/InferRSI/tree/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
 inferrsi collect --repo-type inferrsi --kind knowledge --limit 50 --material
 ```
 
-After committing changes to skill headers or sidecars, regenerate from a
+After committing changes to skill bodies, resources or the registry, regenerate from a
 development installation with the skills extra. The source revision must
 contain the current input paths and bytes (Git checkout filters are respected).
 `source_files` hashes identify the canonical Git bytes, not a validation result.
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision ac70272978965f0043dcc2ead81afb813c69f63c --check
+python tools/build_skill_index.py --source-revision ba5290acecb9688dfdc6225dba83d8a6a23dee22 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
-References and cases remain source links; they are not separate packaged entries.
+References and cases ship with their owning skill, not as duplicate knowledge abstracts.
 
-| Skill | Original declared status |
-| --- | --- |
-| [ascend-aclgraph-capture-replay](common/skills/ascend-aclgraph-capture-replay.json) | candidate |
-| [ascend-device-health](common/skills/ascend-device-health.json) | candidate |
-| [ascend-distributed-parallel](common/skills/ascend-distributed-parallel.json) | candidate |
-| [ascend-graph-mode](common/skills/ascend-graph-mode.json) | candidate |
-| [ascend-model-adaptation](common/skills/ascend-model-adaptation.json) | candidate |
-| [ascend-operator-profiling](common/skills/ascend-operator-profiling.json) | candidate |
-| [ascend-operator-tuning](common/skills/ascend-operator-tuning.json) | candidate |
-| [ascend-optimization-casebook](common/skills/ascend-optimization-casebook.json) | candidate |
-| [ascend-performance-analysis](common/skills/ascend-performance-analysis.json) | candidate |
-| [ascendc-tiling-design](common/skills/ascendc-tiling-design.json) | candidate |
-| [assess-serving-preemption](common/skills/assess-serving-preemption.json) | candidate |
-| [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | candidate |
-| [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | candidate |
-| [calibrate-serving-simulation](common/skills/calibrate-serving-simulation.json) | candidate |
-| [cann-attribution-overlap](common/skills/cann-attribution-overlap.json) | candidate |
-| [cgroup-resource-controls](common/skills/cgroup-resource-controls.json) | candidate |
-| [checkpoint-recovery-consistency](common/skills/checkpoint-recovery-consistency.json) | candidate |
-| [choose-parallel-training-plan](common/skills/choose-parallel-training-plan.json) | candidate |
-| [cite-check-downstream-pr](common/skills/cite-check-downstream-pr.json) | unspecified |
-| [claim-contract](common/skills/claim-contract.json) | unspecified |
-| [competitor-scan](common/skills/competitor-scan.json) | unspecified |
-| [dcp-async-save-performance](common/skills/dcp-async-save-performance.json) | candidate |
-| [dense-performance-evidence](common/skills/dense-performance-evidence.json) | candidate |
-| [diagnose-attention-bottlenecks](common/skills/diagnose-attention-bottlenecks.json) | candidate |
-| [diagnose-vllm-admission-pressure](common/skills/diagnose-vllm-admission-pressure.json) | candidate |
-| [draft-acceptance-issue](common/skills/draft-acceptance-issue.json) | unspecified |
-| [evaluate-elastic-serving-placement](common/skills/evaluate-elastic-serving-placement.json) | candidate |
-| [host-memory-management](common/skills/host-memory-management.json) | candidate |
-| [host-overhead-optimization](common/skills/host-overhead-optimization.json) | candidate |
-| [host-overhead-profiling](common/skills/host-overhead-profiling.json) | candidate |
-| [inference-benchmark-design](common/skills/inference-benchmark-design.json) | candidate |
-| [inference-optimization-casebook](common/skills/inference-optimization-casebook.json) | candidate |
-| [kernel-writing-guide](common/skills/kernel-writing-guide.json) | candidate |
-| [kv-tier-management](common/skills/kv-tier-management.json) | candidate |
-| [npu-skill-factory](common/skills/npu-skill-factory.json) | candidate |
-| [optimization-search-policy](common/skills/optimization-search-policy.json) | candidate |
-| [os-process-placement](common/skills/os-process-placement.json) | candidate |
-| [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | candidate |
-| [plan-activation-residency](common/skills/plan-activation-residency.json) | candidate |
-| [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | candidate |
-| [rsi-evidence](common/skills/rsi-evidence.json) | unspecified |
-| [skill-evolution-playbook](common/skills/skill-evolution-playbook.json) | candidate |
-| [storage-io-measurement](common/skills/storage-io-measurement.json) | candidate |
-| [torchnpu-device-memory-lifecycle](common/skills/torchnpu-device-memory-lifecycle.json) | candidate |
-| [torchnpu-pinned-host-memory-lifecycle](common/skills/torchnpu-pinned-host-memory-lifecycle.json) | candidate |
-| [training-input-pipeline](common/skills/training-input-pipeline.json) | candidate |
-| [training-resource-budget](common/skills/training-resource-budget.json) | candidate |
-| [weight-loading-optimization](common/skills/weight-loading-optimization.json) | candidate |
+| Skill | Backend | Original declared status |
+| --- | --- | --- |
+| [ascend-aclgraph-capture-replay](ascend/skills/ascend-aclgraph-capture-replay.json) | ascend | candidate |
+| [ascend-device-health](ascend/skills/ascend-device-health.json) | ascend | candidate |
+| [ascend-distributed-parallel](ascend/skills/ascend-distributed-parallel.json) | ascend | candidate |
+| [ascend-graph-mode](ascend/skills/ascend-graph-mode.json) | ascend | candidate |
+| [ascend-model-adaptation](ascend/skills/ascend-model-adaptation.json) | ascend | candidate |
+| [ascend-operator-profiling](ascend/skills/ascend-operator-profiling.json) | ascend | candidate |
+| [ascend-operator-tuning](ascend/skills/ascend-operator-tuning.json) | ascend | candidate |
+| [ascend-optimization-casebook](ascend/skills/ascend-optimization-casebook.json) | ascend | candidate |
+| [ascend-performance-analysis](ascend/skills/ascend-performance-analysis.json) | ascend | candidate |
+| [ascendc-tiling-design](ascend/skills/ascendc-tiling-design.json) | ascend | candidate |
+| [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
+| [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
+| [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |
+| [calibrate-serving-simulation](common/skills/calibrate-serving-simulation.json) | common | candidate |
+| [cann-attribution-overlap](ascend/skills/cann-attribution-overlap.json) | ascend | candidate |
+| [cgroup-resource-controls](common/skills/cgroup-resource-controls.json) | common | candidate |
+| [checkpoint-recovery-consistency](common/skills/checkpoint-recovery-consistency.json) | common | candidate |
+| [choose-parallel-training-plan](common/skills/choose-parallel-training-plan.json) | common | candidate |
+| [cite-check-downstream-pr](common/skills/cite-check-downstream-pr.json) | common | unspecified |
+| [claim-contract](common/skills/claim-contract.json) | common | unspecified |
+| [competitor-scan](common/skills/competitor-scan.json) | common | unspecified |
+| [dcp-async-save-performance](common/skills/dcp-async-save-performance.json) | common | candidate |
+| [dense-performance-evidence](common/skills/dense-performance-evidence.json) | common | candidate |
+| [diagnose-attention-bottlenecks](cuda/skills/diagnose-attention-bottlenecks.json) | cuda | candidate |
+| [diagnose-vllm-admission-pressure](common/skills/diagnose-vllm-admission-pressure.json) | common | candidate |
+| [draft-acceptance-issue](common/skills/draft-acceptance-issue.json) | common | unspecified |
+| [evaluate-elastic-serving-placement](common/skills/evaluate-elastic-serving-placement.json) | common | candidate |
+| [host-memory-management](common/skills/host-memory-management.json) | common | candidate |
+| [host-overhead-optimization](common/skills/host-overhead-optimization.json) | common | candidate |
+| [host-overhead-profiling](cuda/skills/host-overhead-profiling.json) | cuda | candidate |
+| [inference-benchmark-design](common/skills/inference-benchmark-design.json) | common | candidate |
+| [inference-optimization-casebook](common/skills/inference-optimization-casebook.json) | common | candidate |
+| [kernel-writing-guide](common/skills/kernel-writing-guide.json) | common | candidate |
+| [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
+| [npu-skill-factory](common/skills/npu-skill-factory.json) | common | candidate |
+| [optimization-search-policy](common/skills/optimization-search-policy.json) | common | candidate |
+| [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
+| [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | common | candidate |
+| [plan-activation-residency](common/skills/plan-activation-residency.json) | common | candidate |
+| [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
+| [rsi-evidence](common/skills/rsi-evidence.json) | common | unspecified |
+| [skill-evolution-playbook](common/skills/skill-evolution-playbook.json) | common | candidate |
+| [storage-io-measurement](common/skills/storage-io-measurement.json) | common | candidate |
+| [torchnpu-device-memory-lifecycle](ascend/skills/torchnpu-device-memory-lifecycle.json) | ascend | candidate |
+| [torchnpu-pinned-host-memory-lifecycle](ascend/skills/torchnpu-pinned-host-memory-lifecycle.json) | ascend | candidate |
+| [training-input-pipeline](common/skills/training-input-pipeline.json) | common | candidate |
+| [training-resource-budget](common/skills/training-resource-budget.json) | common | candidate |
+| [weight-loading-optimization](common/skills/weight-loading-optimization.json) | common | candidate |

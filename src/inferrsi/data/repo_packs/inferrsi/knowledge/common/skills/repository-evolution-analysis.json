@@ -21,20 +21,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/repository-evolution-analysis/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/repository-evolution-analysis/SKILL.md",
-        "skills/repository-evolution-analysis/metadata.json"
+        "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "3dfe319edd81e97fa50a4a215e1b55fd62ae3dc0e5b2fe90f0f8fb468d04e422"
+      "content_sha256": "8cac8e0d52fa5bffdf3076425c45a6041a3fe4402ffd5219abdf23ccaf338f38"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/repository-evolution-analysis/SKILL.md"
+  },
   "checkout_ref": "checkout:repository-evolution-analysis",
   "source_files": {
-    "skills/repository-evolution-analysis/SKILL.md": "3dfe319edd81e97fa50a4a215e1b55fd62ae3dc0e5b2fe90f0f8fb468d04e422",
-    "skills/repository-evolution-analysis/metadata.json": "218102da260ab63152a616529c3d02ea07028c1bdb38f77f6ce14d651ebedd52"
+    "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md": "8cac8e0d52fa5bffdf3076425c45a6041a3fe4402ffd5219abdf23ccaf338f38",
+    "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json": "bbde3cec2545a2613653ec521053f972235742fb53b630badcffd9a61fa5f19f",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "repository-evolution-analysis",
@@ -98,7 +103,7 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "any software repository with a recoverable git history",
@@ -106,13 +111,13 @@
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation."
   ],
   "verification": {

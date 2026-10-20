@@ -16,20 +16,27 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/calibrate-serving-simulation/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/calibrate-serving-simulation/SKILL.md",
-        "skills/calibrate-serving-simulation/metadata.json"
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json",
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/calibrate-serving-simulation/SKILL.md"
+  },
   "checkout_ref": "checkout:calibrate-serving-simulation",
   "source_files": {
-    "skills/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352",
-    "skills/calibrate-serving-simulation/metadata.json": "4955ecf9f19c666c39594f8ab6917bf5a9ae22f2274e594615e9f561b746c29f"
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "553406b95177a38d73ea6f305c30f361765a437dfe8cfec86c26d4c00e1ac41c",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "calibrate-serving-simulation",
@@ -66,20 +73,20 @@
       "references/source-notes.md"
     ],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation."
   ],
   "verification": {

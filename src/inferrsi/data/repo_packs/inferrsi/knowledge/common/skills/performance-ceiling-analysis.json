@@ -22,20 +22,57 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/performance-ceiling-analysis/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/performance-ceiling-analysis/SKILL.md",
-        "skills/performance-ceiling-analysis/metadata.json"
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/README.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/READSET.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/STATIC_CHECKS.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/agentic-kernel.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/vidur.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "28539a3ca87ad6c5a1d0c83929f4353c3f048d70678345cfacb9446bc3733242"
+      "content_sha256": "3a4d5e6146286bf07407b75f0bd9d8957c589817ae8f0eece26123231eafa0ec"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/performance-ceiling-analysis/SKILL.md"
+  },
   "checkout_ref": "checkout:performance-ceiling-analysis",
   "source_files": {
-    "skills/performance-ceiling-analysis/SKILL.md": "28539a3ca87ad6c5a1d0c83929f4353c3f048d70678345cfacb9446bc3733242",
-    "skills/performance-ceiling-analysis/metadata.json": "4f45db553c124b664fc243493ab59afb31f275a3ebeee36720b3b97f6763aaf6"
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "3a4d5e6146286bf07407b75f0bd9d8957c589817ae8f0eece26123231eafa0ec",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "87f9fc598b384e17f1fdf1d12f29230ba7eb85fbe4efb0b446b6c01a2e7302ea",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/README.md": "17b2d1c7c14124d59ac8a0d5ad4200ad2803d991e784a1a98cd97188cc364999",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/READSET.md": "66459ce393858b2b2160f1e2973373bfc4b9902a12644631934b4ebe3140296a",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/STATIC_CHECKS.md": "cb0aa7d148352ebb7b1678fc42a557a099575054716a341dfa25b6a998029064",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md": "781a675a6533e0a18c044aaaee0d010da7013b6504654b8b8292a35176db801e",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/references/source-notes.md": "f9a8254e45473ddb2b73e576957b6d3db83c62b99dff1922f4d1e606e569559e",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md": "5780d6eb5257612ec45deb94f85f334a6ecabf7e466d1678706041f6549bda79",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md": "6593a63fce9c474b515663a560c94b7df048dc5f6e77a95b8e54e4a64cd10a09",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md": "6ff3a7bc31f1172db92aedaf7df1f1aac688bf769227b583a4cd82bfad52da67",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/agentic-kernel.md": "7190573b85f94a4391bb0d887ccbd37a31b3f08bb0531114ad7afd72fe1567a7",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md": "3926369acd88ff3c370bee5718e74dd15f3219c3e4f6311095e30e917bffa4cf",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md": "35d47ac078591221fcb666219bcd824f9400fc17aafecdc0499d8336f7178238",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "performance-ceiling-analysis",
@@ -129,7 +166,7 @@
       "references/papers-20261015/STATIC_CHECKS.md"
     ],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -138,13 +175,13 @@
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation."
   ],
   "verification": {

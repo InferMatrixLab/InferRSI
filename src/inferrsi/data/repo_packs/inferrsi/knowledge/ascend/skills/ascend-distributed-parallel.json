@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "id": "inferrsi.common.skills.ascend_distributed_parallel",
+  "id": "inferrsi.ascend.skills.ascend_distributed_parallel",
   "title": "ascend-distributed-parallel",
   "repo": "inferrsi",
   "tier": "contribution",
-  "backend": "common",
+  "backend": "ascend",
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
@@ -24,20 +24,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-distributed-parallel/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/ascend-distributed-parallel/SKILL.md",
-        "skills/ascend-distributed-parallel/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "ae3f337b0892f34f788b22cfef02030e97a52b7e68fe7d96727d15f3484def8e"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md"
+  },
   "checkout_ref": "checkout:ascend-distributed-parallel",
   "source_files": {
-    "skills/ascend-distributed-parallel/SKILL.md": "ae3f337b0892f34f788b22cfef02030e97a52b7e68fe7d96727d15f3484def8e",
-    "skills/ascend-distributed-parallel/metadata.json": "93969be6e0dd1d92eb7fba6503e1934ed783bce2b85aea7277ee24f2baf42923"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "ae3f337b0892f34f788b22cfef02030e97a52b7e68fe7d96727d15f3484def8e",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "843c0a93bf3e61c107c432e05b23a7466ed07b7c061142fed1e6128ca22734cb",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "ascend-distributed-parallel",
@@ -69,20 +74,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

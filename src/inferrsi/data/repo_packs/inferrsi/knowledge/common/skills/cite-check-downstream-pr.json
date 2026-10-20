@@ -16,18 +16,23 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/cite-check-downstream-pr/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/cite-check-downstream-pr/SKILL.md"
+        "src/inferrsi/data/skill_library/skill-index.json",
+        "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md"
       ],
-      "content_sha256": "520de1125af2e1356ae3af40cdcca0855b733f9ccbb7326c4415e842e476d2e0"
+      "content_sha256": "485932cdf3b1fba5dc69be73e75d38f86a7b79442d26e82a296c963a7598d226"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/workflows/cite-check-downstream-pr/SKILL.md"
+  },
   "checkout_ref": "checkout:cite-check-downstream-pr",
   "source_files": {
-    "skills/cite-check-downstream-pr/SKILL.md": "520de1125af2e1356ae3af40cdcca0855b733f9ccbb7326c4415e842e476d2e0"
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21",
+    "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md": "485932cdf3b1fba5dc69be73e75d38f86a7b79442d26e82a296c963a7598d226"
   },
   "skill_metadata": {
     "name": "cite-check-downstream-pr",
@@ -36,13 +41,13 @@
   "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is unspecified.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility."
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario."
   ],
   "verification": {
     "locally_verified": false,

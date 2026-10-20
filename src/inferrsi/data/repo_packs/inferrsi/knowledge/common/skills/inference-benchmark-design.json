@@ -21,20 +21,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/inference-benchmark-design/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/inference-benchmark-design/SKILL.md",
-        "skills/inference-benchmark-design/metadata.json"
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "2cf804288f5d0ce915a3eae007c2838880bce6e5c1fc55d356779b27e040a6ac"
+      "content_sha256": "dcaa6d7bdcbe4c29116b9679d95ec076faaada3e66c647e95acdd46c2343a2eb"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/inference-benchmark-design/SKILL.md"
+  },
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
-    "skills/inference-benchmark-design/SKILL.md": "2cf804288f5d0ce915a3eae007c2838880bce6e5c1fc55d356779b27e040a6ac",
-    "skills/inference-benchmark-design/metadata.json": "829ce0e29d318372c21b8525b7d8897649b0b7a3fd4fce046e665b9288634aae"
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "dcaa6d7bdcbe4c29116b9679d95ec076faaada3e66c647e95acdd46c2343a2eb",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "1e04bcca099b0cdbcbdfd8e9c88b47c1accb656cb5317ccb7a929fcacb0a0d87",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",
@@ -66,20 +71,20 @@
       "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
       "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
     ],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

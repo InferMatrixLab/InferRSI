@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "id": "inferrsi.common.skills.host_overhead_profiling",
+  "id": "inferrsi.cuda.skills.host_overhead_profiling",
   "title": "host-overhead-profiling",
   "repo": "inferrsi",
   "tier": "contribution",
-  "backend": "common",
+  "backend": "cuda",
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
@@ -22,20 +22,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/host-overhead-profiling/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/host-overhead-profiling/SKILL.md",
-        "skills/host-overhead-profiling/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md"
+  },
   "checkout_ref": "checkout:host-overhead-profiling",
   "source_files": {
-    "skills/host-overhead-profiling/SKILL.md": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d",
-    "skills/host-overhead-profiling/metadata.json": "94ddd2229eacd80f57035fe7db3742ebdb6ec1517478f1b152e0ec47fa45d5b2"
+    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d",
+    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "e89f1fbbfdf63b666d42adec7826eb4b4a80428b288e476ddb9c977d9aeb3ab2",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "host-overhead-profiling",
@@ -65,20 +70,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

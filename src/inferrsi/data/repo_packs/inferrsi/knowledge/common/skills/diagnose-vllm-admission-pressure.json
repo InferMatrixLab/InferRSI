@@ -21,20 +21,53 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/diagnose-vllm-admission-pressure/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/diagnose-vllm-admission-pressure/SKILL.md",
-        "skills/diagnose-vllm-admission-pressure/metadata.json"
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/INTEGRATION_NOTES.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/migration-is-not-free-memory.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/parallelism-change-with-state-cost.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/preemption-under-kv-pressure.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/knowledge/scheduling-state-boundaries.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/fastserve.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/llumnix.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/loongserve.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/fastserve-readset.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/loongserve-readset.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/orca-readset.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "5fb44e02c8ef6c579642bb38d4958f0c6836621f8c54e4c59225dcfde73f4ed8"
+      "content_sha256": "5fb9ea1d1373e110d9b506f69963c4857338b7dbf5e38ec9a49b59a0ff683ed0"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md"
+  },
   "checkout_ref": "checkout:diagnose-vllm-admission-pressure",
   "source_files": {
-    "skills/diagnose-vllm-admission-pressure/SKILL.md": "5fb44e02c8ef6c579642bb38d4958f0c6836621f8c54e4c59225dcfde73f4ed8",
-    "skills/diagnose-vllm-admission-pressure/metadata.json": "815726fbdcbe11f1fb63fd16543c8dc7e0db13a159d4e4f3dd9f9d2a6d981847"
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md": "5fb9ea1d1373e110d9b506f69963c4857338b7dbf5e38ec9a49b59a0ff683ed0",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json": "e2e0bc54f6f0142471320680827836e0b6ae778f6557e1c0772dfebf3ba34a0d",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/INTEGRATION_NOTES.md": "82b24be82451ee121892f61575d0cf4ecb9920813a25ccb26cce2b45dda6d8b3",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/migration-is-not-free-memory.md": "2ac168f2725cba7fc92dfcc67c01bf2258dff6a2dbe1ddb063bc60c175d82d0a",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/parallelism-change-with-state-cost.md": "5accc81086e4500d66f894ef6af9951e1cbb76941f6c631aab5c5561a786d8d8",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/preemption-under-kv-pressure.md": "462200a6d0b193ef01f32374a463e0f2838ca8edf33d9ab898def65ffd0b490a",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/knowledge/scheduling-state-boundaries.md": "d4ef29869959b835a5dcb06ddb2fd8e6cff49bb176994dc1d46eb9a852f6228d",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/fastserve.md": "9b4e275843000ef453d508d9c3c9c3f8ea1de5545fbd01d7abe74baa8a4931a7",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/llumnix.md": "f252ce33ac2db017701ca1d49813c5ec1996c4c92900cf35bb6bda7fc59c0f18",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/loongserve.md": "7bc6d1e256d461b04acc8ed856cf99108faceda9cde729ab95bcca596fe019ca",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/notes/orca.md": "f5a3b5870d64226408a8fcda5d69483769d823f8a5efd7f11698c8da483ab195",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/fastserve-readset.md": "9866bd0c78b2b638998b3b632f6bae26aef032462c81abee336d309af5b07831",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/llumnix-readset.md": "3a2819d65ad24087c08530492ef39d8ea046ed1f780d53512f1d23e2b3578487",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/loongserve-readset.md": "f1a383e7bdbbd5a5a472d7f6e1292c8a17d4910ff736ca5a6aa422e1bee74f8c",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/orca-readset.md": "a497ef23b7e60c0fbc15d95b7e07cd20547cfe56f37c24dfe6ed70d79ef7a3cf",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/source-notes.md": "84033fd514773f10c0bddd9914fabb980497ba2b308f226a922c3e1888413827",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "diagnose-vllm-admission-pressure",
@@ -78,20 +111,20 @@
       "references/source-notes.md"
     ],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

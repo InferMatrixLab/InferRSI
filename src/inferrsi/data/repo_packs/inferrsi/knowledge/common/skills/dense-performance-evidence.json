@@ -21,20 +21,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/dense-performance-evidence/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/dense-performance-evidence/SKILL.md",
-        "skills/dense-performance-evidence/metadata.json"
+        "src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "fa3cabd752239b600c6211c91633314cf7e80bd503cb57290c299d1f7d776031"
+      "content_sha256": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/dense-performance-evidence/SKILL.md"
+  },
   "checkout_ref": "checkout:dense-performance-evidence",
   "source_files": {
-    "skills/dense-performance-evidence/SKILL.md": "fa3cabd752239b600c6211c91633314cf7e80bd503cb57290c299d1f7d776031",
-    "skills/dense-performance-evidence/metadata.json": "318af1b389f606828d1969476d9922dd2f7d1d5795cbe2052129c4b109c3ed11"
+    "src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933",
+    "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json": "d8cfc7c93d0a96d5240f085732f3f6a45159c125238a693220687489d6fd1979",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "dense-performance-evidence",
@@ -66,20 +71,20 @@
       "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
       "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
     ],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

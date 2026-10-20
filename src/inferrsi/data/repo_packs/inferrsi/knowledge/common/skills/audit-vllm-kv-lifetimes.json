@@ -21,20 +21,27 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/audit-vllm-kv-lifetimes/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/audit-vllm-kv-lifetimes/SKILL.md",
-        "skills/audit-vllm-kv-lifetimes/metadata.json"
+        "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "09d97b24ea3da460cc911d1f8fa0fc11234f54df1254b892fabaf0aba28eca44"
+      "content_sha256": "313733a65cc48442b18dda1c4665139a689963a90e1032a2235bc6f40e3a8e06"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md"
+  },
   "checkout_ref": "checkout:audit-vllm-kv-lifetimes",
   "source_files": {
-    "skills/audit-vllm-kv-lifetimes/SKILL.md": "09d97b24ea3da460cc911d1f8fa0fc11234f54df1254b892fabaf0aba28eca44",
-    "skills/audit-vllm-kv-lifetimes/metadata.json": "85a9ee8ee96f594491e00798dea15153030666459c168c3e6ef93d7292bea791"
+    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md": "313733a65cc48442b18dda1c4665139a689963a90e1032a2235bc6f40e3a8e06",
+    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json": "d061abfaf80db3d1b5b34644e38281f9d623d1f49d1e17ef872ebd1a705d4b6c",
+    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md": "3665b034594fc8cc767c408002f4e16f8803369242405027c7f37ce6c9ecebe9",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "audit-vllm-kv-lifetimes",
@@ -75,20 +82,20 @@
       "references/source-notes.md"
     ],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation."
   ],
   "verification": {

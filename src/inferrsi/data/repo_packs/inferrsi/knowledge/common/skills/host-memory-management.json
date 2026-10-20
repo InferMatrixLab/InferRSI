@@ -25,20 +25,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/host-memory-management/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/host-memory-management/SKILL.md",
-        "skills/host-memory-management/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/host/host-memory-management/SKILL.md"
+  },
   "checkout_ref": "checkout:host-memory-management",
   "source_files": {
-    "skills/host-memory-management/SKILL.md": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f",
-    "skills/host-memory-management/metadata.json": "296d89ebccd47f4fe77d16e41b77bc65caeee31cb9a18017a41fbcf41c762de9"
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "f98060ed3c2ef815832eae549bfb21ca02811ff980a629bf995a5b8e7f48c7cd",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "host-memory-management",
@@ -71,20 +76,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "id": "inferrsi.common.skills.ascend_operator_tuning",
+  "id": "inferrsi.ascend.skills.ascend_operator_tuning",
   "title": "ascend-operator-tuning",
   "repo": "inferrsi",
   "tier": "contribution",
-  "backend": "common",
+  "backend": "ascend",
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
@@ -24,20 +24,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-operator-tuning/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/ascend-operator-tuning/SKILL.md",
-        "skills/ascend-operator-tuning/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md"
+  },
   "checkout_ref": "checkout:ascend-operator-tuning",
   "source_files": {
-    "skills/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
-    "skills/ascend-operator-tuning/metadata.json": "5092d2e43ad027594a68a21beff17335b23f91cfc58097992da797699d63332d"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "ab7dedfa873b8572db277e43536e6ce04c68ac987aee189ffd5861e4e9bb2d6d",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "ascend-operator-tuning",
@@ -69,20 +74,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

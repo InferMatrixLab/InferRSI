@@ -1,10 +1,10 @@
 {
   "schema_version": 1,
-  "id": "inferrsi.common.skills.ascend_graph_mode",
+  "id": "inferrsi.ascend.skills.ascend_graph_mode",
   "title": "ascend-graph-mode",
   "repo": "inferrsi",
   "tier": "contribution",
-  "backend": "common",
+  "backend": "ascend",
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
@@ -22,20 +22,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-graph-mode/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/ascend-graph-mode/SKILL.md",
-        "skills/ascend-graph-mode/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "9203cc5a14a1d65df5fbf275734b93be023e06527459b2f79864f28a338cb44a"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md"
+  },
   "checkout_ref": "checkout:ascend-graph-mode",
   "source_files": {
-    "skills/ascend-graph-mode/SKILL.md": "9203cc5a14a1d65df5fbf275734b93be023e06527459b2f79864f28a338cb44a",
-    "skills/ascend-graph-mode/metadata.json": "f575782c687c7d551c9dc52126854cbcc086e5276a26b30763a3785266cbf506"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md": "9203cc5a14a1d65df5fbf275734b93be023e06527459b2f79864f28a338cb44a",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json": "b0bfa30de94dcda06e2289f5d4a2e44a473f40fb871059e4580f33588f2a51dc",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "ascend-graph-mode",
@@ -65,20 +70,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],

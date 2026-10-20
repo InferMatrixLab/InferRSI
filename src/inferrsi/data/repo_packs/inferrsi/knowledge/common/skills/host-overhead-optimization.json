@@ -22,20 +22,25 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/host-overhead-optimization/SKILL.md",
-      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ba5290acecb9688dfdc6225dba83d8a6a23dee22/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
+      "commit": "ba5290acecb9688dfdc6225dba83d8a6a23dee22",
       "paths": [
-        "skills/host-overhead-optimization/SKILL.md",
-        "skills/host-overhead-optimization/metadata.json"
+        "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "69fa1c5e16841ba38683a6274e7c50acd133c0f44ad7639d0687e6b55206917d"
+      "content_sha256": "db8357dab79cfa474561732849b5bb153222f63e6688b6f873f45800595f70b8"
     }
   ],
-  "index_type": "skill-metadata-only",
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/host/host-overhead-optimization/SKILL.md"
+  },
   "checkout_ref": "checkout:host-overhead-optimization",
   "source_files": {
-    "skills/host-overhead-optimization/SKILL.md": "69fa1c5e16841ba38683a6274e7c50acd133c0f44ad7639d0687e6b55206917d",
-    "skills/host-overhead-optimization/metadata.json": "20b77673e9c8e80e5239081b4c9a5378495102a99b52b657acff11f64e46f0a5"
+    "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md": "db8357dab79cfa474561732849b5bb153222f63e6688b6f873f45800595f70b8",
+    "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json": "90941490debf1ec9f02310fa033658ec294a8e968783d4bb9d004bcded0f73fe",
+    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },
   "skill_metadata": {
     "name": "host-overhead-optimization",
@@ -65,20 +70,20 @@
     ],
     "provenance_readsets": [],
     "references": [],
-    "consumption_mode": "checkout"
+    "consumption_mode": "packaged"
   },
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Use a complete source checkout for declared references and owner-local cases."
+    "Read the packaged references and owner-local cases alongside the procedure."
   ],
   "limitations": [
-    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
