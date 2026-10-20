@@ -49,9 +49,9 @@ inferrsi resource weight-loading-optimization methods/weight-loading-optimizatio
   --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/data/skill_library --output SKILL.md
 ```
 
-The revision for `resource` is the second field of the `collect`/`read` output
-line (or `item["revision"]` with `--json`); the JSON mode also carries the full
-evidence and validation metadata.
+The revision for `resource` is the second field of the `collect` text-mode line,
+or the `revision` field in `collect --json` / `read` output; the JSON mode also
+carries the full evidence and validation metadata.
 
 Sources are selected explicitly: the installed package by default, a checkout
 via `--skill-root`, an existing store opened read-only via `--store`. A store

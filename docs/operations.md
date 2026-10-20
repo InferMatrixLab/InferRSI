@@ -61,7 +61,7 @@ packaged bodies; the two matrices remain authoritative.
 
 - **Inputs:** optional query; **required** `--repo-type` and `--backend`; optional `--tier`, `--scenario`, `--limit`, `--output`.
 - **Scope:** cited catalog material from the installed package.
-- **Output:** a Markdown reference bundle at the chosen path (or stdout without `--output`), with the record count reported.
+- **Output:** a Markdown reference bundle at the chosen path (the resolved path and record count are reported), or to stdout without `--output` (text only).
 - **Side effects:** writes only the caller-chosen output file.
 - **Failure behavior:** no match produces an empty export (header only), not an error; unsupported filter values exit 2.
 - **Example:** `inferrsi context --repo-type vllm_omni --backend cuda --output context.md`
