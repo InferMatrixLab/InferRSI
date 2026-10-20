@@ -34,6 +34,13 @@ to `contribution`. New external records declare `tier`; the loader checks it
 against the owning directory as well as ID/repository/backend/component.
 `repo` always identifies the source owner, not a validated downstream target.
 
+The [InferRSI root skills index](../repo_packs/inferrsi/knowledge/README.md)
+adds generated contribution-tier discovery abstracts for all 48 root skills.
+Search with `--repo-type inferrsi`; instruction bodies remain in `skills/`.
+Original skill state and provenance are preserved separately from the
+unverified index record, and `common` / `skills.discovery` implies no backend
+or workload qualification.
+
 Skills/log directories above are future workflow destinations, not a running
 L2C integration. There are no learned L2C skills or vLLM/vllm-ascend performance
 records in this import. Existing imported vLLM-Omni guidance does not become

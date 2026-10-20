@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.ascend_model_adaptation",
+  "title": "ascend-model-adaptation",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "model-adaptation",
+    "fp8",
+    "multimodal"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-model-adaptation/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/ascend-model-adaptation/SKILL.md",
+        "skills/ascend-model-adaptation/metadata.json"
+      ],
+      "content_sha256": "d9e81a63981819fac8f5a21dca9c90f86e26788f58339d3a9c8e66319c178472"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:ascend-model-adaptation",
+  "source_files": {
+    "skills/ascend-model-adaptation/SKILL.md": "d9e81a63981819fac8f5a21dca9c90f86e26788f58339d3a9c8e66319c178472",
+    "skills/ascend-model-adaptation/metadata.json": "519573465e92bd5c6ce8c38c2b4969e4b23405f7789d06f9439201e263684c7b"
+  },
+  "skill_metadata": {
+    "name": "ascend-model-adaptation",
+    "description": "Patterns for porting LLM/VLM model adapters to Ascend NPU: FP8 checkpoint handling, KV replication with TP, multimodal feature validation order, graph mode startup, and feature-status reporting. Source-grounded from vllm-ascend production experience. Use when adapting a new model checkpoint to run on Ascend via vllm-ascend or a similar framework.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "model-adaptation",
+      "fp8",
+      "multimodal"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

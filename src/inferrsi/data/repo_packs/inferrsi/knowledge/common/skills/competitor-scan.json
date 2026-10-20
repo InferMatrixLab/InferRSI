@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.competitor_scan",
+  "title": "competitor-scan",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts.",
+  "tags": [],
+  "origin": [
+    "unknown"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/competitor-scan/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/competitor-scan/SKILL.md"
+      ],
+      "content_sha256": "aaa99a69b4d1768ed7792c4bd1e328eb1f25b42851406e50c7007bc12c9083c3"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:competitor-scan",
+  "source_files": {
+    "skills/competitor-scan/SKILL.md": "aaa99a69b4d1768ed7792c4bd1e328eb1f25b42851406e50c7007bc12c9083c3"
+  },
+  "skill_metadata": {
+    "name": "competitor-scan",
+    "description": "Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts."
+  },
+  "applicability": {},
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

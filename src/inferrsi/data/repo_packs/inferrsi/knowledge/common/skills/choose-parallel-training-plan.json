@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.choose_parallel_training_plan",
+  "title": "choose-parallel-training-plan",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Compare stage, device-mesh and operator-sharding candidates for static distributed training while accounting for memory, topology, resharding and planning cost.",
+  "tags": [],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/choose-parallel-training-plan/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/choose-parallel-training-plan/SKILL.md",
+        "skills/choose-parallel-training-plan/metadata.json"
+      ],
+      "content_sha256": "25d04aed9782b2a8ff1186828becdc7fce93c4418039ceaef9b8dcc5ec9bcd24"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:choose-parallel-training-plan",
+  "source_files": {
+    "skills/choose-parallel-training-plan/SKILL.md": "25d04aed9782b2a8ff1186828becdc7fce93c4418039ceaef9b8dcc5ec9bcd24",
+    "skills/choose-parallel-training-plan/metadata.json": "833e5b3eedc8eb4264b5ed500d1a1e032597cbf28ce8924b6df4ef4ee5b378b9"
+  },
+  "skill_metadata": {
+    "name": "choose-parallel-training-plan",
+    "description": "Compare stage, device-mesh and operator-sharding candidates for static distributed training while accounting for memory, topology, resharding and planning cost.",
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

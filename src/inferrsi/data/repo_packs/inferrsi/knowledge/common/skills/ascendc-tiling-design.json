@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.ascendc_tiling_design",
+  "title": "ascendc-tiling-design",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Design tiling for a custom AscendC operator: normalize the shape first (axis-collapse or flatten), answer the fullload-vs-split question for UB, apply the universal four-element template (multi-core split, UB split, buffer plan, branch matrix), and route per operator class (reduction, broadcast, elementwise, matmul, conversion) using algorithm-selection and chip-generation tables (DAV_2201 vs DAV_3510). Use when writing or restructuring an AscendC operator's tiling logic, before running any performance tuning campaign.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "ascendc",
+    "tiling",
+    "operator",
+    "kernel",
+    "ub"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascendc-tiling-design/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/ascendc-tiling-design/SKILL.md",
+        "skills/ascendc-tiling-design/metadata.json"
+      ],
+      "content_sha256": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:ascendc-tiling-design",
+  "source_files": {
+    "skills/ascendc-tiling-design/SKILL.md": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b",
+    "skills/ascendc-tiling-design/metadata.json": "c951b2bfb731486f6290e418ba99f3cfd4490c44ad92cc32df4ad0e387306077"
+  },
+  "skill_metadata": {
+    "name": "ascendc-tiling-design",
+    "description": "Design tiling for a custom AscendC operator: normalize the shape first (axis-collapse or flatten), answer the fullload-vs-split question for UB, apply the universal four-element template (multi-core split, UB split, buffer plan, branch matrix), and route per operator class (reduction, broadcast, elementwise, matmul, conversion) using algorithm-selection and chip-generation tables (DAV_2201 vs DAV_3510). Use when writing or restructuring an AscendC operator's tiling logic, before running any performance tuning campaign.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "ascendc",
+      "tiling",
+      "operator",
+      "kernel",
+      "ub"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

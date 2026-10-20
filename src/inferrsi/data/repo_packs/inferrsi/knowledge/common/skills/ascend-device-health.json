@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.ascend_device_health",
+  "title": "ascend-device-health",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Pre-run health checks and recovery procedures for Ascend NPU devices on shared machines: card-group topology validation, Health status checks, SIGKILL residual-state detection, 4-step smoke verification, process occupancy check, and DVFS warmup discipline. Use before any experiment that requires a trusted performance baseline.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "device-health",
+    "topology",
+    "shared-machine",
+    "os-system"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-device-health/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/ascend-device-health/SKILL.md",
+        "skills/ascend-device-health/metadata.json"
+      ],
+      "content_sha256": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:ascend-device-health",
+  "source_files": {
+    "skills/ascend-device-health/SKILL.md": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a",
+    "skills/ascend-device-health/metadata.json": "81cea5ca72d49ac8020336429024507f926dee0fa26f481f6b4a0dc89653302a"
+  },
+  "skill_metadata": {
+    "name": "ascend-device-health",
+    "description": "Pre-run health checks and recovery procedures for Ascend NPU devices on shared machines: card-group topology validation, Health status checks, SIGKILL residual-state detection, 4-step smoke verification, process occupancy check, and DVFS warmup discipline. Use before any experiment that requires a trusted performance baseline.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "device-health",
+      "topology",
+      "shared-machine",
+      "os-system"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -329,7 +329,7 @@ class KnowledgeReader:
                 "id": identity,
                 "kind": "knowledge",
                 "entrypoint": "record.json",
-                "origin": ["external"],
+                "origin": record.get("origin", ["external"]),
                 "sources": _sources(record["sources"]),
                 "applicability": record.get("applicability", {}),
                 "state": record["status"],

@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.kv_tier_management",
+  "title": "kv-tier-management",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Manage runtime KV cache tiers (GPU → CPU RAM → local disk) for LLM serving: decide when KV is stored, retained, prefetched, or evicted; size the concurrency-versus-RAM-pressure trade-off with an explicit in-flight admission dial; order RAM-release levers; and measure with token-level L1/L2 hit rates and prefetch-pressure counters. Use when configuring KV offload for a serving stack. Covers runtime KV offload only — model startup/loading, checkpoint save/restore, and block-device profiling are separate concerns (see weight-loading-optimization).\n",
+  "tags": [
+    "kv-cache",
+    "offload",
+    "l1-l2-tiering",
+    "eviction",
+    "prefetch",
+    "serving",
+    "lmcache"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/kv-tier-management/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/kv-tier-management/SKILL.md",
+        "skills/kv-tier-management/metadata.json"
+      ],
+      "content_sha256": "e4b78f368d70c8abb74a935acb910414015f1aeec1b50f7a295e836822ec4b27"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:kv-tier-management",
+  "source_files": {
+    "skills/kv-tier-management/SKILL.md": "e4b78f368d70c8abb74a935acb910414015f1aeec1b50f7a295e836822ec4b27",
+    "skills/kv-tier-management/metadata.json": "d28c1760564b1662a29d6e553b47f067ff2d0ec4c8fcc692a61512fc7bdf6905"
+  },
+  "skill_metadata": {
+    "name": "kv-tier-management",
+    "description": "Manage runtime KV cache tiers (GPU → CPU RAM → local disk) for LLM serving: decide when KV is stored, retained, prefetched, or evicted; size the concurrency-versus-RAM-pressure trade-off with an explicit in-flight admission dial; order RAM-release levers; and measure with token-level L1/L2 hit rates and prefetch-pressure counters. Use when configuring KV offload for a serving stack. Covers runtime KV offload only — model startup/loading, checkpoint save/restore, and block-device profiling are separate concerns (see weight-loading-optimization).\n",
+    "tags": [
+      "kv-cache",
+      "offload",
+      "l1-l2-tiering",
+      "eviction",
+      "prefetch",
+      "serving",
+      "lmcache"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

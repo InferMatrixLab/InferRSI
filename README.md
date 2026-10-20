@@ -158,6 +158,19 @@ inferrsi skills show weight-loading-optimization
 inferrsi skills resource <skill-name> <relative-resource-path>
 ```
 
+All 48 root skills also have [packaged discovery records](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md),
+so a regular installation can search their descriptions, provenance and original
+instruction links without the optional parser:
+
+```bash
+inferrsi knowledge search 'weight-loading' --repo-type inferrsi
+inferrsi knowledge show inferrsi.common.skills.weight_loading_optimization
+```
+
+These generated records index the source skills; the procedures and resources
+remain owned by `skills/`. Candidate state, unknown provenance and license limits
+are retained. Indexing does not establish effectiveness or authorize execution.
+
 Listing reads frontmatter and local sidecar metadata only. `show` explicitly selects one instruction body
 and lists resource filenames; `resource` resolves one path for your file reader
 without loading its contents or executing it. Skills are local checkout assets,
@@ -180,6 +193,18 @@ are implemented Python interfaces, with a thin CLI route (`collect` / `read` /
 **One experiment loop. Independent model, repository and hardware adapters.**
 The implemented [Harness × Model × Infra boundary](docs/architecture.md) keeps new
 campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
+
+![InferRSI system architecture: inputs, experiment loop and evidence](docs/assets/system-architecture-en.svg)
+
+[English SVG](docs/assets/system-architecture-en.svg) ·
+[中文原图](docs/assets/system-architecture-zh-CN.svg)
+
+The supplied overview and its English translation summarize the intended workflow.
+Evidence feeds the next experiment through explicit review and user-selected
+constraints; automatic evidence-to-knowledge promotion or RunSpec population is
+not implemented. Process-cleanup behavior still needs platform-specific validation.
+See the [source audit and proposed remedies](docs/reviews/source-audit-ac70272.md)
+for the 34 review points, qualifications and suggested acceptance checks.
 
 <details>
 <summary><strong>See the implemented modules</strong></summary>
@@ -209,6 +234,8 @@ campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
+| [Root skills index](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable packaged abstracts for all 48 root skills, with source links and preserved metadata |
+| [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |
 | [Daily learning prompt](docs/daily-learning-prompt.md) | 06:00 Asia/Shanghai L2C + performance workflow and prerequisites |
 | [Five-engine knowledge library (English / 中文)](src/inferrsi/data/skill_library/README.md) | Strata, vLLM, SGLang and both Omni engines: skills, search spaces, sources and CLI retrieval |
 | [vLLM-Omni experience records](src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md) | Backend-scoped tuning methods, sources, and applicability |

@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.audit_vllm_kv_lifetimes",
+  "title": "audit-vllm-kv-lifetimes",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit vLLM V1 asynchronous KV load/save completion, block retention, preemption, and receive-failure contracts when requests stall or blocks may be reused too early; requires a concrete connector trace.",
+  "tags": [
+    "vllm",
+    "kv-cache",
+    "lifecycle",
+    "correctness"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/audit-vllm-kv-lifetimes/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/audit-vllm-kv-lifetimes/SKILL.md",
+        "skills/audit-vllm-kv-lifetimes/metadata.json"
+      ],
+      "content_sha256": "09d97b24ea3da460cc911d1f8fa0fc11234f54df1254b892fabaf0aba28eca44"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:audit-vllm-kv-lifetimes",
+  "source_files": {
+    "skills/audit-vllm-kv-lifetimes/SKILL.md": "09d97b24ea3da460cc911d1f8fa0fc11234f54df1254b892fabaf0aba28eca44",
+    "skills/audit-vllm-kv-lifetimes/metadata.json": "85a9ee8ee96f594491e00798dea15153030666459c168c3e6ef93d7292bea791"
+  },
+  "skill_metadata": {
+    "name": "audit-vllm-kv-lifetimes",
+    "description": "Audit vLLM V1 asynchronous KV load/save completion, block retention, preemption, and receive-failure contracts when requests stall or blocks may be reused too early; requires a concrete connector trace.",
+    "tags": [
+      "vllm",
+      "kv-cache",
+      "lifecycle",
+      "correctness"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "7f730b4cea9a66520a9200265928ebe016b48a39",
+        "paths": [
+          "vllm/distributed/kv_transfer/kv_connector/v1/base.py",
+          "vllm/v1/core/sched/scheduler.py"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

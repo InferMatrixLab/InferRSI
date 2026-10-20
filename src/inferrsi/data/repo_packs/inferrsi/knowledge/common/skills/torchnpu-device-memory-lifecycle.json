@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.torchnpu_device_memory_lifecycle",
+  "title": "torchnpu-device-memory-lifecycle",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose version-gated allocator changes. Use for NPU allocator OOM or reuse investigations, not pinned-host RAM or network transport.",
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "device-memory",
+    "allocator",
+    "lifecycle"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/torchnpu-device-memory-lifecycle/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/torchnpu-device-memory-lifecycle/SKILL.md",
+        "skills/torchnpu-device-memory-lifecycle/metadata.json"
+      ],
+      "content_sha256": "8428df7157af024fa17cfe0b3818ed54bd9f468306dda46eb8d4f0edf4f3f230"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:torchnpu-device-memory-lifecycle",
+  "source_files": {
+    "skills/torchnpu-device-memory-lifecycle/SKILL.md": "8428df7157af024fa17cfe0b3818ed54bd9f468306dda46eb8d4f0edf4f3f230",
+    "skills/torchnpu-device-memory-lifecycle/metadata.json": "b3a3295729fd00fb9dcec9bc3aa41413a6e909a3c9c41955a741022ea95a7595"
+  },
+  "skill_metadata": {
+    "name": "torchnpu-device-memory-lifecycle",
+    "description": "Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose version-gated allocator changes. Use for NPU allocator OOM or reuse investigations, not pinned-host RAM or network transport.",
+    "tags": [
+      "ascend",
+      "torchnpu",
+      "device-memory",
+      "allocator",
+      "lifecycle"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

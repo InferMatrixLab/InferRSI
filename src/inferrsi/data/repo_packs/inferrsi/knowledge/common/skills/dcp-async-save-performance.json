@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.dcp_async_save_performance",
+  "title": "dcp-async-save-performance",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging. Separate snapshot capture, staging completion, upload completion and backend durability; bound in-flight requests and cached CPU buffers before proposing overlap. Use for DCP save performance, not distributed recovery validation.\n",
+  "tags": [
+    "checkpoint",
+    "training",
+    "staging",
+    "host-memory",
+    "storage",
+    "pytorch"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/dcp-async-save-performance/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/dcp-async-save-performance/SKILL.md",
+        "skills/dcp-async-save-performance/metadata.json"
+      ],
+      "content_sha256": "645139ee0c88ec865cad952e24cda35f4648d4b777b732c9b7d274b6c7830845"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:dcp-async-save-performance",
+  "source_files": {
+    "skills/dcp-async-save-performance/SKILL.md": "645139ee0c88ec865cad952e24cda35f4648d4b777b732c9b7d274b6c7830845",
+    "skills/dcp-async-save-performance/metadata.json": "0b1a566c1b510b2eedd7ed002cb51303cd4a9751d0ba807b2affe021a6645083"
+  },
+  "skill_metadata": {
+    "name": "dcp-async-save-performance",
+    "description": "Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging. Separate snapshot capture, staging completion, upload completion and backend durability; bound in-flight requests and cached CPU buffers before proposing overlap. Use for DCP save performance, not distributed recovery validation.\n",
+    "tags": [
+      "checkpoint",
+      "training",
+      "staging",
+      "host-memory",
+      "storage",
+      "pytorch"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/sources.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

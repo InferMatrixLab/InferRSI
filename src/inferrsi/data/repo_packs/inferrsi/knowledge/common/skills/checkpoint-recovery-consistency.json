@@ -1,0 +1,91 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.checkpoint_recovery_consistency",
+  "title": "checkpoint-recovery-consistency",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Assess distributed checkpoint recovery using DLRover shared-memory readiness and step agreement, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate local publish, collective completeness, application-state validity and durable recovery.\n",
+  "tags": [
+    "checkpoint",
+    "recovery",
+    "distributed",
+    "shared-memory",
+    "replication"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/checkpoint-recovery-consistency/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/checkpoint-recovery-consistency/SKILL.md",
+        "skills/checkpoint-recovery-consistency/metadata.json"
+      ],
+      "content_sha256": "30d55d7d0475d95f369f7c9aa3e594406a9407ded2a4e623df0c39cd487ba724"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:checkpoint-recovery-consistency",
+  "source_files": {
+    "skills/checkpoint-recovery-consistency/SKILL.md": "30d55d7d0475d95f369f7c9aa3e594406a9407ded2a4e623df0c39cd487ba724",
+    "skills/checkpoint-recovery-consistency/metadata.json": "1ca76d4c1067db46ce7e751f58135ee3a9a84e7f60241f2c63d3d9998e598b3a"
+  },
+  "skill_metadata": {
+    "name": "checkpoint-recovery-consistency",
+    "description": "Assess distributed checkpoint recovery using DLRover shared-memory readiness and step agreement, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate local publish, collective completeness, application-state validity and durable recovery.\n",
+    "tags": [
+      "checkpoint",
+      "recovery",
+      "distributed",
+      "shared-memory",
+      "replication"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/sources.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

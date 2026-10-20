@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.host_memory_management",
+  "title": "host-memory-management",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
+  "tags": [
+    "host",
+    "cpu",
+    "memory",
+    "pinned-memory",
+    "h2d",
+    "gil",
+    "numa",
+    "inference"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/host-memory-management/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/host-memory-management/SKILL.md",
+        "skills/host-memory-management/metadata.json"
+      ],
+      "content_sha256": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:host-memory-management",
+  "source_files": {
+    "skills/host-memory-management/SKILL.md": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f",
+    "skills/host-memory-management/metadata.json": "296d89ebccd47f4fe77d16e41b77bc65caeee31cb9a18017a41fbcf41c762de9"
+  },
+  "skill_metadata": {
+    "name": "host-memory-management",
+    "description": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
+    "tags": [
+      "host",
+      "cpu",
+      "memory",
+      "pinned-memory",
+      "h2d",
+      "gil",
+      "numa",
+      "inference"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

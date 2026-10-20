@@ -1,0 +1,100 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.training_resource_budget",
+  "title": "training-resource-budget",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Choose training offload and resource-budget changes using pinned DeepSpeed configuration, attributed expert diagnosis and a historical MindSpeed case. Balance accelerator capacity, CPU work, pinned RAM and local storage; keep host/device transfer exposure distinct from collective network bottlenecks.\n",
+  "tags": [
+    "training",
+    "offload",
+    "resource-budget",
+    "memory",
+    "cpu",
+    "numa"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/training-resource-budget/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/training-resource-budget/SKILL.md",
+        "skills/training-resource-budget/metadata.json"
+      ],
+      "content_sha256": "bdfa5a4ef37d9f303c3a23cd6f98c21137b97ac5ed58e0ed5fac6d71d33e52ef"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:training-resource-budget",
+  "source_files": {
+    "skills/training-resource-budget/SKILL.md": "bdfa5a4ef37d9f303c3a23cd6f98c21137b97ac5ed58e0ed5fac6d71d33e52ef",
+    "skills/training-resource-budget/metadata.json": "324b0e4d351e610a7258af20fecfb68ef9ac08de296a10973303465989b784ee"
+  },
+  "skill_metadata": {
+    "name": "training-resource-budget",
+    "description": "Choose training offload and resource-budget changes using pinned DeepSpeed configuration, attributed expert diagnosis and a historical MindSpeed case. Balance accelerator capacity, CPU work, pinned RAM and local storage; keep host/device transfer exposure distinct from collective network bottlenecks.\n",
+    "tags": [
+      "training",
+      "offload",
+      "resource-budget",
+      "memory",
+      "cpu",
+      "numa"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/mindspeed-historical.md",
+      "references/papers-20261015/cases/paper-grounded-cases.md",
+      "references/papers-20261015/INTEGRATION_NOTES.md",
+      "references/papers-20261015/knowledge/offload-delta.md",
+      "references/papers-20261015/notes/training-memory-scheduling.md",
+      "references/papers-20261015/references/source-readset.md",
+      "references/sources.md",
+      "references/stas-decision-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.host_overhead_optimization",
+  "title": "host-overhead-optimization",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Profile and reduce CPU/host overhead in inference serving using line_profiler. Iterative profile-analyze-optimize-validate loop targeting Python execution in request preparation, scheduling, and model execution coordination.\n",
+  "tags": [
+    "host",
+    "cpu",
+    "optimization",
+    "line-profiler",
+    "inference"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/host-overhead-optimization/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/host-overhead-optimization/SKILL.md",
+        "skills/host-overhead-optimization/metadata.json"
+      ],
+      "content_sha256": "69fa1c5e16841ba38683a6274e7c50acd133c0f44ad7639d0687e6b55206917d"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:host-overhead-optimization",
+  "source_files": {
+    "skills/host-overhead-optimization/SKILL.md": "69fa1c5e16841ba38683a6274e7c50acd133c0f44ad7639d0687e6b55206917d",
+    "skills/host-overhead-optimization/metadata.json": "20b77673e9c8e80e5239081b4c9a5378495102a99b52b657acff11f64e46f0a5"
+  },
+  "skill_metadata": {
+    "name": "host-overhead-optimization",
+    "description": "Profile and reduce CPU/host overhead in inference serving using line_profiler. Iterative profile-analyze-optimize-validate loop targeting Python execution in request preparation, scheduling, and model execution coordination.\n",
+    "tags": [
+      "host",
+      "cpu",
+      "optimization",
+      "line-profiler",
+      "inference"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

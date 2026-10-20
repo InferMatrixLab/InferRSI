@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.draft_acceptance_issue",
+  "title": "draft-acceptance-issue",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs.",
+  "tags": [],
+  "origin": [
+    "unknown"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/draft-acceptance-issue/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/draft-acceptance-issue/SKILL.md"
+      ],
+      "content_sha256": "f03f7942d29db2206fb3f090df21fc862c0fd3a7f59a20512e540c7c827a6746"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:draft-acceptance-issue",
+  "source_files": {
+    "skills/draft-acceptance-issue/SKILL.md": "f03f7942d29db2206fb3f090df21fc862c0fd3a7f59a20512e540c7c827a6746"
+  },
+  "skill_metadata": {
+    "name": "draft-acceptance-issue",
+    "description": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs."
+  },
+  "applicability": {},
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

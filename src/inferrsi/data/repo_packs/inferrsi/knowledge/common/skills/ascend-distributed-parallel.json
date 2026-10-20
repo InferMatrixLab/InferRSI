@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.ascend_distributed_parallel",
+  "title": "ascend-distributed-parallel",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround and HCCL bandwidth  verification.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "distributed",
+    "parallelism",
+    "usp",
+    "hccl",
+    "communication"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-distributed-parallel/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/ascend-distributed-parallel/SKILL.md",
+        "skills/ascend-distributed-parallel/metadata.json"
+      ],
+      "content_sha256": "ae3f337b0892f34f788b22cfef02030e97a52b7e68fe7d96727d15f3484def8e"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:ascend-distributed-parallel",
+  "source_files": {
+    "skills/ascend-distributed-parallel/SKILL.md": "ae3f337b0892f34f788b22cfef02030e97a52b7e68fe7d96727d15f3484def8e",
+    "skills/ascend-distributed-parallel/metadata.json": "93969be6e0dd1d92eb7fba6503e1934ed783bce2b85aea7277ee24f2baf42923"
+  },
+  "skill_metadata": {
+    "name": "ascend-distributed-parallel",
+    "description": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround and HCCL bandwidth  verification.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "distributed",
+      "parallelism",
+      "usp",
+      "hccl",
+      "communication"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

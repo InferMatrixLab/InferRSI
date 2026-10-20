@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.inference_benchmark_design",
+  "title": "inference-benchmark-design",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "How to design a benchmark for inference serving that produces trustworthy, actionable results. Covers workload regime selection, SLO-aware metrics, trace replay, multi-seed evaluation, inconclusive handling, and the common mistakes that invalidate benchmark results. Drawn from vllm-evolve and InferRSI's evidence framework.\n",
+  "tags": [
+    "benchmark",
+    "evaluation",
+    "serving",
+    "measurement"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/inference-benchmark-design/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/inference-benchmark-design/SKILL.md",
+        "skills/inference-benchmark-design/metadata.json"
+      ],
+      "content_sha256": "2cf804288f5d0ce915a3eae007c2838880bce6e5c1fc55d356779b27e040a6ac"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:inference-benchmark-design",
+  "source_files": {
+    "skills/inference-benchmark-design/SKILL.md": "2cf804288f5d0ce915a3eae007c2838880bce6e5c1fc55d356779b27e040a6ac",
+    "skills/inference-benchmark-design/metadata.json": "829ce0e29d318372c21b8525b7d8897649b0b7a3fd4fce046e665b9288634aae"
+  },
+  "skill_metadata": {
+    "name": "inference-benchmark-design",
+    "description": "How to design a benchmark for inference serving that produces trustworthy, actionable results. Covers workload regime selection, SLO-aware metrics, trace replay, multi-seed evaluation, inconclusive handling, and the common mistakes that invalidate benchmark results. Drawn from vllm-evolve and InferRSI's evidence framework.\n",
+    "tags": [
+      "benchmark",
+      "evaluation",
+      "serving",
+      "measurement"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [
+      "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
+    ],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

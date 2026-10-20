@@ -10,6 +10,7 @@ from pathlib import Path
 import inferrsi
 from inferrsi.catalog import knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
+from inferrsi.knowledge_operations import KnowledgeReader
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
@@ -24,6 +25,13 @@ assert (
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
+skill_index = search_knowledge(repo="inferrsi", limit=100)
+assert len(skill_index) == 48, "Missing installed root-skill discovery metadata"
+assert all(record["index_type"] == "skill-metadata-only" for record in skill_index)
+indexed = KnowledgeReader().read("inferrsi.common.skills.ascend_operator_profiling")
+assert set(indexed.content) == {"record.json"} and not indexed.dependencies
+assert json.loads(indexed.content["record.json"])["skill_metadata"]["license"] == "UNKNOWN"
+assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
 assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)

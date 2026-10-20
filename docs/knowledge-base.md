@@ -19,6 +19,7 @@ skills/<id>/cases/                   Owner's scoped cases (optional)
 src/inferrsi/catalog.py               Installed knowledge reader
 src/inferrsi/skill_catalog.py         Explicit checkout skill reader
 src/inferrsi/data/repo_packs/         Contribution records and existing public IDs
+src/inferrsi/data/repo_packs/inferrsi/ Generated discovery abstracts of root skills
 src/inferrsi/data/knowledge_packs/    Dependency and peer records
 src/inferrsi/data/skill_library/      Imported bilingual procedures, licenses, helpers
 evidence/<campaign-id>/             Frozen plans, results, patches and validators
@@ -146,6 +147,29 @@ Missing dependencies, undeclared references and escapes are errors. Checkout is
 the declared local-profile mode. A single copied skill folder with external links
 is **not** advertised as a standalone export. Package catalog/library access stays
 available after noneditable installation; local `skills/` is not wheel data.
+
+### Packaged discovery of root skills
+
+The [root skills index](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+projects all 48 skills into the existing contribution catalog. These are
+`kind: knowledge` abstracts with IDs `inferrsi.common.skills.<name_with_underscores>`,
+not duplicate procedure bundles. `checkout:<skill-name>` continues to identify
+the original complete skill when an explicit skills root is supplied.
+
+Use `inferrsi knowledge search --repo-type inferrsi --limit 100` in an ordinary
+installation. No checkout or YAML parser is needed to read the packaged index.
+Each record links to its source snapshot and retains the effective original
+metadata, including candidate state, unnormalized provenance and unknown licenses.
+Its own `imported` state describes the abstract; it does not change the source
+skill's state or verification. `common` / `skills.discovery` describes discovery,
+not compatibility across hardware or workloads. `inferrsi` is a knowledge source,
+not a new executable repository target.
+
+The root `skills/` tree remains the sole owner of instructions and resources.
+The generated JSON and navigation are refreshed with
+`tools/build_skill_index.py`; its source-revision and consistency checks prevent
+silently attributing edited metadata to an older snapshot. Do not hand-edit
+individual generated cards. The two matrices retain their existing authority.
 
 ## Negative results as diagnostic options
 

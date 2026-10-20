@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.rsi_evidence",
+  "title": "rsi-evidence",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
+  "tags": [],
+  "origin": [
+    "unknown"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/rsi-evidence/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/rsi-evidence/SKILL.md"
+      ],
+      "content_sha256": "a55610874b658b86a39a1a049efb4e4eab0140f6579ed74dd7718a4ca8cedaca"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:rsi-evidence",
+  "source_files": {
+    "skills/rsi-evidence/SKILL.md": "a55610874b658b86a39a1a049efb4e4eab0140f6579ed74dd7718a4ca8cedaca"
+  },
+  "skill_metadata": {
+    "name": "rsi-evidence",
+    "description": "Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts."
+  },
+  "applicability": {},
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

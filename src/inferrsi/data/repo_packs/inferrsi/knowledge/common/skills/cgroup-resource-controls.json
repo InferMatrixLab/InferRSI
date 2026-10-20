@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.cgroup_resource_controls",
+  "title": "cgroup-resource-controls",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose and configure cgroup v2 resource controls for serving/training workloads: distinguish quota stalls from sibling contention (cpu.max vs cpu.weight, cpu.stat vs cpu.stat.local), audit requested-versus-effective cpuset with migration-cost budgeting, triage memory pressure with PSI plus event deltas (high/max/low semantics), and gate io.max caps on confirmed block-backed traffic. Includes hierarchy/delegation/permission preflight and a rollback contract. Extra resource allocation is treated as a capacity spend, never as an efficiency improvement. Control-plane procedures only — applying settings requires separate authorization.\n",
+  "tags": [
+    "cgroup",
+    "cgroupv2",
+    "cpu",
+    "cpuset",
+    "memory",
+    "io",
+    "resource-controls",
+    "os"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/cgroup-resource-controls/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/cgroup-resource-controls/SKILL.md",
+        "skills/cgroup-resource-controls/metadata.json"
+      ],
+      "content_sha256": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:cgroup-resource-controls",
+  "source_files": {
+    "skills/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
+    "skills/cgroup-resource-controls/metadata.json": "c0d8e7c8dc5018e1dade0c55b1fbe2ac8427c8678ae60af8244436b0886e6716"
+  },
+  "skill_metadata": {
+    "name": "cgroup-resource-controls",
+    "description": "Diagnose and configure cgroup v2 resource controls for serving/training workloads: distinguish quota stalls from sibling contention (cpu.max vs cpu.weight, cpu.stat vs cpu.stat.local), audit requested-versus-effective cpuset with migration-cost budgeting, triage memory pressure with PSI plus event deltas (high/max/low semantics), and gate io.max caps on confirmed block-backed traffic. Includes hierarchy/delegation/permission preflight and a rollback contract. Extra resource allocation is treated as a capacity spend, never as an efficiency improvement. Control-plane procedures only — applying settings requires separate authorization.\n",
+    "tags": [
+      "cgroup",
+      "cgroupv2",
+      "cpu",
+      "cpuset",
+      "memory",
+      "io",
+      "resource-controls",
+      "os"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

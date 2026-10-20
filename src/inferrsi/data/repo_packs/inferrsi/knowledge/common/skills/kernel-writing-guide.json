@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.kernel_writing_guide",
+  "title": "kernel-writing-guide",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Decision guide for writing custom inference kernels: when to write one, which framework to choose (Triton, CuTe DSL, CUDA C++, AscendC/TileIR), universal correctness rules that apply regardless of framework, and the verify-before-benchmark workflow. Use before starting any kernel implementation to avoid common correctness and performance pitfalls.\n",
+  "tags": [
+    "kernel",
+    "triton",
+    "cute",
+    "cuda",
+    "ascendc",
+    "performance",
+    "accelerator"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/kernel-writing-guide/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/kernel-writing-guide/SKILL.md",
+        "skills/kernel-writing-guide/metadata.json"
+      ],
+      "content_sha256": "dbbd5c8bca6d6777e7b58660cdbbd21f820285762ee4afb81270b1a1ff04ca0f"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:kernel-writing-guide",
+  "source_files": {
+    "skills/kernel-writing-guide/SKILL.md": "dbbd5c8bca6d6777e7b58660cdbbd21f820285762ee4afb81270b1a1ff04ca0f",
+    "skills/kernel-writing-guide/metadata.json": "35fb1d7a461c63f9720996f8f48d5dc7abcd91d2a66f84c06ed175981752f446"
+  },
+  "skill_metadata": {
+    "name": "kernel-writing-guide",
+    "description": "Decision guide for writing custom inference kernels: when to write one, which framework to choose (Triton, CuTe DSL, CUDA C++, AscendC/TileIR), universal correctness rules that apply regardless of framework, and the verify-before-benchmark workflow. Use before starting any kernel implementation to avoid common correctness and performance pitfalls.\n",
+    "tags": [
+      "kernel",
+      "triton",
+      "cute",
+      "cuda",
+      "ascendc",
+      "performance",
+      "accelerator"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

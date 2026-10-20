@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.repository_evolution_analysis",
+  "title": "repository-evolution-analysis",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Analyze a repository's commit history to build a capability-evolution model: what the system can do, how it got there, and what patterns allow it to iterate quickly. Use to produce history-derived knowledge for agent skill conditioning, and to design temporal-split benchmarks for skill evaluation.\n",
+  "tags": [
+    "repository-intelligence",
+    "history",
+    "skill-distillation",
+    "evaluation"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/repository-evolution-analysis/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/repository-evolution-analysis/SKILL.md",
+        "skills/repository-evolution-analysis/metadata.json"
+      ],
+      "content_sha256": "3dfe319edd81e97fa50a4a215e1b55fd62ae3dc0e5b2fe90f0f8fb468d04e422"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:repository-evolution-analysis",
+  "source_files": {
+    "skills/repository-evolution-analysis/SKILL.md": "3dfe319edd81e97fa50a4a215e1b55fd62ae3dc0e5b2fe90f0f8fb468d04e422",
+    "skills/repository-evolution-analysis/metadata.json": "218102da260ab63152a616529c3d02ea07028c1bdb38f77f6ce14d651ebedd52"
+  },
+  "skill_metadata": {
+    "name": "repository-evolution-analysis",
+    "description": "Analyze a repository's commit history to build a capability-evolution model: what the system can do, how it got there, and what patterns allow it to iterate quickly. Use to produce history-derived knowledge for agent skill conditioning, and to design temporal-split benchmarks for skill evaluation.\n",
+    "schema_version": 1,
+    "status": "candidate",
+    "sources": [
+      {
+        "url": "https://github.com/LearningToCommit/LearningToCommit",
+        "commit": "7e5a1d77",
+        "paths": [
+          "data_construction/s1_scan_commits.py",
+          "data_construction/s3_tag.py",
+          "data_construction/s4_sample.py",
+          "data_construction/s5_build.py",
+          "modules/agent.py",
+          "modules/prompt_builder.py",
+          "modules/trajectory_to_md.py",
+          "system_prompts/solve_with_skill.txt",
+          "system_prompts/learn_reflect.txt",
+          "evaluation/pairwise_judge.py",
+          "evaluation/programmatic_metrics.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "77800032",
+        "paths": [
+          "internal/",
+          "docs/"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "source_grounded",
+      "note": "Carried LearningToCommit pipeline and Magpie history analysis, not causal evidence of development speed. The reviewed paper amendment is linked from SKILL.md; paper-to-code equivalence is not established. First-hand Magpie coordination research remains pending Dot delivery and owner review."
+    },
+    "applicability": {
+      "scope": "any software repository with a recoverable git history",
+      "prerequisites": "git history access, optionally LearningToCommit-style benchmark for evaluation"
+    },
+    "tags": [
+      "repository-intelligence",
+      "history",
+      "skill-distillation",
+      "evaluation"
+    ],
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "any software repository with a recoverable git history",
+    "prerequisites": "git history access, optionally LearningToCommit-style benchmark for evaluation"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

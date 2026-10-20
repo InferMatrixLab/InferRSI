@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.claim_contract",
+  "title": "claim-contract",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Enforce ThinkFlowLab claim contract wording and verdict rules without embedding campaign-specific revision pins.",
+  "tags": [],
+  "origin": [
+    "unknown"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/claim-contract/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/claim-contract/SKILL.md"
+      ],
+      "content_sha256": "3af1dbbe81d91cb05fc2ef15a2ae25d7592a08558e1a5535f49c52f33a488c55"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:claim-contract",
+  "source_files": {
+    "skills/claim-contract/SKILL.md": "3af1dbbe81d91cb05fc2ef15a2ae25d7592a08558e1a5535f49c52f33a488c55"
+  },
+  "skill_metadata": {
+    "name": "claim-contract",
+    "description": "Enforce ThinkFlowLab claim contract wording and verdict rules without embedding campaign-specific revision pins."
+  },
+  "applicability": {},
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

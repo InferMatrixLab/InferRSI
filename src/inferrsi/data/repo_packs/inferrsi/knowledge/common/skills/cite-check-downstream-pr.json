@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.cite_check_downstream_pr",
+  "title": "cite-check-downstream-pr",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Review a downstream PR description for correct acceptance issue links, SHA pins, and artifact citations.",
+  "tags": [],
+  "origin": [
+    "unknown"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/cite-check-downstream-pr/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/cite-check-downstream-pr/SKILL.md"
+      ],
+      "content_sha256": "520de1125af2e1356ae3af40cdcca0855b733f9ccbb7326c4415e842e476d2e0"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:cite-check-downstream-pr",
+  "source_files": {
+    "skills/cite-check-downstream-pr/SKILL.md": "520de1125af2e1356ae3af40cdcca0855b733f9ccbb7326c4415e842e476d2e0"
+  },
+  "skill_metadata": {
+    "name": "cite-check-downstream-pr",
+    "description": "Review a downstream PR description for correct acceptance issue links, SHA pins, and artifact citations."
+  },
+  "applicability": {},
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

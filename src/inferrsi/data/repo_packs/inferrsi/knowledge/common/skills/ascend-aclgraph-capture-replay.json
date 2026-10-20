@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.ascend_aclgraph_capture_replay",
+  "title": "ascend-aclgraph-capture-replay",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose vLLM-Ascend ACLGraph capture/replay eligibility, stable-input and ordering contracts, and capture-resource failures at a pinned implementation. Use for evidence-gated graph-mode proposals, not allocator, compiler-fusion, or network tuning.",
+  "tags": [
+    "ascend",
+    "vllm-ascend",
+    "aclgraph",
+    "runtime"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-aclgraph-capture-replay/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/ascend-aclgraph-capture-replay/SKILL.md",
+        "skills/ascend-aclgraph-capture-replay/metadata.json"
+      ],
+      "content_sha256": "718be35dc6d93a97e356ed645df899d43e2c37944f4dece8e167efef810fefea"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:ascend-aclgraph-capture-replay",
+  "source_files": {
+    "skills/ascend-aclgraph-capture-replay/SKILL.md": "718be35dc6d93a97e356ed645df899d43e2c37944f4dece8e167efef810fefea",
+    "skills/ascend-aclgraph-capture-replay/metadata.json": "a3568ee22a340a0df8775c054fbddfe5739cd30fdb53a982300bcf716e7fc5c6"
+  },
+  "skill_metadata": {
+    "name": "ascend-aclgraph-capture-replay",
+    "description": "Diagnose vLLM-Ascend ACLGraph capture/replay eligibility, stable-input and ordering contracts, and capture-resource failures at a pinned implementation. Use for evidence-gated graph-mode proposals, not allocator, compiler-fusion, or network tuning.",
+    "tags": [
+      "ascend",
+      "vllm-ascend",
+      "aclgraph",
+      "runtime"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

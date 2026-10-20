@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.diagnose_attention_bottlenecks",
+  "title": "diagnose-attention-bottlenecks",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose the next attention-kernel bottleneck after IO reduction using evidence about HBM traffic, work ownership, parallelism, scalar work, asynchronous scheduling and precision. Produce a bounded optimization hypothesis and correctness-first verification plan; do not infer current library support or NPU portability from GPU papers.",
+  "tags": [],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/diagnose-attention-bottlenecks/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/diagnose-attention-bottlenecks/SKILL.md",
+        "skills/diagnose-attention-bottlenecks/metadata.json"
+      ],
+      "content_sha256": "a25738dbb3b9daa15c5827cb536a20fe13f7c8b9dd14aa3fb7cfa7e132879431"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:diagnose-attention-bottlenecks",
+  "source_files": {
+    "skills/diagnose-attention-bottlenecks/SKILL.md": "a25738dbb3b9daa15c5827cb536a20fe13f7c8b9dd14aa3fb7cfa7e132879431",
+    "skills/diagnose-attention-bottlenecks/metadata.json": "e47cdbcb5023438ae73822e7e4025852ea2ec20ea8633becfb86e35b3469e3aa"
+  },
+  "skill_metadata": {
+    "name": "diagnose-attention-bottlenecks",
+    "description": "Diagnose the next attention-kernel bottleneck after IO reduction using evidence about HBM traffic, work ownership, parallelism, scalar work, asynchronous scheduling and precision. Produce a bounded optimization hypothesis and correctness-first verification plan; do not infer current library support or NPU portability from GPU papers.",
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "source_pins": "2205.14135v2;2307.08691v1;2407.08608v2",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [
+      "references/mechanisms.md",
+      "references/papers-20261015/cases/io-reduction-can-plateau.md",
+      "references/papers-20261015/cases/overlap-and-fp8-counter-signals.md",
+      "references/papers-20261015/cases/partitioning-after-fusion.md",
+      "references/papers-20261015/INTEGRATION_NOTES.md",
+      "references/papers-20261015/knowledge/attention-cost-model-boundaries.md",
+      "references/papers-20261015/NEXT_GATE_LEADS.md",
+      "references/papers-20261015/README.md",
+      "references/sources.md"
+    ],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -264,3 +264,16 @@ The earlier [component design](assets/component-architecture-en.svg) and
 [complete workflow](assets/gpu-workflow-en.svg) remain long-term references.
 Their [Chinese component](assets/component-architecture.svg) and
 [Chinese workflow](assets/gpu-workflow.svg) originals are preserved.
+
+The supplied system overview is also available in [English](assets/system-architecture-en.svg)
+and [Chinese](assets/system-architecture-zh-CN.svg). It summarizes inputs,
+normalization, the AB/BA loop, adjudication and retained evidence. Its feedback
+arrow represents explicit review and reuse by the caller, not implemented
+automatic promotion into the knowledge catalog or RunSpec. The original diagram
+is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
+portability and other implementation gaps.
+
+Root skills have [generated discovery abstracts](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+in `data/repo_packs/inferrsi/knowledge/`, accessible through the existing catalog
+and normalized reads after installation. Their instruction bodies and resources
+remain in the checkout-owned `skills/` tree.

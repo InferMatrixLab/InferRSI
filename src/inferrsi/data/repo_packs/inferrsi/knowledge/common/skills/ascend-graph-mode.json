@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.ascend_graph_mode",
+  "title": "ascend-graph-mode",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "How to configure, debug, and optimize Ascend NPU graph mode (npugraph_ex / aclgraph): capture-and-replay mechanics, FX pass configuration, memory reuse, static kernel compilation, communication-in-graph, forced-eager fallback, and the document-first lookup discipline for CANN configuration options. Source-grounded from awesome-ascend-skills torch-npugraph-ex-knowledge skill.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "graph-mode",
+    "aclgraph",
+    "npugraph-ex"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-graph-mode/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/ascend-graph-mode/SKILL.md",
+        "skills/ascend-graph-mode/metadata.json"
+      ],
+      "content_sha256": "9203cc5a14a1d65df5fbf275734b93be023e06527459b2f79864f28a338cb44a"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:ascend-graph-mode",
+  "source_files": {
+    "skills/ascend-graph-mode/SKILL.md": "9203cc5a14a1d65df5fbf275734b93be023e06527459b2f79864f28a338cb44a",
+    "skills/ascend-graph-mode/metadata.json": "f575782c687c7d551c9dc52126854cbcc086e5276a26b30763a3785266cbf506"
+  },
+  "skill_metadata": {
+    "name": "ascend-graph-mode",
+    "description": "How to configure, debug, and optimize Ascend NPU graph mode (npugraph_ex / aclgraph): capture-and-replay mechanics, FX pass configuration, memory reuse, static kernel compilation, communication-in-graph, forced-eager fallback, and the document-first lookup discipline for CANN configuration options. Source-grounded from awesome-ascend-skills torch-npugraph-ex-knowledge skill.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "graph-mode",
+      "aclgraph",
+      "npugraph-ex"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

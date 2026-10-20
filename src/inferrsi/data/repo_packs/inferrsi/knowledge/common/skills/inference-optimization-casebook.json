@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.inference_optimization_casebook",
+  "title": "inference-optimization-casebook",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n",
+  "tags": [
+    "optimization",
+    "casebook",
+    "prior-art",
+    "decision-support"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/inference-optimization-casebook/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/inference-optimization-casebook/SKILL.md",
+        "skills/inference-optimization-casebook/metadata.json"
+      ],
+      "content_sha256": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:inference-optimization-casebook",
+  "source_files": {
+    "skills/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
+    "skills/inference-optimization-casebook/metadata.json": "17214810a8c3052f30119d33be9fc9a3d8054dce0e15c6c958d1994b72c9520f"
+  },
+  "skill_metadata": {
+    "name": "inference-optimization-casebook",
+    "description": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n",
+    "tags": [
+      "optimization",
+      "casebook",
+      "prior-art",
+      "decision-support"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

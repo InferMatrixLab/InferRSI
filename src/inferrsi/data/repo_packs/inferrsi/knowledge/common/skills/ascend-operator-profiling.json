@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.ascend_operator_profiling",
+  "title": "ascend-operator-profiling",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Benchmark a single Ascend NPU operator using msprof op: build, collect with warmup, read the 8 CSV metrics files, derive a bottleneck verdict, and iterate. Use when validating operator performance in isolation before system-level profiling.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "operator",
+    "profiling",
+    "msprof",
+    "benchmark"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ac70272978965f0043dcc2ead81afb813c69f63c/skills/ascend-operator-profiling/SKILL.md",
+      "commit": "ac70272978965f0043dcc2ead81afb813c69f63c",
+      "paths": [
+        "skills/ascend-operator-profiling/SKILL.md",
+        "skills/ascend-operator-profiling/metadata.json"
+      ],
+      "content_sha256": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12"
+    }
+  ],
+  "index_type": "skill-metadata-only",
+  "checkout_ref": "checkout:ascend-operator-profiling",
+  "source_files": {
+    "skills/ascend-operator-profiling/SKILL.md": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12",
+    "skills/ascend-operator-profiling/metadata.json": "fd2c3d849b3e00ac6b54cfe9974ae87325fde7476d199b780815949a8f87d82c"
+  },
+  "skill_metadata": {
+    "name": "ascend-operator-profiling",
+    "description": "Benchmark a single Ascend NPU operator using msprof op: build, collect with warmup, read the 8 CSV metrics files, derive a bottleneck verdict, and iterate. Use when validating operator performance in isolation before system-level profiling.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "operator",
+      "profiling",
+      "msprof",
+      "benchmark"
+    ],
+    "status": "candidate",
+    "synced-from": "https://gitcode.com/cann/cannbot-skills external/cannbot/ops/ops-profiling",
+    "synced-date": "2026-05-26",
+    "synced-commit": "ac5bbd2b4cf427d011874e11f8d1e8b1bef66eda",
+    "license": "UNKNOWN",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "checkout"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Use a complete source checkout for declared references and owner-local cases."
+  ],
+  "limitations": [
+    "This generated abstract indexes metadata only; procedure and resource bodies remain in the source checkout.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The common backend and skills.discovery scenario describe discovery only, not runtime compatibility.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860" role="img" aria-labelledby="pt pd" xml:lang="zh-CN">
+  <title id="pt">InferRSI 系统架构 — 输入、处理管线、输出</title>
+  <desc id="pd">InferRSI 把用户提供的基准脚本、质量脚本、代码检出与设备，经由 RunSpec 归一化和环境检查，送入唯一的 AB/BA 交替调度循环，再经评估裁决输出三值判定、HTML 报告与证据目录。</desc>
+
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#7A8699"/>
+    </marker>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5B8FF9"/>
+    </marker>
+    <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#B37FEB"/>
+    </marker>
+  </defs>
+
+  <rect width="1440" height="860" fill="#FFFFFF"/>
+
+  <g font-family="Microsoft YaHei, PingFang SC, Noto Sans SC, Helvetica, Arial, sans-serif">
+
+    <!-- ── 标题 ── -->
+    <text x="60" y="52" font-size="26" font-weight="700" fill="#1B2430">InferRSI 系统架构</text>
+    <text x="60" y="80" font-size="14" fill="#6B7787">输入 → 归一化 → 交替调度 → 裁决 → 输出　·　实线为数据流，虚线为只读引用</text>
+    <line x1="60" y1="98" x2="1380" y2="98" stroke="#E3E8EF" stroke-width="1.5"/>
+
+    <!-- ══════ 分组 1：输入 ══════ -->
+    <rect x="60" y="122" width="290" height="470" rx="10" fill="#F7F9FC" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="80" y="150" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">① 输入 · 由用户提供</text>
+
+    <rect x="80" y="166" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="192" font-size="14" font-weight="700" fill="#1B2430">基准测试脚本</text>
+    <text x="96" y="213" font-size="11.5" fill="#6B7787">任意语言，写出一个 JSON</text>
+
+    <rect x="80" y="246" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="272" font-size="14" font-weight="700" fill="#1B2430">质量校验脚本</text>
+    <text x="96" y="293" font-size="11.5" fill="#6B7787">退出码非零即质量回归</text>
+
+    <rect x="80" y="326" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="352" font-size="14" font-weight="700" fill="#1B2430">基线 / 候选 代码检出</text>
+    <text x="96" y="373" font-size="11.5" fill="#6B7787">两份 Git 工作树，须为根目录</text>
+
+    <rect x="80" y="406" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="432" font-size="14" font-weight="700" fill="#1B2430">已准备的设备</text>
+    <text x="96" y="453" font-size="11.5" fill="#6B7787">CUDA / ROCm / Ascend / CPU</text>
+
+    <rect x="80" y="486" width="250" height="86" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="96" y="512" font-size="14" font-weight="700" fill="#1B2430">调优知识库</text>
+    <text x="96" y="533" font-size="11.5" fill="#6B7787">可选：先检索已有经验</text>
+    <text x="96" y="552" font-size="11.5" fill="#9AA6B6">只读，不自动执行任何指令</text>
+
+    <!-- ══════ 分组 2：归一化 ══════ -->
+    <rect x="386" y="122" width="266" height="470" rx="10" fill="#F7F9FC" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="406" y="150" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">② 归一化</text>
+
+    <rect x="406" y="166" width="226" height="120" rx="8" fill="#EDF3FF" stroke="#5B8FF9" stroke-width="1.4"/>
+    <text x="422" y="192" font-size="14" font-weight="700" fill="#1D39C4">RunSpec</text>
+    <text x="422" y="214" font-size="11.5" fill="#3C4A5C">不可变的实验契约</text>
+    <line x1="422" y1="224" x2="616" y2="224" stroke="#BFD3F7" stroke-width="1"/>
+    <text x="422" y="243" font-size="11.5" fill="#5A6B80">命令 · 指标键 · 方向</text>
+    <text x="422" y="261" font-size="11.5" fill="#5A6B80">轮次 · 阈值 · 时限</text>
+    <text x="422" y="279" font-size="11.5" fill="#5A6B80">设备 · 后端 · 场景</text>
+
+    <rect x="406" y="304" width="226" height="120" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="422" y="330" font-size="14" font-weight="700" fill="#1B2430">环境检查</text>
+    <text x="422" y="352" font-size="11.5" fill="#5A6B80">仓库标识 · 设备探测</text>
+    <text x="422" y="372" font-size="11.5" fill="#5A6B80">依赖版本 · 可见设备变量</text>
+    <text x="422" y="396" font-size="11.5" fill="#9AA6B6">只记录事实，不认证兼容性</text>
+
+    <rect x="406" y="442" width="226" height="60" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="422" y="467" font-size="13" font-weight="700" fill="#1B2430">源码指纹</text>
+    <text x="422" y="488" font-size="11.5" fill="#6B7787">HEAD + 未提交差异 + 未跟踪文件</text>
+
+    <!-- ══════ 分组 3：调度循环（主干） ══════ -->
+    <rect x="678" y="122" width="404" height="470" rx="10" fill="#EDF9F2" stroke="#B7E4C7" stroke-width="1.6"/>
+    <text x="698" y="150" font-size="12" font-weight="700" letter-spacing="1.5" fill="#2F7D52">③ 交替调度 · 全系统唯一主干</text>
+
+    <!-- 两臂 -->
+    <rect x="698" y="166" width="170" height="72" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="192" font-size="13.5" font-weight="700" fill="#1B4332">基线版本</text>
+    <text x="714" y="213" font-size="11.5" fill="#5A6B80">原始实现</text>
+    <text x="714" y="229" font-size="11" fill="#9AA6B6">A</text>
+
+    <rect x="894" y="166" width="170" height="72" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="910" y="192" font-size="13.5" font-weight="700" fill="#1B4332">候选版本</text>
+    <text x="910" y="213" font-size="11.5" fill="#5A6B80">你的优化</text>
+    <text x="910" y="229" font-size="11" fill="#9AA6B6">B</text>
+
+    <text x="883" y="188" text-anchor="middle" font-size="13" fill="#2F7D52">×</text>
+    <text x="883" y="226" text-anchor="middle" font-size="10.5" fill="#9AA6B6">N 轮</text>
+
+    <!-- 循环 -->
+    <rect x="698" y="256" width="366" height="62" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="281" font-size="13.5" font-weight="700" fill="#1B4332">AB / BA 交替</text>
+    <text x="714" y="303" font-size="11.5" fill="#5A6B80">偶数轮 A→B，奇数轮 B→A，抵消机器随时间的漂移</text>
+
+    <rect x="698" y="332" width="366" height="62" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="357" font-size="13.5" font-weight="700" fill="#1B4332">每次试验前后各拍一次源码</text>
+    <text x="714" y="379" font-size="11.5" fill="#5A6B80">发现实验中改代码 → 直接判证据不足</text>
+
+    <rect x="698" y="408" width="366" height="62" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="433" font-size="13.5" font-weight="700" fill="#1B4332">进程与设备清理</text>
+    <text x="714" y="455" font-size="11.5" fill="#5A6B80">子进程整组回收，不留下抢占设备的僵尸进程</text>
+
+    <rect x="698" y="484" width="366" height="52" rx="8" fill="#E4F6EC" stroke="#52A877" stroke-width="1.1" stroke-dasharray="4 3"/>
+    <text x="714" y="506" font-size="11.5" fill="#2F7D52">唯一允许的扩展方式：替换「执行」与「取指纹」两个钩子</text>
+    <text x="714" y="524" font-size="11" fill="#6B7787">循环本身、清理逻辑、裁决逻辑禁止另写一份</text>
+
+    <!-- ══════ 分组 4：裁决 ══════ -->
+    <rect x="1108" y="122" width="272" height="470" rx="10" fill="#F7F9FC" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="1128" y="150" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">④ 裁决与输出</text>
+
+    <rect x="1128" y="166" width="232" height="96" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="1144" y="192" font-size="13.5" font-weight="700" fill="#1B2430">评估</text>
+    <text x="1144" y="214" font-size="11.5" fill="#5A6B80">中位数对比 · 质量闸门</text>
+    <text x="1144" y="233" font-size="11.5" fill="#5A6B80">证据完整性 · 源码一致性</text>
+    <text x="1144" y="252" font-size="11" fill="#9AA6B6">不做显著性推断</text>
+
+    <rect x="1128" y="278" width="232" height="86" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <circle cx="1146" cy="302" r="4" fill="#2FA36B"/>
+    <text x="1158" y="307" font-size="13" font-weight="700" fill="#1B4332">PASS</text>
+    <text x="1158" y="327" font-size="11" fill="#5A6B80">证据齐全，确认更优</text>
+    <circle cx="1146" cy="345" r="4" fill="#D9534F"/>
+    <text x="1158" y="350" font-size="13" font-weight="700" fill="#8B2E2B">FAIL</text>
+
+    <rect x="1128" y="380" width="232" height="56" rx="8" fill="#FFF8E6" stroke="#E0B341" stroke-width="1.3"/>
+    <circle cx="1146" cy="402" r="4" fill="#E0B341"/>
+    <text x="1158" y="407" font-size="13" font-weight="700" fill="#8A6410">INCONCLUSIVE</text>
+    <text x="1158" y="425" font-size="11" fill="#8A6410">证据不足 —— 绝不冒充 PASS</text>
+
+    <rect x="1128" y="452" width="232" height="84" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="1144" y="477" font-size="13" font-weight="700" fill="#1B2430">交付物</text>
+    <text x="1144" y="498" font-size="11.5" fill="#5A6B80">HTML 报告 · 原始日志</text>
+    <text x="1144" y="517" font-size="11.5" fill="#5A6B80">每次试验的结果与源码快照</text>
+
+    <!-- ══════ 主流箭头 ══════ -->
+    <g fill="none" stroke="#5B8FF9" stroke-width="2" marker-end="url(#ar2)">
+      <path d="M 352 330 H 382"/>
+      <path d="M 654 330 H 674"/>
+    </g>
+    <g fill="none" stroke="#7A8699" stroke-width="1.8" marker-end="url(#ar)">
+      <path d="M 1074 330 H 1104"/>
+    </g>
+
+    <!-- 知识库只读虚线 -->
+    <path d="M 206 486 V 640 H 1180 V 572" fill="none" stroke="#B37FEB" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ar3)"/>
+    <text x="640" y="662" text-anchor="middle" font-size="12" fill="#8A5FC7">知识库只读供检索：检索到的经验是参考资料，不会自动执行，也不会自动晋级为结论</text>
+
+    <!-- ══════ 底部：证据回流 ══════ -->
+    <rect x="60" y="700" width="1320" height="112" rx="10" fill="#FBFCFE" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="80" y="728" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">⑤ 证据沉淀 · 让下一轮从这里开始</text>
+
+    <rect x="80" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="96" y="764" font-size="12.5" font-weight="700" fill="#1B2430">冻结的计划</text>
+    <text x="96" y="783" font-size="11" fill="#6B7787">假设、阈值、轮次，跑之前先定死</text>
+
+    <rect x="388" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="404" y="764" font-size="12.5" font-weight="700" fill="#1B2430">原始结果</text>
+    <text x="404" y="783" font-size="11" fill="#6B7787">完整输出，失败的尝试也保留</text>
+
+    <rect x="696" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="712" y="764" font-size="12.5" font-weight="700" fill="#1B2430">候选差异</text>
+    <text x="712" y="783" font-size="11" fill="#6B7787">改了什么，对应哪个提交</text>
+
+    <rect x="1004" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="1020" y="764" font-size="12.5" font-weight="700" fill="#1B2430">冻结的校验器</text>
+    <text x="1020" y="783" font-size="11" fill="#6B7787">先冻结再搜索，防止事后调整标准</text>
+
+    <!-- 回流箭头 -->
+    <path d="M 1150 700 V 682 H 206 V 640" fill="none" stroke="#7A8699" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ar)"/>
+    <text x="678" y="676" text-anchor="middle" font-size="11.5" fill="#8A97A8">回灌：冻结的校验器与上一轮结论，成为下一轮 RunSpec 的约束</text>
+
+    <!-- ── 图例 ── -->
+    <g font-size="11.5" fill="#6B7787">
+      <rect x="60" y="830" width="14" height="10" rx="2" fill="#EDF3FF" stroke="#5B8FF9"/>
+      <text x="82" y="839">契约</text>
+      <rect x="130" y="830" width="14" height="10" rx="2" fill="#EDF9F2" stroke="#52A877"/>
+      <text x="152" y="839">主干循环</text>
+      <line x1="222" y1="835" x2="252" y2="835" stroke="#5B8FF9" stroke-width="2"/>
+      <text x="260" y="839">数据流</text>
+      <line x1="312" y1="835" x2="342" y2="835" stroke="#B37FEB" stroke-width="1.6" stroke-dasharray="6 4"/>
+      <text x="350" y="839">只读引用</text>
+      <text x="1240" y="839" font-size="11" fill="#9AA6B6">InferRSI · 系统架构概览</text>
+    </g>
+
+  </g>
+</svg>
