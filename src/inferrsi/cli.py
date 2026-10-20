@@ -192,8 +192,8 @@ def main(argv: list[str] | None = None) -> int:
                     print(f"{omission['id']}\tomitted\t{omission['reason']}{detail}")
                 if result["no_match"]:
                     print(
-                        "no_match\tthe query or requested ids matched no knowledge "
-                        "in the selected sources"
+                        "no_match\tnothing selected from the requested sources; "
+                        "see omission lines above and --json for the full envelope"
                     )
             return 0
         if args.command == "read":

@@ -220,7 +220,8 @@ def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path
     code, stdout, _ = run_cli("collect", "definitely-no-such-knowledge-anywhere")
     assert code == 0
     assert stdout.strip() == (
-        "no_match\tthe query or requested ids matched no knowledge in the selected sources"
+        "no_match\tnothing selected from the requested sources; see omission lines "
+        "above and --json for the full envelope"
     )
     code, stdout, _ = run_cli("collect", "--id", "not-a-real-id")
     assert code == 0
