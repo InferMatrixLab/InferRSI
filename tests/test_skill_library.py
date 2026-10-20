@@ -112,24 +112,54 @@ def test_bilingual_documents_are_packaged_local_and_repository_owned():
     for record in records:
         assert set(record["skill_documents"]) == {"en", "zh-CN"}
         for language, relative in record["skill_documents"].items():
-            expected = LIBRARY / language / record["repo"].replace("_", "-")
+            expected = LIBRARY / "repositories" / record["repo"].replace("_", "-")
+            if language == "zh-CN":
+                expected = expected / "translations/zh-CN"
             document = (PACKAGE / relative).resolve()
             assert document.is_relative_to(expected.resolve())
+            if language == "en":
+                assert "translations" not in document.relative_to(expected.resolve()).parts
             assert document.name == "SKILL.md" and document.is_file()
 
 
 def test_portable_library_has_bilingual_parity_and_resolving_local_links():
-    english = {
-        path.relative_to(LIBRARY / "en") for path in (LIBRARY / "en").rglob("*") if path.is_file()
-    }
-    chinese = {
-        path.relative_to(LIBRARY / "zh-CN")
-        for path in (LIBRARY / "zh-CN").rglob("*")
-        if path.is_file()
-    }
-    assert english == chinese
-    assert len([path for path in english if path.name == "SKILL.md"]) == 21
-    for document in LIBRARY.rglob("*.md"):
+    bilingual_nodes = 0
+    for repo in REPOSITORIES:
+        owner = LIBRARY / "repositories" / repo.replace("_", "-")
+        translated = owner / "translations/zh-CN"
+        # Owner-local standalone skills may coexist with the imported engine
+        # graph. Compare its entry, licenses and resource/sub-skill branches.
+        english = {Path("SKILL.md"), Path("LICENSE")} | {
+            path.relative_to(owner)
+            for section in ("references", "sub-skills", "scripts")
+            for path in (owner / section).rglob("*") if path.is_file()
+        }
+        chinese = {
+            path.relative_to(translated) for path in translated.rglob("*") if path.is_file()
+        }
+        assert english == chinese
+        assert all((owner / path).is_file() for path in english)
+        bilingual_nodes += sum(path.name == "SKILL.md" for path in english)
+        for path in english:
+            if path.suffix == ".json" or path.name == "LICENSE":
+                assert (owner / path).read_bytes() == (translated / path).read_bytes()
+        for path in english:
+            if path.name == "SKILL.md":
+                name = re.search(
+                    r"^name: (.+)$", (owner / path).read_text(encoding="utf-8"), re.MULTILINE
+                )[1]
+                translated_name = re.search(
+                    r"^name: (.+)$", (translated / path).read_text(encoding="utf-8"), re.MULTILINE
+                )[1]
+                assert name == translated_name
+    assert bilingual_nodes == 20
+    router = LIBRARY / "workflows/inference-engine-research"
+    assert (router / "SKILL.md").is_file()
+    assert (router / "translations/zh-CN/SKILL.md").is_file()
+    documents = list(LIBRARY.rglob("*.md")) + [
+        PACKAGE / "data/repo_packs" / repo / "knowledge/README.md" for repo in REPOSITORIES
+    ]
+    for document in documents:
         for target in re.findall(r"\]\(([^)]+)\)", document.read_text(encoding="utf-8")):
             link = urlsplit(target)
             if link.scheme or link.netloc or not link.path:
@@ -137,11 +167,31 @@ def test_portable_library_has_bilingual_parity_and_resolving_local_links():
             destination = (document.parent / unquote(link.path)).resolve()
             assert destination.is_relative_to(PACKAGE.resolve()), (document, target)
             assert destination.exists(), (document, target)
-    for repo in REPOSITORIES:
-        for language in ("en", "zh-CN"):
-            assert (LIBRARY / language / repo.replace("_", "-") / "LICENSE").is_file()
-    helper = Path("strata/scripts/summarize_trials.py")
-    assert (LIBRARY / "en" / helper).read_bytes() == (LIBRARY / "zh-CN" / helper).read_bytes()
+    strata = LIBRARY / "repositories/strata"
+    helper = Path("scripts/summarize_trials.py")
+    assert (strata / helper).read_bytes() == (
+        strata / "translations/zh-CN" / helper
+    ).read_bytes()
+
+
+def test_library_root_exposes_only_owner_categories_and_required_entrypoints():
+    assert {path.name for path in LIBRARY.iterdir() if path.is_file()} == {
+        "README.md", "skill-index.json",
+    }
+    assert {path.name for path in LIBRARY.iterdir() if path.is_dir()} == {
+        "hardware", "frameworks", "repositories", "methods", "workflows",
+    }
+    assert len(list(LIBRARY.rglob("SKILL.md"))) == 90
+    references = LIBRARY / "workflows/inference-engine-research/references"
+    assert (references / "import.md").is_file()
+    manifest = json.loads((references / "source-manifest.json").read_text(encoding="utf-8"))
+    assert len(manifest["sources"]) == 5
+    for language in ("en", "zh-CN"):
+        suffix = Path() if language == "en" else Path("translations/zh-CN")
+        router = LIBRARY / "workflows/inference-engine-research" / suffix
+        strata = LIBRARY / "repositories/strata" / suffix
+        assert (router / "references/overview.md").is_file()
+        assert (strata / "references/design-space-analysis.md").is_file()
 
 
 def test_bundled_trial_helper_excludes_failed_configs_and_rejects_mixed_context(tmp_path):
@@ -156,7 +206,9 @@ def test_bundled_trial_helper_excludes_failed_configs_and_rejects_mixed_context(
         "b1,stable,exp,gpu,work,base,100,10,400,900,true,true\n"
     )
     csv.write_text(header + rows, encoding="utf-8")
-    command = [sys.executable, str(LIBRARY / "en/strata/scripts/summarize_trials.py"), str(csv)]
+    command = [
+        sys.executable, str(LIBRARY / "repositories/strata/scripts/summarize_trials.py"), str(csv),
+    ]
     result = subprocess.run(command, capture_output=True, text=True, check=True)
     summary = json.loads(result.stdout)
     assert summary["accepted_trials"] == 2

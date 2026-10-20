@@ -5,8 +5,8 @@ validation plans and explicit verification state. The complete bilingual skills
 provide the detailed procedures and evidence maps; they are not per-entry
 Markdown copies of the catalog records.
 
-Full library: [English](../../../skill_library/en/sglang/SKILL.md) |
-[中文](../../../skill_library/zh-CN/sglang/SKILL.md).
+Full library: [English](../../../skill_library/repositories/sglang/SKILL.md) |
+[中文](../../../skill_library/repositories/sglang/translations/zh-CN/SKILL.md).
 
 All entries are imported guidance with `locally_verified=false`. `common` means
 backend-independent guidance within this repository, not verified backend

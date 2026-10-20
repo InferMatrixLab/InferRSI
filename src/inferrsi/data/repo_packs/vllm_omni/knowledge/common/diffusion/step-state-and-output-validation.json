@@ -43,8 +43,8 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/en/vllm-omni/sub-skills/omni-validation/SKILL.md",
-    "zh-CN": "data/skill_library/zh-CN/vllm-omni/sub-skills/omni-validation/SKILL.md"
+    "en": "data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md",
+    "zh-CN": "data/skill_library/repositories/vllm-omni/translations/zh-CN/sub-skills/omni-validation/SKILL.md"
   },
   "applicability": {
     "hardware": [],

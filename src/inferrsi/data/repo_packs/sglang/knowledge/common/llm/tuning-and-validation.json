@@ -43,8 +43,8 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/en/sglang/sub-skills/sglang-tuning-validation/SKILL.md",
-    "zh-CN": "data/skill_library/zh-CN/sglang/sub-skills/sglang-tuning-validation/SKILL.md"
+    "en": "data/skill_library/repositories/sglang/sub-skills/sglang-tuning-validation/SKILL.md",
+    "zh-CN": "data/skill_library/repositories/sglang/translations/zh-CN/sub-skills/sglang-tuning-validation/SKILL.md"
   },
   "applicability": {
     "hardware": [],

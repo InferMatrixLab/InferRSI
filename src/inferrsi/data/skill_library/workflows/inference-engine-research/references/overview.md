@@ -8,12 +8,12 @@ The main design lesson is to organize knowledge by **work unit, state ownership,
 
 | Repository | Knowledge emphasized | English | 中文 |
 |---|---|---|---|
-| Strata | Heterogeneous MoE, CPU/GPU placement, memory and speculation | [Skill](en/strata/SKILL.md) | [Skill](zh-CN/strata/SKILL.md) |
-| vLLM | Token/admission/input budgets, KV ownership and prefix reuse, scheduler/runner/attention, parallel serving | [Skill](en/vllm/SKILL.md) | [Skill](zh-CN/vllm/SKILL.md) |
-| SGLang | Scheduler and cache reuse, Radix/HiCache, prefill/decode and parallelism, extension and tuning | [Skill](en/sglang/SKILL.md) | [Skill](zh-CN/sglang/SKILL.md) |
-| SGLang-Omni | Pipeline/stage runtime, scheduler IO boundary, stream/backpressure/transport, model integration | [Skill](en/sglang-omni/SKILL.md) | [Skill](zh-CN/sglang-omni/SKILL.md) |
-| vLLM-Omni | Fixed topology vs deploy resources, stage affinity/connectors, AR/diffusion modes, output/state contracts | [Skill](en/vllm-omni/SKILL.md) | [Skill](zh-CN/vllm-omni/SKILL.md) |
-| Collection router | Cross-engine reasoning and a unified constrained search workflow | [Skill](en/inference-engine-research/SKILL.md) | [Skill](zh-CN/inference-engine-research/SKILL.md) |
+| Strata | Heterogeneous MoE, CPU/GPU placement, memory and speculation | [Skill](../../../repositories/strata/SKILL.md) | [Skill](../../../repositories/strata/translations/zh-CN/SKILL.md) |
+| vLLM | Token/admission/input budgets, KV ownership and prefix reuse, scheduler/runner/attention, parallel serving | [Skill](../../../repositories/vllm/SKILL.md) | [Skill](../../../repositories/vllm/translations/zh-CN/SKILL.md) |
+| SGLang | Scheduler and cache reuse, Radix/HiCache, prefill/decode and parallelism, extension and tuning | [Skill](../../../repositories/sglang/SKILL.md) | [Skill](../../../repositories/sglang/translations/zh-CN/SKILL.md) |
+| SGLang-Omni | Pipeline/stage runtime, scheduler IO boundary, stream/backpressure/transport, model integration | [Skill](../../../repositories/sglang-omni/SKILL.md) | [Skill](../../../repositories/sglang-omni/translations/zh-CN/SKILL.md) |
+| vLLM-Omni | Fixed topology vs deploy resources, stage affinity/connectors, AR/diffusion modes, output/state contracts | [Skill](../../../repositories/vllm-omni/SKILL.md) | [Skill](../../../repositories/vllm-omni/translations/zh-CN/SKILL.md) |
+| Collection router | Cross-engine reasoning and a unified constrained search workflow | [Skill](../SKILL.md) | [Skill](../translations/zh-CN/SKILL.md) |
 
 ## What to learn across repositories
 
@@ -52,14 +52,14 @@ Existing AREX skills were inspected as prior work and refreshed against source r
 
 ## How this used AREX
 
-Construction follows AREX-Skill `distill-ml-knowledge`: **scope → ground → construct → verify**, using its direct construction strategy, provenance/routing patterns, operating metadata and review criteria. This is a portable candidate preview. The DisCo managed CLI/importer, full environment preparation and GPU acceptance were not executed. See [construction record](IMPORT.md) and [verification](IMPORT.md).
+Construction follows AREX-Skill `distill-ml-knowledge`: **scope → ground → construct → verify**, using its direct construction strategy, provenance/routing patterns, operating metadata and review criteria. This is a portable candidate preview. The DisCo managed CLI/importer, full environment preparation and GPU acceptance were not executed. See [construction record](import.md) and [verification](import.md).
 
-Each repository is independently readable, with an entry point and progressively loaded references/sub-skills. The optional collection router refers to its five sibling roots; retain all six when using that router. Both languages share canonical skill IDs, so choose one language for any one installation. No global skill was installed or overwritten.
+Each repository is independently readable, with an entry point and progressively loaded references/sub-skills. The optional collection router links from `workflows/inference-engine-research/` to the five engine packages under `repositories/`; preserve that library layout when using the router. Both languages share canonical skill IDs, so choose one language for any one installation. No global skill was installed or overwritten.
 
 ## Try it
 
 ```text
-Read en/inference-engine-research/SKILL.md. For a new inference engine, derive a constrained search space from these repositories. Separate existing settings, implementation changes and research extensions. For each dimension give a source anchor, compatibility constraints, correctness tests and measurements. Hardware: [fill in]; model/revision: [fill in]; workload and SLO: [fill in].
+From the skill library root, read workflows/inference-engine-research/SKILL.md. For a new inference engine, derive a constrained search space from these repositories. Separate existing settings, implementation changes and research extensions. For each dimension give a source anchor, compatibility constraints, correctness tests and measurements. Hardware: [fill in]; model/revision: [fill in]; workload and SLO: [fill in].
 ```
 
 For one repository, read its SKILL.md directly. The source code and model weights are excluded from the library; immutable source URLs and verification recipes are retained. GPU correctness, native distributed behavior and performance still require the target environment.

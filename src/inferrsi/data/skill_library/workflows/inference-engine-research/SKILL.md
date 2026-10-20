@@ -8,15 +8,15 @@ metadata:
 
 # Inference engine research router
 
-Use this collection to compare architectures or design a constrained search for an inference engine. If the user names one repository, load its sibling entry directly. Keep all six sibling roots together when using this router; the five repository skills can also be distributed independently.
+Use this collection to compare architectures or design a constrained search for an inference engine. If the user names one repository, load its entry directly. Keep the library's `repositories/` and `workflows/` layout when using this router so its links reach all five repository skills; the repository skills can also be distributed independently.
 
 | Question | Route |
 |---|---|
-| Strata heterogeneous MoE, CPU/GPU expert placement, memory and speculative execution | [strata](../strata/SKILL.md) |
-| vLLM token scheduling, KV/prefix reuse, execution/parallelism or model integration | [vllm](../vllm/SKILL.md) |
-| SGLang scheduling, Radix/HiCache, prefill/decode, parallel runtime or extensions | [sglang](../sglang/SKILL.md) |
-| SGLang-Omni pipelines, stage/scheduler ownership, streaming and transport | [sglang-omni](../sglang-omni/SKILL.md) |
-| vLLM-Omni model/deploy separation, AR/diffusion execution, stage transport and heterogeneous outputs | [vllm-omni](../vllm-omni/SKILL.md) |
+| Strata heterogeneous MoE, CPU/GPU expert placement, memory and speculative execution | [strata](../../repositories/strata/SKILL.md) |
+| vLLM token scheduling, KV/prefix reuse, execution/parallelism or model integration | [vllm](../../repositories/vllm/SKILL.md) |
+| SGLang scheduling, Radix/HiCache, prefill/decode, parallel runtime or extensions | [sglang](../../repositories/sglang/SKILL.md) |
+| SGLang-Omni pipelines, stage/scheduler ownership, streaming and transport | [sglang-omni](../../repositories/sglang-omni/SKILL.md) |
+| vLLM-Omni model/deploy separation, AR/diffusion execution, stage transport and heterogeneous outputs | [vllm-omni](../../repositories/vllm-omni/SKILL.md) |
 
 ## Comparison procedure
 

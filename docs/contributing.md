@@ -52,7 +52,11 @@ their generated abstracts with `tools/build_skill_index.py`. Keep all skill
 content in the canonical library. Preserve source state and
 `UNKNOWN` license declarations; moving content does not resolve licensing.
 
-The existing `en/` and `zh-CN/` engine procedures retain their language pairing.
+Keep English engine procedures under `repositories/<engine>/` and the collection
+router under `workflows/inference-engine-research/`, with each complete Chinese
+bundle in its owner's `translations/zh-CN/`. Preserve both editions' sub-skills
+and references. Keep supporting Markdown and JSON with their owner; the library
+root contains only `README.md` and `skill-index.json`.
 Catalog abstracts link to packaged bodies via `skill_documents.original` for
 migrated skills or the existing language fields for bilingual imports. Update
 affected source content and catalog records together. Source snapshot revisions

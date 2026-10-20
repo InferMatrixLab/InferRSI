@@ -25,7 +25,8 @@ inferrsi/data/
     dependency/REPO/BACKEND/COMPONENT/ENTRY.json        Dependency impact
     peer/REPO/BACKEND/COMPONENT/ENTRY.json              Technique candidates
   skill_library/                                     Full categorized skills/resources
-  skill_library/learned/REPO/BACKEND/COMPONENT/         Future reviewed L2C skills
+    hardware/, frameworks/, repositories/             Hardware and implementation owners
+    methods/, workflows/                              General methods and workflows
 runs/learning/RUN_ID/                                  Future learning logs/state
 ```
 
@@ -46,8 +47,10 @@ and optionally `--backend ascend` or `--backend cuda`. Original state, provenanc
 and unknown licensing are preserved separately from the unverified catalog
 record. Backend classification and `skills.discovery` imply no qualification.
 
-Skills/log directories above are future workflow destinations, not a running
-L2C integration. There are no learned L2C skills or vLLM/vllm-ascend performance
+Future reviewed L2C skills use these same owner directories; provenance and
+learning tier do not introduce another top-level skill category. The learning
+log path is a future workflow destination, not a running L2C integration.
+There are no learned L2C skills or vLLM/vllm-ascend performance
 records in this import. Existing imported vLLM-Omni guidance does not become
 L2C training output merely by receiving a tier.
 

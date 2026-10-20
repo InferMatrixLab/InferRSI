@@ -4,7 +4,7 @@
 
 Here, AI generation means proposing configurations or code candidates, filtering them through an explicit evaluator, and retaining a reproducible baseline. Fix the model, hardware, workload and quality contract first. If model or hardware selection is allowed, put it in a separate outer search and redefine comparability.
 
-The [English Skill](en/strata/SKILL.md) and [Chinese Skill](zh-CN/strata/SKILL.md) each contain design, tuning and validation branches. See the [verification record](IMPORT.md) for construction and checks.
+The [English Skill](../SKILL.md) and [Chinese Skill](../translations/zh-CN/SKILL.md) each contain design, tuning and validation branches. See the [verification record](../../../workflows/inference-engine-research/references/import.md) for construction and checks.
 
 ## Separate three search levels
 

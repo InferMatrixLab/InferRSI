@@ -13,13 +13,15 @@ separate work, not an implemented capability of this knowledge base.
 
 ```text
 src/inferrsi/data/skill_library/
+  README.md                         Library navigation
   skill-index.json                   Stable IDs → categorized paths/backend (48 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
-  repositories/<repo>/<id>/         Repository-owned complete skills
+  repositories/<repo>/              Engine entry, sub-skills and focused complete skills
   methods/<id>/                     General optimization/analysis complete skills
-  workflows/<id>/                   Evidence and skill-lifecycle complete skills
-  en/, zh-CN/                       Existing 42 bilingual engine skill nodes
+  workflows/<id>/                   Cross-repository research, evidence and skill lifecycle
+  <owner>/translations/zh-CN/        Complete Chinese engine/workflow edition
+  <owner>/references/               Owner-local supporting documents and source inventory
   <category>/<id>/SKILL.md           Name, description, substantive procedure
   <category>/<id>/metadata.json      Provenance, state and relationships
   <category>/<id>/references/        Owner's mechanisms, readsets and comparisons
@@ -164,8 +166,13 @@ All 48 former root skills now have one canonical home under
 [`src/inferrsi/data/skill_library/`](../src/inferrsi/data/skill_library/README.md).
 Complete procedures, sidecars, references and cases are packaged, with 13 Ascend,
 2 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
-repositories, methods or workflows. The existing 42 bilingual engine nodes stay
-in `en/` and `zh-CN/`.
+repositories, methods or workflows. The 42 bilingual engine documents use the
+same ownership layout: English entries under `repositories/<engine>/` and
+`workflows/inference-engine-research/`, with complete Chinese editions in each
+owner's `translations/zh-CN/`. Both editions retain their sub-skills and references.
+The collection overview, import notes and source manifest belong to the research
+workflow's references; Strata design-space analysis belongs to Strata. The library
+root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
 projects the 48 registered skills into the contribution catalog. Its records

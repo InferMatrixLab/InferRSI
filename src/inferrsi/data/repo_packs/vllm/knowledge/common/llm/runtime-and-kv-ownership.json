@@ -43,8 +43,8 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/en/vllm/sub-skills/architecture-search-space/SKILL.md",
-    "zh-CN": "data/skill_library/zh-CN/vllm/sub-skills/architecture-search-space/SKILL.md"
+    "en": "data/skill_library/repositories/vllm/sub-skills/architecture-search-space/SKILL.md",
+    "zh-CN": "data/skill_library/repositories/vllm/translations/zh-CN/sub-skills/architecture-search-space/SKILL.md"
   },
   "applicability": {
     "hardware": [],

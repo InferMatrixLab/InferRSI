@@ -4,7 +4,7 @@
 
 这里把“用 AI 生成”理解为：AI 提出配置或代码候选，由明确验证器筛选，保留可复现基线。目标模型、硬件、工作负载和质量门槛先固定；如果允许同时换模型或硬件，应作为单独外层搜索，并重新定义可比性。
 
-交付的 [中文 Skill](zh-CN/strata/SKILL.md) 和 [English Skill](en/strata/SKILL.md) 都包含设计、调优、验证三个分支。详细构建与检查见 [verification](IMPORT.md)。
+交付的 [中文 Skill](../SKILL.md) 和 [English Skill](../../../SKILL.md) 都包含设计、调优、验证三个分支。详细构建与检查见 [verification](../../../../../workflows/inference-engine-research/references/import.md)。
 
 ## 先分清三层搜索
 

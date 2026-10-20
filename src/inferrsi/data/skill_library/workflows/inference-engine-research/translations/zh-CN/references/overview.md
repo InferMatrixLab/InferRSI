@@ -8,12 +8,12 @@
 
 | 仓库 | 重点知识 | English | 中文 |
 |---|---|---|---|
-| Strata | 异构 MoE、CPU/GPU 放置、内存与推测执行 | [Skill](en/strata/SKILL.md) | [Skill](zh-CN/strata/SKILL.md) |
-| vLLM | token/准入/输入预算、KV 归属与前缀复用、scheduler/runner/attention、并行服务 | [Skill](en/vllm/SKILL.md) | [Skill](zh-CN/vllm/SKILL.md) |
-| SGLang | scheduler 与缓存复用、Radix/HiCache、prefill/decode 和并行、扩展及调优 | [Skill](en/sglang/SKILL.md) | [Skill](zh-CN/sglang/SKILL.md) |
-| SGLang-Omni | pipeline/stage runtime、scheduler IO 边界、流式/背压/传输、模型接入 | [Skill](en/sglang-omni/SKILL.md) | [Skill](zh-CN/sglang-omni/SKILL.md) |
-| vLLM-Omni | 固定拓扑与部署资源、阶段亲和性/connector、AR/扩散模式、输出和状态契约 | [Skill](en/vllm-omni/SKILL.md) | [Skill](zh-CN/vllm-omni/SKILL.md) |
-| 总入口 | 跨引擎分析及统一的受约束搜索流程 | [Skill](en/inference-engine-research/SKILL.md) | [Skill](zh-CN/inference-engine-research/SKILL.md) |
+| Strata | 异构 MoE、CPU/GPU 放置、内存与推测执行 | [Skill](../../../../../repositories/strata/SKILL.md) | [Skill](../../../../../repositories/strata/translations/zh-CN/SKILL.md) |
+| vLLM | token/准入/输入预算、KV 归属与前缀复用、scheduler/runner/attention、并行服务 | [Skill](../../../../../repositories/vllm/SKILL.md) | [Skill](../../../../../repositories/vllm/translations/zh-CN/SKILL.md) |
+| SGLang | scheduler 与缓存复用、Radix/HiCache、prefill/decode 和并行、扩展及调优 | [Skill](../../../../../repositories/sglang/SKILL.md) | [Skill](../../../../../repositories/sglang/translations/zh-CN/SKILL.md) |
+| SGLang-Omni | pipeline/stage runtime、scheduler IO 边界、流式/背压/传输、模型接入 | [Skill](../../../../../repositories/sglang-omni/SKILL.md) | [Skill](../../../../../repositories/sglang-omni/translations/zh-CN/SKILL.md) |
+| vLLM-Omni | 固定拓扑与部署资源、阶段亲和性/connector、AR/扩散模式、输出和状态契约 | [Skill](../../../../../repositories/vllm-omni/SKILL.md) | [Skill](../../../../../repositories/vllm-omni/translations/zh-CN/SKILL.md) |
+| 总入口 | 跨引擎分析及统一的受约束搜索流程 | [Skill](../../../SKILL.md) | [Skill](../SKILL.md) |
 
 ## 从多个仓库共同提取什么
 
@@ -52,14 +52,14 @@
 
 ## 本次如何使用 AREX
 
-按 AREX-Skill `distill-ml-knowledge` 的 **scope → ground → construct → verify** 流程，采用 direct 构建策略，保留来源/路由格式、operating 元数据和复核要求。产物是可移植候选预览；没有运行 DisCo 托管 CLI/importer，也没有宣称完成完整环境准备或 GPU 验收。详见[构建记录](IMPORT.md)和[验证报告](IMPORT.md)。
+按 AREX-Skill `distill-ml-knowledge` 的 **scope → ground → construct → verify** 流程，采用 direct 构建策略，保留来源/路由格式、operating 元数据和复核要求。产物是可移植候选预览；没有运行 DisCo 托管 CLI/importer，也没有宣称完成完整环境准备或 GPU 验收。详见[构建记录](../../../references/import.md)和[验证报告](../../../references/import.md)。
 
-每个仓库可独立阅读，含根入口及按需加载的参考/子 Skill。可选总入口会引用五个相邻根目录，使用它时保留全部六个目录。中英文共享 canonical skill ID，同一安装位置选择一种语言；本次未安装或覆盖全局 Skill。
+每个仓库可独立阅读，含根入口及按需加载的参考/子 Skill。可选总入口从 `workflows/inference-engine-research/` 链接到 `repositories/` 下的五个引擎知识包，使用它时保留这一知识库目录布局。中英文共享 canonical skill ID，同一安装位置选择一种语言；本次未安装或覆盖全局 Skill。
 
 ## 使用示例
 
 ```text
-请阅读 zh-CN/inference-engine-research/SKILL.md。参考这五个仓库，为新推理引擎建立受约束搜索空间。区分已有参数、实现修改、研究扩展；每个维度给出源码锚点、兼容约束、正确性测试和测量指标。硬件：[填写]；模型与版本：[填写]；负载与 SLO：[填写]。
+请从知识库根目录读取 workflows/inference-engine-research/translations/zh-CN/SKILL.md。参考这五个仓库，为新推理引擎建立受约束搜索空间。区分已有参数、实现修改、研究扩展；每个维度给出源码锚点、兼容约束、正确性测试和测量指标。硬件：[填写]；模型与版本：[填写]；负载与 SLO：[填写]。
 ```
 
 只分析单仓库时直接读取对应 SKILL.md。本库不含引擎源码和模型权重，保留不可变源码链接及验证配方。GPU 正确性、原生分布式行为和性能需要在目标环境继续验证。

@@ -153,8 +153,12 @@ All 48 former root skills now live in
 [the skill library](src/inferrsi/data/skill_library/README.md), including their
 full procedures, metadata, references and cases. Hardware-specific guidance is
 grouped under `hardware/ascend`, `hardware/cuda` and `hardware/host`; the remaining
-skills use `frameworks`, `repositories`, `methods` and `workflows`. The existing
-42 bilingual engine skill nodes remain in `en/` and `zh-CN/`.
+skills use `frameworks`, `repositories`, `methods` and `workflows`. The 42 bilingual
+engine skill documents follow the same ownership layout: English entries live
+under `repositories/<engine>` and `workflows/inference-engine-research`, with
+complete Chinese bundles in each owner's `translations/zh-CN/`. Supporting
+Markdown and JSON live with their owner; the library root keeps only `README.md`
+and `skill-index.json`.
 
 Install the optional parser with `python -m pip install 'inferrsi[skills]'` (or
 `python -m pip install '.[skills]'` from this checkout). The `skills` CLI defaults

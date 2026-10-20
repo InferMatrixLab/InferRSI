@@ -62,7 +62,14 @@ registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="u
 assert len(registry) == 48
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
-manifest = json.loads(library.joinpath("source-manifest.json").read_text(encoding="utf-8"))
+router = library.joinpath("workflows", "inference-engine-research")
+manifest = json.loads(
+    router.joinpath("references", "source-manifest.json").read_text(encoding="utf-8")
+)
+assert {entry.name for entry in library.iterdir() if entry.is_file()} == {
+    "README.md", "skill-index.json",
+}
+assert not library.joinpath("en").is_dir() and not library.joinpath("zh-CN").is_dir()
 assert len(manifest["sources"]) == 5
 for source in manifest["sources"]:
     slug = source["skill"]
@@ -75,8 +82,10 @@ for source in manifest["sources"]:
     ]
     assert len(imported) == 3, f"Missing indexed knowledge for {repo}"
     for language in ("en", "zh-CN"):
-        assert library.joinpath(language, slug, "SKILL.md").is_file()
-        assert library.joinpath(language, slug, "LICENSE").is_file()
+        owner = library.joinpath("repositories", slug)
+        edition = owner if language == "en" else owner.joinpath("translations", "zh-CN")
+        assert edition.joinpath("SKILL.md").is_file()
+        assert edition.joinpath("LICENSE").is_file()
     for record in imported:
         for reference in record["skill_documents"].values():
             assert package.joinpath(*reference.split("/")).is_file(), reference
@@ -86,8 +95,13 @@ for source in manifest["sources"]:
     assert '"skill_documents"' in output.getvalue()
     assert '"locally_verified": false' in output.getvalue()
 for language in ("en", "zh-CN"):
-    assert library.joinpath(language, "inference-engine-research", "SKILL.md").is_file()
-    helper = library.joinpath(language, "strata", "scripts", "summarize_trials.py")
+    router_edition = router if language == "en" else router.joinpath("translations", "zh-CN")
+    assert router_edition.joinpath("SKILL.md").is_file()
+    assert router_edition.joinpath("references", "overview.md").is_file()
+    strata = library.joinpath("repositories", "strata")
+    strata_edition = strata if language == "en" else strata.joinpath("translations", "zh-CN")
+    assert strata_edition.joinpath("references", "design-space-analysis.md").is_file()
+    helper = strata_edition.joinpath("scripts", "summarize_trials.py")
     assert helper.is_file()
     with as_file(helper) as path:
         compile(path.read_text(encoding="utf-8"), str(path), "exec")

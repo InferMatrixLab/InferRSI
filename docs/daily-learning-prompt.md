@@ -119,7 +119,9 @@ D. 独立性能线
 
 E. 检查、候选 PR 与晋升
 17. 学习者只写 staging 目录；独立校验/发布步骤核对改动 allowlist 后复制：
-    - src/inferrsi/data/skill_library/learned/<repo>/<backend>/<component>/ 的候选技能；
+    - src/inferrsi/data/skill_library/ 下按主要归属放置的候选技能：
+      hardware/<backend>/、frameworks/<framework>/、repositories/<repo>/、methods/ 或 workflows/；
+      翻译放所属技能的 translations/<language>/，参考资料放该技能的 references/；
     - src/inferrsi/data/repo_packs/<repo>/knowledge/ 的知识记录和导航；
     - 本次 acquisition/learning manifest、评测摘要与性能候选队列的可追溯归档。
     新增 vllm 或 vllm_ascend 记录时创建该 pack 的知识导航；知识身份不表示运行支持。

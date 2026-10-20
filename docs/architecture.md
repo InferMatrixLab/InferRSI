@@ -250,9 +250,12 @@ The optional `skills` CLI defaults to the installed `data/skill_library/` and
 its `skill-index.json` registry of 48 stable skill IDs. Hardware-specific content
 lives under `hardware/ascend`, `hardware/cuda` or `hardware/host`; other skills
 are grouped by framework, repository, method or workflow. Full procedures,
-sidecars, references and cases ship with the package alongside the existing
-bilingual library. An explicit `--root` can still select a custom flat skills
-tree or a registry-based library. The CLI uses PyYAML from the `skills` extra,
+sidecars, references and cases ship with the package. Engine entry skills live
+under `repositories/<engine>/`, the collection router under
+`workflows/inference-engine-research/`, and complete Chinese editions under
+each owner's `translations/zh-CN/`. Supporting documents are owner-local; only
+`README.md` and `skill-index.json` remain at the library root. An explicit
+`--root` can still select a custom flat skills tree or a registry-based library. The CLI uses PyYAML from the `skills` extra,
 lists metadata, reads a named body or resolves a named resource for an external
 file reader. It never executes, installs or promotes skills. Core knowledge
 commands read catalog JSON and packaged documents without the optional parser;

@@ -8,15 +8,15 @@ metadata:
 
 # 推理引擎研究总入口
 
-用于比较架构或设计受约束的推理引擎搜索。用户指定仓库时，直接读取相邻的该仓库入口。使用本总入口需保留全部六个相邻根目录；五个仓库 Skill 也可各自独立分发。
+用于比较架构或设计受约束的推理引擎搜索。用户指定仓库时，直接读取该仓库入口。使用本总入口需保留知识库的 `repositories/` 与 `workflows/` 目录布局，使链接能访问全部五个仓库 Skill；仓库 Skill 也可各自独立分发。
 
 | 问题 | 路由 |
 |---|---|
-| Strata 异构 MoE、CPU/GPU 专家放置、内存与推测执行 | [strata](../strata/SKILL.md) |
-| vLLM token 调度、KV/前缀复用、执行/并行或模型接入 | [vllm](../vllm/SKILL.md) |
-| SGLang 调度、Radix/HiCache、prefill/decode、并行运行时或扩展 | [sglang](../sglang/SKILL.md) |
-| SGLang-Omni 流水线、stage/scheduler 归属、流式与传输 | [sglang-omni](../sglang-omni/SKILL.md) |
-| vLLM-Omni 模型/部署分离、AR/扩散执行、阶段传输及异构输出 | [vllm-omni](../vllm-omni/SKILL.md) |
+| Strata 异构 MoE、CPU/GPU 专家放置、内存与推测执行 | [strata](../../../../repositories/strata/translations/zh-CN/SKILL.md) |
+| vLLM token 调度、KV/前缀复用、执行/并行或模型接入 | [vllm](../../../../repositories/vllm/translations/zh-CN/SKILL.md) |
+| SGLang 调度、Radix/HiCache、prefill/decode、并行运行时或扩展 | [sglang](../../../../repositories/sglang/translations/zh-CN/SKILL.md) |
+| SGLang-Omni 流水线、stage/scheduler 归属、流式与传输 | [sglang-omni](../../../../repositories/sglang-omni/translations/zh-CN/SKILL.md) |
+| vLLM-Omni 模型/部署分离、AR/扩散执行、阶段传输及异构输出 | [vllm-omni](../../../../repositories/vllm-omni/translations/zh-CN/SKILL.md) |
 
 ## 比较流程
 

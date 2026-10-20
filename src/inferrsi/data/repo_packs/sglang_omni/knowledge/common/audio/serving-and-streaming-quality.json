@@ -43,8 +43,8 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/en/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
-    "zh-CN": "data/skill_library/zh-CN/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md"
+    "en": "data/skill_library/repositories/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
+    "zh-CN": "data/skill_library/repositories/sglang-omni/translations/zh-CN/sub-skills/sglang-omni-serving/SKILL.md"
   },
   "applicability": {
     "hardware": [],
