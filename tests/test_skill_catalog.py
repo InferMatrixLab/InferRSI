@@ -6,6 +6,7 @@ import pytest
 from inferrsi.cli import main
 from inferrsi.skill_catalog import (
     get_skill,
+    skill_directories,
     skill_instructions,
     skill_records,
     skill_reference,
@@ -25,9 +26,9 @@ def _symlink(target: Path, link: Path) -> None:
 
 
 def test_checkout_catalog_is_metadata_only():
-    root = PROJECT / "skills"
+    root = PROJECT / "src/inferrsi/data/skill_library"
     records = skill_records(root)
-    assert len(records) == len(list(root.glob("*/SKILL.md")))
+    assert len(records) == len(skill_directories(root))
     assert len(records) >= 32
     assert len({record["name"] for record in records}) == len(records)
     assert all(set(record) <= {"name", "description", "status", "tags"} for record in records)
@@ -126,14 +127,15 @@ def test_metadata_symlink_escape_rejected(tmp_path):
 
 
 def test_cli_list(capsys):
-    assert main(["skills", "--root", str(PROJECT / "skills"), "list", "--json"]) == 0
-    assert json.loads(capsys.readouterr().out) == skill_records(PROJECT / "skills")
+    root = PROJECT / "src/inferrsi/data/skill_library"
+    assert main(["skills", "--root", str(root), "list", "--json"]) == 0
+    assert json.loads(capsys.readouterr().out) == skill_records(root)
 
 
 @pytest.mark.parametrize("name", ["../claim-contract", "unknown", "Claim-Contract", ""])
 def test_selection_rejects_invalid_or_unknown_names(name):
     with pytest.raises(ValueError):
-        get_skill(PROJECT / "skills", name)
+        get_skill(PROJECT / "src/inferrsi/data/skill_library", name)
 
 
 @pytest.mark.parametrize(

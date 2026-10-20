@@ -73,7 +73,7 @@ src/inferrsi/
   cli.py, arguments.py       Existing CLI
   runspec.py, contracts.py   Immutable experiment contract and compatibility export
   catalog.py                Knowledge search and cited context
-  skill_catalog.py          Explicit local skill metadata/instructions/resource resolution
+  skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
   knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
   knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
   harness/
@@ -103,7 +103,7 @@ src/inferrsi/
   data/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
-    skill_library/          Bilingual procedures, provenance, licenses and helpers
+    skill_library/          Complete categorized skills + bilingual procedures/resources
     platform_packs/         Backend metadata and qualification context
   execution.py              Compatibility entrypoint -> harness.runner
   evaluation.py             Compatibility exports -> harness.evaluation
@@ -246,13 +246,17 @@ guidance or reported measurements independently from a source's merge status.
 Imported skills are source material, not executable tool authority. CPU tests
 do not upgrade imported knowledge to a validated claim.
 
-The optional `skills` CLI reads an explicit local `--root` (default `./skills`),
-using PyYAML from the `skills` extra. It lists only frontmatter, loads only a
-named skill's instructions, and resolves a named resource inside that skill for
-an external file reader. It never installs, routes, executes or updates skills.
-These checkout assets are not wheel package data; the catalog is a projection,
-not another authoritative matrix. Core knowledge commands remain independent
-of the optional parser.
+The optional `skills` CLI defaults to the installed `data/skill_library/` and
+its `skill-index.json` registry of 48 stable skill IDs. Hardware-specific content
+lives under `hardware/ascend`, `hardware/cuda` or `hardware/host`; other skills
+are grouped by framework, repository, method or workflow. Full procedures,
+sidecars, references and cases ship with the package alongside the existing
+bilingual library. An explicit `--root` can still select a custom flat skills
+tree or a registry-based library. The CLI uses PyYAML from the `skills` extra,
+lists metadata, reads a named body or resolves a named resource for an external
+file reader. It never executes, installs or promotes skills. Core knowledge
+commands read catalog JSON and packaged documents without the optional parser;
+the two matrices retain their authority.
 
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
@@ -273,7 +277,8 @@ automatic promotion into the knowledge catalog or RunSpec. The original diagram
 is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
 portability and other implementation gaps.
 
-Root skills have [generated discovery abstracts](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-in `data/repo_packs/inferrsi/knowledge/`, accessible through the existing catalog
-and normalized reads after installation. Their instruction bodies and resources
-remain in the checkout-owned `skills/` tree.
+The migrated skills have [generated catalog records](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+in `data/repo_packs/inferrsi/knowledge/`, with backend-scoped IDs and
+`skill_documents.original` pointing to the complete packaged procedures.
+Normalized reads retain the library's dependency resources. The library is the
+single content owner; root `skills/` contains navigation only.

@@ -1,4 +1,4 @@
-"""The installed discovery index preserves checkout metadata without bundling bodies."""
+"""The installed index preserves categorized skills and their complete resources."""
 
 import hashlib
 import json
@@ -13,27 +13,32 @@ from inferrsi.cli import main
 from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import skill_metadata, skill_records
 from tools import build_skill_index as index_builder
-from tools.build_skill_index import DESTINATION, build_index, render_index
+from tools.build_skill_index import DESTINATION, LIBRARY, build_index, render_index, source_inputs
 
 PROJECT = Path(__file__).resolve().parents[1]
+ROOT = PROJECT / LIBRARY
 
 
 def test_complete_index_retains_metadata_states_and_unknown_license():
     records = search_knowledge(repo="inferrsi", limit=100)
-    names = {record["name"] for record in skill_records(PROJECT / "skills")}
+    names = {record["name"] for record in skill_records(ROOT)}
+    registry = json.loads((ROOT / "skill-index.json").read_text(encoding="utf-8"))["skills"]
     assert len(records) == len(names) == 48
     assert {record["skill_metadata"]["name"] for record in records} == names
     states = []
     for record in records:
         metadata = record["skill_metadata"]
         name = metadata["name"]
-        assert metadata == skill_metadata(PROJECT / "skills", name)
+        assert metadata == skill_metadata(ROOT, name)
         assert record["checkout_ref"] == f"checkout:{name}"
-        assert record["id"] == f"inferrsi.common.skills.{name.replace('-', '_')}"
+        assert record["backend"] == registry[name]["backend"]
+        assert record["id"] == f"inferrsi.{record['backend']}.skills.{name.replace('-', '_')}"
         assert record["status"] == "imported"
         assert not record["verification"]["locally_verified"]
-        assert record["index_type"] == "skill-metadata-only"
-        assert "skill_documents" not in record
+        assert record["index_type"] == "packaged-skill"
+        assert record["skill_documents"] == {
+            "original": f"data/skill_library/{registry[name]['path']}/SKILL.md",
+        }
         assert set(record["source_files"]) == set(record["sources"][0]["paths"])
         states.append(metadata.get("status"))
     assert states.count("candidate") == 43
@@ -51,17 +56,13 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
     assert len(revisions) == 1
     # CI uses shallow checkouts. Compare the whole generated projection and its
     # text hashes without requiring the old source commit in the local object DB.
-    inputs = [
-        path for path in (PROJECT / "skills").glob("*/*")
-        if path.name in ("SKILL.md", "metadata.json")
-    ]
     source_files = {
-        path.relative_to(PROJECT).as_posix(): hashlib.sha256(
-            path.read_bytes().replace(b"\r\n", b"\n")
+        relative: hashlib.sha256(
+            (PROJECT / relative).read_bytes().replace(b"\r\n", b"\n")
         ).hexdigest()
-        for path in inputs
+        for relative in source_inputs(ROOT)
     }
-    generated = render_index(PROJECT / "skills", revisions.pop(), source_files)
+    generated = render_index(ROOT, revisions.pop(), source_files)
     destination = PROJECT / DESTINATION
     actual = {
         path.relative_to(destination).as_posix(): path.read_text(encoding="utf-8")
@@ -77,11 +78,16 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
         subprocess.run(["git", "-C", str(tmp_path), *args], check=True, capture_output=True)
 
     git("init")
-    root = tmp_path / "skills" / "example"
+    library = tmp_path / LIBRARY
+    root = library / "methods" / "example"
     root.mkdir(parents=True)
+    (library / "skill-index.json").write_text(json.dumps({
+        "schema_version": 1,
+        "skills": {"example": {"path": "methods/example", "backend": "common"}},
+    }), encoding="utf-8")
     source = "---\nname: example\ndescription: A source fixture\n---\nOriginal body\n"
     (root / "SKILL.md").write_text(source, encoding="utf-8")
-    git("add", "skills")
+    git("add", LIBRARY.as_posix())
     git(
         "-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
         "commit", "-s", "-m", "Create test source",
@@ -102,17 +108,23 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     with pytest.raises(ValueError, match="inputs differ"):
         build_index(tmp_path, "HEAD")
     (root / "SKILL.md").write_text(source, encoding="utf-8")
+    (root / "references").mkdir()
+    (root / "references/notes.md").write_text("New resource", encoding="utf-8")
+    with pytest.raises(ValueError, match="input paths differ"):
+        build_index(tmp_path, "HEAD")
+    (root / "references/notes.md").unlink()
     (root / "metadata.json").write_text('{"status": "candidate"}', encoding="utf-8")
     with pytest.raises(ValueError, match="input paths differ"):
         build_index(tmp_path, "HEAD")
 
 
 def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
-    reader = KnowledgeReader(skill_root=PROJECT / "skills")
+    reader = KnowledgeReader(skill_root=ROOT)
     identity = "inferrsi.common.skills.claim_contract"
     bundle = reader.read(identity)
-    assert set(bundle.content) == {"record.json"}
-    assert bundle.dependencies == {}
+    assert "record.json" in bundle.content
+    assert "data/skill_library/workflows/claim-contract/SKILL.md" in bundle.content
+    assert bundle.dependencies
     assert bundle.metadata["kind"] == "knowledge"
     assert bundle.metadata["origin"] == ["unknown"]
     assert reader.resolve(identity) == f"package:{identity}"
@@ -122,7 +134,8 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
     assert len(collected["items"]) == 48
     assert not collected["collisions"] and not collected["omissions"]
     assert all(item["authority"] == "package" for item in collected["items"])
-    assert all(set(item["resources"]) == {"record.json"} for item in collected["items"])
+    assert all("record.json" in item["resources"] for item in collected["items"])
+    assert all(len(item["resources"]) > 1 for item in collected["items"])
     assert reader.collect(repo="inferrsi", kind="skill")["no_match"]
 
 
@@ -132,11 +145,11 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
     ]) == 0
     records = json.loads(capsys.readouterr().out)
     assert records and all(record["repo"] == "inferrsi" for record in records)
-    identity = "inferrsi.common.skills.ascend_operator_profiling"
+    identity = "inferrsi.ascend.skills.ascend_operator_profiling"
     assert main(["knowledge", "show", identity]) == 0
     shown = json.loads(capsys.readouterr().out)
     assert shown["skill_metadata"]["license"] == "UNKNOWN"
-    assert main(["context", identity, "--repo-type", "inferrsi", "--backend", "cpu"]) == 0
+    assert main(["context", identity, "--repo-type", "inferrsi", "--backend", "ascend"]) == 0
     context = capsys.readouterr().out
     assert identity in context and "not the original skill" in context
     assert "locally_verified\": false" in context
@@ -145,3 +158,12 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
         repository_pack("inferrsi")
     with pytest.raises(SystemExit):
         parser().parse_args(["doctor", "--repo-type", "inferrsi"])
+
+
+def test_hardware_filters_include_only_matching_and_shared_skills():
+    for backend, count in (("ascend", 46), ("cuda", 35), ("cpu", 33)):
+        records = search_knowledge(repo="inferrsi", backend=backend, limit=100)
+        assert len(records) == count
+        assert all(record["backend"] in (backend, "common") for record in records)
+    assert not list((PROJECT / "skills").rglob("SKILL.md"))
+    assert len(list(ROOT.rglob("SKILL.md"))) == 90

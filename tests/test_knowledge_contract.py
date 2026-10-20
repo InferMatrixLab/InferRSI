@@ -3,16 +3,16 @@ from pathlib import Path
 
 import pytest
 
-from inferrsi.skill_catalog import skill_records, skill_reference
+from inferrsi.skill_catalog import skill_directory, skill_records, skill_reference
 
-ROOT = Path(__file__).resolve().parents[1] / "skills"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
 
 
 def test_local_profiles_preserve_core_and_structured_ownership():
     records = skill_records(ROOT)
     normalized = []
     for record in records:
-        sidecar = ROOT / record["name"] / "metadata.json"
+        sidecar = skill_directory(ROOT, record["name"]) / "metadata.json"
         if not sidecar.exists():
             continue
         metadata = json.loads(sidecar.read_text(encoding="utf-8"))

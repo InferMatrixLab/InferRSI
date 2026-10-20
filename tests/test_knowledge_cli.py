@@ -13,7 +13,7 @@ from inferrsi.knowledge_operations import Bundle, KnowledgeReader
 from inferrsi.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
-SKILLS = REPO / "skills"
+SKILLS = REPO / "src/inferrsi/data/skill_library"
 SOURCE = "calibrate-serving-simulation"
 LOCAL = f"{SOURCE}-local"
 

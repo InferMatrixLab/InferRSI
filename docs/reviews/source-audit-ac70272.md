@@ -26,13 +26,17 @@ This is an umbrella, not an instruction to implement all findings in one PR. Acc
 
 ## Authorized delivery slice
 
-The requester has authorized this bounded documentation and knowledge-discovery delivery:
+The requester has authorized this bounded documentation and knowledge-library
+delivery, with the skill organization revised after review of PR #44:
 
 - Publish the supplied Chinese architecture SVG and an English translation in `docs/assets/`, and update the README to link both.
 - Include this English audit document in the repository and publish the umbrella issue, with solution suggestions for every review point.
-- Integrate discovery of the root `skills/` collection into `src/inferrsi/data/` through a generated metadata projection. The source `skills/` tree remains authoritative; preserve IDs, provenance, unknown-license declarations and candidate/verification state. The projection must identify checkout resources accurately and must not imply that their full bodies are installed package resources.
+- Move all 48 root skill directories, including procedures, metadata, references and cases, into the canonical `src/inferrsi/data/skill_library/`. Place platform-specific guidance under the corresponding hardware directory; organize the remainder by framework, repository, method or workflow. Ship the complete library and link generated catalog records to its packaged bodies. Preserve skill IDs, provenance, unknown-license declarations and candidate/verification state; root `skills/` retains navigation only.
 
-This authorization does **not** approve implementation or closure of all 34 remediations. In particular, metadata indexing is not the evidence-to-knowledge promotion mechanism proposed in item 26, and translations or packaging checks do not establish empirical verification.
+This authorization does **not** approve implementation or closure of all 34 remediations. In particular, organizing and packaging skills is not the evidence-to-knowledge promotion mechanism proposed in item 26, and translations or packaging checks do not establish empirical verification.
+
+The numbered observations below retain the audit baseline and its original paths;
+the later library migration does not rewrite or close those historical findings.
 
 ## Scope and constraints
 

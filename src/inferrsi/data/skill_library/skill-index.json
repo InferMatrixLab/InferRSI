@@ -1,0 +1,197 @@
+{
+  "schema_version": 1,
+  "skills": {
+    "ascend-aclgraph-capture-replay": {
+      "path": "hardware/ascend/ascend-aclgraph-capture-replay",
+      "backend": "ascend"
+    },
+    "ascend-device-health": {
+      "path": "hardware/ascend/ascend-device-health",
+      "backend": "ascend"
+    },
+    "ascend-distributed-parallel": {
+      "path": "hardware/ascend/ascend-distributed-parallel",
+      "backend": "ascend"
+    },
+    "ascend-graph-mode": {
+      "path": "hardware/ascend/ascend-graph-mode",
+      "backend": "ascend"
+    },
+    "ascend-model-adaptation": {
+      "path": "hardware/ascend/ascend-model-adaptation",
+      "backend": "ascend"
+    },
+    "ascend-operator-profiling": {
+      "path": "hardware/ascend/ascend-operator-profiling",
+      "backend": "ascend"
+    },
+    "ascend-operator-tuning": {
+      "path": "hardware/ascend/ascend-operator-tuning",
+      "backend": "ascend"
+    },
+    "ascend-optimization-casebook": {
+      "path": "hardware/ascend/ascend-optimization-casebook",
+      "backend": "ascend"
+    },
+    "ascend-performance-analysis": {
+      "path": "hardware/ascend/ascend-performance-analysis",
+      "backend": "ascend"
+    },
+    "ascendc-tiling-design": {
+      "path": "hardware/ascend/ascendc-tiling-design",
+      "backend": "ascend"
+    },
+    "cann-attribution-overlap": {
+      "path": "hardware/ascend/cann-attribution-overlap",
+      "backend": "ascend"
+    },
+    "torchnpu-device-memory-lifecycle": {
+      "path": "hardware/ascend/torchnpu-device-memory-lifecycle",
+      "backend": "ascend"
+    },
+    "torchnpu-pinned-host-memory-lifecycle": {
+      "path": "hardware/ascend/torchnpu-pinned-host-memory-lifecycle",
+      "backend": "ascend"
+    },
+    "host-overhead-profiling": {
+      "path": "hardware/cuda/host-overhead-profiling",
+      "backend": "cuda"
+    },
+    "diagnose-attention-bottlenecks": {
+      "path": "hardware/cuda/diagnose-attention-bottlenecks",
+      "backend": "cuda"
+    },
+    "cgroup-resource-controls": {
+      "path": "hardware/host/cgroup-resource-controls",
+      "backend": "common"
+    },
+    "host-memory-management": {
+      "path": "hardware/host/host-memory-management",
+      "backend": "common"
+    },
+    "host-overhead-optimization": {
+      "path": "hardware/host/host-overhead-optimization",
+      "backend": "common"
+    },
+    "os-process-placement": {
+      "path": "hardware/host/os-process-placement",
+      "backend": "common"
+    },
+    "storage-io-measurement": {
+      "path": "hardware/host/storage-io-measurement",
+      "backend": "common"
+    },
+    "dcp-async-save-performance": {
+      "path": "frameworks/pytorch/dcp-async-save-performance",
+      "backend": "common"
+    },
+    "audit-vllm-kv-lifetimes": {
+      "path": "repositories/vllm/audit-vllm-kv-lifetimes",
+      "backend": "common"
+    },
+    "diagnose-vllm-admission-pressure": {
+      "path": "repositories/vllm/diagnose-vllm-admission-pressure",
+      "backend": "common"
+    },
+    "kv-tier-management": {
+      "path": "repositories/lmcache/kv-tier-management",
+      "backend": "common"
+    },
+    "assess-serving-preemption": {
+      "path": "methods/assess-serving-preemption",
+      "backend": "common"
+    },
+    "assess-split-backward-schedule": {
+      "path": "methods/assess-split-backward-schedule",
+      "backend": "common"
+    },
+    "calibrate-serving-simulation": {
+      "path": "methods/calibrate-serving-simulation",
+      "backend": "common"
+    },
+    "checkpoint-recovery-consistency": {
+      "path": "methods/checkpoint-recovery-consistency",
+      "backend": "common"
+    },
+    "choose-parallel-training-plan": {
+      "path": "methods/choose-parallel-training-plan",
+      "backend": "common"
+    },
+    "dense-performance-evidence": {
+      "path": "methods/dense-performance-evidence",
+      "backend": "common"
+    },
+    "evaluate-elastic-serving-placement": {
+      "path": "methods/evaluate-elastic-serving-placement",
+      "backend": "common"
+    },
+    "inference-benchmark-design": {
+      "path": "methods/inference-benchmark-design",
+      "backend": "common"
+    },
+    "inference-optimization-casebook": {
+      "path": "methods/inference-optimization-casebook",
+      "backend": "common"
+    },
+    "kernel-writing-guide": {
+      "path": "methods/kernel-writing-guide",
+      "backend": "common"
+    },
+    "optimization-search-policy": {
+      "path": "methods/optimization-search-policy",
+      "backend": "common"
+    },
+    "performance-ceiling-analysis": {
+      "path": "methods/performance-ceiling-analysis",
+      "backend": "common"
+    },
+    "plan-activation-residency": {
+      "path": "methods/plan-activation-residency",
+      "backend": "common"
+    },
+    "repository-evolution-analysis": {
+      "path": "methods/repository-evolution-analysis",
+      "backend": "common"
+    },
+    "skill-evolution-playbook": {
+      "path": "methods/skill-evolution-playbook",
+      "backend": "common"
+    },
+    "training-input-pipeline": {
+      "path": "methods/training-input-pipeline",
+      "backend": "common"
+    },
+    "training-resource-budget": {
+      "path": "methods/training-resource-budget",
+      "backend": "common"
+    },
+    "weight-loading-optimization": {
+      "path": "methods/weight-loading-optimization",
+      "backend": "common"
+    },
+    "cite-check-downstream-pr": {
+      "path": "workflows/cite-check-downstream-pr",
+      "backend": "common"
+    },
+    "claim-contract": {
+      "path": "workflows/claim-contract",
+      "backend": "common"
+    },
+    "competitor-scan": {
+      "path": "workflows/competitor-scan",
+      "backend": "common"
+    },
+    "draft-acceptance-issue": {
+      "path": "workflows/draft-acceptance-issue",
+      "backend": "common"
+    },
+    "npu-skill-factory": {
+      "path": "workflows/npu-skill-factory",
+      "backend": "common"
+    },
+    "rsi-evidence": {
+      "path": "workflows/rsi-evidence",
+      "backend": "common"
+    }
+  }
+}

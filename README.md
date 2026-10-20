@@ -41,9 +41,9 @@ coverage matrix or claims that an autonomous system has been implemented.
 
 | Objective | Question | Existing artifacts | Supported findings | Remaining work |
 |---|---|---|---|---|
-| **1. Roofline / Optimization Headroom** | What limits performance, how much headroom may remain, and which experiments are worth pursuing? | [Performance ceiling analysis](skills/performance-ceiling-analysis/SKILL.md), measurement and search guidance | Source-backed analytical/empirical/Amdahl reasoning; estimates depend on workload, algorithm and measurement assumptions | Calibrate predictions and qualify application outcomes; no automatic ceiling calculator |
-| **2. Dense Commit Coordination** | How can ownership, concurrent changes, review, testing, integration, release and feedback sustain agent-driven development? | [Repository evolution analysis](skills/repository-evolution-analysis/SKILL.md), [historical Magpie analysis](PHASE1_REPORT.md#workstream-2--repository-evolution-and-fast-iteration) | Historical commit/capability analysis and temporal-split methodology; statistics are not causal evidence of development speed | Dot's first-hand Magpie coordination case, then owner review; no implemented Magpie-style autonomous pipeline |
-| **3. Skill System** | How do we preserve, organize and expose reusable optimization intelligence? | [Reference Matrix](docs/reference-matrix.md), [SearchSpace Matrix](docs/searchspace-matrix.md), [candidate skills](skills/), explicit read-only CLI | Source-backed candidate procedures, knowledge and cases with scoped evidence; metadata listing and explicit instruction/resource access | Content review and separately authorized efficacy/compatibility validation; matrices do not automatically route tasks |
+| **1. Roofline / Optimization Headroom** | What limits performance, how much headroom may remain, and which experiments are worth pursuing? | [Performance ceiling analysis](src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md), measurement and search guidance | Source-backed analytical/empirical/Amdahl reasoning; estimates depend on workload, algorithm and measurement assumptions | Calibrate predictions and qualify application outcomes; no automatic ceiling calculator |
+| **2. Dense Commit Coordination** | How can ownership, concurrent changes, review, testing, integration, release and feedback sustain agent-driven development? | [Repository evolution analysis](src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md), [historical Magpie analysis](PHASE1_REPORT.md#workstream-2--repository-evolution-and-fast-iteration) | Historical commit/capability analysis and temporal-split methodology; statistics are not causal evidence of development speed | Dot's first-hand Magpie coordination case, then owner review; no implemented Magpie-style autonomous pipeline |
+| **3. Skill System** | How do we preserve, organize and expose reusable optimization intelligence? | [Reference Matrix](docs/reference-matrix.md), [SearchSpace Matrix](docs/searchspace-matrix.md), [skill library](src/inferrsi/data/skill_library/), explicit read-only CLI | Source-backed candidate procedures, knowledge and cases with scoped evidence; metadata listing and explicit instruction/resource access | Content review and separately authorized efficacy/compatibility validation; matrices do not automatically route tasks |
 
 Dot owns first-hand extraction; the owner approves sources and reviews content
 and mapping; the integration workstream reconciles accepted material with the
@@ -51,11 +51,11 @@ actual local system. Exactly two primary matrices remain. Green coverage means
 candidate intelligence with source support, not measured gains or completed A/B
 validation. The earlier [Phase 1 report](PHASE1_REPORT.md) is historical.
 
-Reviewed paper intelligence extends [simulation calibration](skills/calibrate-serving-simulation/SKILL.md),
-[serving-state decisions](skills/assess-serving-preemption/SKILL.md),
-[training memory](skills/plan-activation-residency/SKILL.md),
-[attention diagnosis](skills/diagnose-attention-bottlenecks/SKILL.md) and
-[skill/search methodology](skills/npu-skill-factory/SKILL.md). Exact paper
+Reviewed paper intelligence extends [simulation calibration](src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md),
+[serving-state decisions](src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md),
+[training memory](src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md),
+[attention diagnosis](src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md) and
+[skill/search methodology](src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md). Exact paper
 versions, readsets, mechanism comparisons and cases remain linked through the two
 matrices. On 2026-10-16 the inventory is **43 branch-added candidates + 5 inherited
 skills = 48 directories**. This is a content-integration count, not an efficacy
@@ -147,10 +147,20 @@ inferrsi context --repo-type vllm_omni --backend ascend \
 
 Ready to measure your own model? [Connect your benchmark and quality checks →](docs/quickstart.md#real-remote-experiment)
 
-### Read local candidate skills
+### Read the packaged skill library
 
-Install the optional parser with `python -m pip install '.[skills]'`. From this
-checkout (or pass `--root /path/to/skills` before the subcommand):
+All 48 former root skills now live in
+[the skill library](src/inferrsi/data/skill_library/README.md), including their
+full procedures, metadata, references and cases. Hardware-specific guidance is
+grouped under `hardware/ascend`, `hardware/cuda` and `hardware/host`; the remaining
+skills use `frameworks`, `repositories`, `methods` and `workflows`. The existing
+42 bilingual engine skill nodes remain in `en/` and `zh-CN/`.
+
+Install the optional parser with `python -m pip install 'inferrsi[skills]'` (or
+`python -m pip install '.[skills]'` from this checkout). The `skills` CLI defaults
+to the installed library's 48 registered skills; IDs stay unchanged. An explicit
+`--root /path/to/skills` before the subcommand still selects a custom flat tree or
+a categorized library with `skill-index.json`:
 
 ```bash
 inferrsi skills list --json
@@ -158,28 +168,29 @@ inferrsi skills show weight-loading-optimization
 inferrsi skills resource <skill-name> <relative-resource-path>
 ```
 
-All 48 root skills also have [packaged discovery records](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md),
-so a regular installation can search their descriptions, provenance and original
-instruction links without the optional parser:
+The [generated catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+also exposes the 48 skills through ordinary package knowledge commands, without
+the optional YAML parser:
 
 ```bash
 inferrsi knowledge search 'weight-loading' --repo-type inferrsi
 inferrsi knowledge show inferrsi.common.skills.weight_loading_optimization
+inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 ```
 
-These generated records index the source skills; the procedures and resources
-remain owned by `skills/`. Candidate state, unknown provenance and license limits
-are retained. Indexing does not establish effectiveness or authorize execution.
+Each catalog record's `skill_documents.original` points to its full packaged
+procedure. Normalized reads retain the library resources and dependency bundle.
+Ascend and CUDA records have matching backend scopes; `common` means generic
+guidance, not demonstrated compatibility with every backend. Candidate state,
+source provenance and `UNKNOWN` licenses are preserved.
 
-Listing reads frontmatter and local sidecar metadata only. `show` explicitly selects one instruction body
-and lists resource filenames; `resource` resolves one path for your file reader
-without loading its contents or executing it. Skills are local checkout assets,
-not bundled wheel data. There is no installation, client configuration, automatic
-selection or update. Reading instructions does not authorize their commands.
-This generated catalog projects metadata; the Reference and SearchSpace
-matrices remain the two authoritative matrices. Offline integration checks do
-not validate candidate effectiveness. See the [knowledge-base contract](docs/knowledge-base.md)
-for field ownership, legacy compatibility and shared checkout references.
+Listing reads frontmatter and sidecar metadata only. `show` selects one instruction
+body and lists resources; `resource` resolves one path for your file reader.
+The package ships the content, but reading it does not execute instructions,
+install agent configuration, select an optimization or promote a candidate.
+The Reference and SearchSpace matrices remain the two authoritative matrices.
+See the [knowledge-base contract](docs/knowledge-base.md) for ownership,
+compatibility and declared cross-skill references.
 Normalized reads and bounded Collect ([`KnowledgeReader`](docs/knowledge-operations.md))
 and authorized local Create/Update ([`KnowledgeStore`](docs/knowledge-store.md))
 are implemented Python interfaces, with a thin CLI route (`collect` / `read` /
@@ -234,10 +245,10 @@ for the 34 review points, qualifications and suggested acceptance checks.
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
-| [Root skills index](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable packaged abstracts for all 48 root skills, with source links and preserved metadata |
+| [Skill catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable records for 48 categorized skills, linking full packaged procedures and resources |
 | [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |
 | [Daily learning prompt](docs/daily-learning-prompt.md) | 06:00 Asia/Shanghai L2C + performance workflow and prerequisites |
-| [Five-engine knowledge library (English / 中文)](src/inferrsi/data/skill_library/README.md) | Strata, vLLM, SGLang and both Omni engines: skills, search spaces, sources and CLI retrieval |
+| [Complete skill library (English / 中文)](src/inferrsi/data/skill_library/README.md) | Hardware, frameworks, repositories, methods and workflows, plus 42 bilingual five-engine skill nodes |
 | [vLLM-Omni experience records](src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md) | Backend-scoped tuning methods, sources, and applicability |
 | [Contributor guide](docs/contributing.md) | Development workflow, evidence contracts, and CI |
 | [Engine delivery template](docs/template/README.md) | Copyable engine scaffold, branding, evidence and schema-v1 catalog recipe |

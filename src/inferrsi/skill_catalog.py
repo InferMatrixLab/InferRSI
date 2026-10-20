@@ -2,10 +2,12 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
 import yaml
+
+from .catalog import BACKENDS
 
 
 def _frontmatter(stream: BinaryIO) -> dict:
@@ -27,15 +29,95 @@ def _frontmatter(stream: BinaryIO) -> dict:
     return record
 
 
-def _directory(root: Path, name: str) -> Path:
-    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name):
+def _skill_name(name: str) -> None:
+    if not isinstance(name, str) or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", name):
         raise ValueError(f"Invalid skill name: {name}")
-    directory = (root / name).resolve()
-    if not directory.is_relative_to(root.resolve()):
+
+
+def _directory(root: Path, name: str, relative: str) -> Path:
+    _skill_name(name)
+    path = PurePosixPath(relative)
+    if (
+        not relative
+        or "\\" in relative
+        or ":" in relative
+        or path.is_absolute()
+        or any(part in ("", ".", "..") for part in relative.split("/"))
+    ):
+        raise ValueError(f"Skill path must be a relative POSIX path: {relative}")
+    directory = (root / relative).resolve()
+    if not directory.is_relative_to(root):
         raise ValueError("Skill must be inside the selected root")
-    if not (directory / "SKILL.md").is_file():
+    if path.name != name or directory.name != name:
+        raise ValueError(f"Skill path basename disagrees with its name: {name}")
+    if not _entry(directory, "SKILL.md").is_file():
         raise ValueError(f"Unknown skill: {name}")
     return directory
+
+
+def _unique_fields(pairs: list[tuple[str, object]]) -> dict:
+    record = {}
+    for key, value in pairs:
+        if key in record:
+            raise ValueError(f"Duplicate skill index field: {key}")
+        record[key] = value
+    return record
+
+
+def _indexed_directories(root: Path) -> dict[str, Path] | None:
+    index = _entry(root, "skill-index.json")
+    if not index.exists():
+        return None
+    record = json.loads(index.read_text(encoding="utf-8"), object_pairs_hook=_unique_fields)
+    if (
+        not isinstance(record, dict)
+        or type(record.get("schema_version")) is not int
+        or record["schema_version"] != 1
+        or not isinstance(record.get("skills"), dict)
+    ):
+        raise ValueError("Skill index requires schema_version 1 and a skills mapping")
+    directories = {}
+    paths = set()
+    for name, entry in sorted(record["skills"].items()):
+        if (
+            not isinstance(entry, dict)
+            or not isinstance(entry.get("path"), str)
+            or not isinstance(entry.get("backend"), str)
+            or entry["backend"] not in (*BACKENDS, "common")
+        ):
+            raise ValueError(f"Skill index requires a path and supported backend: {name}")
+        directory = _directory(root, name, entry["path"])
+        if directory in paths:
+            raise ValueError(f"Duplicate skill index path: {entry['path']}")
+        directories[name] = directory
+        paths.add(directory)
+    return directories
+
+
+def skill_directories(root: Path) -> dict[str, Path]:
+    """Resolve registered skill locations without reading instruction bodies."""
+    root = root.resolve()
+    if not root.is_dir():
+        raise ValueError(f"Skill root is not a directory: {root}")
+    indexed = _indexed_directories(root)
+    if indexed is not None:
+        return indexed
+    return {
+        path.parent.name: _directory(root, path.parent.name, path.parent.name)
+        for path in sorted(root.glob("*/SKILL.md"))
+    }
+
+
+def skill_directory(root: Path, name: str) -> Path:
+    """Resolve one named skill in an indexed library or a legacy flat root."""
+    _skill_name(name)
+    root = root.resolve()
+    indexed = _indexed_directories(root)
+    if indexed is None:
+        return _directory(root, name, name)
+    if name not in indexed:
+        raise ValueError(f"Unknown skill: {name}")
+    return indexed[name]
 
 
 def _entry(directory: Path, filename: str) -> Path:
@@ -105,22 +187,17 @@ def _metadata(directory: Path) -> dict:
 
 def skill_metadata(root: Path, name: str) -> dict:
     """Effective legacy frontmatter plus sidecar fields, after conflict checks."""
-    return _effective(_directory(root, name))
+    return _effective(skill_directory(root, name))
 
 
 def skill_records(root: Path) -> list[dict]:
     """Project metadata only; this projection is not an authoritative matrix."""
-    if not root.is_dir():
-        raise ValueError(f"Skill root is not a directory: {root}")
-    return [
-        _metadata(_directory(root, path.parent.name))
-        for path in sorted(root.glob("*/SKILL.md"))
-    ]
+    return [_metadata(directory) for directory in skill_directories(root).values()]
 
 
 def get_skill(root: Path, name: str) -> dict:
     """Read selected metadata and resource names, never resource contents."""
-    directory = _directory(root, name)
+    directory = skill_directory(root, name)
     record = _metadata(directory)
     record["resources"] = [
         path.relative_to(directory).as_posix()
@@ -132,7 +209,7 @@ def get_skill(root: Path, name: str) -> dict:
 
 def skill_instructions(root: Path, name: str) -> str:
     """Load selected instructions. Reading does not authorize their commands."""
-    directory = _directory(root, name)
+    directory = skill_directory(root, name)
     _metadata(directory)
     with _entry(directory, "SKILL.md").open("rb") as stream:
         _frontmatter(stream)
@@ -141,7 +218,7 @@ def skill_instructions(root: Path, name: str) -> str:
 
 def skill_resource(root: Path, name: str, resource: str) -> Path:
     """Resolve one explicitly selected resource inside its skill directory."""
-    directory = _directory(root, name)
+    directory = skill_directory(root, name)
     path = (directory / resource).resolve()
     if not path.is_relative_to(directory) or path == directory / "SKILL.md":
         raise ValueError("Resource must be inside the selected skill; use show for instructions")
@@ -152,7 +229,7 @@ def skill_resource(root: Path, name: str, resource: str) -> Path:
 
 def skill_reference(root: Path, name: str, reference: str) -> Path:
     """Resolve a declared checkout reference without escaping the skills root."""
-    directory = _directory(root, name)
+    directory = skill_directory(root, name)
     if reference not in _references(_effective(directory), directory.name):
         raise ValueError(f"Undeclared skill reference: {reference}")
     if "\\" in reference or Path(reference).is_absolute():

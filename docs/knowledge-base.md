@@ -12,16 +12,24 @@ separate work, not an implemented capability of this knowledge base.
 ## Directory and responsibility map
 
 ```text
-skills/<id>/SKILL.md                 Local name, description, substantive procedure
-skills/<id>/metadata.json            Local provenance, state and relationships
-skills/<id>/references/              Owner's mechanisms, readsets and comparisons
-skills/<id>/cases/                   Owner's scoped cases (optional)
-src/inferrsi/catalog.py               Installed knowledge reader
-src/inferrsi/skill_catalog.py         Explicit checkout skill reader
-src/inferrsi/data/repo_packs/         Contribution records and existing public IDs
-src/inferrsi/data/repo_packs/inferrsi/ Generated discovery abstracts of root skills
-src/inferrsi/data/knowledge_packs/    Dependency and peer records
-src/inferrsi/data/skill_library/      Imported bilingual procedures, licenses, helpers
+src/inferrsi/data/skill_library/
+  skill-index.json                   Stable IDs → categorized paths/backend (48 skills)
+  hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
+  frameworks/<framework>/<id>/      Framework-owned complete skills
+  repositories/<repo>/<id>/         Repository-owned complete skills
+  methods/<id>/                     General optimization/analysis complete skills
+  workflows/<id>/                   Evidence and skill-lifecycle complete skills
+  en/, zh-CN/                       Existing 42 bilingual engine skill nodes
+  <category>/<id>/SKILL.md           Name, description, substantive procedure
+  <category>/<id>/metadata.json      Provenance, state and relationships
+  <category>/<id>/references/        Owner's mechanisms, readsets and comparisons
+  <category>/<id>/cases/             Owner's scoped cases (optional)
+skills/README.md                    Navigation only; no duplicate skill bodies
+src/inferrsi/catalog.py              Installed knowledge reader
+src/inferrsi/skill_catalog.py        Packaged or custom-root skill reader
+src/inferrsi/data/repo_packs/        Contribution records and existing public IDs
+src/inferrsi/data/repo_packs/inferrsi/ Generated records linking full packaged skills
+src/inferrsi/data/knowledge_packs/   Dependency and peer records
 evidence/<campaign-id>/             Frozen plans, results, patches and validators
 docs/reference-matrix.md            Sources, inspected scope and extraction
 docs/searchspace-matrix.md          Resource × optimization-stage coverage
@@ -30,8 +38,8 @@ docs/searchspace-matrix.md          Resource × optimization-stage coverage
 ```mermaid
 flowchart TB
     A["Agent: goal, authorization, task context"] --> R["Existing explicit readers"]
-    R --> L["Local skills: procedure + metadata"]
-    R --> P["Packaged catalog + bilingual resources"]
+    R --> L["Skill library: procedure + metadata"]
+    R --> P["Packaged catalog + complete library resources"]
     L --> C["Owner-local mechanisms and cases"]
     C -. "evidence pointers" .-> E["Frozen experiment artifacts"]
     L -. "source view" .-> M1["Reference Matrix"]
@@ -98,8 +106,8 @@ the K0/K1 readers above do not enforce them by themselves.
 
 | Authority | Owns | Access through Create / Update / Collect |
 |---|---|---|
-| `package` | Installed catalog records and bilingual library | Read-only adapter |
-| `checkout` | Local `skills/` procedures, metadata, references and cases | Read-only adapter; amendments use scoped repository PRs |
+| `package` | Installed catalog records and complete skill library | Read-only adapter |
+| `checkout` | An explicitly selected skills root: the canonical library checkout or a custom flat/registry tree | Read-only adapter; amendments use scoped repository PRs |
 | `store` | Candidate bundles registered in one explicitly selected writable store | Create / Update and Collect |
 
 - Public IDs are preserved. A reference may be qualified as `<authority>:<id>`;
@@ -123,60 +131,79 @@ the K0/K1 readers above do not enforce them by themselves.
 
 ## K1 integration and shared resources
 
-- [Repository-derived procedure](../skills/audit-vllm-kv-lifetimes/SKILL.md): preserve
+- [Repository-derived procedure](../src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md): preserve
   pinned scheduler/connector contracts and untested concrete-backend limits.
-- [Reviewed paper mechanism](../skills/calibrate-serving-simulation/SKILL.md):
+- [Reviewed paper mechanism](../src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md):
   empirical calibration, joint-SLO shortlist and near-capacity queueing risk;
   source paper is not reread or reproduced by this organization work.
-- [Internal admission/drain case](../skills/inference-optimization-casebook/cases/admission-drain-occupancy.md):
+- [Internal admission/drain case](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md):
   observation, original action, interpretation, counter-signals and original
   evidence pointers remain separate. Campaign INCONCLUSIVE is retained.
-- [Benchmark design](../skills/inference-benchmark-design/SKILL.md) and
-  [evidence classification](../skills/dense-performance-evidence/SKILL.md) consume
+- [Benchmark design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md) and
+  [evidence classification](../src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md) consume
   that same case. No `shared/` namespace or duplicate case database is necessary.
 
 Local `resource` access remains restricted to the selected skill. Declared
 cross-skill `reference` access is restricted to the complete selected skills root:
 
 ```bash
-inferrsi skills --root /path/to/skills reference inference-benchmark-design \
+inferrsi skills reference inference-benchmark-design \
   ../inference-optimization-casebook/cases/admission-drain-occupancy.md
+# To select a source checkout explicitly, add before the subcommand:
+# --root src/inferrsi/data/skill_library
 ```
 
-Missing dependencies, undeclared references and escapes are errors. Checkout is
-the declared local-profile mode. A single copied skill folder with external links
-is **not** advertised as a standalone export. Package catalog/library access stays
-available after noneditable installation; local `skills/` is not wheel data.
+Missing dependencies, undeclared references and escapes are errors. Migrated
+profiles use packaged consumption; their stable skill IDs resolve through
+`skill-index.json`. Custom flat trees remain supported with explicit `--root`.
+A single copied skill folder with external links is **not** advertised as a
+standalone export: retain the declared dependencies or the complete library.
 
-### Packaged discovery of root skills
+### Complete packaged skills and catalog discovery
 
-The [root skills index](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects all 48 skills into the existing contribution catalog. These are
-`kind: knowledge` abstracts with IDs `inferrsi.common.skills.<name_with_underscores>`,
-not duplicate procedure bundles. `checkout:<skill-name>` continues to identify
-the original complete skill when an explicit skills root is supplied.
+All 48 former root skills now have one canonical home under
+[`src/inferrsi/data/skill_library/`](../src/inferrsi/data/skill_library/README.md).
+Complete procedures, sidecars, references and cases are packaged, with 13 Ascend,
+2 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
+repositories, methods or workflows. The existing 42 bilingual engine nodes stay
+in `en/` and `zh-CN/`. Root `skills/README.md` provides navigation only.
+
+The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+projects the 48 registered skills into the contribution catalog. Its records
+use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
+`cuda` for those hardware-specific scopes and `common` for the remaining skills.
+Each `skill_documents.original` points to the full packaged procedure. The
+`skills` CLI retains the original hyphenated skill IDs and defaults to this
+48-ID registry; it does not enumerate both bilingual editions as duplicate IDs.
 
 Use `inferrsi knowledge search --repo-type inferrsi --limit 100` in an ordinary
-installation. No checkout or YAML parser is needed to read the packaged index.
-Each record links to its source snapshot and retains the effective original
-metadata, including candidate state, unnormalized provenance and unknown licenses.
-Its own `imported` state describes the abstract; it does not change the source
-skill's state or verification. `common` / `skills.discovery` describes discovery,
-not compatibility across hardware or workloads. `inferrsi` is a knowledge source,
-not a new executable repository target.
+installation. Catalog JSON and full package bundle reads need no YAML parser:
+`inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material` reads the
+record with its retained library dependency resources. The optional `skills`
+extra enables frontmatter-based `skills list`, `show`, `resource` and `reference`.
+An explicit `--skill-root src/inferrsi/data/skill_library` exposes the checkout
+adapter's original skill and case identities for normalized reads.
 
-The root `skills/` tree remains the sole owner of instructions and resources.
-The generated JSON and navigation are refreshed with
-`tools/build_skill_index.py`; its source-revision and consistency checks prevent
-silently attributing edited metadata to an older snapshot. Do not hand-edit
-individual generated cards. The two matrices retain their existing authority.
+Each record retains source metadata, including candidate state, unnormalized
+provenance and unknown licenses. Its own `imported` state describes the catalog
+record, not promotion or verification of the source skill. Backend placement
+describes content scope; `common` and `skills.discovery` imply no cross-hardware
+qualification. `inferrsi` is a knowledge source, not an executable target.
+
+The complete library is the single content owner. Maintain stable paths and
+backend classifications in `skill-index.json`, then refresh generated records
+and navigation with `tools/build_skill_index.py`; do not hand-edit generated
+cards. Its source-revision and consistency checks prevent attributing edited
+metadata to an older snapshot. Preserve existing states, provenance, notices,
+`UNKNOWN` licenses and the two matrices' authority. Migration and installed-package
+checks do not establish licensing, empirical verification or automatic execution.
 
 ## Negative results as diagnostic options
 
 The existing Case authority now also holds scoped rejected directions for
-[Qwen B300](../skills/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
-[Qwen Ascend](../skills/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
-and [Drama3 B300](../skills/inference-optimization-casebook/cases/drama3-rejected-directions.md).
+[Qwen B300](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md),
+[Qwen Ascend](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md)
+and [Drama3 B300](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md).
 The records cite exact source summaries; they add no hardware validation.
 Observation, original disposition and newly suggested revisit checks stay
 separate. Raw evidence remains at its existing frozen owner.

@@ -76,7 +76,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 - Cite **acceptance issues + pinned SHAs** in downstream text; do not invent gain or quality bars.
 - **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims); until then, label unverified or `INCONCLUSIVE`.
-- Use [skills/cite-check-downstream-pr](skills/cite-check-downstream-pr/SKILL.md) and [skills/competitor-scan](skills/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
+- Use [cite-check-downstream-pr](src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
 
 ## Evidence and clearing the bar
 
@@ -97,7 +97,7 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 ## Skills
 
-Portable operator guidance lives under [skills/](skills/) (draft acceptance issue, claim contract, RSI evidence, cite-check downstream PR, competitor scan). The same tree also holds the larger candidate library — procedures, references and cases — described by the [knowledge-base contract](docs/knowledge-base.md); the two matrices are its authoritative index. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
+Portable operator guidance and candidate procedures live in [src/inferrsi/data/skill_library/](src/inferrsi/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases; root `skills/` is navigation only. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
 
 ## Dev smoke (local)
 

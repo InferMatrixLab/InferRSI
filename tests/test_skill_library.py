@@ -104,7 +104,10 @@ def test_previous_twelve_records_keep_their_ids_and_scopes():
 
 
 def test_bilingual_documents_are_packaged_local_and_repository_owned():
-    records = [record for record in knowledge_records() if "skill_documents" in record]
+    records = [
+        record for record in knowledge_records()
+        if "en" in record.get("skill_documents", {})
+    ]
     assert {record["repo"] for record in records} == set(REPOSITORIES)
     for record in records:
         assert set(record["skill_documents"]) == {"en", "zh-CN"}

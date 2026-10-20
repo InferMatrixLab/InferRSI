@@ -106,9 +106,13 @@ def parser() -> argparse.ArgumentParser:
         child.add_argument("--output-dir", default="runs")
 
     skills = commands.add_parser(
-        "skills", help="Read explicitly selected local skills; never install or execute them"
+        "skills", help="Read explicitly selected skills; never install or execute them"
     )
-    skills.add_argument("--root", type=Path, default=Path("skills"), help="Local skill directory")
+    skills.add_argument(
+        "--root",
+        type=Path,
+        help="Skill library or flat skill directory (default: installed library)",
+    )
     actions = skills.add_subparsers(dest="skills_action", required=True)
     listing = actions.add_parser("list", help="List frontmatter and sidecar metadata only")
     listing.add_argument("--json", action="store_true")

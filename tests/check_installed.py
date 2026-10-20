@@ -1,6 +1,7 @@
 """Run after a noneditable install with PYTHONPATH unset."""
 
 import contextlib
+import hashlib
 import io
 import json
 import sys
@@ -26,10 +27,16 @@ assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 48, "Missing installed root-skill discovery metadata"
-assert all(record["index_type"] == "skill-metadata-only" for record in skill_index)
-indexed = KnowledgeReader().read("inferrsi.common.skills.ascend_operator_profiling")
-assert set(indexed.content) == {"record.json"} and not indexed.dependencies
+assert len(skill_index) == 48, "Missing installed skill abstracts"
+assert all(record["index_type"] == "packaged-skill" for record in skill_index)
+indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
+assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
+case_path = (
+    "data/skill_library/methods/inference-optimization-casebook/"
+    "cases/admission-drain-occupancy.md"
+)
+assert case_path in indexed.content
+assert indexed.dependencies
 assert json.loads(indexed.content["record.json"])["skill_metadata"]["license"] == "UNKNOWN"
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
 assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
@@ -45,6 +52,16 @@ assert len(qwen_tts) == 3, "Missing installed Qwen3-TTS peer techniques"
 assert all(not record["verification"]["locally_verified"] for record in qwen_tts)
 package = files("inferrsi")
 library = package.joinpath("data", "skill_library")
+for record in skill_index:
+    for relative, expected_hash in record["source_files"].items():
+        resource = package.joinpath(*relative.removeprefix("src/inferrsi/").split("/"))
+        assert resource.is_file(), relative
+        data = resource.read_bytes().replace(b"\r\n", b"\n")
+        assert hashlib.sha256(data).hexdigest() == expected_hash, relative
+registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
+assert len(registry) == 48
+for entry in registry.values():
+    assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 manifest = json.loads(library.joinpath("source-manifest.json").read_text(encoding="utf-8"))
 assert len(manifest["sources"]) == 5
 for source in manifest["sources"]:

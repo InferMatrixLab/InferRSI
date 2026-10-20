@@ -43,11 +43,21 @@ Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the
 [knowledge maintenance guide](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
 
-The [bilingual engine library](../src/inferrsi/data/skill_library/README.md) holds
-detailed source-grounded procedures. Catalog abstracts link to both editions via
-package-relative `skill_documents`; update the affected abstract and language
-pair together. Source snapshot revisions there identify research evidence, not
-campaign defaults. Include linked helper scripts and licenses in wheel checks.
+The [skill library](../src/inferrsi/data/skill_library/README.md) owns complete
+procedures, metadata, references and cases. Place platform-specific skills under
+`hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
+`repositories/<name>`, `methods` or `workflows` for other primary owners. Maintain
+the 48 stable IDs and their categorized paths in `skill-index.json`, then refresh
+their generated abstracts with `tools/build_skill_index.py`. Do not duplicate
+bodies under root `skills/`, which is navigation only. Preserve source state and
+`UNKNOWN` license declarations; moving content does not resolve licensing.
+
+The existing `en/` and `zh-CN/` engine procedures retain their language pairing.
+Catalog abstracts link to packaged bodies via `skill_documents.original` for
+migrated skills or the existing language fields for bilingual imports. Update
+affected source content and catalog records together. Source snapshot revisions
+identify research evidence, not campaign defaults. Check linked resources,
+licenses, local links and reads from a noneditable wheel installation.
 
 ## Acceptance checklist
 
@@ -168,7 +178,7 @@ lanes. Dependency drift and hardware qualification require their own evidence.
 When copying the repository, rename `src/inferrsi`, update package metadata,
 imports and tests, and keep the three module boundaries explicit. Copy the
 [evidence template](../evidence/_template/) for each campaign. Reuse portable
-[skills](../skills/) as workflow guidance; keep campaign pins out of them.
+[workflows](../src/inferrsi/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
 
 For a standalone engine delivery, start with the
 [engine delivery template](template/README.md) in `docs/template/` instead of

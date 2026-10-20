@@ -17,7 +17,7 @@ Effect classes used below:
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
 | Search packaged records | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Installed package catalog with the existing tier/repo/backend/scenario filters and IDs; these package-only filters exclude checkout skills and cases |
-| Discover/read checkout skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
+| Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
 | Collect normalized knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Explicit sources, authority-qualified identities, exact revisions, bounded output and explicit omissions |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
@@ -45,17 +45,17 @@ The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
 [three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.
 
-### Discover/read checkout skills — `skills list` / `show` / `resource` / `reference`
+### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
 
-- **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. An explicit `--root` selects the skills tree (default `./skills`).
-- **Scope:** the local checkout's `skills/` tree; not wheel package data.
+- **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's 48 registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser.
+- **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. Existing bilingual editions remain accessible through catalog records and library navigation; they are not duplicated in the 48-ID registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.
 - **Failure behavior:** missing skill, undeclared reference or path escape is an error.
 - **Example:** `inferrsi skills show weight-loading-optimization`
 
-Reading instructions does not authorize their commands. This catalog projects
-metadata; the two matrices remain authoritative.
+Reading instructions does not authorize their commands. The catalog links full
+packaged bodies; the two matrices remain authoritative.
 
 ### Export legacy cited material — `context`
 
@@ -78,7 +78,7 @@ upstream instructions.
 - **Output:** items with authority-qualified refs, content revisions and applicability metadata, plus explicit `no_match`, `omissions` (each with a reason code) and `collisions`; exit 0 even for an explicit no-match envelope.
 - **Side effects:** none; both adapters and the read-only store connection are read-only.
 - **Failure behavior:** discovery-wide invalid identities fail the call; per-item omissions are reported individually. Package repo/tier/backend/scenario filters exclude checkout items.
-- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root skills`
+- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library`
 
 ### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`
 
@@ -87,7 +87,7 @@ upstream instructions.
 - **Output:** the bundle view at the requested revision, or the resource bytes (`resource` writes them to the required `--output` path).
 - **Side effects:** `resource` writes only the caller-chosen output file.
 - **Failure behavior:** ambiguous identity names the qualified choices; unavailable/stale revisions and missing/unsafe resources fail explicitly — no fallback to newer bytes.
-- **Example:** `inferrsi read calibrate-serving-simulation --skill-root skills --material`
+- **Example:** `inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library --material`
 
 ## Store candidates (Python)
 

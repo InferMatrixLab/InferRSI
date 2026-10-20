@@ -1,0 +1,92 @@
+{
+  "schema_version": 1,
+  "status": "candidate",
+  "sources": [
+    {
+      "url": "https://github.com/NVIDIA/TensorRT-LLM",
+      "commit": "f33e0e5fd55b",
+      "paths": [
+        ".claude/skills/perf-analysis/SKILL.md",
+        ".claude/skills/perf-nsight-compute-analysis/references/roofline-analysis.md",
+        ".claude/skills/perf-workload-profiling/SKILL.md",
+        ".claude/skills/perf-optimization/SKILL.md",
+        ".claude/skills/perf-optimization-casebook/SKILL.md",
+        ".claude/skills/exec-env-check/SKILL.md",
+        ".claude/skills/exec-remote-slurm/SKILL.md",
+        ".claude/agents/perf-profiling-specialist.md"
+      ],
+      "type": "git",
+      "revision_precision": "prefix"
+    },
+    {
+      "url": "https://github.com/hahnyuan/LLM-Viewer",
+      "commit": "1893e4b5705d",
+      "paths": [
+        "roofline_model.py",
+        "model_analyzer.py",
+        "hardwares/hardware_params.py",
+        "configs/DiT.py"
+      ],
+      "type": "git",
+      "revision_precision": "prefix"
+    },
+    {
+      "url": "https://github.com/ebugger/Empirical-Roofline-Toolkit",
+      "commit": "0771fa9621d0",
+      "paths": [
+        "Empirical_Roofline_Tool-1.1.0/README.md",
+        "Empirical_Roofline_Tool-1.1.0/Drivers/driver1.c",
+        "Empirical_Roofline_Tool-1.1.0/Kernels/kernel1.c",
+        "Empirical_Roofline_Tool-1.1.0/Scripts/roofline.py"
+      ],
+      "type": "git",
+      "revision_precision": "prefix"
+    }
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "source_grounded",
+    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. No local accelerator measurements or automatic calculator."
+  },
+  "applicability": {
+    "scope": "inference serving systems (LLM, diffusion, audio)",
+    "hardware": "any; CUDA examples from sources, NPU adaptation required",
+    "prerequisites": "profiler access (nsys/ncu or NPU equivalent), or willingness to work at L1 analytical only"
+  },
+  "tags": [
+    "performance",
+    "roofline",
+    "profiling",
+    "bottleneck",
+    "inference"
+  ],
+  "profile": "local-skill-v1",
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "empirical_validation": "not_run",
+  "limitations": [
+    "Source-derived candidate; no local efficacy validation."
+  ],
+  "provenance_readsets": [
+    "references/papers-20261015/cases/decision-cases.md",
+    "references/papers-20261015/govern-optimization-experiments/procedure.md",
+    "references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
+    "references/papers-20261015/INTEGRATION_NOTES.md",
+    "references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
+    "references/papers-20261015/MECHANISMS.md",
+    "references/papers-20261015/README.md",
+    "references/papers-20261015/READSET.md",
+    "references/papers-20261015/redirect-cross-layer-optimization/procedure.md",
+    "references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
+    "references/papers-20261015/references/agentic-kernel.md",
+    "references/papers-20261015/references/flashvector.md",
+    "references/papers-20261015/references/inferencebench.md",
+    "references/papers-20261015/references/prior-coverage.md",
+    "references/papers-20261015/references/vidur.md",
+    "references/papers-20261015/STATIC_CHECKS.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}

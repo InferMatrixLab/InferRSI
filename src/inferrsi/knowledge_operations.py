@@ -244,12 +244,17 @@ class KnowledgeReader:
     def _cases(self) -> dict[str, Path]:
         result = {}
         if self.skill_root is not None:
-            for path in sorted(self.skill_root.glob("*/cases/*.json")):
-                record = json.loads(path.read_text(encoding="utf-8"))
-                if record.get("kind") == "case":
-                    if record["id"] in result:
-                        raise ValueError(f"Duplicate case identity: {record['id']}")
-                    result[record["id"]] = path
+            from .skill_catalog import skill_directories
+
+            for directory in skill_directories(self.skill_root).values():
+                for path in sorted(directory.glob("cases/*.json")):
+                    if path.is_symlink() or not path.resolve().is_relative_to(self.skill_root):
+                        raise ValueError("Case must stay inside the selected skills root")
+                    record = json.loads(path.read_text(encoding="utf-8"))
+                    if record.get("kind") == "case":
+                        if record["id"] in result:
+                            raise ValueError(f"Duplicate case identity: {record['id']}")
+                        result[record["id"]] = path
         return result
 
     def read(self, reference: str, *, revision: str | None = None) -> Bundle:
@@ -354,11 +359,13 @@ class KnowledgeReader:
         )
 
     def _skill(self, identity: str) -> Bundle:
-        from .skill_catalog import get_skill, skill_metadata, skill_reference
+        from .skill_catalog import get_skill, skill_directory, skill_metadata, skill_reference
 
         root = self.skill_root
         record = get_skill(root, identity)
-        content = _tree(root / identity, identity)
+        directory = skill_directory(root, identity)
+        prefix = directory.relative_to(root).as_posix()
+        content = _tree(directory, prefix)
         metadata = skill_metadata(root, identity)
         dependencies = {}
         for reference in metadata.get("references", []):
@@ -370,7 +377,7 @@ class KnowledgeReader:
             {
                 "id": identity,
                 "kind": "skill",
-                "entrypoint": f"{identity}/SKILL.md",
+                "entrypoint": f"{prefix}/SKILL.md",
                 "title": record["description"],
                 "origin": metadata.get("origin", ["unknown"]),
                 "sources": _sources(metadata.get("sources", []))

@@ -15,8 +15,8 @@ from inferrsi.knowledge_operations import Bundle, IdentityError, KnowledgeReader
 from inferrsi.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
-ROOT = REPO / "skills"
-NOTES = "calibrate-serving-simulation/references/source-notes.md"
+ROOT = REPO / "src/inferrsi/data/skill_library"
+NOTES = "methods/calibrate-serving-simulation/references/source-notes.md"
 LOCAL = "calibrate-serving-simulation-local"
 
 
@@ -237,7 +237,7 @@ def test_real_shared_resource_bundle_keeps_old_dependency_bytes(tmp_path):
     original = adaptation("inference-benchmark-design", "inference-benchmark-design-local")
     store = store_at(tmp_path)
     revision = store.create(original)
-    shared = "inference-optimization-casebook/cases/admission-drain-occupancy.md"
+    shared = "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md"
     identity = original.metadata["id"]
     assert store.resource(identity, shared, revision=revision) == original.content[shared]
     altered = dict(original.content)

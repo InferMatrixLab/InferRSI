@@ -1,4 +1,4 @@
-"""Generate packaged discovery metadata; skills/ remains the content authority.
+"""Generate knowledge abstracts for the categorized, packaged skill library.
 
 Run from a development installation with the skills extra. The explicit source
 revision must contain the indexed inputs; Git handles checkout newline filters.
@@ -15,6 +15,7 @@ from pathlib import Path
 from inferrsi.skill_catalog import skill_metadata, skill_records
 
 PROJECT = Path(__file__).resolve().parents[1]
+LIBRARY = Path("src/inferrsi/data/skill_library")
 DESTINATION = Path("src/inferrsi/data/repo_packs/inferrsi/knowledge")
 REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
 
@@ -28,18 +29,14 @@ def _git(project: Path, *args: str) -> bytes:
 def build_index(project: Path, source_revision: str) -> dict[str, str]:
     revision = _git(project, "rev-parse", "--verify", f"{source_revision}^{{commit}}")
     revision = revision.decode().strip()
-    root = project / "skills"
-    names = [record["name"] for record in skill_records(root)]
-    inputs = {
-        f"skills/{name}/{filename}"
-        for name in names
-        for filename in ("SKILL.md", "metadata.json")
-        if (root / name / filename).is_file()
-    }
-    tracked = _git(project, "ls-tree", "-r", "--name-only", revision, "--", "skills")
+    root = project / LIBRARY
+    entries = _registry(root)
+    inputs = source_inputs(root)
+    prefixes = tuple(f"{LIBRARY.as_posix()}/{item['path']}/" for item in entries.values())
+    tracked = _git(project, "ls-tree", "-r", "--name-only", revision, "--", str(LIBRARY))
     pinned_inputs = {
         path for path in tracked.decode().splitlines()
-        if len(Path(path).parts) == 3 and Path(path).name in ("SKILL.md", "metadata.json")
+        if path.startswith(prefixes) or path == f"{LIBRARY.as_posix()}/skill-index.json"
     }
     if inputs != pinned_inputs:
         raise ValueError("Skill input paths differ from the source revision; commit sources first")
@@ -52,27 +49,46 @@ def build_index(project: Path, source_revision: str) -> dict[str, str]:
     return render_index(root, revision, source_files)
 
 
+def _registry(root: Path) -> dict:
+    # The catalog validates IDs, paths and metadata before the generator uses them.
+    skill_records(root)
+    return json.loads((root / "skill-index.json").read_text(encoding="utf-8"))["skills"]
+
+
+def source_inputs(root: Path) -> set[str]:
+    """All registered bodies/resources plus the registry that assigns their scopes."""
+    return {f"{LIBRARY.as_posix()}/skill-index.json"} | {
+        f"{LIBRARY.as_posix()}/{path.relative_to(root).as_posix()}"
+        for item in _registry(root).values()
+        for path in (root / item["path"]).rglob("*") if path.is_file()
+    }
+
+
 def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dict[str, str]:
     """Render the projection without requiring historical Git objects."""
     outputs = {}
     links = []
+    entries = _registry(root)
     for selected in skill_records(root):
         name = selected["name"]
         metadata = skill_metadata(root, name)
+        backend = entries[name]["backend"]
+        directory = f"{LIBRARY.as_posix()}/{entries[name]['path']}"
         hashes = {
             path: digest for path, digest in sorted(source_files.items())
-            if path.startswith(f"skills/{name}/")
+            if path.startswith(f"{directory}/")
+            or path == f"{LIBRARY.as_posix()}/skill-index.json"
         }
         paths = list(hashes)
-        entry = f"skills/{name}/SKILL.md"
+        entry = f"{directory}/SKILL.md"
         state = metadata.get("status", "unspecified")
         record = {
             "schema_version": 1,
-            "id": f"inferrsi.common.skills.{name.replace('-', '_')}",
+            "id": f"inferrsi.{backend}.skills.{name.replace('-', '_')}",
             "title": name,
             "repo": "inferrsi",
             "tier": "contribution",
-            "backend": "common",
+            "backend": backend,
             "component": "skills",
             "scenario": "skills.discovery",
             "status": "imported",
@@ -86,50 +102,54 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
                 "paths": paths,
                 "content_sha256": hashes[entry],
             }],
-            "index_type": "skill-metadata-only",
+            "index_type": "packaged-skill",
+            "skill_documents": {
+                "original": f"data/skill_library/{entries[name]['path']}/SKILL.md",
+            },
             "checkout_ref": f"checkout:{name}",
             "source_files": hashes,
             "skill_metadata": metadata,
             "applicability": metadata.get("applicability", {}),
             "recommendations": [
                 "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-                "Use a complete source checkout for declared references and owner-local cases.",
+                "Read the packaged references and owner-local cases alongside the procedure.",
             ],
             "limitations": [
-                "This generated abstract indexes metadata only; procedure and resource "
-                "bodies remain in the source checkout.",
+                "This generated abstract points to the complete packaged skill; "
+                "external evidence and upstream repositories remain source links.",
                 "The imported status describes this index, not the original skill; "
                 f"its declared status is {state}.",
                 "Reading or indexing does not authorize execution, validate efficacy, "
                 "promote a candidate or grant a license.",
-                "The common backend and skills.discovery scenario describe discovery only, "
-                "not runtime compatibility.",
+                "The backend categorizes the procedure's hardware dependency; it does not "
+                "certify compatibility, and skills.discovery is a discovery scenario.",
                 *metadata.get("limitations", []),
             ],
             "verification": {"locally_verified": False, "evidence_level": "guidance"},
         }
-        relative = f"common/skills/{name}.json"
+        relative = f"{backend}/skills/{name}.json"
         outputs[relative] = json.dumps(record, ensure_ascii=False, indent=2) + "\n"
-        links.append(f"| [{name}]({relative}) | {state} |")
+        links.append(f"| [{name}]({relative}) | {backend} | {state} |")
     outputs["README.md"] = "\n".join([
         "# InferRSI skill discovery index", "",
-        "Generated metadata for every root `skills/` entry. The source procedures,",
-        "references and cases remain authoritative in the checkout; their bodies",
-        "are not redistributed by this index. The reference and searchspace matrices",
+        "Generated abstracts for all 48 registered skills in `data/skill_library/`.",
+        "Their complete procedures, references and cases ship in the same package.",
+        "`skill-index.json` maps stable skill IDs to categorized directories. The",
+        "reference and searchspace matrices",
         "remain the maintained knowledge views. Do not edit generated files by hand.", "",
         "Index status `imported` and `locally_verified: false` describe these discovery",
         "records. Original status, provenance, license declarations and limitations",
         "are preserved under `skill_metadata`; absent fields remain absent. Unknown",
         "licenses remain unknown. Indexing grants no execution permission or validation.", "",
         "These are knowledge abstracts (`--kind knowledge`), with namespaced package",
-        "IDs distinct from their `checkout_ref` skills. `common` and `skills.discovery`",
-        "describe the index, not hardware or task applicability.", "",
-        f"Source snapshot: [{revision}]({REPOSITORY}/tree/{revision}/skills).", "",
+        "IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA",
+        "procedures use their corresponding backend; shared methods use `common`.", "",
+        f"Source snapshot: [{revision}]({REPOSITORY}/tree/{revision}/{LIBRARY.as_posix()}).", "",
         "```bash",
         "inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50",
         "inferrsi collect --repo-type inferrsi --kind knowledge --limit 50 --material",
         "```", "",
-        "After committing changes to skill headers or sidecars, regenerate from a",
+        "After committing changes to skill bodies, resources or the registry, regenerate from a",
         "development installation with the skills extra. The source revision must",
         "contain the current input paths and bytes (Git checkout filters are respected).",
         "`source_files` hashes identify the canonical Git bytes, not a validation result.", "",
@@ -138,8 +158,9 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         f"python tools/build_skill_index.py --source-revision {revision} --check",
         "```", "",
         "`--check` detects missing, stale and unexpected generated records without writing.",
-        "References and cases remain source links; they are not separate packaged entries.", "",
-        "| Skill | Original declared status |", "| --- | --- |", *links, "",
+        "References and cases ship with their owning skill, not as duplicate knowledge abstracts.",
+        "",
+        "| Skill | Backend | Original declared status |", "| --- | --- | --- |", *links, "",
     ])
     return outputs
 

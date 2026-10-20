@@ -27,6 +27,7 @@ entry point, effect class and boundary:
 inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
 inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 inferrsi skills list --json   # requires python -m pip install '.[skills]'
+inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 ```
 
 Normalized Collect, exact-revision reads and resource access are available as
@@ -35,16 +36,20 @@ CLI commands and as the Python `KnowledgeReader`
 remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)):
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root skills
-inferrsi read calibrate-serving-simulation --skill-root skills --material
-inferrsi resource weight-loading-optimization weight-loading-optimization/SKILL.md \
-  --revision <sha256-from-collect-or-read> --skill-root skills --output SKILL.md
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
+inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library --material
+inferrsi resource weight-loading-optimization methods/weight-loading-optimization/SKILL.md \
+  --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/data/skill_library --output SKILL.md
 ```
 
 Sources are selected explicitly: the installed package by default, a checkout
 via `--skill-root`, an existing store opened read-only via `--store`. A store
 records the checkout it reserves and rejects a mismatched or missing
 `--skill-root` on open.
+
+The `skills` command defaults to the installed library's 48 registered skills;
+its full bodies and resources are packaged. `--skill-root` in the normalized
+examples above explicitly adds this checkout's original skill and case IDs.
 
 ## The actual configuration interface
 

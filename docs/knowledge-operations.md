@@ -1,7 +1,8 @@
 # Normalized reads and Collect
 
 This is the K2 read slice of the [knowledge base contract](knowledge-base.md).
-Existing catalog IDs remain unchanged. The operations are available as the
+Existing imported engine catalog IDs remain unchanged; the migrated skill catalog
+uses backend-scoped `inferrsi.<backend>.skills.*` IDs. The operations are available as the
 `collect` / `read` / `resource` CLI commands and as the Python interface below;
 neither requires a conversation or workflow object.
 
@@ -9,10 +10,10 @@ neither requires a conversation or workflow object.
 from pathlib import Path
 from inferrsi.knowledge_operations import KnowledgeReader
 
-reader = KnowledgeReader(skill_root=Path("skills"))
+reader = KnowledgeReader(skill_root=Path("src/inferrsi/data/skill_library"))
 result = reader.collect(ids=["calibrate-serving-simulation"], material=True, limit=1)
 item = result["items"][0]
-source = reader.resource(item["ref"], "calibrate-serving-simulation/references/source-notes.md",
+source = reader.resource(item["ref"], "methods/calibrate-serving-simulation/references/source-notes.md",
                          revision=item["revision"])
 ```
 
@@ -27,8 +28,8 @@ the store records the checkout it reserves and rejects a mismatched or missing
 `collect`/`read` and writes bytes to `--output`.
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root skills
-inferrsi read calibrate-serving-simulation --skill-root skills
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
+inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library
 ```
 
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
@@ -38,8 +39,9 @@ one authority is never resolved by precedence: `read` raises an ambiguous-identi
 error naming the qualified choices, explicit Collect reports it as an omission, and
 a full Collect returns each qualified item and lists the ID under `collisions`.
 
-Omit `skill_root` for installed package-only use. A reader reads the installed
-catalog and bilingual library once, so one reader is one package snapshot. Query
+Omit `skill_root` for installed package-only use, including full migrated
+procedures through IDs such as `inferrsi.ascend.skills.ascend_graph_mode`. A reader reads the installed
+catalog and complete skill library once, so one reader is one package snapshot. Query
 words are matched against normalized metadata and the entry content, not resource
 hashes. `repo`, `tier`, `backend`, `scenario`
 retain existing catalog filter semantics; those package-only filters exclude local
@@ -76,8 +78,8 @@ This reader does not itself retain history or claim standalone exports.
   external evidence stays a source pointer.
 - Every declared `skill_documents` edition must be present in the retained
   library; a missing target fails the read instead of leaving a dangling link.
-- Existing catalog records retain IDs/tiers/state. Bilingual records include the
-  entire imported library as one conservative dependency closure: languages,
+- Existing imported engine catalog records retain IDs/tiers/state. Records with `skill_documents` include the
+  entire packaged library as one conservative dependency closure: languages,
   manifests, licenses, helpers and transitive references are preserved. This is
   intentionally broader than one procedure; an unrelated library edit changes
   that dependency revision. It is not a duplicate editable authority.
@@ -101,7 +103,7 @@ supplied code never runs it or grants permissions.
 Rejected directions use the same checkout Case bundles as other observations:
 
 ```python
-reader = KnowledgeReader(skill_root=Path("skills"))
+reader = KnowledgeReader(skill_root=Path("src/inferrsi/data/skill_library"))
 options = reader.collect("Ascend OOM", kind="case", material=True, limit=3)
 item = options["items"][0]  # Inspect no_match/omissions first in a general client.
 case = reader.read(item["ref"], revision=item["revision"])
@@ -114,7 +116,8 @@ to narrow results. An explicit ID such as
 Package repo/backend/scenario filters still exclude checkout cases; inspect the
 returned applicability rather than assuming those filters qualify a case.
 
-For explicit CLI resource-path resolution from the full checkout:
+For explicit CLI resource-path resolution from the installed library (optional
+`skills` extra required), or a custom library selected with `--root`:
 
 ```bash
 inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md
@@ -125,5 +128,8 @@ These commands return a `path` for your file reader; they do not load the body
 or execute it. The Python `read` example above returns the selected case bundle.
 
 Read observations, limitations and suggested revisit conditions before acting.
-The cases are checkout resources, not additional wheel catalog records. They
-retain their original verdict/verification scope; retrieval is not an experiment.
+The case files ship inside the packaged library and are retained as resources of
+its catalog bundles. Individual `checkout:case.*` identities still require the
+explicit `--skill-root` adapter shown above; no separate case catalog records are
+generated. Cases retain their original verdict/verification scope; retrieval is
+not an experiment.

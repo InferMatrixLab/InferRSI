@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import sqlite3
 import sys
+from importlib.resources import files
 from pathlib import Path
 
 from .arguments import device_ids, make_spec, parser
@@ -115,22 +116,25 @@ def main(argv: list[str] | None = None) -> int:
                 skill_resource,
             )
 
+            root = args.root if args.root is not None else Path(
+                files("inferrsi").joinpath("data", "skill_library")
+            )
             if args.skills_action == "list":
-                records = skill_records(args.root)
+                records = skill_records(root)
                 if args.json:
                     _print(records)
                 else:
                     for record in records:
                         print(f"{record['name']}\t{record['description']}")
             elif args.skills_action == "show":
-                record = get_skill(args.root, args.name)
-                record["instructions"] = skill_instructions(args.root, args.name)
+                record = get_skill(root, args.name)
+                record["instructions"] = skill_instructions(root, args.name)
                 record["authority"] = "Reading instructions does not authorize their commands."
                 _print(record)
             elif args.skills_action == "reference":
-                _print({"path": str(skill_reference(args.root, args.name, args.path))})
+                _print({"path": str(skill_reference(root, args.name, args.path))})
             else:
-                _print({"path": str(skill_resource(args.root, args.name, args.path))})
+                _print({"path": str(skill_resource(root, args.name, args.path))})
             return 0
         if args.command == "knowledge":
             if args.knowledge_action == "show":
