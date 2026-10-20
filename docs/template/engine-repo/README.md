@@ -1,12 +1,28 @@
-# Engine repository
+# InferRSI-\<model>
 
 ![InferMatrix organization wordmark](docs/assets/infermatrix-logo.png)
 
 An [InferMatrixLab](https://github.com/InferMatrixLab) project.
 
-**Template:** replace this title with the actual engine name, fill the identity
-below, and remove template guidance before publication. Add an approved local
-banner only after following [asset ownership](docs/assets/README.md).
+**Template:** set the repository name and this README's title to the same resolved
+engine name using the following convention:
+
+| Target backend | Repository name and README title |
+| --- | --- |
+| GPU (default) | `InferRSI-<model>`; omit the backend suffix and its hyphen |
+| NPU | `InferRSI-<model>-npu` |
+
+Replace `<model>` with the model's public short name, retaining its version;
+never use a private local model path. For example, a model named `ExampleModel-v1`
+uses `InferRSI-ExampleModel-v1` on GPU and `InferRSI-ExampleModel-v1-npu` on NPU.
+The suffix is a naming convention; record the actual execution backend and
+supported combinations below and in the recipe.
+
+Fill the identity below and remove template guidance before publication. Keep
+the InferRSI generation attribution as the final nonempty line, after all other
+sections, including future additions. Retain the separate organization and
+upstream/license attribution. Add an approved local banner only after following
+[asset ownership](docs/assets/README.md).
 
 ```text
 Engine: <engine-name>
@@ -120,3 +136,5 @@ Add the engine's actual license file and its navigation link, plus upstream
 copyright/notices and model-weight terms. Explain forks, reused implementations,
 patches and independent work accurately. Do not treat the organization name or
 this template as permission to relicense external work.
+
+由 [InferRSI](https://github.com/InferMatrixLab/InferRSI) 生成。

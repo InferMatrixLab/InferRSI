@@ -8,6 +8,10 @@ engine's actual boundaries, commands and owners before publishing.
   and [evidence rules](evidence/README.md) first.
 - Work from the governing task's accepted scope. State assumptions, affected
   paths and verifiable criteria; use `plan -> code -> test -> review`.
+- Follow the repository-name and README-title convention in the
+  [InferRSI README template](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/template/engine-repo/README.md).
+  Keep the linked InferRSI generation attribution as the final nonempty line of
+  [README](README.md), including when adding new sections.
 - Keep changes focused; preserve upstream attribution, licenses, historical
   evidence and unrelated user work. Use isolated working directories/indexes
   for concurrent writers and record actual reviewed/tested revisions.
