@@ -32,6 +32,9 @@ inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/
 inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library
 ```
 
+The `--skill-root` selections require the `skills` extra (`python -m pip install
+'.[skills]'`); package-only collect/read work with the base install.
+
 Every item has an owning `authority` (`package`, `checkout` or `store`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
 unqualified while they resolve to exactly one authority. An ID owned by more than

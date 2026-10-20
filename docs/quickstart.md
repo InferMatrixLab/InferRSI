@@ -14,6 +14,12 @@ inferrsi --help
 inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
+Package-only knowledge commands (`knowledge`, `context`, package `collect`/`read`)
+work with this base install. Reading checkout skills — the `skills` command and
+any `--skill-root` selection — additionally requires
+`python -m pip install '.[skills]'` (PyYAML); without it those operations fail
+with that install hint instead of a traceback.
+
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
 benchmark/quality command contract; set the acceptance threshold from your plan.
@@ -33,7 +39,8 @@ inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 Normalized Collect, exact-revision reads and resource access are available as
 CLI commands and as the Python `KnowledgeReader`
 ([contract](knowledge-operations.md)); authorized local candidate Create/Update
-remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)):
+remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)).
+The `--skill-root` examples below require the `skills` extra from above:
 
 ```bash
 inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
@@ -41,6 +48,10 @@ inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_
 inferrsi resource weight-loading-optimization methods/weight-loading-optimization/SKILL.md \
   --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/data/skill_library --output SKILL.md
 ```
+
+The revision for `resource` is the second field of the `collect`/`read` output
+line (or `item["revision"]` with `--json`); the JSON mode also carries the full
+evidence and validation metadata.
 
 Sources are selected explicitly: the installed package by default, a checkout
 via `--skill-root`, an existing store opened read-only via `--store`. A store

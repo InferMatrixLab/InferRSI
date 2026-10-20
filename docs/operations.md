@@ -36,9 +36,9 @@ are distinct from `knowledge search`, whose package catalog filters
 
 - **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`; `show` takes one record ID.
 - **Scope:** the installed package catalog (`repo_packs`, `knowledge_packs`) only.
-- **Output:** ranked catalog records or one full record.
+- **Output:** tab-separated record lines (id, status, backend, title), or a JSON list with `--json`; `show` prints one full record as JSON.
 - **Side effects:** none.
-- **Failure behavior:** explicit no-match; unsupported filter values are reported.
+- **Failure behavior:** no match prints nothing and exits 0 — an empty result is not an error (an empty JSON list with `--json`); an unknown `show` ID and unsupported filter values exit 2.
 - **Example:** `inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend`
 
 The tier/repo/backend/scenario filters are package-only: an empty filtered
@@ -59,11 +59,11 @@ packaged bodies; the two matrices remain authoritative.
 
 ### Export legacy cited material — `context`
 
-- **Inputs:** query plus optional tier/repo/backend/scenario filters and `--output`.
+- **Inputs:** optional query; **required** `--repo-type` and `--backend`; optional `--tier`, `--scenario`, `--limit`, `--output`.
 - **Scope:** cited catalog material from the installed package.
-- **Output:** a Markdown reference bundle at the chosen path.
+- **Output:** a Markdown reference bundle at the chosen path (or stdout without `--output`), with the record count reported.
 - **Side effects:** writes only the caller-chosen output file.
-- **Failure behavior:** explicit no-match.
+- **Failure behavior:** no match produces an empty export (header only), not an error; unsupported filter values exit 2.
 - **Example:** `inferrsi context --repo-type vllm_omni --backend cuda --output context.md`
 
 Imported source text is data for your agent, not authorization to execute
@@ -75,14 +75,14 @@ upstream instructions.
 
 - **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` adds the checkout, `--store` opens an existing store read-only (the store records its reserved checkout and rejects a mismatched or missing `--skill-root`).
 - **Scope:** installed package records plus (with `--skill-root`) checkout skills and cases, plus (with `--store`) store candidates; bounded output.
-- **Output:** items with authority-qualified refs, content revisions and applicability metadata, plus explicit `no_match`, `omissions` (each with a reason code) and `collisions`; exit 0 even for an explicit no-match envelope.
+- **Output:** with `--json`, the complete envelope — items carrying full metadata, resources, dependencies and (with `--material`) the entrypoint content, plus `no_match`, `omissions`, `collisions`, `material_bytes` and the recorded limitations. Without `--json`, one tab-separated line per item (`ref`, `revision`, `kind`, `state`, recorded `applicability`), `collision` lines for multi-authority IDs, `omitted` lines with reason codes, an explicit `no_match` line when nothing matched, and — with `--material` — the entrypoint content in delimited blocks. Use `--json` for complete evidence and validation metadata; the text mode records the lifecycle `state` and applicability as recorded and invents no validation status. Exit 0 covers the whole envelope, including no-match and omissions.
 - **Side effects:** none; both adapters and the read-only store connection are read-only.
 - **Failure behavior:** discovery-wide invalid identities fail the call; per-item omissions are reported individually. Package repo/tier/backend/scenario filters exclude checkout items.
 - **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library`
 
 ### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`
 
-- **Inputs:** a qualified or unambiguous public ID; optionally the exact content revision; a relative resource key for `resource`.
+- **Inputs:** `read` takes a qualified or unambiguous public ID and an optional `--revision` (the current revision when omitted); `resource` takes the ID, a relative resource key, and the **required** exact `--revision` returned by collect/read plus the required `--output` path.
 - **Scope:** one selected bundle from the package, checkout or store adapter.
 - **Output:** the bundle view at the requested revision, or the resource bytes (`resource` writes them to the required `--output` path).
 - **Side effects:** `resource` writes only the caller-chosen output file.
