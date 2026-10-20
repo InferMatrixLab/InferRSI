@@ -164,7 +164,11 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--limit", type=int, default=10)
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
-    collect.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    collect.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Add this checkout as a read-only source (requires the 'skills' extra)",
+    )
     collect.add_argument(
         "--store",
         type=Path,
@@ -179,7 +183,11 @@ def parser() -> argparse.ArgumentParser:
     read.add_argument("id")
     read.add_argument("--revision", help="Exact revision returned by collect or read")
     read.add_argument("--material", action="store_true")
-    read.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    read.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Add this checkout as a read-only source (requires the 'skills' extra)",
+    )
     read.add_argument(
         "--store",
         type=Path,
@@ -195,7 +203,11 @@ def parser() -> argparse.ArgumentParser:
     resource.add_argument(
         "--revision", required=True, help="Exact revision returned by collect or read"
     )
-    resource.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    resource.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Add this checkout as a read-only source (requires the 'skills' extra)",
+    )
     resource.add_argument(
         "--store",
         type=Path,

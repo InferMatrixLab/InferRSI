@@ -187,3 +187,98 @@ def test_malformed_revision_pairs_are_input_errors():
         assert "ID=REV" in stderr
     stderr = run_cli_error("collect", "--revision", "a=sha256:x", "--revision", "a=sha256:y")
     assert "Duplicate revision request" in stderr
+
+
+def test_collect_material_appears_in_text_and_json_modes():
+    code, stdout, _ = run_cli("collect", "Qwen", "--limit", "1", "--material")
+    assert code == 0
+    assert "--- begin content package:" in stdout
+    assert "--- end content package:" in stdout
+    _, json_stdout, _ = run_cli("collect", "Qwen", "--limit", "1", "--material", "--json")
+    envelope = json.loads(json_stdout)
+    assert envelope["items"][0]["content"]
+
+
+def test_collect_text_lines_match_the_json_envelope():
+    code, stdout, _ = run_cli("collect", "Qwen", "--limit", "2")
+    assert code == 0
+    _, json_stdout, _ = run_cli("collect", "Qwen", "--limit", "2", "--json")
+    items = json.loads(json_stdout)["items"]
+    assert len(items) >= 1
+    # Item lines are the ones whose second field is the content revision.
+    lines = [line for line in stdout.splitlines() if line.split("\t")[1].startswith("sha256:")]
+    assert len(lines) == len(items)
+    for line, item in zip(lines, items):
+        fields = line.split("\t")
+        assert fields[0] == item["ref"]
+        assert fields[1] == item["revision"]
+        assert fields[2] == item["kind"]
+        assert fields[3] == item["state"]
+
+
+def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path):
+    code, stdout, _ = run_cli("collect", "definitely-no-such-knowledge-anywhere")
+    assert code == 0
+    assert stdout.strip() == (
+        "no_match\tthe query or requested ids matched no knowledge in the selected sources"
+    )
+    code, stdout, _ = run_cli("collect", "--id", "not-a-real-id")
+    assert code == 0
+    assert "not-a-real-id\tomitted\tunknown_identity" in stdout
+    package_id = KnowledgeReader().identities()[0].partition(":")[2]
+    cases = tmp_path / "owner" / "cases"
+    cases.mkdir(parents=True)
+    (tmp_path / "owner" / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: test\n---\nBody", encoding="utf-8"
+    )
+    (cases / "note.md").write_text("observation", encoding="utf-8")
+    (cases / "note.json").write_text(
+        json.dumps(
+            {
+                "id": package_id,
+                "kind": "case",
+                "state": "historical_observation",
+                "content": "note.md",
+                "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+                "applicability": [],
+                "limitations": [],
+                "attribution": "fixture",
+            }
+        ),
+        encoding="utf-8",
+    )
+    code, stdout, _ = run_cli("collect", "--id", package_id, "--skill-root", str(tmp_path))
+    assert code == 0
+    assert f"{package_id}\tcollision\towned by multiple authorities" in stdout
+    assert f"{package_id}\tomitted\tambiguous_identity" in stdout
+
+
+def test_collect_limit_and_max_bytes_surface_output_limit_omissions():
+    code, stdout, _ = run_cli("collect", "--limit", "1")
+    assert code == 0
+    envelope = json.loads(run_cli("collect", "--limit", "1", "--json")[1])
+    assert len(envelope["items"]) == 1
+    assert any(omission["reason"] == "output_limit" for omission in envelope["omissions"])
+    code, stdout, _ = run_cli("collect", "--max-bytes", "1")
+    assert code == 0
+    assert "no_match\t" in stdout
+    envelope = json.loads(run_cli("collect", "--max-bytes", "1", "--json")[1])
+    assert not envelope["items"]
+    assert all(omission["reason"] == "output_limit" for omission in envelope["omissions"])
+    assert envelope["material_bytes"] == 0
+
+
+def test_unsafe_resource_path_is_an_input_error(tmp_path):
+    bundle = KnowledgeReader(skill_root=SKILLS).read(SOURCE)
+    stderr = run_cli_error(
+        "resource",
+        SOURCE,
+        "../escape.md",
+        "--revision",
+        bundle.revision,
+        "--skill-root",
+        str(SKILLS),
+        "--output",
+        str(tmp_path / "out.md"),
+    )
+    assert "Unsafe bundle path" in stderr

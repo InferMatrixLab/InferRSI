@@ -169,11 +169,32 @@ def main(argv: list[str] | None = None) -> int:
             if args.json:
                 _print(result)
             else:
+                for identity in result["collisions"]:
+                    print(
+                        f"{identity}\tcollision\towned by multiple authorities; qualify the ref"
+                    )
                 for item in result["items"]:
-                    print(f"{item['ref']}\t{item['revision']}\t{item.get('title', item['ref'])}")
+                    applicability = item.get("applicability") or "-"
+                    if not isinstance(applicability, str):
+                        applicability = json.dumps(
+                            applicability, ensure_ascii=False, sort_keys=True
+                        )
+                    print(
+                        f"{item['ref']}\t{item['revision']}\t{item['kind']}\t{item['state']}"
+                        f"\t{applicability}"
+                    )
+                    if args.material and "content" in item:
+                        print(f"--- begin content {item['ref']} @ {item['revision']} ---")
+                        print(item["content"], end="" if item["content"].endswith("\n") else "\n")
+                        print(f"--- end content {item['ref']} ---")
                 for omission in result["omissions"]:
                     detail = f"\t{omission['detail']}" if "detail" in omission else ""
                     print(f"{omission['id']}\tomitted\t{omission['reason']}{detail}")
+                if result["no_match"]:
+                    print(
+                        "no_match\tthe query or requested ids matched no knowledge "
+                        "in the selected sources"
+                    )
             return 0
         if args.command == "read":
             bundle = _knowledge_reader(args).read(args.id, revision=args.revision)

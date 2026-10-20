@@ -5,7 +5,13 @@ import re
 from pathlib import Path, PurePosixPath
 from typing import BinaryIO
 
-import yaml
+try:
+    import yaml
+except ImportError as exc:  # The base install stays PyYAML-free by contract.
+    raise ValueError(
+        "Reading checkout skills requires PyYAML; install the optional extra: "
+        "python -m pip install '.[skills]'"
+    ) from exc
 
 from .catalog import BACKENDS
 
