@@ -42,8 +42,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/strata/sub-skills/validate-engine/SKILL.md",
-    "zh-CN": "data/skill_library/repositories/strata/translations/zh-CN/sub-skills/validate-engine/SKILL.md"
+    "en": "data/skill_library/repositories/strata/sub-skills/validate-engine/SKILL.md"
   },
   "applicability": {
     "hardware": [],
@@ -66,7 +65,7 @@
   "limitations": [
     "A configure/import check or absent fixture cannot certify the engine; unavailable required hardware leaves the campaign INCONCLUSIVE.",
     "Batch versus solo text differences require the applicable CPU/GPU rounding contract before attributing them to scheduling.",
-    "This indexed abstract links to the complete bilingual skill and source evidence; it is imported guidance, not a benchmark result.",
+    "This indexed abstract links to the complete English skill and source evidence; it is imported guidance, not a benchmark result.",
     "Accelerator execution, real-model quality and service performance remain unverified for this import. Qualify each target revision, model, backend and workload separately."
   ],
   "verification": {

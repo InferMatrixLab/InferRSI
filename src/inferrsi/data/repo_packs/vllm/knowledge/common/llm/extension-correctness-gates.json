@@ -43,8 +43,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/vllm/sub-skills/extend-validate/SKILL.md",
-    "zh-CN": "data/skill_library/repositories/vllm/translations/zh-CN/sub-skills/extend-validate/SKILL.md"
+    "en": "data/skill_library/repositories/vllm/sub-skills/extend-validate/SKILL.md"
   },
   "applicability": {
     "hardware": [],
@@ -67,7 +66,7 @@
   "limitations": [
     "Greedy equality alone does not validate stochastic speculative decoding.",
     "Native inference tests depend on repository fixtures and compatible dependencies; bypassing conftest is not engine validation.",
-    "This indexed abstract links to the complete bilingual skill and source evidence; it is imported guidance, not a benchmark result.",
+    "This indexed abstract links to the complete English skill and source evidence; it is imported guidance, not a benchmark result.",
     "Accelerator execution, real-model quality and service performance remain unverified for this import. Qualify each target revision, model, backend and workload separately."
   ],
   "verification": {

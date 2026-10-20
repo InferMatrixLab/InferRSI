@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) >= 10, "Knowledge is missing from the installation"
+assert len(records) == 90, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -81,12 +81,12 @@ for source in manifest["sources"]:
         if "skill_documents" in item
     ]
     assert len(imported) == 3, f"Missing indexed knowledge for {repo}"
-    for language in ("en", "zh-CN"):
-        owner = library.joinpath("repositories", slug)
-        edition = owner if language == "en" else owner.joinpath("translations", "zh-CN")
-        assert edition.joinpath("SKILL.md").is_file()
-        assert edition.joinpath("LICENSE").is_file()
+    owner = library.joinpath("repositories", slug)
+    assert owner.joinpath("SKILL.md").is_file()
+    assert owner.joinpath("LICENSE").is_file()
+    assert not owner.joinpath("translations", "zh-CN").is_dir()
     for record in imported:
+        assert set(record["skill_documents"]) == {"en"}
         for reference in record["skill_documents"].values():
             assert package.joinpath(*reference.split("/")).is_file(), reference
     output = io.StringIO()
@@ -94,17 +94,15 @@ for source in manifest["sources"]:
         assert main(["context", imported[0]["id"], "--repo-type", repo, "--backend", "cpu"]) == 0
     assert '"skill_documents"' in output.getvalue()
     assert '"locally_verified": false' in output.getvalue()
-for language in ("en", "zh-CN"):
-    router_edition = router if language == "en" else router.joinpath("translations", "zh-CN")
-    assert router_edition.joinpath("SKILL.md").is_file()
-    assert router_edition.joinpath("references", "overview.md").is_file()
-    strata = library.joinpath("repositories", "strata")
-    strata_edition = strata if language == "en" else strata.joinpath("translations", "zh-CN")
-    assert strata_edition.joinpath("references", "design-space-analysis.md").is_file()
-    helper = strata_edition.joinpath("scripts", "summarize_trials.py")
-    assert helper.is_file()
-    with as_file(helper) as path:
-        compile(path.read_text(encoding="utf-8"), str(path), "exec")
+assert router.joinpath("SKILL.md").is_file()
+assert router.joinpath("references", "overview.md").is_file()
+assert not router.joinpath("translations", "zh-CN").is_dir()
+strata = library.joinpath("repositories", "strata")
+assert strata.joinpath("references", "design-space-analysis.md").is_file()
+helper = strata.joinpath("scripts", "summarize_trials.py")
+assert helper.is_file()
+with as_file(helper) as path:
+    compile(path.read_text(encoding="utf-8"), str(path), "exec")
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(

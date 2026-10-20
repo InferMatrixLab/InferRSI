@@ -1,4 +1,4 @@
-# Provenance / 来源记录
+# Provenance
 
 ```json
 {
@@ -43,10 +43,8 @@
 
 Source package version is dynamic (setuptools-scm); no installed distribution was verified. `pyproject.toml` permits Python >=3.10,<3.14; quickstart uses Linux/Python 3.12 and vLLM 0.31.0. At this SHA common requirements include transformers >=5.13.0,<5.15, diffusers==0.40.0, cache-dit==1.5.0. These are pinned-source facts, not universal installation advice.
 
-包版本由 setuptools-scm 动态生成，本次未验证已安装发行包。pyproject 允许 Python >=3.10,<3.14；快速开始采用 Linux/Python 3.12 和 vLLM 0.31.0。本提交 common 依赖包含 transformers >=5.13.0,<5.15、diffusers==0.40.0、cache-dit==1.5.0；仅适用于此源码快照。
-
 Method: AREX-Skill direct distillation, generator commit ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6. Existing AREX vllm-omni skill pins 35cacf020c823da56e5ad437128bc4e93a5a3ed1 and vLLM 0.26.0; its package/version guidance was not copied. License Apache-2.0 resolved via AREX license helper and source metadata.
 
-方法：AREX direct 蒸馏；旧 Skill 的源码/依赖记录已过期，未直接复制。修改仓库版本、pipeline/schema、CLI、runner、协议或后端时，应重新核对相关证据。GPU inference, distributed transport and media quality remain unverified / GPU 推理、分布式传输与媒体质量仍未验证。
+Refresh the evidence when the repository revision, pipeline/schema, CLI, runner, protocol or backend changes. GPU inference, distributed transport and media quality remain unverified.
 
-See [evidence](evidence.md) / 参见[证据索引](evidence.md)。
+See [evidence](evidence.md).

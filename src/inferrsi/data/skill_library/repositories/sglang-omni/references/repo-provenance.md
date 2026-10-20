@@ -65,4 +65,4 @@ Official shallow clone, pinned source snapshot. Source read as evidence; install
 }
 ```
 
-Refresh affected guidance if SHA, dirty source paths, dependency pins, config/CLI, scheduler/transport contracts or model recipes change. English and Chinese trees are alternatives with identical skill IDs; install one language per scope to avoid discovery collisions.
+Refresh affected guidance if SHA, dirty source paths, dependency pins, config/CLI, scheduler/transport contracts or model recipes change. This package retains the English skill tree with its canonical skill IDs.

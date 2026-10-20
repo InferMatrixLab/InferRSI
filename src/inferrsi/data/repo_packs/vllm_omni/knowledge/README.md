@@ -7,11 +7,10 @@ records here keep their IDs, paths and verification state.
 Each named JSON file is the canonical catalog record for one reusable experience
 or source-guided topic. This README provides organization and navigation rather
 than a second per-entry summary. Existing experience records retain their IDs
-and source history. New topic abstracts link to complete bilingual procedures
+and source history. New topic abstracts link to complete English procedures
 through `skill_documents`.
 
-Full library: [English](../../../skill_library/repositories/vllm-omni/SKILL.md) |
-[中文](../../../skill_library/repositories/vllm-omni/translations/zh-CN/SKILL.md).
+Full library: [English skill](../../../skill_library/repositories/vllm-omni/SKILL.md).
 
 ## Ownership and hierarchy
 
@@ -71,7 +70,7 @@ inferrsi context --repo-type vllm_omni --backend cuda --scenario diffusion.image
 
 Human-readable context is rendered from the same JSON used by search/show.
 When present, `skill_documents` identifies package-relative paths to the full
-English and Chinese skills, which contain detailed procedures and source maps.
+English skills, which contain detailed procedures and source maps.
 Those skills are the source material for the concise indexed abstract, not a
 second per-entry catalog summary. This entry list contains navigation only;
 tests check that every packaged record is listed.
@@ -132,8 +131,8 @@ the reusable lesson and its boundaries.
 5. Add a navigation row here, then run the catalog/CLI tests and the
    noneditable-package resource check. No manual index of metrics is needed.
 6. For a topic backed by the full skill library, retain valid `skill_documents`
-   paths in both languages and reconcile the concise abstract when the detailed
-   source contracts change. Do not replace or silently repin historical records
+   paths to English procedures and reconcile the concise abstract when the
+   detailed source contracts change. Do not replace or silently repin historical records
    while adding a newer source snapshot.
 
 Repository-wide and backend-wide methods stay in their owning packs. External

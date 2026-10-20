@@ -1,19 +1,19 @@
-# Five inference repositories as bilingual skills
+# Five inference repositories as English skills
 
-The package turns five pinned official source snapshots into **operating knowledge**: where to look, what can be changed, which choices interact, what can invalidate correctness, and how to verify a proposed optimization. It includes full English and Chinese editions, not just translated titles.
+The package turns five pinned official source snapshots into **operating knowledge**: where to look, what can be changed, which choices interact, what can invalidate correctness, and how to verify a proposed optimization. It includes complete English procedures and supporting resources.
 
 The main design lesson is to organize knowledge by **work unit, state ownership, scheduling, memory, communication and validation**, then map it to each engine. vLLM and SGLang provide deep examples of token execution and serving; the two Omni repositories add model-specific stage composition and heterogeneous output lifecycles. Strata adds heterogeneous MoE placement, expert memory and speculative execution. The boundaries overlap, and supported paths must be verified at a specific revision.
 
 ## Start here
 
-| Repository | Knowledge emphasized | English | 中文 |
-|---|---|---|---|
-| Strata | Heterogeneous MoE, CPU/GPU placement, memory and speculation | [Skill](../../../repositories/strata/SKILL.md) | [Skill](../../../repositories/strata/translations/zh-CN/SKILL.md) |
-| vLLM | Token/admission/input budgets, KV ownership and prefix reuse, scheduler/runner/attention, parallel serving | [Skill](../../../repositories/vllm/SKILL.md) | [Skill](../../../repositories/vllm/translations/zh-CN/SKILL.md) |
-| SGLang | Scheduler and cache reuse, Radix/HiCache, prefill/decode and parallelism, extension and tuning | [Skill](../../../repositories/sglang/SKILL.md) | [Skill](../../../repositories/sglang/translations/zh-CN/SKILL.md) |
-| SGLang-Omni | Pipeline/stage runtime, scheduler IO boundary, stream/backpressure/transport, model integration | [Skill](../../../repositories/sglang-omni/SKILL.md) | [Skill](../../../repositories/sglang-omni/translations/zh-CN/SKILL.md) |
-| vLLM-Omni | Fixed topology vs deploy resources, stage affinity/connectors, AR/diffusion modes, output/state contracts | [Skill](../../../repositories/vllm-omni/SKILL.md) | [Skill](../../../repositories/vllm-omni/translations/zh-CN/SKILL.md) |
-| Collection router | Cross-engine reasoning and a unified constrained search workflow | [Skill](../SKILL.md) | [Skill](../translations/zh-CN/SKILL.md) |
+| Repository | Knowledge emphasized | Skill |
+|---|---|---|
+| Strata | Heterogeneous MoE, CPU/GPU placement, memory and speculation | [Skill](../../../repositories/strata/SKILL.md) |
+| vLLM | Token/admission/input budgets, KV ownership and prefix reuse, scheduler/runner/attention, parallel serving | [Skill](../../../repositories/vllm/SKILL.md) |
+| SGLang | Scheduler and cache reuse, Radix/HiCache, prefill/decode and parallelism, extension and tuning | [Skill](../../../repositories/sglang/SKILL.md) |
+| SGLang-Omni | Pipeline/stage runtime, scheduler IO boundary, stream/backpressure/transport, model integration | [Skill](../../../repositories/sglang-omni/SKILL.md) |
+| vLLM-Omni | Fixed topology vs deploy resources, stage affinity/connectors, AR/diffusion modes, output/state contracts | [Skill](../../../repositories/vllm-omni/SKILL.md) |
+| Collection router | Cross-engine reasoning and a unified constrained search workflow | [Skill](../SKILL.md) |
 
 ## What to learn across repositories
 
@@ -54,7 +54,7 @@ Existing AREX skills were inspected as prior work and refreshed against source r
 
 Construction follows AREX-Skill `distill-ml-knowledge`: **scope → ground → construct → verify**, using its direct construction strategy, provenance/routing patterns, operating metadata and review criteria. This is a portable candidate preview. The DisCo managed CLI/importer, full environment preparation and GPU acceptance were not executed. See [construction record](import.md) and [verification](import.md).
 
-Each repository is independently readable, with an entry point and progressively loaded references/sub-skills. The optional collection router links from `workflows/inference-engine-research/` to the five engine packages under `repositories/`; preserve that library layout when using the router. Both languages share canonical skill IDs, so choose one language for any one installation. No global skill was installed or overwritten.
+Each repository is independently readable, with an entry point and progressively loaded references/sub-skills. The optional collection router links from `workflows/inference-engine-research/` to the five engine packages under `repositories/`; preserve that library layout when using the router. No global skill was installed or overwritten.
 
 ## Try it
 

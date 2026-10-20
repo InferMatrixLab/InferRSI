@@ -42,8 +42,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/vllm-omni/sub-skills/omni-architecture/SKILL.md",
-    "zh-CN": "data/skill_library/repositories/vllm-omni/translations/zh-CN/sub-skills/omni-architecture/SKILL.md"
+    "en": "data/skill_library/repositories/vllm-omni/sub-skills/omni-architecture/SKILL.md"
   },
   "applicability": {
     "hardware": [],
@@ -66,7 +65,7 @@
   "limitations": [
     "Lower resolution, fewer diffusion steps, quantization and approximate caches require their own quality budgets.",
     "A schema field or accepted configuration is not proof of runtime support for every model/backend combination.",
-    "This indexed abstract links to the complete bilingual skill and source evidence; it is imported guidance, not a benchmark result.",
+    "This indexed abstract links to the complete English skill and source evidence; it is imported guidance, not a benchmark result.",
     "Accelerator execution, real-model quality and service performance remain unverified for this import. Qualify each target revision, model, backend and workload separately."
   ],
   "verification": {

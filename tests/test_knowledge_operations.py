@@ -26,7 +26,8 @@ def test_normalized_sources_and_original_catalog_identity():
     record = reader.read("vllm.common.llm.runtime_and_kv_ownership")
     assert record.metadata["state"] == "imported"
     assert record.metadata["tier"] == "contribution"
-    assert any("zh-CN" in path for path in record.content)
+    assert not any("zh-CN" in path for path in record.content)
+    assert any(path.endswith("architecture-search-space/SKILL.md") for path in record.content)
     assert any(path.endswith("LICENSE") for path in record.content)
     assert record.dependencies["data/skill_library"].startswith("sha256:")
 

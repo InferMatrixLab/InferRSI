@@ -1,12 +1,11 @@
 # vLLM knowledge
 
 Named JSON records are retrieval abstracts with source attribution, conditions,
-validation plans and explicit verification state. The complete bilingual skills
+validation plans and explicit verification state. The complete English skills
 provide the detailed procedures and evidence maps; they are not per-entry
 Markdown copies of the catalog records.
 
-Full library: [English](../../../skill_library/repositories/vllm/SKILL.md) |
-[中文](../../../skill_library/repositories/vllm/translations/zh-CN/SKILL.md).
+Full library: [English skill](../../../skill_library/repositories/vllm/SKILL.md).
 
 All entries are imported guidance with `locally_verified=false`. `common` means
 backend-independent guidance within this repository, not verified backend

@@ -43,8 +43,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md",
-    "zh-CN": "data/skill_library/repositories/sglang-omni/translations/zh-CN/sub-skills/sglang-omni-serving/SKILL.md"
+    "en": "data/skill_library/repositories/sglang-omni/sub-skills/sglang-omni-serving/SKILL.md"
   },
   "applicability": {
     "hardware": [],
@@ -67,7 +66,7 @@
   "limitations": [
     "Config resolution can import optional model dependencies or require cached/network metadata; it is not a dependency-free smoke test.",
     "Chunking and asynchronous decode options are model-specific, with no universal latency gain.",
-    "This indexed abstract links to the complete bilingual skill and source evidence; it is imported guidance, not a benchmark result.",
+    "This indexed abstract links to the complete English skill and source evidence; it is imported guidance, not a benchmark result.",
     "Accelerator execution, real-model quality and service performance remain unverified for this import. Qualify each target revision, model, backend and workload separately."
   ],
   "verification": {

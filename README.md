@@ -34,34 +34,6 @@ You drive profiling and code changes; InferRSI runs and evaluates the benchmark 
 
 For every CLI/Python operation — discovery, normalized reads, store candidates, experiments — see the [operation guide](docs/operations.md).
 
-## Three objectives of the current WIP
-
-These objectives frame the candidate-intelligence work; they are not another
-coverage matrix or claims that an autonomous system has been implemented.
-
-| Objective | Question | Existing artifacts | Supported findings | Remaining work |
-|---|---|---|---|---|
-| **1. Roofline / Optimization Headroom** | What limits performance, how much headroom may remain, and which experiments are worth pursuing? | [Performance ceiling analysis](src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md), measurement and search guidance | Source-backed analytical/empirical/Amdahl reasoning; estimates depend on workload, algorithm and measurement assumptions | Calibrate predictions and qualify application outcomes; no automatic ceiling calculator |
-| **2. Dense Commit Coordination** | How can ownership, concurrent changes, review, testing, integration, release and feedback sustain agent-driven development? | [Repository evolution analysis](src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md), [historical Magpie analysis](PHASE1_REPORT.md#workstream-2--repository-evolution-and-fast-iteration) | Historical commit/capability analysis and temporal-split methodology; statistics are not causal evidence of development speed | Dot's first-hand Magpie coordination case, then owner review; no implemented Magpie-style autonomous pipeline |
-| **3. Skill System** | How do we preserve, organize and expose reusable optimization intelligence? | [Reference Matrix](docs/reference-matrix.md), [SearchSpace Matrix](docs/searchspace-matrix.md), [skill library](src/inferrsi/data/skill_library/), explicit read-only CLI | Source-backed candidate procedures, knowledge and cases with scoped evidence; metadata listing and explicit instruction/resource access | Content review and separately authorized efficacy/compatibility validation; matrices do not automatically route tasks |
-
-Dot owns first-hand extraction; the owner approves sources and reviews content
-and mapping; the integration workstream reconciles accepted material with the
-actual local system. Exactly two primary matrices remain. Green coverage means
-candidate intelligence with source support, not measured gains or completed A/B
-validation. The earlier [Phase 1 report](PHASE1_REPORT.md) is historical.
-
-Reviewed paper intelligence extends [simulation calibration](src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md),
-[serving-state decisions](src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md),
-[training memory](src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md),
-[attention diagnosis](src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md) and
-[skill/search methodology](src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md). Exact paper
-versions, readsets, mechanism comparisons and cases remain linked through the two
-matrices. On 2026-10-16 the inventory is **43 branch-added candidates + 5 inherited
-skills = 48 directories**. This is a content-integration count, not an efficacy
-result. The earlier six-paper foundation archive remains an unavailable input;
-new Magpie coordination evidence is still pending.
-
 <a id="results"></a>
 
 ## 📊 From profiling to a 30.60% latency reduction
@@ -89,38 +61,17 @@ Author-reported means from three requests after two warmups; not independently v
 
 [Ascend measurements and rejected rounds →](docs/qwen-image-2.1-turbo-ascend.md) · [Upstream NPU patch](https://github.com/vllm-project/vllm-omni/pull/8729)
 
-### Drama 3: a dedicated streaming TTS engine on one B300
+### Standalone speech engines
 
-[drama-3-single-b300-inference](https://github.com/david6666666/drama-3-single-b300-inference)
-is a standalone Python runtime built around native FP8 MoE, persistent GPU state,
-CUDA Graphs and incremental DAC audio decoding. Its recorded comparison with
-vLLM-Omni and SGLang-Omni covers C1–C64 throughput, TTFA and RTF, alongside WER/SIM
-quality scores, actual repeat counts and failed-run records.
+Concurrency 1 (C1) results reported by each project. Values are **engine / vLLM-Omni / SGLang-Omni**; compare within a row, since workloads and audio-frame definitions differ.
 
-Campaign status is **INCONCLUSIVE**: the original all-concurrency throughput target
-remains unmet and optimization is paused.
+| Project | Device | Throughput (frames/s) ↑ | TTFA p50 (ms) ↓ | Report and status |
+| --- | --- | --- | --- | --- |
+| [Drama 3](https://github.com/InferMatrixLab/drama-3-single-b300-engine) | 1× B300 | **309.17** / 195.89 / 169.80 | **32.83** / 47.29 / 79.38 | [3-run medians](https://github.com/InferMatrixLab/drama-3-single-b300-engine/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/docs/current-results.md); overall target unmet |
+| [Qwen3-TTS](https://github.com/InferMatrixLab/qwen3-tts-rsi-npu-engine) | 1× Ascend 910B1 | **61.12** / 12.71 / 4.31 | **50.41** / 263.51 / 439.72 | [3-run means](https://github.com/InferMatrixLab/qwen3-tts-rsi-npu-engine/blob/a29f8193b557c415175d70919bdfb9bd3dcd51fc/evidence/campaign-20261017/same-card-performance.md); source campaign accepted |
+| [MiniCPM-o 4.5](https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine) | 1× L20X | **397.43** / 187.52 / 278.72 | **126.2** / 295.3 / 381.2 | [5-run means](https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine/blob/a4f4778f312791c2d190b48e521141887ed160c8/docs/current-results.md); target unmet, quality unqualified |
 
-[Architecture & quickstart →](https://github.com/david6666666/drama-3-single-b300-inference#architecture) · [Recorded comparison →](https://github.com/david6666666/drama-3-single-b300-inference/blob/58a1882a4d941f8d21bfce6be37d3d5e7c9fde80/README.md#performance) · [Optimization lessons](evidence/drama3-b300-scale150/results/diagnostic-lessons.md) · [Acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/10)
-
-### Qwen3-TTS CustomVoice on Ascend: imported optimization techniques
-
-The [standalone Qwen3-TTS engine](https://github.com/InferMatrixLab/qwen3-tts-engine)
-contributes three searchable peer-technique records: codec constant/state reuse,
-graph batching with request-owned state, and fixed CustomVoice prompt preparation.
-These are source-backed transfer candidates, not a built-in InferRSI runtime.
-
-The import's performance verdict is **INCONCLUSIVE**; accelerator inference and
-audio-quality validation were not rerun. Historical combined-engine reports do
-not establish per-feature or downstream framework gains.
-
-[Evidence and reproduction index](evidence/qwen3-tts-ascend-import/results/README.md) ·
-[Knowledge records](src/inferrsi/data/knowledge_packs/README.md#qwen3-tts-ascend-source-import) ·
-[Scope issue](https://github.com/InferMatrixLab/InferRSI/issues/35)
-
-```bash
-inferrsi knowledge search 'Qwen3-TTS' --tier peer \
-  --repo-type qwen3_tts_engine --backend ascend --scenario audio.tts
-```
+MiniCPM's SGLang baseline returns a complete waveform, so its TTFA equals end-to-end latency. These external results were not rerun in InferRSI.
 
 <a id="quickstart"></a>
 
@@ -146,60 +97,6 @@ inferrsi context --repo-type vllm_omni --backend ascend \
 ```
 
 Ready to measure your own model? [Connect your benchmark and quality checks →](docs/quickstart.md#real-remote-experiment)
-
-### Read the packaged skill library
-
-All 48 former root skills now live in
-[the skill library](src/inferrsi/data/skill_library/README.md), including their
-full procedures, metadata, references and cases. Hardware-specific guidance is
-grouped under `hardware/ascend`, `hardware/cuda` and `hardware/host`; the remaining
-skills use `frameworks`, `repositories`, `methods` and `workflows`. The 42 bilingual
-engine skill documents follow the same ownership layout: English entries live
-under `repositories/<engine>` and `workflows/inference-engine-research`, with
-complete Chinese bundles in each owner's `translations/zh-CN/`. Supporting
-Markdown and JSON live with their owner; the library root keeps only `README.md`
-and `skill-index.json`.
-
-Install the optional parser with `python -m pip install 'inferrsi[skills]'` (or
-`python -m pip install '.[skills]'` from this checkout). The `skills` CLI defaults
-to the installed library's 48 registered skills; IDs stay unchanged. An explicit
-`--root /path/to/skills` before the subcommand still selects a custom flat tree or
-a categorized library with `skill-index.json`:
-
-```bash
-inferrsi skills list --json
-inferrsi skills show weight-loading-optimization
-inferrsi skills resource <skill-name> <relative-resource-path>
-```
-
-The [generated catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-also exposes the 48 skills through ordinary package knowledge commands, without
-the optional YAML parser:
-
-```bash
-inferrsi knowledge search 'weight-loading' --repo-type inferrsi
-inferrsi knowledge show inferrsi.common.skills.weight_loading_optimization
-inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
-```
-
-Each catalog record's `skill_documents.original` points to its full packaged
-procedure. Normalized reads retain the library resources and dependency bundle.
-Ascend and CUDA records have matching backend scopes; `common` means generic
-guidance, not demonstrated compatibility with every backend. Candidate state,
-source provenance and `UNKNOWN` licenses are preserved.
-
-Listing reads frontmatter and sidecar metadata only. `show` selects one instruction
-body and lists resources; `resource` resolves one path for your file reader.
-The package ships the content, but reading it does not execute instructions,
-install agent configuration, select an optimization or promote a candidate.
-The Reference and SearchSpace matrices remain the two authoritative matrices.
-See the [knowledge-base contract](docs/knowledge-base.md) for ownership,
-compatibility and declared cross-skill references.
-Normalized reads and bounded Collect ([`KnowledgeReader`](docs/knowledge-operations.md))
-and authorized local Create/Update ([`KnowledgeStore`](docs/knowledge-store.md))
-are implemented Python interfaces, with a thin CLI route (`collect` / `read` /
-`resource`) for the read side — see the [operation guide](docs/operations.md).
-
 
 <a id="architecture"></a>
 
@@ -252,7 +149,7 @@ for the 34 review points, qualifications and suggested acceptance checks.
 | [Skill catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable records for 48 categorized skills, linking full packaged procedures and resources |
 | [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |
 | [Daily learning prompt](docs/daily-learning-prompt.md) | 06:00 Asia/Shanghai L2C + performance workflow and prerequisites |
-| [Complete skill library (English / 中文)](src/inferrsi/data/skill_library/README.md) | Hardware, frameworks, repositories, methods and workflows, plus 42 bilingual five-engine skill nodes |
+| [Complete skill library](src/inferrsi/data/skill_library/README.md) | 48 registered skills and 21 English engine/workflow documents, organized by owner |
 | [vLLM-Omni experience records](src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md) | Backend-scoped tuning methods, sources, and applicability |
 | [Contributor guide](docs/contributing.md) | Development workflow, evidence contracts, and CI |
 | [Engine delivery template](docs/template/README.md) | Copyable engine scaffold, branding, evidence and schema-v1 catalog recipe |

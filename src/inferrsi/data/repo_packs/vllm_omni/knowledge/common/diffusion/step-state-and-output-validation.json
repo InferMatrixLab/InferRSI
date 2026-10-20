@@ -43,8 +43,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md",
-    "zh-CN": "data/skill_library/repositories/vllm-omni/translations/zh-CN/sub-skills/omni-validation/SKILL.md"
+    "en": "data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md"
   },
   "applicability": {
     "hardware": [],
@@ -67,7 +66,7 @@
   "limitations": [
     "The engine output enum does not use video as a canonical value; video serving has a separate media contract.",
     "CPU probes and mock transport checks do not certify schema resolution, full-engine execution or native DMA lifetimes.",
-    "This indexed abstract links to the complete bilingual skill and source evidence; it is imported guidance, not a benchmark result.",
+    "This indexed abstract links to the complete English skill and source evidence; it is imported guidance, not a benchmark result.",
     "Accelerator execution, real-model quality and service performance remain unverified for this import. Qualify each target revision, model, backend and workload separately."
   ],
   "verification": {

@@ -1,27 +1,28 @@
-# Import scope and verification / 导入范围与验证边界
+# Import scope and verification
 
-This library imports the five bilingual portable skill sets constructed on
-2026-10-14. The method was AREX-Skill's direct `distill-ml-knowledge` workflow:
-scope, source grounding, construction and verification. The five engine source
+This library retains the English editions of the five portable skill sets
+originally constructed in English and Chinese on 2026-10-14. The method was
+AREX-Skill's direct `distill-ml-knowledge` workflow: scope, source grounding,
+construction and verification. The five engine source
 snapshots and method revision are recorded in [source-manifest.json](source-manifest.json).
 They are independent knowledge snapshots, not a tested dependency matrix.
 
 ## Included material
 
-- Complete English/Chinese repository entries, sub-skills, source references,
+- Complete English repository entries, sub-skills, source references,
   routing/provenance metadata and the Strata offline CSV summarizer.
-- Strata's design-space analysis and the cross-engine overview in both languages.
+- Strata's design-space analysis and the cross-engine overview in English.
 - A collection router extended to include Strata alongside the other four engines.
 - Repository license texts: MIT for Strata; Apache-2.0 for the other four.
 - Catalog abstracts with repository/backend/scenario boundaries and pointers to
-  both editions. Prior vLLM-Omni experience records are retained.
+  the English documents. Prior vLLM-Omni experience records are retained.
 
 Source clones, model weights, build environments, construction scripts, archives
 and machine-specific raw construction reports are not package resources. Native
 test commands in the skills require a separately supplied matching source tree.
 The summarizer is an offline helper, never an engine or automatic quality gate.
 Its formatting is adapted to InferRSI's line-length rules; its parsed Python AST
-is unchanged from the original delivery and both language copies are identical.
+is unchanged from the original delivery.
 
 ## Earlier construction evidence
 
@@ -53,7 +54,3 @@ Before a performance claim, use InferRSI's normal acceptance process: freeze the
 actual source/model/environment tuple, workload and quality gates; run the
 required backend, model and service levels; preserve failures and raw artifacts.
 Research-source SHAs here are provenance and do not set shared campaign defaults.
-
-中文：本次导入保留完整双语知识与源码出处，历史 CPU/静态检查仅用于说明提炼范围。
-所有新条目仍为导入、未本地验证状态。没有重新执行 GPU/NPU 推理、模型质量或性能
-验收，也没有自动安装 Skill 或启动引擎。后续实验需按目标环境单独冻结并验证。
