@@ -193,7 +193,7 @@ def main(argv: list[str] | None = None) -> int:
                 if result["no_match"]:
                     print(
                         "no_match\tnothing selected from the requested sources; "
-                        "see omission lines above and --json for the full envelope"
+                        "use --json for the full envelope"
                     )
             return 0
         if args.command == "read":

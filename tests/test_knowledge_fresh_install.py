@@ -1,7 +1,8 @@
 """Fresh-venv install smoke: base install package-only, skills extra unlocks the checkout chain.
 
 Opt-in because it builds a real venv and installs from this source tree
-(minutes of I/O and an install backend). Run with:
+(minutes of I/O, network access for the build-isolation backend, and an
+install backend). Run with:
 
     RUN_FRESH_VENV=1 pytest tests/test_knowledge_fresh_install.py
 """
@@ -39,12 +40,15 @@ def _pip(venv_python: Path, *args: str) -> None:
 
 
 def _cli(venv_python: Path, *args: str) -> subprocess.CompletedProcess:
+    env = dict(os.environ)
+    env["PYTHONUTF8"] = "1"
     return subprocess.run(
         [str(venv_python), "-m", "inferrsi", *args],
         capture_output=True,
         text=True,
         encoding="utf-8",
         cwd=REPO,
+        env=env,
     )
 
 

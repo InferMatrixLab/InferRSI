@@ -214,14 +214,18 @@ def test_collect_text_lines_match_the_json_envelope():
         assert fields[1] == item["revision"]
         assert fields[2] == item["kind"]
         assert fields[3] == item["state"]
+        applicability = item.get("applicability") or "-"
+        if not isinstance(applicability, str):
+            applicability = json.dumps(applicability, ensure_ascii=False, sort_keys=True)
+        assert fields[4] == applicability
 
 
 def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path):
     code, stdout, _ = run_cli("collect", "definitely-no-such-knowledge-anywhere")
     assert code == 0
     assert stdout.strip() == (
-        "no_match\tnothing selected from the requested sources; see omission lines "
-        "above and --json for the full envelope"
+        "no_match\tnothing selected from the requested sources; "
+        "use --json for the full envelope"
     )
     code, stdout, _ = run_cli("collect", "--id", "not-a-real-id")
     assert code == 0
