@@ -18,17 +18,17 @@ Effect classes used below:
 | --- | --- | --- | --- |
 | Search packaged records | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Installed package catalog with the existing tier/repo/backend/scenario filters and IDs; these package-only filters exclude checkout skills and cases |
 | Discover/read checkout skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
-| Collect normalized knowledge | Python `KnowledgeReader.collect` | Read-only | Explicit sources, authority-qualified identities, exact revisions, bounded output and explicit omissions |
-| Read exact material/resources | Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
+| Collect normalized knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Explicit sources, authority-qualified identities, exact revisions, bounded output and explicit omissions |
+| Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
 | Export legacy cited material | CLI `context` | Read-only | Cited package export for manual use with a coding agent; not a conversation store and not a full Collect equivalent |
 | Create/update a store candidate | Python `KnowledgeStore.create` / `KnowledgeStore.update` | Candidate-writing | One explicitly authorized local store; expected-revision updates with reason and evidence; retained history; no promotion and no edits to package/checkout content |
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
 
-A thin CLI route for normalized Collect, exact-revision reads and resource
-access is tracked in [#32](https://github.com/InferMatrixLab/InferRSI/issues/32);
-until it exists, use the Python interfaces below.
+The `collect`, `read` and `resource` commands share the reader's rules; they
+are distinct from `knowledge search`, whose package catalog filters
+(tier/repo/backend/scenario) intentionally exclude checkout and store items.
 
 ## Discovery and reading
 
@@ -71,23 +71,23 @@ upstream instructions.
 
 ## Normalized knowledge (Python)
 
-### Collect — `KnowledgeReader.collect`
+### Collect — `collect` / `KnowledgeReader.collect`
 
-- **Inputs:** optional query, `kind`, explicit qualified `ids`, per-ID `revisions`, item `limit` and `max_bytes`, `material` flag; `skill_root` selects the checkout to include.
-- **Scope:** installed package records plus (with `skill_root`) checkout skills and cases; bounded output.
-- **Output:** items with authority-qualified refs, content revisions and applicability metadata, plus explicit `no_match`, `omissions` (each with a reason code) and `collisions`.
-- **Side effects:** none; both adapters are read-only.
+- **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` adds the checkout, `--store` opens an existing store read-only (pass the same `--skill-root` the store reserves).
+- **Scope:** installed package records plus (with `--skill-root`) checkout skills and cases, plus (with `--store`) store candidates; bounded output.
+- **Output:** items with authority-qualified refs, content revisions and applicability metadata, plus explicit `no_match`, `omissions` (each with a reason code) and `collisions`; exit 0 even for an explicit no-match envelope.
+- **Side effects:** none; both adapters and the read-only store connection are read-only.
 - **Failure behavior:** discovery-wide invalid identities fail the call; per-item omissions are reported individually. Package repo/tier/backend/scenario filters exclude checkout items.
-- **Example:** see [normalized reads and Collect](knowledge-operations.md).
+- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material`
 
-### Read exact material/resources — `KnowledgeReader.read` / `.resource`
+### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`
 
-- **Inputs:** a qualified or unambiguous public ID; optionally the exact content revision; a relative resource key for `.resource`.
-- **Scope:** one selected bundle from the package or checkout adapter.
-- **Output:** the bundle at the requested revision, or the resource bytes.
-- **Side effects:** none.
+- **Inputs:** a qualified or unambiguous public ID; optionally the exact content revision; a relative resource key for `resource`.
+- **Scope:** one selected bundle from the package, checkout or store adapter.
+- **Output:** the bundle view at the requested revision, or the resource bytes (`resource` writes them to the required `--output` path).
+- **Side effects:** `resource` writes only the caller-chosen output file.
 - **Failure behavior:** ambiguous identity names the qualified choices; unavailable/stale revisions and missing/unsafe resources fail explicitly — no fallback to newer bytes.
-- **Example:** see [normalized reads and Collect](knowledge-operations.md).
+- **Example:** `inferrsi read calibrate-serving-simulation --skill-root skills --material`
 
 ## Store candidates (Python)
 

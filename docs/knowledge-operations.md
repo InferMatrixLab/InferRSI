@@ -15,6 +15,20 @@ source = reader.resource(item["ref"], "calibrate-serving-simulation/references/s
                          revision=item["revision"])
 ```
 
+## CLI access
+
+The `collect`, `read` and `resource` commands expose these operations with the
+same rules (see the [operation guide](operations.md) for flags, boundaries and
+examples). Sources are selected explicitly: the installed package by default, a
+checkout via `--skill-root`, an existing store opened read-only via `--store`
+(pass the same `--skill-root` the store reserves). `resource` requires the
+exact revision returned by `collect`/`read` and writes bytes to `--output`.
+
+```bash
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material
+inferrsi read calibrate-serving-simulation --skill-root skills
+```
+
 Every item has an owning `authority` (`package` or `checkout`) and a qualified
 `ref` of the form `<authority>:<id>`. Public IDs are unchanged and may be used
 unqualified while they resolve to exactly one authority. An ID owned by more than

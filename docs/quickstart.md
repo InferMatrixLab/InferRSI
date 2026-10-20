@@ -29,11 +29,21 @@ inferrsi context --repo-type vllm_omni --backend cuda --output context.md
 inferrsi skills list --json   # requires python -m pip install '.[skills]'
 ```
 
-Normalized Collect, exact-revision reads and resource access are implemented as
-the Python `KnowledgeReader` ([contract](knowledge-operations.md)); authorized
-local candidate Create/Update is the Python `KnowledgeStore`
-([contract](knowledge-store.md)). No CLI route exists for these operations yet
-([#32](https://github.com/InferMatrixLab/InferRSI/issues/32)).
+Normalized Collect, exact-revision reads and resource access are available as
+CLI commands and as the Python `KnowledgeReader`
+([contract](knowledge-operations.md)); authorized local candidate Create/Update
+remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)):
+
+```bash
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material
+inferrsi read calibrate-serving-simulation --skill-root skills --material
+inferrsi resource weight-loading-optimization references/sources.md \
+  --revision <sha256-from-collect-or-read> --output sources.md
+```
+
+Sources are selected explicitly: the installed package by default, a checkout
+via `--skill-root`, an existing store opened read-only via `--store` (pass the
+same `--skill-root` the store reserves).
 
 ## The actual configuration interface
 

@@ -169,8 +169,8 @@ not validate candidate effectiveness. See the [knowledge-base contract](docs/kno
 for field ownership, legacy compatibility and shared checkout references.
 Normalized reads and bounded Collect ([`KnowledgeReader`](docs/knowledge-operations.md))
 and authorized local Create/Update ([`KnowledgeStore`](docs/knowledge-store.md))
-are implemented Python interfaces; a thin CLI route is tracked in
-[#32](https://github.com/InferMatrixLab/InferRSI/issues/32).
+are implemented Python interfaces, with a thin CLI route (`collect` / `read` /
+`resource`) for the read side — see the [operation guide](docs/operations.md).
 
 
 <a id="architecture"></a>
