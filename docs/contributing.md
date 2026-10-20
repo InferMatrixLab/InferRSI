@@ -48,8 +48,8 @@ procedures, metadata, references and cases. Place platform-specific skills under
 `hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
 `repositories/<name>`, `methods` or `workflows` for other primary owners. Maintain
 the 48 stable IDs and their categorized paths in `skill-index.json`, then refresh
-their generated abstracts with `tools/build_skill_index.py`. Do not duplicate
-bodies under root `skills/`, which is navigation only. Preserve source state and
+their generated abstracts with `tools/build_skill_index.py`. Keep all skill
+content in the canonical library. Preserve source state and
 `UNKNOWN` license declarations; moving content does not resolve licensing.
 
 The existing `en/` and `zh-CN/` engine procedures retain their language pairing.

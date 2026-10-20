@@ -281,4 +281,4 @@ The migrated skills have [generated catalog records](../src/inferrsi/data/repo_p
 in `data/repo_packs/inferrsi/knowledge/`, with backend-scoped IDs and
 `skill_documents.original` pointing to the complete packaged procedures.
 Normalized reads retain the library's dependency resources. The library is the
-single content owner; root `skills/` contains navigation only.
+single content owner.

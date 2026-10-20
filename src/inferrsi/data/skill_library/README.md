@@ -3,7 +3,7 @@
 This is the canonical home for InferRSI's complete skill content: **48 categorized
 skills migrated from root `skills/`, plus 42 existing bilingual engine skill
 nodes**. Procedures, metadata, references, cases, helpers and source notices ship
-with the package. The repository's root `skills/` directory is navigation only.
+with the package.
 
 ## Categorized skills / 分类技能
 
@@ -120,7 +120,7 @@ For the 48 categorized skills, edit the canonical owner directory and preserve i
 metadata and source notices. Update `skill-index.json` if a canonical path or
 backend changes, regenerate catalog records with `tools/build_skill_index.py`,
 and verify local links, cross-skill dependencies and noneditable installed reads.
-Do not maintain duplicate content in root `skills/` or hand-edit generated cards.
+Do not duplicate skill content or hand-edit generated cards.
 
 For the bilingual engine collection, keep source revisions and licenses in
 [source-manifest.json](source-manifest.json)

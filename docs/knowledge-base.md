@@ -24,7 +24,6 @@ src/inferrsi/data/skill_library/
   <category>/<id>/metadata.json      Provenance, state and relationships
   <category>/<id>/references/        Owner's mechanisms, readsets and comparisons
   <category>/<id>/cases/             Owner's scoped cases (optional)
-skills/README.md                    Navigation only; no duplicate skill bodies
 src/inferrsi/catalog.py              Installed knowledge reader
 src/inferrsi/skill_catalog.py        Packaged or custom-root skill reader
 src/inferrsi/data/repo_packs/        Contribution records and existing public IDs
@@ -166,7 +165,7 @@ All 48 former root skills now have one canonical home under
 Complete procedures, sidecars, references and cases are packaged, with 13 Ascend,
 2 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
 repositories, methods or workflows. The existing 42 bilingual engine nodes stay
-in `en/` and `zh-CN/`. Root `skills/README.md` provides navigation only.
+in `en/` and `zh-CN/`.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
 projects the 48 registered skills into the contribution catalog. Its records

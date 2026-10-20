@@ -31,7 +31,7 @@ delivery, with the skill organization revised after review of PR #44:
 
 - Publish the supplied Chinese architecture SVG and an English translation in `docs/assets/`, and update the README to link both.
 - Include this English audit document in the repository and publish the umbrella issue, with solution suggestions for every review point.
-- Move all 48 root skill directories, including procedures, metadata, references and cases, into the canonical `src/inferrsi/data/skill_library/`. Place platform-specific guidance under the corresponding hardware directory; organize the remainder by framework, repository, method or workflow. Ship the complete library and link generated catalog records to its packaged bodies. Preserve skill IDs, provenance, unknown-license declarations and candidate/verification state; root `skills/` retains navigation only.
+- Move all 48 root skill directories, including procedures, metadata, references and cases, into the canonical `src/inferrsi/data/skill_library/`. Place platform-specific guidance under the corresponding hardware directory; organize the remainder by framework, repository, method or workflow. Ship the complete library and link generated catalog records to its packaged bodies. Preserve skill IDs, provenance, unknown-license declarations and candidate/verification state; remove the former root `skills/` directory.
 
 This authorization does **not** approve implementation or closure of all 34 remediations. In particular, organizing and packaging skills is not the evidence-to-knowledge promotion mechanism proposed in item 26, and translations or packaging checks do not establish empirical verification.
 

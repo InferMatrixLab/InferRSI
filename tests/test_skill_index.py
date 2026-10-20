@@ -165,5 +165,5 @@ def test_hardware_filters_include_only_matching_and_shared_skills():
         records = search_knowledge(repo="inferrsi", backend=backend, limit=100)
         assert len(records) == count
         assert all(record["backend"] in (backend, "common") for record in records)
-    assert not list((PROJECT / "skills").rglob("SKILL.md"))
+    assert not (PROJECT / "skills").exists()
     assert len(list(ROOT.rglob("SKILL.md"))) == 90
