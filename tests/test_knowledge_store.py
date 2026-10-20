@@ -352,3 +352,24 @@ def test_default_writer_construction_still_initializes_database(tmp_path):
     assert store.database.is_file()
     assert store.identities() == []
     assert sorted(p.name for p in workspace.iterdir()) == ["knowledge.sqlite3"]
+
+
+def test_store_records_reserved_skill_root_and_rejects_mismatch(tmp_path):
+    workspace = tmp_path / "reserved"
+    workspace.mkdir()
+    KnowledgeStore(workspace, skill_root=ROOT).create(adaptation())
+    assert KnowledgeStore(workspace, skill_root=ROOT, read_only=True).identities() == [LOCAL]
+    with pytest.raises(ValueError, match="reserves the skills checkout"):
+        KnowledgeStore(workspace, skill_root=None, read_only=True)
+    with pytest.raises(ValueError, match="reserves the skills checkout"):
+        KnowledgeStore(workspace, skill_root=None)
+    other = tmp_path / "nested" / "other-skills"
+    other.mkdir(parents=True)
+    with pytest.raises(ValueError, match="reserves the skills checkout"):
+        KnowledgeStore(workspace, skill_root=other)
+    package_only = tmp_path / "package-only"
+    package_only.mkdir()
+    KnowledgeStore(package_only, skill_root=None)
+    with pytest.raises(ValueError, match="package-only"):
+        KnowledgeStore(package_only, skill_root=ROOT, read_only=True)
+    assert KnowledgeStore(package_only, skill_root=None, read_only=True).identities() == []

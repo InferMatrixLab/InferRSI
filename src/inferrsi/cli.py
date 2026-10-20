@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import sys
 from pathlib import Path
 
@@ -259,6 +260,6 @@ def main(argv: list[str] | None = None) -> int:
         return (
             0 if status.get("verdict") == "PASS" else (1 if status.get("verdict") == "FAIL" else 2)
         )
-    except (OSError, ValueError, json.JSONDecodeError) as exc:
+    except (OSError, ValueError, json.JSONDecodeError, sqlite3.Error) as exc:
         argument_parser.error(str(exc))
     return 2

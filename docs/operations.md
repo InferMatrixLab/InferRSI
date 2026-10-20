@@ -73,12 +73,12 @@ upstream instructions.
 
 ### Collect — `collect` / `KnowledgeReader.collect`
 
-- **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` adds the checkout, `--store` opens an existing store read-only (pass the same `--skill-root` the store reserves).
+- **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` adds the checkout, `--store` opens an existing store read-only (the store records its reserved checkout and rejects a mismatched or missing `--skill-root`).
 - **Scope:** installed package records plus (with `--skill-root`) checkout skills and cases, plus (with `--store`) store candidates; bounded output.
 - **Output:** items with authority-qualified refs, content revisions and applicability metadata, plus explicit `no_match`, `omissions` (each with a reason code) and `collisions`; exit 0 even for an explicit no-match envelope.
 - **Side effects:** none; both adapters and the read-only store connection are read-only.
 - **Failure behavior:** discovery-wide invalid identities fail the call; per-item omissions are reported individually. Package repo/tier/backend/scenario filters exclude checkout items.
-- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material`
+- **Example:** `inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root skills`
 
 ### Read exact material/resources — `read` / `resource` / `KnowledgeReader.read` / `.resource`
 

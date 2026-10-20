@@ -35,15 +35,16 @@ CLI commands and as the Python `KnowledgeReader`
 remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)):
 
 ```bash
-inferrsi collect 'Ascend OOM' --kind case --limit 3 --material
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root skills
 inferrsi read calibrate-serving-simulation --skill-root skills --material
-inferrsi resource weight-loading-optimization references/sources.md \
-  --revision <sha256-from-collect-or-read> --output sources.md
+inferrsi resource weight-loading-optimization weight-loading-optimization/SKILL.md \
+  --revision <sha256-from-collect-or-read> --skill-root skills --output SKILL.md
 ```
 
 Sources are selected explicitly: the installed package by default, a checkout
-via `--skill-root`, an existing store opened read-only via `--store` (pass the
-same `--skill-root` the store reserves).
+via `--skill-root`, an existing store opened read-only via `--store`. A store
+records the checkout it reserves and rejects a mismatched or missing
+`--skill-root` on open.
 
 ## The actual configuration interface
 

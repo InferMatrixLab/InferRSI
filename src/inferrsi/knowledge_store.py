@@ -59,6 +59,7 @@ class KnowledgeStore:
             # Reading an existing store must not create or migrate anything.
             if not self.database.is_file():
                 raise ValueError(f"Read-only store requires an existing database: {self.database}")
+            self._verify_reserved_skill_root()
             return
         with closing(self._connect()) as connection, connection:
             connection.executescript(
@@ -72,6 +73,42 @@ class KnowledgeStore:
                 "FOREIGN KEY (id, revision) REFERENCES revisions(id, revision));"
                 "CREATE TABLE IF NOT EXISTS current (id TEXT PRIMARY KEY, revision TEXT NOT NULL, "
                 "FOREIGN KEY (id, revision) REFERENCES revisions(id, revision));"
+                "CREATE TABLE IF NOT EXISTS meta ("
+                "key TEXT PRIMARY KEY, value TEXT NOT NULL);"
+            )
+            reserved = connection.execute(
+                "SELECT value FROM meta WHERE key='skill_root'"
+            ).fetchone()
+            if reserved is None:
+                connection.execute(
+                    "INSERT INTO meta VALUES ('skill_root', ?)", (self._reserved_skill_root(),)
+                )
+            elif reserved[0] != self._reserved_skill_root():
+                raise ValueError(
+                    f"Store reserves the skills checkout {reserved[0] or 'package-only'}; "
+                    "reopen it with the same skill_root"
+                )
+
+    def _reserved_skill_root(self) -> str:
+        # The reserved checkout is recorded so later opens cannot silently drop it;
+        # an empty value records a package-only store.
+        return str(self.skill_root) if self.skill_root is not None else ""
+
+    def _verify_reserved_skill_root(self) -> None:
+        # Stores created before reservation recording have no meta row and stay usable.
+        with closing(self._connect()) as connection:
+            present = connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'"
+            ).fetchone()
+            reserved = (
+                connection.execute("SELECT value FROM meta WHERE key='skill_root'").fetchone()
+                if present
+                else None
+            )
+        if reserved is not None and reserved[0] != self._reserved_skill_root():
+            raise ValueError(
+                f"Store reserves the skills checkout {reserved[0] or 'package-only'}; "
+                "open it with the same --skill-root, or without one for a package-only store"
             )
 
     def _connect(self):

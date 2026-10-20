@@ -170,3 +170,20 @@ def test_ambiguous_identity_error_names_qualified_choices(tmp_path):
     stderr = run_cli_error("read", package_id, "--skill-root", str(tmp_path))
     assert "Ambiguous" in stderr
     assert f"package:{package_id}" in stderr and f"checkout:{package_id}" in stderr
+
+
+def test_store_skill_root_reservation_is_enforced(tmp_path):
+    workspace = tmp_path / "store"
+    workspace.mkdir()
+    source = KnowledgeReader(skill_root=SKILLS).read(SOURCE)
+    KnowledgeStore(workspace, skill_root=SKILLS).create(local_candidate(source))
+    stderr = run_cli_error("read", LOCAL, "--store", str(workspace))
+    assert "reserves the skills checkout" in stderr
+
+
+def test_malformed_revision_pairs_are_input_errors():
+    for pair in ("REV", "ID=", "=REV"):
+        stderr = run_cli_error("collect", "--revision", pair)
+        assert "ID=REV" in stderr
+    stderr = run_cli_error("collect", "--revision", "a=sha256:x", "--revision", "a=sha256:y")
+    assert "Duplicate revision request" in stderr

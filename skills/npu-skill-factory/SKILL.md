@@ -84,7 +84,7 @@ prototype, also not in this repository), the Stage 3.5 three-variant evaluation
 contract with its SkillOpt-derived accept criterion, the revision-lineage
 layout and the Phase 1 evolution cycle — live in
 [skill-factory-design-20261014.md](references/skill-factory-design-20261014.md),
-preserved verbatim with their sources.
+preserved with their sources and the two sibling-prototype entrypoints annotated.
 
 Boundaries that still hold from that design:
 

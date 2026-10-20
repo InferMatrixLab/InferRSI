@@ -1,7 +1,8 @@
 # Skill factory design detail (historical, 2026-10-14/15)
 
 Historical design references from the sibling workstream and PR #9, moved from
-the entry `SKILL.md` unchanged. They record methodology and observed pilot
+the entry `SKILL.md` with the two sibling-prototype entrypoints annotated as
+not present in this repository. They record methodology and observed pilot
 material, **not** implemented InferRSI functionality: `schemas/skill-bundle.json`
 and `python -m omnirsi.harness.skill_distill` below belonged to the sibling
 `codex/skill-eval-bootstrap` workstream (observed @ 82218b4) and are **not
