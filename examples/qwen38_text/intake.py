@@ -1,4 +1,4 @@
-"""Authenticate an existing BF16 snapshot against an immutable public HF revision.
+"""Authenticate an existing supported snapshot against an immutable public HF revision.
 
 No model files are downloaded or modified. Run the byte-intensive operation in
 an allocated CPU job; the resulting manifest is input to the GPU reference trial.
@@ -15,18 +15,21 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 if __package__:
+    from .profiles import MODEL_IDS, precision, validate_config
     from .trial import HEX40, HEX64, METADATA, MODEL_ID, REQUIRED, model_file
 else:
+    from profiles import MODEL_IDS, precision, validate_config
     from trial import HEX40, HEX64, METADATA, MODEL_ID, REQUIRED, model_file
 
 MAX_METADATA_BYTES = 8 * 1024 * 1024
 CHUNK_BYTES = 8 * 1024 * 1024
 
 
-def fetch_metadata(revision: str) -> tuple[dict, dict]:
+def fetch_metadata(revision: str, model_id: str = MODEL_ID) -> tuple[dict, dict]:
     if not isinstance(revision, str) or not HEX40.fullmatch(revision):
         raise ValueError("Require an immutable lowercase 40-character model revision")
-    url = f"https://huggingface.co/api/models/{MODEL_ID}/revision/{revision}?blobs=true"
+    precision(model_id)
+    url = f"https://huggingface.co/api/models/{model_id}/revision/{revision}?blobs=true"
     request = urllib.request.Request(url, headers={"Accept": "application/json"})
     with urllib.request.urlopen(request, timeout=30) as response:
         location = urlsplit(response.geturl())
@@ -36,7 +39,7 @@ def fetch_metadata(revision: str) -> tuple[dict, dict]:
     if len(body) > MAX_METADATA_BYTES:
         raise ValueError("Model metadata response exceeds limit")
     metadata = json.loads(body)
-    if metadata.get("sha") != revision or metadata.get("id") != MODEL_ID:
+    if metadata.get("sha") != revision or metadata.get("id") != model_id:
         raise ValueError("Public model metadata identity does not match request")
     return metadata, {
         "source": url,
@@ -87,7 +90,7 @@ def authenticate_file(root: Path, name: str, sibling: dict, *, retain=False):
     return {"path": name, "size": total, "sha256": digest.hexdigest()}, b"".join(retained)
 
 
-def create_manifest(root: Path, revision: str, output: Path) -> dict:
+def create_manifest(root: Path, revision: str, output: Path, model_id: str = MODEL_ID) -> dict:
     root = root.resolve(strict=True)
     if not root.is_dir():
         raise ValueError("Model path must be a directory")
@@ -97,9 +100,9 @@ def create_manifest(root: Path, revision: str, output: Path) -> dict:
     target = parent / output.name
     if target.is_relative_to(root) or target.exists() or target.is_symlink():
         raise ValueError("Output must be a new file outside the model directory")
-    metadata, provenance = fetch_metadata(revision)
+    metadata, provenance = fetch_metadata(revision, model_id)
     # Also check here so injected/test transports cannot bypass source identity.
-    if metadata.get("sha") != revision or metadata.get("id") != MODEL_ID:
+    if metadata.get("sha") != revision or metadata.get("id") != model_id:
         raise ValueError("Public model metadata identity does not match request")
     siblings = metadata.get("siblings")
     if not isinstance(siblings, list) or not siblings:
@@ -128,16 +131,7 @@ def create_manifest(root: Path, revision: str, output: Path) -> dict:
         if content:
             documents[name] = json.loads(content)
     config = documents["config.json"]
-    text = config.get("text_config", {})
-    if (
-        config.get("model_type") != "qwen3_5"
-        or config.get("architectures") != ["Qwen3_5ForConditionalGeneration"]
-        or text.get("model_type") != "qwen3_5_text"
-        or text.get("dtype", text.get("torch_dtype")) != "bfloat16"
-        or config.get("quantization_config")
-        or text.get("quantization_config")
-    ):
-        raise ValueError("Expected unquantized BF16 Qwen3.5-architecture checkpoint")
+    validate_config(config, model_id)
     weight_map = documents["model.safetensors.index.json"].get("weight_map")
     if not isinstance(weight_map, dict) or not weight_map:
         raise ValueError("Weight index must contain a nonempty weight map")
@@ -147,7 +141,8 @@ def create_manifest(root: Path, revision: str, output: Path) -> dict:
         record, _content = authenticate_file(root, name, by_name[name])
         records[name] = record
     manifest = {
-        "model_id": MODEL_ID,
+        "model_id": model_id,
+        "precision": precision(model_id),
         "revision": revision,
         "files": [records[name] for name in sorted(records)],
         "provenance": provenance,
@@ -162,10 +157,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model-path", type=Path, required=True)
     parser.add_argument("--model-revision", required=True)
+    parser.add_argument("--model-id", choices=MODEL_IDS, default=MODEL_ID)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:
-        create_manifest(args.model_path, args.model_revision, args.output)
+        create_manifest(args.model_path, args.model_revision, args.output, args.model_id)
     except Exception as error:
         print(f"Intake incomplete ({type(error).__name__}); no manifest accepted", file=sys.stderr)
         return 1

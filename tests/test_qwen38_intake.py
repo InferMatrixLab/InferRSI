@@ -48,7 +48,8 @@ def snapshot(tmp_path, monkeypatch):
         "sha": REVISION,
         "siblings": [sibling(path) for path in sorted(root.iterdir())],
     }
-    monkeypatch.setattr(intake, "fetch_metadata", lambda revision: (response, {"source": "test"}))
+    monkeypatch.setattr(intake, "fetch_metadata",
+                        lambda revision, model_id=trial.MODEL_ID: (response, {"source": "test"}))
     return root, response, tmp_path / "manifest.json"
 
 
@@ -187,3 +188,32 @@ def test_revision_validation_precedes_network(revision, monkeypatch):
     monkeypatch.setattr(intake.urllib.request, "urlopen", forbidden)
     with pytest.raises(ValueError, match="immutable"):
         intake.fetch_metadata(revision)
+
+
+def test_fp8_intake_authenticates_separate_model_identity(snapshot):
+    from examples.qwen38_text.profiles import FP8_MODEL_ID, FP8_QUANTIZATION, precision
+
+    root, response, output = snapshot
+    config_path = root / "config.json"
+    config = json.loads(config_path.read_text())
+    config["quantization_config"] = FP8_QUANTIZATION
+    config_path.write_text(json.dumps(config))
+    response["id"] = FP8_MODEL_ID
+    response["siblings"] = [sibling(path) for path in sorted(root.iterdir())]
+    result = intake.create_manifest(root, REVISION, output, FP8_MODEL_ID)
+    assert result["precision"] == precision(FP8_MODEL_ID)
+
+
+@pytest.mark.parametrize("change", [
+    {"quant_method": "compressed-tensors"}, {"fmt": "e5m2"}, {"activation_scheme": "static"},
+    {"weight_block_size": [64, 64]}, {"dequantize": True}, {"scale_fmt": "ue8m0"},
+])
+def test_fp8_profile_rejects_other_quantization(snapshot, change):
+    from examples.qwen38_text.profiles import FP8_MODEL_ID, FP8_QUANTIZATION, validate_config
+
+    config = json.loads((snapshot[0] / "config.json").read_text())
+    config["quantization_config"] = {**FP8_QUANTIZATION, **change}
+    with pytest.raises(ValueError, match="FP8"):
+        validate_config(config, FP8_MODEL_ID)
+    with pytest.raises(ValueError, match="unquantized"):
+        validate_config(config, trial.MODEL_ID)
