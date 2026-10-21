@@ -1,5 +1,5 @@
 {
-  "verdict": "INCONCLUSIVE",
+  "verdict": "FAIL",
   "baseline": "Completed two engines at six concurrency levels, three measured 320-request repeats each; zero failed measured requests.",
   "candidate_revision": "f2462435d79f0243ced93a02f3b8d6cd9c41511b",
   "candidate_microbench": "PASS within frozen embedding gate; CPU-compatible FP32 TensorRT",
@@ -8,7 +8,6 @@
   },
   "optimization_submitted": true,
   "pending": [
-    "original unused-holdout noninferiority",
     "updated-main and adapted-candidate repeated service comparison",
     "adapted-candidate quality regression against updated main"
   ],
@@ -18,5 +17,9 @@
   "original_strict_speaker_verdict": "FAIL",
   "knowledge_pull_request": "https://github.com/InferMatrixLab/InferRSI/pull/51",
   "final_candidate_revision": "227a43e898f8b96236f48f16f399431c8ad0ddcc",
-  "updated_baseline_revision": "15bce34586"
+  "updated_baseline_revision": "15bce34586",
+  "historical_noninferiority_verdict": "FAIL",
+  "historical_noninferiority_reason": "C16 and C32 WER degradation upper bounds exceed the frozen +0.20 percentage-point margin; all prompts retained.",
+  "scope": "Historical CPU-reference quality requirement failed; updated-main integration is separately pending.",
+  "final_pull_request_head": "172395ef6ea072c531a89dc18ab868ff2f9ada12"
 }

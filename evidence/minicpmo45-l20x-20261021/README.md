@@ -2,7 +2,7 @@
 
 Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49).
 
-**Original strict quality verdict: FAIL** for the completed speaker-only candidate. A separately authorized noninferiority evaluation on previously unused prompts is pending; it does not change the original verdict. Component PASS does not establish service PASS.
+**Original strict quality verdict: FAIL** for the completed speaker-only candidate. The separately authorized noninferiority evaluation on previously unused prompts also **FAILS** on C16/C32 WER. Updated-main integration is assessed separately; neither new comparison changes those verdicts. Component PASS does not establish service PASS.
 
 ## Scope and controls
 
@@ -211,3 +211,15 @@ original unused-cohort decision remains separately scoped to the historical
 candidate. Source equality checks in `validator/integration-equivalence.json`
 cover the speaker implementation only; updated coordinator behavior still
 requires the separate service comparison.
+
+## Untouched-cohort noninferiority result: FAIL
+
+The frozen historical candidate fails the authorized quality bounds. All 320 prompts are retained in each cell. Values below are degradation and its one-sided 95% upper bound; negative degradation means improvement. WER is in percentage points, SIM is on the ×100 scale.
+
+| C | WER delta / upper (margin 0.20) | SIM drop / upper (margin 0.50) | UTMOS drop / upper (margin 0.05) | Verdict |
+|---|---:|---:|---:|---|
+| 1 | 0.0289 / 0.0871 | -0.0792 / -0.0196 | 0.0008 / 0.0063 | PASS |
+| 16 | 0.4047 / 0.9043 | -0.1930 / 0.2013 | 0.0027 / 0.0201 | FAIL |
+| 32 | 1.4166 / 4.7298 | 0.0946 / 0.5000 | 0.0246 / 0.0430 | FAIL |
+
+At C32, a single prompt contributes 57 additional errors against a net total increase of 49. Both baseline and candidate already transcribe poorly on that prompt; the candidate C32 ASR result reproduces exactly on three resubmissions of its saved WAV. Baseline C32 resubmissions agree with each other but differ from its original ASR text by one whitespace token. These diagnostics do not delete the prompt, clip its WER, replace frozen scores, or establish a causal model defect. See `results/holdout-error-attribution.json` and `results/outlier-asr-repeat.json`.
