@@ -43,6 +43,14 @@
     "qwen3-tts-ascend-import": {
       "kind": "import", "manifests": [],
       "external": ["Original campaign validators and artifacts remain at the upstream source described in plan/README.md."]
+    },
+    "qwen38-h20-text-phase1": {
+      "kind": "campaign", "manifests": [],
+      "external": ["Historical BF16 preparation only; no frozen model acceptance or committed execution artifacts."]
+    },
+    "qwen38-h20-fp8-text-phase1": {
+      "kind": "campaign", "manifests": [],
+      "external": ["FP8 preparation only; authenticated intake and CPU preparation records are private. GPU qualification and final freeze remain pending."]
     }
   }
 }

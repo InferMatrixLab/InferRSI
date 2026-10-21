@@ -273,6 +273,19 @@ class CLITests(unittest.TestCase):
         self.assertEqual(result["execution"], "not started")
         self.assertFalse(self.output_dir.exists())
 
+    def test_correctness_cli_and_nano_vllm_repository_routing(self):
+        arguments = self.arguments.copy()
+        arguments[arguments.index("--repo-type") + 1] = "nano_vllm"
+        arguments.extend(["--objective", "correctness"])
+        code, result = self.invoke(arguments)
+        self.assertEqual(code, 0)
+        directory = Path(result["run_dir"])
+        evaluation = json.loads((directory / "evaluation.json").read_text())
+        self.assertEqual(evaluation["objective"], "correctness")
+        self.assertIsNone(evaluation["improvement_pct"])
+        environment = json.loads((directory / "environment.json").read_text())
+        self.assertEqual(environment["repository_pack"]["id"], "nano_vllm")
+
     def test_missing_validation_is_inconclusive(self):
         arguments = self.arguments.copy()
         start = arguments.index("--validation-command")

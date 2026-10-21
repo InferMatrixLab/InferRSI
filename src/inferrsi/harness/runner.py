@@ -51,10 +51,21 @@ def run_experiment(
     }
 
     def execute_checked(
-        command: tuple[str, ...], label: str, trial_dir: Path, metric_key: str | None
+        command: tuple[str, ...], label: str, trial_dir: Path, metric_key: str | None,
+        *, require_output: bool = False,
     ) -> dict:
         source_before = snapshot(repos[label], run_dir)
         record = execute(command, repos[label], trial_dir, deadline, metric_key)
+        if require_output:
+            try:
+                result = json.loads(Path(record["result_path"]).read_text(encoding="utf-8"))
+                if not isinstance(result, dict) or not result:
+                    raise ValueError("trial result must be a nonempty JSON object")
+                record["output_verified"] = True
+            except (OSError, ValueError, TypeError, KeyError) as exc:
+                record["output_verified"] = False
+                record["output_error"] = str(exc)
+            _write_json(trial_dir / "execution.json", record)
         source_after = snapshot(repos[label], run_dir)
         check = {
             "path": str(trial_dir),
@@ -73,12 +84,16 @@ def run_experiment(
         commands = {"baseline": spec.baseline_command, "candidate": spec.candidate_command}
         for index in range(spec.repetitions):
             for label in ("baseline", "candidate") if index % 2 == 0 else ("candidate", "baseline"):
-                event("measurement", side=label, trial=index + 1)
+                event(
+                    "correctness_trial" if spec.objective == "correctness" else "measurement",
+                    side=label, trial=index + 1,
+                )
                 record = execute_checked(
                     commands[label],
                     label,
                     run_dir / label / f"trial-{index + 1:03d}",
-                    spec.metric_key,
+                    spec.metric_key if spec.objective == "performance" else None,
+                    require_output=spec.objective == "correctness",
                 )
                 (baseline if label == "baseline" else candidate).append(record)
                 if record["status"] == "cancelled":
@@ -92,7 +107,8 @@ def run_experiment(
         if spec.validation_command is not None and state == "completed":
             event("quality_validation")
             validation = execute_checked(
-                spec.validation_command, "candidate", run_dir / "validation", None
+                tuple(arg.replace("{run_dir}", str(run_dir)) for arg in spec.validation_command),
+                "candidate", run_dir / "validation", None,
             )
             if validation["status"] != "completed":
                 state = (

@@ -15,6 +15,7 @@ class RunSpec:
     backend: str = "cpu"
     scenario: str = "external_benchmark"
     mode: str = "config"
+    objective: str = "performance"
     validation_command: tuple[str, ...] | None = None
     metric_key: str = "metrics.latency_ms"
     metric_unit: str = "ms"
@@ -73,6 +74,10 @@ class RunSpec:
             raise ValueError("direction must be minimize or maximize")
         if self.mode not in {"config", "code", "semantic"}:
             raise ValueError("mode must be config, code or semantic")
+        if self.objective not in {"performance", "correctness"}:
+            raise ValueError("objective must be performance or correctness")
+        if self.objective == "correctness" and self.min_improvement_pct != 0:
+            raise ValueError("correctness objective cannot declare a performance gain threshold")
         if (
             isinstance(self.repetitions, bool)
             or not isinstance(self.repetitions, int)
