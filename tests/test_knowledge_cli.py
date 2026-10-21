@@ -339,17 +339,10 @@ def test_collect_escapes_control_characters_to_keep_one_line_per_item(tmp_path):
     assert fields[3] == "two\\tlines\\nbroken"
 
 
-class _Missing:
-    pass
-
-
-_MISSING = _Missing()
-
-
-def _case_root(tmp_path: Path, identity: str, applicability) -> Path:
-    cases = tmp_path / "owner" / "cases"
+def _case_root(root: Path, identity: str, applicability) -> Path:
+    cases = root / "owner" / "cases"
     cases.mkdir(parents=True)
-    (tmp_path / "owner" / "SKILL.md").write_text(
+    (root / "owner" / "SKILL.md").write_text(
         "---\nname: owner\ndescription: test\n---\nBody",
         encoding="utf-8",
     )
@@ -362,20 +355,19 @@ def _case_root(tmp_path: Path, identity: str, applicability) -> Path:
         "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
         "limitations": [],
         "attribution": "fixture",
+        "applicability": applicability,
     }
-    if applicability is not _MISSING:
-        record["applicability"] = applicability
     (cases / "note.json").write_text(json.dumps(record), encoding="utf-8")
-    return tmp_path
+    return root
 
 
-def test_collect_projects_recorded_applicability_including_empty_values():
-    # An empty list/object/string is a RECORDED value and must render literally;
-    # only an absent field may collapse to the "-" marker. A bundle without
-    # applicability is rejected upstream as invalid, so it never reaches projection.
-    tmp = Path(tempfile.mkdtemp())
+def test_collect_projects_recorded_applicability_including_empty_values(tmp_path):
+    # An empty list/object/string is a RECORDED value and must render literally,
+    # distinct from the "-" marker reserved for an absent field. A bundle without
+    # applicability is rejected by the manifest as an invalid omission, so the
+    # absent case is never reachable as a projected item.
     for index, (value, expected) in enumerate((([], "[]"), ({}, "{}"), ("", ""))):
-        root = _case_root(tmp / f"case{index}", "shape-check", value)
+        root = _case_root(tmp_path / f"case{index}", "shape-check", value)
         code, text, _ = run_cli("collect", "--id", "shape-check", "--skill-root", str(root))
         assert code == 0, text
         line = next(
