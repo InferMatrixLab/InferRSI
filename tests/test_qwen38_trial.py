@@ -194,6 +194,8 @@ def test_failure_message_does_not_disclose_runtime_paths(monkeypatch, capsys):
             "/private/example-user/model",
             "--model-revision",
             REVISION,
+            "--device-model",
+            "TEST GPU",
             "--manifest",
             "manifest",
             "--workload",
@@ -276,6 +278,7 @@ def trial_args(model_bundle, tmp_path):
         model_path=model,
         manifest=manifest,
         model_revision=REVISION,
+        device_model="TEST GPU",
         workload=workload,
         mode="cached",
         output=tmp_path / "result.json",
@@ -312,5 +315,14 @@ def test_gpu_count_guard_before_model_execution(model_bundle, tmp_path, fake_run
     cuda.device_count = lambda: count
     args = trial_args(model_bundle, tmp_path)
     with pytest.raises(ValueError, match="exactly one"):
+        trial.run(args)
+    assert not args.output.exists() and not calls
+
+
+def test_gpu_model_mismatch_rejected(model_bundle, tmp_path, fake_runtime):
+    _cuda, calls, _np = fake_runtime
+    args = trial_args(model_bundle, tmp_path)
+    args.device_model = "OTHER GPU"
+    with pytest.raises(ValueError, match="frozen device model"):
         trial.run(args)
     assert not args.output.exists() and not calls

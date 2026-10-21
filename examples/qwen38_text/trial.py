@@ -192,6 +192,8 @@ def run(args: argparse.Namespace) -> dict:
         raise ValueError("Trial requires exactly one visible CUDA GPU")
     if not torch.cuda.is_bf16_supported():
         raise ValueError("Visible CUDA GPU does not support BF16")
+    if torch.cuda.get_device_name(0) != args.device_model:
+        raise ValueError("Visible CUDA GPU differs from frozen device model")
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_path,
         local_files_only=True,
@@ -262,6 +264,7 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model-path", type=Path, required=True)
     parser.add_argument("--model-revision", required=True)
+    parser.add_argument("--device-model", required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--workload", type=Path, required=True)
     parser.add_argument("--mode", choices=("full", "cached"), required=True)

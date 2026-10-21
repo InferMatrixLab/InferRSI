@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "model_id": "Qwen/Qwen3.8-27B",
+  "tokenization": "raw_text_no_special_tokens",
+  "cases": [
+    {"id": "english", "prompt": "The purpose of a reproducible experiment is", "continuation": " to make the methods and observations available so that another researcher can repeat the same procedure and compare the results.", "max_steps": 8},
+    {"id": "chinese", "prompt": "请解释为什么实验需要固定输入：", "continuation": "固定输入可以控制变量，让不同实现的结果具有可比性，并帮助研究人员准确定位误差的来源。", "max_steps": 8},
+    {"id": "code", "prompt": "def add(a, b):\n", "continuation": "    return a + b\n\nassert add(2, 3) == 5\n", "max_steps": 8},
+    {"id": "arithmetic", "prompt": "Compute 17 + 25. Explain: ", "continuation": "17 plus 25 equals 42 because 10 plus 20 is 30 and 7 plus 5 is 12.", "max_steps": 8},
+    {"id": "longer", "prompt": "A laboratory records the same experiment on several days. Each record contains the input, model revision, runtime version, device type, numerical precision, output, and validation result. Some experiments change a kernel, some change batching, and some change memory layout. A reliable comparison controls every unrelated variable. When an experiment is interrupted, the missing results cannot be treated as successful. Failed trials are retained because they can explain which assumptions were wrong. The team separates correctness tests from service benchmarks and measures latency only after checking output quality. Explain how these practices help: ", "continuation": "They make each comparison reproducible, preserve the evidence needed to identify regressions, and prevent incomplete experiments from being reported as successful optimizations.", "max_steps": 8},
+    {"id": "english_replay", "prompt": "The purpose of a reproducible experiment is", "continuation": " to make the methods and observations available so that another researcher can repeat the same procedure and compare the results.", "max_steps": 8, "replay_of": "english"}
+  ]
+}
