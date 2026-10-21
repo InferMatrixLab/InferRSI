@@ -60,7 +60,7 @@ skills root via `--skill-root`, an existing store opened read-only via `--store`
 A store records the skills root it reserves and rejects a mismatched or missing
 `--skill-root` on open.
 
-The `skills` command defaults to the installed library's 48 registered skills;
+The `skills` command defaults to the installed library's 49 registered skills;
 its full bodies and resources are packaged. `--skill-root` in the normalized
 examples above explicitly adds that root's skill and case IDs.
 

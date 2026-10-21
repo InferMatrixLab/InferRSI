@@ -16,7 +16,8 @@ ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/knowledge_packs"
 
 def test_external_snapshot_has_complete_navigation_and_pinned_sources():
     paths = set(ROOT.glob("*/*/*/*/*.json"))
-    links = re.findall(r"\]\(([^)]+\.json)\)", (ROOT / "README.md").read_text())
+    navigation = (ROOT / "README.md").read_text(encoding="utf-8")
+    links = re.findall(r"\]\(([^)]+\.json)\)", navigation)
     assert {ROOT / link for link in links} == paths
     for tier in ("dependency", "peer"):
         records = search_knowledge(tier=tier, limit=100)

@@ -193,6 +193,10 @@
       "path": "workflows/rsi-evidence",
       "backend": "common"
     },
+    "comfy-ui": {
+      "path": "repositories/comfy-ui",
+      "backend": "common"
+    },
     "lazy-evaluation-stream-lifetimes": {
       "path": "frameworks/mlx/lazy-evaluation-stream-lifetimes",
       "backend": "common"

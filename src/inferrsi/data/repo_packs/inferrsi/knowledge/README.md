@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [118b5827899cdf6f2b2375261182a14a8a551859](https://github.com/InferMatrixLab/InferRSI/tree/118b5827899cdf6f2b2375261182a14a8a551859/src/inferrsi/data/skill_library).
+Source snapshot: [59a136e9cd8933b6a5445b22cdb3e69e876adb69](https://github.com/InferMatrixLab/InferRSI/tree/59a136e9cd8933b6a5445b22cdb3e69e876adb69/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 118b5827899cdf6f2b2375261182a14a8a551859 --check
+python tools/build_skill_index.py --source-revision 59a136e9cd8933b6a5445b22cdb3e69e876adb69 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -57,6 +57,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [choose-parallel-training-plan](common/skills/choose-parallel-training-plan.json) | common | candidate |
 | [cite-check-downstream-pr](common/skills/cite-check-downstream-pr.json) | common | unspecified |
 | [claim-contract](common/skills/claim-contract.json) | common | unspecified |
+| [comfy-ui](common/skills/comfy-ui.json) | common | candidate |
 | [competitor-scan](common/skills/competitor-scan.json) | common | unspecified |
 | [dcp-async-save-performance](common/skills/dcp-async-save-performance.json) | common | candidate |
 | [dense-performance-evidence](common/skills/dense-performance-evidence.json) | common | candidate |
@@ -71,7 +72,6 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [inference-optimization-casebook](common/skills/inference-optimization-casebook.json) | common | candidate |
 | [kernel-writing-guide](common/skills/kernel-writing-guide.json) | common | candidate |
 | [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
-| [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |
 | [npu-skill-factory](common/skills/npu-skill-factory.json) | common | candidate |
 | [optimization-search-policy](common/skills/optimization-search-policy.json) | common | candidate |
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |

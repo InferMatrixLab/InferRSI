@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import subprocess
 from pathlib import Path
@@ -26,6 +27,26 @@ def _git(project: Path, *args: str) -> bytes:
     ).stdout
 
 
+def _source_hashes(project: Path, revision: str, paths: set[str]) -> dict[str, str]:
+    ordered = sorted(paths)
+    requests = "".join(f"{revision}:{path}\n" for path in ordered).encode("utf-8")
+    completed = subprocess.run(
+        ["git", "-C", str(project), "cat-file", "--batch"],
+        input=requests, check=True, capture_output=True,
+    )
+    stream = io.BytesIO(completed.stdout)
+    hashes = {}
+    for path in ordered:
+        _, kind, size = stream.readline().split()
+        if kind != b"blob":
+            raise ValueError(f"Skill source is not a Git blob: {path}")
+        content = stream.read(int(size))
+        if stream.read(1) != b"\n":
+            raise ValueError(f"Invalid Git batch boundary for skill source: {path}")
+        hashes[path] = hashlib.sha256(content).hexdigest()
+    return hashes
+
+
 def build_index(project: Path, source_revision: str) -> dict[str, str]:
     revision = _git(project, "rev-parse", "--verify", f"{source_revision}^{{commit}}")
     revision = revision.decode().strip()
@@ -42,10 +63,7 @@ def build_index(project: Path, source_revision: str) -> dict[str, str]:
         raise ValueError("Skill input paths differ from the source revision; commit sources first")
     if _git(project, "diff", "--name-only", revision, "--", *sorted(inputs)):
         raise ValueError("Skill inputs differ from the source revision; commit sources first")
-    source_files = {
-        path: hashlib.sha256(_git(project, "show", f"{revision}:{path}")).hexdigest()
-        for path in sorted(inputs)
-    }
+    source_files = _source_hashes(project, revision, inputs)
     return render_index(root, revision, source_files)
 
 
