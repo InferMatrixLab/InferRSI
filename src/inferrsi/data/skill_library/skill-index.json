@@ -196,6 +196,10 @@
     "comfy-ui": {
       "path": "repositories/comfy-ui",
       "backend": "common"
+    },
+    "audit-sd-cpp-residency": {
+      "path": "repositories/stable-diffusion-cpp/audit-sd-cpp-residency",
+      "backend": "common"
     }
   }
 }

@@ -1,0 +1,32 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": ["external"],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "MIT",
+  "tags": ["stable-diffusion-cpp", "diffusion", "model-residency", "workspace", "prefetch", "state-ownership"],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/leejet/stable-diffusion.cpp",
+      "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+      "paths": ["src/stable-diffusion.cpp", "src/pipeline/image.cpp", "src/pipeline/diffusion_engine.h", "src/pipeline/diffusion_engine.cpp", "src/core/ggml_runner.cpp", "src/core/segment_weight_pipeline.cpp", "src/core/compute_workspace.cpp", "src/model_manager.cpp", "src/model_manager_prefetch.cpp", "src/device_residency_manager.h"],
+      "readset": "references/source-notes.md"
+    }
+  ],
+  "applicability": {
+    "scope": "Source-grounded audit of native image-generation weight/runtime residency and optional segment prefetch; confirm the actual source, GGML, backend, model and executing path independently."
+  },
+  "limitations": [
+    "Source-derived candidate; native inference, allocator behavior, image quality and performance were not run.",
+    "Nineteen selected readset files match the pinned Git commit/tree blob IDs and sizes; this does not authenticate every archive member or submodule contents.",
+    "GGML and other submodules are not expanded; matching private GGML headers are required even for a system library.",
+    "CPU bypasses the inspected accelerator capacity gate and segmentation eligibility, so CPU checks cannot qualify accelerator memory budgets or prefetch.",
+    "Video/audio pipelines, detailed model kernels, approximate denoising caches and full multi-device execution remain outside this readset."
+  ],
+  "provenance_readsets": ["references/source-notes.md"],
+  "references": [],
+  "consumption_mode": "packaged"
+}
