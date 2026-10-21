@@ -1,6 +1,9 @@
 import copy
 import json
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+from threading import Thread
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 import yaml
@@ -8,10 +11,12 @@ import yaml
 from tools.check_knowledge_model_policy import (
     APPROVAL,
     DECLARATION,
+    GitHub,
     approved,
     assemble_file_pages,
     assess,
     changed_paths,
+    check_pr,
     declaration,
     file_page_numbers,
     json_block,
@@ -286,6 +291,8 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     events = value[True]  # PyYAML 的 YAML 1.1 将 on 解析为布尔键。
     assert set(events) == {"pull_request_target", "issue_comment", "push", "workflow_dispatch"}
     assert "edited" in events["pull_request_target"]["types"]
+    assert "closed" in events["pull_request_target"]["types"]
+    assert "branches" not in events["pull_request_target"]
     assert set(events["issue_comment"]["types"]) == {"created", "edited", "deleted"}
     assert events["push"]["branches"] == ["main"]
     assert value["permissions"] == {"contents": "read", "pull-requests": "read",
@@ -301,3 +308,175 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     assert "knowledge-model-policy" not in (
         ROOT / ".github/workflows/ci-ready.yml"
     ).read_text(encoding="utf-8")
+
+
+@pytest.fixture
+def api_fixture():
+    # 本机 HTTP fixture 使用真实 GitHub adapter，记录实际 POST 的共享 status。
+    state = {"prs": {123: pr()}, "comments": {}, "statuses": [], "requests": [],
+             "before_request": None, "errors": []}
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *args):
+            pass
+
+        def respond(self, value, links=None):
+            payload = json.dumps(value).encode()
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(payload)))
+            if links:
+                self.send_header("Link", links)
+            self.end_headers()
+            self.wfile.write(payload)
+
+        def do_GET(self):
+            parsed = urlsplit(self.path)
+            route = parsed.path.removeprefix("/repos/example/repository/")
+            state["requests"].append(("GET", route))
+            if state["before_request"]:
+                state["before_request"](route)
+            if route == "pulls":
+                values = [p for p in state["prs"].values() if p["state"] == "open"]
+                query = parse_qs(parsed.query)
+                if "base" in query:
+                    values = [p for p in values if p["base"]["ref"] == query["base"][0]]
+                page = int(query["page"][0])
+                links = ('<http://fixture.invalid/next>; rel="next"'
+                         if len(values) > page * 100 else None)
+                self.respond(values[(page - 1) * 100:page * 100], links)
+            elif route == "git/ref/heads/main":
+                self.respond({"object": {"sha": BASE}})
+            elif route.startswith("pulls/"):
+                parts = route.split("/")
+                number = int(parts[1])
+                if len(parts) == 2:
+                    self.respond(state["prs"][number])
+                elif parts[2] == "files":
+                    self.respond([{"filename": KNOWLEDGE, "status": "modified"}])
+                elif parts[2] == "commits":
+                    self.respond([{"author": {"login": "contributor"},
+                                   "committer": {"login": "contributor"}}])
+                else:
+                    state["errors"].append(route)
+                    self.send_error(404)
+            elif route.startswith("issues/") and route.endswith("/comments"):
+                self.respond(state["comments"].get(int(route.split("/")[1]), []))
+            else:
+                state["errors"].append(route)
+                self.send_error(404)
+
+        def do_POST(self):
+            route = urlsplit(self.path).path.removeprefix("/repos/example/repository/")
+            value = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
+            if not route.startswith("statuses/"):
+                state["errors"].append(route)
+                self.send_error(404)
+                return
+            state["requests"].append(("POST", route))
+            state["statuses"].append({"sha": route.split("/")[1], **value})
+            self.respond(value)
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    thread = Thread(target=server.serve_forever, kwargs={"poll_interval": 0.01})
+    thread.start()
+    api = GitHub("example/repository", "fixture-token")
+    api.root = f"http://127.0.0.1:{server.server_port}/repos/example/repository/"
+    try:
+        yield api, state
+    finally:
+        server.shutdown()
+        server.server_close()
+        thread.join()
+        assert not state["errors"]
+
+
+def latest_status(state, head=HEAD):
+    return next(s for s in reversed(state["statuses"])
+                if s["sha"] == head and s["context"] == "knowledge-model-policy")
+
+
+@pytest.mark.parametrize("order", [(123, 124), (124, 123)])
+def test_api_shared_head_cannot_be_overwritten_by_compliant_pr(api_fixture, policy, order):
+    api, state = api_fixture
+    state["prs"][124] = {**pr(), "number": 124}
+    state["prs"][123]["body"] = None
+    for number in order:
+        result = check_pr(api, number, policy, BASE, False)
+        assert result["state"] == "failure"
+        assert latest_status(state)["state"] == "failure"
+    assert all(s["state"] != "success" for s in state["statuses"])
+
+
+@pytest.mark.parametrize("order", [(123, 124), (124, 123)])
+def test_api_exception_for_one_pr_cannot_green_another(api_fixture, policy, order):
+    api, state = api_fixture
+    value = declared([attribution("unknown", "unknown")])
+    value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+    state["prs"] = {123: pr(value), 124: {**pr(value), "number": 124}}
+    # 两处都有同一个 comment，但其中的批准明确只覆盖 PR 123。
+    state["comments"] = {123: [approval({KNOWLEDGE})], 124: [approval({KNOWLEDGE})]}
+    for number in order:
+        assert check_pr(api, number, policy, BASE, False)["state"] == "failure"
+        assert latest_status(state)["state"] == "failure"
+    state["prs"][124]["state"] = "closed"
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    assert latest_status(state)["state"] == "success"
+    state["prs"][124]["state"] = "open"
+    state["prs"][123]["state"] = "closed"
+    assert check_pr(api, 124, policy, BASE, False)["state"] == "failure"
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_shared_head_on_other_base_and_later_page_is_rejected(api_fixture, policy):
+    api, state = api_fixture
+    for number in range(200, 300):
+        state["prs"][number] = {**pr(), "number": number, "head": {"sha": f"{number:040x}"}}
+    state["prs"][124] = {**pr(), "number": 124, "base": {"ref": "release", "sha": BASE}}
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["state"] == "failure"
+    assert "shared heads" in result["errors"][0]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_metadata_and_shared_head_lifecycle_refresh(api_fixture, policy):
+    api, state = api_fixture
+
+    def check(expected, head=HEAD):
+        assert check_pr(api, 123, policy, BASE, False)["state"] == expected
+        assert latest_status(state, head)["state"] == expected
+
+    check("success")
+    state["prs"][123]["body"] = None
+    check("failure")
+    state["prs"][123]["body"] = block(declared())
+    check("success")
+    state["prs"][124] = {**pr(), "number": 124}
+    check("failure")
+    state["prs"][124]["state"] = "closed"
+    check("success")
+    state["prs"][124]["state"] = "open"
+    check("failure")
+    state["prs"][124]["head"] = {"sha": "c" * 40}
+    check("success")
+    state["prs"][123]["head"] = {"sha": "d" * 40}
+    check("failure", "d" * 40)
+    value = declared()
+    value["head_sha"] = "d" * 40
+    state["prs"][123]["body"] = block(value)
+    check("success", "d" * 40)
+
+
+def test_api_duplicate_appearing_during_evaluation_fails_before_success(api_fixture, policy):
+    api, state = api_fixture
+
+    def add_peer(route):
+        if route == "pulls/123/files":
+            state["prs"][124] = {**pr(), "number": 124}
+
+    state["before_request"] = add_peer
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["state"] == "failure"
+    assert "shared heads" in result["errors"][0]
+    assert latest_status(state)["state"] == "failure"
+    assert all(s["state"] != "success" for s in state["statuses"])

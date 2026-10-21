@@ -269,6 +269,14 @@ def snapshot(pr):
             pr.get("body"), pr["changed_files"], pr["state"])
 
 
+def require_unique_head(api, number, head):
+    # Commit status 由 SHA/context 共享；其他 base 的 open PR 也不能复用它。
+    peers = {pr["number"] for pr in api.pages("pulls?state=open")
+             if pr["head"]["sha"] == head}
+    if peers != {number}:
+        raise ValueError("Head must belong to exactly one open PR; shared heads are ineligible")
+
+
 def check_pr(api, number, policy, policy_sha, dry_run):
     pr = api.get(f"pulls/{number}")
     head = pr["head"]["sha"]
@@ -279,6 +287,7 @@ def check_pr(api, number, policy, policy_sha, dry_run):
     try:
         if pr["state"] != "open" or pr["base"]["ref"] != policy["base_branch"]:
             raise ValueError("PR is not open against the supported policy branch")
+        require_unique_head(api, number, head)
         base_route = f"git/ref/heads/{policy['base_branch']}"
         if api.get(base_route)["object"]["sha"] != policy_sha:
             raise ValueError("Trusted policy checkout is stale; rerun on the current base")
@@ -314,6 +323,7 @@ def check_pr(api, number, policy, policy_sha, dry_run):
             raise ValueError("PR or base changed during evaluation; rerun required")
         if (controls or request is not None) and comments != api.pages(f"issues/{number}/comments"):
             raise ValueError("Approval comments changed during evaluation; rerun required")
+        require_unique_head(api, number, head)
     except (ValueError, KeyError, TypeError, OSError) as error:
         message = (f"GitHub API HTTP {error.code}" if isinstance(error, HTTPError)
                    else "GitHub API unavailable" if isinstance(error, OSError)

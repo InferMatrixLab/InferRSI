@@ -121,10 +121,19 @@ independent content review or merge permission.
 
 ## Trusted execution, refresh and validation
 
-The workflow handles PR open/reopen/commits/body-or-base edits, approval-comment
+GitHub [commit statuses](https://docs.github.com/en/rest/commits/statuses#about-commit-statuses)
+belong to a SHA/context, not a PR. A head shared by multiple
+open PRs is ineligible, even if one PR declares compliant authorship or receives a
+PR-specific exception. The checker reads all open repository PRs, across target
+branches and API pages, and requires a unique head both before evaluation and
+before publishing its result. Close the extra PR or use a distinct commit before
+retrying. An exception cannot bypass head uniqueness.
+
+The workflow handles PR open/reopen/close/commits/body-or-base edits on any target
+branch (a PR against another base can share a main PR's head), approval-comment
 creation/edit/deletion, every main push and manual dispatch. Main pushes refresh
-all open PRs. All triggers share one serialized status writer and each run
-refreshes every open PR, so GitHub replacing a pending job cannot lose another
+all open main-target PRs. All triggers share one serialized status writer and each
+run refreshes every open main-target PR, so replacing a pending job cannot lose another
 PR's refresh or let an older run overwrite a newer result. It checks out `main`,
 executes only trusted code, installs no PR
 dependencies and treats PR text/files as API data. Permissions are limited to
