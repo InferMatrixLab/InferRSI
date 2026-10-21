@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/86c7dd8d70cbc1e47dd85c79e9fef7afb92599f1/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
-      "commit": "86c7dd8d70cbc1e47dd85c79e9fef7afb92599f1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/32c744c841ab64ac4e106749603da9b1111b726e/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+      "commit": "32c744c841ab64ac4e106749603da9b1111b726e",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json",
@@ -40,7 +40,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md": "955a7b4206e4ea3a73e9aa8723df1ad5f823f950520441bcfdf68d8ba07ca6c7",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "ce1ab797865799a58a1bb0ce5ee949a061283b6d5f0353c29ab6c7a95a3a12f1",
-    "src/inferrsi/data/skill_library/skill-index.json": "8d86c12b3a8632bef0d7560aa702c67e3d41b7590873e6c336bb7714670f9939"
+    "src/inferrsi/data/skill_library/skill-index.json": "9b437dd34dbb396473f75a4f0baf11c0b4948e2259b587db2c1d00c2dca4dcee"
   },
   "skill_metadata": {
     "name": "ascend-performance-analysis",
