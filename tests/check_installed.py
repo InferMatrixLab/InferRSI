@@ -1,4 +1,4 @@
-"""Run after a noneditable install with PYTHONPATH unset."""
+"""Run outside the checkout after a noneditable [skills] install, PYTHONPATH unset."""
 
 import contextlib
 import hashlib
@@ -124,4 +124,9 @@ assert (
     )
     .is_file()
 )
+output = io.StringIO()
+with contextlib.redirect_stdout(output):
+    assert main(["skills", "show", "ascend-operator-profiling"]) == 0
+assert json.loads(output.getvalue())["name"] == "ascend-operator-profiling"
+assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")

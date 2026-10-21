@@ -10,6 +10,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  installed-package:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Build distributables
+        run: |
+          python -m pip install build
+          python -m build --outdir "$RUNNER_TEMP/dist"
+      - name: Smoke test a clean wheel installation outside the checkout
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-env"
+          wheels=("$RUNNER_TEMP"/dist/*.whl)
+          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
+          cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
+          cd "$RUNNER_TEMP"
+          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+
   full-check:
     runs-on: ubuntu-latest
     steps:

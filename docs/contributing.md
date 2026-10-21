@@ -202,6 +202,12 @@ Keep the existing four lanes:
 | [Merge](../.github/workflows/ci-merge.yml) | Lightweight manifest check on main |
 | [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests and evidence layout |
 
+Ready CI also builds the source distribution and wheel, installs the wheel with
+the optional `skills` parser in a fresh virtual environment, and runs
+`tests/check_installed.py` outside the checkout with `PYTHONPATH` unset and Python
+isolated mode enabled. This checks packaged knowledge, skill bodies, licenses,
+helpers and CLI reads without installing any inference engine.
+
 Do not add default model downloads, GPU jobs or campaign thresholds to these
 lanes. Dependency drift and hardware qualification require their own evidence.
 
