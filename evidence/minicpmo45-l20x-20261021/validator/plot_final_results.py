@@ -60,6 +60,15 @@ def main():
     handles, labels = axes[0, 0].get_legend_handles_labels()
     fig.legend(handles, labels, loc="lower center", ncol=2, bbox_to_anchor=(0.5, 0.04), fontsize=9)
     fig.suptitle("MiniCPM-o 4.5 · one L20X · Seed-TTS English · steady state")
+    verdict = json.loads(args.integrated.read_text())["verdict"]
+    fig.text(
+        0.5,
+        0.94,
+        f"Combined service / quality verdict: {verdict}",
+        ha="center",
+        color="#9e2828" if verdict != "PASS" else "#308664",
+        fontsize=10,
+    )
     fig.text(
         0.5,
         0.015,
@@ -68,7 +77,7 @@ def main():
         ha="center",
         fontsize=8,
     )
-    fig.tight_layout(rect=(0, 0.12, 1, 0.95))
+    fig.tight_layout(rect=(0, 0.12, 1, 0.90))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out.with_suffix(".png"), dpi=160)
     svg = args.out.with_suffix(".svg")

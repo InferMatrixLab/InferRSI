@@ -7,9 +7,7 @@
     "passed": 67
   },
   "optimization_submitted": true,
-  "pending": [
-    "final same-GPU MPS attribution control"
-  ],
+  "pending": [],
   "candidate_pull_request": "https://github.com/vllm-project/vllm-omni/pull/9188",
   "candidate_cpu_tests_passed": 67,
   "candidate_tuning": "Completed historical candidate comparisons; strict and unused-holdout quality gates FAIL.",
@@ -23,5 +21,7 @@
   "final_pull_request_head": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
   "integrated_verdict": "FAIL",
   "integrated_quality_reason": "C16 WER and C32 WER/SIM upper bounds exceed frozen margins.",
-  "integrated_cpu_tests_passed": 108
+  "integrated_cpu_tests_passed": 108,
+  "final_controls": "Completed three ordered same-GPU profiles at C16/C32, one measured repeat each; descriptive attribution only.",
+  "user_objective": "Not achieved: no candidate qualified as throughput-optimal with the frozen speech-quality bounds."
 }

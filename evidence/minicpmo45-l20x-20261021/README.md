@@ -2,7 +2,7 @@
 
 Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49).
 
-**Original strict quality verdict: FAIL** for the completed speaker-only candidate. The separately authorized noninferiority evaluation on previously unused prompts also **FAILS** on C16/C32 WER. The adapted revision also FAILS its separately scoped regression against updated main (C16 WER, C32 WER/SIM). No later comparison changes the earlier verdicts. Component PASS does not establish service PASS.
+**Original strict quality verdict: FAIL** for both completed historical speaker-only and speaker+MPS candidates. The separately authorized noninferiority evaluation on previously unused prompts also **FAILS** on C16/C32 WER. The adapted revision also FAILS its separately scoped regression against updated main (C16 WER, C32 WER/SIM). No later comparison changes the earlier verdicts. Component PASS does not establish service PASS.
 
 ## Scope and controls
 
@@ -15,7 +15,7 @@ Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49)
 - Throughput is 25 × delivered audio seconds / measured wall time; it is an audio-frame equivalent, not video fps. The table averages three run throughputs. TTFA percentiles pool 960 requests; RTF is the mean per-request last-audio latency divided by generated duration.
 - vLLM streams audio chunks. SGLang returns a terminal waveform, so its TTFA is effectively completion latency. Do not interpret the two TTFA columns as equivalent streaming capability.
 
-The native main configurations also differ: SGLang Code2Wav uses float16, compiled DiT/HiFT, eight reference workers and a 32-entry prompt cache; this vLLM baseline uses its default FP32 CFM path and serial CPU reference preparation. These are native-engine comparisons, not an isolated backend comparison with identical numerical kernels and scheduling.
+The native main configurations also differ: SGLang Code2Wav uses float16, compiled DiT/HiFT, eight reference workers and a 32-entry prompt cache; the initial vLLM snapshot uses its default FP32 CFM path and serial CPU reference preparation. Updated main uses Torch CUDA speaker extraction. These are native-engine comparisons, not an isolated backend comparison with identical numerical kernels and scheduling.
 
 ## Initial main snapshots (before CUDA Torch became the vLLM default)
 
@@ -220,7 +220,7 @@ The frozen historical candidate fails the authorized quality bounds. All 320 pro
 |---|---:|---:|---:|---|
 | 1 | 0.0289 / 0.0871 | -0.0792 / -0.0196 | 0.0008 / 0.0063 | PASS |
 | 16 | 0.4047 / 0.9043 | -0.1930 / 0.2013 | 0.0027 / 0.0201 | FAIL |
-| 32 | 1.4166 / 4.7298 | 0.0946 / 0.5000 | 0.0246 / 0.0430 | FAIL |
+| 32 | 1.4166 / 4.7298 | 0.0946 / 0.49995 | 0.0246 / 0.0430 | FAIL |
 
 At C32, a single prompt contributes 57 additional errors against a net total increase of 49. Both baseline and candidate already transcribe poorly on that prompt; the candidate C32 ASR result reproduces exactly on three resubmissions of its saved WAV. Baseline C32 resubmissions agree with each other but differ from its original ASR text by one whitespace token. These diagnostics do not delete the prompt, clip its WER, replace frozen scores, or establish a causal model defect. See `results/holdout-error-attribution.json` and `results/outlier-asr-repeat.json`.
 
@@ -258,3 +258,29 @@ C16 WER fails. At C32, WER and SIM point estimates are inside their margins, but
 ![Final concurrency comparison](results/final-concurrency-comparison.png)
 
 Observed throughput ranges are repeat ranges, not confidence intervals. SGLang TTFA measures terminal-waveform delivery. Native precision and scheduling differ; neither the figure nor the throughput gains establish speech-quality equivalence or a global optimum.
+
+Machine-readable metrics for all four pinned engine/profile snapshots: [concurrency-metrics.csv](results/concurrency-metrics.csv).
+
+## Final same-GPU attribution controls
+
+Fresh services ran sequentially on the same reserved L20X: updated main, CPU-reference TRT + MPS, then unchanged updated main with only MPS enabled. Each C16/C32 cell has one discarded and one measured 320-request run. These reused-cohort, single ordered repeats are descriptive controls, not independent speech-quality qualification or an ABBA study.
+
+| C | Main frames/s | CPU-ref TRT + MPS frames/s | Torch + MPS frames/s | CPU-ref / Torch+MPS |
+|---|---:|---:|---:|---:|
+| 16 | 693.1 | 815.6 | 783.3 | 1.041× |
+| 32 | 766.1 | 929.4 | 864.3 | 1.075× |
+
+Quality means below describe these control WAVs. They do not replace either frozen validation result. WER is corpus WER (%); SIM is ×100.
+
+| Profile | C | WER % | SIM ×100 | UTMOS |
+|---|---:|---:|---:|---:|
+| main | 16 | 1.2795 | 49.7516 | 4.1919 |
+| main | 32 | 1.3079 | 49.8408 | 4.2048 |
+| candidate | 16 | 1.3648 | 49.8820 | 4.1921 |
+| candidate | 32 | 1.1658 | 49.8404 | 4.1951 |
+| torch_mps | 16 | 1.2795 | 49.8582 | 4.1846 |
+| torch_mps | 32 | 1.2795 | 49.6752 | 4.2002 |
+
+Full TTFA/RTF, run metadata and per-request hashes are in `results/final-same-gpu-controls.json` and `results/vllm-final-fresh-*.json.gz`. Reproduce with `validator/final_controls.py --help`, score saved run1 WAVs using the existing scorer, then use `validator/export_final_controls.py --runs ... --evidence ...`. The MPS-only overlay sets `base_config: minicpmo_4_5_turn.yaml` and `cuda_mps: true`; all model-specific defaults remain inherited.
+
+A previous control startup failed before measurement when an unreserved unrelated process occupied its reserved GPU. That job was left untouched; the full three-profile sequence moved to a free GPU without changing memory limits, prompts or gates. Cooperative reservations are not a guarantee of host-wide isolation. See `plan/final-control-allocation-addendum.json` and `results/final-control-environment.json`.
