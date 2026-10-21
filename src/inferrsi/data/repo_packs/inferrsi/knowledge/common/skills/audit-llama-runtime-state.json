@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/578d0e8154aac7aa0662f5bcb4d745ebf383ee78/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
-      "commit": "578d0e8154aac7aa0662f5bcb4d745ebf383ee78",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
+      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json",
@@ -41,7 +41,7 @@
   "checkout_ref": "checkout:audit-llama-runtime-state",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "a7bc715ab5c740e8e6296adf9d891f4ff7c68cdba2db0aeccd1f70f86f820eb1",
-    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "889c8fc51c10a2ff94c580bd3459fca08561d908c205568912d4a89e4836a809",
+    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "c354138008eb577b93d2a3cf93f6ae56369439d0d70d799c47a63d8cb4ff8b75",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190",
     "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
   },
@@ -70,6 +70,7 @@
         "url": "https://github.com/ggml-org/llama.cpp",
         "commit": "707616feb5f379e99ff7442680a55b4a1704c7c9",
         "paths": [
+          "LICENSE",
           "include/llama.h",
           "src/llama-context.cpp",
           "src/llama-context.h",
@@ -83,6 +84,10 @@
           "tools/server/server-queue.h",
           "tests/llama-context/cases-kv.cpp",
           "tests/llama-context/cases-rs.cpp",
+          "tests/CMakeLists.txt",
+          "tests/test-llama-archs.cpp",
+          "tests/test-backend-ops.cpp",
+          ".github/workflows/build-cann.yml",
           "tools/server/tests/unit/test_completion.py"
         ],
         "readset": "references/source-notes.md"
