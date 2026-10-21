@@ -319,3 +319,13 @@ rows above remain authoritative; the two-matrix contract is unchanged.
 No new measured or green coverage is credited. Stream dependency guidance does
 not add a Communication/Network capability; no SSD or OS control is introduced.
 `common` indexing categorizes framework guidance and certifies no backend.
+
+## vLLM-Omni incremental abort guidance
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+|---|---|---|---|
+| Accelerator / RAM / Host | Diagnose / Verify: abort submission, logical acknowledgment, partial AR output and separately queued transfer reclamation | [Abort acknowledgment reference](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md) under the existing validation skill | Source control-flow and queue ownership, not native device synchronization or measured release completion |
+| RAM / Host | Observe / Diagnose / Verify: correlated waiter lifetime, blocking submission, wait-only timeout and late result routing | Same canonical reference, source `18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e` | Queue timeout does not certify engine cancellation; actual API/backend/next-request validation not_run |
+
+These extend source-derived guidance without a new measured/green cell. No new
+SSD, Network or OS-control coverage is credited by local RPC or release-task code.
