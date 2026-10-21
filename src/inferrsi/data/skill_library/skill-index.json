@@ -204,6 +204,10 @@
     "generation-cache-lifecycle": {
       "path": "repositories/mlx-lm/generation-cache-lifecycle",
       "backend": "common"
+    },
+    "diffusers-invocation-state": {
+      "path": "frameworks/diffusers/diffusers-invocation-state",
+      "backend": "common"
     }
   }
 }

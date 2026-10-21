@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **72 skill documents**: 51 registered skills
+The English-only library contains **73 skill documents**: 52 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -9,7 +9,7 @@ references, cases and source notices ship with the package.
 | Directory | Content |
 | --- | --- |
 | [Hardware](hardware/) | Ascend (13 registered skills), CUDA (2) and host resource guidance (5) |
-| [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
+| [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing, MLX evaluation/lifetimes and Diffusers invocation state |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
 | [Workflows](workflows/) | Research, acceptance, evidence, source checking and skill lifecycle |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 51 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 52 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -46,7 +46,7 @@ device compatibility; readers do not execute helpers or promote candidates.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 51-ID registry.
+the links and catalog records below, separately from the 52-ID registry.
 The registered ComfyUI audit is listed alongside these imports and uses its
 generated skill abstract rather than a separate runtime repository pack.
 
@@ -113,3 +113,11 @@ links prefill/decode boundaries, three-stage batch-row ownership, prefix-cache
 identity and cooperative stopping. It is a source-derived candidate with no
 installed API, model, native-backend or service validation. MLX framework execution
 and MLX platform discovery remain separate responsibilities.
+
+## Diffusers invocation guidance
+
+[Trace Diffusers invocation state](frameworks/diffusers/diffusers-invocation-state/SKILL.md)
+separates pipeline-wrapper fields, reused component identities, scheduler progress
+and cooperative interruption. The candidate is scoped to FluxPipeline and
+FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
+and performance remain unverified; the existing offload card keeps its own pin.

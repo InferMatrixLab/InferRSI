@@ -330,3 +330,14 @@ not add a Communication/Network capability; no SSD or OS control is introduced.
 No measured or green coverage is credited. Application batching is not a new
 Network/OS capability; no SSD mechanism is added. `common` indexes guidance and
 does not certify backend compatibility.
+
+## Diffusers invocation guidance (source-derived)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+|---|---|---|---|
+| RAM / Host | Observe / Diagnose / Configure / Verify: wrapper versus reused component identity, per-invocation scheduler schedule/index ownership | [diffusers-invocation-state](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md) | Configuration means selecting the existing invocation/scheduler owner; no new manager. Real caller admission and runtime overlap are unverified. |
+| Accelerator | Observe / Diagnose / Verify: post-step callback, next-iteration interrupt observation and normal output/cleanup tail | [invocation ownership path](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md) | Cooperative loop skipping does not revoke submitted kernels; model/device/quality, exception cleanup and performance remain unrun. |
+
+No measured or green coverage is credited. This adds no SSD, Network or OS
+capability and does not retest the existing offload mechanism. `common` indexes
+framework guidance without certifying backend compatibility.

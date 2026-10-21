@@ -316,3 +316,13 @@ not an additional source or validated mechanism.
 MLX-LM owns request/token/cache policy. This source pin does not qualify its
 compatibility with the separately pinned MLX framework or implement discovery.
 The generated abstract is a projection, not independent corroboration.
+
+## Diffusers invocation source extraction
+
+| Source / revision | Inspected scope | Extraction and limits |
+|---|---|---|
+| huggingface/diffusers @ `aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e` (Apache-2.0) | FluxPipeline construction/call, register_modules/components/from_pipe, FlowMatchEulerDiscreteScheduler schedule/index/step and Flux interrupt/callback/normal output tail; selected native fixture and dependency declarations | [diffusers-invocation-state](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md), with [pinned source map](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md): CODE and unexecuted TEST-SOURCE; candidate, empirical validation not_run. The supplied manifest verifies a selected pipeline_utils Git blob, not the full archive tree. No model, concurrent-call, backend or performance qualification. |
+
+The existing Diffusers offload card retains its earlier source pin. This bounded
+invocation readset does not establish caller serialization, general thread safety
+or exception cleanup. The generated abstract adds discovery, not corroboration.
