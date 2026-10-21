@@ -39,9 +39,21 @@
       "device_role": "same GPU D, sequential fresh holdout pair",
       "cuda_mps": true,
       "speaker_backend": "CPU-reference TensorRT IEEE FP32",
-      "state": "Planned next after main completes; confirm against final controller output"
+      "state": "Completed and scored; noninferiority FAIL retained."
+    },
+    "vllm-latest-main": {
+      "cuda_mps": false,
+      "speaker_backend": "Torch CUDA",
+      "device_role": "GPU E, updated-main repeated matrix",
+      "mps_started_private_daemon": false
+    },
+    "vllm-integrated-candidate": {
+      "cuda_mps": true,
+      "speaker_backend": "CPU-reference TensorRT IEEE FP32",
+      "device_role": "GPU F, adapted-candidate repeated matrix",
+      "mps_started_private_daemon": true
     }
   },
   "summary_metadata_warning": "Raw summary mps_policy=off/id_set=eval and blank source/device fields are reference-helper defaults. These runtime observations, source plans and pinned manifests are authoritative. No strict certification is inferred from those default fields.",
-  "host_limitations": "Exclusive GPU reservations, but shared host CPUs and filesystem; other workloads and separate GPU scoring may overlap. No CPU affinity isolation or causal attribution from microbench timing alone."
+  "host_limitations": "GPU reservations were acquired, but the scheduler cannot prevent unreserved jobs. A final-control startup was aborted when an unrelated job occupied its reserved GPU; no measured requests were produced and the control was moved to a free GPU. Host CPUs and filesystem remain shared; no CPU affinity isolation. See final-control-allocation-addendum.json."
 }

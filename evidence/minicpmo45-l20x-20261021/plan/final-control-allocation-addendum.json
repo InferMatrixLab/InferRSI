@@ -1,0 +1,12 @@
+{
+  "recorded_at_utc": "2026-10-21T04:40:48.314133+00:00",
+  "initial_attempt": "Main startup failed before any measured requests: a noncampaign unreserved GPU process appeared on the reserved card; available KV cache was 2.09 GiB versus 5.62 GiB needed for unchanged max_model_len. Other job left untouched.",
+  "change": "Cancel separately queued attribution job on that card. Rerun the previously frozen main, candidate, and Torch+MPS controls sequentially under one reservation on another verified-free L20X.",
+  "invariants": "No model, sampling, memory-budget, concurrency, cohort, repeat-count or quality-gate changes. Preserve failed startup as environment evidence.",
+  "sequence": [
+    "latest main default",
+    "CPU-reference TRT + MPS",
+    "latest main Torch + MPS"
+  ],
+  "outputs": "vllm-final-fresh-{main,candidate,torch_mps}"
+}

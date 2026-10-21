@@ -2,7 +2,7 @@
 
 Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49).
 
-**Original strict quality verdict: FAIL** for the completed speaker-only candidate. The separately authorized noninferiority evaluation on previously unused prompts also **FAILS** on C16/C32 WER. Updated-main integration is assessed separately; neither new comparison changes those verdicts. Component PASS does not establish service PASS.
+**Original strict quality verdict: FAIL** for the completed speaker-only candidate. The separately authorized noninferiority evaluation on previously unused prompts also **FAILS** on C16/C32 WER. The adapted revision also FAILS its separately scoped regression against updated main (C16 WER, C32 WER/SIM). No later comparison changes the earlier verdicts. Component PASS does not establish service PASS.
 
 ## Scope and controls
 
@@ -181,7 +181,7 @@ listening study. A failed upper-bound gate does not by itself prove perceptual
 inferiority.
 
 Host CPUs and the filesystem are shared with other jobs; GPU reservations are
-exclusive, but CPU affinity is not isolated. The host has two Intel Xeon
+cooperative and cannot prevent unreserved processes; CPU affinity is not isolated. The host has two Intel Xeon
 Platinum 8480C sockets, 112 physical cores / 224 hardware threads. Results are
 scoped observations on this host, not hardware-independent performance claims.
 
@@ -223,3 +223,38 @@ The frozen historical candidate fails the authorized quality bounds. All 320 pro
 | 32 | 1.4166 / 4.7298 | 0.0946 / 0.5000 | 0.0246 / 0.0430 | FAIL |
 
 At C32, a single prompt contributes 57 additional errors against a net total increase of 49. Both baseline and candidate already transcribe poorly on that prompt; the candidate C32 ASR result reproduces exactly on three resubmissions of its saved WAV. Baseline C32 resubmissions agree with each other but differ from its original ASR text by one whitespace token. These diagnostics do not delete the prompt, clip its WER, replace frozen scores, or establish a causal model defect. See `results/holdout-error-attribution.json` and `results/outlier-asr-repeat.json`.
+
+## Final adapted revision versus updated main
+
+Baseline `15bce34586` and candidate tree `227a43e8` completed all six cells, three measured repeats of 320 requests per cell, with zero measured request failures. PR head `172395ef` has the identical Git tree; its extra commit only refreshed CI. Both high-concurrency performance gates pass, but the combined service/quality verdict is **FAIL**.
+
+| Engine / profile | C | Frames/s | TTFA p50 ms | TTFA p95 ms | RTF mean |
+|---|---:|---:|---:|---:|---:|
+| Updated main | 1 | 191.4 | 312.5 | 349.7 | 0.133 |
+| Updated main | 2 | 306.8 | 396.5 | 503.1 | 0.165 |
+| Updated main | 4 | 464.2 | 617.0 | 729.8 | 0.224 |
+| Updated main | 8 | 614.8 | 957.6 | 1156.1 | 0.337 |
+| Updated main | 16 | 696.4 | 1288.5 | 1889.4 | 0.587 |
+| Updated main | 32 | 753.9 | 1904.7 | 2681.9 | 1.073 |
+| CPU-reference TRT + MPS | 1 | 193.0 | 301.4 | 342.1 | 0.131 |
+| CPU-reference TRT + MPS | 2 | 337.2 | 341.7 | 413.5 | 0.150 |
+| CPU-reference TRT + MPS | 4 | 535.6 | 457.4 | 580.1 | 0.191 |
+| CPU-reference TRT + MPS | 8 | 720.2 | 685.0 | 932.5 | 0.286 |
+| CPU-reference TRT + MPS | 16 | 838.9 | 996.6 | 1624.8 | 0.487 |
+| CPU-reference TRT + MPS | 32 | 945.4 | 1490.0 | 2211.1 | 0.855 |
+
+Observed high-concurrency throughput gains versus updated main are **20.5% at C16 and 25.4% at C32**. Every candidate repeat exceeds every baseline repeat in both cells. These are combined CPU-reference TRT plus MPS observations, not isolated TensorRT attribution.
+
+Quality uses the already-seen first cohort. The same predeclared margins and paired-bootstrap function apply, but this is an integration regression rather than another independent holdout. Table entries are degradation / one-sided 95% upper bound.
+
+| C | WER pp (margin 0.20) | SIM ×100 drop (margin 0.50) | UTMOS drop (margin 0.05) | Verdict |
+|---|---:|---:|---:|---|
+| 1 | 0.0000 / 0.0577 | -0.0042 / 0.0947 | 0.0121 / 0.0213 | PASS |
+| 16 | 0.4549 / 0.8451 | -0.4792 / -0.0491 | 0.0016 / 0.0181 | FAIL |
+| 32 | 0.1422 / 0.2847 | 0.3191 / 0.6818 | 0.0152 / 0.0311 | FAIL |
+
+C16 WER fails. At C32, WER and SIM point estimates are inside their margins, but their upper confidence bounds fail; this does not establish population or perceptual inferiority. No prompts or original scores are excluded. The earlier untouched-cohort FAIL remains unchanged.
+
+![Final concurrency comparison](results/final-concurrency-comparison.png)
+
+Observed throughput ranges are repeat ranges, not confidence intervals. SGLang TTFA measures terminal-waveform delivery. Native precision and scheduling differ; neither the figure nor the throughput gains establish speech-quality equivalence or a global optimum.
