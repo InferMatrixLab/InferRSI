@@ -1,0 +1,16 @@
+{
+  "frozen_at_utc": "2026-10-21T07:14:41.615568+00:00",
+  "parent_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "Current vLLM prepares each distinct reference voice with a separate prompt CFM Euler solve. Batch same-length prompt solves while keeping each flow encoder call unchanged; avoid variable-length padding in first implementation.",
+  "inspiration": {
+    "repository": "InferMatrixLab/minicpm-o-4.5-single-gpu-engine",
+    "revision": "a4f4778f312791c2d190b48e521141887ed160c8",
+    "path": "engine/runtime/token2wav_batch.py:setup_many"
+  },
+  "scope": "Opt-in cfm_batch_prompt_setup; default off. Preserve per-prompt features, cached-state ownership, CFG row ordering, and existing non-CUDA behavior.",
+  "operator_gate": "Same reference encoder outputs; prompt estimator cache relative L2<=0.01 against independent solves; paired continuation audio relative L2<=0.01 on reused tuning prompts; exact cache/row ownership checks. Failure excludes promotion without changing gates.",
+  "service": "Only batch prompt setup changes vs Torch+MPS baseline, default FP32 Flow and HiFT, microbatch4;64 reused tuning prompts at C1/C16/C32.",
+  "quality": "Existing speech noninferiority gates unchanged; reserved holdout untouched.",
+  "candidate_revision": "d255857c1d1441ba77362da6d4cb628fa5dc47a8",
+  "numerical_protocol_detail": "Four first eligible references >=6 seconds from original first64 tuning IDs, truncated to6 seconds; matching seeded HiFT noise for each baseline/candidate continuation; first28 reference speech tokens as continuation input. Initial unseeded probe was stopped before model load completed, with no numerical results."
+}

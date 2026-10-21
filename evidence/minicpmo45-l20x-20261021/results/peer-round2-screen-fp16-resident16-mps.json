@@ -1,0 +1,31 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "64 reused tuning prompts, one measured repeat; no final qualification",
+  "cells": {
+    "1": {
+      "throughput_frames_s": 195.48027283991107,
+      "ttfa_p50_s": 0.2955296402797103,
+      "ttfa_p95_s": 0.3218923930544406,
+      "rtf_mean": 0.12941430037961194,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "16": {
+      "throughput_frames_s": 848.2127450045919,
+      "ttfa_p50_s": 1.326912050601095,
+      "ttfa_p95_s": 2.136800453346223,
+      "rtf_mean": 0.47656773709281225,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "32": {
+      "throughput_frames_s": 878.0731802061676,
+      "ttfa_p50_s": 1.898135322611779,
+      "ttfa_p95_s": 4.139536390127614,
+      "rtf_mean": 0.8721677482871804,
+      "n_failed": 0,
+      "n_requests": 64
+    }
+  },
+  "decision": "C32 increases modestly versus dispatch-only but remains far below the peer target on its separate320-prompt workload. Do not claim a statistically confirmed gain or a matched peer win."
+}
