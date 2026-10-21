@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **69 skill documents**: 48 registered skills
+The English-only library contains **70 skill documents**: 49 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -9,7 +9,7 @@ references, cases and source notices ship with the package.
 | Directory | Content |
 | --- | --- |
 | [Hardware](hardware/) | Ascend (13 registered skills), CUDA (2) and host resource guidance (5) |
-| [Frameworks](frameworks/) | Framework-owned procedures, currently PyTorch distributed checkpointing |
+| [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
 | [Workflows](workflows/) | Research, acceptance, evidence, source checking and skill lifecycle |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 48 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 49 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -46,7 +46,7 @@ device compatibility; readers do not execute helpers or promote candidates.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 48-ID registry.
+the links and catalog records below, separately from the 49-ID registry.
 
 | Repository | Focus | Entry | Catalog |
 | --- | --- | --- | --- |
@@ -94,3 +94,11 @@ retain source revisions and licenses in the
 Source snapshots are research provenance, not campaign defaults. Check local
 links, dependencies, catalog reads and noneditable installed-package access;
 retain `locally_verified=false` until a separate qualified campaign exists.
+
+## MLX framework guidance
+
+[Diagnose MLX evaluation and lifetimes](frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md)
+separates graph construction, cross-stream ordering, backend buffer retention and
+result availability. It is source-derived candidate guidance; CPU, Metal and CUDA
+runtime behavior and performance remain unverified. MLX-LM request/cache policy and
+MLX platform discovery belong to their separate owners.

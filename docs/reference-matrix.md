@@ -295,3 +295,13 @@ rather than restating it; that case shares this campaign lineage.
 
 The two primary matrices are unchanged in authority; this is a reconciliation
 note, not a third inventory. All NPU status for Drama3 remains `unverified`.
+
+## MLX framework source extraction
+
+| Source / revision | Inspected scope | Extraction and limits |
+|---|---|---|
+| ml-explore/mlx @ `bff10220c742907f0c68e55ff174aaea56f74e3d` (MIT) | `ops.cpp::add`, Python eval bindings, `transforms.cpp::eval_impl`, array availability/detach, CPU/Metal/CUDA eval retention paths, selected native test source and build conditions | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md), with [pinned readset](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md): three framework mechanisms; CODE and unexecuted TEST-SOURCE, empirical validation not_run; no model/service/performance or installed-backend qualification |
+
+This framework owner does not implement MLX discovery or claim the separate
+MLX-LM application/cache layer. The generated abstract is a discovery projection,
+not an additional source or validated mechanism.
