@@ -1,0 +1,30 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": ["external"],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "GPL-3.0",
+  "tags": ["comfyui", "workflow", "cache-invalidation", "model-residency", "state-ownership"],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/Comfy-Org/ComfyUI",
+      "commit": "b1a247c9cf9dbfda4b2c0a0c1d50950667eeaa0c",
+      "paths": ["execution.py", "comfy_execution/caching.py", "comfy_execution/graph.py", "comfy/model_management.py", "comfy/model_patcher.py", "comfy/sampler_helpers.py"],
+      "readset": "references/repo-provenance.md"
+    }
+  ],
+  "applicability": {
+    "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer."
+  },
+  "limitations": [
+    "Source-derived candidate; no local executor-cache, device-residency or performance qualification.",
+    "Seven self-authored cases exercised only the unchanged pure upstream graph_utils module; they do not verify PromptExecutor, cache signatures or model behavior.",
+    "The dynamic native allocator and third-party custom-node behavior remain outside the verified scope."
+  ],
+  "provenance_readsets": ["references/repo-provenance.md"],
+  "references": [],
+  "consumption_mode": "packaged"
+}
