@@ -132,7 +132,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         links.append(f"| [{name}]({relative}) | {backend} | {state} |")
     outputs["README.md"] = "\n".join([
         "# InferRSI skill discovery index", "",
-        "Generated abstracts for all 48 registered skills in `data/skill_library/`.",
+        f"Generated abstracts for all {len(entries)} registered skills in `data/skill_library/`.",
         "Their complete procedures, references and cases ship in the same package.",
         "`skill-index.json` maps stable skill IDs to categorized directories. The",
         "reference and searchspace matrices",

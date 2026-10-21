@@ -192,6 +192,10 @@
     "rsi-evidence": {
       "path": "workflows/rsi-evidence",
       "backend": "common"
+    },
+    "audit-llama-runtime-state": {
+      "path": "repositories/llama-cpp/audit-llama-runtime-state",
+      "backend": "common"
     }
   }
 }
