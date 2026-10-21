@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [a489540eb88b9308128ab18fe5e538539f34971b](https://github.com/InferMatrixLab/InferRSI/tree/a489540eb88b9308128ab18fe5e538539f34971b/src/inferrsi/data/skill_library).
+Source snapshot: [a6a6bef56e705d5e92b7815959309a07587465c8](https://github.com/InferMatrixLab/InferRSI/tree/a6a6bef56e705d5e92b7815959309a07587465c8/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision a489540eb88b9308128ab18fe5e538539f34971b --check
+python tools/build_skill_index.py --source-revision a6a6bef56e705d5e92b7815959309a07587465c8 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -50,7 +50,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
 | [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
-| [audit-sglang-diffusion-lifetimes](common/skills/audit-sglang-diffusion-lifetimes.json) | common | candidate |
+| [audit-sd-cpp-residency](common/skills/audit-sd-cpp-residency.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |
 | [calibrate-serving-simulation](common/skills/calibrate-serving-simulation.json) | common | candidate |
 | [cann-attribution-overlap](ascend/skills/cann-attribution-overlap.json) | ascend | candidate |

@@ -24,7 +24,7 @@ def test_local_profiles_preserve_core_and_structured_ownership():
         assert metadata["kind"] == "skill"
         for readset in metadata["provenance_readsets"]:
             assert (sidecar.parent / readset).is_file()
-    assert len(normalized) == 48
+    assert len(normalized) == 49
 
 
 def test_contradictory_legacy_metadata_fails(tmp_path):
