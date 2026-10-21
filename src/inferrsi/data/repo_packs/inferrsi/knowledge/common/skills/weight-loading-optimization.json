@@ -24,11 +24,12 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8ae8bf8a717a50a7ac6658c601bc3e972f6a7742/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "8ae8bf8a717a50a7ac6658c601bc3e972f6a7742",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
+        "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "df168c23a6f0fadddc147925a11e9eefc61f340be8e7c01a3fbe3aab002aa490"
@@ -41,8 +42,9 @@
   "checkout_ref": "checkout:weight-loading-optimization",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "df168c23a6f0fadddc147925a11e9eefc61f340be8e7c01a3fbe3aab002aa490",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "c45d544312627787d523142e25730f1c3aa1b0f007ee9c10dcf0cec9f3044f71",
-    "src/inferrsi/data/skill_library/skill-index.json": "6329ae001babb55bccefc3b3dab6da8e6f497b91e4e2b47134ceeb1e71140723"
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "857481988451065967f9edb8a0c60b16d51508d79dbd37ecc2326fbf95df9348",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",
+    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",
@@ -63,16 +65,37 @@
     "origin": [
       "external"
     ],
-    "sources": [],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+        "paths": [
+          "common/arg.cpp",
+          "common/common.cpp",
+          "common/fit.cpp",
+          "src/llama-model.cpp",
+          "src/llama-model-loader.cpp",
+          "src/llama-model-loader.h",
+          "src/llama-mmap.cpp",
+          "src/llama-mmap.h",
+          "LICENSE"
+        ],
+        "readset": "references/llama-loading-readset.md"
+      }
+    ],
     "empirical_validation": "not_run",
     "applicability": {
       "scope": "See procedure prerequisites and counter-signals"
     },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Only the existing llama.cpp loading slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+      "The llama.cpp readset records static mechanisms and source recommendations, not validated startup, memory, placement or backend performance."
     ],
-    "provenance_readsets": [],
+    "provenance_readsets": [
+      "references/llama-loading-readset.md"
+    ],
     "references": [],
     "consumption_mode": "packaged"
   },
@@ -89,7 +112,8 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Only the existing llama.cpp loading slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+    "The llama.cpp readset records static mechanisms and source recommendations, not validated startup, memory, placement or backend performance."
   ],
   "verification": {
     "locally_verified": false,

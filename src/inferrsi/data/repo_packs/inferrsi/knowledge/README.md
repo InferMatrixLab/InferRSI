@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [8ae8bf8a717a50a7ac6658c601bc3e972f6a7742](https://github.com/InferMatrixLab/InferRSI/tree/8ae8bf8a717a50a7ac6658c601bc3e972f6a7742/src/inferrsi/data/skill_library).
+Source snapshot: [e3a82241132debf4cd469863024fc9de53b1dbcc](https://github.com/InferMatrixLab/InferRSI/tree/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 8ae8bf8a717a50a7ac6658c601bc3e972f6a7742 --check
+python tools/build_skill_index.py --source-revision e3a82241132debf4cd469863024fc9de53b1dbcc --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -49,7 +49,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [ascendc-tiling-design](ascend/skills/ascendc-tiling-design.json) | ascend | candidate |
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
-| [audit-sd-cpp-residency](common/skills/audit-sd-cpp-residency.json) | common | candidate |
+| [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |
 | [calibrate-serving-simulation](common/skills/calibrate-serving-simulation.json) | common | candidate |
 | [cann-attribution-overlap](ascend/skills/cann-attribution-overlap.json) | ascend | candidate |
