@@ -150,7 +150,7 @@ def test_kernel_snapshot_symlinks_cover_own_blob_cache_only(tmp_path):
 def test_reference_kernel_drift_during_trial_prevents_result(offline_kernel, tmp_path, change):
     from pathlib import Path
 
-    import numpy as np
+    np = pytest.importorskip("numpy")
 
     from examples.qwen38_text.trial import write_traces
 
