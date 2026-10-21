@@ -50,6 +50,12 @@ Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the
 [knowledge maintenance guide](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
 
+Protected changes also require a current-head
+[knowledge authorship declaration](knowledge-model-policy.md). Every material AI
+author must use an approved model at `xhigh` or `max`; human-only work is declared
+explicitly. Mechanical/generated changes have no automatic exemption. The first
+rollout reports failures without yet requiring the check for merging.
+
 The [skill library](../src/inferrsi/data/skill_library/README.md) owns complete
 procedures, metadata, references and cases. Place platform-specific skills under
 `hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
