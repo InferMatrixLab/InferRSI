@@ -192,6 +192,10 @@
     "rsi-evidence": {
       "path": "workflows/rsi-evidence",
       "backend": "common"
+    },
+    "generation-cache-lifecycle": {
+      "path": "repositories/mlx-lm/generation-cache-lifecycle",
+      "backend": "common"
     }
   }
 }

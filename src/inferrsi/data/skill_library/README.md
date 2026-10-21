@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **69 skill documents**: 48 registered skills
+The English-only library contains **70 skill documents**: 49 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 48 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 49 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -46,7 +46,7 @@ device compatibility; readers do not execute helpers or promote candidates.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 48-ID registry.
+the links and catalog records below, separately from the 49-ID registry.
 
 | Repository | Focus | Entry | Catalog |
 | --- | --- | --- | --- |
@@ -94,3 +94,11 @@ retain source revisions and licenses in the
 Source snapshots are research provenance, not campaign defaults. Check local
 links, dependencies, catalog reads and noneditable installed-package access;
 retain `locally_verified=false` until a separate qualified campaign exists.
+
+## MLX-LM application guidance
+
+[Trace MLX-LM generation and cache lifecycle](repositories/mlx-lm/generation-cache-lifecycle/SKILL.md)
+links prefill/decode boundaries, three-stage batch-row ownership, prefix-cache
+identity and cooperative stopping. It is a source-derived candidate with no
+installed API, model, native-backend or service validation. MLX framework execution
+and MLX platform discovery remain separate responsibilities.
