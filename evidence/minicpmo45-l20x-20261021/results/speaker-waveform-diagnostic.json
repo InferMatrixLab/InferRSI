@@ -1,0 +1,453 @@
+{
+  "scope": "Matched C1 tuning waveforms only; not perceptual or service qualification",
+  "rows": [
+    {
+      "id": "common_voice_en_10119832-common_voice_en_10119840",
+      "same_shape": true,
+      "mae": 0.016542453318834305,
+      "max_abs_error": 0.5926513671875,
+      "waveform_cosine": 0.81316077709198
+    },
+    {
+      "id": "common_voice_en_125386-common_voice_en_125388",
+      "same_shape": true,
+      "mae": 0.000892959360498935,
+      "max_abs_error": 0.11578369140625,
+      "waveform_cosine": 0.9988170266151428
+    },
+    {
+      "id": "common_voice_en_15903802-common_voice_en_15903807",
+      "same_shape": true,
+      "mae": 0.004768442828208208,
+      "max_abs_error": 0.317291259765625,
+      "waveform_cosine": 0.8901113867759705
+    },
+    {
+      "id": "common_voice_en_17281385-common_voice_en_17281386",
+      "same_shape": true,
+      "mae": 0.0004901009961031377,
+      "max_abs_error": 0.011138916015625,
+      "waveform_cosine": 0.9999855756759644
+    },
+    {
+      "id": "common_voice_en_17662945-common_voice_en_17662956",
+      "same_shape": true,
+      "mae": 0.009343907237052917,
+      "max_abs_error": 0.3927001953125,
+      "waveform_cosine": 0.8467214107513428
+    },
+    {
+      "id": "common_voice_en_17738848-common_voice_en_19083939",
+      "same_shape": true,
+      "mae": 0.02900310792028904,
+      "max_abs_error": 1.346832275390625,
+      "waveform_cosine": 0.8928040266036987
+    },
+    {
+      "id": "common_voice_en_17879420-common_voice_en_17879418",
+      "same_shape": true,
+      "mae": 0.006404532119631767,
+      "max_abs_error": 0.2020263671875,
+      "waveform_cosine": 0.9603843688964844
+    },
+    {
+      "id": "common_voice_en_17893247-common_voice_en_17893246",
+      "same_shape": true,
+      "mae": 0.00033423412241972983,
+      "max_abs_error": 0.008758544921875,
+      "waveform_cosine": 0.999970018863678
+    },
+    {
+      "id": "common_voice_en_18177486-common_voice_en_18177492",
+      "same_shape": true,
+      "mae": 0.0007403246709145606,
+      "max_abs_error": 0.036956787109375,
+      "waveform_cosine": 0.9999409914016724
+    },
+    {
+      "id": "common_voice_en_18177486-common_voice_en_18177499",
+      "same_shape": true,
+      "mae": 0.0005806053522974253,
+      "max_abs_error": 0.0341796875,
+      "waveform_cosine": 0.9999675750732422
+    },
+    {
+      "id": "common_voice_en_18902273-common_voice_en_18902275",
+      "same_shape": true,
+      "mae": 0.025373052805662155,
+      "max_abs_error": 1.4544677734375,
+      "waveform_cosine": 0.818669855594635
+    },
+    {
+      "id": "common_voice_en_18994734-common_voice_en_18994736",
+      "same_shape": true,
+      "mae": 0.0068662213161587715,
+      "max_abs_error": 0.14947509765625,
+      "waveform_cosine": 0.9182360768318176
+    },
+    {
+      "id": "common_voice_en_19152197-common_voice_en_19152196",
+      "same_shape": true,
+      "mae": 0.0004274057282600552,
+      "max_abs_error": 0.026702880859375,
+      "waveform_cosine": 0.9991721510887146
+    },
+    {
+      "id": "common_voice_en_19254683-common_voice_en_19254687",
+      "same_shape": true,
+      "mae": 0.03421569988131523,
+      "max_abs_error": 1.06805419921875,
+      "waveform_cosine": 0.811640202999115
+    },
+    {
+      "id": "common_voice_en_19619551-common_voice_en_19619549",
+      "same_shape": true,
+      "mae": 0.009974577464163303,
+      "max_abs_error": 0.3387451171875,
+      "waveform_cosine": 0.9163817167282104
+    },
+    {
+      "id": "common_voice_en_19635046-common_voice_en_19635048",
+      "same_shape": true,
+      "mae": 0.008331770077347755,
+      "max_abs_error": 0.6236572265625,
+      "waveform_cosine": 0.9795969128608704
+    },
+    {
+      "id": "common_voice_en_19636954-common_voice_en_19636955",
+      "same_shape": true,
+      "mae": 0.03030417300760746,
+      "max_abs_error": 1.036956787109375,
+      "waveform_cosine": 0.9394199848175049
+    },
+    {
+      "id": "common_voice_en_19638442-common_voice_en_19638444",
+      "same_shape": true,
+      "mae": 0.0007250236230902374,
+      "max_abs_error": 0.028411865234375,
+      "waveform_cosine": 0.9999464750289917
+    },
+    {
+      "id": "common_voice_en_19640906-common_voice_en_19640909",
+      "same_shape": true,
+      "mae": 0.015240375883877277,
+      "max_abs_error": 0.540191650390625,
+      "waveform_cosine": 0.908112108707428
+    },
+    {
+      "id": "common_voice_en_19656513-common_voice_en_19656518",
+      "same_shape": true,
+      "mae": 0.06647560000419617,
+      "max_abs_error": 1.879730224609375,
+      "waveform_cosine": 0.6403017044067383
+    },
+    {
+      "id": "common_voice_en_19686493-common_voice_en_19686496",
+      "same_shape": true,
+      "mae": 0.004707887768745422,
+      "max_abs_error": 0.19427490234375,
+      "waveform_cosine": 0.9922064542770386
+    },
+    {
+      "id": "common_voice_en_19724030-common_voice_en_19724029",
+      "same_shape": true,
+      "mae": 0.0012821594718843699,
+      "max_abs_error": 0.199859619140625,
+      "waveform_cosine": 0.9995918273925781
+    },
+    {
+      "id": "common_voice_en_19789569-common_voice_en_19789566",
+      "same_shape": true,
+      "mae": 0.0003407143522053957,
+      "max_abs_error": 0.0255126953125,
+      "waveform_cosine": 0.9999334216117859
+    },
+    {
+      "id": "common_voice_en_19819944-common_voice_en_19819946",
+      "same_shape": true,
+      "mae": 0.0008457842050120234,
+      "max_abs_error": 0.2386474609375,
+      "waveform_cosine": 0.9997158646583557
+    },
+    {
+      "id": "common_voice_en_19961449-common_voice_en_19961451",
+      "same_shape": true,
+      "mae": 0.0026309846434742212,
+      "max_abs_error": 0.077301025390625,
+      "waveform_cosine": 0.9817021489143372
+    },
+    {
+      "id": "common_voice_en_19967495-common_voice_en_19967497",
+      "same_shape": true,
+      "mae": 0.01847546361386776,
+      "max_abs_error": 0.729278564453125,
+      "waveform_cosine": 0.8680605292320251
+    },
+    {
+      "id": "common_voice_en_20065698-common_voice_en_20065702",
+      "same_shape": true,
+      "mae": 0.019156811758875847,
+      "max_abs_error": 0.5625,
+      "waveform_cosine": 0.7601901888847351
+    },
+    {
+      "id": "common_voice_en_20236234-common_voice_en_20236233",
+      "same_shape": true,
+      "mae": 0.009810730814933777,
+      "max_abs_error": 0.668365478515625,
+      "waveform_cosine": 0.46771693229675293
+    },
+    {
+      "id": "common_voice_en_20303932-common_voice_en_20303934",
+      "same_shape": true,
+      "mae": 0.002726216334849596,
+      "max_abs_error": 0.390899658203125,
+      "waveform_cosine": 0.9993245601654053
+    },
+    {
+      "id": "common_voice_en_20872043-common_voice_en_20872046",
+      "same_shape": true,
+      "mae": 0.0037463903427124023,
+      "max_abs_error": 0.130828857421875,
+      "waveform_cosine": 0.9970793128013611
+    },
+    {
+      "id": "common_voice_en_209233-common_voice_en_209237",
+      "same_shape": true,
+      "mae": 0.0006419672281481326,
+      "max_abs_error": 0.04180908203125,
+      "waveform_cosine": 0.9997764229774475
+    },
+    {
+      "id": "common_voice_en_20933101-common_voice_en_20933102",
+      "same_shape": true,
+      "mae": 0.0009604504448361695,
+      "max_abs_error": 0.071868896484375,
+      "waveform_cosine": 0.9998319149017334
+    },
+    {
+      "id": "common_voice_en_21291499-common_voice_en_21291501",
+      "same_shape": true,
+      "mae": 0.009041527286171913,
+      "max_abs_error": 0.45709228515625,
+      "waveform_cosine": 0.9379770755767822
+    },
+    {
+      "id": "common_voice_en_21555942-common_voice_en_21555950",
+      "same_shape": true,
+      "mae": 0.0004512089944910258,
+      "max_abs_error": 0.04644775390625,
+      "waveform_cosine": 0.9998939633369446
+    },
+    {
+      "id": "common_voice_en_21722249-common_voice_en_21722264",
+      "same_shape": true,
+      "mae": 0.022738851606845856,
+      "max_abs_error": 1.192169189453125,
+      "waveform_cosine": 0.9097857475280762
+    },
+    {
+      "id": "common_voice_en_22713724-common_voice_en_22713725",
+      "same_shape": true,
+      "mae": 0.05362081527709961,
+      "max_abs_error": 1.86505126953125,
+      "waveform_cosine": 0.46600180864334106
+    },
+    {
+      "id": "common_voice_en_22941073-common_voice_en_22941090",
+      "same_shape": true,
+      "mae": 0.005232156720012426,
+      "max_abs_error": 0.26715087890625,
+      "waveform_cosine": 0.9895237684249878
+    },
+    {
+      "id": "common_voice_en_23700044-common_voice_en_23700043",
+      "same_shape": true,
+      "mae": 0.008726716041564941,
+      "max_abs_error": 0.267791748046875,
+      "waveform_cosine": 0.2594406306743622
+    },
+    {
+      "id": "common_voice_en_23809069-common_voice_en_23809073",
+      "same_shape": true,
+      "mae": 0.013578451238572598,
+      "max_abs_error": 0.49798583984375,
+      "waveform_cosine": 0.9845931529998779
+    },
+    {
+      "id": "common_voice_en_23815833-common_voice_en_23815835",
+      "same_shape": true,
+      "mae": 0.010532258078455925,
+      "max_abs_error": 0.463043212890625,
+      "waveform_cosine": 0.9688075184822083
+    },
+    {
+      "id": "common_voice_en_23851540-common_voice_en_23851542",
+      "same_shape": true,
+      "mae": 0.021192733198404312,
+      "max_abs_error": 1.404449462890625,
+      "waveform_cosine": 0.7578383088111877
+    },
+    {
+      "id": "common_voice_en_25127181-common_voice_en_25127184",
+      "same_shape": true,
+      "mae": 0.009990528225898743,
+      "max_abs_error": 0.416351318359375,
+      "waveform_cosine": 0.961166501045227
+    },
+    {
+      "id": "common_voice_en_25821292-common_voice_en_25821295",
+      "same_shape": true,
+      "mae": 0.001751778181642294,
+      "max_abs_error": 0.2266845703125,
+      "waveform_cosine": 0.9813078045845032
+    },
+    {
+      "id": "common_voice_en_25896925-common_voice_en_25896927",
+      "same_shape": true,
+      "mae": 0.020313985645771027,
+      "max_abs_error": 0.751922607421875,
+      "waveform_cosine": 0.8189216256141663
+    },
+    {
+      "id": "common_voice_en_26324572-common_voice_en_26324575",
+      "same_shape": true,
+      "mae": 0.001322687603533268,
+      "max_abs_error": 0.1162109375,
+      "waveform_cosine": 0.9997144341468811
+    },
+    {
+      "id": "common_voice_en_27172977-common_voice_en_27172980",
+      "same_shape": true,
+      "mae": 0.018071897327899933,
+      "max_abs_error": 0.638336181640625,
+      "waveform_cosine": 0.8759009838104248
+    },
+    {
+      "id": "common_voice_en_275174-common_voice_en_275175",
+      "same_shape": true,
+      "mae": 0.006645959336310625,
+      "max_abs_error": 0.273529052734375,
+      "waveform_cosine": 0.8853956460952759
+    },
+    {
+      "id": "common_voice_en_27573778-common_voice_en_27573779",
+      "same_shape": true,
+      "mae": 0.0007042251527309418,
+      "max_abs_error": 0.028289794921875,
+      "waveform_cosine": 0.9999489784240723
+    },
+    {
+      "id": "common_voice_en_28003405-common_voice_en_28003408",
+      "same_shape": true,
+      "mae": 0.00014578647096641362,
+      "max_abs_error": 0.026275634765625,
+      "waveform_cosine": 0.9996583461761475
+    },
+    {
+      "id": "common_voice_en_28316626-common_voice_en_28316627",
+      "same_shape": true,
+      "mae": 0.04878746718168259,
+      "max_abs_error": 1.321136474609375,
+      "waveform_cosine": 0.49267101287841797
+    },
+    {
+      "id": "common_voice_en_28638628-common_voice_en_28638717",
+      "same_shape": true,
+      "mae": 0.021857688203454018,
+      "max_abs_error": 1.24951171875,
+      "waveform_cosine": 0.9211311936378479
+    },
+    {
+      "id": "common_voice_en_30665077-common_voice_en_30665078",
+      "same_shape": true,
+      "mae": 0.021907038986682892,
+      "max_abs_error": 0.697509765625,
+      "waveform_cosine": 0.9076216816902161
+    },
+    {
+      "id": "common_voice_en_32101327-common_voice_en_32101329",
+      "same_shape": true,
+      "mae": 0.0006031410885043442,
+      "max_abs_error": 0.0733642578125,
+      "waveform_cosine": 0.9997866749763489
+    },
+    {
+      "id": "common_voice_en_32144882-common_voice_en_32144886",
+      "same_shape": true,
+      "mae": 0.0005532478680834174,
+      "max_abs_error": 0.016021728515625,
+      "waveform_cosine": 0.9999634027481079
+    },
+    {
+      "id": "common_voice_en_33966405-common_voice_en_33966447",
+      "same_shape": true,
+      "mae": 0.0007640467374585569,
+      "max_abs_error": 0.06658935546875,
+      "waveform_cosine": 0.9984766840934753
+    },
+    {
+      "id": "common_voice_en_35734335-common_voice_en_35734342",
+      "same_shape": true,
+      "mae": 0.015112807974219322,
+      "max_abs_error": 0.930450439453125,
+      "waveform_cosine": 0.9668982028961182
+    },
+    {
+      "id": "common_voice_en_36558935-common_voice_en_36558933",
+      "same_shape": true,
+      "mae": 0.0014762564096599817,
+      "max_abs_error": 0.12994384765625,
+      "waveform_cosine": 0.9975500702857971
+    },
+    {
+      "id": "common_voice_en_37251984-common_voice_en_37251991",
+      "same_shape": true,
+      "mae": 0.0008115392411127687,
+      "max_abs_error": 0.086212158203125,
+      "waveform_cosine": 0.9992289543151855
+    },
+    {
+      "id": "common_voice_en_37368335-common_voice_en_37368333",
+      "same_shape": true,
+      "mae": 0.01538935862481594,
+      "max_abs_error": 0.927825927734375,
+      "waveform_cosine": 0.731821596622467
+    },
+    {
+      "id": "common_voice_en_523215-common_voice_en_523219",
+      "same_shape": true,
+      "mae": 0.00021539472800213844,
+      "max_abs_error": 0.036407470703125,
+      "waveform_cosine": 0.9926801919937134
+    },
+    {
+      "id": "common_voice_en_557458-common_voice_en_557459",
+      "same_shape": true,
+      "mae": 0.00011035201168851927,
+      "max_abs_error": 0.0035400390625,
+      "waveform_cosine": 0.9999719262123108
+    },
+    {
+      "id": "common_voice_en_605765-common_voice_en_605766",
+      "same_shape": true,
+      "mae": 0.00027561080059967935,
+      "max_abs_error": 0.010101318359375,
+      "waveform_cosine": 0.9999827742576599
+    },
+    {
+      "id": "common_voice_en_75329-common_voice_en_75332",
+      "same_shape": true,
+      "mae": 0.005153913050889969,
+      "max_abs_error": 0.417236328125,
+      "waveform_cosine": 0.8789844512939453
+    },
+    {
+      "id": "common_voice_en_9559-common_voice_en_9560",
+      "same_shape": true,
+      "mae": 0.0068326303735375404,
+      "max_abs_error": 0.184478759765625,
+      "waveform_cosine": 0.9340490102767944
+    }
+  ]
+}

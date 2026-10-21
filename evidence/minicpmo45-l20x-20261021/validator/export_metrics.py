@@ -20,7 +20,7 @@ for d in sorted(a.input.glob('c*/run*')):
  cells.append({'cell':str(d.relative_to(a.input)),'summary':summary,'requests':records,'artifact_hashes':files,'wav_hashes':wavs})
 a.output.parent.mkdir(parents=True,exist_ok=True)
 plan=json.loads((a.input/'plan.json').read_text())
-source_plan={k:plan[k] for k in ('adapter','concurrency','requests','repeats','id_set','cache_policy','qualification','ids') if k in plan}
+source_plan={k:plan[k] for k in ('eval_offset','adapter','concurrency','requests','repeats','id_set','cache_policy','qualification','ids') if k in plan}
 source_plan.setdefault('id_set','eval')
 payload=json.dumps(clean({'qualification':'exploratory repeated steady state; no restart between cells','source_plan':source_plan,'metadata_notes':'Summary fields such as id_set, revision and GPU retain reference-helper defaults. The source_plan and campaign manifests are authoritative; tuning selection is not inferred from summary.id_set.','cells':cells}),indent=2,allow_nan=False)+'\n'
 if a.output.suffix == '.gz':

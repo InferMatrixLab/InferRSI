@@ -1,0 +1,22 @@
+{
+  "scope": "Descriptive paired bootstrap over prompts; no noninferiority margin, no gate change and no proof of equivalence",
+  "n": 320,
+  "replicates": 10000,
+  "seed": 20261021,
+  "metrics": {
+    "sim": {
+      "candidate_minus_baseline": -0.03293265700340271,
+      "percentile_95_ci": [
+        -0.1043096747994423,
+        0.037407495230436315
+      ]
+    },
+    "utmos": {
+      "candidate_minus_baseline": -0.006490480154752731,
+      "percentile_95_ci": [
+        -0.014024680331349373,
+        0.0007106476649641934
+      ]
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "source": "Local launch arguments, resolved deploy configuration and server startup logs",
+  "runs": {
+    "vllm-official-repeated": {
+      "runtime": "main V1",
+      "cuda_mps": false,
+      "speaker_backend": "CPU ONNX Runtime",
+      "device_role": "same physical GPU A"
+    },
+    "vllm-speaker-repeated": {
+      "runtime": "candidate V1",
+      "cuda_mps": false,
+      "speaker_backend": "TensorRT CPU-reference graph, IEEE FP32",
+      "device_role": "same physical GPU A"
+    },
+    "vllm-speaker-mps-repeated": {
+      "runtime": "candidate V1",
+      "cuda_mps": true,
+      "speaker_backend": "TensorRT CPU-reference graph, IEEE FP32",
+      "device_role": "GPU B, same L20X SKU",
+      "mps_started_private_daemon": true
+    },
+    "vllm-fresh-main": {
+      "device_role": "GPU C, sequential fresh pair",
+      "cuda_mps": false,
+      "speaker_backend": "CPU ONNX Runtime"
+    },
+    "vllm-fresh-speaker": {
+      "device_role": "same GPU C, sequential fresh pair",
+      "cuda_mps": false,
+      "speaker_backend": "CPU-reference TensorRT IEEE FP32"
+    },
+    "vllm-holdout-main": {
+      "device_role": "GPU D, sequential fresh holdout pair",
+      "cuda_mps": false,
+      "speaker_backend": "CPU ONNX Runtime"
+    },
+    "vllm-holdout-candidate": {
+      "device_role": "same GPU D, sequential fresh holdout pair",
+      "cuda_mps": true,
+      "speaker_backend": "CPU-reference TensorRT IEEE FP32",
+      "state": "Planned next after main completes; confirm against final controller output"
+    }
+  },
+  "summary_metadata_warning": "Raw summary mps_policy=off/id_set=eval and blank source/device fields are reference-helper defaults. These runtime observations, source plans and pinned manifests are authoritative. No strict certification is inferred from those default fields.",
+  "host_limitations": "Exclusive GPU reservations, but shared host CPUs and filesystem; other workloads and separate GPU scoring may overlap. No CPU affinity isolation or causal attribution from microbench timing alone."
+}

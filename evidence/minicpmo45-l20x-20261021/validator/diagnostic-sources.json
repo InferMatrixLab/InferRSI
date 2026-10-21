@@ -1,0 +1,12 @@
+{
+  "speaker_trt_ieee.py": {
+    "source_repository": "https://github.com/vllm-project/vllm-omni",
+    "source_revision": "aa3fd1d9b7f5c7191dec11975ac0aa7c4c4a18c5",
+    "source_path": "vllm_omni/model_executor/models/cosyvoice3/speaker_embedding_trt.py",
+    "source_sha256": "a97251c3207adfb6c115e0c6b0e3e6f6aab1d16d6c7a15bd07bb559bd6691ae3",
+    "derived_sha256": "a9a35e34ba01ed7c70aad36c3d4a5a6801821fd04a081c0fdaf28928d94a088e",
+    "license": "Apache-2.0; source header retained",
+    "patch": "--- baseline\n+++ historical-ieee-diagnostic\n@@ -57,6 +57,7 @@\n             raise ValueError(f\"Failed to parse {onnx_path}: {errs}\")\n \n     config = builder.create_builder_config()\n+    config.clear_flag(trt.BuilderFlag.TF32)\n     config.set_memory_pool_limit(trt.MemoryPoolType.WORKSPACE, 1 << 31)  # 2 GiB\n \n     input_name = network.get_input(0).name\n",
+    "scope": "Historical isolated precision-only rejection; final CPU-reference backend imports candidate code directly."
+  }
+}

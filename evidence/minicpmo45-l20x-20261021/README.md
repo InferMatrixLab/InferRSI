@@ -2,7 +2,7 @@
 
 Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49).
 
-**Current verdict: INCONCLUSIVE.** Baselines are complete; candidate service and speech-quality qualification is in progress. Component PASS does not establish service PASS.
+**Original strict quality verdict: FAIL** for the completed speaker-only candidate. A separately authorized noninferiority evaluation on previously unused prompts is pending; it does not change the original verdict. Component PASS does not establish service PASS.
 
 ## Scope and controls
 
@@ -14,6 +14,8 @@ Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49)
 - Persistent-server steady state: caches are not reset between runs/cells. `cache_policy: none` means no reset procedure, not disabled caches. This is not the peer engine strict cold-cache certification; C32 uses 320 rather than its 640 requests.
 - Throughput is 25 × delivered audio seconds / measured wall time; it is an audio-frame equivalent, not video fps. The table averages three run throughputs. TTFA percentiles pool 960 requests; RTF is the mean per-request last-audio latency divided by generated duration.
 - vLLM streams audio chunks. SGLang returns a terminal waveform, so its TTFA is effectively completion latency. Do not interpret the two TTFA columns as equivalent streaming capability.
+
+The native main configurations also differ: SGLang Code2Wav uses float16, compiled DiT/HiFT, eight reference workers and a 32-entry prompt cache; this vLLM baseline uses its default FP32 CFM path and serial CPU reference preparation. These are native-engine comparisons, not an isolated backend comparison with identical numerical kernels and scheduling.
 
 ## Main-branch baselines
 
@@ -116,3 +118,69 @@ PYTHONPATH="$PEER:$VLLM_OMNI" python "$EVIDENCE/validator/bench_speaker.py" \
 ## Interpretation limits
 
 The optimization target is high-concurrency throughput with no speech-quality regression, not a globally optimal configuration. English voice cloning does not establish multilingual, visual, full-duplex or interruption correctness. Historical reference-engine results are prior art, not measurements reproduced by this campaign. Profiling perturbed MRv2 execution, so its stack samples are diagnostic only and excluded from performance tables.
+
+## Separately authorized noninferiority holdout
+
+The original zero-regression gates are preserved. After seeing first-cohort results, the user authorized a new engineering tolerance: WER +0.20 percentage points, SIM (×100) −0.50, UTMOS −0.05. These are not published perceptual equivalence thresholds. `plan/noninferiority-holdout.json` freezes unused evaluation rows 320–639, concurrency 1/16/32, and the paired 20,000-resample prompt bootstrap. Every one-sided 95% degradation upper bound must meet its margin; missing evidence is INCONCLUSIVE. Model/profile selection uses the existing throughput cohort before opening the new holdout. No threshold adjustment or tuning is allowed after those outputs are inspected.
+
+## Completed speaker-only service result
+
+The three-repeat speaker-only run completed all 5,760 measured requests. The original quality gate is **FAIL**, even though high-concurrency throughput improved in every repeat. Run-level variation and all requested latency metrics are retained in `results/speaker-comparison.json`. C1 SIM/UTMOS decreased; C16/C32 WER increased. Repeated C1 scoring and waveform diagnostics are preserved rather than relabeling the differences as noise.
+
+| C | Frames/s | TTFA p50 ms | TTFA p95 ms | RTF mean |
+|---|---:|---:|---:|---:|
+| 1 | 190.8 | 314.0 | 350.3 | 0.133 |
+| 2 | 298.0 | 405.8 | 499.2 | 0.170 |
+| 4 | 457.0 | 611.3 | 736.3 | 0.226 |
+| 8 | 626.7 | 885.2 | 1096.9 | 0.331 |
+| 16 | 728.9 | 1180.8 | 1683.7 | 0.560 |
+| 32 | 803.4 | 1745.6 | 2421.3 | 1.008 |
+
+## Selected speaker + MPS profile
+
+All 5,760 measured requests completed. The profile was selected by the predeclared geometric mean of C16/C32 three-repeat throughput, before generating the new holdout. Its original strict speech verdict is also **FAIL**; use `results/mps-comparison.json` for that verdict and `results/noninferiority-holdout.json` for the separate new decision when available. Copy `patch/speaker-mps.yaml` beside the base deploy YAML to reproduce this optional profile.
+
+| C | Frames/s | TTFA p50 ms | TTFA p95 ms | RTF mean |
+|---|---:|---:|---:|---:|
+| 1 | 184.1 | 312.2 | 354.1 | 0.138 |
+| 2 | 323.8 | 351.7 | 423.3 | 0.157 |
+| 4 | 519.3 | 479.4 | 619.0 | 0.196 |
+| 8 | 710.5 | 697.1 | 954.1 | 0.290 |
+| 16 | 829.4 | 1042.0 | 1602.3 | 0.493 |
+| 32 | 942.3 | 1510.9 | 2712.0 | 0.858 |
+
+![Concurrency comparison](results/concurrency-comparison.png)
+
+Bands show the minimum/maximum run throughput, not confidence intervals. Quality qualification is separate. MPS improves high-concurrency throughput here but reduces C1 throughput; C32 TTFA p95 is worse than speaker-only even though throughput is higher.
+
+## Reproduce the separately frozen holdout
+
+Run `validator/holdout_pair.py --help` for explicit environment/repository paths.
+It starts baseline then candidate inside a single externally reserved GPU,
+uses `run_holdout.py --eval-offset 320 --requests 320 --repeats 1`, and saves a
+`complete` marker only after all WAVs are written. Use the selected MPS overlay
+and the model, package, scorer and source pins in this evidence tree. Do not run
+another performance client against either service concurrently.
+
+Score run1 at C1/C16/C32 for both roles with `validator/score_outputs.py`, naming
+outputs `vllm-holdout-main-c{C}.json` and
+`vllm-holdout-candidate-c{C}.json` in a common quality directory. Then run:
+
+```bash
+python "$EVIDENCE/validator/noninferiority.py" \
+  --plan "$EVIDENCE/plan/noninferiority-holdout.json" \
+  --quality-dir "$RUNS/quality" --out "$RUNS/noninferiority-holdout.json"
+```
+
+The validator checks exact frozen prompt IDs and complete scorer coverage,
+recomputes corpus WER from counts in each paired resample, and reports every
+metric's degradation, confidence upper bound, margin and verdict. All nine
+checks must pass. This inference is conditional on the generated outputs;
+it does not establish equivalence across generation seeds or replace a
+listening study. A failed upper-bound gate does not by itself prove perceptual
+inferiority.
+
+Host CPUs and the filesystem are shared with other jobs; GPU reservations are
+exclusive, but CPU affinity is not isolated. The host has two Intel Xeon
+Platinum 8480C sockets, 112 physical cores / 224 hardware threads. Results are
+scoped observations on this host, not hardware-independent performance claims.

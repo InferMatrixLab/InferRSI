@@ -1,0 +1,17 @@
+{
+  "main_repeat": {
+    "n_same_shape": 320,
+    "mean_mae": 0.0010952550022011564,
+    "mean_cosine": 0.9983432989567518
+  },
+  "speaker_repeat": {
+    "n_same_shape": 320,
+    "mean_mae": 0.001072906265835627,
+    "mean_cosine": 0.9985167846083641
+  },
+  "main_to_speaker": {
+    "n_same_shape": 320,
+    "mean_mae": 0.015628981023564848,
+    "mean_cosine": 0.8702871369197964
+  }
+}
