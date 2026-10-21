@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a704774293ea320b0a2f1f5229d61d7b307fc089/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
-      "commit": "a704774293ea320b0a2f1f5229d61d7b307fc089",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/537429708a0dedbea0ba188418f0fb5e1cbf9ede/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "commit": "537429708a0dedbea0ba188418f0fb5e1cbf9ede",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
@@ -45,10 +45,10 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md": "c993bd6ff8e9b5f82f39f175ec8242341136e4ee0808af414e1d94ad3e196c5e",
-    "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json": "c26bb55f0f4753396addd0e76967bfc03199e45e27d05e8d76ab29c590841f08",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json": "c1542bfea85a0c4a1537a05a66cd04b59c97633d88937b53c92ee274b264eab3",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md": "614c9a4e6943d24d7d7be7d632682ce8b1dcc239124a37d9dc1d487113772eac",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
-    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md": "d7ca20c50652ef70da198de9216315b98cfbaa28b22bfe036f293a85a8f20261",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md": "ca996ef515af42a3ce304747fa3f12a31c00533deaace5ba2ce21aefa0a62e2e",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263",
     "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
   },
@@ -82,7 +82,23 @@
           "comfy_execution/graph.py",
           "comfy/model_management.py",
           "comfy/model_patcher.py",
-          "comfy/sampler_helpers.py"
+          "comfy/sampler_helpers.py",
+          "server.py",
+          "main.py",
+          "comfy_execution/graph_utils.py",
+          "comfy_execution/cache_provider.py",
+          "nodes.py",
+          "comfy/sample.py",
+          "comfy/samplers.py",
+          "tests/execution/test_execution.py",
+          "tests-unit/execution_test/test_execution_list.py",
+          "tests-unit/comfy_test/model_management_test.py",
+          "tests/inference/test_inference.py",
+          ".github/workflows/test-execution.yml",
+          "LICENSE",
+          "pyproject.toml",
+          "tests-unit/execution_test/test_cache_provider.py",
+          "AGENTS.md"
         ],
         "readset": "references/repo-provenance.md"
       }

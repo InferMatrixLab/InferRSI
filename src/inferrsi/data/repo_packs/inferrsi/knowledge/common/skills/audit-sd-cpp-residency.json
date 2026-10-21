@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a704774293ea320b0a2f1f5229d61d7b307fc089/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
-      "commit": "a704774293ea320b0a2f1f5229d61d7b307fc089",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/537429708a0dedbea0ba188418f0fb5e1cbf9ede/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+      "commit": "537429708a0dedbea0ba188418f0fb5e1cbf9ede",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
         "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
@@ -48,7 +48,7 @@
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md": "3e93b2b4764f61ea00ec7d1a96aa5b9e2c5f2e746cb6e65287cdce659c056cf6",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json": "133863463870fd5df267d8f60d5b1755d27fcf1d0ee2f3790539480079d2edc2",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md": "7b537cb972347dd68e303960f142892346d8b19b884e4d08016ea36a23bdaa7a",
-    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json": "7a324c05817f733fbe6a4b2b36317034c05dd5db06eb0be089546119d80060b1",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json": "af4830370b6eddc2d176a9ae14da4ab56a90b0fe048a01a89ee051df4365d8e9",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md": "b67affbd7d237d82b7f51be49f1537e9820fe56ec70a71ee76809f9e599ca693",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md": "5dcf5fa7bf734fbe13214f57d2dfb40ff8215d9cd34e072a9e615bf103b82fc2",
     "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
