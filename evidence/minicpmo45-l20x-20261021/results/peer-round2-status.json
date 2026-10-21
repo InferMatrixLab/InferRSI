@@ -18,13 +18,18 @@
     "Native Talker with two replicas throughput screen",
     "Native stage2 no-coalescing control",
     "Setup numerical A/A audit confirms prior FAIL",
-    "Native coalescing constructor fix,104 tests and pre-commit PASS"
+    "Native coalescing constructor fix,104 tests and pre-commit PASS",
+    "Native coalescing6ms screen, no material throughput gain",
+    "Native Talker four-vocoder screen,C32 1332.4",
+    "Torch speaker exact graph implementation, real-feature bitwise gate and CPU/CUDA checks"
   ],
   "active": [
-    "Native Talker two-replica quality scoring",
-    "Native coalescing service retry queued",
-    "Native Talker four-replica service queued",
-    "Torch speaker graph exactness probe queued"
+    "Coalescing/control speech quality scoring",
+    "Native Talker four-replica quality queued",
+    "Matched peer64-tuning baseline",
+    "Ordinary Talker plus speaker-graph two-vocoder service screen",
+    "Ordinary Talker2/Code2Wav4 speaker-graph screen",
+    "Selective CFM plus speaker graph composition tests/service queued"
   ],
   "reserved_holdout_used": false,
   "quality_margins": {

@@ -199,5 +199,27 @@
     }
   },
   "quality_status": "Descriptive reused-cohort means, not confidence-bound qualification",
-  "quality_finding": "C32 SIM mean49.2423 versus Torch/MPS control51.0028: decline1.7605 exceeds0.50 margin. Not a qualified candidate; C1/C16 means improved. Four-replica trial retained only as scaling diagnostic."
+  "descriptive_mean_degradation_vs_torch_mps": {
+    "1": {
+      "wer_pp": -0.8486562942008486,
+      "sim_x100_drop": -0.7500781416893005,
+      "utmos_drop": -0.02006734162569046,
+      "within_mean_margins": true
+    },
+    "16": {
+      "wer_pp": -0.7072135785007072,
+      "sim_x100_drop": -1.3642717003822327,
+      "utmos_drop": -0.016416117548942566,
+      "within_mean_margins": true
+    },
+    "32": {
+      "wer_pp": -0.14144271570014147,
+      "sim_x100_drop": 1.7604798376560211,
+      "utmos_drop": -0.018871638923883438,
+      "within_mean_margins": false
+    }
+  },
+  "mean_screen_within_margins": false,
+  "quality_reference_note": "Reused Torch/MPS tuning screen only; final qualification uses pinned15b main on unused256 prompts and confidence bounds.",
+  "quality_finding": "C32 SIM mean decline1.7605 exceeds0.50 margin; not a qualified candidate."
 }

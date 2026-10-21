@@ -24,7 +24,17 @@
     "native-coalescing": {
       "source_revision": "e9b12cf223b4a3900f6f30772065eb058550319a",
       "patch": "peer-round2-native-coalescing.patch",
-      "status": "Regression before FAIL, after104 tests PASS and pre-commit PASS; service retry queued"
+      "status": "104 scheduler tests and pre-commit PASS; service C16/C32 773.9/904.8, no material gain; quality pending"
+    },
+    "speaker-torch-graph": {
+      "source_revision": "17246ce5e695c7f0c58d53f42aa586e1e94390f1",
+      "patch": "peer-round2-speaker-torch-graph.patch",
+      "status": "Bitwise component and lifecycle gates PASS, service screen pending"
+    },
+    "cfm-speaker-composition": {
+      "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+      "patch": "peer-round2-cfm-speaker-composition.patch",
+      "status": "Composition tests and service queued; no qualification"
     }
   },
   "note": "Apply each patch independently to the base. Default behavior remains unchanged unless the corresponding opt-in config is enabled. Do not combine or promote failed candidates as a qualified release."

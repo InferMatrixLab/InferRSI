@@ -198,5 +198,27 @@
       "wer_mean": 0.019467511655011656
     }
   },
-  "quality_status": "Descriptive reused-cohort means, not confidence-bound qualification"
+  "quality_status": "Descriptive reused-cohort means, not confidence-bound qualification",
+  "descriptive_mean_degradation_vs_torch_mps": {
+    "1": {
+      "wer_pp": 0.0,
+      "sim_x100_drop": -0.007801532745361328,
+      "utmos_drop": -0.0004766695201396942,
+      "within_mean_margins": true
+    },
+    "16": {
+      "wer_pp": -0.42432814710042444,
+      "sim_x100_drop": -0.46340715885162354,
+      "utmos_drop": 0.003962721675634384,
+      "within_mean_margins": true
+    },
+    "32": {
+      "wer_pp": -0.28288543140028294,
+      "sim_x100_drop": 0.15683206915855408,
+      "utmos_drop": 0.012685157358646393,
+      "within_mean_margins": true
+    }
+  },
+  "mean_screen_within_margins": true,
+  "quality_reference_note": "Reused Torch/MPS tuning screen only; final qualification uses pinned15b main on unused256 prompts and confidence bounds."
 }
