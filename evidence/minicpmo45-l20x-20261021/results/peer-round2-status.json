@@ -37,10 +37,14 @@
     "Window100 selectiveCFM C16/C32 1244.9/1463.3; quality means exceed margins",
     "Window50 exact HiFT coverage C16/C32 1367.4/1663.7; quality means exceed margins",
     "CPU diagnostic recovered from100Hz sampling lag; separate CPU counters and2Hz qualitative stacks",
-    "Packed transport synthetic CPU median34.53ms to0.498ms; bitwise values preserved;213 regression tests passed with1existing skip"
+    "Packed transport synthetic CPU median34.53ms to0.498ms; bitwise values preserved;213 regression tests passed with1existing skip",
+    "Packed25 C16/C32 1331.4/1573.5 and packed50 1521.4/1839.8, zero request failures; quality pending",
+    "Standalone main-based packed transport213 tests and precommit PASS; not service-tested"
   ],
   "active": [
-    "Packed conditioning transport25/50-frame service screens queued, source60d71d16e0; quality watchers pending"
+    "Packed25/50 speech quality scoring queued",
+    "Independent fixed-window Talker4/vocoder4 and Talker2/vocoder8 screens",
+    "Clean main composition integration and validation"
   ],
   "reserved_holdout_used": false,
   "quality_margins": {

@@ -39,8 +39,20 @@
     "tensor-handoff-composition": {
       "source_revision": "60d71d16e0d77734239935ffc6b991c810ea1aa7",
       "patch": "peer-round2-tensor-handoff-composition.patch",
-      "status": "213 regression tests and precommit PASS; synthetic CPU transport values bitwise equal; service and speech qualification pending"
+      "status": "213 regression checks; packed25/50 service screens below peer C32; quality pending"
+    },
+    "tensor-handoff-main": {
+      "base_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+      "source_revision": "e27ebb06da28f82d4cc0c2c10ae8455d551c5c07",
+      "patch": "peer-round2-tensor-handoff-main.patch",
+      "status": "Standalone transport213 tests+precommit PASS; not service-tested"
+    },
+    "clean-main-composition": {
+      "base_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+      "source_revision": "e7a63354b61209a0f27e78c336f038df992e71ef",
+      "patch": "peer-round2-clean-main-composition.patch",
+      "status": "305 CPU regression checks,37 skips,precommit PASS; not service-tested; no quality claim"
     }
   },
-  "note": "Apply each patch independently to the base. Precision and speaker extensions are opt-in. The packed-turn-handoff composition changes ordinary-turn transport by default while preserving float32 values. Rejected profiles remain rejected; no patch is a qualified peer-beating release."
+  "note": "Apply each patch independently to its recorded base; entries with an explicit base_revision override the top-level base. Precision and speaker extensions are opt-in. Packed ordinary-turn transport preserves float32 values. Rejected profiles remain rejected; no patch is a qualified peer-beating release."
 }

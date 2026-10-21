@@ -1,0 +1,25 @@
+{
+  "at_utc": "2026-10-21T10:55:55.664100+00:00",
+  "base_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+  "candidate_revision": "e7a63354b61209a0f27e78c336f038df992e71ef",
+  "source_branch": "perf-minicpm-throughput-main",
+  "composition": [
+    "Packed ordinary-turn conditioning",
+    "CUDA FP16 fused resident attention eligibility and runtime dispatch",
+    "Selective CFM FP16, default off",
+    "Exact Torch speaker graph, default off"
+  ],
+  "excluded": "Earlier CPU-reference TensorRT speaker experiment and deployment are not included.",
+  "conflict_resolution": "Speaker backend flag tests retained main TRT API and added the original14 graph-related lines only.",
+  "validation": {
+    "cpu_passed": 305,
+    "skipped": 37,
+    "skip_note": "CUDA hidden for CPU regression; GPU-specific checks require a reserved device. The earlier equivalent kernel checks do not substitute for this revision service validation.",
+    "precommit": "PASS, including final documentation commit hooks"
+  },
+  "active_screen_source": "60d71d16e0d77734239935ffc6b991c810ea1aa7",
+  "service_tested": false,
+  "goal_achieved": false,
+  "verdict": "INCONCLUSIVE",
+  "patch_sha256": "d3dbe64114eaca08a764193250ed07f510a46a126b45d9b697370a6546474481"
+}
