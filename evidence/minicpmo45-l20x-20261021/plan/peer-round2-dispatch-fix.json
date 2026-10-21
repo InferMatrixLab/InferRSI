@@ -4,5 +4,8 @@
   "hypothesis": "Enable CUDA FP16 at the remaining _ragged_body runtime gate; test the actual service dispatch against the ragged numerical reference.",
   "validation": "New dispatch test must fail on parent then pass after fix; rerun DiT regressions before service screen.",
   "service": "Same64 tuning prompts,C1/C16/C32,discard plus one measured repeat; only runtime dispatch changed vs nominal fp16-fused screen.",
-  "quality": "Existing noninferiority margins unchanged; reserved256 remain unused."
+  "quality": "Existing noninferiority margins unchanged; reserved256 remain unused.",
+  "candidate_revision": "b6dacdf03756dbedeee8592577798670f5e22329",
+  "dispatch_negative_control": "New FP16 dispatch test fails on parent with the expected fused-path assertion.",
+  "precommit": "PASS"
 }
