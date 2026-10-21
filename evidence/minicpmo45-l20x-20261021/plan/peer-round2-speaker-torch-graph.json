@@ -1,0 +1,11 @@
+{
+  "frozen_at_utc": "2026-10-21T08:30:22.792301+00:00",
+  "base_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "Capture the existing Torch CAM++ forward in an exact-shape CUDA graph to eliminate repeated host launches; keep weights, operators and precision unchanged.",
+  "evidence": "Independent prompt component diagnostic: CAM++12.6ms of total25.3ms. This cannot alone close the throughput gap but may compose with pipeline improvements.",
+  "difference_from_prior_TRT_failure": "No ONNX/TensorRT conversion or operator fusion. Replay exactly the current Torch graph, keyed by shape and CUDA precision flags.",
+  "scope": "New default-off speaker graph option. Bounded graph cache, eager fallback for unsupported input/policy, owned outputs protect cached embeddings from later replays.",
+  "correctness_gate": "Bitwise equality against the same eager Torch model on real reused reference features; graph output ownership, shape fallback and precision-policy separation tests. No service trial if numerical gate fails.",
+  "performance_gate": "Measure warmed component latency first; service trial only after material component improvement.",
+  "quality_contract": "All final speech noninferiority gates unchanged;256 holdout unused."
+}

@@ -12,10 +12,19 @@
     "CFM graph capacity128 negative screen",
     "HiFT exact batch1/2/4 screen",
     "Selective CFM-only FP16 screen",
-    "Sequential component diagnostic"
+    "Sequential component diagnostic",
+    "Same-GPU two Code2Wav replicas throughput screen",
+    "Two-replica speech quality screen",
+    "Native Talker with two replicas throughput screen",
+    "Native stage2 no-coalescing control",
+    "Setup numerical A/A audit confirms prior FAIL",
+    "Native coalescing constructor fix,104 tests and pre-commit PASS"
   ],
   "active": [
-    "Same-GPU two Code2Wav replicas screen"
+    "Native Talker two-replica quality scoring",
+    "Native coalescing service retry queued",
+    "Native Talker four-replica service queued",
+    "Torch speaker graph exactness probe queued"
   ],
   "reserved_holdout_used": false,
   "quality_margins": {

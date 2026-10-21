@@ -10,7 +10,9 @@ The requester asked to continue until vLLM-Omni exceeds the source-pinned single
 - [Rejected prompt-setup numerical result](results/peer-round2-setup-numerical.json), [HiFT precision screen](results/peer-round2-screen-hift-tf32-mps.json), and [FP16 residency screen](results/peer-round2-screen-fp16-resident16-mps.json).
 - [Independent operator profile](results/peer-round2-stage2-profile.json) motivates the [completed graph-coverage trials](results/peer-round2-graph-screens.json). Profiled requests are excluded from performance aggregates.
 - [Selective CFM precision screen](results/peer-round2-cfm-only-fp16-screen.json): C16/C32 815.5/864.3 frames/s; descriptive quality means within margins, no confidence-bound acceptance.
-- [Same-GPU replica trial](plan/peer-round2-stage2-replicas.json) and [native coalescing contrast](plan/peer-round2-native-coalescing.json) investigate host dispatch and small actual batches without reusing the holdout.
+- [Two same-GPU replicas](results/peer-round2-replicas2-screen.json): C16/C32 973.1/1057.4 frames/s; descriptive quality means within margins. [Native Talker plus two replicas](results/peer-round2-native-talker-replicas2-screen.json): 1053.7/1172.1 frames/s, but C32 SIM mean drops1.76, exceeding the0.50 margin. Neither is a qualified peer win.
+- [Native stage2 control](results/peer-round2-native-stage2-screen.json) reaches C32 898.2 frames/s. The [coalescing contrast](plan/peer-round2-native-coalescing.json) initially failed startup; its minimal constructor fix passes104 scheduler tests and is queued for a fresh service retry.
+- [Prompt-setup A/A audit](results/peer-round2-setup-control-audit.json) confirms the numerical rejection; the [speaker Torch graph probe](plan/peer-round2-speaker-torch-graph.json) and [four-replica scaling diagnostic](plan/peer-round2-native-talker-replicas4.json) remain exploratory.
 - [Reproducible exploratory implementation patches](patch/peer-round2-manifest.json); none is presented as a qualified peer-beating release.
 
 

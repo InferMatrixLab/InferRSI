@@ -1,0 +1,24 @@
+{
+  "frozen_at_utc": "2026-10-21T08:22:39.262064+00:00",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "After two same-GPU Code2Wav replicas improve C16/C32 only32%/25%, native MRV2 Talker can remove per-frame host state/sampling transfers and raise the next pipeline ceiling.",
+  "evidence": [
+    "Two replicas screen C16=973.1,C32=1057.4 versus739.6/848.8 single replica",
+    "C32 request stage1 completion often precedes end by only0.2-0.7s; these intervals include queueing and are not pure model runtime",
+    "Existing MRV2 Talker keeps codec samples,16-frame penalties and EOS state on device; older all-stage MRV2 tests used8-slot stages and single Code2Wav without MPS"
+  ],
+  "contrast": "Only stage1 model_runner=v2 over measured two-Code2Wav-replica FP32/MPS configuration on same GPU0; capacities16 and microbatch4 retained.",
+  "checks": "Existing Talker MRV2 CPU+CUDA semantic tests and resolved V1/V2/V1 config before service; canonical64 reused tuning C1/C16/C32 then native quality scoring.",
+  "constraints": "No multi-frame speculative port, precision/sampling parameters unchanged.256 holdout unused.",
+  "pre_service_attempt1": {
+    "cpu_semantics": "34 passed",
+    "cuda_test": "Failed before sampler construction: flashinfer-python0.7.0.post1 versus flashinfer-cubin0.6.13",
+    "service_policy": "Pinned stage_engine_core_proc.py:248 already sets FLASHINFER_DISABLE_VERSION_CHECK=1 for every measured worker. The standalone pytest process did not run that initialization.",
+    "retry": "Mirror the existing worker environment in standalone CUDA test; retain strict numerical assertion and original dependency versions. This is not a quality-gate relaxation or a change to benchmark worker behavior."
+  },
+  "pre_service_attempt2": {
+    "environment": "Mirrors existing measured worker version-check setting",
+    "cpu_and_cuda_semantic_tests": "35 passed",
+    "resolved_config": "V1/V2/V1, capacities16, twoCode2Wav replicas onGPU0"
+  }
+}

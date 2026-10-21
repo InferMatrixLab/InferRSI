@@ -19,7 +19,12 @@
     "cfm-only-fp16": {
       "source_revision": "4671fdc3736c760f1abd637e30079b3cf65d1fdf",
       "patch": "peer-round2-cfm-only-fp16.patch",
-      "status": "Exploratory implementation; service/quality screen pending, no qualification"
+      "status": "Screen completed, no peer win; descriptive quality means within margins, no final qualification"
+    },
+    "native-coalescing": {
+      "source_revision": "e9b12cf223b4a3900f6f30772065eb058550319a",
+      "patch": "peer-round2-native-coalescing.patch",
+      "status": "Regression before FAIL, after104 tests PASS and pre-commit PASS; service retry queued"
     }
   },
   "note": "Apply each patch independently to the base. Default behavior remains unchanged unless the corresponding opt-in config is enabled. Do not combine or promote failed candidates as a qualified release."

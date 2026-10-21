@@ -357,6 +357,88 @@
         },
         "wer_mean": 0.025254953379953378
       }
+    },
+    "screen-stage2-replicas2": {
+      "1": {
+        "n": 64,
+        "sim": 50.04668951034546,
+        "utmos": 4.2114688493311405,
+        "wer": 0.019801980198019802,
+        "wer_counts": {
+          "substitutions": 11,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 695
+        },
+        "wer_mean": 0.02427338286713287
+      },
+      "16": {
+        "n": 64,
+        "sim": 50.50853833556175,
+        "utmos": 4.218715012073517,
+        "wer": 0.015558698727015558,
+        "wer_counts": {
+          "substitutions": 8,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 698
+        },
+        "wer_mean": 0.018644376456876458
+      },
+      "32": {
+        "n": 64,
+        "sim": 50.845969438552856,
+        "utmos": 4.207720126956701,
+        "wer": 0.015558698727015558,
+        "wer_counts": {
+          "substitutions": 9,
+          "deletions": 1,
+          "insertions": 1,
+          "hits": 697
+        },
+        "wer_mean": 0.019467511655011656
+      }
+    },
+    "screen-native-talker-replicas2": {
+      "1": {
+        "n": 64,
+        "sim": 50.7889661192894,
+        "utmos": 4.231059521436691,
+        "wer": 0.011315417256011316,
+        "wer_counts": {
+          "substitutions": 6,
+          "deletions": 1,
+          "insertions": 1,
+          "hits": 700
+        },
+        "wer_mean": 0.011310824592074591
+      },
+      "16": {
+        "n": 64,
+        "sim": 51.40940287709236,
+        "utmos": 4.239093851298094,
+        "wer": 0.01272984441301273,
+        "wer_counts": {
+          "substitutions": 7,
+          "deletions": 1,
+          "insertions": 1,
+          "hits": 699
+        },
+        "wer_mean": 0.012612907925407927
+      },
+      "32": {
+        "n": 64,
+        "sim": 49.24232167005539,
+        "utmos": 4.239276923239231,
+        "wer": 0.016973125884016973,
+        "wer_counts": {
+          "substitutions": 9,
+          "deletions": 2,
+          "insertions": 1,
+          "hits": 696
+        },
+        "wer_mean": 0.017957823426573427
+      }
     }
   }
 }
