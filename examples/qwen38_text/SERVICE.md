@@ -28,9 +28,14 @@ Supply a JSON object with these required fields, using acceptance-issue values:
   within the active capacity. Admission overlap must actually be observed.
 - `eos_case_id`: a declared case that must actually finish with `stop`; changing the
   model's EOS configuration to force coverage is not permitted. Missing observed
-  EOS is `INCONCLUSIVE`.
+  EOS is `INCONCLUSIVE`. At least one other case must actually finish with
+  `length` at its requested token limit; otherwise runtime limit coverage is also
+  `INCONCLUSIVE`.
 - `survivor_case_id`: a declared case whose exact serial output must survive
-  overlapping cancellation and disconnect of a separate request.
+  overlapping cancellation and disconnect of a separate request. Cancellation ACK
+  metadata must show the survivor active at the atomic cancellation point; the
+  disconnect terminal ledger must show it active when the victim is released.
+  Earlier overlap snapshots alone cannot satisfy this requirement.
 - `lifecycle`: a safe `id`, `prompt`, and `max_tokens` sufficient to observe active
   cancellation, disconnect, capacity saturation, active shutdown, and a second
   model call for fault injection. Early natural completion is a coverage gap.

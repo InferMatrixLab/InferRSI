@@ -354,6 +354,10 @@ def functional(public, http, workload, failures):
         expected[workload["eos_case_id"]]["finish_reason"] == "stop",
         "Frozen EOS fixture did not observe a stop; EOS coverage missing",
     )
+    need(
+        any(result["finish_reason"] == "length" for result in expected.values()),
+        "No runtime max-token termination observed",
+    )
     zero_state(public["closed_state"], failures, "public close", closed=True)
     observations = http["http"]
     zero_state(observations["initial_state"], failures, "HTTP initial")
@@ -446,6 +450,11 @@ def functional(public, http, workload, failures):
                 and observed["ack"].get("body", {}).get("cancelled") is True,
                 "Active cancellation acknowledgement missing",
             )
+            peers = observed["ack"]["body"].get("active_request_ids_before_cancel")
+            need(
+                isinstance(peers, list) and {request_id, survivor_id} <= set(peers),
+                "Survivor was not active at cancellation linearization",
+            )
             check(
                 stream["finish_reason"] == "cancelled",
                 "Acknowledged cancellation ignored",
@@ -453,6 +462,12 @@ def functional(public, http, workload, failures):
             )
         state = released(observed["release"], failures, reason + " release")
         end = terminal(state, request_id)
+        if reason == "disconnected":
+            peers = end.get("active_peer_request_ids")
+            need(
+                isinstance(peers, list) and survivor_id in peers,
+                "Survivor was not active when disconnect released the victim",
+            )
         check(end.get("finish_reason") == reason, reason + " terminal reason differs", failures)
         check(end.get("prefilled") is True, reason + " did not release a prefilled state", failures)
         compare(

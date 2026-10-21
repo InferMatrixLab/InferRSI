@@ -84,6 +84,7 @@ def ending(name, reason, prefilled=True, count=1):
         "finish_reason": reason,
         "prefilled": prefilled,
         "token_count": count,
+        "active_peer_request_ids": ["survivor-disconnected"],
     }
 
 
@@ -130,7 +131,14 @@ def response(name, result=None):
 
 
 def ack(name):
-    return {"status": 200, "body": {"request_id": name, "cancelled": True}}
+    return {
+        "status": 200,
+        "body": {
+            "request_id": name,
+            "cancelled": True,
+            "active_request_ids_before_cancel": [name, "survivor-cancelled"],
+        },
+    }
 
 
 def server(closed=None):
@@ -675,3 +683,21 @@ def test_real_socket_disconnect_reaches_peer(lifecycle_socket):
     record = held.finish()
     assert disconnected.wait(2)
     assert decode_stream(record, "held", BF16_MODEL_ID, disconnected=True)["token_ids"] == [4]
+
+
+@pytest.mark.parametrize("reason", ["cancelled", "disconnected"])
+def test_survivor_finished_before_lifecycle_linearization_is_gap(protocol, observations, reason):
+    observed = observations[1]["http"][reason]
+    if reason == "cancelled":
+        observed["ack"]["body"]["active_request_ids_before_cancel"] = ["lifecycle-cancelled"]
+    else:
+        observed["release"][0]["terminal_requests"][0]["active_peer_request_ids"] = []
+    with pytest.raises(EvidenceGap, match="Survivor was not active"):
+        functional(*observations, protocol, [])
+
+
+def test_missing_runtime_length_coverage_is_gap(protocol, observations):
+    for case in observations[0]["cases"]:
+        case["outputs"][0]["finish_reason"] = "stop"
+    with pytest.raises(EvidenceGap, match="max-token"):
+        functional(*observations, protocol, [])
