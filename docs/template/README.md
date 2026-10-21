@@ -95,8 +95,8 @@ weights, logos or upstream code.
 The canonical contract is
 [InferMatrixLab/recipe, schema version 1](https://github.com/InferMatrixLab/recipe/blob/main/schemas/recipe.schema.json).
 Update that schema, its documentation and this template together when changing
-the interface. The older [InferRSI scenario recipe](../../recipes/README.md) is
-an internal RunSpec/evidence scaffold; it has a different purpose and format.
+the interface. For Workbench experiments, follow the
+[quickstart](../quickstart.md) and [evidence template](../../evidence/_template/).
 
 - Keep every top-level and nested key from this template. Use a snake_case task
   name and the actual backend string; backend names are not a closed enum.

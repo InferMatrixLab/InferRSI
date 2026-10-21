@@ -11,7 +11,7 @@ Use a task branch and keep each change reviewable. Sign commits with DCO:
 
 ```bash
 python -m pip install -e '.[dev,image]'
-ruff check src tests benchmarks/harness
+ruff check src tests tools
 pytest
 git commit -s
 ```
@@ -232,5 +232,6 @@ recipes for [InferMatrixLab/recipe](https://github.com/InferMatrixLab/recipe).
 The engine owns implementation and recipes; catalog maintainers own collection,
 schema and website; the acceptance owner owns performance verdicts. Follow the
 template's copy, validation and catalog-registration steps. Missing hardware
-verification remains explicit, and existing InferRSI scenario recipes and four
-CI lanes retain their current roles.
+verification remains explicit. Workbench experiments use the
+[quickstart](quickstart.md) and [evidence template](../evidence/_template/);
+the four CI lanes retain their current roles.

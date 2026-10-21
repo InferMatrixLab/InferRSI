@@ -110,7 +110,6 @@ src/inferrsi/
   reporting.py              Compatibility export -> harness.reporting
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
-benchmarks/harness/         Compatibility command entrypoints
 ```
 
 ## Where to extend
