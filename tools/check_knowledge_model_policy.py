@@ -372,7 +372,8 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
             if admission_snapshot(by_number[number]) != admission_snapshot(pr):
                 raise ValueError("PR changed before batch publication; rerun required")
             if comments and comments != api.pages(f"issues/{number}/comments"):
-                raise ValueError("Approval comments changed before batch publication; rerun required")
+                raise ValueError(
+                    "Approval comments changed before batch publication; rerun required")
         except (ValueError, KeyError, TypeError, OSError) as error:
             result = evaluation_failure(error)
         if not dry_run:
