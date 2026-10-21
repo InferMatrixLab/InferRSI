@@ -7,5 +7,6 @@
   },
   "unchanged": "FP32 flow, default nonresident cache, Torch speaker, MPS, stage capacities16, canonical64 tuning prompts",
   "protocol": "C1/C16/C32,64 reused tuning prompts, discard then one measured repeat. Quality screening follows; no holdout consumption.",
-  "decision": "Promote only if service throughput improves; a numerical dtype change is not part of this screen."
+  "decision": "Promote only if service throughput improves; a numerical dtype change is not part of this screen.",
+  "diagnostic_after_screen": "Separate C32 stage-metrics request window on the same first64 tuning IDs, after throughput summaries are saved; excluded from performance aggregates."
 }
