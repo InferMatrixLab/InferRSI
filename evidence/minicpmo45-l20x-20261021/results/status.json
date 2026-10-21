@@ -8,13 +8,15 @@
   },
   "optimization_submitted": true,
   "pending": [
-    "speaker+MPS repeated benchmark and quality",
-    "fresh-start confirmation",
-    "separately authorized unused-holdout noninferiority"
+    "original unused-holdout noninferiority",
+    "updated-main and adapted-candidate repeated service comparison",
+    "adapted-candidate quality regression against updated main"
   ],
   "candidate_pull_request": "https://github.com/vllm-project/vllm-omni/pull/9188",
   "candidate_cpu_tests_passed": 67,
   "candidate_tuning": "C16/C32 gains observed; held-out repeated service and generated speech quality pending",
   "original_strict_speaker_verdict": "FAIL",
-  "knowledge_pull_request": "https://github.com/InferMatrixLab/InferRSI/pull/51"
+  "knowledge_pull_request": "https://github.com/InferMatrixLab/InferRSI/pull/51",
+  "final_candidate_revision": "227a43e898f8b96236f48f16f399431c8ad0ddcc",
+  "updated_baseline_revision": "15bce34586"
 }

@@ -17,7 +17,7 @@ Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49)
 
 The native main configurations also differ: SGLang Code2Wav uses float16, compiled DiT/HiFT, eight reference workers and a 32-entry prompt cache; this vLLM baseline uses its default FP32 CFM path and serial CPU reference preparation. These are native-engine comparisons, not an isolated backend comparison with identical numerical kernels and scheduling.
 
-## Main-branch baselines
+## Initial main snapshots (before CUDA Torch became the vLLM default)
 
 | Engine | C | Frames/s | TTFA p50 ms | TTFA p95 ms | RTF mean |
 |---|---:|---:|---:|---:|---:|
@@ -188,3 +188,26 @@ scoped observations on this host, not hardware-independent performance claims.
 ## Restart confirmation
 
 `results/fresh-start-confirmation.json` compares freshly started main and speaker-only services sequentially on one reserved GPU, using the original first cohort. At C16 throughput was 518.6 versus 689.4 frames/s; at C32, 546.9 versus 799.2. These single measured repeats support persistence of the throughput direction, not a new confidence interval. The C1 SIM/UTMOS decrease also persisted. The separately authorized noninferiority holdout remains a distinct experiment.
+
+## Upstream integration during the experiment
+
+While the frozen experiment was running, vLLM-Omni merged #9178, enabling
+Torch CUDA speaker extraction by default. The historical `aa3fd1d9` baseline
+and `f2462435` candidate remain intact. Their measurements must not be described
+as gains over the newer `15bce34586` main snapshot.
+
+The adapted PR revision is `227a43e898f8b96236f48f16f399431c8ad0ddcc`.
+It preserves the new Torch default and exposes `token2wav_spk_cpu_reference`
+as an explicit opt-in, with a checked-in MPS overlay. Use
+`patch/integrated-candidate.json` and
+`patch/minicpmo_4_5_cpu_reference_trt_mps.yaml` for that revision;
+`patch/candidate.json` and the earlier overlays describe the historical one.
+
+Updated-main and adapted-candidate six-cell repeats are governed by
+`plan/latest-main-addendum.json` and `plan/integrated-comparison.json`.
+Their quality comparison uses previously seen first-cohort prompts and is
+explicitly an integration regression, not another untouched holdout. The
+original unused-cohort decision remains separately scoped to the historical
+candidate. Source equality checks in `validator/integration-equivalence.json`
+cover the speaker implementation only; updated coordinator behavior still
+requires the separate service comparison.
