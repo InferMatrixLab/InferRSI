@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 48 registered skills in `data/skill_library/`.
+Generated abstracts for all 49 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [ddeba86177132c5933cf7ab1e6eb7021fb767e22](https://github.com/InferMatrixLab/InferRSI/tree/ddeba86177132c5933cf7ab1e6eb7021fb767e22/src/inferrsi/data/skill_library).
+Source snapshot: [d672be3181f2b2c590ce77aaae4048052e4c80cf](https://github.com/InferMatrixLab/InferRSI/tree/d672be3181f2b2c590ce77aaae4048052e4c80cf/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision ddeba86177132c5933cf7ab1e6eb7021fb767e22 --check
+python tools/build_skill_index.py --source-revision d672be3181f2b2c590ce77aaae4048052e4c80cf --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -49,6 +49,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [ascendc-tiling-design](ascend/skills/ascendc-tiling-design.json) | ascend | candidate |
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
+| [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |
 | [calibrate-serving-simulation](common/skills/calibrate-serving-simulation.json) | common | candidate |
 | [cann-attribution-overlap](ascend/skills/cann-attribution-overlap.json) | ascend | candidate |
