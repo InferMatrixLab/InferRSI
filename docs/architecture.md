@@ -194,6 +194,14 @@ change the AB/BA algorithm, process cleanup or evaluator.
 
 ## Compatibility and historical evidence
 
+The supervised server helpers (`infra.processes.launch_server` / `stop_server`)
+require Linux with a readable `/proc` process table. They reject other platforms
+before launch; missing or inaccessible process enumeration raises an error rather
+than reporting successful cleanup. Workers must remain in their owned process
+group. Windows Job Object support in the general command executor does not extend
+to these server helpers. These constraints do not restrict read-only knowledge
+operations or the control CLI to Linux.
+
 - Existing CLI flags, root import paths, external JSON metrics, run artifacts,
   cancellation handling and report generation are retained.
 - `examples/qwen21_turbo_b300.py` retains its command interface and campaign

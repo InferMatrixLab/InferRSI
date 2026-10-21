@@ -3,6 +3,7 @@
 import os
 import signal
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -103,9 +104,18 @@ def _stop_tree(process: subprocess.Popen, windows_job: _WindowsJob | None = None
     process.wait(timeout=10)
 
 
+def _require_server_platform():
+    if sys.platform != "linux":
+        raise OSError("Server helpers require Linux with a readable /proc filesystem")
+    # A missing/inaccessible procfs must never count as an empty process group.
+    Path("/proc/self/stat").read_text()
+
+
 def launch_server(argv, source, environment, log):
     """Keep supervised workers inside the runner's group, including hard timeout."""
+    _require_server_platform()
     helper_pid, helper_group = os.getpid(), os.getpgrp()
+    _live_group_members(helper_group)  # Verify enumeration before creating any worker.
     marker = bool(os.environ.get("INFERRSI_RESULT_PATH"))
     if marker and helper_group != helper_pid:
         raise ValueError(
@@ -133,20 +143,25 @@ def launch_server(argv, source, environment, log):
 
 
 def _live_group_members(group, exclude=()):
+    _require_server_platform()
     members = []
-    for path in Path("/proc").glob("[0-9]*/stat"):
+    for entry in Path("/proc").iterdir():
+        if not entry.name.isdigit():
+            continue
+        path = entry / "stat"
         try:
             fields = path.read_text().rsplit(")", 1)[1].split()
             pid = int(path.parent.name)
             if int(fields[2]) == group and fields[0] != "Z" and pid not in exclude:
                 members.append(pid)
-        except (FileNotFoundError, ProcessLookupError, PermissionError):
+        except (FileNotFoundError, ProcessLookupError):
             continue
     return members
 
 
 def stop_server(process, ownership, grace_seconds=20):
     """Clean the owned group even when its original server leader already exited."""
+    _require_server_platform()
     group = ownership["process_group_id"]
     inherited = ownership["mode"] == "inferrsi_trial_group"
     if inherited:
