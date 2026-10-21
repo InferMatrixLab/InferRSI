@@ -179,7 +179,7 @@ complete evidence rejected by the numerical gates still writes FAIL and exits 1.
 
 [Acceptance #57](https://github.com/InferMatrixLab/InferRSI/issues/57) owns FP8
 qualification; its separate preparation tree is
-[`qwen38-h20-fp8-phase1`](../../evidence/qwen38-h20-fp8-phase1/plan/README.md).
+[`qwen38-h20-fp8-text-phase1`](../../evidence/qwen38-h20-fp8-text-phase1/plan/README.md).
 BF16 remains the default and its prior preparation is unchanged. Explicitly pass
 `--model-id Qwen/Qwen3.8-27B-FP8` to intake, launch, direct trials and validation.
 FP8 manifests and workloads must carry the profile's explicit `precision` object.
