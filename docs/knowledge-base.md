@@ -248,3 +248,5 @@ ownership, source-linked references and scoped case pattern here. Its mandatory
 perf-loop, fixed skill count, global numeric policies and separate case registry
 are not imported. Exactly two primary matrices remain; HBM is not host RAM and
 H2D/IPC/team coordination do not establish Network coverage.
+
+<!-- Temporary policy lifecycle fixture for PR #63; never integrate this change. -->
