@@ -21,7 +21,7 @@
   },
   "limitations": [
     "Source-derived candidate; native inference, allocator behavior, image quality and performance were not run.",
-    "Nineteen selected readset files match the pinned Git commit/tree blob IDs and sizes; this does not authenticate every archive member or submodule contents.",
+    "Eighteen bounded readset paths plus one separately identity-checked README match the pinned Git commit/tree blob IDs and sizes (19 blobs total); header coverage is limited to selected owner/state declarations, and this does not authenticate every archive member or submodule contents.",
     "GGML and other submodules are not expanded; matching private GGML headers are required even for a system library.",
     "CPU bypasses the inspected accelerator capacity gate and segmentation eligibility, so CPU checks cannot qualify accelerator memory budgets or prefetch.",
     "Video/audio pipelines, detailed model kernels, approximate denoising caches and full multi-device execution remain outside this readset."

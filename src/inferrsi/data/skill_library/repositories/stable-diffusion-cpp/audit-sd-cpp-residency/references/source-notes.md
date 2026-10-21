@@ -11,8 +11,10 @@ without extracting the whole archive, executing its code or fetching models.
 The supplier manifest initially matched only the README Git blob. A separate
 2026-10-22 [identity receipt](source-identity.json) follows the pinned Git commit
 to tree `df847d004c6529eefb02bb629d7ee26e740121a9` and matches Git blob IDs and
-sizes for all 19 selected readset files against the archive bytes. This
-authenticates the selected implementation files, not every archive member or
+sizes for 18 bounded readset paths plus one separately identity-checked
+`README.md` against the archive bytes (19 blobs total). The readset includes
+selected header declarations; file identity does not imply a complete-file review.
+This authenticates those 19 file identities, not every archive member or
 the contents of the four submodules. The pinned submodule commit IDs are
 recorded separately; their source was not fetched or verified.
 The absent GGML/frontend/libwebp/libwebm submodules are declared by
