@@ -1,0 +1,11 @@
+{
+  "frozen_at_utc": "2026-10-21T06:39:12.499372+00:00",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "Increase Whole-Euler microbatch from4 to16 to reduce serial replay at high concurrency.",
+  "changes": {
+    "micro_batch_size": 16
+  },
+  "unchanged": "FP32 flow, default nonresident cache, Torch speaker, MPS, stage capacities16, canonical64 tuning prompts",
+  "protocol": "C1/C16/C32,64 reused tuning prompts, discard then one measured repeat. Quality screening follows; no holdout consumption.",
+  "decision": "Promote only if service throughput improves; a numerical dtype change is not part of this screen."
+}
