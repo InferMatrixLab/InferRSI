@@ -185,6 +185,11 @@ def kernel_policy() -> dict:
 
 
 def run(args: argparse.Namespace) -> dict:
+    scope = getattr(args, "qualification_scope", "reference_self_check")
+    if scope not in {"reference_self_check", "native_text_smoke"}:
+        raise ValueError("Unknown qualification scope")
+    if scope == "native_text_smoke" and args.mode != "full":
+        raise ValueError("Native smoke reference must use full-prefix recomputation")
     manifest_hash = verify_manifest(args.model_path, args.manifest, args.model_revision)
     cases, workload_hash = load_workload(args.workload)
     config = json.loads(model_file(args.model_path, "config.json").read_bytes())
@@ -228,7 +233,7 @@ def run(args: argparse.Namespace) -> dict:
     model.eval()
     result = {
         "schema_version": 1,
-        "qualification_scope": "reference_self_check",
+        "qualification_scope": scope,
         "implementation": "transformers_" + args.mode,
         "model_id": MODEL_ID,
         "model_revision": args.model_revision,
@@ -249,13 +254,30 @@ def run(args: argparse.Namespace) -> dict:
         },
         "cases": [],
     }
-    args.output.parent.mkdir(parents=True, exist_ok=True)
+    if scope == "native_text_smoke":
+        if __package__:
+            from .provenance import capture_sources
+        else:
+            from provenance import capture_sources
+        result["source_provenance"] = capture_sources(excluded_run_dir=args.output.parents[2])
+    return write_traces(
+        result, args.output, cases, tokens,
+        lambda prompt, continuation: collect_logits(model, torch, prompt, continuation, args.mode),
+    )
+
+
+def write_traces(result, output, cases, tokens, collect):
+    """Write the shared full-vocabulary observation format for either implementation."""
+    import numpy as np
+
+    vocab_size = result["vocab_size"]
+    output.parent.mkdir(parents=True, exist_ok=True)
     for case, (prompt, continuation) in zip(cases, tokens):
-        rows = collect_logits(model, torch, prompt, continuation, args.mode)
+        rows = collect(prompt, continuation)
         logits = np.stack(rows)
         if logits.shape != (case["max_steps"], vocab_size) or not np.isfinite(logits).all():
             raise ValueError("Model produced invalid logits")
-        logits_path = args.output.with_name(args.output.stem + "-" + case["id"] + ".npz")
+        logits_path = output.with_name(output.stem + "-" + case["id"] + ".npz")
         with logits_path.open("xb") as stream:
             np.savez(stream, logits=logits)
         result["cases"].append(
@@ -268,7 +290,7 @@ def run(args: argparse.Namespace) -> dict:
                 "greedy_ids": logits.argmax(axis=1).tolist(),
             }
         )
-    with args.output.open("x") as stream:
+    with output.open("x") as stream:
         json.dump(result, stream, indent=2, allow_nan=False)
         stream.write("\n")
     return result
@@ -282,6 +304,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--workload", type=Path, required=True)
     parser.add_argument("--mode", choices=("full", "cached"), required=True)
+    parser.add_argument("--qualification-scope", default="reference_self_check",
+                        choices=("reference_self_check", "native_text_smoke"))
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     try:

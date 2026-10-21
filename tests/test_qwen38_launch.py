@@ -55,3 +55,31 @@ def test_output_cannot_escape_task_root(tmp_path, monkeypatch):
     with pytest.raises(SystemExit) as exc:
         launch.main()
     assert exc.value.code == 2
+
+
+def test_native_preview_binds_distinct_control_and_candidate(tmp_path, monkeypatch, capsys):
+    engine = tmp_path / "engine"
+    engine.mkdir()
+    monkeypatch.setattr(sys, "argv", args(tmp_path) + [
+        "--qualification-scope", "native_text_smoke", "--candidate-repo", str(engine), "--dry-run",
+    ])
+    assert launch.main() == 0
+    spec = json.loads(capsys.readouterr().out)
+    assert spec["candidate_repo"] == str(engine)
+    assert spec["comparison_scope"] == "native_text_smoke"
+    assert spec["baseline_command"][-4:] == ["--mode", "full", "--qualification-scope",
+                                            "native_text_smoke"]
+    assert spec["candidate_command"][1].endswith("native_trial.py")
+    assert "--mode" not in spec["candidate_command"]
+    assert spec["candidate_command"][-2:] == ["--engine-repo", str(engine)]
+
+
+@pytest.mark.parametrize("extra", [
+    ["--qualification-scope", "native_text_smoke"],
+    ["--candidate-repo", "."],
+])
+def test_native_role_requires_explicit_consistent_scope(tmp_path, monkeypatch, extra):
+    monkeypatch.setattr(sys, "argv", args(tmp_path) + extra + ["--dry-run"])
+    with pytest.raises(SystemExit) as exc:
+        launch.main()
+    assert exc.value.code == 2

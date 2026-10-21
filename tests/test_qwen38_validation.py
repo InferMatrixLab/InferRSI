@@ -165,3 +165,138 @@ def test_synthetic_traces_complete_real_subprocess_loop(trace_bundle, tmp_path):
     assert (result_dir / "report.html").exists()
     quality = json.loads((result_dir / "validation/result.json").read_text())
     assert quality["qualification_scope"] == "reference_self_check"
+
+
+@pytest.fixture
+def native_bundle(trace_bundle, tmp_path):
+    from examples.qwen38_text.validate import NATIVE_POLICY
+
+    run, workload, manifest = trace_bundle
+    control, engine = tmp_path / "control", tmp_path / "engine"
+    sources = {}
+    for label, root, modules in (
+        ("control", control, {"inferrsi": "src/inferrsi/__init__.py",
+                              "inferrsi.infra.targets.git": "src/inferrsi/infra/targets/git.py"}),
+        ("engine", engine, {"nanovllm": "nanovllm/__init__.py",
+                            **{f"nanovllm.qwen38.{name}": f"nanovllm/qwen38/{name}.py"
+                               for name in ("loader", "runner", "model")}}),
+    ):
+        imports = {}
+        for name, relative in modules.items():
+            path = root / relative
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_text("# synthetic source fixture\n")
+            imports[name] = {"path": relative, "sha256": digest(path)}
+        sources[label] = {"head": ("a" if label == "control" else "b") * 40,
+                          "snapshot_hash": label + "-synthetic", "imports": imports}
+    spec = json.loads((run / "run.lock.json").read_text())
+    spec.update(repo=str(control), candidate_repo=str(engine), comparison_scope="native_text_smoke")
+    (run / "run.lock.json").write_text(json.dumps(spec))
+    locked = {}
+    for side, label in (("baseline", "control"), ("candidate", "engine")):
+        locked[side] = {key: sources[label][key] for key in ("head", "snapshot_hash")}
+        locked[side]["available"] = True
+    (run / "repositories.lock.json").write_text(json.dumps(locked))
+    for side, cwd in (("baseline", control), ("candidate", engine)):
+        root = run / side / "trial-001"
+        record = json.loads((root / "result.json").read_text())
+        record.update(qualification_scope="native_text_smoke",
+                      source_provenance={"control": sources["control"]})
+        if side == "candidate":
+            record.update(implementation="nanovllm_qwen38", kernel_policy=NATIVE_POLICY,
+                          native_model_module="nanovllm.qwen38.model",
+                          loading={"scope": "text_only", "dtype": "bfloat16",
+                                   "loaded_parameters": 5})
+            record["source_provenance"]["engine"] = sources["engine"]
+        (root / "result.json").write_text(json.dumps(record))
+        (root / "execution.json").write_text(json.dumps(
+            {"status": "completed", "returncode": 0, "cwd": str(cwd)}))
+        (root / "source.json").write_text(json.dumps(
+            {"side": side, "before": locked[side], "after": locked[side]}))
+    return run, workload, manifest
+
+
+def check_native(bundle):
+    return validate(*bundle, max_nrmse=0.01, min_top1=0.99, rms_floor=1e-8,
+                    qualification_scope="native_text_smoke")
+
+
+def test_native_smoke_cannot_be_relabelled_reference(native_bundle):
+    result = check_native(native_bundle)
+    assert result["verdict"] == "PASS"
+    assert result["qualification_scope"] == "native_text_smoke"
+    assert "No whole-engine acceptance" in result["limitations"]
+    with pytest.raises(ValueError, match="relabelled"):
+        check(native_bundle)
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda r: r.update(implementation="transformers_cached"),
+    lambda r: r.update(qualification_scope="reference_self_check"),
+    lambda r: r.update(native_model_module="transformers.fake"),
+    lambda r: r["source_provenance"].pop("engine"),
+    lambda r: r["source_provenance"]["engine"].update(head="c" * 40),
+    lambda r: r["source_provenance"]["control"].update(snapshot_hash="changed"),
+    lambda r: r["source_provenance"]["engine"]["imports"].pop("nanovllm.qwen38.model"),
+    lambda r: r["source_provenance"]["engine"]["imports"]["nanovllm"].update(path="../other.py"),
+    lambda r: r["source_provenance"]["engine"]["imports"]["nanovllm"].update(sha256="0" * 64),
+    lambda r: r["loading"].update(loaded_parameters=0),
+    lambda r: r["kernel_policy"].update(deltanet="unknown"),
+])
+def test_native_rejects_role_source_import_and_loading_mismatch(native_bundle, mutation):
+    mutate_case(native_bundle, mutation)
+    with pytest.raises(ValueError):
+        check_native(native_bundle)
+
+
+def test_native_rejects_wrong_execution_checkout_and_trial_source_drift(native_bundle):
+    root = native_bundle[0] / "candidate/trial-001"
+    execution = json.loads((root / "execution.json").read_text())
+    good = execution["cwd"]
+    execution["cwd"] = str(root)
+    (root / "execution.json").write_text(json.dumps(execution))
+    with pytest.raises(ValueError, match="snapshotted"):
+        check_native(native_bundle)
+    execution["cwd"] = good
+    (root / "execution.json").write_text(json.dumps(execution))
+    source = json.loads((root / "source.json").read_text())
+    source["after"]["snapshot_hash"] = "changed"
+    (root / "source.json").write_text(json.dumps(source))
+    with pytest.raises(ValueError, match="source changed"):
+        check_native(native_bundle)
+
+
+def test_native_synthetic_traces_use_distinct_repos_in_common_loop(native_bundle, tmp_path):
+    from inferrsi.harness.runner import run_experiment
+    from inferrsi.runspec import RunSpec
+
+    fixture, workload, manifest = native_bundle
+    declared = json.loads((fixture / "run.lock.json").read_text())
+    locked = json.loads((fixture / "repositories.lock.json").read_text())
+    emit = (
+        "import pathlib,shutil,sys; src=pathlib.Path(sys.argv[1]); dst=pathlib.Path(sys.argv[2]); "
+        "shutil.copyfile(src/'result.json',dst); "
+        "[shutil.copyfile(p,dst.parent/p.name) for p in src.glob('*.npz')]"
+    )
+    def command(side):
+        return (sys.executable, "-c", emit, str(fixture / side / "trial-001"), "{result}")
+
+    validator = Path(__file__).resolve().parents[1] / "examples/qwen38_text/validate.py"
+    spec = RunSpec(
+        repo=declared["repo"], candidate_repo=declared["candidate_repo"],
+        objective="correctness", comparison_scope="native_text_smoke", repetitions=1,
+        model_revision="a" * 40, workload_id=digest(workload), max_minutes=1,
+        baseline_command=command("baseline"), candidate_command=command("candidate"),
+        validation_command=(sys.executable, str(validator), "--run-dir", "{run_dir}",
+                            "--workload", str(workload), "--manifest", str(manifest),
+                            "--max-nrmse", "0.01", "--min-top1", "0.99", "--rms-floor", "1e-8",
+                            "--qualification-scope", "native_text_smoke", "--output", "{result}"),
+        output_dir=str(tmp_path / "native-outputs"),
+    )
+    run = run_experiment(spec, {"requested_device_model": "Synthetic GPU"}, snapshot=lambda p, *_:
+                         locked["baseline" if p == Path(spec.repo) else "candidate"])
+    result = json.loads((run / "evaluation.json").read_text())
+    assert result["verdict"] == "PASS"
+    assert result["improvement_pct"] is None
+    quality = json.loads((run / "validation/result.json").read_text())
+    assert quality["qualification_scope"] == "native_text_smoke"

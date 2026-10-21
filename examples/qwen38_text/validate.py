@@ -1,7 +1,7 @@
-"""Validate paired reference traces; missing evidence exits 2, numeric rejection 1.
+"""Validate scoped text traces; missing evidence exits 2, numeric rejection 1.
 
-This bootstrap validates full versus cached Transformers text execution only.
-It cannot qualify an independent engine or establish general model quality.
+Reference self-check is the default; native smoke requires distinct source and
+implementation evidence. Neither scope establishes general quality/performance.
 """
 
 import argparse
@@ -38,7 +38,60 @@ def token_ids(value):
     )
 
 
-def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_floor):
+REFERENCE_POLICY = {"hub_kernels": False, "full_attention": "eager",
+                    "optional_modules": {"fla": False, "causal_conv1d": False}}
+NATIVE_POLICY = {"implementation": "native_torch", "full_attention": "eager",
+                 "deltanet": "torch", "cuda_graph": False, "tensor_parallel_size": 1}
+
+
+def validate_sources(record, spec, locked, root, side):
+    sources = record.get("source_provenance", {})
+    required = {"control"} if side == "baseline" else {"control", "engine"}
+    if set(sources) != required:
+        raise ValueError("missing or extra source provenance")
+    for label in required:
+        target = "baseline" if label == "control" else "candidate"
+        identity = locked[target]
+        source = sources[label]
+        if not identity.get("available") or any(
+            source.get(key) != identity.get(key) for key in ("head", "snapshot_hash")
+        ):
+            raise ValueError("trial source identity differs from frozen checkout")
+        source_root = Path(spec["repo"] if label == "control" else spec["candidate_repo"])
+        imports = source.get("imports", {})
+        required_modules = {"inferrsi", "inferrsi.infra.targets.git"} if label == "control" else {
+            "nanovllm", "nanovllm.qwen38.loader", "nanovllm.qwen38.runner", "nanovllm.qwen38.model",
+        }
+        if not required_modules <= set(imports):
+            raise ValueError("required source import origins missing")
+        prefix = "inferrsi" if label == "control" else "nanovllm"
+        for name, imported in imports.items():
+            if name != prefix and not name.startswith(prefix + "."):
+                raise ValueError("unexpected import provenance namespace")
+            path = local_file(source_root, imported["path"])
+            if digest(path) != imported["sha256"]:
+                raise ValueError("imported source file changed or has wrong digest")
+    if side == "candidate" and record.get("native_model_module") != "nanovllm.qwen38.model":
+        raise ValueError("candidate model is not the native engine class")
+    if side == "candidate":
+        loading = record.get("loading", {})
+        if (loading.get("scope") != "text_only" or loading.get("dtype") != "bfloat16"
+                or type(loading.get("loaded_parameters")) is not int
+                or loading["loaded_parameters"] <= 0):
+            raise ValueError("native parameter loading evidence missing")
+    source_check = read_json(root / "source.json")
+    if source_check.get("side") != side:
+        raise ValueError("trial source check has wrong role")
+    for stage in ("before", "after"):
+        if not source_check[stage].get("available") or any(
+            source_check[stage].get(key) != locked[side].get(key)
+            for key in ("head", "snapshot_hash")
+        ):
+            raise ValueError("trial source changed during execution")
+
+
+def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_floor,
+             qualification_scope="reference_self_check"):
     import numpy as np
 
     for number in (max_nrmse, min_top1, rms_floor):
@@ -51,6 +104,17 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
     manifest = read_json(manifest_path)
     spec = read_json(run_dir / "run.lock.json")
     environment_record = read_json(run_dir / "environment.json")
+    if qualification_scope not in {"reference_self_check", "native_text_smoke"}:
+        raise ValueError("unknown qualification scope")
+    native = qualification_scope == "native_text_smoke"
+    if native:
+        if spec.get("comparison_scope") != qualification_scope or not spec.get("candidate_repo"):
+            raise ValueError("native smoke requires an explicit native RunSpec and engine checkout")
+        if Path(spec["candidate_repo"]).resolve() == Path(spec["repo"]).resolve():
+            raise ValueError("control and native engine checkouts must be distinct")
+        locked = read_json(run_dir / "repositories.lock.json")
+    elif spec.get("comparison_scope") == "native_text_smoke":
+        raise ValueError("native evidence cannot be relabelled as a reference self-check")
     if spec.get("objective") != "correctness":
         raise ValueError("reference self-check requires correctness objective")
     count = spec.get("repetitions")
@@ -65,7 +129,7 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
             raise ValueError("invalid workload steps")
     identities = {
         "schema_version": 1,
-        "qualification_scope": "reference_self_check",
+        "qualification_scope": qualification_scope,
         "model_id": "Qwen/Qwen3.8-27B",
         "model_revision": manifest["revision"],
         "manifest_sha256": digest(manifest_path),
@@ -74,8 +138,6 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
         "device_type": "cuda",
         "device_count": 1,
         "tokenization": "raw_text_no_special_tokens",
-        "kernel_policy": {"hub_kernels": False, "full_attention": "eager",
-                          "optional_modules": {"fla": False, "causal_conv1d": False}},
     }
     if manifest.get("model_id") != identities["model_id"]:
         raise ValueError("wrong model manifest")
@@ -87,8 +149,8 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
         raise ValueError("RunSpec workload hash differs from workload")
     traces = {}
     environment = None
-    for side, implementation in (("baseline", "transformers_full"),
-                                 ("candidate", "transformers_cached")):
+    candidate_role = "nanovllm_qwen38" if native else "transformers_cached"
+    for side, implementation in (("baseline", "transformers_full"), ("candidate", candidate_role)):
         wanted = {f"trial-{index:03d}" for index in range(1, count + 1)}
         found = {path.name for path in (run_dir / side).glob("trial-*")}
         if found != wanted:
@@ -104,6 +166,14 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                 raise ValueError("trace identity, precision or scope mismatch")
             if record.get("implementation") != implementation:
                 raise ValueError("incorrect reference implementation role")
+            policy = NATIVE_POLICY if native and side == "candidate" else REFERENCE_POLICY
+            if record.get("kernel_policy") != policy:
+                raise ValueError("incorrect implementation kernel policy")
+            if native:
+                expected_repo = spec["repo"] if side == "baseline" else spec["candidate_repo"]
+                if Path(execution["cwd"]).resolve() != Path(expected_repo).resolve():
+                    raise ValueError("trial did not execute in its snapshotted checkout")
+                validate_sources(record, spec, locked, root, side)
             vocab = record.get("vocab_size")
             if type(vocab) is not int or vocab < 1:
                 raise ValueError("missing vocabulary size")
@@ -129,6 +199,8 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                     case.get("continuation_ids")
                 ) or len(case["continuation_ids"]) != steps:
                     raise ValueError("invalid token coverage")
+                if any(token >= vocab for token in case["input_ids"] + case["continuation_ids"]):
+                    raise ValueError("recorded token ID exceeds vocabulary")
                 artifact = local_file(root, case["logits_file"])
                 if digest(artifact) != case["logits_sha256"]:
                     raise ValueError("logit artifact hash mismatch")
@@ -172,10 +244,12 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                 if not np.array_equal(logits_a, logits_b):
                     failed.append(f"{side} trial {index + 1}: reset/replay differs")
     return {"verdict": "FAIL" if failed else "PASS", "reasons": failed,
-            "qualification_scope": "reference_self_check", "measurements": measurements,
+            "qualification_scope": qualification_scope, "measurements": measurements,
             "gates": {"max_nrmse": max_nrmse, "min_top1": min_top1, "rms_floor": rms_floor},
-            "limitations": ["No dedicated engine validated", "No performance claim",
-                            "Bounded raw-text teacher-forcing smoke, not broad task quality"]}
+            "limitations": [
+                "No whole-engine acceptance" if native else "No dedicated engine validated",
+                "No performance claim",
+                "Bounded raw-text teacher-forcing smoke, not broad task quality"]}
 
 
 def main():
@@ -184,13 +258,15 @@ def main():
         parser.add_argument("--" + name, required=True, type=Path)
     for name in ("max-nrmse", "min-top1", "rms-floor"):
         parser.add_argument("--" + name, required=True, type=float)
+    parser.add_argument("--qualification-scope", default="reference_self_check",
+                        choices=("reference_self_check", "native_text_smoke"))
     args = parser.parse_args()
     try:
         result = validate(args.run_dir, args.workload, args.manifest,
-                          args.max_nrmse, args.min_top1, args.rms_floor)
+                          args.max_nrmse, args.min_top1, args.rms_floor, args.qualification_scope)
     except (OSError, ValueError, KeyError, TypeError, ImportError, zipfile.BadZipFile) as exc:
         # Do not echo exception strings, which may contain private runtime paths.
-        result = {"verdict": "INCONCLUSIVE", "qualification_scope": "reference_self_check",
+        result = {"verdict": "INCONCLUSIVE", "qualification_scope": args.qualification_scope,
                   "reasons": [f"Invalid or missing validation evidence ({type(exc).__name__})"]}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(result, indent=2, allow_nan=False) + "\n")

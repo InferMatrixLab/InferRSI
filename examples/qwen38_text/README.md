@@ -11,6 +11,12 @@ self-check. It does **not** implement a nano-vllm Qwen3.8 engine, validate gener
 model/task quality, or establish a service speedup. Engine adaptation remains a
 separate milestone. No engine candidate may inherit this reference check's PASS.
 
+An explicit `native_text_smoke` scope additionally compares the trusted
+Transformers full-prefix reference with the caller's native nano-vllm-derived
+engine. It qualifies only the supplied raw-text teacher-forcing workload,
+including declared replay cases. It is not whole-engine acceptance or a claim
+about chat, batching, generation lifecycle, broad quality or performance.
+
 ## Contract
 
 - `intake.py` verifies local model files against an immutable upstream revision
@@ -117,6 +123,36 @@ and `report.html`. Missing or interrupted evidence remains INCONCLUSIVE.
 Raw InferRSI output includes operational paths and hardware identifiers. Keep it
 in private task storage. Review and redact a separate copy before publication;
 retain source/manifest hashes, failed attempts and verification limitations.
+
+## Native candidate execution
+
+After independently preparing and reviewing the native engine checkout, pass
+`--qualification-scope native_text_smoke --candidate-repo '<ENGINE_CHECKOUT>'`
+to the same launcher/Slurm script. Keep `--repo` pointed at the actual control
+checkout. Use a new output location and freeze both source identities plus the
+same explicitly supplied model/workload/gate arguments before the run.
+
+The common InferRSI runner snapshots both checkouts and executes each side in
+its own checkout. `native_trial.py` imports `load_checkpoint` and `RequestRunner`
+from the requested engine; an already imported foreign package or an origin
+escaping the checkout is rejected. The model class must originate in
+`nanovllm.qwen38.model`. The adapter uses Transformers only for tokenizer
+handling, and exports native teacher-forced logits through the same artifact
+writer as the reference. Native execution is eager Torch with one GPU and no
+tensor parallelism or CUDA Graphs.
+
+Native records retain control/engine source identities, imported-file hashes,
+checkpoint loading coverage and the distinct implementation role. Validation
+checks these against the common runner's locked and per-trial source snapshots,
+checks execution directories, and reuses full-vocabulary FP32, input-token,
+GPU/runtime, numerical-gate and replay checks. A cached Transformers trace
+cannot substitute for the native candidate. A native smoke PASS cannot be
+relabelled as reference self-check or promoted to full engine acceptance.
+
+These operational records contain private paths through the common runner;
+keep originals in authorized private storage and publish reviewed redacted
+copies only. Source-file verification during validation needs both checkouts
+at the frozen revisions; absent or changed sources leave evidence incomplete.
 
 ## CPU checks
 
