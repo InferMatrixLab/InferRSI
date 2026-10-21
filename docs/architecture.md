@@ -122,7 +122,10 @@ benchmarks/harness/         Compatibility command entrypoints
 | Hardware | `infra/platforms`, `data/platform_packs` | Device selection, process exclusivity and independent backend/model evidence |
 
 The acceptance rule is: **a new model or hardware adapter must reuse the common
-AB/BA loop, process cleanup and performance adjudication.** The extension
+AB/BA loop, process cleanup and objective-specific adjudication.** Performance
+remains the default; explicit correctness experiments require paired output
+artifacts and validation without metrics or gain claims. See the
+[correctness contract](operations.md#correctness-only-experiments). The extension
 regression test composes a new metric schema, non-Git source adapter and backend
 probe through those interfaces while running real subprocesses. Its numbers are
 synthetic contract fixtures, not accelerator measurements.

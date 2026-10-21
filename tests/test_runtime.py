@@ -121,6 +121,83 @@ class RuntimeTests(unittest.TestCase):
         self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
         self.assertTrue(any("quality" in reason for reason in evaluation["reasons"]))
 
+    def test_correctness_compares_fresh_outputs_without_performance_metrics(self):
+        output = (
+            sys.executable, "-c",
+            "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text('{\"tokens\":[1,2]}')",
+            "{result}",
+        )
+        validator = (
+            sys.executable, "-c",
+            "import json,pathlib,sys; root=pathlib.Path(sys.argv[1]); "
+            "outputs=[json.loads(p.read_text()) for p in root.glob('*/trial-*/result.json')]; "
+            "assert len(outputs)==4; assert all(x=={'tokens':[1,2]} for x in outputs)",
+            "{run_dir}",
+        )
+        path, result = self.run_spec(
+            objective="correctness", baseline_command=output,
+            candidate_command=output, validation_command=validator,
+        )
+        self.assertEqual(result["verdict"], "PASS")
+        self.assertIsNone(result["improvement_pct"])
+        self.assertIsNone(result["metric_key"])
+        self.assertIsNone(result["baseline"])
+        self.assertIn("no performance claim", result["claim_scope"])
+        events = [json.loads(line) for line in (path / "events.jsonl").read_text().splitlines()]
+        self.assertEqual(
+            [event["side"] for event in events if event["phase"] == "correctness_trial"],
+            ["baseline", "candidate", "candidate", "baseline"],
+        )
+
+    def test_correctness_requires_readable_nonempty_output_objects(self):
+        for content in (None, "broken", "[]", "{}", "null"):
+            command = (sys.executable, "-c", "pass") if content is None else (
+                sys.executable, "-c",
+                "import pathlib,sys; pathlib.Path(sys.argv[1]).write_text(sys.argv[2])",
+                "{result}", content,
+            )
+            with self.subTest(content=content):
+                _, result = self.run_spec(
+                    objective="correctness", candidate_command=command, repetitions=1,
+                )
+                self.assertEqual(result["verdict"], "INCONCLUSIVE")
+                self.assertTrue(any("candidate trial" in reason for reason in result["reasons"]))
+
+    def test_correctness_validation_rejection_and_incomplete_exit_are_distinct(self):
+        for code, verdict in ((0, "PASS"), (1, "FAIL"), (2, "INCONCLUSIVE")):
+            with self.subTest(code=code):
+                _, result = self.run_spec(
+                    objective="correctness", repetitions=1,
+                    validation_command=(sys.executable, "-c", f"raise SystemExit({code})"),
+                )
+                self.assertEqual(result["verdict"], verdict)
+        _, result = self.run_spec(
+            validation_command=(sys.executable, "-c", "raise SystemExit(2)"),
+        )
+        self.assertEqual(result["verdict"], "FAIL")  # Existing performance contract.
+
+    def test_correctness_missing_validation_and_source_drift_are_inconclusive(self):
+        _, result = self.run_spec(objective="correctness", validation_command=None, repetitions=1)
+        self.assertEqual(result["verdict"], "INCONCLUSIVE")
+        mutation = (
+            sys.executable, "-c",
+            "import pathlib,sys; pathlib.Path('source.txt').write_text('drift'); "
+            "pathlib.Path(sys.argv[1]).write_text('{\"tokens\":[1]}')",
+            "{result}",
+        )
+        _, result = self.run_spec(
+            objective="correctness", candidate_command=mutation, repetitions=1,
+        )
+        self.assertEqual(result["verdict"], "INCONCLUSIVE")
+        self.assertFalse(result["source_integrity"]["verified"])
+
+    def test_correctness_trial_timeout_preserves_incomplete_evidence(self):
+        _, result = self.run_spec(
+            objective="correctness", repetitions=1, max_minutes=0.01,
+            candidate_command=(sys.executable, "-c", "import time; time.sleep(30)"),
+        )
+        self.assertEqual(result["verdict"], "INCONCLUSIVE")
+
     def test_tracked_source_mutation_is_detected_inside_output_directory(self):
         source = self.repo / "src" / "implementation.py"
         source.parent.mkdir()
@@ -347,6 +424,8 @@ class RuntimeTests(unittest.TestCase):
             {"min_improvement_pct": -1},
             {"baseline_command": "echo unsafe"},
             {"metric_key": "metrics..latency"},
+            {"objective": "unknown"},
+            {"objective": "correctness", "min_improvement_pct": 1},
             {"output_dir": str(self.repo)},
         ):
             with self.subTest(changes=changes), self.assertRaises(ValueError):

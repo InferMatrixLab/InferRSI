@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "id": "nano_vllm",
+  "source_repository": "GeeeekExplorer/nano-vllm",
+  "execution_support": "caller_supplied_external_commands",
+  "scenarios": ["llm.correctness", "llm.decode", "llm.serving"],
+  "backend_compatibility": {
+    "cuda": "unverified",
+    "rocm": "unverified",
+    "ascend": "unverified"
+  },
+  "notes": [
+    "This descriptor provides repository routing, not a built-in model launcher or accelerator qualification.",
+    "Freeze actual source, model, dependencies and hardware before validation. Derived engines retain their own source identity."
+  ]
+}

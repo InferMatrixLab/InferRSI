@@ -54,6 +54,10 @@ def parser() -> argparse.ArgumentParser:
         )
         child.add_argument("--mode", choices=("config", "code", "semantic"), default="config")
         child.add_argument(
+            "--objective", choices=("performance", "correctness"), default="performance",
+            help="Correctness compares paired outputs without a performance metric or claim",
+        )
+        child.add_argument(
             "--agent",
             choices=("manual", "codex", "external"),
             default="manual",
@@ -251,6 +255,7 @@ def make_spec(args: argparse.Namespace) -> RunSpec:
         backend=args.backend,
         scenario=args.scenario,
         mode=args.mode,
+        objective=args.objective,
         baseline_command=command(args.baseline_command),
         candidate_command=command(args.candidate_command),
         validation_command=command(args.validation_command),

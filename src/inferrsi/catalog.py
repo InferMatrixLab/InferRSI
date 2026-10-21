@@ -7,7 +7,9 @@ import re
 from importlib.resources import files
 from typing import Any
 
-REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni")
+REPO_TYPES = (
+    "vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang", "sglang_omni", "nano_vllm",
+)
 # Learning scope does not imply that a repository has a runnable target adapter.
 # Legacy repository-pack records retain their contribution tier; an independent
 # peer card can describe a different learning use case for the same source repo.

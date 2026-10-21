@@ -89,6 +89,30 @@ upstream instructions.
 - **Failure behavior:** ambiguous identity names the qualified choices; unavailable/stale revisions and missing/unsafe resources fail explicitly — no fallback to newer bytes.
 - **Example:** `inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library --material`
 
+## Correctness-only experiments
+
+Use `inferrsi plan` or `inferrsi run` with `--objective correctness` for paired
+reference/candidate output validation. The default objective remains
+`performance`; its positive finite metric and gain gates are unchanged.
+`--repo-type nano_vllm` describes caller-supplied commands, not model support.
+
+Correctness trials retain alternating AB/BA order, source snapshots, deadlines
+and process cleanup. Each command must write a nonempty JSON object to `{result}`
+or `INFERRSI_RESULT_PATH`. No metric is extracted and no gain is computed.
+The explicit `--validation-command` receives `{run_dir}` substitution so it can
+read every fresh baseline/candidate trial and its output artifacts. It must
+verify the frozen case coverage, model/input identities and numerical gates;
+the generic runner only checks the presence of readable JSON objects.
+
+For correctness validators, exit 0 accepts the supplied checks, exit 1 rejects
+them, and exit 2 declares incomplete evidence. Other nonzero exits preserve the
+existing rejection behavior; validators must catch execution/dependency errors
+and return 2 rather than confuse a crash with a completed rejection. Timeouts,
+cancellation, missing outputs or validation, incomplete trial sets, and source
+drift remain `INCONCLUSIVE`. Missing evidence takes precedence over rejection.
+Correctness results cannot establish performance or service claims, and an
+individual run does not replace campaign-level completeness checks.
+
 ## Store candidates (Python)
 
 ### Create / Update — `KnowledgeStore.create` / `.update`

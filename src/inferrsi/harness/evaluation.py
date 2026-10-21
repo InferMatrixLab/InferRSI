@@ -44,12 +44,22 @@ def evaluate(
         for index, trial in enumerate(trials, 1):
             if trial.get("status") != "completed":
                 incomplete.append(f"{label} trial {index}: {trial.get('status')}")
-            if trial.get("metric") is None:
+            if spec.objective == "correctness" and not trial.get("output_verified"):
+                incomplete.append(
+                    f"{label} trial {index}: {trial.get('output_error') or 'output missing'}"
+                )
+            if spec.objective == "performance" and trial.get("metric") is None:
                 incomplete.append(
                     f"{label} trial {index}: {trial.get('metric_error') or 'metric missing'}"
                 )
     if validation is None:
         incomplete.append("quality validation command was not supplied")
+    elif (
+        spec.objective == "correctness"
+        and validation.get("status") == "failed"
+        and validation.get("returncode") == 2
+    ):
+        incomplete.append("quality validation: incomplete evidence (exit 2)")
     elif validation.get("status") == "failed":
         failed.append(f"quality validation: {validation.get('status')}")
     elif validation.get("status") != "completed":
@@ -57,12 +67,15 @@ def evaluate(
     if integrity is None or not integrity.get("verified"):
         incomplete.append((integrity or {}).get("reason", "source integrity was not verified"))
 
-    before, after = _summary(baseline), _summary(candidate)
+    before, after = (
+        (_summary(baseline), _summary(candidate))
+        if spec.objective == "performance" else (None, None)
+    )
     improvement = None
     all_metrics = len(baseline) == len(candidate) == spec.repetitions and all(
         t.get("status") == "completed" and t.get("metric") is not None for t in baseline + candidate
     )
-    if all_metrics:
+    if spec.objective == "performance" and all_metrics:
         improvement = (after["median"] - before["median"]) / before["median"] * 100
         if spec.direction == "minimize":
             improvement *= -1
@@ -80,17 +93,27 @@ def evaluate(
     verdict = Verdict.INCONCLUSIVE if incomplete else Verdict.FAIL if failed else Verdict.PASS
     return {
         "verdict": verdict.value,
+        "objective": spec.objective,
+        "claim_scope": (
+            "Supplied correctness validator only; no performance claim."
+            if spec.objective == "correctness" else spec.comparison_scope
+        ),
         "reasons": failed + incomplete,
-        "metric_key": spec.metric_key,
-        "metric_unit": spec.metric_unit,
+        "metric_key": spec.metric_key if spec.objective == "performance" else None,
+        "metric_unit": spec.metric_unit if spec.objective == "performance" else None,
         "comparison_scope": spec.comparison_scope,
-        "direction": spec.direction,
-        "min_improvement_pct": spec.min_improvement_pct,
+        "direction": spec.direction if spec.objective == "performance" else None,
+        "min_improvement_pct": (
+            spec.min_improvement_pct if spec.objective == "performance" else None
+        ),
         "baseline": before,
         "candidate": after,
         "improvement_pct": improvement,
-        "measurement_method": "Alternating AB/BA sequential trials; median "
-        "and range are descriptive only.",
+        "measurement_method": (
+            "Alternating AB/BA sequential output trials; no performance measurement."
+            if spec.objective == "correctness" else
+            "Alternating AB/BA sequential trials; median and range are descriptive only."
+        ),
         "quality_contract": "Exit zero covers only the supplied validation "
         "command; inspect its logs and coverage.",
         "source_integrity": integrity,
