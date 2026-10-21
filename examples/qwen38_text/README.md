@@ -166,3 +166,11 @@ ruff check src tests examples/qwen38_text
 
 These tests use synthetic inputs and mock runtime objects, not model evidence.
 No GPU work or model download is added to the default CI lanes.
+
+Native source evidence requires JSON objects for provenance, import records,
+loading reports and source snapshots. Every declared, locked and before/after
+identity must contain a lowercase hexadecimal Git object ID (40 or 64 digits)
+and a 64-digit SHA-256 snapshot hash; imported-file hashes must be SHA-256.
+Checkout paths and executed working directories must be nonempty strings.
+Missing or malformed evidence writes an INCONCLUSIVE result and exits 2;
+complete evidence rejected by the numerical gates still writes FAIL and exits 1.

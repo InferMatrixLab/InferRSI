@@ -8,6 +8,7 @@ import argparse
 import hashlib
 import json
 import math
+import re
 import zipfile
 from pathlib import Path
 
@@ -20,6 +21,34 @@ def read_json(path):
     value = json.loads(Path(path).read_text())
     if not isinstance(value, dict):
         raise ValueError("expected a JSON object")
+    return value
+
+
+def require_object(value):
+    if not isinstance(value, dict):
+        raise ValueError("evidence field must be a JSON object")
+    return value
+
+
+def require_string(value):
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("evidence field must be a nonempty string")
+    return value
+
+
+def require_digest(value, pattern=r"[0-9a-f]{64}"):
+    if not isinstance(value, str) or re.fullmatch(pattern, value) is None:
+        raise ValueError("missing or malformed source digest")
+    return value
+
+
+def source_identity(value, *, available=False):
+    value = require_object(value)
+    # Git supports SHA-1 and SHA-256 object IDs; snapshot digests are SHA-256.
+    require_digest(value.get("head"), r"(?:[0-9a-f]{40}|[0-9a-f]{64})")
+    require_digest(value.get("snapshot_hash"))
+    if available and value.get("available") is not True:
+        raise ValueError("source snapshot unavailable")
     return value
 
 
@@ -45,20 +74,20 @@ NATIVE_POLICY = {"implementation": "native_torch", "full_attention": "eager",
 
 
 def validate_sources(record, spec, locked, root, side):
-    sources = record.get("source_provenance", {})
+    sources = require_object(record.get("source_provenance"))
     required = {"control"} if side == "baseline" else {"control", "engine"}
     if set(sources) != required:
         raise ValueError("missing or extra source provenance")
     for label in required:
         target = "baseline" if label == "control" else "candidate"
-        identity = locked[target]
-        source = sources[label]
-        if not identity.get("available") or any(
+        identity = source_identity(locked.get(target), available=True)
+        source = source_identity(sources[label])
+        if any(
             source.get(key) != identity.get(key) for key in ("head", "snapshot_hash")
         ):
             raise ValueError("trial source identity differs from frozen checkout")
         source_root = Path(spec["repo"] if label == "control" else spec["candidate_repo"])
-        imports = source.get("imports", {})
+        imports = require_object(source.get("imports"))
         required_modules = {"inferrsi", "inferrsi.infra.targets.git"} if label == "control" else {
             "nanovllm", "nanovllm.qwen38.loader", "nanovllm.qwen38.runner", "nanovllm.qwen38.model",
         }
@@ -66,15 +95,18 @@ def validate_sources(record, spec, locked, root, side):
             raise ValueError("required source import origins missing")
         prefix = "inferrsi" if label == "control" else "nanovllm"
         for name, imported in imports.items():
+            require_string(name)
+            imported = require_object(imported)
+            require_digest(imported.get("sha256"))
             if name != prefix and not name.startswith(prefix + "."):
                 raise ValueError("unexpected import provenance namespace")
-            path = local_file(source_root, imported["path"])
+            path = local_file(source_root, imported.get("path"))
             if digest(path) != imported["sha256"]:
                 raise ValueError("imported source file changed or has wrong digest")
     if side == "candidate" and record.get("native_model_module") != "nanovllm.qwen38.model":
         raise ValueError("candidate model is not the native engine class")
     if side == "candidate":
-        loading = record.get("loading", {})
+        loading = require_object(record.get("loading"))
         if (loading.get("scope") != "text_only" or loading.get("dtype") != "bfloat16"
                 or type(loading.get("loaded_parameters")) is not int
                 or loading["loaded_parameters"] <= 0):
@@ -83,8 +115,9 @@ def validate_sources(record, spec, locked, root, side):
     if source_check.get("side") != side:
         raise ValueError("trial source check has wrong role")
     for stage in ("before", "after"):
-        if not source_check[stage].get("available") or any(
-            source_check[stage].get(key) != locked[side].get(key)
+        checked = source_identity(source_check.get(stage), available=True)
+        if any(
+            checked[key] != locked[side][key]
             for key in ("head", "snapshot_hash")
         ):
             raise ValueError("trial source changed during execution")
@@ -110,9 +143,13 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
     if native:
         if spec.get("comparison_scope") != qualification_scope or not spec.get("candidate_repo"):
             raise ValueError("native smoke requires an explicit native RunSpec and engine checkout")
+        for key in ("repo", "candidate_repo"):
+            require_string(spec.get(key))
         if Path(spec["candidate_repo"]).resolve() == Path(spec["repo"]).resolve():
             raise ValueError("control and native engine checkouts must be distinct")
         locked = read_json(run_dir / "repositories.lock.json")
+        for side in ("baseline", "candidate"):
+            source_identity(locked.get(side), available=True)
     elif spec.get("comparison_scope") == "native_text_smoke":
         raise ValueError("native evidence cannot be relabelled as a reference self-check")
     if spec.get("objective") != "correctness":
@@ -171,6 +208,7 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                 raise ValueError("incorrect implementation kernel policy")
             if native:
                 expected_repo = spec["repo"] if side == "baseline" else spec["candidate_repo"]
+                require_string(execution.get("cwd"))
                 if Path(execution["cwd"]).resolve() != Path(expected_repo).resolve():
                     raise ValueError("trial did not execute in its snapshotted checkout")
                 validate_sources(record, spec, locked, root, side)

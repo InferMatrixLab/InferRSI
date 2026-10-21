@@ -1,6 +1,7 @@
 """Synthetic evidence tests; these never qualify Qwen or a GPU."""
 
 import json
+import subprocess
 import sys
 from pathlib import Path
 
@@ -188,7 +189,8 @@ def native_bundle(trace_bundle, tmp_path):
             path.write_text("# synthetic source fixture\n")
             imports[name] = {"path": relative, "sha256": digest(path)}
         sources[label] = {"head": ("a" if label == "control" else "b") * 40,
-                          "snapshot_hash": label + "-synthetic", "imports": imports}
+                          "snapshot_hash": ("c" if label == "control" else "d") * 64,
+                          "imports": imports}
     spec = json.loads((run / "run.lock.json").read_text())
     spec.update(repo=str(control), candidate_repo=str(engine), comparison_scope="native_text_smoke")
     (run / "run.lock.json").write_text(json.dumps(spec))
@@ -260,17 +262,22 @@ def test_native_rejects_wrong_execution_checkout_and_trial_source_drift(native_b
     execution["cwd"] = good
     (root / "execution.json").write_text(json.dumps(execution))
     source = json.loads((root / "source.json").read_text())
-    source["after"]["snapshot_hash"] = "changed"
+    source["after"]["snapshot_hash"] = "f" * 64
     (root / "source.json").write_text(json.dumps(source))
     with pytest.raises(ValueError, match="source changed"):
         check_native(native_bundle)
 
 
-def test_native_synthetic_traces_use_distinct_repos_in_common_loop(native_bundle, tmp_path):
+@pytest.mark.parametrize("malformed", [False, True])
+def test_native_synthetic_traces_use_distinct_repos_in_common_loop(
+    native_bundle, tmp_path, malformed,
+):
     from inferrsi.harness.runner import run_experiment
     from inferrsi.runspec import RunSpec
 
     fixture, workload, manifest = native_bundle
+    if malformed:
+        mutate_case(native_bundle, lambda r: r.update(loading=None))
     declared = json.loads((fixture / "run.lock.json").read_text())
     locked = json.loads((fixture / "repositories.lock.json").read_text())
     emit = (
@@ -296,7 +303,103 @@ def test_native_synthetic_traces_use_distinct_repos_in_common_loop(native_bundle
     run = run_experiment(spec, {"requested_device_model": "Synthetic GPU"}, snapshot=lambda p, *_:
                          locked["baseline" if p == Path(spec.repo) else "candidate"])
     result = json.loads((run / "evaluation.json").read_text())
-    assert result["verdict"] == "PASS"
+    assert result["verdict"] == ("INCONCLUSIVE" if malformed else "PASS")
     assert result["improvement_pct"] is None
     quality = json.loads((run / "validation/result.json").read_text())
     assert quality["qualification_scope"] == "native_text_smoke"
+
+
+def native_validator_subprocess(bundle):
+    run, workload, manifest = bundle
+    output = run / "standalone-validation.json"
+    validator = Path(__file__).resolve().parents[1] / "examples/qwen38_text/validate.py"
+    completed = subprocess.run(
+        [sys.executable, str(validator), "--run-dir", str(run), "--workload", str(workload),
+         "--manifest", str(manifest), "--max-nrmse", "0.01", "--min-top1", "0.99",
+         "--rms-floor", "1e-8", "--qualification-scope", "native_text_smoke",
+         "--output", str(output)], capture_output=True, text=True, check=False,
+    )
+    result = json.loads(output.read_text())
+    assert json.loads(completed.stdout) == result
+    assert not completed.stderr
+    assert str(run.parent) not in completed.stdout
+    return completed.returncode, result
+
+
+# Each path is traversed independently so every schema boundary is exercised.
+MALFORMED_FIELDS = [
+    ("candidate/trial-001/result.json", ("loading",)),
+    ("candidate/trial-001/result.json", ("source_provenance",)),
+    *[("candidate/trial-001/result.json", ("source_provenance", label) + suffix)
+      for label in ("control", "engine")
+      for suffix in ((), ("imports",), ("head",), ("snapshot_hash",))],
+    *[("candidate/trial-001/result.json", ("source_provenance", "engine", "imports",
+                                           "nanovllm") + suffix)
+      for suffix in ((), ("path",), ("sha256",))],
+    *[("repositories.lock.json", (side,) + suffix)
+      for side in ("baseline", "candidate")
+      for suffix in ((), ("head",), ("snapshot_hash",), ("available",))],
+    *[(f"{side}/trial-001/source.json", (stage,) + suffix)
+      for side in ("baseline", "candidate") for stage in ("before", "after")
+      for suffix in ((), ("head",), ("snapshot_hash",), ("available",))],
+    *[("run.lock.json", (key,)) for key in ("repo", "candidate_repo")],
+    *[(f"{side}/trial-001/execution.json", ("cwd",)) for side in ("baseline", "candidate")],
+]
+
+
+@pytest.mark.parametrize("file,fields", MALFORMED_FIELDS)
+@pytest.mark.parametrize("value", [None, [], "", "missing"])
+def test_native_malformed_evidence_writes_inconclusive(native_bundle, file, fields, value):
+    path = native_bundle[0] / file
+    record = json.loads(path.read_text())
+    target = record
+    for field in fields[:-1]:
+        target = target[field]
+    if value == "missing":
+        target.pop(fields[-1])
+    else:
+        target[fields[-1]] = value
+    path.write_text(json.dumps(record))
+    code, result = native_validator_subprocess(native_bundle)
+    assert code == 2
+    assert result["verdict"] == "INCONCLUSIVE"
+    assert result["reasons"] == ["Invalid or missing validation evidence (ValueError)"]
+
+
+@pytest.mark.parametrize("value", [None, "missing", "not-a-digest"])
+def test_native_matching_missing_identities_cannot_pass(native_bundle, value):
+    def strip(node):
+        if isinstance(node, dict):
+            for key in list(node):
+                if key in {"head", "snapshot_hash"}:
+                    if value == "missing":
+                        del node[key]
+                    else:
+                        node[key] = value
+                else:
+                    strip(node[key])
+        elif isinstance(node, list):
+            for item in node:
+                strip(item)
+
+    for path in native_bundle[0].rglob("*.json"):
+        record = json.loads(path.read_text())
+        strip(record)
+        path.write_text(json.dumps(record))
+    code, result = native_validator_subprocess(native_bundle)
+    assert code == 2 and result["verdict"] == "INCONCLUSIVE"
+
+
+def test_native_complete_numerical_failure_still_exits_one(native_bundle):
+    root = native_bundle[0] / "candidate/trial-001"
+
+    def alter(record):
+        for case in record["cases"]:
+            path = root / case["logits_file"]
+            np.savez(path, logits=np.array([[3., 2., 1.], [1., 2., 3.]], dtype=np.float32))
+            case.update(logits_sha256=digest(path), greedy_ids=[0, 2])
+
+    mutate_case(native_bundle, alter)
+    code, result = native_validator_subprocess(native_bundle)
+    assert code == 1 and result["verdict"] == "FAIL"
+    assert all("numerical gate rejected" in reason for reason in result["reasons"])
