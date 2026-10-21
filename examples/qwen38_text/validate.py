@@ -74,6 +74,8 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
         "device_type": "cuda",
         "device_count": 1,
         "tokenization": "raw_text_no_special_tokens",
+        "kernel_policy": {"hub_kernels": False, "full_attention": "eager",
+                          "optional_modules": {"fla": False, "causal_conv1d": False}},
     }
     if manifest.get("model_id") != identities["model_id"]:
         raise ValueError("wrong model manifest")

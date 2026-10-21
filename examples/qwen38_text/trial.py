@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import importlib.util
 import json
 import re
 import sys
@@ -173,6 +174,16 @@ def collect_logits(model, torch, prompt: list[int], continuation: list[int], mod
     return rows
 
 
+def kernel_policy() -> dict:
+    """This reference deliberately fixes Torch fallback, not optional kernels."""
+    optional = {
+        name: importlib.util.find_spec(name) is not None for name in ("fla", "causal_conv1d")
+    }
+    if any(optional.values()):
+        raise ValueError("Reference self-check requires optional DeltaNet kernels to be absent")
+    return {"hub_kernels": False, "full_attention": "eager", "optional_modules": optional}
+
+
 def run(args: argparse.Namespace) -> dict:
     manifest_hash = verify_manifest(args.model_path, args.manifest, args.model_revision)
     cases, workload_hash = load_workload(args.workload)
@@ -182,6 +193,7 @@ def run(args: argparse.Namespace) -> dict:
         raise ValueError("Expected positive text vocabulary size")
     if args.output.exists():
         raise ValueError("Refusing to overwrite an existing trial result")
+    policy = kernel_policy()
     # CPU-only smoke checks must not import optional GPU packages.
     import numpy as np
     import torch
@@ -208,6 +220,7 @@ def run(args: argparse.Namespace) -> dict:
         trust_remote_code=False,
         use_safetensors=True,
         attn_implementation="eager",
+        use_kernels=False,
         output_loading_info=True,
     )
     if any(loading.get(key) for key in ("missing_keys", "mismatched_keys", "error_msgs")):
@@ -227,6 +240,7 @@ def run(args: argparse.Namespace) -> dict:
         "device_model": torch.cuda.get_device_name(0),
         "vocab_size": vocab_size,
         "tokenization": "raw_text_no_special_tokens",
+        "kernel_policy": policy,
         "versions": {
             "torch": torch.__version__,
             "transformers": transformers.__version__,

@@ -20,6 +20,11 @@ separate milestone. No engine candidate may inherit this reference check's PASS.
   load. It requires a single visible CUDA GPU of the exact requested SKU,
   BF16, a local checkpoint and a local tokenizer. It loads with remote code
   disabled and rejects missing/mismatched required parameters.
+  Hub kernels are explicitly disabled. This reference requires `fla` and
+  `causal_conv1d` to be absent, fixes full attention to eager, and records that
+  policy in every result. Eager attention alone does not disable optional
+  DeltaNet kernels in Transformers. An optimized kernel path needs its own
+  explicit candidate protocol and fresh reference qualification.
 - Both trial modes produce full-vocabulary FP32 logits at every requested
   teacher-forced position. No sampled token is fed back; no token-rate metric is
   presented. Each request starts with fresh cache state.

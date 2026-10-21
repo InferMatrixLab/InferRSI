@@ -233,6 +233,7 @@ def fake_runtime(monkeypatch):
         assert kwargs["dtype"] == "bfloat16"
         assert kwargs["device_map"] == {"": "cuda:0"}
         assert kwargs["local_files_only"] and not kwargs["trust_remote_code"]
+        assert kwargs["use_kernels"] is False
         return model, {"missing_keys": [], "mismatched_keys": [], "error_msgs": []}
 
     tokenizer = SimpleNamespace(encode=lambda text, **_kwargs: list(text.encode()))
@@ -326,3 +327,9 @@ def test_gpu_model_mismatch_rejected(model_bundle, tmp_path, fake_runtime):
     with pytest.raises(ValueError, match="frozen device model"):
         trial.run(args)
     assert not args.output.exists() and not calls
+
+
+def test_optional_kernel_cannot_silently_change_reference(monkeypatch):
+    monkeypatch.setattr(trial.importlib.util, "find_spec", lambda name: object())
+    with pytest.raises(ValueError, match="optional DeltaNet kernels"):
+        trial.kernel_policy()

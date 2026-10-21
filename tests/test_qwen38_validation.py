@@ -44,6 +44,8 @@ def trace_bundle(tmp_path):
             "model_revision": "a" * 40, "manifest_sha256": digest(manifest),
             "workload_sha256": digest(workload), "dtype": "bfloat16", "device_type": "cuda",
             "device_count": 1, "tokenization": "raw_text_no_special_tokens", "vocab_size": 3,
+            "kernel_policy": {"hub_kernels": False, "full_attention": "eager",
+                              "optional_modules": {"fla": False, "causal_conv1d": False}},
             "device_model": "Synthetic GPU", "versions": {"torch": "test", "transformers": "test"},
             "cases": outputs})
         write(root / "execution.json", {"status": "completed", "returncode": 0})
@@ -77,6 +79,7 @@ def test_complete_synthetic_evidence_is_scope_limited(trace_bundle):
     lambda r: r["cases"][0].update(logits_file="../../outside.npz"),
     lambda r: r["cases"][0].update(greedy_ids=[0, 0]),
     lambda r: r.update(dtype="float16"),
+    lambda r: r["kernel_policy"]["optional_modules"].update(fla=True),
 ])
 def test_missing_mismatched_and_wrong_scope_evidence_rejected(trace_bundle, mutation):
     mutate_case(trace_bundle, mutation)
