@@ -28,31 +28,10 @@ You drive profiling and code changes; InferRSI runs and evaluates the benchmark 
 
 ## 🔁 How It Works
 
-The target workflow connects **CLI**, **Harness**, and **Knowledge Base**. This
-is a workflow view; [Architecture](#architecture) describes the implemented
-module boundaries. Model protocols and quality validators belong to Model;
-repository, device and process ownership belong to Infra.
-
-- **CLI** resolves the declared model, backend, workload, metric, quality command,
-  and budget into a `RunSpec`. `plan` previews the specification; `run` records a
-  snapshot. Campaign gates and validators are frozen separately before candidate
-  search; a preview or snapshot does not establish that freeze or grant execution
-  authority. Public configuration uses CLI arguments; JSON holds evidence and
-  internal metadata.
-- **Harness** groups **Analyze → Generate → Execute → Evaluate** in the target
-  workflow. The **outer candidate cycle** is human/agent-driven today: inspect
-  profiles and cited knowledge, prepare a candidate, then decide whether to start
-  another comparison. Within **Execute**, the shared runner performs the **inner
-  AB/BA measurement loop** for one baseline/candidate pair, with deadlines, source
-  checks and retained evidence. Evaluation combines performance, source integrity
-  and the declared model-specific quality checks. Complete comparisons can pass or
-  fail the frozen gates; missing or interrupted evidence remains `INCONCLUSIVE`.
-- **Knowledge Base** supplies source-pinned records, skills and cases through
-  search and normalized, read-only Collect/Read operations. A **separate, optional
-  and explicitly authorized** local `KnowledgeStore` operation can create or update
-  store-owned **candidates**, preserving revisions and evidence. A successful run
-  does not trigger a store write; storing a candidate does not promote knowledge
-  or prove a new environment locally validated.
+**Analyze → Generate → Execute → Evaluate.** A human or coding agent prepares
+candidates; InferRSI runs the CLI-declared AB/BA comparison and records the verdict.
+Review the evidence before starting another iteration.
+[Architecture](#architecture) covers the module boundaries.
 
 <a href="docs/assets/inferrsi-loop.mp4">
   <picture>
@@ -61,19 +40,11 @@ repository, device and process ownership belong to Infra.
   </picture>
 </a>
 
-The animation illustrates one task: `C001` misses its performance target; a human
-or agent reviews the evidence and chooses another candidate. `C002` passes the
-required gates and exits. The dashed storage arrow represents a separate,
-optional authorized write, independent of the verdict. These are synthetic
-states, not measured results; the dark, 2:1 animation repeats a 10-second cycle at
-2× playback. [Watch the MP4](docs/assets/inferrsi-loop.mp4) for smoother playback.
+Illustrative target workflow; no measured results. [Watch the MP4](docs/assets/inferrsi-loop.mp4).
 
-**Current boundary:** `--agent` is a handoff label, not an agent launcher.
-Automatic candidate search, evidence-to-knowledge promotion and knowledge-driven
-RunSpec population remain planned. Target completion or budget exhaustion returns
-available artifacts and the real verdict; it cannot turn missing evidence into
-`PASS`. See the [operation guide](docs/operations.md) for current entrypoints and
-effect boundaries.
+Knowledge retrieval is read-only; candidate storage is optional and separately
+authorized. Automatic search and knowledge promotion remain planned. Missing
+or incomplete evidence stays `INCONCLUSIVE`.
 
 ## Choose your starting path
 
