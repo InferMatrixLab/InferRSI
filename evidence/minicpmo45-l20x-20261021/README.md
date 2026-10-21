@@ -184,3 +184,7 @@ Host CPUs and the filesystem are shared with other jobs; GPU reservations are
 exclusive, but CPU affinity is not isolated. The host has two Intel Xeon
 Platinum 8480C sockets, 112 physical cores / 224 hardware threads. Results are
 scoped observations on this host, not hardware-independent performance claims.
+
+## Restart confirmation
+
+`results/fresh-start-confirmation.json` compares freshly started main and speaker-only services sequentially on one reserved GPU, using the original first cohort. At C16 throughput was 518.6 versus 689.4 frames/s; at C32, 546.9 versus 799.2. These single measured repeats support persistence of the throughput direction, not a new confidence interval. The C1 SIM/UTMOS decrease also persisted. The separately authorized noninferiority holdout remains a distinct experiment.

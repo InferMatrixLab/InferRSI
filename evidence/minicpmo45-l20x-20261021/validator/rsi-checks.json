@@ -10,5 +10,16 @@
     "peer_cuda_search": "PASS",
     "owner_local_case_resource": "PASS",
     "note": "CLI resource returns a path; resolved content was read and checked from the installed wheel."
+  },
+  "case_update_validation": {
+    "source_revision": "5b9d269",
+    "full_pytest_exit_code": 0,
+    "collected": 266,
+    "ruff_src_tests_harness": "PASS",
+    "generated_index_records": 48,
+    "generated_index_check": "PASS",
+    "installed_wheel_updated_case_content": "PASS",
+    "installed_wheel_peer_cuda_search": "PASS",
+    "wheel_sha256": "4cc598a149045315062ea881420b6d4d6f561cbf473c519c2e6b9e9553474ad8"
   }
 }

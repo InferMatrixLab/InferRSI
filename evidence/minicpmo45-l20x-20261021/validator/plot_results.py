@@ -68,7 +68,9 @@ def main():
     fig.tight_layout(rect=(0, 0.12, 1, 0.95))
     args.out.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(args.out.with_suffix(".png"), dpi=160)
-    fig.savefig(args.out.with_suffix(".svg"))
+    svg = args.out.with_suffix(".svg")
+    fig.savefig(svg)
+    svg.write_text("\n".join(line.rstrip() for line in svg.read_text().splitlines()) + "\n")
     plt.close(fig)
 
 
