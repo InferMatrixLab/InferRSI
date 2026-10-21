@@ -295,3 +295,11 @@ rather than restating it; that case shares this campaign lineage.
 
 The two primary matrices are unchanged in authority; this is a reconciliation
 note, not a third inventory. All NPU status for Drama3 remains `unverified`.
+
+## Issue #49: conditioning transport diagnostic
+
+[Owner-local case](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.md) preserves the pinned ordinary-turn bridge,
+worker list traversal, invalidated high-rate profiler and rehashed CPU component
+measurements. This is an internal diagnostic lineage, not independent evidence
+from the peer engine. Component value equality and synthetic timing do not
+establish service throughput or speech-quality acceptance.

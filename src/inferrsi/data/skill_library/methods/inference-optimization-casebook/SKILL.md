@@ -80,6 +80,9 @@ Source: perf-optimization-casebook @ f33e0e5f, §how-to-use.
 
 Current owner-local records retain rejected directions alongside their limits:
 
+- [MiniCPM-o conditioning transport](cases/minicpm-conditioning-transport.md):
+  untyped tensor metadata, scalar-list host work, owned snapshots and profiler perturbation.
+
 - [MiniCPM-o speaker extraction](cases/minicpm-speaker-cpu-reference.md): CPU
   graph optimizer semantics, short-input numerical rejection and component/service boundaries.
 
