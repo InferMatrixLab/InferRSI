@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
-      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b5178de4f8e279b301614dd8a613ebd1c1985984/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
+      "commit": "b5178de4f8e279b301614dd8a613ebd1c1985984",
       "paths": [
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json",
@@ -42,7 +42,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "e238a3102b06af1086bb805f1c3f0f24aacaa03032760e0d95231bcf25878dd1",
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "7e82c7b5bcbd695981eaf0ce3ea45fe37dd78c43a73204e1465af5379a205bfb",
-    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
+    "src/inferrsi/data/skill_library/skill-index.json": "08010d947578cf7d16b5e3cd1288762c05a3a36e0816b794105dd2036a3c53c8"
   },
   "skill_metadata": {
     "name": "kernel-writing-guide",

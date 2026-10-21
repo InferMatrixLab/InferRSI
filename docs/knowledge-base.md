@@ -14,7 +14,7 @@ separate work, not an implemented capability of this knowledge base.
 ```text
 src/inferrsi/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (52 skills)
+  skill-index.json                   Stable IDs → categorized paths/backend (55 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
   repositories/<repo>/              Engine entry, sub-skills and focused complete skills
@@ -168,18 +168,18 @@ Complete procedures, sidecars, references and cases are packaged, with 13 Ascend
 repositories, methods or workflows. The 21 engine and research-router skills
 use the same ownership layout under `repositories/<engine>/` and
 `workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 73 `SKILL.md` files, all in English.
+The library contains 76 `SKILL.md` files, all in English.
 The collection overview, import notes and source manifest belong to the research
 workflow's references; Strata design-space analysis belongs to Strata. The library
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 52 registered skills into the contribution catalog. Its records
+projects the 55 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for those hardware-specific scopes and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-52-ID registry; engine procedures remain available through library navigation
+55-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
 Use `inferrsi knowledge search --repo-type inferrsi --limit 100` in an ordinary

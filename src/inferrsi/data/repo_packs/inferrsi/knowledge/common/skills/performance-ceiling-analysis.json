@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b5178de4f8e279b301614dd8a613ebd1c1985984/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "b5178de4f8e279b301614dd8a613ebd1c1985984",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
@@ -72,7 +72,7 @@
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md": "35d47ac078591221fcb666219bcd824f9400fc17aafecdc0499d8336f7178238",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
-    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
+    "src/inferrsi/data/skill_library/skill-index.json": "08010d947578cf7d16b5e3cd1288762c05a3a36e0816b794105dd2036a3c53c8"
   },
   "skill_metadata": {
     "name": "performance-ceiling-analysis",
