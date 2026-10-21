@@ -21,5 +21,17 @@
     "installed_wheel_updated_case_content": "PASS",
     "installed_wheel_peer_cuda_search": "PASS",
     "wheel_sha256": "4cc598a149045315062ea881420b6d4d6f561cbf473c519c2e6b9e9553474ad8"
+  },
+  "merged_upstream_validation": {
+    "source_revision": "94273606a05110f2d9826974f1031d3cf269ce01",
+    "upstream_revision": "4c43198",
+    "full_pytest_exit_code": 0,
+    "collected": 267,
+    "ruff_src_tests_harness": "PASS",
+    "generated_index_records": 48,
+    "generated_index_check": "PASS",
+    "installed_wheel_updated_case_content": "PASS",
+    "installed_wheel_peer_cuda_search": "PASS",
+    "wheel_sha256": "60e836567eed26957f9b90291077cb28317bcba5bbdd7e80d7628659eb024031"
   }
 }

@@ -6,28 +6,39 @@
       "source_path": "src/inferrsi/data/skill_library/en/strata/sub-skills/tune-execution/SKILL.md",
       "content_sha256": "cdf51c537e7237296d52ef6cda9f2e4c9d9ce3fc87265a369cd9eb7497c53512",
       "lesson": "Use resolved settings, controlled one-plane experiments, repeated service measurements and explicit regressions.",
-      "application": "Separate MPS, encoder capture and microbatch controls; retest MPS after speaker extraction changes the bottleneck. No Strata speedup is imported."
+      "application": "Separate MPS, encoder capture and microbatch controls; retest MPS after speaker extraction changes the bottleneck. No Strata speedup is imported.",
+      "source_revision": "5b9d269",
+      "source_url": "https://github.com/InferMatrixLab/InferRSI/blob/5b9d269/src/inferrsi/data/skill_library/en/strata/sub-skills/tune-execution/SKILL.md",
+      "current_path": "src/inferrsi/data/skill_library/repositories/strata/sub-skills/tune-execution/SKILL.md"
     },
     {
       "knowledge_scope": "vllm_omni",
       "source_path": "src/inferrsi/data/skill_library/en/vllm-omni/sub-skills/omni-validation/SKILL.md",
       "content_sha256": "81c2a8cbdccaa86ff560311ec9d33ba191ecc6e3121ca4e9f751f006875223c9",
       "lesson": "Escalate native tests through accelerator parity, real speech quality and matched service performance.",
-      "application": "67 CPU regressions, real CAM++ numerical checks, repeated service results and independent speech gates. Component PASS never overrides speech FAIL."
+      "application": "67 CPU regressions, real CAM++ numerical checks, repeated service results and independent speech gates. Component PASS never overrides speech FAIL.",
+      "source_revision": "5b9d269",
+      "source_url": "https://github.com/InferMatrixLab/InferRSI/blob/5b9d269/src/inferrsi/data/skill_library/en/vllm-omni/sub-skills/omni-validation/SKILL.md",
+      "current_path": "src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md"
     },
     {
       "knowledge_scope": "sglang_omni",
       "source_path": "src/inferrsi/data/skill_library/en/sglang-omni/sub-skills/sglang-omni-architecture/SKILL.md",
       "content_sha256": "766b2d66d2056dd779abd9e492cb3af6e25899298f44964f565509f130a7cb24",
       "lesson": "Trace concrete stages and terminal outputs at the pinned source rather than infer behavior from model name.",
-      "application": "Identify terminal waveform semantics, FP16 compiled Code2Wav and reference_workers=8; retain native scorer implementation and a separate CPU parallel preparation prototype."
+      "application": "Identify terminal waveform semantics, FP16 compiled Code2Wav and reference_workers=8; retain native scorer implementation and a separate CPU parallel preparation prototype.",
+      "source_revision": "5b9d269",
+      "source_url": "https://github.com/InferMatrixLab/InferRSI/blob/5b9d269/src/inferrsi/data/skill_library/en/sglang-omni/sub-skills/sglang-omni-architecture/SKILL.md",
+      "current_path": "src/inferrsi/data/skill_library/repositories/sglang-omni/sub-skills/sglang-omni-architecture/SKILL.md"
     },
     {
       "knowledge_scope": "minicpmo_single_gpu_engine",
       "source_path": "src/inferrsi/data/knowledge_packs/peer/minicpmo_single_gpu_engine/cuda/audio/streaming-transfer-constraints.json",
       "content_sha256": "58ebe6ac09cbbb774216acd0fdaef29409e685cd7a7521501154b67b963565fa",
       "lesson": "Preserve audio-delivery metrics, disjoint pools, request-owned state and quality-constrained transfer.",
-      "application": "Reuse pinned adapters/client/workload, test MPS and graph/batching hypotheses, and explicitly distinguish this steady-state campaign from strict cold-cache certification."
+      "application": "Reuse pinned adapters/client/workload, test MPS and graph/batching hypotheses, and explicitly distinguish this steady-state campaign from strict cold-cache certification.",
+      "source_revision": "5b9d269",
+      "source_url": "https://github.com/InferMatrixLab/InferRSI/blob/5b9d269/src/inferrsi/data/knowledge_packs/peer/minicpmo_single_gpu_engine/cuda/audio/streaming-transfer-constraints.json"
     }
   ]
 }
