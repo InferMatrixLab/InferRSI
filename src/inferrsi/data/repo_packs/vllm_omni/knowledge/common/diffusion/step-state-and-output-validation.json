@@ -68,7 +68,8 @@
   "applicability": {
     "hardware": [],
     "software": [
-      "vllm-project/vllm-omni source snapshot 52194f24fa42e14d1c5e096f4bea4dc7f95cffa1"
+      "vllm-project/vllm-omni source snapshot 52194f24fa42e14d1c5e096f4bea4dc7f95cffa1",
+      "Abort acknowledgment/cleanup supplement only: vllm-project/vllm-omni source snapshot 18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e; not a compatibility range with the earlier guide"
     ],
     "conditions": [
       "Identify the actual model protocol, runner capabilities, output fields and producer/consumer contracts.",
