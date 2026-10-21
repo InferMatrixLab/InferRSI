@@ -25,7 +25,8 @@
         "src/diffusers/pipelines/flux/pipeline_flux.py",
         "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
         "tests/pipelines/flux/test_pipeline_flux.py",
-        "setup.py"
+        "setup.py",
+        "LICENSE"
       ],
       "readset": "references/source-map.md"
     }
