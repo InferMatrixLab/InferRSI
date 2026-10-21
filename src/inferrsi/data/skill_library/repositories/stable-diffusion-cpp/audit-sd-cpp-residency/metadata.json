@@ -12,7 +12,7 @@
       "type": "git",
       "url": "https://github.com/leejet/stable-diffusion.cpp",
       "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
-      "paths": ["src/stable-diffusion.cpp", "src/pipeline/image.cpp", "src/pipeline/diffusion_engine.h", "src/pipeline/diffusion_engine.cpp", "src/core/ggml_runner.cpp", "src/core/segment_weight_pipeline.cpp", "src/core/compute_workspace.cpp", "src/model_manager.cpp", "src/model_manager_prefetch.cpp", "src/device_residency_manager.h"],
+      "paths": ["src/stable-diffusion.cpp", "src/pipeline/image.cpp", "src/pipeline/diffusion_engine.h", "src/pipeline/diffusion_engine.cpp", "src/core/ggml_runner.cpp", "src/core/segment_weight_pipeline.cpp", "src/core/compute_workspace.cpp", "src/model_manager.cpp", "src/model_manager_prefetch.cpp", "src/device_residency_manager.h", ".github/workflows/build.yml", ".gitmodules", "cmake/ggml.cmake", "CMakeLists.txt", "examples/cli/main.cpp", "include/stable-diffusion.h", "LICENSE"],
       "readset": "references/source-notes.md"
     }
   ],
