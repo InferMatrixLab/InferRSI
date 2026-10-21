@@ -1,5 +1,3 @@
-"""MLX knowledge reads require neither MLX installation nor device execution."""
-
 from pathlib import Path
 
 from inferrsi.catalog import get_knowledge, search_knowledge
