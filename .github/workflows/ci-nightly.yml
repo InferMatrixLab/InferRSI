@@ -37,8 +37,5 @@ jobs:
         run: ruff check src tests benchmarks/harness
       - name: Full test suite
         run: pytest
-      - name: Evidence template layout
-        run: |
-          for seg in plan results patch validator; do
-            test -d "evidence/_template/$seg"
-          done
+      - name: Read-only evidence inventory and manifest checks
+        run: python tools/validate_evidence.py

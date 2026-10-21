@@ -134,6 +134,25 @@ a retained warmup image cannot substitute for the measured workload.
 
 ## Validation levels
 
+Run `python tools/validate_evidence.py` for a read-only check of every committed
+evidence bundle. [The inventory](../tools/evidence_inventory.json) declares
+campaign, template, source-import, review-summary and external-archive layouts;
+new directories and recognizable manifests require an explicit classification.
+The nightly lane runs this CPU-only check. It verifies available bytes using
+existing bundle SHA-256 maps, historical file mappings or archive SHA-256/size
+records. Historical mappings point only to preserved snapshots, never current
+implementations. Do not invent hashes or update frozen manifests to silence a
+failure.
+
+The JSON result separates structural/hash errors (nonzero exit) from unavailable
+external dependencies. Remote archives are not downloaded; if supplied at their
+declared inventory paths, their recorded size and digest are checked. A missing
+locally required hashed file is an error. Raw outputs and original source files
+not committed here remain explicitly unavailable. Successful inventory checks
+do not verify those external bytes, replay validators, qualify hardware, or
+change any campaign verdict. This inventory is editable validation policy;
+the evidence it describes remains frozen.
+
 | Level | Evidence | Scope |
 | --- | --- | --- |
 | L0 | Operator correctness | Numerical contracts, edge cases and fallbacks |
