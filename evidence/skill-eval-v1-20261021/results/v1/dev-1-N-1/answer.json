@@ -1,0 +1,19 @@
+{
+  "report_verdict": "PASS",
+  "latency_reduction_pct": 30.548675508082418,
+  "findings": [],
+  "claim_scope": "fixed_workload",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成；报告通过冻结合同。先计算每轮请求均值，再取中位数：基线383.243923 ms，候选266.167980 ms，降幅30.548676%，超过20%门槛。以轮均值极差除以中位数计算相对波动，分别为5.902979%和3.317282%，均低于12%。工作负载一致，质量通过，两组均完整报告15/15个请求且失败为0。结论限于给定HTTP固定工作负载；历史延迟与反事实元数据不构成新硬件测量或生产部署资格。最小下一步是记录该范围内的验收通过，无需追加显著性检验。"
+}

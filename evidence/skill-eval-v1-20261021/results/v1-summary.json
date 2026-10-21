@@ -1,0 +1,97 @@
+{
+  "conditions": {
+    "E-benchmark": {
+      "trials": 3,
+      "verdicts": {
+        "PASS": 1,
+        "FAIL": 1,
+        "INCONCLUSIVE": 1
+      },
+      "elapsed_seconds": null,
+      "input_tokens": null,
+      "output_tokens": null,
+      "cost": null
+    },
+    "E-evidence": {
+      "trials": 3,
+      "verdicts": {
+        "PASS": 1,
+        "FAIL": 2,
+        "INCONCLUSIVE": 0
+      },
+      "elapsed_seconds": 210.91016129998025,
+      "input_tokens": 171540,
+      "output_tokens": 5321,
+      "cost": null
+    },
+    "N": {
+      "trials": 3,
+      "verdicts": {
+        "PASS": 1,
+        "FAIL": 2,
+        "INCONCLUSIVE": 0
+      },
+      "elapsed_seconds": 219.54498479992617,
+      "input_tokens": 115068,
+      "output_tokens": 5247,
+      "cost": null
+    }
+  },
+  "pairs": [
+    {
+      "task_id": "dev-1",
+      "repeat": 1,
+      "condition": "E-benchmark",
+      "N": "PASS",
+      "E": "PASS",
+      "regression": false,
+      "recovery": false
+    },
+    {
+      "task_id": "dev-1",
+      "repeat": 1,
+      "condition": "E-evidence",
+      "N": "PASS",
+      "E": "PASS",
+      "regression": false,
+      "recovery": false
+    },
+    {
+      "task_id": "dev-2",
+      "repeat": 1,
+      "condition": "E-benchmark",
+      "N": "FAIL",
+      "E": "FAIL",
+      "regression": false,
+      "recovery": false
+    },
+    {
+      "task_id": "dev-2",
+      "repeat": 1,
+      "condition": "E-evidence",
+      "N": "FAIL",
+      "E": "FAIL",
+      "regression": false,
+      "recovery": false
+    },
+    {
+      "task_id": "holdout-3",
+      "repeat": 1,
+      "condition": "E-evidence",
+      "N": "FAIL",
+      "E": "FAIL",
+      "regression": false,
+      "recovery": false
+    },
+    {
+      "task_id": "holdout-3",
+      "repeat": 1,
+      "condition": "E-benchmark",
+      "N": "FAIL",
+      "E": "INCONCLUSIVE",
+      "regression": false,
+      "recovery": false
+    }
+  ],
+  "promotion": "not_evaluated"
+}

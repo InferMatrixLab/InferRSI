@@ -193,6 +193,22 @@
       "path": "workflows/rsi-evidence",
       "backend": "common"
     },
+    "comfy-ui": {
+      "path": "repositories/comfy-ui",
+      "backend": "common"
+    },
+    "lazy-evaluation-stream-lifetimes": {
+      "path": "frameworks/mlx/lazy-evaluation-stream-lifetimes",
+      "backend": "common"
+    },
+    "generation-cache-lifecycle": {
+      "path": "repositories/mlx-lm/generation-cache-lifecycle",
+      "backend": "common"
+    },
+    "audit-llama-runtime-state": {
+      "path": "repositories/llama-cpp/audit-llama-runtime-state",
+      "backend": "common"
+    },
     "audit-sglang-diffusion-lifetimes": {
       "path": "repositories/sglang/audit-sglang-diffusion-lifetimes",
       "backend": "common"

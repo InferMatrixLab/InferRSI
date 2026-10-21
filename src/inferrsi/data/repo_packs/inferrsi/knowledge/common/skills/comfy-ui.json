@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.comfy_ui",
+  "title": "comfy-ui",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit ComfyUI workflow-output cache validity, lazy dependencies and model-weight residency as separate state contracts using a pinned source revision and explicit runtime evidence.",
+  "tags": [
+    "comfyui",
+    "workflow",
+    "cache-invalidation",
+    "model-residency",
+    "state-ownership"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md",
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md",
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "c993bd6ff8e9b5f82f39f175ec8242341136e4ee0808af414e1d94ad3e196c5e"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/comfy-ui/SKILL.md"
+  },
+  "checkout_ref": "checkout:comfy-ui",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md": "c993bd6ff8e9b5f82f39f175ec8242341136e4ee0808af414e1d94ad3e196c5e",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json": "c26bb55f0f4753396addd0e76967bfc03199e45e27d05e8d76ab29c590841f08",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md": "614c9a4e6943d24d7d7be7d632682ce8b1dcc239124a37d9dc1d487113772eac",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md": "d7ca20c50652ef70da198de9216315b98cfbaa28b22bfe036f293a85a8f20261",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263",
+    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
+  },
+  "skill_metadata": {
+    "name": "comfy-ui",
+    "description": "Audit ComfyUI workflow-output cache validity, lazy dependencies and model-weight residency as separate state contracts using a pinned source revision and explicit runtime evidence.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "license": "GPL-3.0",
+    "tags": [
+      "comfyui",
+      "workflow",
+      "cache-invalidation",
+      "model-residency",
+      "state-ownership"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/Comfy-Org/ComfyUI",
+        "commit": "b1a247c9cf9dbfda4b2c0a0c1d50950667eeaa0c",
+        "paths": [
+          "execution.py",
+          "comfy_execution/caching.py",
+          "comfy_execution/graph.py",
+          "comfy/model_management.py",
+          "comfy/model_patcher.py",
+          "comfy/sampler_helpers.py"
+        ],
+        "readset": "references/repo-provenance.md"
+      }
+    ],
+    "applicability": {
+      "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer."
+    },
+    "limitations": [
+      "Source-derived candidate; no local executor-cache, device-residency or performance qualification.",
+      "Seven self-authored cases exercised only the unchanged pure upstream graph_utils module; they do not verify PromptExecutor, cache signatures or model behavior.",
+      "The dynamic native allocator and third-party custom-node behavior remain outside the verified scope."
+    ],
+    "provenance_readsets": [
+      "references/repo-provenance.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local executor-cache, device-residency or performance qualification.",
+    "Seven self-authored cases exercised only the unchanged pure upstream graph_utils module; they do not verify PromptExecutor, cache signatures or model behavior.",
+    "The dynamic native allocator and third-party custom-node behavior remain outside the verified scope."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

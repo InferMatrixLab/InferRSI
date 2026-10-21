@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 49 registered skills in `data/skill_library/`.
+Generated abstracts for all 52 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7](https://github.com/InferMatrixLab/InferRSI/tree/5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7/src/inferrsi/data/skill_library).
+Source snapshot: [e3a82241132debf4cd469863024fc9de53b1dbcc](https://github.com/InferMatrixLab/InferRSI/tree/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7 --check
+python tools/build_skill_index.py --source-revision e3a82241132debf4cd469863024fc9de53b1dbcc --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -49,7 +49,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [ascendc-tiling-design](ascend/skills/ascendc-tiling-design.json) | ascend | candidate |
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
-| [audit-sglang-diffusion-lifetimes](common/skills/audit-sglang-diffusion-lifetimes.json) | common | candidate |
+| [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |
 | [calibrate-serving-simulation](common/skills/calibrate-serving-simulation.json) | common | candidate |
 | [cann-attribution-overlap](ascend/skills/cann-attribution-overlap.json) | ascend | candidate |
@@ -58,6 +58,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [choose-parallel-training-plan](common/skills/choose-parallel-training-plan.json) | common | candidate |
 | [cite-check-downstream-pr](common/skills/cite-check-downstream-pr.json) | common | unspecified |
 | [claim-contract](common/skills/claim-contract.json) | common | unspecified |
+| [comfy-ui](common/skills/comfy-ui.json) | common | candidate |
 | [competitor-scan](common/skills/competitor-scan.json) | common | unspecified |
 | [dcp-async-save-performance](common/skills/dcp-async-save-performance.json) | common | candidate |
 | [dense-performance-evidence](common/skills/dense-performance-evidence.json) | common | candidate |
@@ -65,6 +66,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [diagnose-vllm-admission-pressure](common/skills/diagnose-vllm-admission-pressure.json) | common | candidate |
 | [draft-acceptance-issue](common/skills/draft-acceptance-issue.json) | common | unspecified |
 | [evaluate-elastic-serving-placement](common/skills/evaluate-elastic-serving-placement.json) | common | candidate |
+| [generation-cache-lifecycle](common/skills/generation-cache-lifecycle.json) | common | candidate |
 | [host-memory-management](common/skills/host-memory-management.json) | common | candidate |
 | [host-overhead-optimization](common/skills/host-overhead-optimization.json) | common | candidate |
 | [host-overhead-profiling](cuda/skills/host-overhead-profiling.json) | cuda | candidate |
@@ -72,6 +74,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [inference-optimization-casebook](common/skills/inference-optimization-casebook.json) | common | candidate |
 | [kernel-writing-guide](common/skills/kernel-writing-guide.json) | common | candidate |
 | [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
+| [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |
 | [npu-skill-factory](common/skills/npu-skill-factory.json) | common | candidate |
 | [optimization-search-policy](common/skills/optimization-search-policy.json) | common | candidate |
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |

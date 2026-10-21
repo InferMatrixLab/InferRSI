@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7/src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
-      "commit": "5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
+      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json",
@@ -42,7 +42,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md": "0e6f094dc554abea12e07def50f20b233b47127779a8aefad595b4ab1efd24c2",
     "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json": "64b83aae3b9be5ada75e6111114a93bf55173d9df913b4ea8bafd2b4cea23018",
-    "src/inferrsi/data/skill_library/skill-index.json": "0a3a63cab25def1f15e21c253345ef42528b2da904222e673fa304c26066a1fc"
+    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
   },
   "skill_metadata": {
     "name": "cann-attribution-overlap",
