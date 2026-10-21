@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
-      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a489540eb88b9308128ab18fe5e538539f34971b/src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
+      "commit": "a489540eb88b9308128ab18fe5e538539f34971b",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json",
@@ -41,7 +41,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json": "2c23209ef418287f1023f53eba4eda66551f09ab102a61c879df27c25365e757",
-    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
+    "src/inferrsi/data/skill_library/skill-index.json": "172bc3d65e7c58286ed8a90d1c0cb992c4ee6ebabede9160ed78a4fea7e364fb"
   },
   "skill_metadata": {
     "name": "ascend-device-health",

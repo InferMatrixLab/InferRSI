@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
-      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a489540eb88b9308128ab18fe5e538539f34971b/src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
+      "commit": "a489540eb88b9308128ab18fe5e538539f34971b",
       "paths": [
         "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json",
@@ -39,7 +39,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md": "8cac8e0d52fa5bffdf3076425c45a6041a3fe4402ffd5219abdf23ccaf338f38",
     "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json": "bbde3cec2545a2613653ec521053f972235742fb53b630badcffd9a61fa5f19f",
-    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
+    "src/inferrsi/data/skill_library/skill-index.json": "172bc3d65e7c58286ed8a90d1c0cb992c4ee6ebabede9160ed78a4fea7e364fb"
   },
   "skill_metadata": {
     "name": "repository-evolution-analysis",

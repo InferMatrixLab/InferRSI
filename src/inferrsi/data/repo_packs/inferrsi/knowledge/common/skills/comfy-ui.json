@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
-      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a489540eb88b9308128ab18fe5e538539f34971b/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "commit": "a489540eb88b9308128ab18fe5e538539f34971b",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
@@ -50,7 +50,7 @@
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md": "d7ca20c50652ef70da198de9216315b98cfbaa28b22bfe036f293a85a8f20261",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263",
-    "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
+    "src/inferrsi/data/skill_library/skill-index.json": "172bc3d65e7c58286ed8a90d1c0cb992c4ee6ebabede9160ed78a4fea7e364fb"
   },
   "skill_metadata": {
     "name": "comfy-ui",
