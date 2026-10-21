@@ -20,9 +20,29 @@
     "request_batch",
     "rng",
     "output_modality",
-    "cancellation"
+    "cancellation",
+    "abort_acknowledgment",
+    "transfer_cleanup"
   ],
   "sources": [
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e/vllm_omni/engine/omni_engine_base.py#L774-L838",
+      "type": "source",
+      "commit": "18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e",
+      "accessed_at": "2026-10-22"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e/vllm_omni/engine/orchestrator.py#L1791-L1854",
+      "type": "source",
+      "commit": "18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e",
+      "accessed_at": "2026-10-22"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e/vllm_omni/engine/stage_pool.py#L1402-L1459",
+      "type": "source",
+      "commit": "18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e",
+      "accessed_at": "2026-10-22"
+    },
     {
       "url": "https://github.com/vllm-project/vllm-omni/blob/52194f24fa42e14d1c5e096f4bea4dc7f95cffa1/vllm_omni/diffusion/models/interface.py#L87-L153",
       "type": "source",
@@ -48,7 +68,8 @@
   "applicability": {
     "hardware": [],
     "software": [
-      "vllm-project/vllm-omni source snapshot 52194f24fa42e14d1c5e096f4bea4dc7f95cffa1"
+      "vllm-project/vllm-omni source snapshot 52194f24fa42e14d1c5e096f4bea4dc7f95cffa1",
+      "Abort acknowledgment/cleanup supplement only: vllm-project/vllm-omni source snapshot 18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e; not a compatibility range with the earlier guide"
     ],
     "conditions": [
       "Identify the actual model protocol, runner capabilities, output fields and producer/consumer contracts.",
@@ -57,7 +78,8 @@
   },
   "recommendations": [
     "Prepare once, isolate request RNG/latent/scheduler state, finalize once and retire state on cancel/failure.",
-    "Preserve delta versus snapshot accumulation and correct tensor axes; transport success requires consumer-safe data, not only an enqueued send."
+    "Preserve delta versus snapshot accumulation and correct tensor axes; transport success requires consumer-safe data, not only an enqueued send.",
+    "For the incremental abort path at 18c3bd5, distinguish enqueue, acknowledged logical cleanup and separately queued best-effort transfer reclamation; inspect the linked validation reference before treating a receipt or timeout as a resource-completion guarantee."
   ],
   "validation_plan": [
     "Run relevant step lifecycle, output accumulation, orchestrator abort and connector failure tests, including races and late results.",
@@ -65,6 +87,7 @@
   ],
   "limitations": [
     "The engine output enum does not use video as a canonical value; video serving has a separate media contract.",
+    "The 18c3bd5 sources extend only abort/cleanup evidence; the earlier step/output guidance retains its original 52194f24 source pin. Neither revision was qualified on a device or service here.",
     "CPU probes and mock transport checks do not certify schema resolution, full-engine execution or native DMA lifetimes.",
     "This indexed abstract links to the complete English skill and source evidence; it is imported guidance, not a benchmark result.",
     "Accelerator execution, real-model quality and service performance remain unverified for this import. Qualify each target revision, model, backend and workload separately."

@@ -36,7 +36,16 @@
       "repository": "vllm-project/vllm-omni",
       "commit": "52194f24fa42e14d1c5e096f4bea4dc7f95cffa1",
       "license": "Apache-2.0",
-      "locally_verified": false
+      "locally_verified": false,
+      "supplements": [
+        {
+          "commit": "18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e",
+          "license": "Apache-2.0",
+          "date": "2026-10-22",
+          "scope": "Abort acknowledgment/cleanup supplement only; not a compatibility range with the original guide.",
+          "locally_verified": false
+        }
+      ]
     }
   ],
   "profile": "AREX direct portable knowledge; no DisCo managed import or accelerator certification"

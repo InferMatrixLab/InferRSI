@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 52 registered skills in `data/skill_library/`.
+Generated abstracts for all 57 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [de072b9faf40ee5e54d2788d9b00aba24fae968d](https://github.com/InferMatrixLab/InferRSI/tree/de072b9faf40ee5e54d2788d9b00aba24fae968d/src/inferrsi/data/skill_library).
+Source snapshot: [a704774293ea320b0a2f1f5229d61d7b307fc089](https://github.com/InferMatrixLab/InferRSI/tree/a704774293ea320b0a2f1f5229d61d7b307fc089/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision de072b9faf40ee5e54d2788d9b00aba24fae968d --check
+python tools/build_skill_index.py --source-revision a704774293ea320b0a2f1f5229d61d7b307fc089 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -50,7 +50,11 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
 | [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
+| [audit-sd-cpp-residency](common/skills/audit-sd-cpp-residency.json) | common | candidate |
+| [audit-sglang-diffusion-lifetimes](common/skills/audit-sglang-diffusion-lifetimes.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |
+| [bound-windowed-attention-replay](common/skills/bound-windowed-attention-replay.json) | common | candidate |
+| [budget-speculative-verification](common/skills/budget-speculative-verification.json) | common | candidate |
 | [calibrate-serving-simulation](common/skills/calibrate-serving-simulation.json) | common | candidate |
 | [cann-attribution-overlap](ascend/skills/cann-attribution-overlap.json) | ascend | candidate |
 | [cgroup-resource-controls](common/skills/cgroup-resource-controls.json) | common | candidate |
@@ -64,6 +68,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [dense-performance-evidence](common/skills/dense-performance-evidence.json) | common | candidate |
 | [diagnose-attention-bottlenecks](cuda/skills/diagnose-attention-bottlenecks.json) | cuda | candidate |
 | [diagnose-vllm-admission-pressure](common/skills/diagnose-vllm-admission-pressure.json) | common | candidate |
+| [diffusers-invocation-state](common/skills/diffusers-invocation-state.json) | common | candidate |
 | [draft-acceptance-issue](common/skills/draft-acceptance-issue.json) | common | unspecified |
 | [evaluate-elastic-serving-placement](common/skills/evaluate-elastic-serving-placement.json) | common | candidate |
 | [generation-cache-lifecycle](common/skills/generation-cache-lifecycle.json) | common | candidate |

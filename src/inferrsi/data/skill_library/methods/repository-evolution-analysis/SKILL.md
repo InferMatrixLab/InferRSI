@@ -155,6 +155,15 @@ When adding a new provider, adapter, or capability class, follow the existing
 registration pattern — do not introduce a new abstraction unless 2+ concrete
 implementations already exist.
 
+## Auditing a claimed capability
+
+When a release note or README claims a capability and you need to state whether
+it runs at a given revision, use
+[capability presence audit](references/capability-presence-audit.md). It classifies
+each claim into implemented, hook, documented only or contradicted, and requires
+the enabling gate for anything not implemented. This is narrower than the
+capability model above: it answers presence and wiring, not speed.
+
 ## Temporal-split benchmark construction (LearningToCommit method)
 
 For skill evaluation, construct historical tasks with a hard temporal cutoff.

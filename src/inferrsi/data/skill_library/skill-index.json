@@ -208,6 +208,26 @@
     "audit-llama-runtime-state": {
       "path": "repositories/llama-cpp/audit-llama-runtime-state",
       "backend": "common"
+    },
+    "audit-sd-cpp-residency": {
+      "path": "repositories/stable-diffusion-cpp/audit-sd-cpp-residency",
+      "backend": "common"
+    },
+    "audit-sglang-diffusion-lifetimes": {
+      "path": "repositories/sglang/audit-sglang-diffusion-lifetimes",
+      "backend": "common"
+    },
+    "diffusers-invocation-state": {
+      "path": "frameworks/diffusers/diffusers-invocation-state",
+      "backend": "common"
+    },
+    "bound-windowed-attention-replay": {
+      "path": "repositories/deepinfer/bound-windowed-attention-replay",
+      "backend": "common"
+    },
+    "budget-speculative-verification": {
+      "path": "repositories/deepinfer/budget-speculative-verification",
+      "backend": "common"
     }
   }
 }

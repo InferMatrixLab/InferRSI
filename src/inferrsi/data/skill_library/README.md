@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **73 skill documents**: 52 registered skills
+The English-only library contains **78 skill documents**: 57 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 52 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 57 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -53,16 +53,17 @@ loading and host placement remain with their existing owners.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 52-ID registry.
-The registered ComfyUI audit is listed alongside these imports and uses its
-generated skill abstract rather than a separate runtime repository pack.
+the links and catalog records below, separately from the 57-ID registry.
+The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
+these imports and use generated abstracts rather than runtime repository packs.
 
 | Repository | Focus | Entry | Catalog |
 | --- | --- | --- | --- |
 | ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](repositories/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
+| stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
 | Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](repositories/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
 | vLLM | Token scheduling, KV ownership and parallel execution | [Skill](repositories/vllm/SKILL.md) | [Records](../repo_packs/vllm/knowledge/README.md) |
-| SGLang | Radix/HiCache, prefill/decode and extensions | [Skill](repositories/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
+| SGLang | Radix/HiCache, prefill/decode, extensions and a separately pinned [diffusion lifetime candidate](repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | [Skill](repositories/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
 | SGLang-Omni | Stage pipelines, streaming and transport | [Skill](repositories/sglang-omni/SKILL.md) | [Records](../repo_packs/sglang_omni/knowledge/README.md) |
 | vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts | [Skill](repositories/vllm-omni/SKILL.md) | [Records](../repo_packs/vllm_omni/knowledge/README.md) |
 | Research router | Constrained engine design and validation | [Skill](workflows/inference-engine-research/SKILL.md) | — |
@@ -120,3 +121,11 @@ links prefill/decode boundaries, three-stage batch-row ownership, prefix-cache
 identity and cooperative stopping. It is a source-derived candidate with no
 installed API, model, native-backend or service validation. MLX framework execution
 and MLX platform discovery remain separate responsibilities.
+
+## Diffusers invocation guidance
+
+[Trace Diffusers invocation state](frameworks/diffusers/diffusers-invocation-state/SKILL.md)
+separates pipeline-wrapper fields, reused component identities, scheduler progress
+and cooperative interruption. The candidate is scoped to FluxPipeline and
+FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
+and performance remain unverified; the existing offload card keeps its own pin.

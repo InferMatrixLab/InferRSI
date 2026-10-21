@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.bound_windowed_attention_replay",
+  "title": "bound-windowed-attention-replay",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Bound replay or prefill query rows across a producer/consumer boundary whose retained inputs and separately preserved historical state satisfy the full dependency closure. Use when a model has shared hidden state or preserved-compressed KV and the retained region must be derived rather than assumed. Derives the retain rule from window plus rollback depth, separates query-row compaction from dropping historical keys, and names what becomes unrecoverable.",
+  "tags": [
+    "deepinfer",
+    "sliding-window-attention",
+    "prefix-replay",
+    "kv-cache",
+    "metadata",
+    "correctness"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a704774293ea320b0a2f1f5229d61d7b307fc089/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+      "commit": "a704774293ea320b0a2f1f5229d61d7b307fc089",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md",
+        "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md"
+  },
+  "checkout_ref": "checkout:bound-windowed-attention-replay",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5",
+    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "ce52c99752ddb771adfa8ae3fba53844f64219513b5e88126f62351de3bb3f9d",
+    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098",
+    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff",
+    "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
+  },
+  "skill_metadata": {
+    "name": "bound-windowed-attention-replay",
+    "description": "Bound replay or prefill query rows across a producer/consumer boundary whose retained inputs and separately preserved historical state satisfy the full dependency closure. Use when a model has shared hidden state or preserved-compressed KV and the retained region must be derived rather than assumed. Derives the retain rule from window plus rollback depth, separates query-row compaction from dropping historical keys, and names what becomes unrecoverable.",
+    "tags": [
+      "deepinfer",
+      "sliding-window-attention",
+      "prefix-replay",
+      "kv-cache",
+      "metadata",
+      "correctness"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/deepseek-ai/DeepInfer",
+        "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+        "paths": [
+          "csrc/engine/input_metadata/prepare_tensor_input_v4.cpp",
+          "deepinfer/engine/llm_engine.py",
+          "deepinfer/model_executor/input_metadata/yoco.py",
+          "deepinfer/model_executor/model_metadata_utils.py",
+          "deepinfer/model_executor/models/decoder_layer.py",
+          "deepinfer/model_executor/models/v4_modules/attn.py",
+          "deepinfer/model_executor/models/v4_modules/yoco.py",
+          "deepinfer/worker/cache_engine.py",
+          "deepinfer/worker/model_runner.py",
+          "deepinfer/environ.py",
+          "LICENSE"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "applicability": {
+      "scope": "Decoders with an explicit producer/consumer boundary and a demonstrated dependency closure for compact query rows, including separately preserved historical state",
+      "prerequisites": "A derived dependency closure; a full-length KV write at the boundary; known rollback depth; control over metadata construction",
+      "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer"
+    },
+    "limitations": [
+      "Source-derived candidate; no equivalence run was performed.",
+      "Applies to architectures with a demonstrated boundary dependency, not to arbitrary sliding-window stacks.",
+      "Window sizes, boundary-layer index and ring lengths are model-config specific and are not transferable.",
+      "Query-row compaction does not imply dropping historical keys; the two decisions are separate.",
+      "Prompt logprobs are unrecoverable for the clipped region; the reference forces them off with a warning.",
+      "The truncation path is off by default in the reference source."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md",
+      "references/validation.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Decoders with an explicit producer/consumer boundary and a demonstrated dependency closure for compact query rows, including separately preserved historical state",
+    "prerequisites": "A derived dependency closure; a full-length KV write at the boundary; known rollback depth; control over metadata construction",
+    "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no equivalence run was performed.",
+    "Applies to architectures with a demonstrated boundary dependency, not to arbitrary sliding-window stacks.",
+    "Window sizes, boundary-layer index and ring lengths are model-config specific and are not transferable.",
+    "Query-row compaction does not imply dropping historical keys; the two decisions are separate.",
+    "Prompt logprobs are unrecoverable for the clipped region; the reference forces them off with a warning.",
+    "The truncation path is off by default in the reference source."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -1,0 +1,140 @@
+{
+  "schema_version": 1,
+  "id": "deepinfer.common.llm.zero_overhead_deferred_scheduling",
+  "tier": "peer",
+  "repo": "deepinfer",
+  "backend": "common",
+  "component": "llm",
+  "scenario": "llm.*",
+  "title": "DeepInfer zero-overhead scheduling: defer the previous step's post-process to overlap host prep with device work",
+  "status": "imported",
+  "summary": "Move the CPU-only post-process of step N into step N+1 so it overlaps the next forward. The reusable part is the staleness enumeration and the on-device repair, not the scheduler itself.",
+  "tags": [
+    "scheduling",
+    "host_overhead",
+    "overlap",
+    "pipelining",
+    "stale_state",
+    "transfer_hypothesis"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/llm_engine.py#L307-L314",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "a636d60ca5711f6b7c21e68370c3bd9c2de6fc3f4439a7429ca4f572f0edeebe"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/parallel_utils/parallel_state.py#L89-L94",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "3565b2449abff4df0df2f979061a73364886c93602218b43c2f86c70f2629801"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/worker.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "ad32e595d9ab289dff1a7709136431ac60dae709e9e5123ae42eb0ebf7c30cbb"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/zos.cpp",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "1cb70e0b4ed7181b95e19ef2cc3cc640d1cd8f24e874ce4bc34fe51d6f031b46"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/scheduler.hpp",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "c14de4d5341170227b82ddf2d146d9c6a337937885a6886237aab5a7238da5db"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/arg_utils.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "c28c478bd376165c073c6e0722bed8468599a2fd766ffc7aafcd4ef270af52c5"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/engine_type.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "9933d83f500e3cc14c5fef0dd2fbe5c5170dbbf24df217376b0a55c4fb4ab48c"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/utils.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "8a0049b98ea6f7ef98555ad8b38b9e8dac2292c0d2a89c2090bbdb5e5ee7295a"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Backend-independent pipelining idea; the reference implementation asserts support only for NVIDIA SM100 and Ascend 950"
+    ],
+    "software": [
+      "deepseek-ai/DeepInfer at 8b16149741a4935e1dec8cea27853f273b374c5b; later revisions need reinspection"
+    ],
+    "conditions": [
+      "Decode-heavy workload where the CPU post-process is exposed between device kernels",
+      "At least one extra step of retained metadata, state slots and KV blocks is affordable",
+      "Distributed step-type votes can run on a host-side backend, not a device collective",
+      "The entrypoint has a drain path, because callers see results one step late"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "source_observed",
+      "description": "The reorder is forward(N) -> post-process(N-1) -> sample(N) -> defer post-process(N). Prompt steps never defer; only decode steps, and only when DEEPINFER_ZERO_OVERHEAD_SCHEDULING is set."
+    },
+    {
+      "kind": "source_observed",
+      "description": "Three quantities become one step stale: per-request query length under adaptive speculation, per-request key length after rejected drafts, and input token ids for rows continuing from the previous batch. Each is repaired on device from a remap of the previous batch."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The scheduler releases the GIL; the standard ZOS engine constructor selects its CPU data-parallel group, created with Gloo, and the scheduler's Gloo vote uses a CPU tensor. This is a constructor/code path observation, not proof that every scheduler branch avoids device synchronization."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The default depends on how the engine object is built. The environment variable defaults false, while EngineArgs sets it with setdefault from a per-engine-type property that is true for NORMAL and COMPLETION and false for PROMPT. A README claim of 'enabled by default' and a false variable default can both be true of different entrypoints."
+    },
+    {
+      "kind": "source_observed",
+      "description": "Forward and sample launches use a torch-visible synchronization debug guard. Event.synchronize is outside its coverage, another thread's allow scope can lift enforcement, and an environment setting disables it. Guard presence alone does not prove synchronization-free execution."
+    }
+  ],
+  "downstream_impact": [
+    "The host-overhead profiling procedure measures exposed preparation; this source case illustrates moving that preparation rather than shrinking it, without a reproduced gain.",
+    "A vLLM or vLLM-family engine could adopt the reorder only if its scheduler is device-free and it can enumerate the stale quantities; neither is established here.",
+    "Ascend: the mechanism is arithmetic and metadata, but the reference asserts unsupported combinations rather than degrading, so the transfer hypothesis needs its own gate check."
+  ],
+  "recommendations": [
+    "Treat the staleness list as the deliverable, not the code. An engine that cannot enumerate what becomes stale cannot safely pipeline.",
+    "Confirm the drain path before measuring anything; without it tokens are silently lost at the end of a request.",
+    "Preserve the standard ZOS constructor's host DP-group ordering, or re-establish the ordering for a custom construction before measuring overlap."
+  ],
+  "validation_plan": [
+    "Profile with named regions before and after, reporting the idle window separately from kernel time.",
+    "Compare a fixed-seed single request token-for-token between the pipelined and direct orders.",
+    "Report the fraction of steps where the remap found overlap, split by prompt and decode.",
+    "Measure peak memory, since one extra step of state is retained."
+  ],
+  "limitations": [
+    "No DeepInfer build or run was performed; nothing here is a measured gain.",
+    "The reference is an offline engine for one model; transfer to a serving engine with continuous batching is unproven.",
+    "Scheduler stale-output guards, sample-event synchronization and deferred metadata release exist. Their presence does not establish complete in-flight KV/state reuse safety; a reachable preemption race was neither proved nor reproduced, so it remains a validation question rather than a known defect.",
+    "Numeric timer thresholds and any reported throughput belong to the source deployment and are not reproduced."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "source_observed"
+  }
+}

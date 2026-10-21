@@ -1,6 +1,6 @@
 # Source evidence
 
-All anchors use one immutable source commit.
+The original table uses one immutable source commit. The later [abort acknowledgment readset](../sub-skills/omni-validation/references/abort-acknowledgment.md) separately records incremental evidence at `18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e`; it does not refresh the original claims implicitly.
 
 | ID | Source | Supports |
 |---|---|---|

@@ -8,7 +8,7 @@ experiment; repository conventions stay with their owning repository.
 | --- | --- | --- |
 | Contribution / `contribution` | vLLM, vLLM-Omni, vllm-ascend; legacy repository packs also retain imported Strata, SGLang and SGLang-Omni procedures | L2C blind attempt → comparison → scoped skill; separate performance evidence/candidates |
 | Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, Triton, Diffusers, Transformers | API/capability constraints and downstream impact; no blind coding session required |
-| Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
+| Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT, Qwen3-TTS engine, DeepInfer | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
 
 This is an acquisition policy, not a ranking or fixed dependency graph.
 Cache-DiT, for example, can also be a direct dependency of vLLM-Omni. Its entry
@@ -116,6 +116,20 @@ speedup numbers whose conditions or isolated contribution are unclear.
 | peer | lmdeploy | [LMDeploy KV quantization: preserve capacity gains and latency counterexamples](peer/lmdeploy/cuda/llm/kv-quantization-capacity-cost.json) |
 | peer | xdit | [xDiT parallelism: separate current-state attention from stale-state pipelines](peer/xdit/cuda/diffusion/parallelism-freshness-and-topology.json) |
 | peer | cache_dit | [Cache-DiT residual reuse needs model- and schedule-specific calibration](peer/cache_dit/common/diffusion/residual-cache-calibration.json) |
+
+## DeepInfer extraction: 2026-10-20
+
+Three source-derived candidates at the same immutable DeepInfer revision.
+Owner review on 2026-10-22 corrected query/KV ownership, nested feature gates,
+verification budgeting and release-scope attribution. Original access dates
+are retained; newly inspected sources carry their own access date. No native,
+model, service or performance validation is claimed.
+
+| Tier | Source | Card |
+| --- | --- | --- |
+| peer | deepinfer | [DeepInfer zero-overhead scheduling: defer the previous step's post-process to overlap host prep with device work](peer/deepinfer/common/llm/zero-overhead-deferred-scheduling.json) |
+| peer | deepinfer | [DeepInfer verification budget: spend verification rows by marginal acceptance, not by fixed draft width](peer/deepinfer/common/llm/speculative-verification-budget.json) |
+| peer | deepinfer | [DeepInfer bounded replay: compact query rows with a derived dependency closure and separately preserved historical state](peer/deepinfer/common/llm/bounded-windowed-replay.json) |
 
 ## Maintaining the tiers
 
