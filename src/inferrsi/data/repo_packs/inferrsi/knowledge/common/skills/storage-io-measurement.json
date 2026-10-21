@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/32c744c841ab64ac4e106749603da9b1111b726e/src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
-      "commit": "32c744c841ab64ac4e106749603da9b1111b726e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8ae8bf8a717a50a7ac6658c601bc3e972f6a7742/src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
+      "commit": "8ae8bf8a717a50a7ac6658c601bc3e972f6a7742",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json",
@@ -42,7 +42,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md": "63b883c10a8d3e7d918abfc7175b72e2b401ff1e02697f94b8382ec1c8f369b7",
     "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json": "1d3195ca8ac8e1b0e94acda01863b83046cff7d773e8131e9f3f925150bad66e",
-    "src/inferrsi/data/skill_library/skill-index.json": "9b437dd34dbb396473f75a4f0baf11c0b4948e2259b587db2c1d00c2dca4dcee"
+    "src/inferrsi/data/skill_library/skill-index.json": "6329ae001babb55bccefc3b3dab6da8e6f497b91e4e2b47134ceeb1e71140723"
   },
   "skill_metadata": {
     "name": "storage-io-measurement",

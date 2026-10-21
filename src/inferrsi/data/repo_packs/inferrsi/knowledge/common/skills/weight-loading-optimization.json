@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/32c744c841ab64ac4e106749603da9b1111b726e/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "32c744c841ab64ac4e106749603da9b1111b726e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8ae8bf8a717a50a7ac6658c601bc3e972f6a7742/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "8ae8bf8a717a50a7ac6658c601bc3e972f6a7742",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
@@ -42,7 +42,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "df168c23a6f0fadddc147925a11e9eefc61f340be8e7c01a3fbe3aab002aa490",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "c45d544312627787d523142e25730f1c3aa1b0f007ee9c10dcf0cec9f3044f71",
-    "src/inferrsi/data/skill_library/skill-index.json": "9b437dd34dbb396473f75a4f0baf11c0b4948e2259b587db2c1d00c2dca4dcee"
+    "src/inferrsi/data/skill_library/skill-index.json": "6329ae001babb55bccefc3b3dab6da8e6f497b91e4e2b47134ceeb1e71140723"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",
