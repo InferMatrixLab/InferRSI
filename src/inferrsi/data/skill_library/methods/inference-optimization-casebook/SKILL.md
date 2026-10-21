@@ -80,6 +80,9 @@ Source: perf-optimization-casebook @ f33e0e5f, §how-to-use.
 
 Current owner-local records retain rejected directions alongside their limits:
 
+- [MiniCPM-o speaker extraction](cases/minicpm-speaker-cpu-reference.md): CPU
+  graph optimizer semantics, short-input numerical rejection and component/service boundaries.
+
 - [Qwen B300](cases/qwen-b300-rejected-directions.md): full-image rejection,
   graph/copy overhead, unintegrated leads and confounded trials.
 - [Qwen Ascend](cases/qwen-ascend-rejected-directions.md): reported OOM,

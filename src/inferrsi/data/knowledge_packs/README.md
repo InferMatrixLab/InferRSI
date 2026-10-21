@@ -152,3 +152,7 @@ All remain imported and locally unverified; downstream support requires separate
 | peer | qwen3_tts_engine | [Qwen3-TTS codec: cache fixed codebooks and retain request-owned causal state](peer/qwen3_tts_engine/ascend/audio/codec-constants-and-state.json) |
 | peer | qwen3_tts_engine | [Qwen3-TTS NPU graphs: batch prefill while preserving request state](peer/qwen3_tts_engine/ascend/audio/graph-batching-state-ownership.json) |
 | peer | qwen3_tts_engine | [Qwen3-TTS CustomVoice: cache only model-fixed prompt embeddings](peer/qwen3_tts_engine/ascend/audio/fixed-customvoice-prompt.json) |
+
+## MiniCPM-o 4.5 single-GPU source import
+
+[Streaming transfer constraints](peer/minicpmo_single_gpu_engine/cuda/audio/streaming-transfer-constraints.json) records source-backed batching, overlap, metric and quality lessons. It preserves negative results and the source profile's incomplete quality qualification; it does not claim a locally reproduced downstream speedup.

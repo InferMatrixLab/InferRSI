@@ -1,0 +1,30 @@
+{
+  "id": "case.minicpm-speaker-cpu-reference",
+  "kind": "case",
+  "origin": [
+    "internal"
+  ],
+  "state": "historical_observation",
+  "content": "minicpm-speaker-cpu-reference.md",
+  "sources": [
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/49",
+      "run": "minicpmo45-l20x-20261021",
+      "artifact": "speaker-candidate-micro.json",
+      "sha256": "e8b7b49fd51662d7fde58cd10306e64fde318f5ae9c857a1482ef7a6db4a94cd",
+      "integrity_status": "rehashed",
+      "evidence_path": "evidence/minicpmo45-l20x-20261021/results/speaker-candidate-micro.json"
+    }
+  ],
+  "applicability": [
+    "CUDA CAM++ voice-cloning speaker extraction",
+    "Optimized CPU reference graphs with partial pooling windows"
+  ],
+  "limitations": [
+    "Component PASS is not service PASS",
+    "English workload on one GPU family",
+    "Raw evidence remains owned by the campaign"
+  ],
+  "attribution": "InferRSI issue #49 local diagnostic evidence"
+}
