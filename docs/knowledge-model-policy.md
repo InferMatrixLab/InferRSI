@@ -127,7 +127,11 @@ open PRs is ineligible, even if one PR declares compliant authorship or receives
 PR-specific exception. The checker reads all open repository PRs, across target
 branches and API pages, and requires a unique head both before evaluation and
 before publishing its result. Close the extra PR or use a distinct commit before
-retrying. An exception cannot bypass head uniqueness.
+retrying. An exception cannot bypass head uniqueness. Each refresh reads the full
+open-PR collection once before evaluation and once before publication, with API
+pagination in both scans. Results remain pending until the second scan revalidates
+head ownership and PR metadata; applicable approvals are reread before publication.
+The collection request count scales with its page count, not page count times PRs.
 
 The workflow handles PR open/reopen/close/commits/body-or-base edits on any target
 branch (a PR against another base can share a main PR's head), approval-comment

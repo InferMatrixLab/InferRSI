@@ -17,6 +17,7 @@ from tools.check_knowledge_model_policy import (
     assess,
     changed_paths,
     check_pr,
+    check_prs,
     declaration,
     file_page_numbers,
     json_block,
@@ -401,10 +402,9 @@ def test_api_shared_head_cannot_be_overwritten_by_compliant_pr(api_fixture, poli
     api, state = api_fixture
     state["prs"][124] = {**pr(), "number": 124}
     state["prs"][123]["body"] = None
-    for number in order:
-        result = check_pr(api, number, policy, BASE, False)
-        assert result["state"] == "failure"
-        assert latest_status(state)["state"] == "failure"
+    results = check_prs(api, policy, BASE, False, order)
+    assert [r["state"] for r in results] == ["failure", "failure"]
+    assert latest_status(state)["state"] == "failure"
     assert all(s["state"] != "success" for s in state["statuses"])
 
 
@@ -416,9 +416,8 @@ def test_api_exception_for_one_pr_cannot_green_another(api_fixture, policy, orde
     state["prs"] = {123: pr(value), 124: {**pr(value), "number": 124}}
     # 两处都有同一个 comment，但其中的批准明确只覆盖 PR 123。
     state["comments"] = {123: [approval({KNOWLEDGE})], 124: [approval({KNOWLEDGE})]}
-    for number in order:
-        assert check_pr(api, number, policy, BASE, False)["state"] == "failure"
-        assert latest_status(state)["state"] == "failure"
+    assert all(r["state"] == "failure" for r in check_prs(api, policy, BASE, False, order))
+    assert latest_status(state)["state"] == "failure"
     state["prs"][124]["state"] = "closed"
     assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
     assert latest_status(state)["state"] == "success"
@@ -480,3 +479,46 @@ def test_api_duplicate_appearing_during_evaluation_fails_before_success(api_fixt
     assert "shared heads" in result["errors"][0]
     assert latest_status(state)["state"] == "failure"
     assert all(s["state"] != "success" for s in state["statuses"])
+
+
+def separate_pr(number, head, base_ref="main"):
+    value = declared()
+    value["head_sha"] = head
+    item = pr(value)
+    item.update(number=number, head={"sha": head})
+    item["base"]["ref"] = base_ref
+    return item
+
+
+def test_api_batch_bounds_open_list_requests_across_pages(api_fixture, policy):
+    api, state = api_fixture
+    state["prs"] = {n: separate_pr(n, f"{n:040x}", "release") for n in range(200, 300)}
+    state["prs"].update({n: separate_pr(n, f"{n:040x}") for n in range(120, 126)})
+    results = check_prs(api, policy, BASE, False)
+    assert {r["pull_request"] for r in results} == set(range(120, 126))
+    assert all(r["state"] == "success" for r in results)
+    assert state["requests"].count(("GET", "pulls")) == 4  # 两次扫描，每次两页。
+
+
+@pytest.mark.parametrize("change", ["body", "approval"])
+def test_api_batch_revalidates_earlier_pr_before_publication(api_fixture, policy, change):
+    api, state = api_fixture
+    state["prs"][124] = separate_pr(124, "c" * 40)
+    if change == "approval":
+        value = declared([attribution("unknown", "unknown")])
+        value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+        state["prs"][123] = pr(value)
+        state["comments"][123] = [approval({KNOWLEDGE})]
+
+    def change_earlier_pr(route):
+        if route == "pulls/124/files":
+            if change == "body":
+                state["prs"][123]["body"] = None
+            else:
+                state["comments"][123] = []
+
+    state["before_request"] = change_earlier_pr
+    results = check_prs(api, policy, BASE, False, [123, 124])
+    assert [r["state"] for r in results] == ["failure", "success"]
+    assert latest_status(state)["state"] == "failure"
+    assert latest_status(state, "c" * 40)["state"] == "success"

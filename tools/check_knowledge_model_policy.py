@@ -269,25 +269,30 @@ def snapshot(pr):
             pr.get("body"), pr["changed_files"], pr["state"])
 
 
-def require_unique_head(api, number, head):
+def require_unique_head(prs, number, head):
     # Commit status 由 SHA/context 共享；其他 base 的 open PR 也不能复用它。
-    peers = {pr["number"] for pr in api.pages("pulls?state=open")
+    peers = {pr["number"] for pr in prs
              if pr["head"]["sha"] == head}
     if peers != {number}:
         raise ValueError("Head must belong to exactly one open PR; shared heads are ineligible")
 
 
-def check_pr(api, number, policy, policy_sha, dry_run):
-    pr = api.get(f"pulls/{number}")
+def evaluation_failure(error):
+    message = (f"GitHub API HTTP {error.code}" if isinstance(error, HTTPError)
+               else "GitHub API unavailable" if isinstance(error, OSError)
+               else str(error) if isinstance(error, ValueError)
+               else "Invalid GitHub API response")
+    return {"state": "failure", "description": "Policy evaluation failed", "errors": [message]}
+
+
+def read_pr_result(api, pr, policy, policy_sha, open_prs):
+    number = pr["number"]
     head = pr["head"]["sha"]
-    if not SHA.fullmatch(head):
-        raise ValueError("Invalid PR head")
-    if not dry_run:
-        api.status(head, "pending", "Checking current declaration against trusted base policy")
+    comments = []
     try:
         if pr["state"] != "open" or pr["base"]["ref"] != policy["base_branch"]:
             raise ValueError("PR is not open against the supported policy branch")
-        require_unique_head(api, number, head)
+        require_unique_head(open_prs, number, head)
         base_route = f"git/ref/heads/{policy['base_branch']}"
         if api.get(base_route)["object"]["sha"] != policy_sha:
             raise ValueError("Trusted policy checkout is stale; rerun on the current base")
@@ -323,18 +328,62 @@ def check_pr(api, number, policy, policy_sha, dry_run):
             raise ValueError("PR or base changed during evaluation; rerun required")
         if (controls or request is not None) and comments != api.pages(f"issues/{number}/comments"):
             raise ValueError("Approval comments changed during evaluation; rerun required")
-        require_unique_head(api, number, head)
     except (ValueError, KeyError, TypeError, OSError) as error:
-        message = (f"GitHub API HTTP {error.code}" if isinstance(error, HTTPError)
-                   else "GitHub API unavailable" if isinstance(error, OSError)
-                   else str(error) if isinstance(error, ValueError)
-                   else "Invalid GitHub API response")
-        result = {"state": "failure", "description": "Policy evaluation failed",
-                  "errors": [message]}
-    if not dry_run:
-        api.status(head, result["state"], result["description"])
-    return {"pull_request": number, "head_sha": head, "policy_sha": policy_sha,
-            "dry_run": dry_run, **result}
+        result = evaluation_failure(error)
+    return result, comments
+
+
+def admission_snapshot(pr):
+    # list PR API 不含 changed_files；head/base 相同才可复用已验证的文件列表。
+    return (pr["head"]["sha"], pr["base"]["ref"], pr["base"]["sha"],
+            pr.get("body"), pr["state"])
+
+
+def check_prs(api, policy, policy_sha, dry_run, numbers=None):
+    open_prs = api.pages("pulls?state=open")
+    if numbers is None:
+        numbers = [pr["number"] for pr in open_prs if pr["base"]["ref"] == policy["base_branch"]]
+    pending = []
+    for number in numbers:
+        pr = api.get(f"pulls/{number}")
+        head = pr["head"]["sha"]
+        if not SHA.fullmatch(head):
+            raise ValueError("Invalid PR head")
+        if not dry_run:
+            api.status(head, "pending", "Checking current declaration against trusted base policy")
+        result, comments = read_pr_result(api, pr, policy, policy_sha, open_prs)
+        pending.append((pr, result, comments))
+    # 整轮只扫描两次 open PR；最终索引同时复核共享 head 与正文等元数据。
+    try:
+        current = api.pages("pulls?state=open")
+        if api.get(f"git/ref/heads/{policy['base_branch']}")["object"]["sha"] != policy_sha:
+            raise ValueError("Trusted policy checkout is stale; rerun on the current base")
+        by_number = {pr["number"]: pr for pr in current}
+        refresh_error = None
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        refresh_error = error
+    results = []
+    for pr, result, comments in pending:
+        number, head = pr["number"], pr["head"]["sha"]
+        try:
+            if refresh_error is not None:
+                raise refresh_error
+            require_unique_head(current, number, head)
+            if admission_snapshot(by_number[number]) != admission_snapshot(pr):
+                raise ValueError("PR changed before batch publication; rerun required")
+            if comments and comments != api.pages(f"issues/{number}/comments"):
+                raise ValueError("Approval comments changed before batch publication; rerun required")
+        except (ValueError, KeyError, TypeError, OSError) as error:
+            result = evaluation_failure(error)
+        if not dry_run:
+            api.status(head, result["state"], result["description"])
+        results.append({"pull_request": number, "head_sha": head, "policy_sha": policy_sha,
+                        "dry_run": dry_run, **result})
+    return results
+
+
+def check_pr(api, number, policy, policy_sha, dry_run):
+    return check_prs(api, policy, policy_sha, dry_run, [number])[0]
 
 
 def refresh_event(event, event_name):
@@ -370,12 +419,9 @@ def main(argv=None):
     else:
         event = json.loads(Path(args.event_path).read_text(encoding="utf-8"))
         # 所有触发共用一个 writer；待运行事件被合并时仍覆盖全部 open PR。
-        numbers = ([pr["number"] for pr in
-                    api.pages(f"pulls?state=open&base={policy['base_branch']}")]
-                   if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else [])
+        numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
     failed = False
-    for number in numbers:
-        result = check_pr(api, number, policy, args.policy_sha, args.dry_run)
+    for result in check_prs(api, policy, args.policy_sha, args.dry_run, numbers):
         print(json.dumps(result, ensure_ascii=True))
         failed |= result["state"] == "failure"
     return int(failed)
