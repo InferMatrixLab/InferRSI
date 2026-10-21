@@ -1,0 +1,23 @@
+{
+  "frozen_at_utc": "2026-10-21T06:59:06.014919+00:00",
+  "parent_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "Scoped cuDNN/matmul TF32 in HiFT upsampling and source/residual blocks may reduce the remaining Code2Wav cost; source generation and decoder input/output convolutions retain their caller precision.",
+  "inspiration": {
+    "repository": "InferMatrixLab/minicpm-o-4.5-single-gpu-engine",
+    "revision": "a4f4778f312791c2d190b48e521141887ed160c8",
+    "path": "engine/models/token2wav.py"
+  },
+  "operator_gate": {
+    "waveform_relative_l2_max": 0.01,
+    "source": "exactly equal under matched seeded noise",
+    "scope": "First16 original tuning prompts, widths16/50/56 mel frames (48 real-speech windows), official HiFT weights; cache_source empty. Streaming service quality still required."
+  },
+  "service": "Only HiFT precision toggle changes against Torch+MPS default; FP32 flow and batch4 retained.64 reused tuning prompts,C1/C16/C32,discard+one repeat.",
+  "quality": "Prior authorized WER/SIM/UTMOS noninferiority margins remain unchanged; no holdout generation during screening.",
+  "candidate_revision": "460b64d7727585516be3b3c992cf0154b82f2cf9",
+  "pre_service_validation": {
+    "cpu_regressions": 35,
+    "precommit": "PASS",
+    "numerical_report": "../results/peer-round2-hift-numerical.json"
+  }
+}
