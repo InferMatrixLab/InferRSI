@@ -1,0 +1,19 @@
+{
+  "report_verdict": "PASS",
+  "latency_reduction_pct": 28.86446592032322,
+  "findings": [],
+  "claim_scope": "fixed_workload",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "先计算每轮请求均值，再取5轮中位数：基线374.170214 ms，候选266.167980 ms；降幅28.864466%，超过25%门槛。轮均值的相对极差（最大值减最小值，再除以中位数）分别为4.041516%和3.317282%，均低于12%。双方工作负载相同，质量通过，15/15请求全部计入且零失败，无实质合同违规。采用技能“Statistical requirements”的离散度检查和“What a benchmark cannot prove”的范围限制；冻结合同仅要求C1，不额外加入其他门槛。PASS指报告的固定工作负载验收，不表示部署资格或新硬件测量。最小下一步：记录该范围内的PASS，无需补测replay或生产。"
+}

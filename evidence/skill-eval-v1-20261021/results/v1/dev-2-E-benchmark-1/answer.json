@@ -1,0 +1,19 @@
+{
+  "report_verdict": "FAIL",
+  "latency_reduction_pct": 30.548675508082418,
+  "findings": ["unsupported_service_claim"],
+  "claim_scope": "kernel_only",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成；FAIL 指原报告的 HTTP 服务收益主张。先计算每轮请求均值，再取中位数：基线 383.243923 ms，候选 266.167980 ms，降低 30.548676%，超过 20% 门槛。两组轮均值的相对极差分别为 5.902979% 和 3.317282%，均低于 12%；C1 工作负载一致，质量通过，请求完整，各 15/15 且零失败。唯一实质问题是证据仅覆盖 kernel。依据指定技能的“What a benchmark cannot prove”节，微基准改善不能证明 HTTP 端到端收益；其他通用要求不覆盖冻结合同。最小下一步是将报告收窄为 kernel 收益；若保留 HTTP 主张，则需补测相同 C1 工作负载、覆盖全部请求的 HTTP 端到端 A/B 延迟。"
+}

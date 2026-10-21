@@ -40,6 +40,11 @@
       "kind": "review", "manifests": [],
       "external": ["Review summary only; no local freeze manifest or raw output bundle is recorded."]
     },
+    "skill-eval-v1-20261021": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Original private client captures and unredacted host-specific plans remain outside the repository; the public bundle retains labelled redactions, original digests and replayable answer checks."]
+    },
     "qwen3-tts-ascend-import": {
       "kind": "import", "manifests": [],
       "external": ["Original campaign validators and artifacts remain at the upstream source described in plan/README.md."]

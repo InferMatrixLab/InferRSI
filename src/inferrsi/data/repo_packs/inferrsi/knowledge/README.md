@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 50 registered skills in `data/skill_library/`.
+Generated abstracts for all 51 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [86c7dd8d70cbc1e47dd85c79e9fef7afb92599f1](https://github.com/InferMatrixLab/InferRSI/tree/86c7dd8d70cbc1e47dd85c79e9fef7afb92599f1/src/inferrsi/data/skill_library).
+Source snapshot: [32c744c841ab64ac4e106749603da9b1111b726e](https://github.com/InferMatrixLab/InferRSI/tree/32c744c841ab64ac4e106749603da9b1111b726e/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 86c7dd8d70cbc1e47dd85c79e9fef7afb92599f1 --check
+python tools/build_skill_index.py --source-revision 32c744c841ab64ac4e106749603da9b1111b726e --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -65,6 +65,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [diagnose-vllm-admission-pressure](common/skills/diagnose-vllm-admission-pressure.json) | common | candidate |
 | [draft-acceptance-issue](common/skills/draft-acceptance-issue.json) | common | unspecified |
 | [evaluate-elastic-serving-placement](common/skills/evaluate-elastic-serving-placement.json) | common | candidate |
+| [generation-cache-lifecycle](common/skills/generation-cache-lifecycle.json) | common | candidate |
 | [host-memory-management](common/skills/host-memory-management.json) | common | candidate |
 | [host-overhead-optimization](common/skills/host-overhead-optimization.json) | common | candidate |
 | [host-overhead-profiling](cuda/skills/host-overhead-profiling.json) | cuda | candidate |

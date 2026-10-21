@@ -312,3 +312,13 @@ not an additional source or validated mechanism.
 | Source / revision | Inspected scope | Reuse, extraction and limits |
 |---|---|---|
 | vllm-project/vllm-omni @ `18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e` (Apache-2.0) | Engine-base abort/ack APIs, correlated waiter/router, orchestrator companion and logical cleanup, stage-pool partial outputs and queued release; selected upstream test source and test bootstrap | Extend [existing omni-validation](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md) with [three bounded mechanisms and pinned readset](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md). Reuse the original `52194f24...` engine guide and catalog ownership; no new skill or parallel database. CODE / TEST-SOURCE only; actual device, connector, model, service and performance not_run. Full duplex/session behavior and native abort guarantees deferred. |
+
+## MLX-LM application source extraction
+
+| Source / revision | Inspected scope | Extraction and limits |
+|---|---|---|
+| ml-explore/mlx-lm @ `ab7f7048dc341ced2d84b1887eeb17d60b0d1b02` (MIT) | `generate_step`/`stream_generate`, BatchGenerator stage/removal and row filtering, cache factory/KV/BatchKV/LRU prefix paths, selected server model-key/batching/stop branches and native test source | [generation-cache-lifecycle](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md), with [pinned readset](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/source-map.md): three application mechanisms; CODE and unexecuted TEST-SOURCE; empirical validation not_run, no model/service/backend or matched-performance qualification |
+
+MLX-LM owns request/token/cache policy. This source pin does not qualify its
+compatibility with the separately pinned MLX framework or implement discovery.
+The generated abstract is a projection, not independent corroboration.

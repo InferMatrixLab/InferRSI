@@ -143,6 +143,7 @@ for the 34 review points, qualifications and suggested acceptance checks.
 | --- | --- |
 | [Quickstart](docs/quickstart.md) | Installation, real A/B experiments, and reports |
 | [Operation guide](docs/operations.md) | Every CLI/Python operation: entry point, effect class, boundary and example |
+| [Bounded skill evaluation](docs/skill-evaluation.md) | Real-client skill/task comparisons, independent outcomes and evidence limits |
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |

@@ -1,0 +1,22 @@
+{
+  "report_verdict": "FAIL",
+  "latency_reduction_pct": 28.864465920323212,
+  "findings": [
+    "completion_gate_failed",
+    "failed_requests_omitted"
+  ],
+  "claim_scope": "none",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成；FAIL 是报告的验收结论。两侧工作负载相同。逐轮计算请求延迟均值，再取5轮中位数：基线374.170214 ms，候选266.167980 ms；按(基线−候选)/基线计算，降幅28.864466%，超过20%门槛，质量也通过。但候选18个请求仅报告15个，遗漏3个失败请求，明确违反全部请求完成及纳入报告的契约；降幅仅描述已报告请求，不能支持完整验收。依据 dense-performance-evidence 的“Methodology cost and evidence boundaries”保留失败指标与条件分母，并依据“Level 3 — Isolated scenario benchmark”限定解释范围。最小下一步：定位并修复3个失败请求的问题，在相同C1条件下重跑完整候选请求组，保留全部请求及质量结果后重新验收。本次仅审计历史切片及反事实元数据，未进行新硬件测量。"
+}

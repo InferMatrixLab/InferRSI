@@ -1,0 +1,229 @@
+import json
+import shutil
+import time
+from dataclasses import dataclass
+from pathlib import Path
+
+from ..infra.artifacts import atomic_write_json, sha256
+from ..infra.executors.local import execute_command
+from ..knowledge_operations import KnowledgeReader
+
+
+def global_skills() -> list[str]:
+    # 只禁用本次客户端的全局 skills，不修改用户配置。
+    return sorted(
+        str(path.resolve())
+        for root in (Path.home() / ".codex/skills", Path.home() / ".agents/skills")
+        if root.is_dir()
+        for path in root.rglob("SKILL.md")
+    )
+
+
+def client_config() -> dict:
+    return {
+        "sandbox_mode": "danger-full-access",
+        "approval_policy": "never",
+        "project_doc_max_bytes": 0,
+        "web_search": "disabled",
+        "features.apps": False,
+        "features.plugins": False,
+        "features.memories": False,
+        "features.browser_use": False,
+        "features.computer_use": False,
+        "features.multi_agent": False,
+        "features.daemon_auto_start": False,
+        "skills.bundled.enabled": False,
+        "skills.config": [{"path": path, "enabled": False} for path in global_skills()],
+    }
+
+
+def toml_value(value) -> str:
+    if isinstance(value, dict):
+        return "{" + ",".join(json.dumps(k) + "=" + toml_value(v) for k, v in value.items()) + "}"
+    if isinstance(value, list):
+        return "[" + ",".join(toml_value(item) for item in value) + "]"
+    return json.dumps(value)
+
+
+@dataclass(frozen=True)
+class CodexClient:
+    model: str
+    effort: str
+    timeout_seconds: float
+    executable: str = "codex"
+
+    def command(self, workspace: Path, final: Path, schema: Path, prompt: str) -> tuple[str, ...]:
+        values = {**client_config(), "model_reasoning_effort": self.effort}
+        argv = [
+            self.executable,
+            "exec",
+            "--ignore-user-config",
+            "--ephemeral",
+            "--json",
+            "--skip-git-repo-check",
+            "--model",
+            self.model,
+            "--cd",
+            str(workspace),
+            "--output-schema",
+            str(schema),
+            "--output-last-message",
+            str(final),
+        ]
+        for key, value in values.items():
+            argv.extend(("-c", key + "=" + toml_value(value)))
+        return (*argv, prompt)
+
+
+def trace_metrics(path: Path) -> dict:
+    # 缺失 usage 保持未知；cached_input 是 input 的子集。
+    usage, commands, errors, completed = None, [], [], 0
+    for line in path.read_text(encoding="utf-8").splitlines():
+        event = json.loads(line)
+        if event["type"] == "turn.completed":
+            completed += 1
+            usage = event.get("usage")
+        elif event["type"] in ("turn.failed", "error"):
+            errors.append(event)
+        elif event["type"] == "item.completed":
+            item = event["item"]
+            if item["type"] == "command_execution":
+                commands.append(item)
+    return {"usage": usage, "commands": commands, "errors": errors, "completed_turns": completed}
+
+
+def task_verdict(execution: dict, trace: dict, output: dict | None, checks: dict | None) -> str:
+    if execution["status"] != "completed" or trace["completed_turns"] != 1 or trace["errors"]:
+        return "INCONCLUSIVE"
+    if output is None:
+        return "FAIL"
+    if checks is None:
+        return "INCONCLUSIVE"
+    return "PASS" if checks["passed"] else "FAIL"
+
+
+def summarize(trials: list[dict]) -> dict:
+    groups = {}
+    for condition in sorted({t["condition"] for t in trials}):
+        selected = [t for t in trials if t["condition"] == condition]
+        usage = [t["observations"]["usage"] for t in selected]
+        groups[condition] = {
+            "trials": len(selected),
+            "verdicts": {
+                v: sum(t["verdict"] == v for t in selected)
+                for v in ("PASS", "FAIL", "INCONCLUSIVE")
+            },
+            "elapsed_seconds": sum(t["elapsed_seconds"] for t in selected)
+            if all(t["elapsed_seconds"] is not None for t in selected)
+            else None,
+            "input_tokens": sum(u["input_tokens"] for u in usage) if all(usage) else None,
+            "output_tokens": sum(u["output_tokens"] for u in usage) if all(usage) else None,
+            "cost": None,
+        }
+    paired = []
+    baseline = {(t["task_id"], t["repeat"]): t for t in trials if t["condition"] == "N"}
+    for trial in trials:
+        key = trial["task_id"], trial["repeat"]
+        if trial["condition"].startswith("E") and key in baseline:
+            before = baseline[key]["verdict"]
+            paired.append(
+                {
+                    "task_id": key[0],
+                    "repeat": key[1],
+                    "condition": trial["condition"],
+                    "N": before,
+                    "E": trial["verdict"],
+                    "regression": before == "PASS" and trial["verdict"] == "FAIL",
+                    "recovery": before == "FAIL" and trial["verdict"] == "PASS",
+                }
+            )
+    return {"conditions": groups, "pairs": paired, "promotion": "not_evaluated"}
+
+
+def export_bundle(reader: KnowledgeReader, reference: str, destination: Path) -> dict:
+    bundle = reader.read(reference)
+    for name, data in bundle.content.items():
+        target = destination / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(data)
+    return bundle.view()
+
+
+def run_trial(
+    client: CodexClient,
+    task: dict,
+    condition: str,
+    repeat: int,
+    workspace: Path,
+    trial_dir: Path,
+    schema: Path,
+    verifier: Path,
+    prompt: str,
+    deadline: float,
+) -> dict:
+    trial_dir.mkdir(parents=True)
+    final = trial_dir / "answer.json"
+    before = {
+        p.relative_to(workspace).as_posix(): sha256(p) for p in workspace.rglob("*") if p.is_file()
+    }
+    execution = execute_command(
+        client.command(workspace, final, schema, prompt),
+        workspace,
+        trial_dir / "agent",
+        min(deadline, time.monotonic() + client.timeout_seconds),
+    )
+    atomic_write_json(trial_dir / "execution.json", execution)
+    try:
+        trace = trace_metrics(trial_dir / "agent/stdout.log")
+    except (ValueError, KeyError, FileNotFoundError) as error:
+        trace = {
+            "usage": None,
+            "commands": [],
+            "errors": [type(error).__name__],
+            "completed_turns": 0,
+        }
+    output, checks = None, None
+    if final.is_file():
+        try:
+            output = json.loads(final.read_text(encoding="utf-8"))
+        except ValueError:
+            pass
+    verification = None
+    if output is not None and execution["status"] == "completed":
+        verification = execute_command(
+            (
+                shutil.which("python") or "python",
+                str(verifier),
+                str(workspace / "task.json"),
+                str(final),
+            ),
+            workspace,
+            trial_dir / "verification",
+            min(deadline, time.monotonic() + 30),
+        )
+        result_path = trial_dir / "verification/result.json"
+        if verification["status"] in ("completed", "failed") and result_path.is_file():
+            checks = json.loads(result_path.read_text(encoding="utf-8"))
+    after = {
+        p.relative_to(workspace).as_posix(): sha256(p) for p in workspace.rglob("*") if p.is_file()
+    }
+    verdict = task_verdict(execution, trace, output, checks)
+    if before != after:
+        verdict = "INCONCLUSIVE"
+    record = {
+        "task_id": task["id"],
+        "condition": condition,
+        "repeat": repeat,
+        "split": task["split"],
+        "execution_state": execution["status"],
+        "verdict": verdict,
+        "checks": checks,
+        "verification": verification,
+        "elapsed_seconds": execution["elapsed_seconds"],
+        "observations": trace,
+        "inputs_unchanged": before == after,
+        "input_hashes": before,
+        "output_sha256": sha256(final) if final.is_file() else None,
+    }
+    atomic_write_json(trial_dir / "result.json", record)
+    return record

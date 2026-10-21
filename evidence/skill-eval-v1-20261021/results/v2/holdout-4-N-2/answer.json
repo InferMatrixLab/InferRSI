@@ -1,0 +1,19 @@
+{
+  "report_verdict": "FAIL",
+  "latency_reduction_pct": 28.86446592032322,
+  "findings": ["quality_failed"],
+  "claim_scope": "none",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成。每轮先计算请求均值，再取各轮中位数：基线374.170214 ms，候选266.167980 ms，降幅28.864466%，超过20%门槛。负载一致，候选15个请求全部报告且无失败，但质量未通过，因此验收FAIL。最小下一步：定位并修复质量问题，再以相同负载复验质量和延迟。"
+}

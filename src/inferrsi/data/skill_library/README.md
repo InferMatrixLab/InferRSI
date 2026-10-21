@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **71 skill documents**: 50 registered skills
+The English-only library contains **72 skill documents**: 51 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 50 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 51 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -46,7 +46,7 @@ device compatibility; readers do not execute helpers or promote candidates.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 50-ID registry.
+the links and catalog records below, separately from the 51-ID registry.
 The registered ComfyUI audit is listed alongside these imports and uses its
 generated skill abstract rather than a separate runtime repository pack.
 
@@ -105,3 +105,11 @@ separates graph construction, cross-stream ordering, backend buffer retention an
 result availability. It is source-derived candidate guidance; CPU, Metal and CUDA
 runtime behavior and performance remain unverified. MLX-LM request/cache policy and
 MLX platform discovery belong to their separate owners.
+
+## MLX-LM application guidance
+
+[Trace MLX-LM generation and cache lifecycle](repositories/mlx-lm/generation-cache-lifecycle/SKILL.md)
+links prefill/decode boundaries, three-stage batch-row ownership, prefix-cache
+identity and cooperative stopping. It is a source-derived candidate with no
+installed API, model, native-backend or service validation. MLX framework execution
+and MLX platform discovery remain separate responsibilities.
