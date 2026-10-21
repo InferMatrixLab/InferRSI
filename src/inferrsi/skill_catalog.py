@@ -10,8 +10,8 @@ try:
 except ImportError as exc:  # The base install stays PyYAML-free by contract.
     raise ValueError(
         "Reading checkout skills requires the 'skills' extra (PyYAML); install it "
-        "from your InferRSI checkout: python -m pip install "
-        "'<inferrsi-checkout>.[skills]'"
+        "from your InferRSI checkout, replacing the placeholder path: "
+        "python -m pip install '<inferrsi-checkout>[skills]'"
     ) from exc
 
 from .catalog import BACKENDS

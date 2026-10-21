@@ -167,7 +167,7 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument(
         "--skill-root",
         type=Path,
-        help="Add this checkout as a read-only source (requires the 'skills' extra)",
+        help="Select an explicit skills root (requires the 'skills' extra)",
     )
     collect.add_argument(
         "--store",
@@ -186,7 +186,7 @@ def parser() -> argparse.ArgumentParser:
     read.add_argument(
         "--skill-root",
         type=Path,
-        help="Add this checkout as a read-only source (requires the 'skills' extra)",
+        help="Select an explicit skills root (requires the 'skills' extra)",
     )
     read.add_argument(
         "--store",
@@ -206,7 +206,7 @@ def parser() -> argparse.ArgumentParser:
     resource.add_argument(
         "--skill-root",
         type=Path,
-        help="Add this checkout as a read-only source (requires the 'skills' extra)",
+        help="Select an explicit skills root (requires the 'skills' extra)",
     )
     resource.add_argument(
         "--store",

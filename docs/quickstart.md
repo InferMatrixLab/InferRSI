@@ -15,7 +15,7 @@ inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
 Package-only knowledge commands (`knowledge`, `context`, package `collect`/`read`)
-work with this base install. Reading checkout skills — the `skills` command and
+work with this base install. Reading skill libraries — the `skills` command and
 any `--skill-root` selection — additionally requires
 `python -m pip install '.[skills]'` (PyYAML); without it those operations fail
 with that install hint instead of a traceback.
@@ -55,14 +55,14 @@ the complete normalized envelope; fields kept only in a package record's origina
 entrypoint document are read with `--material` or `resource`, not projected into
 the normalized metadata.
 
-Sources are selected explicitly: the installed package by default, a checkout
-via `--skill-root`, an existing store opened read-only via `--store`. A store
-records the checkout it reserves and rejects a mismatched or missing
+Sources are selected explicitly: the installed package by default, an explicit
+skills root via `--skill-root`, an existing store opened read-only via `--store`.
+A store records the skills root it reserves and rejects a mismatched or missing
 `--skill-root` on open.
 
 The `skills` command defaults to the installed library's 48 registered skills;
 its full bodies and resources are packaged. `--skill-root` in the normalized
-examples above explicitly adds this checkout's original skill and case IDs.
+examples above explicitly adds that root's skill and case IDs.
 
 ## The actual configuration interface
 

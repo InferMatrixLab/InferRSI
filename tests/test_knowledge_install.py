@@ -11,7 +11,7 @@ import pytest
 from inferrsi.knowledge_operations import KnowledgeReader
 
 REPO = Path(__file__).resolve().parents[1]
-SKILLS = REPO / "skills"
+SKILLS = REPO / "src" / "inferrsi" / "data" / "skill_library"
 SOURCE = "calibrate-serving-simulation"
 
 
@@ -66,7 +66,8 @@ def test_skill_root_without_pyyaml_fails_with_install_hint(without_yaml):
     )
     assert result.returncode == 2
     assert "Traceback" not in result.stderr
-    assert ".[skills]" in result.stderr and "PyYAML" in result.stderr
+    assert "[skills]" in result.stderr and "PyYAML" in result.stderr
+    assert "<inferrsi-checkout>[skills]" in result.stderr
 
 
 def test_install_hint_is_actionable_outside_the_repository(without_yaml, tmp_path):
@@ -78,7 +79,7 @@ def test_install_hint_is_actionable_outside_the_repository(without_yaml, tmp_pat
     )
     assert result.returncode == 2
     assert "Traceback" not in result.stderr
-    assert "<inferrsi-checkout>.[skills]" in result.stderr
+    assert "<inferrsi-checkout>[skills]" in result.stderr and "placeholder" in result.stderr
 
 
 def test_checkout_chain_collect_read_resource_through_real_cli(tmp_path):

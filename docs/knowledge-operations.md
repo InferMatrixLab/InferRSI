@@ -22,8 +22,8 @@ source = reader.resource(item["ref"], "methods/calibrate-serving-simulation/refe
 The `collect`, `read` and `resource` commands expose these operations with the
 same rules (see the [operation guide](operations.md) for flags, boundaries and
 examples). Sources are selected explicitly: the installed package by default, a
-checkout via `--skill-root`, an existing store opened read-only via `--store`;
-the store records the checkout it reserves and rejects a mismatched or missing
+an explicit skills root via `--skill-root`, an existing store read-only via `--store`;
+the store records the skills root it reserves and rejects a mismatched or missing
 `--skill-root` on open. `resource` requires the exact revision returned by
 `collect`/`read` and writes bytes to `--output`.
 
