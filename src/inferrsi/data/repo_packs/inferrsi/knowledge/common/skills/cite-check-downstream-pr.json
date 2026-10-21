@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ddeba86177132c5933cf7ab1e6eb7021fb767e22/src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
-      "commit": "ddeba86177132c5933cf7ab1e6eb7021fb767e22",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7/src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
+      "commit": "5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md"
@@ -31,7 +31,7 @@
   },
   "checkout_ref": "checkout:cite-check-downstream-pr",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21",
+    "src/inferrsi/data/skill_library/skill-index.json": "0a3a63cab25def1f15e21c253345ef42528b2da904222e673fa304c26066a1fc",
     "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md": "485932cdf3b1fba5dc69be73e75d38f86a7b79442d26e82a296c963a7598d226"
   },
   "skill_metadata": {

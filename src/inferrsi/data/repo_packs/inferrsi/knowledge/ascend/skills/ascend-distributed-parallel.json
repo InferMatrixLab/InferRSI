@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ddeba86177132c5933cf7ab1e6eb7021fb767e22/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
-      "commit": "ddeba86177132c5933cf7ab1e6eb7021fb767e22",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "5b3eaecb0a81b6d4a95b947a6a585a3caa7d6eb7",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
@@ -42,7 +42,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "4252cc6f984600393b277c45f8c3ef84f5dd0250c13d5b80a2e1b35d3531c520",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "843c0a93bf3e61c107c432e05b23a7466ed07b7c061142fed1e6128ca22734cb",
-    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
+    "src/inferrsi/data/skill_library/skill-index.json": "0a3a63cab25def1f15e21c253345ef42528b2da904222e673fa304c26066a1fc"
   },
   "skill_metadata": {
     "name": "ascend-distributed-parallel",
