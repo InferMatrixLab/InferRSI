@@ -12,6 +12,23 @@ import re
 import zipfile
 from pathlib import Path
 
+if __package__:
+    from .profiles import (
+        BF16_MODEL_ID,
+        FP8_MODEL_ID,
+        MODEL_IDS,
+        check_precision,
+        validate_native_loading,
+    )
+else:
+    from profiles import (
+        BF16_MODEL_ID,
+        FP8_MODEL_ID,
+        MODEL_IDS,
+        check_precision,
+        validate_native_loading,
+    )
+
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -73,7 +90,7 @@ NATIVE_POLICY = {"implementation": "native_torch", "full_attention": "eager",
                  "deltanet": "torch", "cuda_graph": False, "tensor_parallel_size": 1}
 
 
-def validate_sources(record, spec, locked, root, side):
+def validate_sources(record, spec, locked, root, side, model_id=BF16_MODEL_ID):
     sources = require_object(record.get("source_provenance"))
     required = {"control"} if side == "baseline" else {"control", "engine"}
     if set(sources) != required:
@@ -91,6 +108,8 @@ def validate_sources(record, spec, locked, root, side):
         required_modules = {"inferrsi", "inferrsi.infra.targets.git"} if label == "control" else {
             "nanovllm", "nanovllm.qwen38.loader", "nanovllm.qwen38.runner", "nanovllm.qwen38.model",
         }
+        if label == "engine" and model_id == FP8_MODEL_ID:
+            required_modules |= {"nanovllm.qwen38.quant", "nanovllm.qwen38._triton_fp8"}
         if not required_modules <= set(imports):
             raise ValueError("required source import origins missing")
         prefix = "inferrsi" if label == "control" else "nanovllm"
@@ -106,11 +125,14 @@ def validate_sources(record, spec, locked, root, side):
     if side == "candidate" and record.get("native_model_module") != "nanovllm.qwen38.model":
         raise ValueError("candidate model is not the native engine class")
     if side == "candidate":
-        loading = require_object(record.get("loading"))
-        if (loading.get("scope") != "text_only" or loading.get("dtype") != "bfloat16"
-                or type(loading.get("loaded_parameters")) is not int
-                or loading["loaded_parameters"] <= 0):
-            raise ValueError("native parameter loading evidence missing")
+        validate_native_loading(record.get("loading"), model_id)
+        if model_id == FP8_MODEL_ID:
+            execution = require_object(record.get("fp8_execution"))
+            count = record["loading"]["fp8_linear_modules"]
+            if (type(execution.get("modules")) is not int or execution["modules"] != count
+                    or type(execution.get("total_calls")) is not int
+                    or execution["total_calls"] < count):
+                raise ValueError("Native FP8 execution evidence incomplete")
     source_check = read_json(root / "source.json")
     if source_check.get("side") != side:
         raise ValueError("trial source check has wrong role")
@@ -123,8 +145,48 @@ def validate_sources(record, spec, locked, root, side):
             raise ValueError("trial source changed during execution")
 
 
+def validate_reference_kernel(record, revision, snapshot):
+    kernel = require_object(record.get("reference_kernel"))
+    if (kernel.get("repo_id") != "kernels-community/finegrained-fp8"
+            or kernel.get("repo_type") != "kernel"
+            or kernel.get("revision") != revision or kernel.get("snapshot_sha256") != snapshot):
+        raise ValueError("Reference kernel differs from frozen provenance")
+    package_root = require_string(kernel.get("package_root"))
+    if (kernel.get("build") != "torch-cuda" or not Path(package_root).is_absolute()
+            or Path(package_root).name != "torch-cuda"):
+        raise ValueError("Reference kernel build origin missing")
+    files = kernel.get("files")
+    if not isinstance(files, list) or not files:
+        raise ValueError("Reference kernel file coverage missing")
+    names = set()
+    for item in files:
+        require_object(item)
+        name = require_string(item.get("path"))
+        if Path(name).is_absolute() or ".." in Path(name).parts or name in names:
+            raise ValueError("Invalid reference kernel file identity")
+        names.add(name)
+        require_digest(item.get("sha256"))
+    observed = hashlib.sha256(json.dumps(files, sort_keys=True).encode()).hexdigest()
+    if observed != snapshot:
+        raise ValueError("Reference kernel fingerprint mismatch")
+    loading = require_object(record.get("fp8_loading"))
+    expected = {"execution": "transformers_fp8", "dequantized": False,
+                "backend": "finegrained_fp8", "weight_dtype": "float8_e4m3fn",
+                "activation_dtype": "bfloat16", "scale_dtype": "float32",
+                "scale_normalization": "lossless_float32"}
+    if (loading.get("dequantized") is not False
+            or any(loading.get(key) != value for key, value in expected.items())
+            or type(loading.get("fp8_linear_modules")) is not int
+            or loading["fp8_linear_modules"] <= 0
+            or type(loading.get("bf16_scale_upcasts")) is not int
+            or not 0 <= loading["bf16_scale_upcasts"] <= loading["fp8_linear_modules"]):
+        raise ValueError("Reference FP8 execution coverage missing or dequantized")
+    return kernel
+
+
 def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_floor,
-             qualification_scope="reference_self_check"):
+             qualification_scope="reference_self_check", model_id=BF16_MODEL_ID,
+             fp8_kernel_revision=None, fp8_kernel_sha256=None):
     import numpy as np
 
     for number in (max_nrmse, min_top1, rms_floor):
@@ -140,6 +202,14 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
     if qualification_scope not in {"reference_self_check", "native_text_smoke"}:
         raise ValueError("unknown qualification scope")
     native = qualification_scope == "native_text_smoke"
+    fp8 = model_id == FP8_MODEL_ID
+    for document in (manifest, workload):
+        check_precision(document, model_id)
+    if fp8:
+        require_digest(fp8_kernel_revision, r"[0-9a-f]{40}")
+        require_digest(fp8_kernel_sha256)
+    if spec.get("model", None if fp8 else model_id) != model_id:
+        raise ValueError("RunSpec model identity differs from requested profile")
     if native:
         if spec.get("comparison_scope") != qualification_scope or not spec.get("candidate_repo"):
             raise ValueError("native smoke requires an explicit native RunSpec and engine checkout")
@@ -167,11 +237,11 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
     identities = {
         "schema_version": 1,
         "qualification_scope": qualification_scope,
-        "model_id": "Qwen/Qwen3.8-27B",
+        "model_id": model_id,
         "model_revision": manifest["revision"],
         "manifest_sha256": digest(manifest_path),
         "workload_sha256": digest(workload_path),
-        "dtype": "bfloat16",
+        "dtype": "fp8" if fp8 else "bfloat16",
         "device_type": "cuda",
         "device_count": 1,
         "tokenization": "raw_text_no_special_tokens",
@@ -186,6 +256,7 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
         raise ValueError("RunSpec workload hash differs from workload")
     traces = {}
     environment = None
+    reference_kernel = None
     candidate_role = "nanovllm_qwen38" if native else "transformers_cached"
     for side, implementation in (("baseline", "transformers_full"), ("candidate", candidate_role)):
         wanted = {f"trial-{index:03d}" for index in range(1, count + 1)}
@@ -203,7 +274,20 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                 raise ValueError("trace identity, precision or scope mismatch")
             if record.get("implementation") != implementation:
                 raise ValueError("incorrect reference implementation role")
+            check_precision(record, model_id)
             policy = NATIVE_POLICY if native and side == "candidate" else REFERENCE_POLICY
+            if fp8:
+                policy = ({**policy, "fp8_linear": "triton_block_fp8"}
+                          if native and side == "candidate" else
+                          {**policy, "fp8_linear": "finegrained_fp8", "deepgemm": False})
+                if not (native and side == "candidate"):
+                    kernel = validate_reference_kernel(
+                        record, fp8_kernel_revision, fp8_kernel_sha256,
+                    )
+                    if reference_kernel is None:
+                        reference_kernel = kernel
+                    elif reference_kernel != kernel:
+                        raise ValueError("Reference FP8 kernel changed across trials")
             if record.get("kernel_policy") != policy:
                 raise ValueError("incorrect implementation kernel policy")
             if native:
@@ -211,7 +295,7 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                 require_string(execution.get("cwd"))
                 if Path(execution["cwd"]).resolve() != Path(expected_repo).resolve():
                     raise ValueError("trial did not execute in its snapshotted checkout")
-                validate_sources(record, spec, locked, root, side)
+                validate_sources(record, spec, locked, root, side, model_id)
             vocab = record.get("vocab_size")
             if type(vocab) is not int or vocab < 1:
                 raise ValueError("missing vocabulary size")
@@ -220,7 +304,9 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                 raise ValueError("missing environment qualification")
             if current["device_model"] != environment_record.get("requested_device_model"):
                 raise ValueError("actual GPU differs from requested qualification target")
-            if not all(current["versions"].get(key) for key in ("torch", "transformers")):
+            version_keys = ("torch", "transformers", "kernels", "triton") if fp8 else (
+                "torch", "transformers")
+            if not all(current["versions"].get(key) for key in version_keys):
                 raise ValueError("missing runtime versions")
             if environment is None:
                 environment = current
@@ -292,6 +378,9 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model-id", choices=MODEL_IDS, default=BF16_MODEL_ID)
+    parser.add_argument("--fp8-kernel-revision")
+    parser.add_argument("--fp8-kernel-sha256")
     for name in ("run-dir", "workload", "manifest", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
     for name in ("max-nrmse", "min-top1", "rms-floor"):
@@ -301,7 +390,8 @@ def main():
     args = parser.parse_args()
     try:
         result = validate(args.run_dir, args.workload, args.manifest,
-                          args.max_nrmse, args.min_top1, args.rms_floor, args.qualification_scope)
+                          args.max_nrmse, args.min_top1, args.rms_floor, args.qualification_scope,
+                          args.model_id, args.fp8_kernel_revision, args.fp8_kernel_sha256)
     except (OSError, ValueError, KeyError, TypeError, ImportError, zipfile.BadZipFile) as exc:
         # Do not echo exception strings, which may contain private runtime paths.
         result = {"verdict": "INCONCLUSIVE", "qualification_scope": args.qualification_scope,

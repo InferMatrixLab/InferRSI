@@ -83,3 +83,25 @@ def test_native_role_requires_explicit_consistent_scope(tmp_path, monkeypatch, e
     with pytest.raises(SystemExit) as exc:
         launch.main()
     assert exc.value.code == 2
+
+
+def test_fp8_preview_propagates_explicit_profile_and_frozen_kernel(tmp_path, monkeypatch, capsys):
+    from examples.qwen38_text.profiles import FP8_MODEL_ID, precision
+
+    argv = args(tmp_path)
+    path = tmp_path / "workload.json"
+    workload = json.loads(path.read_text())
+    workload.update(model_id=FP8_MODEL_ID, precision=precision(FP8_MODEL_ID))
+    path.write_text(json.dumps(workload))
+    argv += ["--model-id", FP8_MODEL_ID, "--fp8-kernel-revision", "b" * 40,
+             "--fp8-kernel-sha256", "c" * 64, "--dry-run"]
+    monkeypatch.setattr(sys, "argv", argv)
+    assert launch.main() == 0
+    spec = json.loads(capsys.readouterr().out)
+    assert spec["model"] == FP8_MODEL_ID
+    for key in ("baseline_command", "candidate_command", "validation_command"):
+        assert "--model-id" in spec[key] and FP8_MODEL_ID in spec[key]
+        assert "--fp8-kernel-revision" in spec[key] and "b" * 40 in spec[key]
+    monkeypatch.setattr(sys, "argv", argv[:-5] + ["--dry-run"])
+    with pytest.raises(SystemExit):
+        launch.main()

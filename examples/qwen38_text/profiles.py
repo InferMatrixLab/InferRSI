@@ -1,5 +1,7 @@
 """Explicit checkpoint and execution precision profiles for the two supported models."""
 
+import json
+
 BF16_MODEL_ID = "Qwen/Qwen3.8-27B"
 FP8_MODEL_ID = "Qwen/Qwen3.8-27B-FP8"
 MODEL_IDS = (BF16_MODEL_ID, FP8_MODEL_ID)
@@ -32,7 +34,8 @@ def validate_config(config, model_id):
         if quant:
             raise ValueError("Expected unquantized BF16 checkpoint")
     elif (not isinstance(quant, dict)
-          or any(quant.get(key) != value for key, value in FP8_QUANTIZATION.items())
+          or any(json.dumps(quant.get(key), sort_keys=True) != json.dumps(value, sort_keys=True)
+                 for key, value in FP8_QUANTIZATION.items())
           or quant.get("dequantize", False) is not False
           or quant.get("scale_fmt", "float") != "float"):
         raise ValueError("Expected dynamic e4m3 FP8 checkpoint with 128 by 128 blocks")
@@ -41,7 +44,8 @@ def validate_config(config, model_id):
 def check_precision(record, model_id):
     expected = precision(model_id)
     # Historical BF16 manifests/traces had no separate precision object.
-    if record.get("precision", expected if model_id == BF16_MODEL_ID else None) != expected:
+    actual = record.get("precision", expected if model_id == BF16_MODEL_ID else None)
+    if json.dumps(actual, sort_keys=True) != json.dumps(expected, sort_keys=True):
         raise ValueError("Missing or mismatched execution precision identity")
 
 
@@ -54,8 +58,10 @@ def validate_native_loading(loading, model_id):
             or loading["loaded_parameters"] <= 0):
         raise ValueError("Native parameter loading coverage missing")
     if model_id == FP8_MODEL_ID:
-        if (any(loading.get(key) != value for key, value in precision(model_id).items())
-                or loading.get("execution") != "native_fp8"
+        check_precision(
+            {"precision": {key: loading.get(key) for key in precision(model_id)}}, model_id,
+        )
+        if (loading.get("execution") != "native_fp8"
                 or loading.get("backend") != "triton_block_fp8"
                 or type(loading.get("fp8_linear_modules")) is not int
                 or loading["fp8_linear_modules"] <= 0):

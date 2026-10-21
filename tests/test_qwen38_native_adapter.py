@@ -168,3 +168,46 @@ def test_native_gpu_model_guard_prevents_loading(native_runtime):
     with pytest.raises(ValueError, match="target"):
         native_trial.run(args)
     assert not calls
+
+
+@pytest.mark.parametrize("actual_dtype", ["fp8", "bf16"])
+def test_native_fp8_trial_checks_actual_tensors_and_calls(
+    native_runtime, monkeypatch, actual_dtype,
+):
+    from importlib import metadata
+
+    from examples.qwen38_text.profiles import FP8_MODEL_ID, precision
+
+    args, _cuda, _calls = native_runtime
+    args.model_id = FP8_MODEL_ID
+    torch = sys.modules["torch"]
+    torch.float8_e4m3fn, torch.float32 = "fp8", "fp32"
+    original_load, original_runner = native_trial.import_native(args.engine_repo)
+    model, _report = original_load(args.model_path, device="cuda:0")
+    module = type("FP8Linear", (), {"__module__": "nanovllm.qwen38.quant"})()
+    module.weight = types.SimpleNamespace(dtype=actual_dtype)
+    module.weight_scale_inv = types.SimpleNamespace(dtype="fp32")
+    module.native_fp8_calls = 0
+    model.modules = lambda: [module]
+    report = {"scope": "text_only", "dtype": "fp8", "loaded_parameters": 3,
+              **precision(FP8_MODEL_ID), "execution": "native_fp8", "backend": "triton_block_fp8",
+              "fp8_linear_modules": 1}
+
+    class Runner(original_runner):
+        def trace_teacher_forced(self, prompt, continuation):
+            rows = super().trace_teacher_forced(prompt, continuation)
+            module.native_fp8_calls += 1
+            return rows
+
+    monkeypatch.setattr(native_trial, "import_native", lambda *_: (
+        lambda *_a, **_kw: (model, report), Runner,
+    ))
+    monkeypatch.setattr(metadata, "version", lambda _: "test")
+    if actual_dtype == "bf16":
+        with pytest.raises(ValueError, match="dequantized"):
+            native_trial.run(args)
+        assert not args.output.exists() and module.native_fp8_calls == 0
+    else:
+        result = native_trial.run(args)
+        assert result["dtype"] == "fp8" and result["precision"] == precision(FP8_MODEL_ID)
+        assert result["fp8_execution"] == {"modules": 1, "total_calls": 1}

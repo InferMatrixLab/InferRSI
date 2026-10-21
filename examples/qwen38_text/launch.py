@@ -6,6 +6,7 @@ import os
 import sys
 from pathlib import Path
 
+from examples.qwen38_text.profiles import BF16_MODEL_ID, FP8_MODEL_ID, MODEL_IDS
 from examples.qwen38_text.trial import HEX40, load_workload
 from inferrsi.harness.runner import run_experiment
 from inferrsi.infra.inspection import inspect_environment
@@ -17,6 +18,9 @@ def main():
     for name in ("repo", "model-path", "manifest", "workload", "output-dir"):
         parser.add_argument("--" + name, type=Path, required=True)
     parser.add_argument("--model-revision", required=True)
+    parser.add_argument("--model-id", choices=MODEL_IDS, default=BF16_MODEL_ID)
+    parser.add_argument("--fp8-kernel-revision")
+    parser.add_argument("--fp8-kernel-sha256")
     parser.add_argument("--device-model", required=True)
     parser.add_argument("--qualification-scope", default="reference_self_check",
                         choices=("reference_self_check", "native_text_smoke"))
@@ -43,11 +47,21 @@ def main():
         parser.error("native engine checkout must stay inside the authorized task root")
     if not HEX40.fullmatch(args.model_revision):
         parser.error("model revision must be an immutable commit")
-    _, workload_hash = load_workload(args.workload)
+    _, workload_hash = load_workload(args.workload, args.model_id)
+    fp8_args = ()
+    if args.model_id == FP8_MODEL_ID:
+        from examples.qwen38_text.trial import HEX64
+        if (not args.fp8_kernel_revision or not HEX40.fullmatch(args.fp8_kernel_revision)
+                or not args.fp8_kernel_sha256 or not HEX64.fullmatch(args.fp8_kernel_sha256)):
+            parser.error("FP8 requires immutable reference kernel revision and source digest")
+        fp8_args = ("--fp8-kernel-revision", args.fp8_kernel_revision,
+                    "--fp8-kernel-sha256", args.fp8_kernel_sha256)
+    elif args.fp8_kernel_revision or args.fp8_kernel_sha256:
+        parser.error("BF16 cannot declare an FP8 reference kernel")
     example = Path(__file__).resolve().parent
     trial = (sys.executable, str(example / "trial.py"),
              "--model-path", str(args.model_path.resolve()),
-             "--model-revision", args.model_revision,
+             "--model-revision", args.model_revision, "--model-id", args.model_id,
              "--manifest", str(args.manifest.resolve()),
              "--workload", str(args.workload.resolve()),
              "--device-model", args.device_model, "--output", "{result}")
@@ -62,7 +76,11 @@ def main():
         candidate = (sys.executable, str(example / "native_trial.py")) + trial[2:] + (
             "--engine-repo", str(args.candidate_repo.resolve()),
         )
-    validator += ("--qualification-scope", args.qualification_scope)
+    baseline += fp8_args
+    if not native:
+        candidate += fp8_args
+    validator += ("--qualification-scope", args.qualification_scope,
+                  "--model-id", args.model_id) + fp8_args
     spec = RunSpec(
         repo=str(args.repo.resolve()), repo_type="nano_vllm", backend="cuda",
         candidate_repo=str(args.candidate_repo.resolve()) if native else None,
@@ -71,7 +89,7 @@ def main():
         baseline_command=baseline, candidate_command=candidate, validation_command=validator,
         comparison_scope=args.qualification_scope, repetitions=args.repetitions,
         max_minutes=args.max_minutes, workload_id=workload_hash,
-        model="Qwen/Qwen3.8-27B", model_revision=args.model_revision,
+        model=args.model_id, model_revision=args.model_revision,
         agent="codex", device_ids=tuple(filter(None, os.environ.get(
             "CUDA_VISIBLE_DEVICES", "").split(","))), executor="local",
         output_dir=str(args.output_dir.resolve()),

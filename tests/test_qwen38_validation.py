@@ -148,7 +148,7 @@ def test_synthetic_traces_complete_real_subprocess_loop(trace_bundle, tmp_path):
     validator = Path(__file__).resolve().parents[1] / "examples/qwen38_text/validate.py"
     spec = RunSpec(
         repo=str(repo), objective="correctness", repetitions=1, max_minutes=1,
-        model_revision="a" * 40, workload_id=digest(workload),
+        model="Qwen/Qwen3.8-27B", model_revision="a" * 40, workload_id=digest(workload),
         baseline_command=command("baseline"), candidate_command=command("candidate"),
         validation_command=(sys.executable, str(validator), "--run-dir", "{run_dir}",
                             "--workload", str(workload), "--manifest", str(manifest),
@@ -268,14 +268,22 @@ def test_native_rejects_wrong_execution_checkout_and_trial_source_drift(native_b
         check_native(native_bundle)
 
 
+@pytest.mark.parametrize("fp8", [False, True])
 @pytest.mark.parametrize("malformed", [False, True])
 def test_native_synthetic_traces_use_distinct_repos_in_common_loop(
-    native_bundle, tmp_path, malformed,
+    native_bundle, tmp_path, malformed, fp8,
 ):
     from inferrsi.harness.runner import run_experiment
     from inferrsi.runspec import RunSpec
 
     fixture, workload, manifest = native_bundle
+    fp8_args = ()
+    model_id = "Qwen/Qwen3.8-27B"
+    if fp8:
+        kernel = upgrade_fp8_bundle(native_bundle)
+        model_id = "Qwen/Qwen3.8-27B-FP8"
+        fp8_args = ("--model-id", model_id, "--fp8-kernel-revision", kernel["revision"],
+                    "--fp8-kernel-sha256", kernel["snapshot_sha256"])
     if malformed:
         mutate_case(native_bundle, lambda r: r.update(loading=None))
     declared = json.loads((fixture / "run.lock.json").read_text())
@@ -292,12 +300,13 @@ def test_native_synthetic_traces_use_distinct_repos_in_common_loop(
     spec = RunSpec(
         repo=declared["repo"], candidate_repo=declared["candidate_repo"],
         objective="correctness", comparison_scope="native_text_smoke", repetitions=1,
-        model_revision="a" * 40, workload_id=digest(workload), max_minutes=1,
+        model=model_id, model_revision="a" * 40, workload_id=digest(workload), max_minutes=1,
         baseline_command=command("baseline"), candidate_command=command("candidate"),
         validation_command=(sys.executable, str(validator), "--run-dir", "{run_dir}",
                             "--workload", str(workload), "--manifest", str(manifest),
                             "--max-nrmse", "0.01", "--min-top1", "0.99", "--rms-floor", "1e-8",
-                            "--qualification-scope", "native_text_smoke", "--output", "{result}"),
+                            "--qualification-scope", "native_text_smoke",
+                            "--output", "{result}") + fp8_args,
         output_dir=str(tmp_path / "native-outputs"),
     )
     run = run_experiment(spec, {"requested_device_model": "Synthetic GPU"}, snapshot=lambda p, *_:
@@ -309,7 +318,7 @@ def test_native_synthetic_traces_use_distinct_repos_in_common_loop(
     assert quality["qualification_scope"] == "native_text_smoke"
 
 
-def native_validator_subprocess(bundle):
+def native_validator_subprocess(bundle, extra=()):
     run, workload, manifest = bundle
     output = run / "standalone-validation.json"
     validator = Path(__file__).resolve().parents[1] / "examples/qwen38_text/validate.py"
@@ -317,7 +326,7 @@ def native_validator_subprocess(bundle):
         [sys.executable, str(validator), "--run-dir", str(run), "--workload", str(workload),
          "--manifest", str(manifest), "--max-nrmse", "0.01", "--min-top1", "0.99",
          "--rms-floor", "1e-8", "--qualification-scope", "native_text_smoke",
-         "--output", str(output)], capture_output=True, text=True, check=False,
+         "--output", str(output), *extra], capture_output=True, text=True, check=False,
     )
     result = json.loads(output.read_text())
     assert json.loads(completed.stdout) == result
@@ -403,3 +412,92 @@ def test_native_complete_numerical_failure_still_exits_one(native_bundle):
     code, result = native_validator_subprocess(native_bundle)
     assert code == 1 and result["verdict"] == "FAIL"
     assert all("numerical gate rejected" in reason for reason in result["reasons"])
+
+
+def upgrade_fp8_bundle(bundle):
+    import hashlib
+
+    from examples.qwen38_text.profiles import FP8_MODEL_ID, precision
+
+    run, workload, manifest = bundle
+    profile = precision(FP8_MODEL_ID)
+    for path in (workload, manifest):
+        record = json.loads(path.read_text())
+        record.update(model_id=FP8_MODEL_ID, precision=profile)
+        path.write_text(json.dumps(record))
+    spec = json.loads((run / "run.lock.json").read_text())
+    spec.update(model=FP8_MODEL_ID, workload_id=digest(workload))
+    (run / "run.lock.json").write_text(json.dumps(spec))
+    files = [{"path": "__init__.py", "sha256": "a" * 64}]
+    kernel = {"repo_id": "kernels-community/finegrained-fp8", "repo_type": "kernel",
+              "revision": "b" * 40, "files": files, "build": "torch-cuda",
+              "package_root": "/synthetic/kernel/build/torch-cuda",
+              "snapshot_sha256": hashlib.sha256(
+                  json.dumps(files, sort_keys=True).encode()).hexdigest()}
+    for side in ("baseline", "candidate"):
+        path = run / side / "trial-001/result.json"
+        record = json.loads(path.read_text())
+        record.update(model_id=FP8_MODEL_ID, dtype="fp8", precision=profile,
+                      manifest_sha256=digest(manifest), workload_sha256=digest(workload))
+        record["versions"].update(kernels="test", triton="test")
+        if side == "baseline":
+            record["kernel_policy"].update(fp8_linear="finegrained_fp8", deepgemm=False)
+            record["reference_kernel"] = kernel
+            record["fp8_loading"] = {"execution": "transformers_fp8", "dequantized": False,
+                                     "backend": "finegrained_fp8", "weight_dtype": "float8_e4m3fn",
+                                     "activation_dtype": "bfloat16", "fp8_linear_modules": 1,
+                                     "scale_dtype": "float32", "bf16_scale_upcasts": 1,
+                                     "scale_normalization": "lossless_float32"}
+        else:
+            record["kernel_policy"].update(fp8_linear="triton_block_fp8")
+            record["fp8_execution"] = {"modules": 1, "total_calls": 4}
+            engine_root = Path(spec["candidate_repo"])
+            for name in ("quant", "_triton_fp8"):
+                source = engine_root / f"nanovllm/qwen38/{name}.py"
+                source.write_text("# synthetic FP8 source\n")
+                record["source_provenance"]["engine"]["imports"][f"nanovllm.qwen38.{name}"] = {
+                    "path": source.relative_to(engine_root).as_posix(), "sha256": digest(source),
+                }
+            record["loading"].update(dtype="fp8", **profile, execution="native_fp8",
+                                     backend="triton_block_fp8", fp8_linear_modules=1)
+        path.write_text(json.dumps(record))
+    return kernel
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda r: r.update(dtype="bfloat16"),
+    lambda r: r.update(precision=None),
+    lambda r: r["precision"].update(dequantized=True),
+    lambda r: r["loading"].update(dequantized=True),
+    lambda r: r["loading"].update(fp8_linear_modules=0),
+    lambda r: r["loading"].update(backend="bf16_linear"),
+])
+def test_fp8_complete_identity_and_no_dequantized_candidate(native_bundle, mutation):
+    kernel = upgrade_fp8_bundle(native_bundle)
+    extra = ("--model-id", "Qwen/Qwen3.8-27B-FP8", "--fp8-kernel-revision", kernel["revision"],
+             "--fp8-kernel-sha256", kernel["snapshot_sha256"])
+    code, result = native_validator_subprocess(native_bundle, extra)
+    assert code == 0 and result["verdict"] == "PASS"
+    mutate_case(native_bundle, mutation)
+    code, result = native_validator_subprocess(native_bundle, extra)
+    assert code == 2 and result["verdict"] == "INCONCLUSIVE"
+
+
+@pytest.mark.parametrize("mutation", [
+    lambda r: r["reference_kernel"].update(revision="c" * 40),
+    lambda r: r["reference_kernel"].update(repo_type="model"),
+    lambda r: r["reference_kernel"]["files"][0].update(sha256="d" * 64),
+    lambda r: r["fp8_loading"].update(dequantized=True),
+    lambda r: r.update(fp8_loading=None),
+    lambda r: r["kernel_policy"].update(deepgemm=True),
+])
+def test_fp8_reference_kernel_and_loading_must_match_frozen_profile(native_bundle, mutation):
+    kernel = upgrade_fp8_bundle(native_bundle)
+    path = native_bundle[0] / "baseline/trial-001/result.json"
+    record = json.loads(path.read_text())
+    mutation(record)
+    path.write_text(json.dumps(record))
+    extra = ("--model-id", "Qwen/Qwen3.8-27B-FP8", "--fp8-kernel-revision", kernel["revision"],
+             "--fp8-kernel-sha256", kernel["snapshot_sha256"])
+    code, result = native_validator_subprocess(native_bundle, extra)
+    assert code == 2 and result["verdict"] == "INCONCLUSIVE"

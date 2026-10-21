@@ -14,7 +14,26 @@ import re
 import sys
 from pathlib import Path, PurePosixPath
 
-MODEL_ID = "Qwen/Qwen3.8-27B"
+if __package__:
+    from .profiles import (
+        BF16_MODEL_ID,
+        FP8_MODEL_ID,
+        MODEL_IDS,
+        check_precision,
+        precision,
+        validate_config,
+    )
+else:
+    from profiles import (
+        BF16_MODEL_ID,
+        FP8_MODEL_ID,
+        MODEL_IDS,
+        check_precision,
+        precision,
+        validate_config,
+    )
+
+MODEL_ID = BF16_MODEL_ID
 HEX40 = re.compile(r"[0-9a-f]{40}")
 HEX64 = re.compile(r"[0-9a-f]{64}")
 CASE_ID = re.compile(r"[A-Za-z0-9][A-Za-z0-9_-]*")
@@ -58,14 +77,16 @@ def model_file(root: Path, name: str) -> Path:
     return resolved
 
 
-def verify_manifest(root: Path, manifest_path: Path, revision: str) -> str:
+def verify_manifest(root: Path, manifest_path: Path, revision: str,
+                    model_id: str = MODEL_ID) -> str:
     """Read and hash every frozen file; size/mtime are never integrity evidence."""
     manifest_bytes = manifest_path.read_bytes()
     manifest = json.loads(manifest_bytes)
     if not HEX40.fullmatch(revision):
         raise ValueError("Model revision must be a lowercase 40-character commit")
-    if manifest.get("model_id") != MODEL_ID or manifest.get("revision") != revision:
+    if manifest.get("model_id") != model_id or manifest.get("revision") != revision:
         raise ValueError("Manifest model identity differs from requested identity")
+    check_precision(manifest, model_id)
     records = manifest.get("files")
     if not isinstance(records, list) or not records:
         raise ValueError("Manifest files must be nonempty")
@@ -94,30 +115,22 @@ def verify_manifest(root: Path, manifest_path: Path, revision: str) -> str:
         if not name.endswith(".safetensors") or name not in covered:
             raise ValueError("Manifest omits an indexed safetensors shard")
     config = json.loads(model_file(root, "config.json").read_bytes())
-    text = config.get("text_config", {})
-    if (
-        config.get("model_type") != "qwen3_5"
-        or config.get("architectures") != ["Qwen3_5ForConditionalGeneration"]
-        or text.get("model_type") != "qwen3_5_text"
-        or text.get("dtype", text.get("torch_dtype")) != "bfloat16"
-        or config.get("quantization_config")
-        or text.get("quantization_config")
-    ):
-        raise ValueError("Expected unquantized BF16 Qwen3.5-architecture checkpoint")
+    validate_config(config, model_id)
     return hashlib.sha256(manifest_bytes).hexdigest()
 
 
-def load_workload(path: Path) -> tuple[list[dict], str]:
+def load_workload(path: Path, model_id: str = MODEL_ID) -> tuple[list[dict], str]:
     workload_bytes = path.read_bytes()
     workload = json.loads(workload_bytes)
     cases = workload.get("cases")
     if (
         workload.get("schema_version") != 1
-        or workload.get("model_id") != MODEL_ID
+        or workload.get("model_id") != model_id
         or not isinstance(cases, list)
         or not cases
     ):
         raise ValueError("Invalid or empty workload")
+    check_precision(workload, model_id)
     seen = set()
     for case in cases:
         name = case.get("id")
@@ -190,8 +203,9 @@ def run(args: argparse.Namespace) -> dict:
         raise ValueError("Unknown qualification scope")
     if scope == "native_text_smoke" and args.mode != "full":
         raise ValueError("Native smoke reference must use full-prefix recomputation")
-    manifest_hash = verify_manifest(args.model_path, args.manifest, args.model_revision)
-    cases, workload_hash = load_workload(args.workload)
+    model_id = getattr(args, "model_id", MODEL_ID)
+    manifest_hash = verify_manifest(args.model_path, args.manifest, args.model_revision, model_id)
+    cases, workload_hash = load_workload(args.workload, model_id)
     config = json.loads(model_file(args.model_path, "config.json").read_bytes())
     vocab_size = config["text_config"]["vocab_size"]
     if type(vocab_size) is not int or vocab_size <= 0:
@@ -199,6 +213,16 @@ def run(args: argparse.Namespace) -> dict:
     if args.output.exists():
         raise ValueError("Refusing to overwrite an existing trial result")
     policy = kernel_policy()
+    reference_kernel = None
+    if model_id == FP8_MODEL_ID:
+        if __package__:
+            from .fp8_reference import prepare_reference_kernel
+        else:
+            from fp8_reference import prepare_reference_kernel
+        reference_kernel = prepare_reference_kernel(
+            args.fp8_kernel_revision, args.fp8_kernel_sha256,
+        )
+        policy = {**policy, "fp8_linear": "finegrained_fp8", "deepgemm": False}
     # CPU-only smoke checks must not import optional GPU packages.
     import numpy as np
     import torch
@@ -230,16 +254,28 @@ def run(args: argparse.Namespace) -> dict:
     )
     if any(loading.get(key) for key in ("missing_keys", "mismatched_keys", "error_msgs")):
         raise ValueError("Reference checkpoint did not load all required parameters")
+    fp8_loading = None
+    if model_id == FP8_MODEL_ID:
+        if __package__:
+            from .fp8_reference import inspect_reference_fp8
+        else:
+            from fp8_reference import inspect_reference_fp8
+        from transformers.integrations.finegrained_fp8 import FP8Linear
+        index = json.loads(model_file(args.model_path, "model.safetensors.index.json").read_bytes())
+        expected_count = sum(name.startswith("model.language_model.layers.")
+                             and name.endswith(".weight_scale_inv") for name in index["weight_map"])
+        fp8_loading = inspect_reference_fp8(model, torch, FP8Linear, expected_count)
     model.eval()
     result = {
         "schema_version": 1,
         "qualification_scope": scope,
         "implementation": "transformers_" + args.mode,
-        "model_id": MODEL_ID,
+        "model_id": model_id,
         "model_revision": args.model_revision,
         "manifest_sha256": manifest_hash,
         "workload_sha256": workload_hash,
-        "dtype": "bfloat16",
+        "dtype": "fp8" if model_id == FP8_MODEL_ID else "bfloat16",
+        "precision": precision(model_id),
         "device_type": "cuda",
         "device_count": 1,
         "device_model": torch.cuda.get_device_name(0),
@@ -254,6 +290,11 @@ def run(args: argparse.Namespace) -> dict:
         },
         "cases": [],
     }
+    if reference_kernel is not None:
+        from importlib.metadata import version
+        result["versions"].update(kernels=version("kernels"), triton=version("triton"))
+        result["reference_kernel"] = reference_kernel
+        result["fp8_loading"] = fp8_loading
     if scope == "native_text_smoke":
         if __package__:
             from .provenance import capture_sources
@@ -266,7 +307,7 @@ def run(args: argparse.Namespace) -> dict:
     )
 
 
-def write_traces(result, output, cases, tokens, collect):
+def write_traces(result, output, cases, tokens, collect, finalize=None):
     """Write the shared full-vocabulary observation format for either implementation."""
     import numpy as np
 
@@ -290,6 +331,8 @@ def write_traces(result, output, cases, tokens, collect):
                 "greedy_ids": logits.argmax(axis=1).tolist(),
             }
         )
+    if finalize is not None:
+        finalize(result)
     with output.open("x") as stream:
         json.dump(result, stream, indent=2, allow_nan=False)
         stream.write("\n")
@@ -300,6 +343,9 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--model-path", type=Path, required=True)
     parser.add_argument("--model-revision", required=True)
+    parser.add_argument("--model-id", choices=MODEL_IDS, default=MODEL_ID)
+    parser.add_argument("--fp8-kernel-revision")
+    parser.add_argument("--fp8-kernel-sha256")
     parser.add_argument("--device-model", required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--workload", type=Path, required=True)

@@ -174,3 +174,50 @@ and a 64-digit SHA-256 snapshot hash; imported-file hashes must be SHA-256.
 Checkout paths and executed working directories must be nonempty strings.
 Missing or malformed evidence writes an INCONCLUSIVE result and exits 2;
 complete evidence rejected by the numerical gates still writes FAIL and exits 1.
+
+## Separate FP8 profile
+
+[Acceptance #57](https://github.com/InferMatrixLab/InferRSI/issues/57) owns FP8
+qualification; its separate preparation tree is
+[`qwen38-h20-fp8-phase1`](../../evidence/qwen38-h20-fp8-phase1/plan/README.md).
+BF16 remains the default and its prior preparation is unchanged. Explicitly pass
+`--model-id Qwen/Qwen3.8-27B-FP8` to intake, launch, direct trials and validation.
+FP8 manifests and workloads must carry the profile's explicit `precision` object.
+The adapter supports only the official dynamic e4m3, 128 by 128 block profile:
+FP8 linear weights, BF16 activations and unquantized layers, and FP32 recurrent
+state. It rejects whole-model BF16 dequantization labelled as FP8.
+
+Prepare a separate registered environment with CUDA Torch, Transformers,
+Accelerate, NumPy, Safetensors, Triton and `kernels`. The inspected Transformers
+FP8 integration uses an external finegrained-fp8 kernel; `use_kernels=False`
+does not disable quantizer-specific kernels. The adapter forces DeepGEMM off
+and requires a previously prepared, immutable **kernel-registry** revision of
+`kernels-community/finegrained-fp8`, with `matmul_2d`, `matmul_batched` and
+`matmul_grouped` entrypoints in the `torch-cuda` build. The older model-registry
+repository is not interchangeable. No version alias or online download may be
+resolved during a trial.
+
+Before freezing, authenticate the kernel registry source/build and compute the
+loaded package fingerprint using `fp8_reference.kernel_fingerprint(module)`.
+This helper hashes all files in the package tree except Python bytecode; the
+prepared package must contain its sibling kernel sources. Bind its expected
+SHA-256 to the trusted preparation source, rather than treating a newly observed
+runtime hash as authority. Freeze both `<kernel_revision>` and `<kernel_sha256>`.
+Set `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` before process startup, and pass
+`--fp8-kernel-revision '<kernel_revision>' --fp8-kernel-sha256 '<kernel_sha256>'`
+to launch (or to a direct reference trial and validator). Launch forwards these
+only to the reference implementation and validator; the native candidate owns
+its separate Triton kernel. Runtime kernel package paths are private provenance
+and must be redacted before sharing.
+
+The reference verifies actual FP8 tensors and complete indexed module coverage.
+Loaded BF16 block scales are explicitly, losslessly upcast to FP32; existing
+FP32 scales remain unchanged. The result records this normalization and its
+upcast count. Native validation checks actual FP8 tensors, the loader's declared
+backend, successful per-layer FP8 calls and imported native kernel source.
+Both sides record their precision and kernel policy, plus `kernels` and Triton
+versions. Reference source fingerprints must remain identical across trials;
+reference and candidate backend implementations intentionally differ.
+
+These contracts and CPU smoke tests are preparation, not FP8 model acceptance.
+Freeze the new sources, environment, workload and gates before GPU experiments.

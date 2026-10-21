@@ -333,3 +333,33 @@ def test_optional_kernel_cannot_silently_change_reference(monkeypatch):
     monkeypatch.setattr(trial.importlib.util, "find_spec", lambda name: object())
     with pytest.raises(ValueError, match="optional DeltaNet kernels"):
         trial.kernel_policy()
+
+
+def test_fp8_manifest_and_workload_are_separate(model_bundle, tmp_path):
+    from examples.qwen38_text.profiles import FP8_MODEL_ID, FP8_QUANTIZATION, precision
+
+    model, manifest = model_bundle
+    config = json.loads((model / "config.json").read_text())
+    config["quantization_config"] = FP8_QUANTIZATION
+    write_json(model / "config.json", config)
+    document = json.loads(manifest.read_text())
+    document.update(model_id=FP8_MODEL_ID, precision=precision(FP8_MODEL_ID))
+    for record in document["files"]:
+        path = model / record["path"]
+        record.update(size=path.stat().st_size, sha256=trial.sha256_file(path))
+    write_json(manifest, document)
+    assert trial.verify_manifest(model, manifest, REVISION, FP8_MODEL_ID)
+    with pytest.raises(ValueError, match="identity"):
+        trial.verify_manifest(model, manifest, REVISION)
+    workload = tmp_path / "workload.json"
+    write_json(workload, {"schema_version": 1, "model_id": FP8_MODEL_ID,
+                          "precision": precision(FP8_MODEL_ID),
+                          "cases": [{"id": "one", "prompt": "abc", "continuation": "def",
+                                     "max_steps": 1}]})
+    assert len(trial.load_workload(workload, FP8_MODEL_ID)[0]) == 1
+    with pytest.raises(ValueError):
+        trial.load_workload(workload)
+    document.pop("precision")
+    write_json(manifest, document)
+    with pytest.raises(ValueError, match="precision"):
+        trial.verify_manifest(model, manifest, REVISION, FP8_MODEL_ID)
