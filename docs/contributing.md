@@ -207,6 +207,9 @@ the optional `skills` parser in a fresh virtual environment, and runs
 `tests/check_installed.py` outside the checkout with `PYTHONPATH` unset and Python
 isolated mode enabled. This checks packaged knowledge, skill bodies, licenses,
 helpers and CLI reads without installing any inference engine.
+The ready test and installed-package jobs cover the declared minimum Python
+3.10 alongside Python 3.11. This matrix does not certify later Python releases
+or accelerator runtime compatibility.
 
 Do not add default model downloads, GPU jobs or campaign thresholds to these
 lanes. Dependency drift and hardware qualification require their own evidence.

@@ -11,12 +11,16 @@ concurrency:
 
 jobs:
   installed-package:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
       - name: Build distributables
         run: |
           python -m pip install build
@@ -32,12 +36,16 @@ jobs:
           env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
 
   full-check:
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ["3.10", "3.11"]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: ${{ matrix.python }}
       - name: Install dev deps
         run: python -m pip install -e ".[dev]"
       - name: Ruff
