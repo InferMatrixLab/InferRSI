@@ -17,5 +17,6 @@
   "protocol": "64 reused tuning,discard+one,C1/C16/C32 plus native quality scoring; no holdout use",
   "qualification": "Exploratory; final same-card repeated comparison and all quality confidence bounds remain required.",
   "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
-  "integration": "Cherry-pick applied cleanly; service controller requires combined precision, graph and flag tests to pass before launch."
+  "integration": "Cherry-pick applied cleanly; service controller requires combined precision, graph and flag tests to pass before launch.",
+  "pre_service_combined_tests": "113 passed; source unchanged after tests"
 }

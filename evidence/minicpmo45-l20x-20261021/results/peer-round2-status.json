@@ -21,15 +21,22 @@
     "Native coalescing constructor fix,104 tests and pre-commit PASS",
     "Native coalescing6ms screen, no material throughput gain",
     "Native Talker four-vocoder screen,C32 1332.4",
-    "Torch speaker exact graph implementation, real-feature bitwise gate and CPU/CUDA checks"
+    "Torch speaker exact graph implementation, real-feature bitwise gate and CPU/CUDA checks",
+    "Matched peer64 tuning baseline,C16/C32 1493.4/2544.1",
+    "Native coalescing quality exceeds margins",
+    "Native Talker four-replica quality exceeds WER margin",
+    "Speaker graph2replica descriptive means within margins,C32 1074.3",
+    "Ordinary Talker2/vocoder4 FP32 descriptive means within margins,C32 1423.5",
+    "Combined precision/speaker graph113 tests PASS",
+    "Selective CFM speaker2x4 screen, C16/C32 1184.3/1510.9; descriptive means within margins",
+    "50-frame window screen, C16/C32 1316.0/1592.2; no peer win",
+    "Three-repeat prompt-cluster quality design frozen before holdout generation;8 synthetic validator controls PASS"
   ],
   "active": [
-    "Coalescing/control speech quality scoring",
-    "Native Talker four-replica quality queued",
-    "Matched peer64-tuning baseline",
-    "Ordinary Talker plus speaker-graph two-vocoder service screen",
-    "Ordinary Talker2/Code2Wav4 speaker-graph screen",
-    "Selective CFM plus speaker graph composition tests/service queued"
+    "Selective CFM window100 service",
+    "FP32 window100 control service",
+    "Temporal-window speech scoring queued",
+    "Independent CPU/GIL diagnostic service initializing"
   ],
   "reserved_holdout_used": false,
   "quality_margins": {

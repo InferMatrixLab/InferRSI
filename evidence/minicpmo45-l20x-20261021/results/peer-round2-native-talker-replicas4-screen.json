@@ -157,6 +157,68 @@
       "inter_chunk_gap_max_s": 0.8548506069928408
     }
   },
-  "quality": {},
-  "quality_status": "Scoring pending"
+  "quality": {
+    "1": {
+      "n": 64,
+      "sim": 50.76049938797951,
+      "utmos": 4.230404801666737,
+      "wer": 0.011315417256011316,
+      "wer_counts": {
+        "substitutions": 6,
+        "deletions": 1,
+        "insertions": 1,
+        "hits": 700
+      },
+      "wer_mean": 0.011310824592074591
+    },
+    "16": {
+      "n": 64,
+      "sim": 50.3675474524498,
+      "utmos": 4.235098045319319,
+      "wer": 0.014144271570014143,
+      "wer_counts": {
+        "substitutions": 7,
+        "deletions": 2,
+        "insertions": 1,
+        "hits": 698
+      },
+      "wer_mean": 0.014151733682983683
+    },
+    "32": {
+      "n": 64,
+      "sim": 50.936203092336655,
+      "utmos": 4.263568475842476,
+      "wer": 0.03253182461103253,
+      "wer_counts": {
+        "substitutions": 9,
+        "deletions": 2,
+        "insertions": 12,
+        "hits": 696
+      },
+      "wer_mean": 0.046603656759906756
+    }
+  },
+  "quality_status": "Descriptive reused-cohort means, not confidence-bound qualification",
+  "descriptive_mean_degradation_vs_torch_mps": {
+    "1": {
+      "wer_pp": -0.8486562942008486,
+      "sim_x100_drop": -0.7216114103794098,
+      "utmos_drop": -0.01941262185573578,
+      "within_mean_margins": true
+    },
+    "16": {
+      "wer_pp": -0.5657708628005659,
+      "sim_x100_drop": -0.3224162757396698,
+      "utmos_drop": -0.012420311570167542,
+      "within_mean_margins": true
+    },
+    "32": {
+      "wer_pp": 1.4144271570014144,
+      "sim_x100_drop": 0.06659841537475586,
+      "utmos_drop": -0.04316319152712822,
+      "within_mean_margins": false
+    }
+  },
+  "mean_screen_within_margins": false,
+  "quality_reference_note": "Reused Torch/MPS tuning screen only; final qualification uses pinned15b main on unused256 prompts and confidence bounds."
 }
