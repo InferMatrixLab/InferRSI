@@ -1,7 +1,7 @@
 {
   "scope": "Completed round-two tuning screens; reused data, no final acceptance",
   "path": "peer-round2-screen-requests-quality.json.gz",
-  "sha256": "d45d2ed92dd930d6ab203e0e36105c1f570001f35a707af8dd07b507a4c8aa68",
+  "sha256": "5449102bd24f08177d360db19b2593162012d2d35a0b9842b98150b91a20247b",
   "profiles": [
     "screen-torch-mps",
     "screen-capacity32-mps",
@@ -23,7 +23,10 @@
     "screen-speaker-graph-replicas2",
     "screen-pipeline-replicas2x4",
     "screen-cfm-speaker-replicas2x4",
-    "screen-cfm-speaker-window50"
+    "screen-cfm-speaker-window50",
+    "screen-fp32-speaker-window100",
+    "screen-cfm-speaker-window100",
+    "screen-cfm-speaker-window50-covered"
   ],
   "privacy": "Audio and ASR hypothesis text are excluded. Audio hashes and error counts remain."
 }

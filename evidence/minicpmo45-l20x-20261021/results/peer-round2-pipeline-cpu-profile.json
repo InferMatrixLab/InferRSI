@@ -1,0 +1,879 @@
+{
+  "scope": "Independent C32 diagnostic, all requests excluded from performance",
+  "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+  "cpu_only": {
+    "elapsed_s": 36.49081588536501,
+    "note": "Includes client warmup/discard/three runs and saving overhead; busy-poll CPU is included, so these are not kernel attribution or critical-path fractions",
+    "processes": [
+      {
+        "role": "frontend",
+        "cpu_s": 13.819999999999993
+      },
+      {
+        "role": "utility",
+        "cpu_s": 0.07999999999999999
+      },
+      {
+        "role": "stage0_replica0",
+        "cpu_s": 17.069999999999993
+      },
+      {
+        "role": "stage1_replica0",
+        "cpu_s": 26.53
+      },
+      {
+        "role": "stage1_replica1",
+        "cpu_s": 25.19999999999999
+      },
+      {
+        "role": "stage2_replica0",
+        "cpu_s": 18.810000000000002
+      },
+      {
+        "role": "stage2_replica1",
+        "cpu_s": 19.639999999999986
+      },
+      {
+        "role": "stage2_replica2",
+        "cpu_s": 19.639999999999986
+      },
+      {
+        "role": "stage2_replica3",
+        "cpu_s": 18.97999999999999
+      }
+    ]
+  },
+  "profiles": {
+    "100hz": {
+      "usable_for_quantitative_attribution": false,
+      "rows": [
+        {
+          "role": "frontend",
+          "thread": "MainThread",
+          "samples": 40,
+          "top_leaf": [
+            {
+              "function": "raw_decode",
+              "file": "decoder.py",
+              "line": 354,
+              "samples": 4
+            },
+            {
+              "function": "loads",
+              "file": "__init__.py",
+              "line": 341,
+              "samples": 3
+            },
+            {
+              "function": "run",
+              "file": "runners.py",
+              "line": 118,
+              "samples": 2
+            },
+            {
+              "function": "_init_virtual_io",
+              "file": "soundfile.py",
+              "line": 1321,
+              "samples": 1
+            },
+            {
+              "function": "_process_single_result",
+              "file": "entrypoints/omni_base.py",
+              "line": 701,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "frontend",
+          "thread": "MPClientEngineMonitor",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "__init__",
+              "file": "selectors.py",
+              "line": 347,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "frontend",
+          "thread": "omni-rpc-result-router",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "_acquire_restore",
+              "file": "threading.py",
+              "line": 312,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "utility",
+          "thread": "MainThread",
+          "samples": 2,
+          "top_leaf": [
+            {
+              "function": "main",
+              "file": "resource_tracker.py",
+              "line": 254,
+              "samples": 1
+            },
+            {
+              "function": "main",
+              "file": "resource_tracker.py",
+              "line": 262,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage0_replica0",
+          "thread": "MainThread",
+          "samples": 121,
+          "top_leaf": [
+            {
+              "function": "launcher",
+              "file": "<string>",
+              "line": 5,
+              "samples": 7
+            },
+            {
+              "function": "__call__",
+              "file": "_ops.py",
+              "line": 1279,
+              "samples": 4
+            },
+            {
+              "function": "forward",
+              "file": "qwen2.py",
+              "line": 402,
+              "samples": 4
+            },
+            {
+              "function": "unified_attention_with_output",
+              "file": "attention.py",
+              "line": 784,
+              "samples": 3
+            },
+            {
+              "function": "call",
+              "file": "czcvpsaj7h4ymhumqzudcmxoordvcjmpoczsq34kr42irmgekm7z.py",
+              "line": 1212,
+              "samples": 3
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica0",
+          "thread": "MainThread",
+          "samples": 346,
+          "top_leaf": [
+            {
+              "function": "_store_value",
+              "file": "worker/gpu_model_runner.py",
+              "line": 2274,
+              "samples": 104
+            },
+            {
+              "function": "preprocess",
+              "file": "model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py",
+              "line": 1094,
+              "samples": 16
+            },
+            {
+              "function": "_copy_tensor_payload_to_cpu",
+              "file": "worker/gpu_ar_model_runner.py",
+              "line": 126,
+              "samples": 6
+            },
+            {
+              "function": "_update_states",
+              "file": "worker/gpu_model_runner.py",
+              "line": 556,
+              "samples": 6
+            },
+            {
+              "function": "_store_value",
+              "file": "worker/gpu_model_runner.py",
+              "line": 2273,
+              "samples": 5
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica0",
+          "thread": "Thread-3 (save_loop)",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "save_loop",
+              "file": "distributed/omni_connectors/transfer_adapter/base.py",
+              "line": 115,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica1",
+          "thread": "MainThread",
+          "samples": 359,
+          "top_leaf": [
+            {
+              "function": "_store_value",
+              "file": "worker/gpu_model_runner.py",
+              "line": 2274,
+              "samples": 108
+            },
+            {
+              "function": "_store_value",
+              "file": "worker/gpu_model_runner.py",
+              "line": 2273,
+              "samples": 16
+            },
+            {
+              "function": "preprocess",
+              "file": "model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py",
+              "line": 1094,
+              "samples": 14
+            },
+            {
+              "function": "_copy_tensor_payload_to_cpu",
+              "file": "worker/gpu_ar_model_runner.py",
+              "line": 126,
+              "samples": 7
+            },
+            {
+              "function": "_make_omni_output_single_frame",
+              "file": "model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py",
+              "line": 2436,
+              "samples": 5
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica1",
+          "thread": "Thread-3 (save_loop)",
+          "samples": 2,
+          "top_leaf": [
+            {
+              "function": "save_loop",
+              "file": "distributed/omni_connectors/transfer_adapter/base.py",
+              "line": 117,
+              "samples": 2
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica0",
+          "thread": "MainThread",
+          "samples": 101,
+          "top_leaf": [
+            {
+              "function": "eager_router",
+              "file": "registry.py",
+              "line": 925,
+              "samples": 4
+            },
+            {
+              "function": "__new__",
+              "file": "streams.py",
+              "line": 43,
+              "samples": 3
+            },
+            {
+              "function": "_wrap_omni_scheduler_output",
+              "file": "core/sched/omni_scheduler_mixin.py",
+              "line": 697,
+              "samples": 3
+            },
+            {
+              "function": "get_request_counts",
+              "file": "scheduler.py",
+              "line": 2610,
+              "samples": 3
+            },
+            {
+              "function": "__enter__",
+              "file": "grad_mode.py",
+              "line": 291,
+              "samples": 3
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica0",
+          "thread": "omni-mixin-save",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "_is_owned",
+              "file": "threading.py",
+              "line": 317,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica0",
+          "thread": "Thread-2 (recv_loop)",
+          "samples": 9,
+          "top_leaf": [
+            {
+              "function": "_poll_single_request",
+              "file": "distributed/omni_connectors/transfer_adapter/chunk_transfer_adapter.py",
+              "line": 572,
+              "samples": 1
+            },
+            {
+              "function": "get",
+              "file": "distributed/omni_connectors/connectors/shm_connector.py",
+              "line": 306,
+              "samples": 1
+            },
+            {
+              "function": "__init__",
+              "file": "shared_memory.py",
+              "line": 104,
+              "samples": 1
+            },
+            {
+              "function": "_poll_single_request",
+              "file": "distributed/omni_connectors/transfer_adapter/chunk_transfer_adapter.py",
+              "line": 574,
+              "samples": 1
+            },
+            {
+              "function": "__del__",
+              "file": "shared_memory.py",
+              "line": 187,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica1",
+          "thread": "MainThread",
+          "samples": 90,
+          "top_leaf": [
+            {
+              "function": "decorate_context",
+              "file": "_contextlib.py",
+              "line": 123,
+              "samples": 4
+            },
+            {
+              "function": "eager_router",
+              "file": "registry.py",
+              "line": 925,
+              "samples": 3
+            },
+            {
+              "function": "_drain_omni_connector_outputs",
+              "file": "core/sched/omni_scheduler_mixin.py",
+              "line": 400,
+              "samples": 2
+            },
+            {
+              "function": "_process_engine_step",
+              "file": "core.py",
+              "line": 1606,
+              "samples": 2
+            },
+            {
+              "function": "_build_generation_scheduler_output",
+              "file": "core/sched/omni_generation_scheduler.py",
+              "line": 308,
+              "samples": 2
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica1",
+          "thread": "omni-mixin-save",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "_release_save",
+              "file": "threading.py",
+              "line": 309,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica1",
+          "thread": "Thread-2 (recv_loop)",
+          "samples": 12,
+          "top_leaf": [
+            {
+              "function": "__init__",
+              "file": "shared_memory.py",
+              "line": 104,
+              "samples": 2
+            },
+            {
+              "function": "__init__",
+              "file": "shared_memory.py",
+              "line": 103,
+              "samples": 1
+            },
+            {
+              "function": "recv_loop",
+              "file": "distributed/omni_connectors/transfer_adapter/base.py",
+              "line": 65,
+              "samples": 1
+            },
+            {
+              "function": "_poll_single_request",
+              "file": "distributed/omni_connectors/transfer_adapter/chunk_transfer_adapter.py",
+              "line": 560,
+              "samples": 1
+            },
+            {
+              "function": "__init__",
+              "file": "shared_memory.py",
+              "line": 89,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica2",
+          "thread": "MainThread",
+          "samples": 93,
+          "top_leaf": [
+            {
+              "function": "_build_generation_scheduler_output",
+              "file": "core/sched/omni_generation_scheduler.py",
+              "line": 308,
+              "samples": 3
+            },
+            {
+              "function": "_process_chunk_queue_legacy",
+              "file": "distributed/omni_connectors/transfer_adapter/chunk_transfer_adapter.py",
+              "line": 1564,
+              "samples": 3
+            },
+            {
+              "function": "new_step_starts",
+              "file": "kv_cache_manager.py",
+              "line": 922,
+              "samples": 2
+            },
+            {
+              "function": "step_with_batch_queue",
+              "file": "core.py",
+              "line": 726,
+              "samples": 2
+            },
+            {
+              "function": "remove_request",
+              "file": "core/sched/omni_scheduler_mixin.py",
+              "line": 155,
+              "samples": 2
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica2",
+          "thread": "Thread-2 (recv_loop)",
+          "samples": 13,
+          "top_leaf": [
+            {
+              "function": "__init__",
+              "file": "shared_memory.py",
+              "line": 104,
+              "samples": 4
+            },
+            {
+              "function": "_get_by_key",
+              "file": "distributed/omni_connectors/connectors/shm_connector.py",
+              "line": 257,
+              "samples": 3
+            },
+            {
+              "function": "recv_loop",
+              "file": "distributed/omni_connectors/transfer_adapter/base.py",
+              "line": 78,
+              "samples": 1
+            },
+            {
+              "function": "get",
+              "file": "distributed/omni_connectors/connectors/shm_connector.py",
+              "line": 304,
+              "samples": 1
+            },
+            {
+              "function": "_get_by_key",
+              "file": "distributed/omni_connectors/connectors/shm_connector.py",
+              "line": 267,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica3",
+          "thread": "MainThread",
+          "samples": 73,
+          "top_leaf": [
+            {
+              "function": "_drain_omni_connector_outputs",
+              "file": "core/sched/omni_scheduler_mixin.py",
+              "line": 400,
+              "samples": 3
+            },
+            {
+              "function": "__enter__",
+              "file": "grad_mode.py",
+              "line": 291,
+              "samples": 3
+            },
+            {
+              "function": "empty",
+              "file": "queue.py",
+              "line": 108,
+              "samples": 2
+            },
+            {
+              "function": "decorate_context",
+              "file": "_contextlib.py",
+              "line": 123,
+              "samples": 2
+            },
+            {
+              "function": "_wrapfunc",
+              "file": "fromnumeric.py",
+              "line": 57,
+              "samples": 2
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica3",
+          "thread": "omni-mixin-recv",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "get_wakeup_generation",
+              "file": "distributed/omni_connectors/connectors/shm_connector.py",
+              "line": 121,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica3",
+          "thread": "Thread-2 (recv_loop)",
+          "samples": 10,
+          "top_leaf": [
+            {
+              "function": "_poll_single_request",
+              "file": "distributed/omni_connectors/transfer_adapter/chunk_transfer_adapter.py",
+              "line": 566,
+              "samples": 2
+            },
+            {
+              "function": "__del__",
+              "file": "shared_memory.py",
+              "line": 187,
+              "samples": 2
+            },
+            {
+              "function": "_poll_single_request",
+              "file": "distributed/omni_connectors/transfer_adapter/chunk_transfer_adapter.py",
+              "line": 585,
+              "samples": 1
+            },
+            {
+              "function": "__enter__",
+              "file": "threading.py",
+              "line": 300,
+              "samples": 1
+            },
+            {
+              "function": "_poll_single_request",
+              "file": "distributed/omni_connectors/transfer_adapter/chunk_transfer_adapter.py",
+              "line": 584,
+              "samples": 1
+            }
+          ]
+        }
+      ],
+      "limitation": "67.16s sampler lag; manually interrupted; strongly perturbed service"
+    },
+    "2hz_nonblocking": {
+      "usable_for_quantitative_attribution": false,
+      "rows": [
+        {
+          "role": "frontend",
+          "thread": "MainThread",
+          "samples": 5,
+          "top_leaf": [
+            {
+              "function": "receive",
+              "file": "httptools_impl.py",
+              "line": 574,
+              "samples": 1
+            },
+            {
+              "function": "_get_loop",
+              "file": "mixins.py",
+              "line": 21,
+              "samples": 1
+            },
+            {
+              "function": "run",
+              "file": "runners.py",
+              "line": 118,
+              "samples": 1
+            },
+            {
+              "function": "_create_audio_choice",
+              "file": "entrypoints/openai/serving_chat.py",
+              "line": 3006,
+              "samples": 1
+            },
+            {
+              "function": "reschedule",
+              "file": "timeouts.py",
+              "line": 71,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "frontend",
+          "thread": "orchestrator",
+          "samples": 4,
+          "top_leaf": [
+            {
+              "function": "encode",
+              "file": "serial_utils.py",
+              "line": 170,
+              "samples": 1
+            },
+            {
+              "function": "create_future",
+              "file": "base_events.py",
+              "line": 448,
+              "samples": 1
+            },
+            {
+              "function": "_dispatch_or_fail_request",
+              "file": "engine/orchestrator.py",
+              "line": 1690,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica0",
+          "thread": "MainThread",
+          "samples": 6,
+          "top_leaf": [
+            {
+              "function": "_store_value",
+              "file": "worker/gpu_model_runner.py",
+              "line": 2274,
+              "samples": 2
+            },
+            {
+              "function": "preprocess",
+              "file": "model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py",
+              "line": 1094,
+              "samples": 1
+            },
+            {
+              "function": "_prepare_inputs",
+              "file": "gpu_model_runner.py",
+              "line": 2041,
+              "samples": 1
+            },
+            {
+              "function": "_make_omni_output_single_frame",
+              "file": "model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py",
+              "line": 2562,
+              "samples": 1
+            },
+            {
+              "function": "_process_pending_omni_inputs",
+              "file": "core/sched/omni_scheduler_mixin.py",
+              "line": 463,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica0",
+          "thread": "Thread-3 (save_loop)",
+          "samples": 4,
+          "top_leaf": [
+            {
+              "function": "tts2code2wav_async_chunk",
+              "file": "model_executor/stage_input_processors/minicpmo_4_5_omni.py",
+              "line": 468,
+              "samples": 1
+            },
+            {
+              "function": "exists",
+              "file": "<frozen genericpath>",
+              "line": 19,
+              "samples": 1
+            },
+            {
+              "function": "shm_write_bytes",
+              "file": "entrypoints/stage_utils.py",
+              "line": 199,
+              "samples": 1
+            },
+            {
+              "function": "shm_write_bytes",
+              "file": "entrypoints/stage_utils.py",
+              "line": 213,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica0",
+          "thread": "omni-async-output-builder",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "_build_model_runner_output_once",
+              "file": "worker/gpu_ar_model_runner.py",
+              "line": 267,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica1",
+          "thread": "MainThread",
+          "samples": 5,
+          "top_leaf": [
+            {
+              "function": "_store_value",
+              "file": "worker/gpu_model_runner.py",
+              "line": 2274,
+              "samples": 2
+            },
+            {
+              "function": "create_forward_context",
+              "file": "forward_context.py",
+              "line": 247,
+              "samples": 1
+            },
+            {
+              "function": "__get__",
+              "file": "enum.py",
+              "line": 212,
+              "samples": 1
+            },
+            {
+              "function": "_preprocess",
+              "file": "worker/gpu_model_runner.py",
+              "line": 1749,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage1_replica1",
+          "thread": "",
+          "samples": 2,
+          "top_leaf": [
+            {
+              "function": "to_payload_element",
+              "file": "utils/mm_outputs.py",
+              "line": 284,
+              "samples": 1
+            },
+            {
+              "function": "_build_omni_model_runner_output_from_snapshot",
+              "file": "worker/gpu_ar_model_runner.py",
+              "line": 1982,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica0",
+          "thread": "MainThread",
+          "samples": 1,
+          "top_leaf": [
+            {
+              "function": "_encode_chunk",
+              "file": "model_executor/models/minicpmo_4_5/batched_token2wav.py",
+              "line": 790,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica1",
+          "thread": "MainThread",
+          "samples": 3,
+          "top_leaf": [
+            {
+              "function": "state_shape_signature",
+              "file": "model_executor/models/minicpmo_4_5/batched_token2wav.py",
+              "line": 269,
+              "samples": 1
+            },
+            {
+              "function": "create_kv_cache_blocks",
+              "file": "kv_cache_manager.py",
+              "line": 798,
+              "samples": 1
+            },
+            {
+              "function": "_process_engine_step",
+              "file": "core.py",
+              "line": 1617,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica2",
+          "thread": "MainThread",
+          "samples": 2,
+          "top_leaf": [
+            {
+              "function": "_process_engine_step",
+              "file": "core.py",
+              "line": 1617,
+              "samples": 1
+            }
+          ]
+        },
+        {
+          "role": "stage2_replica3",
+          "thread": "MainThread",
+          "samples": 2,
+          "top_leaf": [
+            {
+              "function": "forward",
+              "file": "model_v2.py",
+              "line": 287,
+              "samples": 1
+            },
+            {
+              "function": "_process_engine_step",
+              "file": "core.py",
+              "line": 1617,
+              "samples": 1
+            }
+          ]
+        }
+      ],
+      "limitation": "35 samples and8 stack errors; qualitative corroboration only"
+    }
+  },
+  "hypothesis": "Repeated conversion/storage of Python scalar lists in ordinary Talker handoff; verify with lossless transport microbench and unprofiled service",
+  "verdict": "INCONCLUSIVE"
+}

@@ -1,0 +1,42 @@
+{
+  "frozen_at_utc": "2026-10-21T09:41:00.011599+00:00",
+  "scope": "One-plane infra graph-coverage contrast on the existing 50-frame selective-CFM profile",
+  "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+  "hypothesis": "Larger audio windows expose final/short-first HiFT shapes outside existing continuation4..28 capture coverage; exact unpadded graph coverage may reduce host launch overhead.",
+  "diagnostic_evidence": {
+    "profile": "FP32 window100",
+    "eager_hift_calls_in_server_log": 310,
+    "distinct_shapes": 76,
+    "limitation": "Whole server log including warmup/discard, not per-run timing attribution"
+  },
+  "control": "screen-cfm-speaker-window50",
+  "candidate": "screen-cfm-speaker-window50-covered",
+  "only_changes": {
+    "hift_graph_first_chunk_frames": [
+      4,
+      53
+    ],
+    "hift_graph_continuation_frames": [
+      4,
+      53
+    ]
+  },
+  "unchanged": {
+    "exact_batch_sizes": [
+      1
+    ],
+    "codec_chunk_frames": 50,
+    "replicas": [
+      1,
+      2,
+      4
+    ],
+    "sampling": "canonical pinned parameters",
+    "precision": "FP16 CFM only; FP32 encoder/speaker/HiFT"
+  },
+  "workload": "same64 reused tuning prompts; C1/16/32; discard+one measured",
+  "quality": "Score all three cells before promotion; no reserved holdout used",
+  "qualification": "Exploratory; final repeated peer comparison and all9 frozen quality bounds still required",
+  "latency": "First window remains50; report TTFA and first chunk duration",
+  "verdict": "INCONCLUSIVE"
+}

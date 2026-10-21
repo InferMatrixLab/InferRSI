@@ -30,13 +30,17 @@
     "Combined precision/speaker graph113 tests PASS",
     "Selective CFM speaker2x4 screen, C16/C32 1184.3/1510.9; descriptive means within margins",
     "50-frame window screen, C16/C32 1316.0/1592.2; no peer win",
-    "Three-repeat prompt-cluster quality design frozen before holdout generation;8 synthetic validator controls PASS"
+    "Three-repeat prompt-cluster quality design frozen before holdout generation;8 synthetic validator controls PASS",
+    "FP32 window100 screen,C16/C32 1249.2/1365.8; C32 WER mean exceeds margin",
+    "Same-GPU final comparison runner prepared;10 preflight controls PASS, not executed",
+    "Window50 all descriptive quality means within margins",
+    "Window100 selectiveCFM C16/C32 1244.9/1463.3; quality means exceed margins",
+    "Window50 exact HiFT coverage C16/C32 1367.4/1663.7; quality means exceed margins",
+    "CPU diagnostic recovered from100Hz sampling lag; separate CPU counters and2Hz qualitative stacks",
+    "Packed transport synthetic CPU median34.53ms to0.498ms; bitwise values preserved;213 regression tests passed with1existing skip"
   ],
   "active": [
-    "Selective CFM window100 service",
-    "FP32 window100 control service",
-    "Temporal-window speech scoring queued",
-    "Independent CPU/GIL diagnostic service initializing"
+    "Packed conditioning transport25/50-frame service screens queued, source60d71d16e0; quality watchers pending"
   ],
   "reserved_holdout_used": false,
   "quality_margins": {

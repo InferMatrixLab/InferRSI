@@ -685,6 +685,170 @@
         },
         "wer_mean": 0.018644376456876458
       }
+    },
+    "screen-fp32-speaker-window100": {
+      "1": {
+        "n": 64,
+        "sim": 49.63445267081261,
+        "utmos": 4.312692571431398,
+        "wer": 0.019801980198019802,
+        "wer_counts": {
+          "substitutions": 11,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 695
+        },
+        "wer_mean": 0.023231716200466202
+      },
+      "16": {
+        "n": 64,
+        "sim": 50.44073933362961,
+        "utmos": 4.290612157434225,
+        "wer": 0.016973125884016973,
+        "wer_counts": {
+          "substitutions": 10,
+          "deletions": 1,
+          "insertions": 1,
+          "hits": 696
+        },
+        "wer_mean": 0.02139058857808858
+      },
+      "32": {
+        "n": 64,
+        "sim": 50.25124752521515,
+        "utmos": 4.303199872374535,
+        "wer": 0.024045261669024046,
+        "wer_counts": {
+          "substitutions": 14,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 692
+        },
+        "wer_mean": 0.02682421744921745
+      }
+    },
+    "screen-cfm-speaker-window50": {
+      "1": {
+        "n": 64,
+        "sim": 49.96810257434845,
+        "utmos": 4.273748215287924,
+        "wer": 0.019801980198019802,
+        "wer_counts": {
+          "substitutions": 11,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 695
+        },
+        "wer_mean": 0.023231716200466202
+      },
+      "16": {
+        "n": 64,
+        "sim": 51.926472425460815,
+        "utmos": 4.266231369227171,
+        "wer": 0.019801980198019802,
+        "wer_counts": {
+          "substitutions": 10,
+          "deletions": 1,
+          "insertions": 3,
+          "hits": 696
+        },
+        "wer_mean": 0.02292941433566434
+      },
+      "32": {
+        "n": 64,
+        "sim": 50.8500913977623,
+        "utmos": 4.258575938642025,
+        "wer": 0.016973125884016973,
+        "wer_counts": {
+          "substitutions": 6,
+          "deletions": 1,
+          "insertions": 5,
+          "hits": 700
+        },
+        "wer_mean": 0.02188774766899767
+      }
+    },
+    "screen-cfm-speaker-window100": {
+      "1": {
+        "n": 64,
+        "sim": 49.79722398519516,
+        "utmos": 4.310572676360607,
+        "wer": 0.02263083451202263,
+        "wer_counts": {
+          "substitutions": 13,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 693
+        },
+        "wer_mean": 0.027256337412587414
+      },
+      "16": {
+        "n": 64,
+        "sim": 51.04224959015846,
+        "utmos": 4.316567372530699,
+        "wer": 0.021216407355021217,
+        "wer_counts": {
+          "substitutions": 10,
+          "deletions": 1,
+          "insertions": 4,
+          "hits": 696
+        },
+        "wer_mean": 0.027616914335664336
+      },
+      "32": {
+        "n": 64,
+        "sim": 50.54828384518623,
+        "utmos": 4.308298099786043,
+        "wer": 0.02263083451202263,
+        "wer_counts": {
+          "substitutions": 13,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 693
+        },
+        "wer_mean": 0.027835445804195804
+      }
+    },
+    "screen-cfm-speaker-window50-covered": {
+      "1": {
+        "n": 64,
+        "sim": 49.9683700799942,
+        "utmos": 4.273769196122885,
+        "wer": 0.024045261669024046,
+        "wer_counts": {
+          "substitutions": 14,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 692
+        },
+        "wer_mean": 0.026884313603063606
+      },
+      "16": {
+        "n": 64,
+        "sim": 50.43840545415878,
+        "utmos": 4.26598883420229,
+        "wer": 0.016973125884016973,
+        "wer_counts": {
+          "substitutions": 9,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 697
+        },
+        "wer_mean": 0.021248543123543125
+      },
+      "32": {
+        "n": 64,
+        "sim": 50.096578657627106,
+        "utmos": 4.267129510641098,
+        "wer": 0.016973125884016973,
+        "wer_counts": {
+          "substitutions": 8,
+          "deletions": 1,
+          "insertions": 3,
+          "hits": 698
+        },
+        "wer_mean": 0.02295308857808858
+      }
     }
   }
 }

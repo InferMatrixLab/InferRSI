@@ -24,18 +24,23 @@
     "native-coalescing": {
       "source_revision": "e9b12cf223b4a3900f6f30772065eb058550319a",
       "patch": "peer-round2-native-coalescing.patch",
-      "status": "104 scheduler tests and pre-commit PASS; service C16/C32 773.9/904.8, no material gain; quality pending"
+      "status": "104 tests PASS; no material service gain; descriptive quality margins exceeded"
     },
     "speaker-torch-graph": {
       "source_revision": "17246ce5e695c7f0c58d53f42aa586e1e94390f1",
       "patch": "peer-round2-speaker-torch-graph.patch",
-      "status": "Bitwise component and lifecycle gates PASS, service screen pending"
+      "status": "Bitwise component checks PASS; service screen no peer win"
     },
     "cfm-speaker-composition": {
       "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
       "patch": "peer-round2-cfm-speaker-composition.patch",
-      "status": "Composition tests and service queued; no qualification"
+      "status": "113 combined tests PASS; C32 1510.9 with descriptive means within margins; no final qualification"
+    },
+    "tensor-handoff-composition": {
+      "source_revision": "60d71d16e0d77734239935ffc6b991c810ea1aa7",
+      "patch": "peer-round2-tensor-handoff-composition.patch",
+      "status": "213 regression tests and precommit PASS; synthetic CPU transport values bitwise equal; service and speech qualification pending"
     }
   },
-  "note": "Apply each patch independently to the base. Default behavior remains unchanged unless the corresponding opt-in config is enabled. Do not combine or promote failed candidates as a qualified release."
+  "note": "Apply each patch independently to the base. Precision and speaker extensions are opt-in. The packed-turn-handoff composition changes ordinary-turn transport by default while preserving float32 values. Rejected profiles remain rejected; no patch is a qualified peer-beating release."
 }

@@ -1,0 +1,241 @@
+{
+  "scope": "64 reused tuning prompts, discard+one; exploratory, final paired repeated comparison pending.",
+  "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+  "actual_runtime": {
+    "cuda_mps": true,
+    "replicas": [
+      1,
+      2,
+      4
+    ],
+    "runners": [
+      "v1",
+      "v1",
+      "v1"
+    ],
+    "capacities": [
+      16,
+      16,
+      16
+    ],
+    "precision": "FP16 CFM estimator/noise/cache; FP32 encoder, speaker and HiFT",
+    "stage0_kv_bytes": 8589934592,
+    "speaker_graph": true,
+    "hift_exact_coverage": {
+      "first": [
+        4,
+        53
+      ],
+      "continuation": [
+        4,
+        53
+      ],
+      "batch_sizes": [
+        1
+      ]
+    },
+    "codec_chunk_frames": 50
+  },
+  "metadata_note": "Raw summary mps_policy off and id_set eval are helper defaults, not actual execution; frozen plans describe MPS enabled and tuning cohort.",
+  "verdict": "INCONCLUSIVE",
+  "goal_achieved": false,
+  "performance": {
+    "1": {
+      "label": "run1",
+      "concurrency": 1,
+      "measured": true,
+      "gpu": "",
+      "engine": "",
+      "config": "",
+      "candidate_id": "",
+      "config_digest": "",
+      "cell_digest": "",
+      "experiment_base_digest": "",
+      "mps_policy": "off",
+      "id_set": "eval",
+      "ids_sha256": "",
+      "expected_ids_sha256": "",
+      "seed_index": 0,
+      "timeout_s": 0.0,
+      "strict": false,
+      "cache_policy": "none",
+      "cache_evidence": {},
+      "runtime_evidence": {},
+      "server_startup_s": null,
+      "n_requests": 64,
+      "n_failed": 0,
+      "valid": true,
+      "invalid_reasons": {},
+      "makespan_s": 36.43917041923851,
+      "throughput_frames_s": 189.27434188673638,
+      "ttfa_p50_s": 0.39171386463567615,
+      "ttfa_p95_s": 0.4206689640879631,
+      "rtf_mean": 0.13333525141174785,
+      "rtf_duration_weighted": 0.13178481219550553,
+      "req_s": 1.7563517298464735,
+      "audio_s_per_s": 7.570973675469455,
+      "e2e_p50_s": 0.5730530279688537,
+      "e2e_p95_s": 0.7644290314521638,
+      "total_audio_s": 275.88,
+      "first_chunk_mean_s": 1.84,
+      "stall_mean_s": 0.0,
+      "stall_max_s": 0.0,
+      "inter_chunk_gap_p50_s": 0.12094475980848074,
+      "inter_chunk_gap_p95_s": 0.1637499648146331,
+      "inter_chunk_gap_max_s": 0.1815652409568429
+    },
+    "16": {
+      "label": "run1",
+      "concurrency": 16,
+      "measured": true,
+      "gpu": "",
+      "engine": "",
+      "config": "",
+      "candidate_id": "",
+      "config_digest": "",
+      "cell_digest": "",
+      "experiment_base_digest": "",
+      "mps_policy": "off",
+      "id_set": "eval",
+      "ids_sha256": "",
+      "expected_ids_sha256": "",
+      "seed_index": 0,
+      "timeout_s": 0.0,
+      "strict": false,
+      "cache_policy": "none",
+      "cache_evidence": {},
+      "runtime_evidence": {},
+      "server_startup_s": null,
+      "n_requests": 64,
+      "n_failed": 0,
+      "valid": true,
+      "invalid_reasons": {},
+      "makespan_s": 5.081234819255769,
+      "throughput_frames_s": 1367.384158998117,
+      "ttfa_p50_s": 0.8966498821973801,
+      "ttfa_p95_s": 1.125088334176689,
+      "rtf_mean": 0.2991832687490079,
+      "rtf_duration_weighted": 0.28805598770681107,
+      "req_s": 12.595363583172064,
+      "audio_s_per_s": 54.69536635992469,
+      "e2e_p50_s": 1.2703996961936355,
+      "e2e_p95_s": 1.4797041315585373,
+      "total_audio_s": 277.92,
+      "first_chunk_mean_s": 1.84,
+      "stall_mean_s": 0.0,
+      "stall_max_s": 0.0,
+      "inter_chunk_gap_p50_s": 0.18240823363885283,
+      "inter_chunk_gap_p95_s": 0.43122551059350367,
+      "inter_chunk_gap_max_s": 0.5144128352403641
+    },
+    "32": {
+      "label": "run1",
+      "concurrency": 32,
+      "measured": true,
+      "gpu": "",
+      "engine": "",
+      "config": "",
+      "candidate_id": "",
+      "config_digest": "",
+      "cell_digest": "",
+      "experiment_base_digest": "",
+      "mps_policy": "off",
+      "id_set": "eval",
+      "ids_sha256": "",
+      "expected_ids_sha256": "",
+      "seed_index": 0,
+      "timeout_s": 0.0,
+      "strict": false,
+      "cache_policy": "none",
+      "cache_evidence": {},
+      "runtime_evidence": {},
+      "server_startup_s": null,
+      "n_requests": 64,
+      "n_failed": 0,
+      "valid": true,
+      "invalid_reasons": {},
+      "makespan_s": 4.202648081816733,
+      "throughput_frames_s": 1663.7129409554268,
+      "ttfa_p50_s": 1.4452437539584935,
+      "ttfa_p95_s": 1.9467360251583155,
+      "rtf_mean": 0.47280168638903425,
+      "rtf_duration_weighted": 0.4597507787659792,
+      "req_s": 15.228493738722442,
+      "audio_s_per_s": 66.54851763821708,
+      "e2e_p50_s": 2.0080804619938135,
+      "e2e_p95_s": 2.510947760986164,
+      "total_audio_s": 279.68,
+      "first_chunk_mean_s": 1.84,
+      "stall_mean_s": 0.0,
+      "stall_max_s": 0.0,
+      "inter_chunk_gap_p50_s": 0.2640033969655633,
+      "inter_chunk_gap_p95_s": 0.7575123661197722,
+      "inter_chunk_gap_max_s": 0.8681540051475167
+    }
+  },
+  "quality": {
+    "1": {
+      "n": 64,
+      "sim": 49.9683700799942,
+      "utmos": 4.273769196122885,
+      "wer": 0.024045261669024046,
+      "wer_counts": {
+        "substitutions": 14,
+        "deletions": 1,
+        "insertions": 2,
+        "hits": 692
+      },
+      "wer_mean": 0.026884313603063606
+    },
+    "16": {
+      "n": 64,
+      "sim": 50.43840545415878,
+      "utmos": 4.26598883420229,
+      "wer": 0.016973125884016973,
+      "wer_counts": {
+        "substitutions": 9,
+        "deletions": 1,
+        "insertions": 2,
+        "hits": 697
+      },
+      "wer_mean": 0.021248543123543125
+    },
+    "32": {
+      "n": 64,
+      "sim": 50.096578657627106,
+      "utmos": 4.267129510641098,
+      "wer": 0.016973125884016973,
+      "wer_counts": {
+        "substitutions": 8,
+        "deletions": 1,
+        "insertions": 3,
+        "hits": 698
+      },
+      "wer_mean": 0.02295308857808858
+    }
+  },
+  "quality_status": "Descriptive reused-cohort means, not confidence-bound qualification",
+  "latency_note": "The same codec window applies to first and subsequent chunks; larger windows increase first-audio delay. See TTFA and first_chunk_mean_s.",
+  "descriptive_mean_degradation_vs_torch_mps": {
+    "1": {
+      "wer_pp": 0.42432814710042444,
+      "sim_x100_drop": 0.070517897605896,
+      "utmos_drop": -0.06277701631188393,
+      "within_mean_margins": false
+    },
+    "16": {
+      "wer_pp": -0.28288543140028294,
+      "sim_x100_drop": -0.3932742774486542,
+      "utmos_drop": -0.04331110045313835,
+      "within_mean_margins": true
+    },
+    "32": {
+      "wer_pp": -0.14144271570014147,
+      "sim_x100_drop": 0.9062228500843048,
+      "utmos_drop": -0.04672422632575035,
+      "within_mean_margins": false
+    }
+  },
+  "mean_screen_within_margins": false,
+  "quality_reference_note": "Reused Torch/MPS tuning screen only; final qualification uses pinned15b main on unused256 prompts and confidence bounds."
+}
