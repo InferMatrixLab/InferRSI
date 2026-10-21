@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/22dc62d6b602982012c96a95e433998a01a9a5fa/src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
-      "commit": "22dc62d6b602982012c96a95e433998a01a9a5fa",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ff89a7674d2cf1e768d7e71350201ac9da920271/src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
+      "commit": "ff89a7674d2cf1e768d7e71350201ac9da920271",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json",
@@ -42,7 +42,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b",
     "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json": "04dd3e8961d5c67105b11ff52f1354f34124d9af1b03f9da08cba67cb9f9d463",
-    "src/inferrsi/data/skill_library/skill-index.json": "525423ddfe0ab3e98593fea4cef1fa84228e8ba68b7aa3846821755fd1ed4ef6"
+    "src/inferrsi/data/skill_library/skill-index.json": "ad88a95ace0ee5eb72417c7bfa22170ee9ec1324491a4192c04dfa8dc43953f5"
   },
   "skill_metadata": {
     "name": "ascendc-tiling-design",

@@ -1,0 +1,142 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.audit_sd_cpp_residency",
+  "title": "audit-sd-cpp-residency",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit stable-diffusion.cpp image-generation memory pressure by separating model parameter storage, compute weight residency, retained runtime buffers and segment prefetch under the actual backend.",
+  "tags": [
+    "stable-diffusion-cpp",
+    "diffusion",
+    "model-residency",
+    "workspace",
+    "prefetch",
+    "state-ownership"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ff89a7674d2cf1e768d7e71350201ac9da920271/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+      "commit": "ff89a7674d2cf1e768d7e71350201ac9da920271",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md",
+        "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json",
+        "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md",
+        "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "3e93b2b4764f61ea00ec7d1a96aa5b9e2c5f2e746cb6e65287cdce659c056cf6"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md"
+  },
+  "checkout_ref": "checkout:audit-sd-cpp-residency",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE": "b53fa08f515cb5a6fff7b9fd8fcd0961a4b80df29d74372d25e1f9171aa042ee",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md": "3e93b2b4764f61ea00ec7d1a96aa5b9e2c5f2e746cb6e65287cdce659c056cf6",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json": "133863463870fd5df267d8f60d5b1755d27fcf1d0ee2f3790539480079d2edc2",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md": "7b537cb972347dd68e303960f142892346d8b19b884e4d08016ea36a23bdaa7a",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json": "7a324c05817f733fbe6a4b2b36317034c05dd5db06eb0be089546119d80060b1",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md": "b67affbd7d237d82b7f51be49f1537e9820fe56ec70a71ee76809f9e599ca693",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md": "5dcf5fa7bf734fbe13214f57d2dfb40ff8215d9cd34e072a9e615bf103b82fc2",
+    "src/inferrsi/data/skill_library/skill-index.json": "ad88a95ace0ee5eb72417c7bfa22170ee9ec1324491a4192c04dfa8dc43953f5"
+  },
+  "skill_metadata": {
+    "name": "audit-sd-cpp-residency",
+    "description": "Audit stable-diffusion.cpp image-generation memory pressure by separating model parameter storage, compute weight residency, retained runtime buffers and segment prefetch under the actual backend.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "license": "MIT",
+    "tags": [
+      "stable-diffusion-cpp",
+      "diffusion",
+      "model-residency",
+      "workspace",
+      "prefetch",
+      "state-ownership"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/leejet/stable-diffusion.cpp",
+        "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+        "paths": [
+          "src/stable-diffusion.cpp",
+          "src/pipeline/image.cpp",
+          "src/pipeline/diffusion_engine.h",
+          "src/pipeline/diffusion_engine.cpp",
+          "src/core/ggml_runner.cpp",
+          "src/core/segment_weight_pipeline.cpp",
+          "src/core/compute_workspace.cpp",
+          "src/model_manager.cpp",
+          "src/model_manager_prefetch.cpp",
+          "src/device_residency_manager.h",
+          ".github/workflows/build.yml",
+          ".gitmodules",
+          "cmake/ggml.cmake",
+          "CMakeLists.txt",
+          "examples/cli/main.cpp",
+          "include/stable-diffusion.h",
+          "LICENSE",
+          "src/model_manager.h"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "applicability": {
+      "scope": "Source-grounded audit of native image-generation weight/runtime residency and optional segment prefetch; confirm the actual source, GGML, backend, model and executing path independently."
+    },
+    "limitations": [
+      "Source-derived candidate; native inference, allocator behavior, image quality and performance were not run.",
+      "Eighteen bounded readset paths plus one separately identity-checked README match the pinned Git commit/tree blob IDs and sizes (19 blobs total); header coverage is limited to selected owner/state declarations, and this does not authenticate every archive member or submodule contents.",
+      "GGML and other submodules are not expanded; matching private GGML headers are required even for a system library.",
+      "CPU bypasses the inspected accelerator capacity gate and segmentation eligibility, so CPU checks cannot qualify accelerator memory budgets or prefetch.",
+      "Video/audio pipelines, detailed model kernels, approximate denoising caches and full multi-device execution remain outside this readset."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Source-grounded audit of native image-generation weight/runtime residency and optional segment prefetch; confirm the actual source, GGML, backend, model and executing path independently."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; native inference, allocator behavior, image quality and performance were not run.",
+    "Eighteen bounded readset paths plus one separately identity-checked README match the pinned Git commit/tree blob IDs and sizes (19 blobs total); header coverage is limited to selected owner/state declarations, and this does not authenticate every archive member or submodule contents.",
+    "GGML and other submodules are not expanded; matching private GGML headers are required even for a system library.",
+    "CPU bypasses the inspected accelerator capacity gate and segmentation eligibility, so CPU checks cannot qualify accelerator memory budgets or prefetch.",
+    "Video/audio pipelines, detailed model kernels, approximate denoising caches and full multi-device execution remain outside this readset."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

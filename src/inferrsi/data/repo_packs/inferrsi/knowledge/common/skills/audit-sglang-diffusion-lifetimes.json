@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.audit_sglang_diffusion_lifetimes",
+  "title": "audit-sglang-diffusion-lifetimes",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose SGLang multimodal_gen stage state, component residency and request timeout/deletion when grouped outputs interfere, a module remains resident, or stopped waiting is mistaken for stopped execution; requires pinned source or a concrete trace.",
+  "tags": [
+    "sglang",
+    "diffusion",
+    "stage",
+    "state",
+    "residency",
+    "cancellation"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ff89a7674d2cf1e768d7e71350201ac9da920271/src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "commit": "ff89a7674d2cf1e768d7e71350201ac9da920271",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "384d3ac7ee7084109e471cb7fa424b6476d7e2874db06ebfc8a522ba8a97c6b0"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md"
+  },
+  "checkout_ref": "checkout:audit-sglang-diffusion-lifetimes",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
+    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": "384d3ac7ee7084109e471cb7fa424b6476d7e2874db06ebfc8a522ba8a97c6b0",
+    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "2080a5435a66ade85d2d8318003afd7f25e37aa7942ba6b468992115de7fa20b",
+    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d",
+    "src/inferrsi/data/skill_library/skill-index.json": "ad88a95ace0ee5eb72417c7bfa22170ee9ec1324491a4192c04dfa8dc43953f5"
+  },
+  "skill_metadata": {
+    "name": "audit-sglang-diffusion-lifetimes",
+    "description": "Diagnose SGLang multimodal_gen stage state, component residency and request timeout/deletion when grouped outputs interfere, a module remains resident, or stopped waiting is mistaken for stopped execution; requires pinned source or a concrete trace.",
+    "tags": [
+      "sglang",
+      "diffusion",
+      "stage",
+      "state",
+      "residency",
+      "cancellation"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "license": "Apache-2.0",
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/sgl-project/sglang",
+        "commit": "df13d5dce31abfeff0e701a62e8c39a136758e6c",
+        "paths": [
+          "python/sglang/multimodal_gen/runtime/entrypoints/control_requests.py",
+          "python/sglang/multimodal_gen/runtime/entrypoints/openai/utils.py",
+          "python/sglang/multimodal_gen/runtime/entrypoints/openai/video_api.py",
+          "python/sglang/multimodal_gen/runtime/managers/gpu_worker.py",
+          "python/sglang/multimodal_gen/runtime/managers/memory_managers/component_manager.py",
+          "python/sglang/multimodal_gen/runtime/managers/scheduler.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/composed_pipeline_base.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/diffusion_scheduler_utils.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/executors/parallel_executor.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/executors/pipeline_executor.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/schedule_batch.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/stages/dedup.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/stages/denoising.py",
+          "python/sglang/multimodal_gen/runtime/pipelines_core/stages/timestep_preparation.py",
+          "python/sglang/multimodal_gen/runtime/scheduler_client.py",
+          ".github/workflows/diffusion-ci-gt-gen-npu.yml",
+          ".github/workflows/diffusion-ci-gt-gen.yml",
+          "LICENSE",
+          "python/pyproject.toml",
+          "python/sglang/multimodal_gen/test/unit/test_component_residency.py",
+          "python/sglang/multimodal_gen/test/unit/test_pipeline_executor.py",
+          "python/sglang/multimodal_gen/test/unit/test_pipeline_residency_manager_install.py",
+          "python/sglang/multimodal_gen/test/unit/test_scheduler_client.py"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "applicability": {
+      "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation."
+    },
+    "limitations": [
+      "Source-derived candidate; upstream runtime and efficacy validation not run.",
+      "Supplier verified one selected source blob, not the whole archive tree.",
+      "No automatic grouped isolation, device cancellation, cross-rank recovery or performance claim."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; upstream runtime and efficacy validation not run.",
+    "Supplier verified one selected source blob, not the whole archive tree.",
+    "No automatic grouped isolation, device cancellation, cross-rank recovery or performance claim."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

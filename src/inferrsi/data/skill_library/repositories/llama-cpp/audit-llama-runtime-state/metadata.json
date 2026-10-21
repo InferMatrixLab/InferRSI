@@ -1,0 +1,49 @@
+{
+  "tags": ["llama.cpp", "context", "state", "graph-reuse", "cancellation", "correctness"],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": ["external"],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/ggml-org/llama.cpp",
+      "commit": "707616feb5f379e99ff7442680a55b4a1704c7c9",
+      "paths": [
+        "LICENSE",
+        "include/llama.h",
+        "src/llama-context.cpp",
+        "src/llama-context.h",
+        "src/llama-memory.h",
+        "src/llama-memory-recurrent.cpp",
+        "src/llama-graph.cpp",
+        "src/llama-graph.h",
+        "ggml/src/ggml-backend.cpp",
+        "tools/server/server-context.cpp",
+        "tools/server/server-queue.cpp",
+        "tools/server/server-queue.h",
+        "tests/llama-context/cases-kv.cpp",
+        "tests/llama-context/cases-rs.cpp",
+        "tests/CMakeLists.txt",
+        "tests/test-llama-archs.cpp",
+        "tests/test-backend-ops.cpp",
+        ".github/workflows/build-cann.yml",
+        "tools/server/tests/unit/test_completion.py"
+      ],
+      "readset": "references/source-notes.md"
+    }
+  ],
+  "applicability": {
+    "scope": "Pinned llama.cpp context-memory, graph-reuse and server task-lifecycle diagnosis; concrete model/backend behavior requires native validation."
+  },
+  "limitations": [
+    "Source-derived candidate; native runtime and efficacy validation not run.",
+    "No cross-backend preemption, model-quality or performance claim.",
+    "KV, recurrent and hybrid state contracts must be checked independently."
+  ],
+  "provenance_readsets": ["references/source-notes.md"],
+  "references": [],
+  "consumption_mode": "packaged"
+}

@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **73 skill documents**: 52 registered skills
+The English-only library contains **76 skill documents**: 55 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -9,7 +9,7 @@ references, cases and source notices ship with the package.
 | Directory | Content |
 | --- | --- |
 | [Hardware](hardware/) | Ascend (13 registered skills), CUDA (2) and host resource guidance (5) |
-| [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing, MLX evaluation/lifetimes and Diffusers invocation state |
+| [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
 | [Workflows](workflows/) | Research, acceptance, evidence, source checking and skill lifecycle |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 52 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 55 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -42,20 +42,28 @@ An explicit `inferrsi skills --root <path>` selects a custom flat tree or a
 categorized library with `skill-index.json`. Backend scope does not certify
 device compatibility; readers do not execute helpers or promote candidates.
 
+## Focused llama.cpp runtime audit
+
+The registered [audit-llama-runtime-state](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md)
+candidate separates partial decode progress, frontend graph reuse, backend input readiness
+and server task/slot cancellation. Its pinned source contracts are untested natively;
+loading and host placement remain with their existing owners.
+
 ## Engine knowledge
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 52-ID registry.
-The registered ComfyUI audit is listed alongside these imports and uses its
-generated skill abstract rather than a separate runtime repository pack.
+the links and catalog records below, separately from the 55-ID registry.
+The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
+these imports and use generated abstracts rather than runtime repository packs.
 
 | Repository | Focus | Entry | Catalog |
 | --- | --- | --- | --- |
 | ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](repositories/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
+| stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
 | Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](repositories/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
 | vLLM | Token scheduling, KV ownership and parallel execution | [Skill](repositories/vllm/SKILL.md) | [Records](../repo_packs/vllm/knowledge/README.md) |
-| SGLang | Radix/HiCache, prefill/decode and extensions | [Skill](repositories/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
+| SGLang | Radix/HiCache, prefill/decode, extensions and a separately pinned [diffusion lifetime candidate](repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | [Skill](repositories/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
 | SGLang-Omni | Stage pipelines, streaming and transport | [Skill](repositories/sglang-omni/SKILL.md) | [Records](../repo_packs/sglang_omni/knowledge/README.md) |
 | vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts | [Skill](repositories/vllm-omni/SKILL.md) | [Records](../repo_packs/vllm_omni/knowledge/README.md) |
 | Research router | Constrained engine design and validation | [Skill](workflows/inference-engine-research/SKILL.md) | — |

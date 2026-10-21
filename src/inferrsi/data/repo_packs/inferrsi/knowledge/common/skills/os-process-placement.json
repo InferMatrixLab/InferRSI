@@ -24,11 +24,12 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/22dc62d6b602982012c96a95e433998a01a9a5fa/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
-      "commit": "22dc62d6b602982012c96a95e433998a01a9a5fa",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ff89a7674d2cf1e768d7e71350201ac9da920271/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
+      "commit": "ff89a7674d2cf1e768d7e71350201ac9da920271",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
       "content_sha256": "8d38af7ee1cd08a99bc6981a4ed1891be6331a6a56ea2537364fc0a1b79702b9"
@@ -41,8 +42,9 @@
   "checkout_ref": "checkout:os-process-placement",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md": "8d38af7ee1cd08a99bc6981a4ed1891be6331a6a56ea2537364fc0a1b79702b9",
-    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "1d1c3a34333185159ac01280dd86ea930d48c263be5d36c4fa9f026bb7c56c62",
-    "src/inferrsi/data/skill_library/skill-index.json": "525423ddfe0ab3e98593fea4cef1fa84228e8ba68b7aa3846821755fd1ed4ef6"
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "88cea21bc171c8ef89b73013672cca7c3af1e15eab00e388dd05b114368c1411",
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e",
+    "src/inferrsi/data/skill_library/skill-index.json": "ad88a95ace0ee5eb72417c7bfa22170ee9ec1324491a4192c04dfa8dc43953f5"
   },
   "skill_metadata": {
     "name": "os-process-placement",
@@ -63,16 +65,36 @@
     "origin": [
       "external"
     ],
-    "sources": [],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+        "paths": [
+          "common/arg.cpp",
+          "common/common.cpp",
+          "src/llama.cpp",
+          "src/llama-model-loader.cpp",
+          "src/llama-mmap.cpp",
+          "ggml/src/ggml-cpu/ggml-cpu.c",
+          "ggml/src/ggml-cpu/ggml-cpu.cpp",
+          "LICENSE"
+        ],
+        "readset": "references/llama-numa-thread-readset.md"
+      }
+    ],
     "empirical_validation": "not_run",
     "applicability": {
       "scope": "See procedure prerequisites and counter-signals"
     },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+      "Linux NUMA source paths and separate configuration controls do not establish universally optimal thread counts, affinity combinations or measured placement gains."
     ],
-    "provenance_readsets": [],
+    "provenance_readsets": [
+      "references/llama-numa-thread-readset.md"
+    ],
     "references": [],
     "consumption_mode": "packaged"
   },
@@ -89,7 +111,8 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+    "Linux NUMA source paths and separate configuration controls do not establish universally optimal thread counts, affinity combinations or measured placement gains."
   ],
   "verification": {
     "locally_verified": false,

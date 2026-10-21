@@ -1,0 +1,65 @@
+{
+  "tags": [
+    "sglang",
+    "diffusion",
+    "stage",
+    "state",
+    "residency",
+    "cancellation"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "license": "Apache-2.0",
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/sgl-project/sglang",
+      "commit": "df13d5dce31abfeff0e701a62e8c39a136758e6c",
+      "paths": [
+        "python/sglang/multimodal_gen/runtime/entrypoints/control_requests.py",
+        "python/sglang/multimodal_gen/runtime/entrypoints/openai/utils.py",
+        "python/sglang/multimodal_gen/runtime/entrypoints/openai/video_api.py",
+        "python/sglang/multimodal_gen/runtime/managers/gpu_worker.py",
+        "python/sglang/multimodal_gen/runtime/managers/memory_managers/component_manager.py",
+        "python/sglang/multimodal_gen/runtime/managers/scheduler.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/composed_pipeline_base.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/diffusion_scheduler_utils.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/executors/parallel_executor.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/executors/pipeline_executor.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/schedule_batch.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/stages/dedup.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/stages/denoising.py",
+        "python/sglang/multimodal_gen/runtime/pipelines_core/stages/timestep_preparation.py",
+        "python/sglang/multimodal_gen/runtime/scheduler_client.py",
+        ".github/workflows/diffusion-ci-gt-gen-npu.yml",
+        ".github/workflows/diffusion-ci-gt-gen.yml",
+        "LICENSE",
+        "python/pyproject.toml",
+        "python/sglang/multimodal_gen/test/unit/test_component_residency.py",
+        "python/sglang/multimodal_gen/test/unit/test_pipeline_executor.py",
+        "python/sglang/multimodal_gen/test/unit/test_pipeline_residency_manager_install.py",
+        "python/sglang/multimodal_gen/test/unit/test_scheduler_client.py"
+      ],
+      "readset": "references/source-notes.md"
+    }
+  ],
+  "applicability": {
+    "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation."
+  },
+  "limitations": [
+    "Source-derived candidate; upstream runtime and efficacy validation not run.",
+    "Supplier verified one selected source blob, not the whole archive tree.",
+    "No automatic grouped isolation, device cancellation, cross-rank recovery or performance claim."
+  ],
+  "provenance_readsets": [
+    "references/source-notes.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}
