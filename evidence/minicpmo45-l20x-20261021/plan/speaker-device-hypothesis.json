@@ -1,0 +1,22 @@
+{
+  "state": "frozen_before_candidate_measurement",
+  "plane": "model",
+  "hypothesis": "CUDA MiniCPM Code2Wav currently leaves CAM++ speaker extraction on a single-threaded CPU ONNX session unless the entire DiT TensorRT path is enabled. Decoupling the existing speaker-only TensorRT backend can remove serial prompt setup work without changing DiT, HiFT, chunks, or sampling.",
+  "source_paths": [
+    "vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py:_build_backend",
+    "vllm_omni/model_executor/models/step_audio2/step_audio2_token2wav.py:spk_model",
+    "vllm_omni/model_executor/models/step_audio2/step_audio2_token2wav.py:enable_device_spk_embedding",
+    "vllm_omni/model_executor/models/cosyvoice3/speaker_embedding_trt.py"
+  ],
+  "preconditions": [
+    "Measure CPU-vs-device latency on identical fbank inputs before served attribution.",
+    "Keep CUDA default behavior unchanged; require explicit token2wav_device_spk=true.",
+    "Confirm the device backend uses the same campplus.onnx weights and retain numerical/quality deltas."
+  ],
+  "numerical_gate": {
+    "normalized_embedding_cosine_min": 0.99999,
+    "normalized_embedding_abs_error_max": 0.001,
+    "inputs": "Fixed tuning reference fbank features; include short and normalized six-second shapes."
+  },
+  "service_gate": "Existing frozen search-plan quality and repeated served C16/C32 gates apply; isolated speaker microbench cannot establish a service gain."
+}

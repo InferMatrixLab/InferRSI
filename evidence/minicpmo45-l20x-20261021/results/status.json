@@ -1,0 +1,20 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "baseline": "Completed two engines at six concurrency levels, three measured 320-request repeats each; zero failed measured requests.",
+  "candidate_revision": "f2462435d79f0243ced93a02f3b8d6cd9c41511b",
+  "candidate_microbench": "PASS within frozen embedding gate; CPU-compatible FP32 TensorRT",
+  "candidate_unit_tests": {
+    "passed": 60,
+    "warnings": 16
+  },
+  "optimization_submitted": false,
+  "pending": [
+    "candidate repeated benchmark",
+    "candidate speech quality",
+    "fresh-start high-concurrency confirmation",
+    "combined-control selection"
+  ],
+  "candidate_pull_request": "https://github.com/vllm-project/vllm-omni/pull/9188",
+  "candidate_cpu_tests_passed": 67,
+  "candidate_tuning": "C16/C32 gains observed; held-out repeated service and generated speech quality pending"
+}

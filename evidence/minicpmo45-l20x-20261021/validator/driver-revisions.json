@@ -1,0 +1,28 @@
+{
+  "v1": {
+    "file": "run_baseline_v1.py",
+    "sha256": "457be625304659741dcb9a6b19ee0d02f674ac36ac2e51c0c7aad9b36ad96d73",
+    "used_for": [
+      "vllm-official-exploratory",
+      "sglang-official-exploratory",
+      "vllm-official-repeated",
+      "sglang-official-repeated"
+    ]
+  },
+  "v2": {
+    "file": "run_baseline.py",
+    "sha256": "0c66908c5959e3b91e5a091af5cf2a6382443c3ba0c416d6917e7af3aef3222b",
+    "change": "Add explicit disjoint tuning-pool selection; evaluation behavior unchanged. Candidate screening uses tuning rows before held-out evaluation.",
+    "used_for": [
+      "vllm-main-tuning",
+      "vllm-mps-tuning",
+      "vllm-mrv2-tuning",
+      "vllm-encoder-tuning",
+      "vllm-microbatch-tuning",
+      "vllm-speaker-tuning",
+      "vllm-speaker-repeated",
+      "vllm-speaker-microbatch-tuning",
+      "vllm-speaker-mrv2-tuning"
+    ]
+  }
+}

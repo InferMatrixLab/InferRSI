@@ -1,0 +1,14 @@
+{
+  "state": "frozen_before_profile_measurement",
+  "kind": "additional existing-main control, not new implementation",
+  "reason": "Current main already ships minicpmo_4_5_turn_mrv2.yaml. A best-performance recommendation must compare this existing profile before attributing improvements to a new change.",
+  "profile": "vllm_omni/deploy/minicpmo_4_5_turn_mrv2.yaml",
+  "changes_already_in_main": [
+    "native model runner v2 on all stages",
+    "Talker and Code2Wav max_num_seqs 8",
+    "CFM TF32 opt-in",
+    "HiFT graph batch buckets 1,2,4,8",
+    "bounded first-chunk express scheduling"
+  ],
+  "measurement": "Same pinned official model, canonical requests and disjoint tuning pool. Quality gates remain unchanged. No new-code gain can be claimed merely by selecting this main profile."
+}

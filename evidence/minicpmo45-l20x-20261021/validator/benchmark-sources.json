@@ -1,0 +1,20 @@
+{
+  "repository": "https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine",
+  "revision": "a4f4778f312791c2d190b48e521141887ed160c8",
+  "hashes": {
+    "bench/metrics.py": "ef40121126464c9b120bd37710b145895a0a784a4caab5319d3f535b64ab35a0",
+    "bench/protocol.py": "c739883456a14c0717121af1c1d7e6fd0ec6601f9a657c1d0d577a27f23dab74",
+    "bench/workload.py": "d3be4052477311dec3165c7a9db3d5f7cb93396768d8864d65646610a40283c7",
+    "bench/adapters/vllm_omni.py": "c9c13147e482e984fb2757f0c5a572c60ec17d383f4ee710cb9865414b642d12",
+    "bench/adapters/sglang_omni.py": "dcda6bf0b67c75d68daeae275fd4ce55b8a594136afb2f176b93ce6dec809305",
+    "exploratory_driver_sha256": "457be625304659741dcb9a6b19ee0d02f674ac36ac2e51c0c7aad9b36ad96d73"
+  },
+  "unit_tests": {
+    "passed": 30,
+    "skipped": 1,
+    "paths": [
+      "tests/bench/test_metrics.py",
+      "tests/bench/test_protocol_manifest.py"
+    ]
+  }
+}

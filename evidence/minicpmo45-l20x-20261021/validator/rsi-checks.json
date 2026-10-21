@@ -1,0 +1,14 @@
+{
+  "full_pytest": {
+    "exit_code": 0,
+    "collected": 266
+  },
+  "ruff_src_tests": "PASS",
+  "generated_catalog_check": "PASS",
+  "scope": "scaffold and knowledge delivery only; does not establish campaign performance",
+  "installed_wheel": {
+    "peer_cuda_search": "PASS",
+    "owner_local_case_resource": "PASS",
+    "note": "CLI resource returns a path; resolved content was read and checked from the installed wheel."
+  }
+}
