@@ -253,7 +253,7 @@ Imported skills are source material, not executable tool authority. CPU tests
 do not upgrade imported knowledge to a validated claim.
 
 The optional `skills` CLI defaults to the installed `data/skill_library/` and
-its `skill-index.json` registry of 49 stable skill IDs. Hardware-specific content
+its `skill-index.json` registry of stable skill IDs. Hardware-specific content
 lives under `hardware/ascend`, `hardware/cuda` or `hardware/host`; other skills
 are grouped by framework, repository, method or workflow. Full procedures,
 sidecars, references and cases ship with the package. Engine entry skills live
