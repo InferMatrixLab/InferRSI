@@ -1,0 +1,60 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "64 reused tuning prompts, one measured repeat after discard; not final qualification",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "profiles": {
+    "screen-torch-mps": {
+      "1": {
+        "throughput_frames_s": 192.23217408312624,
+        "ttfa_p50_s": 0.2981584994122386,
+        "ttfa_p95_s": 0.32917039170861245,
+        "rtf_mean": 0.13143682723026684,
+        "n_requests": 64,
+        "n_failed": 0
+      },
+      "16": {
+        "throughput_frames_s": 739.5967989351692,
+        "ttfa_p50_s": 1.0429030349478126,
+        "ttfa_p95_s": 1.9607031137216837,
+        "rtf_mean": 0.5223557244375909,
+        "n_requests": 64,
+        "n_failed": 0
+      },
+      "32": {
+        "throughput_frames_s": 848.8140884415932,
+        "ttfa_p50_s": 1.8589568389579654,
+        "ttfa_p95_s": 3.588924608658999,
+        "rtf_mean": 0.8924367367600894,
+        "n_requests": 64,
+        "n_failed": 0
+      }
+    },
+    "screen-fp16-mps": {
+      "1": {
+        "throughput_frames_s": 177.41427620623176,
+        "ttfa_p50_s": 0.3619168996810913,
+        "ttfa_p95_s": 0.39645095150917764,
+        "rtf_mean": 0.14300575530569176,
+        "n_requests": 64,
+        "n_failed": 0
+      },
+      "16": {
+        "throughput_frames_s": 486.4202406761821,
+        "ttfa_p50_s": 1.40935737779364,
+        "ttfa_p95_s": 2.4148101587314157,
+        "rtf_mean": 0.8004005516329982,
+        "n_requests": 64,
+        "n_failed": 0
+      },
+      "32": {
+        "throughput_frames_s": 518.2758193930315,
+        "ttfa_p50_s": 3.06098780175671,
+        "ttfa_p95_s": 4.743225209414959,
+        "rtf_mean": 1.462588532126349,
+        "n_requests": 64,
+        "n_failed": 0
+      }
+    }
+  },
+  "decision": "Native FP16 alone regresses; continue fused-body and resident-pool hypotheses. Quality scoring pending."
+}
