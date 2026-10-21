@@ -41,6 +41,13 @@ requires a separately scoped task; do not rewrite shared history automatically.
 
 ## Logs, evidence and redaction
 
+Environment inspection omits the host name before capture; there is no hostname
+diagnostic opt-in. This is not a general publication sanitizer. Caller-supplied
+commands and paths, source snapshots, device identifiers and raw probe output
+can still contain private values. The runner retains these records and the HTML
+report renders them; review the full artifact bundle before sharing. Existing
+environment records are not rewritten by this policy.
+
 - Select required non-sensitive fields before capture rather than dumping full
   environments/configurations. Filter commands, process arguments, errors,
   traces and generated manifests before persisting or displaying them.

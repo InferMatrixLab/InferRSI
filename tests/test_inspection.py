@@ -7,6 +7,8 @@ from importlib import metadata
 from pathlib import Path
 from unittest.mock import patch
 
+from inferrsi.harness.reporting import write_report
+from inferrsi.infra.artifacts import atomic_write_json
 from inferrsi.inspection import inspect_environment
 
 
@@ -82,6 +84,20 @@ class PythonInspectionTests(unittest.TestCase):
                 self.assertEqual(environment["packages"][name], expected)
         self.assertEqual(result["device"]["status"], "available")
         self.assertEqual(result["compatibility"], "unverified")
+
+
+def test_hostname_is_not_captured_in_environment_or_report(tmp_path):
+    hostname = "private-host.example.invalid"
+    with patch("inferrsi.infra.inspection.platform.node", return_value=hostname) as node:
+        environment = InspectionTests().inspect_cuda("0, GPU-test, Synthetic GPU, 999.0\n")
+    node.assert_not_called()
+    assert "hostname" not in environment["host"]
+    assert environment["host"]["platform"]
+    assert environment["device"]["status"] == "available"
+    atomic_write_json(tmp_path / "environment.json", environment)
+    report = write_report(tmp_path)
+    assert hostname not in (tmp_path / "environment.json").read_text(encoding="utf-8")
+    assert hostname not in report.read_text(encoding="utf-8")
 
 
 if __name__ == "__main__":

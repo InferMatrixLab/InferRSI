@@ -51,7 +51,7 @@ def inspect_environment(
     )
 
     return {
-        "host": {"platform": platform.platform(), "hostname": platform.node()},
+        "host": {"platform": platform.platform()},
         "repository": repository,
         "repository_pack": repository_pack(repo_type),
         "backend": backend,
