@@ -137,5 +137,46 @@
       "inter_chunk_gap_max_s": 1.2616655249148607
     }
   },
-  "quality": "scoring pending"
+  "quality": {
+    "1": {
+      "n": 64,
+      "sim": 50.12967520952225,
+      "utmos": 4.200052823871374,
+      "wer": 0.018387553041018388,
+      "wer_counts": {
+        "substitutions": 10,
+        "deletions": 1,
+        "insertions": 2,
+        "hits": 696
+      },
+      "wer_mean": 0.022971299533799533
+    },
+    "16": {
+      "n": 64,
+      "sim": 50.00295713543892,
+      "utmos": 4.234055019915104,
+      "wer": 0.016973125884016973,
+      "wer_counts": {
+        "substitutions": 7,
+        "deletions": 1,
+        "insertions": 4,
+        "hits": 699
+      },
+      "wer_mean": 0.021929632867132866
+    },
+    "32": {
+      "n": 64,
+      "sim": 51.17965564131737,
+      "utmos": 4.198266837745905,
+      "wer": 0.018387553041018388,
+      "wer_counts": {
+        "substitutions": 9,
+        "deletions": 1,
+        "insertions": 3,
+        "hits": 697
+      },
+      "wer_mean": 0.025254953379953378
+    }
+  },
+  "finding": "All three quality mean degradations inside margins versus tuning Torch+MPS control; descriptive screen only. No paired confidence-bound acceptance. Throughput remains below peer."
 }

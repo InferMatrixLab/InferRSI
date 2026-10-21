@@ -1,0 +1,1612 @@
+{
+  "scope": "Isolated sequential component diagnostic, four reused six-second tuning references, warm iteration excluded; nested synchronized timings are inclusive and not E2E throughput",
+  "rows": [
+    {
+      "component": "audio_load",
+      "seconds": 0.0019761724397540092,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.007233208045363426,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.1373605066910386,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0025283396244049072,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.1418165434151888,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0033800797536969185,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.3029424278065562,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.40437446907162666,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 1.6169003024697304,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "setup_total",
+      "seconds": 2.310425993986428,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.03487331327050924,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.5081467814743519,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.557541829533875,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006610671058297157,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.44942943565547466,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.6326862359419465,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.007402866147458553,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.8661306016147137,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.9566221702843904,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.02258254773914814,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.5317584061995149,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.6365340212360024,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.001866520382463932,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.001010434702038765,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.01608090102672577,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0018138037994503975,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.01564063411206007,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0024637505412101746,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.04475333169102669,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006568030454218388,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.027178455144166946,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.034699782729148865,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006633276119828224,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01664937287569046,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.034540699794888496,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00623843539506197,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01630075741559267,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03266109433025122,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006114237941801548,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01772047858685255,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.033706934191286564,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006733941845595837,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017683181911706924,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.036564608104527,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0014682002365589142,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0009305709972977638,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.006155264563858509,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0012669181451201439,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.014067634008824825,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0017327331006526947,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.028618589974939823,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.0063598183915019035,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.019056501798331738,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.0259659169241786,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005797999911010265,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016588320024311543,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.032304746098816395,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005842844024300575,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016311478801071644,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.031990732066333294,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005984102375805378,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01772004459053278,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03324364125728607,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005759245716035366,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01764226146042347,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.032953325659036636,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0013416502624750137,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0013889288529753685,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.006117459386587143,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0014765523374080658,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013520733453333378,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.001984664238989353,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.02887321636080742,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006855713203549385,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.018916158936917782,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.026389081962406635,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006046149879693985,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016611363738775253,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03272091783583164,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.0058222683146595955,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016254203394055367,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03247982822358608,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005971566773951054,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01771740708500147,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03337192628532648,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005836088210344315,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017626995220780373,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03279681410640478,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.00096157006919384,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0010168375447392464,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005583380348980427,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0014442158862948418,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013652781955897808,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0019877105951309204,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.02771192230284214,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006269455887377262,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.018872798420488834,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.02568152267485857,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005836257711052895,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016593378968536854,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03258976712822914,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00573933869600296,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016238825395703316,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03180513717234135,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005766061134636402,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017707587219774723,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03272016905248165,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005747782066464424,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.0175993824377656,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03256354760378599,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0011795340105891228,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0008358703926205635,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005580246448516846,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0012618592008948326,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013267923146486282,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0016292743384838104,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.026606210507452488,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006066393107175827,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.019092434085905552,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.025664656423032284,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005735814571380615,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016577182337641716,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03150905203074217,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005561777390539646,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01623960491269827,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03088662214577198,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005791029892861843,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017704549245536327,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03388080466538668,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006059086881577969,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017715453170239925,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.033322193659842014,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0013642851263284683,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0010297084227204323,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005422099493443966,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.00151821319013834,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013644926249980927,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0021163392812013626,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.029300264082849026,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.007012358866631985,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.018882573582232,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.02641547378152609,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00599858071655035,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016680059023201466,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03236697521060705,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005798302590847015,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016322380863130093,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03161055129021406,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005829794332385063,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01771655399352312,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.032885706052184105,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005767484195530415,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01764898467808962,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03286673966795206,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0011989250779151917,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0019077900797128677,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005356877110898495,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.001254926435649395,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.012854622676968575,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0017631705850362778,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.027285351417958736,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006183812394738197,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01888957992196083,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.02560818661004305,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005708198994398117,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016569942235946655,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03211439028382301,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00566725991666317,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016253069043159485,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.0316652562469244,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005806132219731808,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01772828958928585,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.032940320670604706,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005849485285580158,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01762959733605385,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03280434664338827,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0013560447841882706,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.00085438322275877,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.0056638773530721664,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0012802816927433014,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013454295694828033,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0020163943991065025,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.02752585895359516,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00614611990749836,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.018825657665729523,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.025488304905593395,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.007192431017756462,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016603020019829273,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.033581831492483616,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005674631334841251,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016232889145612717,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03152756579220295,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005898849107325077,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017721662297844887,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03293789830058813,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005705527029931545,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017631618306040764,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03265227470546961,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.001328999176621437,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0008390657603740692,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005782583728432655,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.001262611709535122,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013341451063752174,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0017610220238566399,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.027265895158052444,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006313184276223183,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.018845957703888416,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.025681504048407078,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005736817605793476,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016591357067227364,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03258501924574375,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005749351345002651,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01625990215688944,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03132617846131325,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005737985484302044,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017717167735099792,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.032723370008170605,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00575565081089735,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017654438503086567,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.032513353042304516,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.001274116337299347,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0008823433890938759,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005704125389456749,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.00124395452439785,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.01310840342193842,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0017342101782560349,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.026857647113502026,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006300955079495907,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.018830629996955395,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.025666622444987297,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005949941463768482,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01657293178141117,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03235872741788626,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005624599754810333,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016240280121564865,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.030952122062444687,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.0058046672493219376,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017709475941956043,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03290906082838774,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00585432443767786,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01766522228717804,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03302847780287266,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0014411024749279022,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0008328212425112724,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.00561718363314867,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0013423236086964607,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013550405390560627,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0020640334114432335,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.027788812294602394,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.0061477432027459145,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.01882993709295988,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "setup_total",
+      "seconds": 0.025519661605358124,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005724181421101093,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016561747528612614,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.031822859309613705,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.005621368996798992,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.016238142736256123,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.031219773925840855,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.006484871730208397,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.0177534781396389,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03390420600771904,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "encoder_eager",
+      "seconds": 0.00579419918358326,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "cfm_total",
+      "seconds": 0.017668897286057472,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "decode_total",
+      "seconds": 0.03292995039373636,
+      "repeat": 2,
+      "prompt_index": 3
+    }
+  ],
+  "cuda_peak_bytes": 5945767936,
+  "execution_config": {
+    "cfm_graphs": true,
+    "hift_graphs": false,
+    "encoder_graphs": false,
+    "micro_batch": 4,
+    "model_drop_unused_att_buffers": true,
+    "threads": 4
+  },
+  "limitation": "Component diagnostic uses eager HiFT/encoder unlike service; only the CFM/setup component is graph-enabled. Nested synchronization prevents overlap. Do not infer service throughput from this trace.",
+  "means_seconds": {
+    "cfm_total": 0.017420415999367833,
+    "audio_load": 0.0012630721321329474,
+    "encoder_eager": 0.005935295182280242,
+    "speaker_fbank": 0.001326048281043768,
+    "s3_tokens": 0.005588796688243747,
+    "prompt_total": 0.027542745228856802,
+    "s3_mel": 0.0010248525068163872,
+    "decode_total": 0.03242200776003301,
+    "setup_total": 0.025715741561725736,
+    "speaker": 0.013359351200051606,
+    "flow_mel": 0.0018840193515643477
+  }
+}

@@ -1,7 +1,7 @@
 {
-  "scope": "All completed first-round tuning screens; reused data, no final acceptance",
+  "scope": "Completed round-two tuning screens; reused data, no final acceptance",
   "path": "peer-round2-screen-requests-quality.json.gz",
-  "sha256": "bfcae076229b1940285b723bdd2aaebc9c451c60aa5107e553caa103d94e27c5",
+  "sha256": "fbfcb77f77ee1713fe9388ca139ca343555f6dc413fd7963c9c3c33eabbfa1e4",
   "profiles": [
     "screen-torch-mps",
     "screen-capacity32-mps",
@@ -11,7 +11,10 @@
     "screen-fp16-dispatch-mps",
     "screen-fp32-batch16-mps",
     "screen-hift-tf32-mps",
-    "screen-fp16-resident16-mps"
+    "screen-fp16-resident16-mps",
+    "screen-cfm128-batch16",
+    "screen-hift-exact-batch16",
+    "screen-cfm-only-fp16-mps"
   ],
   "privacy": "Audio and ASR hypothesis text are excluded. Audio hashes and error counts remain."
 }

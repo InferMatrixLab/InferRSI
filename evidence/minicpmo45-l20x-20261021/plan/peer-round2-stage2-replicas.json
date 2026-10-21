@@ -10,5 +10,9 @@
   "contrast": "Only stage2 num_replicas=2 and devices=0,0 over round2 Torch+MPS control; all capacities16, FP32, microbatch4, precision, sampling and workload unchanged.",
   "quality_checks": "Existing orchestrator replica-routing tests and resolved-config assertions before launch; then64 reused tuning requests at C1/C16/C32 with no failed or missing audio and descriptive WER/SIM/UTMOS.",
   "decision": "If two replicas improve, consider separately frozen four-replica trial after memory/runtime check. No speculative port of multi-frame Talker before bottleneck evidence.",
-  "holdout": "256 untouched; final acceptance still all9 bounds."
+  "holdout": "256 untouched; final acceptance still all9 bounds.",
+  "pre_service_checks": {
+    "replica_routing_tests": "17 passed,111 deselected",
+    "resolved_config": "PASS: capacities16/16/16,stage2 num_replicas2 devices0,0,MPS enabled"
+  }
 }

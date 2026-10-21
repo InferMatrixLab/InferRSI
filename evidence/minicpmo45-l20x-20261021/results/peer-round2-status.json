@@ -10,11 +10,12 @@
     "Prompt setup batching implementation and failed numerical gate",
     "Independent stage2 profiler",
     "CFM graph capacity128 negative screen",
-    "HiFT exact batch1/2/4 screen"
+    "HiFT exact batch1/2/4 screen",
+    "Selective CFM-only FP16 screen",
+    "Sequential component diagnostic"
   ],
   "active": [
-    "Selective CFM-only FP16 service/quality screen",
-    "Component timing diagnostic"
+    "Same-GPU two Code2Wav replicas screen"
   ],
   "reserved_holdout_used": false,
   "quality_margins": {
