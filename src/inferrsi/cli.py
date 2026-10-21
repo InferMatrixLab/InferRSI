@@ -184,14 +184,18 @@ def main(argv: list[str] | None = None) -> int:
                         f"{identity}\tcollision\towned by multiple authorities; qualify the ref"
                     )
                 for item in result["items"]:
-                    applicability = item.get("applicability") or "-"
-                    if not isinstance(applicability, str):
-                        applicability = json.dumps(
-                            applicability, ensure_ascii=False, sort_keys=True
+                    if "applicability" in item:
+                        value = item["applicability"]
+                        applicability = (
+                            _tsv(value)
+                            if isinstance(value, str)
+                            else json.dumps(value, ensure_ascii=False, sort_keys=True)
                         )
+                    else:
+                        applicability = "-"
                     print(
                         f"{item['ref']}\t{item['revision']}\t{item['kind']}"
-                        f"\t{_tsv(item['state'])}\t{_tsv(applicability)}"
+                        f"\t{_tsv(item['state'])}\t{applicability}"
                     )
                     if args.material and "content" in item:
                         print(f"--- begin content {item['ref']} @ {item['revision']} ---")
@@ -199,7 +203,7 @@ def main(argv: list[str] | None = None) -> int:
                         print(f"--- end content {item['ref']} ---")
                 for omission in result["omissions"]:
                     detail = f"\t{_tsv(omission['detail'])}" if "detail" in omission else ""
-                    print(f"{omission['id']}\tomitted\t{omission['reason']}{detail}")
+                    print(f"{_tsv(omission['id'])}\tomitted\t{omission['reason']}{detail}")
                 if result["no_match"]:
                     print(
                         "no_match\tnothing selected from the requested sources; "

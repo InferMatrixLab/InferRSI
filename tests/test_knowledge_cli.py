@@ -224,10 +224,16 @@ def test_collect_text_lines_match_the_json_envelope():
         assert fields[1] == item["revision"]
         assert fields[2] == item["kind"]
         assert fields[3] == _escaped(item["state"])
-        applicability = item.get("applicability") or "-"
-        if not isinstance(applicability, str):
-            applicability = json.dumps(applicability, ensure_ascii=False, sort_keys=True)
-        assert fields[4] == _escaped(applicability)
+        if "applicability" in item:
+            value = item["applicability"]
+            applicability = (
+                _escaped(value)
+                if isinstance(value, str)
+                else json.dumps(value, ensure_ascii=False, sort_keys=True)
+            )
+        else:
+            applicability = "-"
+        assert fields[4] == applicability
 
 
 def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path):
@@ -331,3 +337,61 @@ def test_collect_escapes_control_characters_to_keep_one_line_per_item(tmp_path):
     fields = item_lines[0].split("\t")
     assert len(fields) == 5
     assert fields[3] == "two\\tlines\\nbroken"
+
+
+class _Missing:
+    pass
+
+
+_MISSING = _Missing()
+
+
+def _case_root(tmp_path: Path, identity: str, applicability) -> Path:
+    cases = tmp_path / "owner" / "cases"
+    cases.mkdir(parents=True)
+    (tmp_path / "owner" / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: test\n---\nBody",
+        encoding="utf-8",
+    )
+    (cases / "note.md").write_text("observation", encoding="utf-8")
+    record = {
+        "id": identity,
+        "kind": "case",
+        "state": "historical_observation",
+        "content": "note.md",
+        "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+        "limitations": [],
+        "attribution": "fixture",
+    }
+    if applicability is not _MISSING:
+        record["applicability"] = applicability
+    (cases / "note.json").write_text(json.dumps(record), encoding="utf-8")
+    return tmp_path
+
+
+def test_collect_projects_recorded_applicability_including_empty_values():
+    # An empty list/object/string is a RECORDED value and must render literally;
+    # only an absent field may collapse to the "-" marker. A bundle without
+    # applicability is rejected upstream as invalid, so it never reaches projection.
+    tmp = Path(tempfile.mkdtemp())
+    for index, (value, expected) in enumerate((([], "[]"), ({}, "{}"), ("", ""))):
+        root = _case_root(tmp / f"case{index}", "shape-check", value)
+        code, text, _ = run_cli("collect", "--id", "shape-check", "--skill-root", str(root))
+        assert code == 0, text
+        line = next(
+            entry for entry in text.splitlines() if entry.startswith("checkout:shape-check")
+        )
+        assert line.split(chr(9))[4] == expected
+
+
+def test_collect_omission_escapes_control_characters_in_invalid_id():
+    tab, newline = chr(9), chr(10)
+    code, text, _ = run_cli("collect", "--id", f"bad{tab}id{newline}injected")
+    assert code == 0
+    lines = text.splitlines()
+    omitted = [line for line in lines if chr(9) + "omitted" + chr(9) in line]
+    assert len(omitted) == 1
+    # the invalid id stays on one line and never leaks a raw newline that could
+    # forge a separate record or a no_match marker
+    assert not any(line == "injected" for line in lines)
+    assert "injected" in omitted[0]

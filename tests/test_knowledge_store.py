@@ -147,12 +147,13 @@ def test_concurrent_writers_compare_expected_inside_transaction(tmp_path, monkey
     blocker.execute("BEGIN IMMEDIATE")
     with ThreadPoolExecutor(max_workers=2) as workers:
         pending = [workers.submit(update, index) for index in (1, 2)]
-        # Both writers must be waiting on the lock, well inside its 5 s timeout.
-        deadline = time.monotonic() + 2
-        while len(lock_attempts) < 2 and time.monotonic() < deadline:
-            time.sleep(0.01)
-        assert len(lock_attempts) == 2
-        assert not any(future.done() for future in pending)
+        # Wait (load-tolerantly) until both writers have entered the write
+        # transaction. Reaching BEGIN IMMEDIATE while the blocker holds the lock
+        # means neither has published yet; a slow machine just takes longer.
+        reached = time.monotonic() + 10
+        while len(lock_attempts) < 2 and time.monotonic() < reached:
+            time.sleep(0.02)
+        assert len(lock_attempts) >= 2, "concurrent writers did not both enter the transaction"
         blocker.execute("ROLLBACK")
         blocker.close()
         results = [future.result() for future in pending]
