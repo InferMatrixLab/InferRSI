@@ -1,0 +1,11 @@
+{
+  "recorded_at_utc": "2026-10-21T06:30:41.008686+00:00",
+  "affected_run": "peer-repeated/c1/run1",
+  "event": "Two short py-spy stack snapshots were taken while diagnosing apparent startup delay; artifact timestamps show run0 had already finished, so snapshots overlap measured run1.",
+  "policy": "Retain raw run1 but exclude it from unprofiled C1 aggregates. Runs2/3 and other concurrency cells remain unprofiled. Final confirmation requires fresh unprofiled repeats for both engines.",
+  "snapshots_local_times": [
+    "2026-10-21T14:28:51+08:00",
+    "2026-10-21T14:29:06+08:00"
+  ],
+  "discard_run0_summary_local_time": "2026-10-21T14:28:15+08:00"
+}
