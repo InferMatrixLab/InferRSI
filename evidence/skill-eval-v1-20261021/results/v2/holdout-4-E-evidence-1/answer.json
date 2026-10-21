@@ -1,0 +1,19 @@
+{
+  "report_verdict": "FAIL",
+  "latency_reduction_pct": 28.864465920323212,
+  "findings": ["quality_failed"],
+  "claim_scope": "none",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成；FAIL 表示报告验收失败。对每轮请求求均值，再取五轮中位数：基线374.170214 ms，候选266.167980 ms，降低28.864466%，满足20%门槛。工作负载一致，15个请求全部报告且无失败；两组轮均值的相对极差分别为4.0415%和3.3173%，低于12%。唯一实质违规是候选质量失败，因此按冻结合同，claim_scope 为 none。指定技能的“Level 0 — Correctness”和“Level 3 — Isolated scenario benchmark”用于区分质量与固定负载计时证据。最小下一步：修复质量问题，对修复版本重跑相同C1负载的质量与延迟验收。以上是历史记录核算，并非新硬件测量。"
+}

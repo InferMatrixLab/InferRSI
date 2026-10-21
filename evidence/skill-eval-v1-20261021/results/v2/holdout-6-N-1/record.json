@@ -1,0 +1,58 @@
+{
+  "task_id": "holdout-6",
+  "condition": "N",
+  "repeat": 1,
+  "split": "holdout",
+  "execution_state": "completed",
+  "verdict": "PASS",
+  "checks": {
+    "passed": true,
+    "assertions": {
+      "report_verdict": true,
+      "claim_scope": true,
+      "findings": true,
+      "reduction": true,
+      "evidence": true,
+      "explanation": true
+    }
+  },
+  "elapsed_seconds": 52.33538030006457,
+  "inputs_unchanged": true,
+  "input_hashes": {
+    "task.json": "a63127b2d53f117d75c79906a012efdd451ff975ca262a7972de62c30356bdbd"
+  },
+  "output_sha256": "dce5b6cebc192c3f7802f4d448ed11378ab15da4fa768d1193d9f7d56e55bda8",
+  "candidate_skill_accesses": [],
+  "activation_observation": "unknown",
+  "supplied_skills": [],
+  "declared_exposure_bundles": [],
+  "observations": {
+    "usage": {
+      "input_tokens": 28590,
+      "cached_input_tokens": 13312,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 1346,
+      "reasoning_output_tokens": 791
+    },
+    "completed_turns": 1,
+    "errors": [],
+    "commands": [
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content -LiteralPath .\\\\task.json -Raw\"",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "{\r\n  \"id\": \"holdout-6\",\r\n  \"split\": \"holdout\",\r\n  \"mode\": \"audit\",\r\n  \"provenance\": \"Historical latency slices plus explicitly counterfactual test metadata; this exercise is not a new hardware measurement.\",\r\n  \"request\": \"Audit the claimed fixed-workload latency acceptance; compute median of per-trial request means and percentage reduction. Identify only material contract violations and the strongest supported scope. Do not infer production/deployment qualification. Explain the smallest next action. The campaign requires only C1; replay and production are outside its claim.\",\r\n  \"contract\": {\r\n    \"min_reduction_pct\": 25,\r\n    \"scope\": \"fixed_workload\",\r\n    \"required_regimes\": [\r\n      \"C1\"\r\n    ],\r\n    \"quality_required\": true,\r\n    \"all_requests_required\": true,\r\n    \"max_relative_spread_pct\": 12,\r\n    \"statistical_significance_required\": false,\r\n    \"verdict_definitions\": {\r\n      \"PASS\": \"Comparable and sufficient evidence satisfies all frozen acceptance gates.\",\r\n      \"FAIL\": \"Comparable and sufficient evidence demonstrates a quality, request-completion or gain gate violation. Do not use FAIL merely to reject an unsupported claim.\",\r\n      \"INCONCLUSIVE\": \"Workloads are inc",
+        "output_tail_excerpt": " \"total_requests\": 15,\r\n    \"reported_requests\": 15,\r\n    \"failed_requests\": 0\r\n  },\r\n  \"evidence_keys\": [\r\n    \"contract\",\r\n    \"baseline.latencies_ms\",\r\n    \"candidate.latencies_ms\",\r\n    \"baseline.workload\",\r\n    \"candidate.workload\",\r\n    \"candidate.quality\",\r\n    \"candidate.total_requests\",\r\n    \"candidate.reported_requests\",\r\n    \"candidate.failed_requests\",\r\n    \"evidence_scope\"\r\n  ]\r\n}\r\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 3719,
+        "original_output_sha256": "3796c78122d64ba087093f753fecf3397b4e0243126c2ce94749261bd0a48803"
+      }
+    ]
+  },
+  "publication": {
+    "original_result_sha256": "d3f2ed73e3fda1efbfc383c63959f1c778d548ca5bdbe9b46f5d4ce0790a230e",
+    "original_events_sha256": "ce72a92b345e72a5948b3d5750d402f7800368481177f8f0f38f9e0e5e86357b",
+    "omitted": "Raw service/session events, host argv/paths and process identifiers. Command outputs are explicitly truncated excerpts; private originals retained.",
+    "task_reconstruction": "From frozen tasks and controller R transformations; matches recorded input SHA-256 when available."
+  }
+}

@@ -4,6 +4,11 @@ Skill evaluation measures discovery, correct application and task outcomes for a
 exact knowledge revision. It is separate from the numeric engine-performance
 evaluator and from InferRSI's L0–L4 system-validation ladder.
 
+The first [real-client pilot report](../evidence/skill-eval-v1-20261021/README.md)
+includes per-trial answers, retained development failures, discovery observations
+and CPU-only replay of the frozen verifier. Its conclusions apply to that
+selected task family, skill revisions and client/model configuration.
+
 The small report-audit driver reuses `KnowledgeReader` bundles, the real Codex
 CLI and `infra.executors.local.execute_command`. It adapts the sibling pilot's
 fresh-session, event and independent-verifier methods; its old fixed
@@ -80,8 +85,8 @@ the revision and remaining `--campaign-seconds` / `--token-limit` before those
 calls. Keep original and revised contracts separate and respect the Issue's
 combined call cap; do not silently reinterpret old outputs.
 
-The verifier runs outside the agent command sandbox and never executes generated
-code. It checks structured answers, numeric results, findings and evidence keys.
+The controller runs the verifier outside each task workspace and never executes
+generated code. It checks structured answers, numeric results, findings and evidence keys.
 Raw client captures remain private. Publish reviewed redacted evidence with its
 own identity, per-trial outputs/checks, source revisions, missing observations,
 resource definitions and a reproducible verifier invocation. A small pilot is
