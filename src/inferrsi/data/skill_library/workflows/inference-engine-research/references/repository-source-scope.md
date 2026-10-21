@@ -52,7 +52,12 @@ historical main/index KV. Ring margins depend on the outer extra-state flag
 and the inner truncation gate. The verification-row floor is an allocation
 contract, not an accepted-draft-token guarantee. CPU total-budget selection,
 per-request allocation and GPU worker correction consume different available
-confidence rounds.
+confidence rounds. G3 fixes the historical global budget, the same proposal’s
+legal cumulative prefix through position i and other allocation state before
+perturbing its later confidence; inclusion of i must then stay unchanged.
+Changing historical N−2 rates may legitimately change the global budget.
+A causal violation may bias sampling and requires the complete-distribution
+check below.
 
 The verification owner retains distinct validation gates: V3 checks exact
 cumulative products of conditional per-position inputs, preserving inputs

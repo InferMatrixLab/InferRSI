@@ -121,5 +121,5 @@
     }
   ],
   "scope": "Pinned Git commit-to-tree metadata and selected archive implementation blobs only; no full archive/tree byte authentication, submodule contents, execution or backend qualification.",
-  "selected_archive_blob_comparison": "PASS: Git blob IDs and sizes matched for all 19 selected files on 2026-10-22"
+  "selected_archive_blob_comparison": "MATCHED: Git blob IDs and sizes matched for all 19 selected files on 2026-10-22"
 }
