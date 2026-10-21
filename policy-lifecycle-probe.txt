@@ -1,0 +1,1 @@
+Temporary metadata-policy lifecycle fixture. Not intended for integration.
