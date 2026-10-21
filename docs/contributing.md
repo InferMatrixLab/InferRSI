@@ -28,6 +28,13 @@ Synthetic benchmark scripts belong in `tests/fixtures/`; historical validator
 snapshots in `tests/fixtures/legacy/` remain byte-for-byte frozen. Current runnable
 examples are the three Qwen scripts under `examples/`.
 
+Git treats recorded bundles under `evidence/` and `tests/fixtures/legacy/` as
+exact bytes (`-text`), so checkout and add do not normalize their line endings.
+The evidence README and reusable `_template/` remain ordinary LF text. This
+policy does not renormalize existing blobs or authorize edits to frozen files.
+Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
+`false`, `true` and `input`.
+
 Use `harness/scenarios` and `model/protocols` / `model/validators` for new models,
 `infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` with
 `data/platform_packs` for hardware. Reuse the common AB/BA loop, cleanup and
