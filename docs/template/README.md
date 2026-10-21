@@ -37,8 +37,10 @@ weights, logos or upstream code.
    cp <inferrsi-checkout>/docs/template/recipe.yaml <engine-checkout>/recipes/<recipe-id>.yaml
    ```
 
-3. Rename the README title and fill in the engine identity, model/task,
-   independently supported hardware combinations, source/license attribution,
+3. Set the repository name and README title using the naming convention in the
+   [engine README template](engine-repo/README.md). Keep its linked InferRSI
+   generation attribution as the final nonempty README line. Fill in the engine
+   identity, model/task, independently supported hardware combinations, source/license attribution,
    architecture, environment and real commands. Keep only relevant folders.
    Adapt the implementation/test paths to the engine's language. Retain the
    local organization mark and provenance following [branding](branding.md); the InferRSI banner
@@ -123,6 +125,8 @@ an internal RunSpec/evidence scaffold; it has a different purpose and format.
 
 ## Delivery checklist
 
+- Repository name and README title follow the [engine README naming convention](engine-repo/README.md);
+  its final nonempty line retains the InferRSI generation attribution and link.
 - README describes supported combinations, real commands, limits, license and
   upstream sources; local assets render on both light and dark surfaces.
 - Recipe matches schema version 1 with actual identity, date, maintainer,

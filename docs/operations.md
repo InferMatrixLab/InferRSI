@@ -48,7 +48,7 @@ result does not mean that no checkout or store knowledge exists. See the
 ### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
 
 - **Inputs:** `list` reads frontmatter and sidecar metadata; `show <skill>` selects one instruction body; `resource <skill> <relative-path>` and `reference <skill> <relative-path>` resolve one path. The default is the installed library's 48 registered skills; an explicit `--root` selects a custom flat tree or a categorized library with `skill-index.json`. The optional `skills` extra supplies the YAML parser.
-- **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. Existing bilingual editions remain accessible through catalog records and library navigation; they are not duplicated in the 48-ID registry.
+- **Scope:** complete packaged skills under `data/skill_library/`, or the explicitly selected custom root. The 21 English engine and research-router skills remain accessible through catalog records and library navigation, separately from the 48-ID registry.
 - **Output:** metadata listing, one instruction body, or a resolved path.
 - **Side effects:** none. `resource`/`reference` do not load or execute the target.
 - **Failure behavior:** missing skill, undeclared reference or path escape is an error.

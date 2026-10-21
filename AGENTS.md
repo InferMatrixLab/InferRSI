@@ -97,7 +97,7 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 ## Skills
 
-Portable operator guidance and candidate procedures live in [src/inferrsi/data/skill_library/](src/inferrsi/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
+Portable operator guidance and candidate procedures live in [src/inferrsi/data/skill_library/](src/inferrsi/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases. Keep library content in English; supporting documents stay in owner-local resource directories. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
 
 ## Dev smoke (local)
 

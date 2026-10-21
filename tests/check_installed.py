@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) >= 10, "Knowledge is missing from the installation"
+assert len(records) == 90, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -62,7 +62,14 @@ registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="u
 assert len(registry) == 48
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
-manifest = json.loads(library.joinpath("source-manifest.json").read_text(encoding="utf-8"))
+router = library.joinpath("workflows", "inference-engine-research")
+manifest = json.loads(
+    router.joinpath("references", "source-manifest.json").read_text(encoding="utf-8")
+)
+assert {entry.name for entry in library.iterdir() if entry.is_file()} == {
+    "README.md", "skill-index.json",
+}
+assert not library.joinpath("en").is_dir() and not library.joinpath("zh-CN").is_dir()
 assert len(manifest["sources"]) == 5
 for source in manifest["sources"]:
     slug = source["skill"]
@@ -74,10 +81,12 @@ for source in manifest["sources"]:
         if "skill_documents" in item
     ]
     assert len(imported) == 3, f"Missing indexed knowledge for {repo}"
-    for language in ("en", "zh-CN"):
-        assert library.joinpath(language, slug, "SKILL.md").is_file()
-        assert library.joinpath(language, slug, "LICENSE").is_file()
+    owner = library.joinpath("repositories", slug)
+    assert owner.joinpath("SKILL.md").is_file()
+    assert owner.joinpath("LICENSE").is_file()
+    assert not owner.joinpath("translations", "zh-CN").is_dir()
     for record in imported:
+        assert set(record["skill_documents"]) == {"en"}
         for reference in record["skill_documents"].values():
             assert package.joinpath(*reference.split("/")).is_file(), reference
     output = io.StringIO()
@@ -85,12 +94,15 @@ for source in manifest["sources"]:
         assert main(["context", imported[0]["id"], "--repo-type", repo, "--backend", "cpu"]) == 0
     assert '"skill_documents"' in output.getvalue()
     assert '"locally_verified": false' in output.getvalue()
-for language in ("en", "zh-CN"):
-    assert library.joinpath(language, "inference-engine-research", "SKILL.md").is_file()
-    helper = library.joinpath(language, "strata", "scripts", "summarize_trials.py")
-    assert helper.is_file()
-    with as_file(helper) as path:
-        compile(path.read_text(encoding="utf-8"), str(path), "exec")
+assert router.joinpath("SKILL.md").is_file()
+assert router.joinpath("references", "overview.md").is_file()
+assert not router.joinpath("translations", "zh-CN").is_dir()
+strata = library.joinpath("repositories", "strata")
+assert strata.joinpath("references", "design-space-analysis.md").is_file()
+helper = strata.joinpath("scripts", "summarize_trials.py")
+assert helper.is_file()
+with as_file(helper) as path:
+    compile(path.read_text(encoding="utf-8"), str(path), "exec")
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(

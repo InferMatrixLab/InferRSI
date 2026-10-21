@@ -44,8 +44,7 @@
     }
   ],
   "skill_documents": {
-    "en": "data/skill_library/en/vllm/sub-skills/operation-performance/SKILL.md",
-    "zh-CN": "data/skill_library/zh-CN/vllm/sub-skills/operation-performance/SKILL.md"
+    "en": "data/skill_library/repositories/vllm/sub-skills/operation-performance/SKILL.md"
   },
   "applicability": {
     "hardware": [],
@@ -68,7 +67,7 @@
   "limitations": [
     "Synthetic speculative acceptance is a performance experiment and does not establish output correctness.",
     "An idle GPU or improved single-device microbenchmark does not identify the bottleneck or certify a service gain.",
-    "This indexed abstract links to the complete bilingual skill and source evidence; it is imported guidance, not a benchmark result.",
+    "This indexed abstract links to the complete English skill and source evidence; it is imported guidance, not a benchmark result.",
     "Accelerator execution, real-model quality and service performance remain unverified for this import. Qualify each target revision, model, backend and workload separately."
   ],
   "verification": {

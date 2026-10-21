@@ -13,13 +13,14 @@ separate work, not an implemented capability of this knowledge base.
 
 ```text
 src/inferrsi/data/skill_library/
+  README.md                         Library navigation
   skill-index.json                   Stable IDs → categorized paths/backend (48 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
-  repositories/<repo>/<id>/         Repository-owned complete skills
+  repositories/<repo>/              Engine entry, sub-skills and focused complete skills
   methods/<id>/                     General optimization/analysis complete skills
-  workflows/<id>/                   Evidence and skill-lifecycle complete skills
-  en/, zh-CN/                       Existing 42 bilingual engine skill nodes
+  workflows/<id>/                   Cross-repository research, evidence and skill lifecycle
+  <owner>/references/               Owner-local supporting documents and source inventory
   <category>/<id>/SKILL.md           Name, description, substantive procedure
   <category>/<id>/metadata.json      Provenance, state and relationships
   <category>/<id>/references/        Owner's mechanisms, readsets and comparisons
@@ -63,7 +64,7 @@ metadata authority or maintained matrix.
 | Legacy local frontmatter | Existing frontmatter when no new profile is declared | Five inherited skills stay unchanged; no invented candidate state |
 | Legacy sidecars | Existing keys retained unless explicitly normalized | Conflicting duplicate fields fail visibly; matching historical fields can be read |
 | Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Do not migrate it into local sidecars or relabel imported records |
-| Bilingual procedures/resources | Existing imported library and source manifest | Preserve both languages, licenses, source relationships and installed access; translations are distributed views, not independent authorities |
+| Engine procedures/resources | Imported English library and source manifest | Preserve licenses, source relationships and installed access; catalog abstracts link the complete English procedures |
 | Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results |
 
 The 43 branch-added candidate headers were normalized without replacing their
@@ -164,8 +165,13 @@ All 48 former root skills now have one canonical home under
 [`src/inferrsi/data/skill_library/`](../src/inferrsi/data/skill_library/README.md).
 Complete procedures, sidecars, references and cases are packaged, with 13 Ascend,
 2 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
-repositories, methods or workflows. The existing 42 bilingual engine nodes stay
-in `en/` and `zh-CN/`.
+repositories, methods or workflows. The 21 engine and research-router skills
+use the same ownership layout under `repositories/<engine>/` and
+`workflows/inference-engine-research/`, including their sub-skills and references.
+The library contains 69 `SKILL.md` files, all in English.
+The collection overview, import notes and source manifest belong to the research
+workflow's references; Strata design-space analysis belongs to Strata. The library
+root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
 projects the 48 registered skills into the contribution catalog. Its records
@@ -173,7 +179,8 @@ use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for those hardware-specific scopes and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-48-ID registry; it does not enumerate both bilingual editions as duplicate IDs.
+48-ID registry; engine procedures remain available through library navigation
+and catalog document pointers.
 
 Use `inferrsi knowledge search --repo-type inferrsi --limit 100` in an ordinary
 installation. Catalog JSON and full package bundle reads need no YAML parser:

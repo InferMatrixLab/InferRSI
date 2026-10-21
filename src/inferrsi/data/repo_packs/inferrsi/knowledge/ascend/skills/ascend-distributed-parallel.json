@@ -24,14 +24,14 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5b9d26956ad0bb09a29f77d22b4d034787a2df9f/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
-      "commit": "5b9d26956ad0bb09a29f77d22b4d034787a2df9f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ddeba86177132c5933cf7ab1e6eb7021fb767e22/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "ddeba86177132c5933cf7ab1e6eb7021fb767e22",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "ae3f337b0892f34f788b22cfef02030e97a52b7e68fe7d96727d15f3484def8e"
+      "content_sha256": "4252cc6f984600393b277c45f8c3ef84f5dd0250c13d5b80a2e1b35d3531c520"
     }
   ],
   "index_type": "packaged-skill",
@@ -40,7 +40,7 @@
   },
   "checkout_ref": "checkout:ascend-distributed-parallel",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "ae3f337b0892f34f788b22cfef02030e97a52b7e68fe7d96727d15f3484def8e",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "4252cc6f984600393b277c45f8c3ef84f5dd0250c13d5b80a2e1b35d3531c520",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "843c0a93bf3e61c107c432e05b23a7466ed07b7c061142fed1e6128ca22734cb",
     "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
   },

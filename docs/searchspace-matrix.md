@@ -291,7 +291,7 @@ Current applicability and a changed condition must be established before retry.
 
 The 15 contribution abstracts for Strata, vLLM, SGLang, SGLang-Omni and vLLM-Omni
 supply scoped architecture, tuning and validation navigation, including their
-bilingual procedures. They do not qualify every backend listed by their upstream
+English procedures. They do not qualify every backend listed by their upstream
 projects. Main-only contribution, dependency and peer material remains at its
 original owners rather than duplicated under local skills.
 

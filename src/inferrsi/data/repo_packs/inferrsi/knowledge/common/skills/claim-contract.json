@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5b9d26956ad0bb09a29f77d22b4d034787a2df9f/src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md",
-      "commit": "5b9d26956ad0bb09a29f77d22b4d034787a2df9f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ddeba86177132c5933cf7ab1e6eb7021fb767e22/src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md",
+      "commit": "ddeba86177132c5933cf7ab1e6eb7021fb767e22",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md"

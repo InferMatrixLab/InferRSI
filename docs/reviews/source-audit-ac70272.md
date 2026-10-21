@@ -27,11 +27,13 @@ This is an umbrella, not an instruction to implement all findings in one PR. Acc
 ## Authorized delivery slice
 
 The requester has authorized this bounded documentation and knowledge-library
-delivery, with the skill organization revised after review of PR #44:
+delivery, with the skill organization revised after review of PR #44 and the
+subsequent requests to unify the library layout and keep its content in English:
 
 - Publish the supplied Chinese architecture SVG and an English translation in `docs/assets/`, and update the README to link both.
 - Include this English audit document in the repository and publish the umbrella issue, with solution suggestions for every review point.
 - Move all 48 root skill directories, including procedures, metadata, references and cases, into the canonical `src/inferrsi/data/skill_library/`. Place platform-specific guidance under the corresponding hardware directory; organize the remainder by framework, repository, method or workflow. Ship the complete library and link generated catalog records to its packaged bodies. Preserve skill IDs, provenance, unknown-license declarations and candidate/verification state; remove the former root `skills/` directory.
+- Apply that ownership layout to the 21 English engine and research-router skill documents: repository bundles under `repositories/` and the research router under `workflows/`. The subsequent English-only request removes Chinese editions and translates remaining library content; it supersedes the earlier bilingual retention scope. Keep overview, import, source inventory and analysis documents in the appropriate owner's references. Retain only library navigation and `skill-index.json` at the library root.
 
 This authorization does **not** approve implementation or closure of all 34 remediations. In particular, organizing and packaging skills is not the evidence-to-knowledge promotion mechanism proposed in item 26, and translations or packaging checks do not establish empirical verification.
 
@@ -344,7 +346,7 @@ Changes to shared process, runner or evaluation code must preserve the SIAS depe
 ## Ownership and authorization
 
 - **Original proposer:** reviewer of the local checkout at `main` / `ac70272`.
-- **Current requester:** repository contributor requesting the bilingual architecture assets, README update, English audit publication and skill metadata integration described above.
+- **Requester at audit publication:** repository contributor requesting the bilingual architecture assets, README update, English audit publication and skill metadata integration. The later English-only library request is recorded in the authorized delivery slice above.
 - **Status:** umbrella proposed for triage; the bounded delivery slice is authorized by the requester.
 - **Accountable parent / issue owner:** TBD.
 - **Slice implementers:** assigned per linked issue/PR.

@@ -5,119 +5,119 @@ description: 'Select and validate distributed parallelism strategy on Ascend NPU
   '
 ---
 
-# 分布式并行策略选择与验证
+# Selecting and validating distributed parallelism
 
-## 卡组拓扑规则（强制前置）
+## Card-group topology rules (required prerequisite)
 
-任何多卡运行前必须满足拓扑规则：判据来自 `npu-smi info -t topo` 的互连分域。
+Every multi-card run must satisfy topology constraints based on the interconnect domains reported by `npu-smi info -t topo`.
 
-- **合法卡组**：
-  - 2 卡 = 一对同域相邻卡（topo 显示同 UB/HCCS 域）
-  - 4 卡 = 一个完整同域组
-  - 8 卡 = 全部卡
-  - 跨域拼组**不合法**——若因卡健康需跨域，必须显式注明「非同一互连域、带宽次优」
+- **Valid card groups:**
+  - 2 cards: one adjacent pair in the same UB/HCCS domain
+  - 4 cards: one complete same-domain group
+  - 8 cards: all cards
+  - Cross-domain combinations are **invalid**. If card health forces a cross-domain group, explicitly label it "different interconnect domains, suboptimal bandwidth".
 
-- **执行要点**（强制四步 smoke 验证）：
-  1. 选卡前 `npu-smi info -t topo` 核对目标组内互连为 UB（同域）
-  2. `npu-smi info` 核 Health；Alarm 卡弃用；被占用卡不可用
-  3. 多卡 run 必须**4 步 smoke 验证 per-step 时长均匀性**（per-step 时长整组均匀抬高约一个量级即 SIGKILL 残留态，须驱动复位或换组；`npu-smi Health=OK` 不能证明组可用）
-  4. **卡组变更 = 契约变更**：换卡组后锚点行必须在新卡组同窗重测，不得混用旧卡组数值
+- **Execution requirements** (including a mandatory four-step smoke check):
+  1. Before selecting cards, use `npu-smi info -t topo` to confirm UB connectivity within the target group.
+  2. Check Health with `npu-smi info`; reject Alarm cards and cards occupied by other processes.
+  3. Multi-card runs require a **four-step smoke check of per-step timing uniformity**. Uniform timing inflation of roughly one order of magnitude across the group is the observed SIGKILL residual-state pattern; reset the driver or change groups. `npu-smi Health=OK` alone does not establish that a group is usable.
+  4. **A card-group change is a contract change**: remeasure the anchor on the new group within the same measurement window; do not mix in values from the old group.
 
-## 并行策略一览与选型
+## Parallel strategies and selection
 
-| 策略 | 适用场景 | 通信模式 | 关键参数 |
+| Strategy | Applicable workload | Communication pattern | Key parameter |
 |------|---------|---------|---------|
-| Ulysses 并行 (USP) | 多模态扩散模型序列维度切分 | all-to-all | ulysses_size |
-| CFG 并行 | classifier-free guidance 开启 | 双分支独立推理 | cfg_parallel |
-| 张量并行 (TP) | 单层参数超单卡显存 | all-reduce / all-gather | tp_size |
-| 环状序列并行 (RSP) | 长序列通信可被计算掩盖 | P2P 环形传递 | world_size |
-| 流水线并行 (PP) | 层数多、单层显存可承受 | send/recv | pp_size |
+| Ulysses parallelism (USP) | Sequence sharding in multimodal diffusion models | all-to-all | ulysses_size |
+| CFG parallelism | Classifier-free guidance enabled | Independent inference for both branches | cfg_parallel |
+| Tensor parallelism (TP) | One layer's parameters exceed single-card memory | all-reduce / all-gather | tp_size |
+| Ring sequence parallelism (RSP) | Long-sequence communication can overlap computation | P2P ring transfers | world_size |
+| Pipeline parallelism (PP) | Many layers, with each layer fitting in device memory | send/recv | pp_size |
 
-## USP (Ulysses) 激活要求
+## Requirements for activating USP (Ulysses)
 
-**核心机制**：Ulysses 的 all-to-all head-parallel 切头路径**不会自动生效**。仅给 attention processor 设置序列分片时会走非 CP 路径（profile 只有 allGather，无 allToAll）。
+**Mechanism:** Ulysses's all-to-all head-parallel path **does not activate automatically**. Setting sequence sharding on the attention processor alone follows the non-CP path: the profile contains allGather but no allToAll.
 
-**触发条件**（已观测）：必须给每个 `attn.processor._parallel_config` 显式设置 `ParallelConfig(context_parallel_config=cp_cfg)`（注意是 `ParallelConfig` 包装，不是 `ContextParallelConfig`），才会触发 all-to-all 切头路径。
+**Observed trigger:** explicitly set every `attn.processor._parallel_config` to `ParallelConfig(context_parallel_config=cp_cfg)`. The wrapper must be `ParallelConfig`, not `ContextParallelConfig`, to activate all-to-all head partitioning.
 
-**生效验证**：profile 级证据——`allToAll` 必须出现，不仅是 `allGather`。
+**Verification:** require profile evidence of `allToAll`, not only `allGather`.
 
-## 通信掩盖机制与上限判定
+## Communication overlap mechanism and upper bound
 
-### 分块流水掩盖原理
+### Chunked pipeline overlap
 
-把集合通信放在独立流（comm stream）上，与计算流上的 AI-core 算子并发执行。分块流水掩盖将一层里的整块通信按头维度切成 `n` 份，逐块「通信 → 计算」形成流水。
+Run collectives on a separate communication stream concurrently with AI-core operators on the compute stream. Chunked pipelining divides a layer's communication into `n` head-dimension chunks and pipelines each chunk's communication and computation.
 
-### 上限公式与判据
+### Bound and decision criteria
 
-三个关键量（都按每层口径）：
+Use three quantities, all measured per layer:
 
-| 量 | 含义 |
+| Quantity | Meaning |
 |---|---|
-| `C` | 通信总量（被掩盖对象）= 被掩盖那一族的 kernel 耗时 ÷ 层数 |
-| `F` | 可与之并行的计算量 = 被掩盖侧计算耗时 ÷ 层数 |
-| `n` | 分块数（实现参数，必须整除每 rank 本地头数） |
+| `C` | Total communication to overlap: kernel time for the affected family divided by the number of layers |
+| `F` | Computation that can run concurrently: compute time on the overlapping side divided by the number of layers |
+| `n` | Number of chunks; it must divide the local head count on every rank |
 
-派生量：每块通信 `c = C/n`，每块计算 `f = F/n`。**判据核心是比值 `c/f`（等价 `C/F`）。**
+Per-chunk communication is `c = C/n`; per-chunk computation is `f = F/n`. **The key ratio is `c/f`, equivalently `C/F`.**
 
-### 情形 1：`f >= c`（等价 `F >= C`）
+### Case 1: `f >= c` (equivalently `F >= C`)
 
-通信流始终能被计算流喂饱，暴露量 ≈ 填充（第一块通信）：
-
-```
-掩盖率上限 = 1 - 1/n
-```
-
-此时理想界成立——"切 n 组头最佳掩盖 1-1/n、只暴露 1 组头的通信"。
-
-### 情形 2：`f < c`（等价 `F < C`）
-
-真实上限更低。每块通信都大于该块计算，稳态每块净暴露 `c - f`：
+Computation can continuously cover the communication stream. Exposed communication is approximately the pipeline fill, or first communication chunk:
 
 ```
-暴露下限 ≈ c + (n-1)*(c-f) + drain
-掩盖率上限 = 1 - 暴露下限 / C
+maximum overlap fraction = 1 - 1/n
 ```
 
-**要点**：
-- 稳态项与 `n` 无关：`(n-1)(c-f) = (1-1/n)(C-F)`，所以 `F<C` 时提高 `n` 几乎没收益
-- 要提升掩盖率，唯一出路是**压通信分子或抬计算**（量化、减跨岛流量、合并集合、搬独立计算）
-- **判定顺序**：先算 `c/f` → 再看实测掩盖率占上限的多少
+This is the ideal bound: splitting heads into `n` groups can hide at most `1-1/n`, leaving one group's communication exposed.
 
-## 通信掩盖实现要点
+### Case 2: `f < c` (equivalently `F < C`)
 
-生效判据（缺一不可）：
+The actual bound is lower. Each communication chunk exceeds its compute chunk, leaving steady-state exposure of `c - f` per chunk:
 
-1. 该族算子**次数上升 ≈ n 倍**（次数没变 = 没生效）
-2. 侧流 AI-core 核数 = 0
-3. `Communication(Not Overlapped)` 下降（列名精确匹配）
-4. 产物 md5 与不开时**逐字节一致**（纯置换无规约 ⇒ 掩盖是完全置换）
-5. 回退分支需留命中/回退计数器（防止"开了门控但每次都静默回退"）
+```
+minimum exposed time ≈ c + (n-1)*(c-f) + drain
+maximum overlap fraction = 1 - minimum exposed time / C
+```
 
-**下发顺序 = 调度**：同一 communicator 的集合通信按下发顺序串行执行。前向 a2a 全发完再发反向会让反向落在本层计算之后。修法是**软件流水式下发**（把第 g+1 片前向排在 g 片反向之前）。
+**Implications:**
+- The steady-state term is `(n-1)(c-f) = (1-1/n)(C-F)`, so increasing `n` offers little benefit when `F<C`.
+- Improving overlap requires **reducing communication or increasing overlapping computation**: quantization, less cross-island traffic, merged collectives, or moving independent computation into the overlap window.
+- **Decision order:** compute `c/f`, then compare measured overlap with its upper bound.
 
-## AlltoAllV 缺陷与绕过
+## Implementing communication overlap
 
-部分 CANN 版本上 `HcclAlltoAllV`（split 路径）**SIGSEGV**（等分 `HcclAlltoAll` 正常）。
+All of these activation checks are required:
 
-**绕过方案**：**pad + 等分**——把 input 各块 pad 到 `S_PAD`（128 倍数，由全局 `max(out_sizes)` 推导，全 rank 一致），用等分 `HcclAlltoAll(count=S_PAD×row_elems)` 交换，再 slice 各块前 `out_sizes[j]` 行。
+1. The affected operator family's **invocation count increases by approximately `n` times**; an unchanged count means the mechanism did not activate.
+2. The side stream uses zero AI cores.
+3. `Communication(Not Overlapped)` decreases; match the column name exactly.
+4. Output MD5 is **byte-identical** to the disabled case. A pure permutation without reduction must preserve the output exactly.
+5. Keep hit/fallback counters for fallback branches to detect a gate that silently falls back on every invocation.
 
-**生效判据**：kernel 名从 `hcom_alltoallv` 变为 `hcom_alltoall`（等分），且交换结果与参考实现逐位对齐。
+**Submission order determines scheduling:** collectives on the same communicator execute in submission order. Submitting all forward all-to-all operations before reverse operations delays the reverse path until after that layer's computation. Use **software-pipelined submission**: submit forward chunk `g+1` before reverse chunk `g`.
 
-## 并行作用域「到底有没有生效」的判定
+## AlltoAllV defect and workaround
 
-### 常见静默失效模式
+On some CANN versions, the split path through `HcclAlltoAllV` **SIGSEGVs**, while equal-size `HcclAlltoAll` works.
 
-并行代码最常见的失败方式**不是报错，而是静默降级**：
+**Workaround: pad and use equal-size transfers.** Pad each input block to `S_PAD`, a multiple of 128 derived from the global `max(out_sizes)` and identical on every rank. Exchange with equal-size `HcclAlltoAll(count=S_PAD×row_elems)`, then slice the first `out_sizes[j]` rows of each block.
 
-- 分片 hook 没生效 → 每个 rank 冗余地算整条序列 → 结果"看起来正常"，只是慢
-- 作用域深度记账失配 → 小规模无异常，大规模才越界  
-- 日志打了"Applying parallelism"但打印发生在真正注册之前 → 看日志会得出完全错误的结论
+**Verification:** the kernel changes from `hcom_alltoallv` to equal-size `hcom_alltoall`, and the exchanged result matches the reference bit for bit.
 
-**核心原则**：不要从"结果对不对"开始，要从"分片有没有发生"开始。
+## Determining whether a parallel scope activated
 
-### 状态量探测方法（vLLM-Omni 约定）
+### Common silent failures
 
-在可疑位置打印状态量（不是日志字符串）：
+Parallel code commonly fails through **silent fallback**:
+
+- The sharding hook did not activate, so each rank redundantly computes the entire sequence. Results appear correct but run slowly.
+- Scope-depth bookkeeping disagrees with execution: small runs appear normal, while larger runs go out of bounds.
+- "Applying parallelism" is logged before actual registration, so the log gives the wrong conclusion.
+
+**Core principle:** establish that sharding happened before interpreting output correctness.
+
+### Probe state directly (vLLM-Omni convention)
+
+At the suspect location, print state values rather than descriptive log messages:
 
 ```python
 import sys
@@ -136,97 +136,96 @@ sys.stderr.write(
 sys.stderr.flush()
 ```
 
-**判读规则**：
+**Interpretation:**
 
-| 观测量 | 含义 |
+| Observation | Meaning |
 |---|---|
-| `x.shape[0] == seq_len` | **未分片**（危险） |
-| `x.shape[0] == seq_len // sp_world` | 已分片 ✓ |
-| `_sp_shard_depth == 0` | 处于分片作用域之外 → 该处看到整序列 |
-| `_sp_shard_depth >= 1` | 处于分片作用域内 ✓ |
+| `x.shape[0] == seq_len` | **Unsharded**; investigate |
+| `x.shape[0] == seq_len // sp_world` | Sharded |
+| `_sp_shard_depth == 0` | Outside the sharded scope; the full sequence is visible here |
+| `_sp_shard_depth >= 1` | Inside the sharded scope |
 
-**`_sp_shard_depth` 是唯一可靠的判别量**（`sp_plan_hooks_applied` 常常读不到）。
+**`_sp_shard_depth` is the reliable discriminator in this convention**; `sp_plan_hooks_applied` is often unavailable.
 
-### 常见误判：拓扑派生参数没跟着变
+### Common misdiagnosis: stale topology-derived parameters
 
-并行度一变，从旧拓扑派生的参数（每 rank 的局部头数、每 rank 的分块数、每卡的分片长度…）必须**一起重算**。否则守卫判假，整条优化**静默失效**，结果与性能都"看起来正常"。
+When the parallel degree changes, **recompute every parameter derived from the previous topology**: local heads per rank, chunks per rank, shard length per card, and similar values. Otherwise guards can evaluate false and silently disable the entire optimization while results and performance appear normal.
 
-**操作**：并行度一变，先列出"从拓扑派生"的参数并逐个重算；不要沿用交付档的取值。
+**Action:** list and recompute topology-derived parameters whenever the parallel degree changes; do not reuse values from an earlier delivery configuration.
 
-## 拓扑相关选型
+## Topology-dependent selection
 
-同一并行形态在不同互连拓扑下排名可能反转——别无条件复用历史结论。
+The ranking of parallel strategies can reverse across interconnect topologies. Historical results are conditional.
 
-**读取与应用**：
-- `npu-smi info -t topo`：UB=HCCS 同域、SYS=跨 PCIe/NUMA
-- 同域单组 → USP4 **bulk** 最优（comm busy 最小）
-- 跨域组 → **head-parallel** 更优（本组合观测：rank0 clean-window 更快）
+**Read and apply the topology:**
+- `npu-smi info -t topo`: UB means the same HCCS domain; SYS means a PCIe/NUMA crossing.
+- One same-domain group: USP4 **bulk** was best in the source observation, with the least communication busy time.
+- A cross-domain group: **head-parallel** was better in the observed combination, with faster rank-0 clean-window timing.
 
-**注意**：compile × head-parallel 不兼容（Dynamo recompile_limit 静默回退 eager）。
+**Caveat:** compile × head-parallel was incompatible in this setting; Dynamo's `recompile_limit` caused a silent fallback to eager execution.
 
-## 显存受限时的并行解锁
+## Unlocking parallel strategies under memory constraints
 
-更优并行策略常因单卡显存不可行。两步递进：
+A better parallel strategy may exceed single-card memory. Proceed in two stages:
 
-1. **先在无损阶段尝试 offload 类特性**降显存解锁（`--enable-cpu-offload` / `--enable-layerwise-offload` / `--enable-distributed-layerwise-offload`），而非直接放弃。注意互斥与副作用——部分框架/模型档拒绝任何 offload；**部分代际上普通 layerwise offload 会触发 OOM killer**（用 DLO 而非普通 layerwise）；**DLO 的 no-AllGather 路径明显更慢** → 选 AllGather 路径
+1. **Try lossless offload features first** to reduce memory and make the strategy feasible: `--enable-cpu-offload`, `--enable-layerwise-offload`, or `--enable-distributed-layerwise-offload`. Check exclusions and side effects. Some framework/model configurations reject all offload; **ordinary layerwise offload triggers the OOM killer on some generations**, so use DLO there. **DLO's no-AllGather path was substantially slower** in the source setting; select its AllGather path.
 
-2. **有损（量化等）完成后复查被显存卡住的通信组合**：降显存会解锁新并行。每个量化档落地后回跑「并行×显存余量」候选快测
+2. **After lossy changes such as quantization, revisit communication combinations previously blocked by memory.** Reduced memory can unlock new parallelism. For each completed quantization configuration, rerun quick candidate checks over parallel strategy × memory headroom.
 
-## 少步 × 多 rank 验证协议
+## Few-step, multi-rank validation protocol
 
-**问题**：用少步跑多 rank 验证并行配置，结论能否外推到全步长？**答：能，但有闸门。**
+Few-step multi-rank runs can predict full-step parallel rankings only when the following gates hold.
 
-**口径（强制前置）**：并行对比指标**只取 DiT 去噪阶段**（`<Pipeline>.diffuse` 阶段墙钟，每 rank 一行取 min）；VAE 解码、文本编码、权重装载、warmup 一律排除（固定开销的波动远大于并行差异）。
+**Required measurement scope:** compare only the DiT denoising stage: `<Pipeline>.diffuse` wall time, with one row per rank and the minimum taken across ranks. Exclude VAE decoding, text encoding, weight loading and warmup; their fixed-cost variation can exceed the parallelism difference.
 
-**判据**：`r = DiT单步(锚点档) ÷ DiT单步(少步档)`
-- `|r−1| ≤ 5%` 且各格离散度 `≤ 3%` 且两档排序一致 ⇒ 少步排序可外推
-- 排序翻转 ⇒ 一律以锚点档（或更高）为准
-- 任一格离散度 > 3% ⇒ 判据不成立，先修噪声
+**Criterion:** `r = DiT per-step time (anchor configuration) / DiT per-step time (few-step configuration)`.
+- `|r−1| ≤ 5%`, dispersion in each cell `≤ 3%`, and matching rankings across both configurations allow extrapolating the few-step ranking.
+- If rankings reverse, use the anchor configuration or a higher step count.
+- If any cell's dispersion exceeds 3%, the criterion does not hold; resolve noise first.
 
-**必须回较高步复验**：排序翻转、单步漂移超阈、未重叠通信占比漂移、特性叠加改变单步结构、显存解锁类改动改变并行可行域。
+**Revalidate at a higher step count** after a ranking reversal, per-step drift beyond the threshold, a change in the non-overlapped communication fraction, combined features that alter per-step structure, or a memory-saving change that alters the feasible parallel search space.
 
-## 并行方案差异归因
+## Attributing differences between parallel strategies
 
-### 阶段 Δ 分解
+### Decompose the stage delta
 
-从 `step_trace_time.csv` 逐行对比两臂（精确匹配列名）：
+Compare the two arms row by row in `step_trace_time.csv`, matching column names exactly:
 
-| 列 | 含义 |
+| Column | Meaning |
 |---|---|
-| `Computing` | 计算流上的 AI-core 总线时 |
-| `Communication(Not Overlapped)` | 暴露通信（关键路径上） |
-| `Overlapped` | 已与计算重叠的通信 |
-| `Stage` | 该步墙钟 |
+| `Computing` | Total AI-core timeline duration on the compute stream |
+| `Communication(Not Overlapped)` | Exposed communication on the critical path |
+| `Overlapped` | Communication already overlapping computation |
+| `Stage` | Step wall time |
 
-**判读顺序**：
-1. 先看 `ΔComm(未重叠)` 与 `ΔFree` — 直接载体
-2. 再看 `ΔComputing` — 形态自带的额外计算（plumbing），不会被掩盖
-3. `ΔOverlapped` 变化但 `ΔStage` 不变 ⇒ 通信量变而暴露没变（掩盖已饱和）
-4. **优先用占比而非"省了多少"**：重叠占比 = `Overlapped ÷ Communication`。占比高 ⇒ 继续压这块收益上限低
+**Interpretation order:**
+1. Inspect `ΔComm(not overlapped)` and `ΔFree` first: these directly carry the timing difference.
+2. Inspect `ΔComputing`: extra computation introduced by the strategy's plumbing is not hidden.
+3. A change in `ΔOverlapped` without a change in `ΔStage` means communication volume changed while exposure did not; overlap is saturated.
+4. **Prefer fractions to absolute savings:** overlap fraction = `Overlapped / Communication`. A high fraction limits the remaining benefit from reducing that communication.
 
-### 小集合通信成本规则
+### Cost rule for small collectives
 
-小集合通信（rendezvous 类）**不能按字节外推**；看它给**别的流**造成的 **WAIT**。**隔离微基准只给下界**，真实代价必须在该拓扑的流水线内实测。
+Do not extrapolate small rendezvous-style collectives by byte count. Measure the **WAIT they impose on other streams**. An isolated microbenchmark supplies only a lower bound; measure the real cost inside the pipeline on the target topology.
 
-**规则**：小集合通信在关键路径上的代价**不小于**它自身时长，且随 rank 数与到达偏斜放大；因此按**等待**判、不按字节判。
+**Rule:** a small collective's critical-path cost is at least its own duration and increases with rank count and arrival skew. Judge it by waiting time, not bytes.
 
-### 4 → 8 卡线性度
+### Scaling from 4 to 8 cards
 
-增加卡数时，通信体积、通信步数、依赖关系都会变化。线性度评估须同时考虑：
+Adding cards changes communication volume, communication steps and dependencies. Assess linearity using all of:
 
-- 通信量与计算量的缩放
-- 阿姆达尔定律与同步点影响
-- 拓扑与带宽变化
+- Scaling of communication and computation
+- Amdahl's law and synchronization points
+- Topology and bandwidth changes
 
-不得用跨卡数对比冒充形态对比。
+Do not present a comparison across different card counts as a comparison of parallel strategies alone.
 
-## 限制
+## Limits
 
-- MindIE-SD / MiniMax-H3 特定内容：本文件针对扩散 DiT × 序列并行形态回填；模型架构改变时判据需重新标定
-- 框架侧机制检验：若目标框架自身无 comm-stream 机制且 monkey-patch 不可行 → 属框架侧补齐，走 framework-integration
-- 无本地 NPU 验证：所有阈值与常数都与硬件 + 拓扑 + 栈版本强绑定，迁移时必须本地重测
+- MindIE-SD / MiniMax-H3 specifics: this guidance was distilled for diffusion DiT × sequence parallelism. Recalibrate criteria when the model architecture changes.
+- Check framework support: if the target framework has no communication-stream mechanism and monkey-patching is infeasible, the work is framework integration.
+- No local NPU validation: every threshold and constant depends on hardware, topology and stack version. Remeasure locally when transferring the procedure.
 
-## 维护与更新
+## Maintenance
 
-当新的并行策略经验证有效、多卡互联拓扑发生变化、发现新的分布式训练陷阱或 CANN 版本缺陷时，按本技能的复盘流程更新。
-
+Update this skill through its review process when a new parallel strategy is validated, the multi-card interconnect topology changes, or a new distributed-training pitfall or CANN defect is discovered.
