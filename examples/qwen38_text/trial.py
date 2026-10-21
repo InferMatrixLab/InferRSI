@@ -301,9 +301,19 @@ def run(args: argparse.Namespace) -> dict:
         else:
             from provenance import capture_sources
         result["source_provenance"] = capture_sources(excluded_run_dir=args.output.parents[2])
+
+    def finalize(record):
+        if reference_kernel is not None:
+            if __package__:
+                from .fp8_reference import recheck_reference_kernel
+            else:
+                from fp8_reference import recheck_reference_kernel
+            recheck_reference_kernel(record["reference_kernel"])
+
     return write_traces(
         result, args.output, cases, tokens,
         lambda prompt, continuation: collect_logits(model, torch, prompt, continuation, args.mode),
+        finalize,
     )
 
 

@@ -14,6 +14,10 @@ KERNEL_REPO = "kernels-community/finegrained-fp8"
 
 def kernel_fingerprint(kernel):
     root = Path(kernel.__file__).absolute().parent.resolve(strict=True)
+    return _package_fingerprint(root)
+
+
+def _package_fingerprint(root):
     files = []
     for path in sorted(root.rglob("*")):
         if not path.is_file() or "__pycache__" in path.parts or path.suffix == ".pyc":
@@ -67,6 +71,16 @@ def prepare_reference_kernel(revision, expected_sha256):
     finegrained_fp8.load_finegrained_fp8_kernel()
     return {"repo_id": KERNEL_REPO, "repo_type": "kernel",
             "revision": revision, "build": "torch-cuda", "package_root": str(root), **fingerprint}
+
+
+def recheck_reference_kernel(record):
+    """Require the prepared package to remain unchanged through trial execution."""
+    root = Path(record["package_root"]).resolve(strict=True)
+    if str(root) != record["package_root"]:
+        raise ValueError("Reference kernel package origin changed during execution")
+    fingerprint = _package_fingerprint(root)
+    if any(fingerprint[key] != record[key] for key in ("files", "snapshot_sha256")):
+        raise ValueError("Reference kernel source changed during execution")
 
 
 def inspect_reference_fp8(model, torch, fp8_linear_type, expected_count):

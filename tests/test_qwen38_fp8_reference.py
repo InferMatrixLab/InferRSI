@@ -144,3 +144,36 @@ def test_kernel_snapshot_symlinks_cover_own_blob_cache_only(tmp_path):
     (root / "escape.py").symlink_to(outside)
     with pytest.raises(ValueError, match="escapes"):
         fp8_reference.kernel_fingerprint(module)
+
+
+@pytest.mark.parametrize("change", ["modify", "delete", "add"])
+def test_reference_kernel_drift_during_trial_prevents_result(offline_kernel, tmp_path, change):
+    from pathlib import Path
+
+    import numpy as np
+
+    from examples.qwen38_text.trial import write_traces
+
+    digest, _fine, kernel = offline_kernel
+    prepared = fp8_reference.prepare_reference_kernel("a" * 40, digest)
+    fp8_reference.recheck_reference_kernel(prepared)
+    output = tmp_path / "trial/result.json"
+    result = {"vocab_size": 2, "cases": [], "reference_kernel": prepared}
+
+    def collect(_prompt, _continuation):
+        source = Path(kernel.__file__)
+        if change == "modify":
+            source.write_text("# changed after preparation\n")
+        elif change == "delete":
+            source.unlink()
+        else:
+            source.with_name("late_import.py").write_text("# new source\n")
+        return [np.array([0., 1.], dtype=np.float32)]
+
+    with pytest.raises(ValueError, match="source"):
+        write_traces(result, output, [{"id": "one", "max_steps": 1}], [([0], [1])],
+                     collect, lambda record: fp8_reference.recheck_reference_kernel(
+                         record["reference_kernel"]))
+    assert not output.exists()
+    # Preserve partial logits for diagnosis; they cannot substitute for result evidence.
+    assert output.with_name("result-one.npz").exists()
