@@ -44,3 +44,30 @@ This candidate is source grounded and locally unvalidated as an executor or
 device-residency procedure. Seven self-authored contract cases executed the
 unchanged pure `graph_utils.py` module; they cover only syntactic link/build/
 prefix/blocker helpers, not cache correctness, model quality or performance.
+
+## Reading depth and supporting paths
+
+The source paths in metadata identify selected evidence, not complete-file
+reviews. The mechanism ranges above were read together with these supporting
+paths at the same source revision on 2026-10-21.
+
+| Supporting path | Actual reading depth |
+|---|---|
+| comfy_execution/graph_utils.py | Complete 155-line module; seven helper contract checks executed on the unchanged module |
+| main.py | Selected prompt_worker and cleanup path, L330-L415 |
+| comfy_execution/cache_provider.py | L1-L130 selected registry/key handling; remaining symbols used for navigation |
+| nodes.py | L1581-L1633 and LoadImage.IS_CHANGED L1805-L1819; other symbols navigational |
+| comfy/samplers.py | Selected sample paths L1238-L1275 and L1443-L1468 |
+| tests/execution/test_execution.py | L1-L150, L476-L568, L594-L655, L800-L837 and L904-L936 plus test-name inventory; not executed |
+| tests-unit/execution_test/test_execution_list.py | Complete 106-line test source; not executed |
+| tests-unit/execution_test/test_cache_provider.py | L1-L100 and test names; not a full provider implementation audit or an executed suite |
+| tests-unit/comfy_test/model_management_test.py | Complete 81-line test source; its Mock/FakeStream boundary does not qualify native residency |
+| tests/inference/test_inference.py | L1-L140 to identify model/service requirements; not the full inference suite |
+| .github/workflows/test-execution.yml | Selected CPU CI setup/test entry; workflow not executed |
+| AGENTS.md | First 110 lines read as source material; no instructions executed |
+| pyproject.toml and LICENSE | Selected project version/license metadata and license text; no implementation claim |
+
+Other selected ranges remain bounded by the responsibility table. Symbol and
+test-name inventories are navigation evidence, not deep reads; unlisted
+provider storage, native allocator and custom-node implementations are not
+promoted by this source-path inventory.

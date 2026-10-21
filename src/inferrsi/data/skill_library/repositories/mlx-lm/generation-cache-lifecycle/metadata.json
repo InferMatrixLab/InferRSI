@@ -25,7 +25,11 @@
         "mlx_lm/models/cache.py",
         "mlx_lm/server.py",
         "tests/test_generate.py",
-        "tests/test_prompt_cache.py"
+        "tests/test_prompt_cache.py",
+        "LICENSE",
+        "pyproject.toml",
+        "mlx_lm/cache_prompt.py",
+        ".github/workflows/pull_request.yml"
       ],
       "readset": "references/source-map.md"
     }

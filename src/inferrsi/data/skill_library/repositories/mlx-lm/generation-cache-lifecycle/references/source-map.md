@@ -19,3 +19,20 @@ CODE is an implementation observation; TEST-SOURCE is an unexecuted upstream ass
 | D1 | CODE | [pyproject dependencies/extras L11-L47](https://github.com/ml-explore/mlx-lm/blob/ab7f7048dc341ced2d84b1887eeb17d60b0d1b02/pyproject.toml#L11-L47); [cache_prompt command L92-L146](https://github.com/ml-explore/mlx-lm/blob/ab7f7048dc341ced2d84b1887eeb17d60b0d1b02/mlx_lm/cache_prompt.py#L92-L146) | MLX backend variants are explicit; cache command loads a model, generates state and writes a cache artifact. |
 
 Not covered: all model classes, full speculative decoding, VLM cache semantics, quantization kernels, distributed serving correctness and training. No model/native test, server, benchmark or device validation is represented by this readset.
+
+## Supporting read depth
+
+These paths retain the same source revision and 2026-10-21 access date. The
+metadata inventory records selected evidence without expanding mechanism scope.
+
+| Supporting path | Actual reading depth |
+|---|---|
+| LICENSE | License text and Apple attribution |
+| pyproject.toml | Selected version/dependency/extras metadata, including L11-L47 |
+| mlx_lm/cache_prompt.py | L1-L154, CLI model load, cache generation and artifact-write side effects; not executed |
+| .github/workflows/pull_request.yml | Selected dependency/test-data and CI test entry; exact additional ranges not recorded, so no full-workflow review or execution claim |
+
+Loader/tokenizer utilities and the remaining cache/model families were not
+deeply read. Test-name navigation and dependency inspection do not establish
+model, server or backend correctness, or compatibility with a separately
+pinned MLX framework.

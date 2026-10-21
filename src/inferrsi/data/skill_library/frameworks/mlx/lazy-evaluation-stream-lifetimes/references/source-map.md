@@ -16,3 +16,22 @@ CODE supports implementation observations; TEST-SOURCE identifies assertions rea
 | B1 | CODE | [CMake options L32-L44](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/CMakeLists.txt#L32-L44); [setup.py extras L285-L312](https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/setup.py#L285-L312) | CPU, Metal and CUDA are separate build/package conditions; Linux extras do not establish Windows wheel availability. |
 
 Not covered: allocator internals, fusion/compile transformations, operator numerical coverage, distributed execution and model applications. Their behavior requires separate evidence. There is no `mlx/eval.cpp` at this pin; the framework entry is `mlx/transforms.cpp`.
+
+## Supporting read depth
+
+All entries use the source revision above and the 2026-10-21 readset. Metadata
+paths denote selected evidence; they do not declare whole-file reviews.
+
+| Supporting path | Actual reading depth |
+|---|---|
+| LICENSE | License text and Apple attribution |
+| mlx/scheduler.cpp | synchronize L14-L32 read; event symbols navigated, not the whole thread scheduler |
+| python/tests/test_memory.py | Test names and selected synchronized-memory assertions, including L35-L76; not executed |
+| python/tests/test_device.py and python/tests/mlx_tests.py | Test-name inventory and selected device/harness ranges; exact additional ranges not recorded, so no full-file or full-suite claim |
+| CMakeLists.txt | L25-L80, L155-L178 and L270-L320, backend/dependency/platform conditions |
+| setup.py | L255-L348, backend extras and platform markers |
+| .github/workflows/build_and_test.yml | Selected backend matrix and CPU test entry; not an executed workflow or an exhaustive CI audit |
+
+Operator, device, allocator and distributed files mentioned only during
+navigation are outside this mechanism readset. No backend execution result
+is implied by their presence or by an inspected harness.

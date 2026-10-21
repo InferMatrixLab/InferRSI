@@ -28,7 +28,15 @@
         "mlx/backend/metal/eval.cpp",
         "mlx/backend/cuda/eval.cpp",
         "python/src/transforms.cpp",
-        "python/tests/test_eval.py"
+        "python/tests/test_eval.py",
+        "LICENSE",
+        "mlx/scheduler.cpp",
+        "python/tests/test_memory.py",
+        "CMakeLists.txt",
+        "setup.py",
+        "python/tests/test_device.py",
+        "python/tests/mlx_tests.py",
+        ".github/workflows/build_and_test.yml"
       ],
       "readset": "references/source-map.md"
     }

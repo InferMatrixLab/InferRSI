@@ -8,10 +8,11 @@ metadata:
 
 # Inference engine research router
 
-Use this collection to compare architectures or design a constrained search for an inference engine. If the user names one repository, load its entry directly. Keep the library's `repositories/` and `workflows/` layout when using this router so its links reach all five repository skills; the repository skills can also be distributed independently.
+Use this collection to compare architectures or design a constrained search for an inference engine. If the user names one repository, load its entry directly. Keep the library's `repositories/` and `workflows/` layout when using this router so its links reach the repository and framework owners; the repository skills can also be distributed independently.
 
 | Question | Route |
 |---|---|
+| Compare graph, cache, lifetime, stop and completion contracts across source slices | [Cross-repository mechanisms](references/cross-repository-mechanisms.md) and [source scope](references/repository-source-scope.md) |
 | Strata heterogeneous MoE, CPU/GPU expert placement, memory and speculative execution | [strata](../../repositories/strata/SKILL.md) |
 | vLLM token scheduling, KV/prefix reuse, execution/parallelism or model integration | [vllm](../../repositories/vllm/SKILL.md) |
 | SGLang scheduling, Radix/HiCache, prefill/decode, parallel runtime or extensions | [sglang](../../repositories/sglang/SKILL.md) |
@@ -33,4 +34,4 @@ DP/EP/TP labels, batch size, prefix cache, async execution and streaming can mea
 
 Measure text TTFT/TPOT separately from media first-packet latency, chunk gaps, end-to-end completion, RTF, image/video throughput and quality. Reduced steps, resolution or output length change the workload/quality contract and must be disclosed.
 
-All five repository roots carry pinned provenance and source evidence. The collection is a portable candidate; actual GPU, native distributed and quality validation requires the target environment. No new engine or measured speedup is included.
+The repository and framework owners retain their pinned provenance and source evidence. The collection is a portable candidate; actual GPU, native distributed and quality validation requires the target environment. No new engine or measured speedup is included.
