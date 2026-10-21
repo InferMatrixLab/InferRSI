@@ -1,0 +1,5 @@
+base_config: minicpmo_4_5_turn.yaml
+connectors:
+  connector_of_shared_memory:
+    extra:
+      token2wav_device_spk: true

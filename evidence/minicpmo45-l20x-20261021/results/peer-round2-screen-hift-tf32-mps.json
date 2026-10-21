@@ -1,0 +1,69 @@
+{
+  "verdict": "FAIL",
+  "scope": "64 reused tuning prompts, one measured repeat; fails throughput promotion against FP32 baseline; not final speech-quality acceptance",
+  "cells": {
+    "1": {
+      "throughput_frames_s": 183.18654208534716,
+      "ttfa_p50_s": 0.3086627828888595,
+      "ttfa_p95_s": 0.33932453761808573,
+      "rtf_mean": 0.13766234621063053,
+      "n_failed": 0,
+      "n_requests": 64,
+      "quality": {
+        "n": 64,
+        "sim": 50.039308071136475,
+        "utmos": 4.21100053191185,
+        "wer": 0.019801980198019802,
+        "wer_counts": {
+          "substitutions": 11,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 695
+        },
+        "wer_mean": 0.02427338286713287
+      }
+    },
+    "16": {
+      "throughput_frames_s": 737.2577751213121,
+      "ttfa_p50_s": 1.1451171077787876,
+      "ttfa_p95_s": 1.9528556275181472,
+      "rtf_mean": 0.530965402599596,
+      "n_failed": 0,
+      "n_requests": 64,
+      "quality": {
+        "n": 64,
+        "sim": 49.897953778505325,
+        "utmos": 4.1876552030444145,
+        "wer": 0.028288543140028287,
+        "wer_counts": {
+          "substitutions": 13,
+          "deletions": 1,
+          "insertions": 6,
+          "hits": 693
+        },
+        "wer_mean": 0.04366258741258741
+      }
+    },
+    "32": {
+      "throughput_frames_s": 845.3368890156694,
+      "ttfa_p50_s": 1.8919171816669405,
+      "ttfa_p95_s": 3.509336013905704,
+      "rtf_mean": 0.8919556375545152,
+      "n_failed": 0,
+      "n_requests": 64,
+      "quality": {
+        "n": 64,
+        "sim": 50.72682964801788,
+        "utmos": 4.213015131652355,
+        "wer": 0.018387553041018388,
+        "wer_counts": {
+          "substitutions": 8,
+          "deletions": 1,
+          "insertions": 4,
+          "hits": 698
+        },
+        "wer_mean": 0.023189831002331
+      }
+    }
+  }
+}

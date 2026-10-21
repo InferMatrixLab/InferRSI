@@ -1,0 +1,56 @@
+{
+  "id": "case.minicpm-conditioning-transport",
+  "kind": "case",
+  "origin": [
+    "internal"
+  ],
+  "state": "historical_observation",
+  "content": "minicpm-conditioning-transport.md",
+  "sources": [
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/49",
+      "run": "minicpmo45-l20x-20261021",
+      "artifact": "peer-round2-pipeline-cpu-profile.json",
+      "sha256": "bd407d725c049120136271bc0454e97ea8b3875c2e5e4ab0bc9ae61a5886bbda",
+      "integrity_status": "rehashed",
+      "evidence_path": "evidence/minicpmo45-l20x-20261021/results/peer-round2-pipeline-cpu-profile.json"
+    },
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/49",
+      "run": "minicpmo45-l20x-20261021",
+      "artifact": "peer-round2-tensor-handoff-micro.json",
+      "sha256": "ef5d7c2edeb37872641b60391fbf9e3c06b5b82259530356f62b4f08fdbed967",
+      "integrity_status": "rehashed",
+      "evidence_path": "evidence/minicpmo45-l20x-20261021/results/peer-round2-tensor-handoff-micro.json"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/amy-why-3459/vllm-omni/commit/60d71d16e0d77734239935ffc6b991c810ea1aa7",
+      "commit": "60d71d16e0d77734239935ffc6b991c810ea1aa7",
+      "paths": [
+        "vllm_omni/model_executor/models/minicpmo_4_5/handoff.py",
+        "vllm_omni/model_executor/stage_input_processors/minicpmo_4_5_omni.py",
+        "tests/model_executor/models/test_minicpmo_handoff.py"
+      ]
+    }
+  ],
+  "applicability": [
+    "Untyped cross-process conditioning with scalar-list materialization",
+    "Host profiling with observable sampling lag"
+  ],
+  "tags": [
+    "host",
+    "serialization",
+    "tensor-ownership",
+    "profiling-perturbation",
+    "component-evidence"
+  ],
+  "limitations": [
+    "Campaign INCONCLUSIVE; no demonstrated service gain or quality acceptance for this implementation",
+    "Synthetic CPU timings do not predict a service speedup",
+    "Sparse nonblocking samples have errors and do not establish critical-path fractions"
+  ],
+  "attribution": "InferRSI issue #49 local component and diagnostic evidence"
+}

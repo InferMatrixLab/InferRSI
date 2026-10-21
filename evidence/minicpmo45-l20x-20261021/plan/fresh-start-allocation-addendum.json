@@ -1,0 +1,6 @@
+{
+  "change": "Before any fresh-start measurement, switch from separate GPUs to sequential baseline/candidate on one dynamically reserved L20X.",
+  "reason": "The released GPU was acquired by another user; the fixed-GPU reservation timed out. No other workload was interrupted.",
+  "unchanged": "Model, dataset, order C1/C16/C32, 320 requests, discard run0, measure run1, scorer settings and gates.",
+  "benefit": "The sequential reservation keeps the physical GPU matched across fresh baseline/candidate."
+}

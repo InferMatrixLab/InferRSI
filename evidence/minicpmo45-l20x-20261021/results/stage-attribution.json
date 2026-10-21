@@ -1,0 +1,49 @@
+{
+  "status": "INCONCLUSIVE",
+  "kind": "request stage timings, not isolated GPU compute",
+  "measurements": {
+    "c1-stages": {
+      "requests": 32,
+      "mean": {
+        "thinker_ttft_ms": 24.557024240493774,
+        "thinker_gen_ms": 87.18335628509521,
+        "thinker_tpot_ms": 4.97801710313736,
+        "talker_first_output_ms": 137.7464383840561,
+        "talker_gen_ms": 446.16246223449707,
+        "code2wav_first_output_ms": 302.55284617024085,
+        "code2wav_gen_ms": 572.2757847078385,
+        "audio_s": 4.516129032258064,
+        "client_ttfa_s": 0.30634270794689655
+      }
+    },
+    "c16-stages": {
+      "requests": 64,
+      "mean": {
+        "thinker_ttft_ms": 54.34560030698776,
+        "thinker_gen_ms": 178.88439819216728,
+        "thinker_tpot_ms": 10.912456663326425,
+        "talker_first_output_ms": 362.1317632496357,
+        "talker_gen_ms": 892.5475589931011,
+        "code2wav_first_output_ms": 1787.1193774044514,
+        "code2wav_gen_ms": 3271.9841934740543,
+        "audio_s": 4.3862499999999995,
+        "client_ttfa_s": 1.8096598004049156
+      }
+    },
+    "c32-stages": {
+      "requests": 128,
+      "mean": {
+        "thinker_ttft_ms": 80.07399551570415,
+        "thinker_gen_ms": 222.38353826105595,
+        "thinker_tpot_ms": 12.61050885427539,
+        "talker_first_output_ms": 559.0925421565771,
+        "talker_gen_ms": 1080.1075510680676,
+        "code2wav_first_output_ms": 3129.139143973589,
+        "code2wav_gen_ms": 6300.101432949305,
+        "audio_s": 4.38125,
+        "client_ttfa_s": 3.156374828031403
+      }
+    }
+  },
+  "interpretation": "C16 Code2Wav first output is much later than Talker first output; test whether MPS overlap reduces stage interference. Setup/encoder attribution requires kernel-level evidence."
+}

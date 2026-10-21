@@ -1,0 +1,10 @@
+{
+  "cpu_tests": {
+    "passed": 108,
+    "warnings": 16
+  },
+  "changed_file_precommit": "PASS",
+  "full_tree_precommit": "Stopped after markdown formatter modified 110 unrelated pre-existing documents; those formatter-only changes were restored. This is not claimed as a full-tree PASS.",
+  "numerical_component": "PASS: integrated-speaker-micro.json; first launch omitted explicit dataset root and was rerun with the frozen dataset path.",
+  "source_revision": "227a43e898f8b96236f48f16f399431c8ad0ddcc"
+}

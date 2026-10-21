@@ -1,0 +1,275 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "Peer throughput target reproduction only; not speech-quality qualified; persistent server,320 prompts per repeat",
+  "source_revision": "a4f4778f312791c2d190b48e521141887ed160c8",
+  "profile": "track_s_fast_r11",
+  "exclude": "C1 run1 had two profiler snapshots; retained raw but excluded from aggregate",
+  "cells": {
+    "1": {
+      "measured_repeats": 2,
+      "mean": {
+        "throughput_frames_s": 399.1797938836057,
+        "ttfa_p50_s": 0.12561487639322877,
+        "ttfa_p95_s": 0.1310733950464055,
+        "rtf_mean": 0.06318489771332836
+      },
+      "failed_requests": 0,
+      "runs": [
+        {
+          "label": "run2",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 399.2518485918816,
+          "ttfa_p50_s": 0.12569232797250152,
+          "ttfa_p95_s": 0.13126140055246652,
+          "rtf_mean": 0.06316638823637923
+        },
+        {
+          "label": "run3",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 399.10773917532987,
+          "ttfa_p50_s": 0.12553742481395602,
+          "ttfa_p95_s": 0.13088538954034448,
+          "rtf_mean": 0.0632034071902775
+        }
+      ],
+      "pooled_requests": {
+        "n": 640,
+        "ttfa_p50_s": 0.1256165779195726,
+        "ttfa_p95_s": 0.13093884550034998,
+        "rtf_mean": 0.06318489771332836
+      }
+    },
+    "2": {
+      "measured_repeats": 3,
+      "mean": {
+        "throughput_frames_s": 522.7815224118706,
+        "ttfa_p50_s": 0.19030275009572506,
+        "ttfa_p95_s": 0.2238410594097028,
+        "rtf_mean": 0.09719417906213433
+      },
+      "failed_requests": 0,
+      "runs": [
+        {
+          "label": "run1",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 524.2833407727487,
+          "ttfa_p50_s": 0.18930724542587996,
+          "ttfa_p95_s": 0.22458223472349345,
+          "rtf_mean": 0.09695828350119165
+        },
+        {
+          "label": "run2",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 524.4681610124577,
+          "ttfa_p50_s": 0.19021307351067662,
+          "ttfa_p95_s": 0.2246854744385928,
+          "rtf_mean": 0.09690288978284167
+        },
+        {
+          "label": "run3",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 519.5930654504054,
+          "ttfa_p50_s": 0.1913879313506186,
+          "ttfa_p95_s": 0.2222554690670222,
+          "rtf_mean": 0.09772136390236967
+        }
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.19014606857672334,
+        "ttfa_p95_s": 0.22433129511773586,
+        "rtf_mean": 0.09719417906213433
+      }
+    },
+    "4": {
+      "measured_repeats": 3,
+      "mean": {
+        "throughput_frames_s": 756.8998217583901,
+        "ttfa_p50_s": 0.2664259920517604,
+        "ttfa_p95_s": 0.3047216606171181,
+        "rtf_mean": 0.13440840311578064
+      },
+      "failed_requests": 0,
+      "runs": [
+        {
+          "label": "run1",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 749.0288351609349,
+          "ttfa_p50_s": 0.26875559985637665,
+          "ttfa_p95_s": 0.302722130715847,
+          "rtf_mean": 0.13583986041899343
+        },
+        {
+          "label": "run2",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 761.3569619872535,
+          "ttfa_p50_s": 0.2647039033472538,
+          "ttfa_p95_s": 0.3066069653723389,
+          "rtf_mean": 0.13362078289833318
+        },
+        {
+          "label": "run3",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 760.313668126982,
+          "ttfa_p50_s": 0.2658184729516506,
+          "ttfa_p95_s": 0.30483588576316833,
+          "rtf_mean": 0.13376456603001535
+        }
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.2666403064504266,
+        "ttfa_p95_s": 0.3053204839117825,
+        "rtf_mean": 0.13440840311578064
+      }
+    },
+    "8": {
+      "measured_repeats": 3,
+      "mean": {
+        "throughput_frames_s": 1126.452351587127,
+        "ttfa_p50_s": 0.3528090729378164,
+        "ttfa_p95_s": 0.4185279951586077,
+        "rtf_mean": 0.18023458369240614
+      },
+      "failed_requests": 0,
+      "runs": [
+        {
+          "label": "run1",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 1115.562478968023,
+          "ttfa_p50_s": 0.356242248788476,
+          "ttfa_p95_s": 0.41473029032349584,
+          "rtf_mean": 0.18213786003808577
+        },
+        {
+          "label": "run2",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 1135.3223175041437,
+          "ttfa_p50_s": 0.3512508487328887,
+          "ttfa_p95_s": 0.41143202586099503,
+          "rtf_mean": 0.17897701723012444
+        },
+        {
+          "label": "run3",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 1128.4722582892143,
+          "ttfa_p50_s": 0.35093412129208446,
+          "ttfa_p95_s": 0.42942166929133235,
+          "rtf_mean": 0.1795888738090082
+        }
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.35363235231488943,
+        "ttfa_p95_s": 0.4168954434804618,
+        "rtf_mean": 0.18023458369240614
+      }
+    },
+    "16": {
+      "measured_repeats": 3,
+      "mean": {
+        "throughput_frames_s": 1698.4111949113371,
+        "ttfa_p50_s": 0.47094419024263817,
+        "ttfa_p95_s": 0.5544122065107029,
+        "rtf_mean": 0.2378654682241167
+      },
+      "failed_requests": 0,
+      "runs": [
+        {
+          "label": "run1",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 1708.5152452274522,
+          "ttfa_p50_s": 0.47399294190108776,
+          "ttfa_p95_s": 0.53595609087497,
+          "rtf_mean": 0.23592496180502312
+        },
+        {
+          "label": "run2",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 1699.6169441707327,
+          "ttfa_p50_s": 0.47324231220409274,
+          "ttfa_p95_s": 0.5986196104902778,
+          "rtf_mean": 0.23759453543058448
+        },
+        {
+          "label": "run3",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 1687.1013953358265,
+          "ttfa_p50_s": 0.46559731662273407,
+          "ttfa_p95_s": 0.528660918166861,
+          "rtf_mean": 0.24007690743674245
+        }
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.4708248642273247,
+        "ttfa_p95_s": 0.5505937870591879,
+        "rtf_mean": 0.23786546822411667
+      }
+    },
+    "32": {
+      "measured_repeats": 3,
+      "mean": {
+        "throughput_frames_s": 2532.2272544324,
+        "ttfa_p50_s": 0.652823238633573,
+        "ttfa_p95_s": 0.7605699910782279,
+        "rtf_mean": 0.31420577419157525
+      },
+      "failed_requests": 0,
+      "runs": [
+        {
+          "label": "run1",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 2488.152112536773,
+          "ttfa_p50_s": 0.6573648029007018,
+          "ttfa_p95_s": 0.764265651535243,
+          "rtf_mean": 0.3156646026543056
+        },
+        {
+          "label": "run2",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 2558.585374352388,
+          "ttfa_p50_s": 0.6418805029243231,
+          "ttfa_p95_s": 0.7572030443698168,
+          "rtf_mean": 0.31311212467731775
+        },
+        {
+          "label": "run3",
+          "n_requests": 320,
+          "n_failed": 0,
+          "throughput_frames_s": 2549.9442764080386,
+          "ttfa_p50_s": 0.6592244100756943,
+          "ttfa_p95_s": 0.7602412773296238,
+          "rtf_mean": 0.31384059524310237
+        }
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.6524820369668305,
+        "ttfa_p95_s": 0.7602832305710763,
+        "rtf_mean": 0.3142057741915752
+      }
+    }
+  },
+  "request_artifact": {
+    "path": "peer-round2-baseline-requests.json.gz",
+    "sha256": "09a7276f680e46955f11276dbbc32489bd33a596857c2ee428bb99e25e0ae841"
+  },
+  "metric_note": "Throughput mean averages repeat throughputs. pooled_requests gives TTFA percentiles across all retained requests; mean preserves the separately labeled arithmetic mean of per-run percentiles."
+}

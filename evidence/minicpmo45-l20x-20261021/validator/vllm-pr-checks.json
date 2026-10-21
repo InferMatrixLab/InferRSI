@@ -1,0 +1,77 @@
+{
+  "baseRefOid": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+  "headRefOid": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "isDraft": true,
+  "mergeable": "MERGEABLE",
+  "number": 9188,
+  "statusCheckRollup": [
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T04:26:04Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/vllm-project/vllm-omni/actions/runs/39543945829/job/119037756273",
+      "name": "build (3.11)",
+      "startedAt": "2026-10-21T04:25:24Z",
+      "status": "COMPLETED",
+      "workflowName": "Build Wheel"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T04:31:13Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/vllm-project/vllm-omni/actions/runs/39543945807/job/119037755544",
+      "name": "Analyze",
+      "startedAt": "2026-10-21T04:25:24Z",
+      "status": "COMPLETED",
+      "workflowName": "CodeQL Advanced"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T04:26:25Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/vllm-project/vllm-omni/actions/runs/39543945799/job/119037755815",
+      "name": "pre-commit",
+      "startedAt": "2026-10-21T04:25:24Z",
+      "status": "COMPLETED",
+      "workflowName": "pre-commit"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T04:26:13Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/vllm-project/vllm-omni/actions/runs/39543945829/job/119037756118",
+      "name": "build (3.12)",
+      "startedAt": "2026-10-21T04:25:24Z",
+      "status": "COMPLETED",
+      "workflowName": "Build Wheel"
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T04:31:06Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://github.com/vllm-project/vllm-omni/runs/119039385295",
+      "name": "CodeQL",
+      "startedAt": "2026-10-21T04:31:04Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "CheckRun",
+      "completedAt": "2026-10-21T04:25:20Z",
+      "conclusion": "SUCCESS",
+      "detailsUrl": "https://probot.github.io/apps/dco/",
+      "name": "DCO",
+      "startedAt": "2026-10-21T04:25:19Z",
+      "status": "COMPLETED",
+      "workflowName": ""
+    },
+    {
+      "__typename": "StatusContext",
+      "context": "docs/readthedocs.org:vllm-omni",
+      "startedAt": "2026-10-21T04:48:01Z",
+      "state": "SUCCESS",
+      "targetUrl": "https://vllm--9188.org.readthedocs.build/projects/vllm-omni/en/9188/"
+    }
+  ],
+  "url": "https://github.com/vllm-project/vllm-omni/pull/9188"
+}

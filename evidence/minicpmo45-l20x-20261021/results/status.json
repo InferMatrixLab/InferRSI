@@ -1,0 +1,27 @@
+{
+  "verdict": "FAIL",
+  "baseline": "Completed two engines at six concurrency levels, three measured 320-request repeats each; zero failed measured requests.",
+  "candidate_revision": "f2462435d79f0243ced93a02f3b8d6cd9c41511b",
+  "candidate_microbench": "PASS within frozen embedding gate; CPU-compatible FP32 TensorRT",
+  "candidate_unit_tests": {
+    "passed": 67
+  },
+  "optimization_submitted": true,
+  "pending": [],
+  "candidate_pull_request": "https://github.com/vllm-project/vllm-omni/pull/9188",
+  "candidate_cpu_tests_passed": 67,
+  "candidate_tuning": "Completed historical candidate comparisons; strict and unused-holdout quality gates FAIL.",
+  "original_strict_speaker_verdict": "FAIL",
+  "knowledge_pull_request": "https://github.com/InferMatrixLab/InferRSI/pull/51",
+  "final_candidate_revision": "227a43e898f8b96236f48f16f399431c8ad0ddcc",
+  "updated_baseline_revision": "15bce34586",
+  "historical_noninferiority_verdict": "FAIL",
+  "historical_noninferiority_reason": "C16 and C32 WER degradation upper bounds exceed the frozen +0.20 percentage-point margin; all prompts retained.",
+  "scope": "Historical unused-holdout and adapted integration quality both FAIL; throughput observations are not combined qualification.",
+  "final_pull_request_head": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "integrated_verdict": "FAIL",
+  "integrated_quality_reason": "C16 WER and C32 WER/SIM upper bounds exceed frozen margins.",
+  "integrated_cpu_tests_passed": 108,
+  "final_controls": "Completed three ordered same-GPU profiles at C16/C32, one measured repeat each; descriptive attribution only.",
+  "user_objective": "Not achieved: no candidate qualified as throughput-optimal with the frozen speech-quality bounds."
+}

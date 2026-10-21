@@ -1,0 +1,9 @@
+{
+  "frozen_at_utc": "2026-10-21T09:54:46.971129+00:00",
+  "prior_attempt": "100Hz subprocess sampler accumulated67.16s lag; manually interrupted, retained1277 samples but quantitative attribution invalid; all requests excluded",
+  "retry": "Reuse already warmed owned service; sequential CPU-time-only and2Hz nonblocking GIL subprocess sampling15s; each canonical64 C32 warmup/discard+3; all timings remain diagnostic-only",
+  "sampling_limit": "Nonblocking stacks can be inconsistent; record profiler errors and sampling lag; CPU counters from separate no-profiler run provide independent context",
+  "controller_handling": "Pause only owned controller during recovery to keep service alive; resume in finally; original attempt timing includes intervention and is invalid",
+  "holdout_used": false,
+  "verdict": "INCONCLUSIVE"
+}

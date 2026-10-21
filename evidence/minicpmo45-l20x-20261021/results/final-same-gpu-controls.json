@@ -1,0 +1,201 @@
+{
+  "scope": "Sequential same-GPU fresh main, candidate, then Torch plus MPS control; one measured repeat at C16/C32 on reused first cohort. Descriptive attribution only, not independent quality qualification.",
+  "profiles": {
+    "main": [
+      {
+        "concurrency": 16,
+        "requests_per_repeat": [
+          320
+        ],
+        "repeats": 1,
+        "n_failed": 0,
+        "throughput_frames_s_mean": 693.122777529298,
+        "throughput_frames_s_runs": [
+          693.122777529298
+        ],
+        "ttfa_p50_ms_pooled": 1222.8329624049366,
+        "ttfa_p95_ms_pooled": 1830.9920092113325,
+        "rtf_mean": 0.5864436744876869,
+        "mean_audio_seconds": 4.40225
+      },
+      {
+        "concurrency": 32,
+        "requests_per_repeat": [
+          320
+        ],
+        "repeats": 1,
+        "n_failed": 0,
+        "throughput_frames_s_mean": 766.0570457634595,
+        "throughput_frames_s_runs": [
+          766.0570457634595
+        ],
+        "ttfa_p50_ms_pooled": 1938.0342639051378,
+        "ttfa_p95_ms_pooled": 3036.510010901839,
+        "rtf_mean": 1.0589867972770615,
+        "mean_audio_seconds": 4.4375
+      }
+    ],
+    "candidate": [
+      {
+        "concurrency": 16,
+        "requests_per_repeat": [
+          320
+        ],
+        "repeats": 1,
+        "n_failed": 0,
+        "throughput_frames_s_mean": 815.615922962288,
+        "throughput_frames_s_runs": [
+          815.615922962288
+        ],
+        "ttfa_p50_ms_pooled": 938.601640984416,
+        "ttfa_p95_ms_pooled": 1537.8939061891294,
+        "rtf_mean": 0.4991944261220827,
+        "mean_audio_seconds": 4.419875
+      },
+      {
+        "concurrency": 32,
+        "requests_per_repeat": [
+          320
+        ],
+        "repeats": 1,
+        "n_failed": 0,
+        "throughput_frames_s_mean": 929.3535763965319,
+        "throughput_frames_s_runs": [
+          929.3535763965319
+        ],
+        "ttfa_p50_ms_pooled": 1481.580258347094,
+        "ttfa_p95_ms_pooled": 2024.6404147241265,
+        "rtf_mean": 0.8702834316202954,
+        "mean_audio_seconds": 4.407625
+      }
+    ],
+    "torch_mps": [
+      {
+        "concurrency": 16,
+        "requests_per_repeat": [
+          320
+        ],
+        "repeats": 1,
+        "n_failed": 0,
+        "throughput_frames_s_mean": 783.3153752341492,
+        "throughput_frames_s_runs": [
+          783.3153752341492
+        ],
+        "ttfa_p50_ms_pooled": 1038.1224108859897,
+        "ttfa_p95_ms_pooled": 1736.27570993267,
+        "rtf_mean": 0.5193365145043993,
+        "mean_audio_seconds": 4.41325
+      },
+      {
+        "concurrency": 32,
+        "requests_per_repeat": [
+          320
+        ],
+        "repeats": 1,
+        "n_failed": 0,
+        "throughput_frames_s_mean": 864.2885789235269,
+        "throughput_frames_s_runs": [
+          864.2885789235269
+        ],
+        "ttfa_p50_ms_pooled": 1675.16261478886,
+        "ttfa_p95_ms_pooled": 2336.628743633631,
+        "rtf_mean": 0.938098809980805,
+        "mean_audio_seconds": 4.411
+      }
+    ]
+  },
+  "ratios": [
+    {
+      "concurrency": 16,
+      "candidate_over_main": 1.176726475314559,
+      "torch_mps_over_main": 1.1301249946313283,
+      "candidate_over_torch_mps": 1.041235687118338
+    },
+    {
+      "concurrency": 32,
+      "candidate_over_main": 1.2131649745096067,
+      "torch_mps_over_main": 1.1282300498420048,
+      "candidate_over_torch_mps": 1.075281565740512
+    }
+  ],
+  "quality": {
+    "vllm-final-fresh-main-c16": {
+      "n": 320,
+      "sim": 49.7515808224678,
+      "utmos": 4.191942715644837,
+      "wer": 0.01279499573500142,
+      "wer_counts": {
+        "substitutions": 33,
+        "deletions": 4,
+        "insertions": 8,
+        "hits": 3480
+      },
+      "wer_mean": 0.014247696747696747
+    },
+    "vllm-final-fresh-main-c32": {
+      "n": 320,
+      "sim": 49.840751212835315,
+      "utmos": 4.204756230860949,
+      "wer": 0.013079328973557009,
+      "wer_counts": {
+        "substitutions": 34,
+        "deletions": 5,
+        "insertions": 7,
+        "hits": 3478
+      },
+      "wer_mean": 0.014504696692196692
+    },
+    "vllm-final-fresh-candidate-c16": {
+      "n": 320,
+      "sim": 49.881991145014766,
+      "utmos": 4.1921438664197925,
+      "wer": 0.013647995450668183,
+      "wer_counts": {
+        "substitutions": 36,
+        "deletions": 4,
+        "insertions": 8,
+        "hits": 3477
+      },
+      "wer_mean": 0.015044087856587857
+    },
+    "vllm-final-fresh-candidate-c32": {
+      "n": 320,
+      "sim": 49.84041916131973,
+      "utmos": 4.195094320178032,
+      "wer": 0.011657662780779073,
+      "wer_counts": {
+        "substitutions": 33,
+        "deletions": 5,
+        "insertions": 3,
+        "hits": 3479
+      },
+      "wer_mean": 0.01164623570873571
+    },
+    "vllm-final-fresh-torch_mps-c16": {
+      "n": 320,
+      "sim": 49.858167740702626,
+      "utmos": 4.184595277905464,
+      "wer": 0.01279499573500142,
+      "wer_counts": {
+        "substitutions": 34,
+        "deletions": 4,
+        "insertions": 7,
+        "hits": 3479
+      },
+      "wer_mean": 0.013952367077367078
+    },
+    "vllm-final-fresh-torch_mps-c32": {
+      "n": 320,
+      "sim": 49.67515196800232,
+      "utmos": 4.200169984251261,
+      "wer": 0.01279499573500142,
+      "wer_counts": {
+        "substitutions": 36,
+        "deletions": 5,
+        "insertions": 4,
+        "hits": 3476
+      },
+      "wer_mean": 0.012858842546342546
+    }
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "frozen_at_utc": "2026-10-21T08:40:45.745633+00:00",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "Four same-GPU Code2Wav replicas can further overlap host dispatch after native Talker plus two replicas reaches C16/C32 1053.7/1172.1 fps.",
+  "contrast": "Only Code2Wav replica count2 to4 on native Talker FP32 MPS profile; capacities16 and microbatch4 unchanged.",
+  "protocol": "64 reused tuning prompts,C1/C16/C32,discard+one; native quality scoring; exploratory cross-card evidence requires final paired same-card confirmation.",
+  "risks": "Additional graph and model memory; startup may fail within shared-card budgets. Preserve failure rather than change settings during run.",
+  "holdout": "256 reserved prompts untouched",
+  "goal_achieved": false
+}

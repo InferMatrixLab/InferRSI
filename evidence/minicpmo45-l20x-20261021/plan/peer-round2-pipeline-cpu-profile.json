@@ -1,0 +1,9 @@
+{
+  "frozen_at_utc": "2026-10-21T09:30:32.863019+00:00",
+  "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+  "profile": "Ordinary Talker2/Code2Wav4, selective CFM and exact speaker graph,25-frame windows",
+  "hypothesis": "Diminishing replication gains may reflect central orchestration or per-frame host work rather than vocoder compute alone. Sample all Python descendants to locate GIL work.",
+  "protocol": "Fresh reservedGPU service; unprofiled64-tuning warm/discard+one atC32, then separate64-tuning discard+three while20s100Hz py-spy samples all descendants holding the GIL. Record per-process CPU-time deltas.",
+  "exclusions": "All requests of this diagnostic, including warm runs, excluded from every performance aggregate; no speech quality acceptance or holdout use.",
+  "limitations": "Sampling perturbs the process; GIL-only stacks omit native CPU work, so CPU-time deltas and prior operator traces provide complementary evidence."
+}

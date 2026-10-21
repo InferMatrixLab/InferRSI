@@ -1,0 +1,22 @@
+{
+  "frozen_at_utc": "2026-10-21T08:59:05.207595+00:00",
+  "base_revision": "4671fdc3736c760f1abd637e30079b3cf65d1fdf",
+  "speaker_commit": "17246ce5e6",
+  "hypothesis": "Compose selective CFM FP16 with bitwise Torch speaker replay under two ordinary Talker and four Code2Wav replicas, where replication may expose device compute as the next limit.",
+  "evidence": [
+    "Selective CFM-only FP16 retained FP32 encoder/speaker/HiFT and passed descriptive quality means, but single-worker throughput did not improve",
+    "Speaker graph four real inputs bitwise equal, component2.3x speedup",
+    "Native Talker four vocoders only C32 1332.4 versus1172.1 with two, showing diminishing vocoder replication gains"
+  ],
+  "contrast": "Against pending FP32 ordinary Talker2/Code2Wav4 speaker-graph profile: only enable cfm_float16 on matching composed source. All other settings including8GiB stage0 KV identical.",
+  "checks": [
+    "Resolve configuration and strict opt-in flags",
+    "Run existing selective CFM precision and speaker graph tests on composed tree",
+    "No weight, diffusion-step, sampling or quality-margin changes"
+  ],
+  "protocol": "64 reused tuning,discard+one,C1/C16/C32 plus native quality scoring; no holdout use",
+  "qualification": "Exploratory; final same-card repeated comparison and all quality confidence bounds remain required.",
+  "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+  "integration": "Cherry-pick applied cleanly; service controller requires combined precision, graph and flag tests to pass before launch.",
+  "pre_service_combined_tests": "113 passed; source unchanged after tests"
+}

@@ -306,3 +306,10 @@ adds **no 🟢 cell and no measured NPU coverage**; every Drama3 NPU status is
 `unverified`, and target qualification is pending the owner-resolved
 hardware/software/model/service/evaluation/authority tuple. The five resource
 rows above remain authoritative; the two-matrix contract is unchanged.
+
+## Issue #49: Host Observe / Diagnose / Verify
+
+[Conditioning transport case](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.md) covers scalar-list materialization,
+untyped tensor metadata, owned snapshots and profiler perturbation. It adds
+a bounded CPU component observation; no new green service-performance cell,
+GPU-kernel gain or quality qualification is credited.

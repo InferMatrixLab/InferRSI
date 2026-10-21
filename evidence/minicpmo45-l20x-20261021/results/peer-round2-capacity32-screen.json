@@ -1,0 +1,12 @@
+{
+  "scope": "64 previously used tuning prompts, single measured repeat; not formal performance qualification.",
+  "baseline": {
+    "16": 739.5967989351692,
+    "32": 848.8140884415932
+  },
+  "capacity32": {
+    "16": 772.1937892034148,
+    "32": 780.2965904392426
+  },
+  "decision": "Do not promote capacity32 alone: C16 improves slightly but C32 decreases. Retain as conditional hypothesis only if a later compute optimization changes the bottleneck."
+}

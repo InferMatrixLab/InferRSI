@@ -1,0 +1,33 @@
+{
+  "qualification": "Single snapshot, not peak VRAM; startup and shared-host workload may overlap.",
+  "roles": [
+    {
+      "role": "quality_asr",
+      "gpu": "NVIDIA L20X",
+      "used_memory_mib": 52377,
+      "total_memory_mib": 143771,
+      "utilization_percent": 0
+    },
+    {
+      "role": "speaker_microbatch_candidate",
+      "gpu": "NVIDIA L20X",
+      "used_memory_mib": 71229,
+      "total_memory_mib": 143771,
+      "utilization_percent": 0
+    },
+    {
+      "role": "speaker_candidate",
+      "gpu": "NVIDIA L20X",
+      "used_memory_mib": 99906,
+      "total_memory_mib": 143771,
+      "utilization_percent": 67
+    },
+    {
+      "role": "speaker_mrv2_candidate",
+      "gpu": "NVIDIA L20X",
+      "used_memory_mib": 65587,
+      "total_memory_mib": 143771,
+      "utilization_percent": 0
+    }
+  ]
+}

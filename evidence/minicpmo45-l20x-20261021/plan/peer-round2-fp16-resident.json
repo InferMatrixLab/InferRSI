@@ -1,0 +1,22 @@
+{
+  "frozen_at_utc": "2026-10-21T06:15:04.226959+00:00",
+  "hypothesis": "Enable existing fused DiT and resident attention caches for CUDA FP16 flow rather than the current ragged fallback; preserve default FP32 and NPU gating.",
+  "changes": [
+    "Accept matching FP16 Q/K/V in tiled attention",
+    "Accumulate softmax and outputs in FP32 but cast probabilities to V dtype for FP16 Tensor Core dot",
+    "Allow CUDA fused path when compute and stored attention cache are both FP16"
+  ],
+  "kernel_gate": "Compare against PyTorch MATH SDPA computed in FP32 and rounded to input dtype, atol0.002 rtol0.002; cover masks including fully masked query rows, noncontiguous pooled K/V and repeated/permuted pool rows. FP32 regression unchanged.",
+  "service_gate": "No performance/quality qualification from numerical kernels. Retain frozen round2 speech bounds and peer throughput target.",
+  "source_revision": "86732dde68fcfc90455e2db663c85f6e4fbc375d",
+  "pre_service_checks": {
+    "attention_gpu": 26,
+    "dit_regression": 6,
+    "changed_file_precommit": "PASS after fixing optional-mask type narrowing"
+  },
+  "first_service_screen": {
+    "profile": "fp16-fused-mps",
+    "cfm_slot_pool": false,
+    "scope": "First isolate restored FP16 fused body under existing default arena caching. New kernel also supports optional resident pool; turning that on is a separate later screen."
+  }
+}

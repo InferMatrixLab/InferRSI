@@ -1,0 +1,18 @@
+{
+  "model-00001-of-00004.safetensors": {
+    "local": "30c40b9a10386c1bc404568d8829e5aada2e3501d9de6fb46ff80451aff7e077",
+    "expected": "30c40b9a10386c1bc404568d8829e5aada2e3501d9de6fb46ff80451aff7e077"
+  },
+  "model-00002-of-00004.safetensors": {
+    "local": "fe0faef420aca8f771bec1f9fcfaae01206c56b8e64e4429a1ff500c962fbf96",
+    "expected": "fe0faef420aca8f771bec1f9fcfaae01206c56b8e64e4429a1ff500c962fbf96"
+  },
+  "model-00003-of-00004.safetensors": {
+    "local": "5d0b20153f9bfa88ebcd1cb6bbd5b7cac4c217b3cafb137a291a1b380d8b7821",
+    "expected": "5d0b20153f9bfa88ebcd1cb6bbd5b7cac4c217b3cafb137a291a1b380d8b7821"
+  },
+  "model-00004-of-00004.safetensors": {
+    "local": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31",
+    "expected": "f61addf4747c94fedcaee059e5d9918ed15543beec494404139a99f2f86c9b31"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "candidate_revision": "227a43e898f8b96236f48f16f399431c8ad0ddcc",
+  "baseline_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+  "pull_request": "https://github.com/vllm-project/vllm-omni/pull/9188",
+  "profile": "minicpmo_4_5_cpu_reference_trt_mps.yaml",
+  "opt_in": "token2wav_spk_cpu_reference=true",
+  "default_policy": "Preserve upstream Torch CUDA/NPU speaker defaults; optional CPU-reference TRT requires CUDA and excludes full DiT TRT.",
+  "historical_candidate_revision": "f2462435d79f0243ced93a02f3b8d6cd9c41511b",
+  "history": "Historical measured candidate retained as an ancestor; adapted feature is based on updated upstream main.",
+  "shared_speaker_implementation_sha256": "310129b4283200a71221e813185d14ef9b44873df1147e1d1e2a68baeff2d755",
+  "pull_request_head": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "measured_tree_sha": "13576ddebdee80ab9d8832ef58785116e8749acf",
+  "pull_request_head_tree_sha": "13576ddebdee80ab9d8832ef58785116e8749acf",
+  "metadata_only_followup": "Empty signed commit refreshes CI after PR base was updated; its entire Git tree equals measured revision 227a43e898."
+}

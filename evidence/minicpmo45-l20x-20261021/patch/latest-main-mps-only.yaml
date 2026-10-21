@@ -1,0 +1,2 @@
+base_config: minicpmo_4_5_turn.yaml
+cuda_mps: true

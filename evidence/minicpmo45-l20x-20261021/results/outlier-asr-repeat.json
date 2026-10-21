@@ -1,0 +1,102 @@
+{
+  "scope": "Diagnostic only; three serial submissions of the same saved WAV to the same ASR endpoint and settings. Other scoring traffic may overlap. Does not exclude the prompt or change any frozen gate.",
+  "request_id": "common_voice_en_20006910-common_voice_en_20006912",
+  "rows": [
+    {
+      "role": "main",
+      "concurrency": 1,
+      "wav_sha256": "fc6daab6f625d96d6d26a1fc19c9dd85440d14e42d96dedca421211a577987f3",
+      "same_as_original": [
+        true,
+        true,
+        true
+      ],
+      "transcript_sha256": [
+        "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e",
+        "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e",
+        "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e"
+      ],
+      "original_transcript_sha256": "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e"
+    },
+    {
+      "role": "main",
+      "concurrency": 16,
+      "wav_sha256": "861b2b4c4a827868ec14837c7261ff472e30a6f4aa8dffbec485f529ed0b00fb",
+      "same_as_original": [
+        true,
+        true,
+        true
+      ],
+      "transcript_sha256": [
+        "e0164dab8cb03bf2e7f89462f619e7f689cbc5954e77ff71e4c1be0cea7ae8c3",
+        "e0164dab8cb03bf2e7f89462f619e7f689cbc5954e77ff71e4c1be0cea7ae8c3",
+        "e0164dab8cb03bf2e7f89462f619e7f689cbc5954e77ff71e4c1be0cea7ae8c3"
+      ],
+      "original_transcript_sha256": "e0164dab8cb03bf2e7f89462f619e7f689cbc5954e77ff71e4c1be0cea7ae8c3"
+    },
+    {
+      "role": "main",
+      "concurrency": 32,
+      "wav_sha256": "caae5c5280e665ef7776f4e298e6095de81c7694015e9e8a41daa9bb611db104",
+      "same_as_original": [
+        false,
+        false,
+        false
+      ],
+      "transcript_sha256": [
+        "081fce3a377edad61afee248b1a21683d0e3f0b1b88538271cb1bffd2ef5f6b0",
+        "081fce3a377edad61afee248b1a21683d0e3f0b1b88538271cb1bffd2ef5f6b0",
+        "081fce3a377edad61afee248b1a21683d0e3f0b1b88538271cb1bffd2ef5f6b0"
+      ],
+      "original_transcript_sha256": "0206bfec94b8cbbf77da61e2ae26258b12aa2a981d3389e3a15a6fd10d1e7d19"
+    },
+    {
+      "role": "candidate",
+      "concurrency": 1,
+      "wav_sha256": "edb85a1765bdee8f61adb0c43dc0974147e5bb372865951e624790d019ebb5e4",
+      "same_as_original": [
+        true,
+        true,
+        true
+      ],
+      "transcript_sha256": [
+        "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e",
+        "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e",
+        "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e"
+      ],
+      "original_transcript_sha256": "2aafda2ab3e02b901cd94f54f5d84dcb18a4f11f17d79b26a69a22d41fd3f09e"
+    },
+    {
+      "role": "candidate",
+      "concurrency": 16,
+      "wav_sha256": "d5c42114da79aab1ff8fca3d4f5e6faab2c9aa80e967de435fd08d573393fbaf",
+      "same_as_original": [
+        true,
+        true,
+        true
+      ],
+      "transcript_sha256": [
+        "43130beca75e9f476d45734a171d0c925874e1a7807cad0a65ca9adb6f05fb7d",
+        "43130beca75e9f476d45734a171d0c925874e1a7807cad0a65ca9adb6f05fb7d",
+        "43130beca75e9f476d45734a171d0c925874e1a7807cad0a65ca9adb6f05fb7d"
+      ],
+      "original_transcript_sha256": "43130beca75e9f476d45734a171d0c925874e1a7807cad0a65ca9adb6f05fb7d"
+    },
+    {
+      "role": "candidate",
+      "concurrency": 32,
+      "wav_sha256": "e36238588f51d0fbf9b6885743e684ee6350cf31b60abc43538a0dcaa42c7e17",
+      "same_as_original": [
+        true,
+        true,
+        true
+      ],
+      "transcript_sha256": [
+        "c9980509541b13e9689a2fc522e066158582b7741542ce634a5e3ae7b2a62045",
+        "c9980509541b13e9689a2fc522e066158582b7741542ce634a5e3ae7b2a62045",
+        "c9980509541b13e9689a2fc522e066158582b7741542ce634a5e3ae7b2a62045"
+      ],
+      "original_transcript_sha256": "c9980509541b13e9689a2fc522e066158582b7741542ce634a5e3ae7b2a62045"
+    }
+  ]
+}

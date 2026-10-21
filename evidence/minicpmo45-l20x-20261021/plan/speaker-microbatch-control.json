@@ -1,0 +1,19 @@
+{
+  "plane": "model",
+  "hypothesis": "After moving serialized CPU speaker work to CUDA, a larger CFM microbatch may become useful. Compare against speaker-only before selecting.",
+  "changed_setting": {
+    "micro_batch_size": [
+      4,
+      8
+    ]
+  },
+  "fixed_setting": {
+    "token2wav_device_spk": true
+  },
+  "dataset": "same disjoint tuning 64",
+  "concurrency": [
+    16,
+    32
+  ],
+  "gate": "Must improve both high-concurrency throughput cells; generated speech quality remains separately required; no frozen gates changed."
+}

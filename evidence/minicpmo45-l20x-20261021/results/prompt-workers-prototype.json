@@ -1,0 +1,1975 @@
+{
+  "scope": "Component prototype only; no lifecycle integration or service qualification",
+  "reference_count": 16,
+  "results": [
+    {
+      "workers": 1,
+      "all_equal": true,
+      "checks": [
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        }
+      ],
+      "median_ms_per_16_references": 1567.773835733533,
+      "samples_ms": [
+        1580.136581324041,
+        1559.9017180502415,
+        1567.773835733533
+      ]
+    },
+    {
+      "workers": 2,
+      "all_equal": true,
+      "checks": [
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        }
+      ],
+      "median_ms_per_16_references": 785.378179512918,
+      "samples_ms": [
+        786.1553002148867,
+        784.5429349690676,
+        785.378179512918
+      ]
+    },
+    {
+      "workers": 4,
+      "all_equal": true,
+      "checks": [
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        }
+      ],
+      "median_ms_per_16_references": 458.97777285426855,
+      "samples_ms": [
+        474.4443027302623,
+        458.97777285426855,
+        450.5907651036978
+      ]
+    },
+    {
+      "workers": 8,
+      "all_equal": true,
+      "checks": [
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19254683-common_voice_en_19254687",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19967495-common_voice_en_19967497",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_21555942-common_voice_en_21555950",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_125386-common_voice_en_125388",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20236234-common_voice_en_20236233",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_32144882-common_voice_en_32144886",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_35734335-common_voice_en_35734342",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19152197-common_voice_en_19152196",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_22713724-common_voice_en_22713725",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_523215-common_voice_en_523219",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_28638628-common_voice_en_28638717",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_20303932-common_voice_en_20303934",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19619551-common_voice_en_19619549",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_25127181-common_voice_en_25127184",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_19636954-common_voice_en_19636955",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 0,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 1,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 2,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 3,
+          "equal": true,
+          "max_abs_error": 0.0
+        },
+        {
+          "id": "common_voice_en_557458-common_voice_en_557459",
+          "field": 4,
+          "equal": true,
+          "max_abs_error": 0.0
+        }
+      ],
+      "median_ms_per_16_references": 348.4372105449438,
+      "samples_ms": [
+        293.50543674081564,
+        356.98695946484804,
+        348.4372105449438
+      ]
+    }
+  ],
+  "limitations": "Prototype only, no service integration; shared CUDA stream, CPU ORT threads=1, fixed tuning references. Timings may overlap the separately running ASR scorer on the reserved quality GPU."
+}

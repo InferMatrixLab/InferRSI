@@ -1,0 +1,18 @@
+{
+  "frozen_at_utc": "2026-10-21T04:30:07.962492+00:00",
+  "purpose": "Confirm updated-main versus integrated-candidate throughput direction on the same physical GPU, since the full matrices use separate reserved L20X cards.",
+  "baseline_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+  "candidate_measured_tree_revision": "227a43e898f8b96236f48f16f399431c8ad0ddcc",
+  "candidate_head_metadata_only": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "candidate_profile": "minicpmo_4_5_cpu_reference_trt_mps.yaml",
+  "concurrency": [
+    16,
+    32
+  ],
+  "requests": 320,
+  "discard_runs": 1,
+  "measured_repeats": 1,
+  "pool": "first320 eval, already used",
+  "sequence": "fresh latest main, cleanup, fresh selected candidate on the same reservation",
+  "limits": "Single ordered repeat, not a new statistical quality holdout or ABBA certification; unchanged sampling/scorers/thresholds."
+}
