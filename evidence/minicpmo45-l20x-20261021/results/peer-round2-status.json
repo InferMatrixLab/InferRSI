@@ -1,0 +1,25 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "goal": "Exceed peer at C16 andC32 with all frozen speech noninferiority gates passing",
+  "achieved": false,
+  "completed": [
+    "Peer six-concurrency repeated baseline",
+    "FP16 runtime dispatch implementation and screening",
+    "HiFT scoped TF32 implementation and screening",
+    "FP32 microbatch16 screening",
+    "Prompt setup batching implementation and failed numerical gate",
+    "Independent stage2 profiler"
+  ],
+  "active": [
+    "CFM graph capacity128 screening",
+    "HiFT exact batch1/2/4 graph screening"
+  ],
+  "reserved_holdout_used": false,
+  "quality_margins": {
+    "wer_percentage_points": 0.2,
+    "sim_x100_drop": 0.5,
+    "utmos_drop": 0.05
+  },
+  "prior_campaign_verdicts": "unchanged",
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/49"
+}

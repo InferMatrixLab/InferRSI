@@ -1,0 +1,17 @@
+{
+  "frozen_at_utc": "2026-10-21T07:44:03.488910+00:00",
+  "parent_revision": "b6dacdf03756dbedeee8592577798670f5e22329",
+  "hypothesis": "The existing global float16 flag also converts the flow encoder and speaker projection. Keep those in FP32 and apply FP16 only to the CFM estimator and its noise/cache path, to test whether encoder precision caused the observed SIM degradation.",
+  "scope": "New opt-in cfm_float16, default off; no changes to model weights on disk, sampling, Euler step count, output length limits, HiFT or speaker extraction.",
+  "operator_checks": "Existing FP16 attention and DiT numerical parity tests; verify encoder parameters and execution stay FP32 while estimator execution/cache is FP16, and disabled defaults remain unchanged.",
+  "quality_screen": "Use the original first64 tuning prompts at C1/C16/C32 and report WER/SIM/UTMOS before promotion. This precision experiment uses the existing frozen speech noninferiority contract; it does not change or retroactively rejudge the failed waveform-parity gate of prompt batching.",
+  "service_screen": "Same Torch+MPS baseline config, microbatch4 and stage capacities16;64 reused tuning prompts,discard+one measured repeat.",
+  "holdout": "256 reserved IDs remain unused until final candidate selection.",
+  "candidate_revision": "4671fdc3736c760f1abd637e30079b3cf65d1fdf",
+  "pre_service_checks": {
+    "gpu_dit_and_precision": 7,
+    "cpu_batching_and_cfm": 222,
+    "changed_file_precommit": "PASS",
+    "gpu_test_environment": "Small numerical tests ran on the campaign-owned ASR reservation, excluded from any service timing."
+  }
+}

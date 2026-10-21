@@ -33,7 +33,13 @@
           "ttfa_p95_s": 0.13088538954034448,
           "rtf_mean": 0.0632034071902775
         }
-      ]
+      ],
+      "pooled_requests": {
+        "n": 640,
+        "ttfa_p50_s": 0.1256165779195726,
+        "ttfa_p95_s": 0.13093884550034998,
+        "rtf_mean": 0.06318489771332836
+      }
     },
     "2": {
       "measured_repeats": 3,
@@ -72,7 +78,13 @@
           "ttfa_p95_s": 0.2222554690670222,
           "rtf_mean": 0.09772136390236967
         }
-      ]
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.19014606857672334,
+        "ttfa_p95_s": 0.22433129511773586,
+        "rtf_mean": 0.09719417906213433
+      }
     },
     "4": {
       "measured_repeats": 3,
@@ -111,7 +123,13 @@
           "ttfa_p95_s": 0.30483588576316833,
           "rtf_mean": 0.13376456603001535
         }
-      ]
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.2666403064504266,
+        "ttfa_p95_s": 0.3053204839117825,
+        "rtf_mean": 0.13440840311578064
+      }
     },
     "8": {
       "measured_repeats": 3,
@@ -150,7 +168,13 @@
           "ttfa_p95_s": 0.42942166929133235,
           "rtf_mean": 0.1795888738090082
         }
-      ]
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.35363235231488943,
+        "ttfa_p95_s": 0.4168954434804618,
+        "rtf_mean": 0.18023458369240614
+      }
     },
     "16": {
       "measured_repeats": 3,
@@ -189,7 +213,13 @@
           "ttfa_p95_s": 0.528660918166861,
           "rtf_mean": 0.24007690743674245
         }
-      ]
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.4708248642273247,
+        "ttfa_p95_s": 0.5505937870591879,
+        "rtf_mean": 0.23786546822411667
+      }
     },
     "32": {
       "measured_repeats": 3,
@@ -228,7 +258,18 @@
           "ttfa_p95_s": 0.7602412773296238,
           "rtf_mean": 0.31384059524310237
         }
-      ]
+      ],
+      "pooled_requests": {
+        "n": 960,
+        "ttfa_p50_s": 0.6524820369668305,
+        "ttfa_p95_s": 0.7602832305710763,
+        "rtf_mean": 0.3142057741915752
+      }
     }
-  }
+  },
+  "request_artifact": {
+    "path": "peer-round2-baseline-requests.json.gz",
+    "sha256": "09a7276f680e46955f11276dbbc32489bd33a596857c2ee428bb99e25e0ae841"
+  },
+  "metric_note": "Throughput mean averages repeat throughputs. pooled_requests gives TTFA percentiles across all retained requests; mean preserves the separately labeled arithmetic mean of per-run percentiles."
 }

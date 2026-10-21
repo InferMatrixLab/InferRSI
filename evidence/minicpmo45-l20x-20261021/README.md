@@ -1,5 +1,17 @@
 # MiniCPM-o 4.5: single-L20X throughput study
 
+## Round two: active, INCONCLUSIVE
+
+The requester asked to continue until vLLM-Omni exceeds the source-pinned single-GPU peer at C16 and C32 while retaining the authorized quality margins. This goal is **not achieved**. The earlier failed campaign remains documented below.
+
+- [Frozen continuation plan and unused256-prompt cohort](plan/peer-round2.json), [current status](results/peer-round2-status.json), and [acceptance issue](https://github.com/InferMatrixLab/InferRSI/issues/49).
+- [Peer repeated baseline](results/peer-round2-baseline.json): exploratory mean C16/C32 throughput1698.4/2532.2 frames/s; final candidate confirmation still requires equivalent repeated comparison. The fast peer profile is not the speech-quality reference.
+- [Screening speech quality](results/peer-round2-screen-quality.json), [FP16 dispatch correction](results/peer-round2-dispatch-screen.json), and [FP32 batch-width screen](results/peer-round2-batch16-screen.json). Reused64-prompt screens do not establish final acceptance.
+- [Rejected prompt-setup numerical result](results/peer-round2-setup-numerical.json), [HiFT precision screen](results/peer-round2-screen-hift-tf32-mps.json), and [FP16 residency screen](results/peer-round2-screen-fp16-resident16-mps.json).
+- [Independent operator profile](results/peer-round2-stage2-profile.json) motivates the [active graph-coverage trials](plan/peer-round2-graph-coverage.json). Profiled requests are excluded from performance aggregates.
+- [Reproducible exploratory implementation patches](patch/peer-round2-manifest.json); none is presented as a qualified peer-beating release.
+
+
 Acceptance: [InferRSI #49](https://github.com/InferMatrixLab/InferRSI/issues/49).
 
 **Original strict quality verdict: FAIL** for both completed historical speaker-only and speaker+MPS candidates. The separately authorized noninferiority evaluation on previously unused prompts also **FAILS** on C16/C32 WER. The adapted revision also FAILS its separately scoped regression against updated main (C16 WER, C32 WER/SIM). No later comparison changes the earlier verdicts. Component PASS does not establish service PASS.
