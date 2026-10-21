@@ -71,6 +71,36 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
     assert actual == generated
 
 
+def test_committed_source_hashes_preserve_binary_and_newline_bytes(tmp_path):
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(tmp_path), *args], check=True, capture_output=True
+        ).stdout
+
+    git("init")
+    git("config", "core.autocrlf", "false")
+    resources = {
+        "empty.md": b"",
+        "crlf.md": b"first\r\nsecond\r\n",
+        "space in name.bin": b"\x00\nblob 12\n\xffno-final-newline",
+    }
+    for name, content in resources.items():
+        (tmp_path / name).write_bytes(content)
+    git("add", *resources)
+    git(
+        "-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
+        "commit", "-s", "-m", "Create byte-exact sources",
+    )
+    hashes = index_builder._source_hashes(tmp_path, "HEAD", set(resources))
+    assert hashes == {
+        name: hashlib.sha256(git("show", f"HEAD:{name}")).hexdigest()
+        for name in resources
+    }
+    assert hashes == {
+        name: hashlib.sha256(content).hexdigest() for name, content in resources.items()
+    }
+
+
 def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path, monkeypatch):
     # A tiny committed source fixture proves a stale revision cannot attribute
     # uncommitted instructions or newly introduced metadata to old Git bytes.
