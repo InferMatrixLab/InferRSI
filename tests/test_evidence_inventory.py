@@ -145,6 +145,9 @@ def test_checked_in_inventory():
     repo = Path(__file__).resolve().parents[1]
     result = validate_inventory(repo)
     assert result["errors"] == []
-    assert len(result["bundles"]) == 7
+    assert len(result["bundles"]) == 9
+    assert {"qwen38-h20-text-phase1", "qwen38-h20-fp8-text-phase1"} <= {
+        item["name"] for item in result["bundles"]
+    }
     assert result["checked_hashes"] == 5
     assert result["unavailable"]  # Historical raw artifacts are not in this checkout.
