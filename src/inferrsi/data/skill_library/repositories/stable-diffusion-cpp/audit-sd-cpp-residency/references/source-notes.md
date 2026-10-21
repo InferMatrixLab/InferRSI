@@ -19,6 +19,10 @@ The absent GGML/frontend/libwebp/libwebm submodules are declared by
 [.gitmodules](https://github.com/leejet/stable-diffusion.cpp/blob/b13a48219d5cdf408edcb93da6cd69b612ed03d3/.gitmodules#L1-L12).
 No complete AREX environment/native verification is claimed.
 
+Header coverage is limited to selected owner/state declarations in
+[`src/model_manager.h`](https://github.com/leejet/stable-diffusion.cpp/blob/b13a48219d5cdf408edcb93da6cd69b612ed03d3/src/model_manager.h),
+not a complete header review. The README identity check is not an implementation read.
+
 ## Bounded CODE path
 
 1. The CLI creates the context and calls the image API:
