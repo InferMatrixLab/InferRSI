@@ -15,6 +15,24 @@
       "sha256": "e8b7b49fd51662d7fde58cd10306e64fde318f5ae9c857a1482ef7a6db4a94cd",
       "integrity_status": "rehashed",
       "evidence_path": "evidence/minicpmo45-l20x-20261021/results/speaker-candidate-micro.json"
+    },
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/49",
+      "run": "minicpmo45-l20x-20261021",
+      "artifact": "speaker-comparison.json",
+      "sha256": "6723769d5a17644e146269e69a9f4b75e136849e7889e1c4636f1a3ab5dba61b",
+      "integrity_status": "rehashed",
+      "evidence_path": "evidence/minicpmo45-l20x-20261021/results/speaker-comparison.json"
+    },
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/49",
+      "run": "minicpmo45-l20x-20261021",
+      "artifact": "mps-comparison.json",
+      "sha256": "a3c6ffec8e68915e9e336ece65d25b368cdbeb9231263970e023e03f1104d6e1",
+      "integrity_status": "rehashed",
+      "evidence_path": "evidence/minicpmo45-l20x-20261021/results/mps-comparison.json"
     }
   ],
   "applicability": [

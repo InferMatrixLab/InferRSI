@@ -54,6 +54,25 @@ component latency was lower. The cause was graph semantics, so retrying only
 with different precision would repeat the wrong experiment. Short reference
 inputs were discriminating; long references alone understated the error.
 
+## Service qualification and conditional composition
+
+The subsequent speaker-plus-MPS control changed the ranking: MPS improved
+high-concurrency throughput after speaker extraction moved off CPU, although
+the initial MPS-only control did not improve both target tuning cells. Treat
+this as a conditional interaction, not a universal MPS recommendation.
+
+Both speaker variants failed the original strict generated-speech gate despite
+passing the isolated embedding tolerance. Repeated low-concurrency scoring and
+fresh-start controls retained the differences. Do not reinterpret numerical
+closeness or a confidence interval containing zero as evidence of noninferiority.
+
+If an authorized owner changes acceptable quality loss after exploratory
+results, preserve the original verdict, freeze the new margins and statistical
+rule before generating unused holdout outputs, and report the new scope
+separately. Profile selection must finish before opening that holdout. The
+campaign evidence owns both decisions; this case does not supply default
+quality tolerances.
+
 ## Limits
 
 Evidence covers one CUDA GPU family, one official model revision and an English
