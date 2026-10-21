@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.generation_cache_lifecycle",
+  "title": "generation-cache-lifecycle",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Trace MLX-LM prefill, generation batching, prompt-cache reuse and cooperative stopping when request state, cache rows or retained prefixes become inconsistent.",
+  "tags": [
+    "mlx-lm",
+    "generation",
+    "batching",
+    "kv-cache",
+    "cancellation"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/32c744c841ab64ac4e106749603da9b1111b726e/src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
+      "commit": "32c744c841ab64ac4e106749603da9b1111b726e",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/cache-stop.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/generation-batch.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/source-map.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/validation.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "bf1177cb9985c12a9bf11edb64771018e1e314c4713920de8fd4a989ff70115f"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md"
+  },
+  "checkout_ref": "checkout:generation-cache-lifecycle",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md": "bf1177cb9985c12a9bf11edb64771018e1e314c4713920de8fd4a989ff70115f",
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json": "2ce3abb080bf8494bb99178576ca7d73f10f858b90153766a288d1dd7b599574",
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/cache-stop.md": "bba6b5c73261065309cbcf11b1e591eef48916f0c79ceaaf74d98a9fa96b0992",
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/generation-batch.md": "f16d3c57d45e63bcaffd3871aa41c76972ee11f7dbf1e12b45d9b170303cad9b",
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/source-map.md": "e3d815d4307b5eb3a61545ecee6e56208349755fb9a0ee530bb112b90af60e7f",
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/validation.md": "73b5dd347017baba519ecc85415aead9993c1751d116b9ba4f07689f58c5f783",
+    "src/inferrsi/data/skill_library/skill-index.json": "9b437dd34dbb396473f75a4f0baf11c0b4948e2259b587db2c1d00c2dca4dcee"
+  },
+  "skill_metadata": {
+    "name": "generation-cache-lifecycle",
+    "description": "Trace MLX-LM prefill, generation batching, prompt-cache reuse and cooperative stopping when request state, cache rows or retained prefixes become inconsistent.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "license": "MIT",
+    "tags": [
+      "mlx-lm",
+      "generation",
+      "batching",
+      "kv-cache",
+      "cancellation"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/ml-explore/mlx-lm",
+        "commit": "ab7f7048dc341ced2d84b1887eeb17d60b0d1b02",
+        "paths": [
+          "mlx_lm/generate.py",
+          "mlx_lm/models/cache.py",
+          "mlx_lm/server.py",
+          "tests/test_generate.py",
+          "tests/test_prompt_cache.py"
+        ],
+        "readset": "references/source-map.md"
+      }
+    ],
+    "applicability": {
+      "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification."
+    },
+    "limitations": [
+      "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
+      "Static content checks do not promote this candidate or establish installed API conformance."
+    ],
+    "provenance_readsets": [
+      "references/source-map.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
+    "Static content checks do not promote this candidate or establish installed API conformance."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

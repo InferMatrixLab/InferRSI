@@ -26,6 +26,7 @@ The primary compute and HBM resource. Most current work lives here.
 
 | Lifecycle step | What it covers | Candidate Skills | Cases / Experience | Evidence | Maturity |
 |---|---|---|---|---|---|
+| **Diagnose / Configure / Verify** | Workflow model-weight residency, partial unload versus wrapper removal, patch identity and static/dynamic backend dispatch | [comfy-ui](../src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md) | CPU dynamic construction reroutes to the static patcher; wrapper/free-byte bookkeeping is not physical allocator release | ComfyUI @ b1a247c9cf9dbfda4b2c0a0c1d50950667eeaa0c; [model ownership](../src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md) | 🟢 (source-derived audit; device/native allocator unverified) |
 | **Observe / Profile** | System-level GPU/NPU timeline, per-kernel stats, SOL%, AI Core utilization ratios, step-trace four-tuple | `ascend-performance-analysis`, `dense-performance-evidence` (L2) | CANN CSV pipeline, MindIE-SD profiling-analyze lessons | MindIE-SD @ 8481d39b; TRT-LLM nsys/ncu @ f33e0e5f | 🟢 |
 | **Observe / Profile** | Single-operator benchmark (msprof op, 8 CSV metrics, per-core occupancy) | `ascend-operator-profiling` | ops-profiling loop | awesome-ascend-skills @ 75ec89ce | 🟢 |
 | **Observe / Profile** | Trace-to-source attribution: representative-step selection, kernel→source-module ownership via code_ref, compact vs full detail views | `cann-attribution-overlap` | Selection reason + shapes + streams + code_ref retained per kernel owner | cann/oam-tools @ 8440935f (pack-mediated, wave 6) | 🟢 |
@@ -64,6 +65,7 @@ Host-side memory: CPU DRAM, pinned memory, page tables, PyTorch tensor lifecycle
 
 | Lifecycle step | What it covers | Candidate Skills | Cases / Experience | Evidence | Maturity |
 |---|---|---|---|---|---|
+| **Diagnose / Configure / Verify** | Workflow-output signatures and object identity, ancestor/fingerprint validity versus retention, lazy consumer references and host/pinned state | [comfy-ui](../src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md) | A fixed JSON filename is not an external-state fingerprint; NOT_IDEMPOTENT node identity does not force every-run invalidation | ComfyUI @ b1a247c9cf9dbfda4b2c0a0c1d50950667eeaa0c; [cache ledger](../src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md) | 🟢 (source-derived procedure; executor cache suite not run) |
 | **Observe / Profile** | Host overhead in nsys: GPU idle ratio (>0.30 aggregate/>0.15 generation), host-prep exposed ratio (M3b>0.05), NVTX breakdown, inter-kernel gaps; cgroup memory pressure (PSI) and event counters | `host-overhead-profiling`, `cgroup-resource-controls` (pressure/events observation) | GPU idle + host-prep verdict metrics; NVTX root-cause breakdown; regression comparison across two traces | TRT-LLM perf-host-analysis @ f33e0e5f; kernel cgroup-v2 docs (pack-mediated) | 🟢 |
 | **Diagnose** | YES/NO bottleneck verdict; multi-rank straggler detection; NVTX-to-source function mapping | `host-overhead-profiling` | M3b>0.05 AND M3c>0.50 together confirm host-prep bottleneck | TRT-LLM perf-host-analysis @ f33e0e5f | 🟢 |
 | **Configure** | Pinned memory for fast H2D (>1MB tensors where transfer is measured bottleneck), async H2D via non_blocking=True + stream + explicit synchronize(), Python GIL avoidance (ProcessPoolExecutor, Python 3.13 free-threading PEP 703), NUMA-aware allocation (numactl); memory limits and protection (memory.high/low/max) | `host-memory-management`, `kv-tier-management` (L1 tier sizing, multi-L1 composition), `cgroup-resource-controls` (memory controls) | All APIs verified from PyTorch docs, Python docs, numactl manpage | PyTorch docs, Python docs, PEP 703, numactl manpage; LMCache @ c3b875a; kernel cgroup-v2 docs (pack-mediated) | 🟢 |
@@ -308,3 +310,25 @@ adds **no 🟢 cell and no measured NPU coverage**; every Drama3 NPU status is
 `unverified`, and target qualification is pending the owner-resolved
 hardware/software/model/service/evaluation/authority tuple. The five resource
 rows above remain authoritative; the two-matrix contract is unchanged.
+
+## MLX framework guidance (source-derived)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+|---|---|---|---|
+| Accelerator | Observe / Diagnose / Verify: submission versus completion, fence/event dependency ordering and selected backend dispatch | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | Pinned CPU/Metal/CUDA source paths; no native device execution or measured gain |
+| RAM / Host | Observe / Diagnose / Verify: graph-reference detachment versus in-flight Data retention and result availability | [execution/lifetime contract](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md) | Backend-specific retention mechanisms; allocator eviction and physical-memory release remain outside the readset |
+
+No new measured or green coverage is credited. Stream dependency guidance does
+not add a Communication/Network capability; no SSD or OS control is introduced.
+`common` indexing categorizes framework guidance and certifies no backend.
+
+## MLX-LM application guidance (source-derived)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+|---|---|---|---|
+| RAM / Host | Observe / Diagnose / Configure / Verify: request UID/stage/cache-row alignment, prefix identity/copy/trim/eviction and cooperative stop | [generation-cache-lifecycle](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md) | Logical cache state and allocated storage differ; native model/row/stop behavior unrun |
+| Accelerator | Observe / Diagnose / Verify: prefill cache evaluation and asynchronous decode submission/read boundary | [generation/batch contract](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/generation-batch.md) | Application calls MLX primitives; CPU checks cannot certify Metal/CUDA dispatch, quality or serving performance |
+
+No measured or green coverage is credited. Application batching is not a new
+Network/OS capability; no SSD mechanism is added. `common` indexes guidance and
+does not certify backend compatibility.

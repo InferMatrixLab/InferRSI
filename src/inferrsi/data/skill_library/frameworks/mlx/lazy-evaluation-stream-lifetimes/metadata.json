@@ -1,0 +1,48 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "MIT",
+  "tags": [
+    "mlx",
+    "lazy-evaluation",
+    "stream",
+    "buffer-lifetime",
+    "synchronization"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/ml-explore/mlx",
+      "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+      "paths": [
+        "mlx/ops.cpp",
+        "mlx/transforms.cpp",
+        "mlx/array.cpp",
+        "mlx/backend/cpu/eval.cpp",
+        "mlx/backend/metal/eval.cpp",
+        "mlx/backend/cuda/eval.cpp",
+        "python/src/transforms.cpp",
+        "python/tests/test_eval.py"
+      ],
+      "readset": "references/source-map.md"
+    }
+  ],
+  "applicability": {
+    "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately."
+  },
+  "limitations": [
+    "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
+    "Static content checks do not promote this candidate or establish installed API conformance."
+  ],
+  "provenance_readsets": [
+    "references/source-map.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}

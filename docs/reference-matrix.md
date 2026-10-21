@@ -42,6 +42,7 @@ Reading rules:
 
 | Reference (origin @ revision) | Inspected scope | Accelerator | RAM / Host | SSD / Storage | Communication | OS / System |
 |---|---|---|---|---|---|---|
+| Comfy-Org/ComfyUI @ `b1a247c9cf9dbfda4b2c0a0c1d50950667eeaa0c` (GNU GPL v3) | Source-reading archive, inspected 2026-10-21; bounded execution/cache/graph/model-management/static-dynamic-patcher/sampler paths and selected tests; [readset](../src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md); not full-model/custom-node/provider-native coverage | mined — managed weight/patch identity, partial unload versus detach and dynamic-backend boundary → [comfy-ui](../src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md); device behavior unverified | mined — output versus object identity, ancestor fingerprints, lazy consumer references and retention versus validity; host/pin ownership | out-of-scope — no storage implementation extracted | out-of-scope — no transport implementation extracted | out-of-scope — workflow scheduling is not OS scheduling |
 | NVIDIA/TensorRT-LLM @ f33e0e5fd | skill-doc-only (`.claude/skills/`) | mined — evidence taxonomy, kernel writing, casebook, roofline refs → `dense-performance-evidence`, `kernel-writing-guide`, `inference-optimization-casebook`, `performance-ceiling-analysis` | mined — host overhead verdict + line-profiling loop → `host-overhead-profiling`, `host-overhead-optimization` | mined — weight-movement/overlap + KV host-cache patterns → `weight-loading-optimization`; disk-level: negative (see below) | out-of-scope — host/device weight-movement overlap remains in RAM/Storage, not network coverage | mined — CPU affinity rule + env preflight → `os-process-placement` |
 | Ascend/MindIE-SD @ 8481d39 | skill-doc-only (`.agents/skills/`) | mined — 5-layer analysis, bottleneck casebook → `ascend-performance-analysis`, `ascend-optimization-casebook` | mined — host-opt async/pattern sections → `weight-loading-optimization` | mined — load-path judgment, fixed-overhead accounting, offload tiers, weights-prep → `weight-loading-optimization` | mined — USP strategy, masking formula, topology rules → `ascend-distributed-parallel` | mined — device health, card-group contracts, measurement discipline → `ascend-device-health` |
 | ascend-ai-coding/awesome-ascend-skills @ 75ec89c | full (`skills/`, `external/cannbot/`) | mined — graph mode, operator profiling/tuning, tiling design → `ascend-graph-mode`, `ascend-operator-profiling`, `ascend-operator-tuning`, `ascendc-tiling-design` | located-not-mined — `external/cannbot/model/model-infer-kvcache` identified, not extracted | mined — device-side prefetch + diffusers CPU-offload playbook → `weight-loading-optimization`; disk-level: negative | located-not-mined — hccl-test / torch-npu-comm-test read for contention preflight only | mined — env checks, device-busy preflight, thread/env tables → `os-process-placement` |
@@ -296,3 +297,23 @@ rather than restating it; that case shares this campaign lineage.
 
 The two primary matrices are unchanged in authority; this is a reconciliation
 note, not a third inventory. All NPU status for Drama3 remains `unverified`.
+
+## MLX framework source extraction
+
+| Source / revision | Inspected scope | Extraction and limits |
+|---|---|---|
+| ml-explore/mlx @ `bff10220c742907f0c68e55ff174aaea56f74e3d` (MIT) | `ops.cpp::add`, Python eval bindings, `transforms.cpp::eval_impl`, array availability/detach, CPU/Metal/CUDA eval retention paths, selected native test source and build conditions | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md), with [pinned readset](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md): three framework mechanisms; CODE and unexecuted TEST-SOURCE, empirical validation not_run; no model/service/performance or installed-backend qualification |
+
+This framework owner does not implement MLX discovery or claim the separate
+MLX-LM application/cache layer. The generated abstract is a discovery projection,
+not an additional source or validated mechanism.
+
+## MLX-LM application source extraction
+
+| Source / revision | Inspected scope | Extraction and limits |
+|---|---|---|
+| ml-explore/mlx-lm @ `ab7f7048dc341ced2d84b1887eeb17d60b0d1b02` (MIT) | `generate_step`/`stream_generate`, BatchGenerator stage/removal and row filtering, cache factory/KV/BatchKV/LRU prefix paths, selected server model-key/batching/stop branches and native test source | [generation-cache-lifecycle](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md), with [pinned readset](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/source-map.md): three application mechanisms; CODE and unexecuted TEST-SOURCE; empirical validation not_run, no model/service/backend or matched-performance qualification |
+
+MLX-LM owns request/token/cache policy. This source pin does not qualify its
+compatibility with the separately pinned MLX framework or implement discovery.
+The generated abstract is a projection, not independent corroboration.
