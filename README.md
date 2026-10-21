@@ -8,7 +8,7 @@
 [![CLI](https://img.shields.io/badge/Interface-CLI-14B8A6?style=flat-square)](docs/quickstart.md)
 [![vLLM-Omni PR](https://img.shields.io/badge/vLLM--Omni-Upstream_PR-8B5CF6?style=flat-square)](https://github.com/vllm-project/vllm-omni/pull/8739)
 
-[Why InferRSI](#why-inferrsi) · [Results](#results) · [Quickstart](#quickstart) · [Architecture](#architecture) · [Docs](#docs)
+[Why InferRSI](#why-inferrsi) · [How It Works](#how-it-works) · [Results](#results) · [Quickstart](#quickstart) · [Architecture](#architecture) · [Docs](#docs)
 
 </div>
 
@@ -23,6 +23,52 @@ InferRSI is a **CLI workbench for inference optimization with coding agents**. B
 - **Keep the lessons.** Search prior experience and export cited context for Codex or other coding agents.
 
 You drive profiling and code changes; InferRSI runs and evaluates the benchmark and validation commands you provide.
+
+<a id="how-it-works"></a>
+
+## 🔁 How It Works
+
+The target workflow connects **CLI**, **Harness**, and **Knowledge Base**. This
+is an orchestration view: model protocols and repository/hardware behavior stay
+in the [Model and Infra adapters](docs/architecture.md#module-responsibilities-and-dependencies).
+
+- **CLI** resolves the declared model, backend, workload, metric, quality command,
+  and budget into a `RunSpec`. `plan` previews the specification; `run` records a
+  snapshot. Previewing a specification does not freeze campaign gates or authorize
+  execution. Public configuration uses CLI arguments; JSON holds evidence and
+  internal metadata.
+- **Harness** connects **Analyze → Generate → Execute → Evaluate** in the target
+  loop. Today its shared runner owns alternating AB/BA trials, deadlines, source
+  checks, evidence and evaluation. Model-specific validators check the declared
+  quality scope. Complete comparisons can pass or fail the frozen gates; missing
+  or interrupted evidence remains `INCONCLUSIVE`. Each decision retains its
+  evidence and actual `PASS` / `FAIL` / `INCONCLUSIVE` verdict.
+- **Knowledge Base** supplies source-pinned records, skills and cases through
+  search and normalized Collect/Read operations. The explicitly authorized local
+  `KnowledgeStore` can create or update store-owned **candidates**, preserving
+  revisions and evidence. Neither a successful experiment nor a store write
+  automatically promotes knowledge or proves a new environment locally validated.
+
+<a href="docs/assets/inferrsi-loop.mp4">
+  <picture>
+    <source media="(prefers-reduced-motion: reduce)" srcset="docs/assets/inferrsi-loop.png">
+    <img src="docs/assets/inferrsi-loop.gif" alt="InferRSI target workflow: CLI resolves RunSpec; Harness loops through Analyze, Generate, Execute and Evaluate with Knowledge Base context" width="1280">
+  </picture>
+</a>
+
+The animation illustrates one task: `C001` misses its performance target and
+feeds back into the Harness; `C002` passes the required gates and exits.
+Knowledge retrieval and reviewed storage are separate flows. These are synthetic
+states, not measured results; the dark, 2:1 animation repeats a 10-second cycle at
+2× playback. [Watch the MP4](docs/assets/inferrsi-loop.mp4) for smoother playback.
+
+**Human/agent-driven today:** profiling, candidate changes and the decision to
+start another comparison. `--agent` is a handoff label, not an agent launcher.
+Automatic candidate search, evidence-to-knowledge promotion and knowledge-driven
+RunSpec population remain planned. Target completion or budget exhaustion returns
+available artifacts and the real verdict; it cannot turn missing evidence into
+`PASS`. See the [operation guide](docs/operations.md) for current entrypoints and
+effect boundaries.
 
 ## Choose your starting path
 
