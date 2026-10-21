@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1dc42b312cbe82d33dcfd6a7ff21252087f80467/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
-      "commit": "1dc42b312cbe82d33dcfd6a7ff21252087f80467",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/22dc62d6b602982012c96a95e433998a01a9a5fa/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "commit": "22dc62d6b602982012c96a95e433998a01a9a5fa",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:diffusers-invocation-state",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "e106650ca07dc42a98dea679c681e02f440411d25a131e081093404254154958",
-    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "c4bf7efaa706e4c6d199f84a449f1e4bfa3de13cdca6a008ca36bd3d8491d73b",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "a50b84089c98d81aad9feb8d00321ab2ccae360c9a4aa3b4b348b6f429e1fea2",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7",
@@ -77,7 +77,8 @@
           "src/diffusers/pipelines/flux/pipeline_flux.py",
           "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
           "tests/pipelines/flux/test_pipeline_flux.py",
-          "setup.py"
+          "setup.py",
+          "LICENSE"
         ],
         "readset": "references/source-map.md"
       }
