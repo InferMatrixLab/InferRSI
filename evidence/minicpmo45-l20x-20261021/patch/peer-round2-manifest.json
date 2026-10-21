@@ -15,6 +15,11 @@
       "source_revision": "d255857c1d1441ba77362da6d4cb628fa5dc47a8",
       "patch": "peer-round2-batch-prompt-setup.patch",
       "status": "Exploratory implementation; not quality/performance qualified"
+    },
+    "cfm-only-fp16": {
+      "source_revision": "4671fdc3736c760f1abd637e30079b3cf65d1fdf",
+      "patch": "peer-round2-cfm-only-fp16.patch",
+      "status": "Exploratory implementation; service/quality screen pending, no qualification"
     }
   },
   "note": "Apply each patch independently to the base. Default behavior remains unchanged unless the corresponding opt-in config is enabled. Do not combine or promote failed candidates as a qualified release."

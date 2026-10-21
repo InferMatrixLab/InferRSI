@@ -8,11 +8,13 @@
     "HiFT scoped TF32 implementation and screening",
     "FP32 microbatch16 screening",
     "Prompt setup batching implementation and failed numerical gate",
-    "Independent stage2 profiler"
+    "Independent stage2 profiler",
+    "CFM graph capacity128 negative screen",
+    "HiFT exact batch1/2/4 screen"
   ],
   "active": [
-    "CFM graph capacity128 screening",
-    "HiFT exact batch1/2/4 graph screening"
+    "Selective CFM-only FP16 service/quality screen",
+    "Component timing diagnostic"
   ],
   "reserved_holdout_used": false,
   "quality_margins": {

@@ -1,0 +1,11 @@
+{
+  "scope": "Diagnostic only; no service throughput attribution",
+  "questions": [
+    "How much sequential prompt preparation is spent in S3, CAM++, CPU fbank/mels?",
+    "What are warm graph setup and continuation costs?"
+  ],
+  "cohort": "Four already-used six-second tuning references from setup probe; no holdout",
+  "timing": "CUDA synchronize around nested calls; inclusive wall times; first iteration excluded",
+  "resources": "Prompt diagnostic on own idle ASR reservation with allocator cap4.5%; separate graph setup/decode diagnostic queued on exclusive GPU6 after service screen",
+  "limitations": "Component timings do not equal E2E time; shared-host effects and synchronization remove overlap."
+}

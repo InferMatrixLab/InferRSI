@@ -8,7 +8,8 @@ The requester asked to continue until vLLM-Omni exceeds the source-pinned single
 - [Peer repeated baseline](results/peer-round2-baseline.json): exploratory mean C16/C32 throughput1698.4/2532.2 frames/s; final candidate confirmation still requires equivalent repeated comparison. The fast peer profile is not the speech-quality reference.
 - [Screening speech quality](results/peer-round2-screen-quality.json), [FP16 dispatch correction](results/peer-round2-dispatch-screen.json), and [FP32 batch-width screen](results/peer-round2-batch16-screen.json). Reused64-prompt screens do not establish final acceptance.
 - [Rejected prompt-setup numerical result](results/peer-round2-setup-numerical.json), [HiFT precision screen](results/peer-round2-screen-hift-tf32-mps.json), and [FP16 residency screen](results/peer-round2-screen-fp16-resident16-mps.json).
-- [Independent operator profile](results/peer-round2-stage2-profile.json) motivates the [active graph-coverage trials](plan/peer-round2-graph-coverage.json). Profiled requests are excluded from performance aggregates.
+- [Independent operator profile](results/peer-round2-stage2-profile.json) motivates the [completed graph-coverage trials](results/peer-round2-graph-screens.json). Profiled requests are excluded from performance aggregates.
+- [Active selective CFM precision trial](plan/peer-round2-cfm-only-fp16.json), retaining the FP32 encoder; no quality claim until scoring.
 - [Reproducible exploratory implementation patches](patch/peer-round2-manifest.json); none is presented as a qualified peer-beating release.
 
 
