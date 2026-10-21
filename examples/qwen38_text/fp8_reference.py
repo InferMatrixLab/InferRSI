@@ -3,6 +3,7 @@
 Imports remain lazy so control-plane smoke requires no Torch or kernel package.
 """
 
+import copy
 import hashlib
 import json
 import os
@@ -83,19 +84,70 @@ def recheck_reference_kernel(record):
         raise ValueError("Reference kernel source changed during execution")
 
 
-def inspect_reference_fp8(model, torch, fp8_linear_type, expected_count):
+def expected_fp8_modules(index):
+    """Derive text projections from authenticated checkpoint scale/weight pairs."""
+    weights = index["weight_map"]
+    if (not isinstance(weights, dict)
+            or any(not isinstance(key, str) or not isinstance(value, str)
+                   for key, value in weights.items())):
+        raise ValueError("Reference FP8 weight index is invalid")
+    suffix = ".weight_scale_inv"
+    names = {name[:-len(suffix)] for name in weights
+             if name.startswith("model.language_model.layers.") and name.endswith(suffix)}
+    if not names or any(name + ".weight" not in weights for name in names):
+        raise ValueError("Reference FP8 checkpoint projection coverage missing")
+    return names
+
+
+def adapt_reference_config(config, index, module_names):
+    """Remove only nonexistent dense gate aliases that shadow indexed gate_proj.
+
+    Transformers' skip matcher treats skip entries as unanchored regex prefixes.
+    The official dense checkpoint also contains MoE-only `.mlp.gate` aliases;
+    those incorrectly exclude `.mlp.gate_proj`. A real meta model's module tree
+    and the authenticated index must independently confirm each exact removal.
+    """
+    expected = expected_fp8_modules(index)
+    layers = config["text_config"]["num_hidden_layers"]
+    if (config.get("model_type") != "qwen3_5" or type(layers) is not int or layers <= 0
+            or not expected.issubset(module_names)):
+        raise ValueError("Reference configuration/module tree mismatch")
+    skip = config["quantization_config"]["modules_to_not_convert"]
+    if not isinstance(skip, list) or any(not isinstance(name, str) for name in skip):
+        raise ValueError("Reference exclusion list is invalid")
+    aliases = [f"model.language_model.layers.{layer}.mlp.gate" for layer in range(layers)]
+    if any(alias in module_names or skip.count(alias) != 1 or alias + "_proj" not in expected
+           for alias in aliases):
+        raise ValueError("Reference dense gate alias identity is not established")
+    adapted = copy.deepcopy(config)
+    adapted["quantization_config"]["modules_to_not_convert"] = [
+        name for name in skip if name not in aliases]
+
+    def identity(value):
+        return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"),
+                                         allow_nan=False).encode()).hexdigest()
+
+    return adapted, {"policy": "remove_nonexistent_dense_gate_aliases", "version": 1,
+                     "original_config_sha256": identity(config),
+                     "adapted_config_sha256": identity(adapted),
+                     "config_identity_encoding": "sorted_compact_json_utf8",
+                     "removed_exclusions": aliases,
+                     "expected_fp8_modules": sorted(expected)}
+
+
+def inspect_reference_fp8(model, torch, fp8_linear_type, expected_names):
     quantizer = getattr(model, "hf_quantizer", None)
     quant = getattr(quantizer, "quantization_config", None)
     if (quant is None or getattr(quant, "dequantize", None) is not False
             or getattr(quant, "activation_scheme", None) != "dynamic"
             or list(getattr(quant, "weight_block_size", ()) or ()) != [128, 128]):
         raise ValueError("Reference is dequantized or has unsupported FP8 execution")
-    count = 0
+    names = set()
     upcasts = 0
-    for module in model.modules():
+    for name, module in model.named_modules():
         if not isinstance(module, fp8_linear_type):
             continue
-        count += 1
+        names.add(name)
         if module.weight_scale_inv.dtype == torch.bfloat16:
             module.weight_scale_inv.data = module.weight_scale_inv.data.float()
             upcasts += 1
@@ -105,9 +157,11 @@ def inspect_reference_fp8(model, torch, fp8_linear_type, expected_count):
                 or module.activation_scheme != "dynamic"
                 or module.activation_scale is not None):
             raise ValueError("Reference FP8 linear has dequantized or mismatched tensors")
-    if type(expected_count) is not int or expected_count <= 0 or count != expected_count:
+    if (not isinstance(expected_names, (set, frozenset))
+            or not expected_names or names != expected_names):
         raise ValueError("Reference FP8 module coverage differs from checkpoint")
-    return {"execution": "transformers_fp8", "fp8_linear_modules": count, "dequantized": False,
+    return {"execution": "transformers_fp8", "fp8_linear_modules": len(names),
+            "fp8_module_names": sorted(names), "dequantized": False,
             "backend": "finegrained_fp8", "weight_dtype": "float8_e4m3fn",
             "activation_dtype": "bfloat16", "scale_dtype": "float32",
             "scale_normalization": "lossless_float32", "bf16_scale_upcasts": upcasts}

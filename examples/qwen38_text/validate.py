@@ -5,6 +5,7 @@ implementation evidence. Neither scope establishes general quality/performance.
 """
 
 import argparse
+import copy
 import hashlib
 import json
 import math
@@ -18,6 +19,7 @@ if __package__:
         FP8_MODEL_ID,
         MODEL_IDS,
         check_precision,
+        validate_config,
         validate_native_loading,
     )
 else:
@@ -26,6 +28,7 @@ else:
         FP8_MODEL_ID,
         MODEL_IDS,
         check_precision,
+        validate_config,
         validate_native_loading,
     )
 
@@ -184,9 +187,68 @@ def validate_reference_kernel(record, revision, snapshot):
     return kernel
 
 
+def reference_adaptation_contract(model_path, manifest):
+    """Independently derive identities from frozen-manifest-authenticated metadata."""
+    if model_path is None:
+        raise ValueError("FP8 validation requires checkpoint metadata")
+    if __package__:
+        from .trial import model_file
+    else:
+        from trial import model_file
+    entries = {}
+    for entry in manifest["files"]:
+        if entry["path"] in entries:
+            raise ValueError("Duplicate manifest identity")
+        entries[entry["path"]] = entry
+    metadata = {}
+    for name in ("config.json", "model.safetensors.index.json"):
+        path = model_file(Path(model_path), name)
+        item = entries[name]
+        payload = path.read_bytes()
+        if hashlib.sha256(payload).hexdigest() != item["sha256"] or len(payload) != item["size"]:
+            raise ValueError("Reference metadata differs from frozen manifest")
+        metadata[name] = require_object(json.loads(payload))
+    config = metadata["config.json"]
+    validate_config(config, FP8_MODEL_ID)
+    weights = require_object(metadata["model.safetensors.index.json"]["weight_map"])
+    if any(not isinstance(key, str) or not isinstance(value, str)
+           for key, value in weights.items()):
+        raise ValueError("Reference weight index is invalid")
+    suffix = ".weight_scale_inv"
+    names = sorted(name[:-len(suffix)] for name in weights
+                   if name.startswith("model.language_model.layers.") and name.endswith(suffix))
+    if not names or any(name + ".weight" not in weights for name in names):
+        raise ValueError("Reference metadata lacks FP8 pairs")
+    layers = config["text_config"]["num_hidden_layers"]
+    if type(layers) is not int or layers <= 0:
+        raise ValueError("Reference metadata layer count invalid")
+    aliases = [f"model.language_model.layers.{layer}.mlp.gate" for layer in range(layers)]
+    skip = config["quantization_config"]["modules_to_not_convert"]
+    if (not isinstance(skip, list) or any(not isinstance(name, str) for name in skip)
+            or any(skip.count(alias) != 1 or alias + "_proj" not in names for alias in aliases)):
+        raise ValueError("Reference metadata gate alias mismatch")
+    adapted = copy.deepcopy(config)
+    adapted["quantization_config"]["modules_to_not_convert"] = [
+        name for name in skip if name not in aliases]
+    def identity(value):
+        return hashlib.sha256(json.dumps(value, sort_keys=True, separators=(",", ":"),
+                                         allow_nan=False).encode()).hexdigest()
+    return {"policy": "remove_nonexistent_dense_gate_aliases", "version": 1,
+            "original_config_sha256": identity(config), "adapted_config_sha256": identity(adapted),
+            "config_identity_encoding": "sorted_compact_json_utf8",
+            "removed_exclusions": aliases, "expected_fp8_modules": names}
+
+
+def validate_adaptation_record(loading, contract):
+    if (loading.get("config_adaptation") != contract
+            or loading.get("fp8_module_names") != contract["expected_fp8_modules"]
+            or loading.get("fp8_linear_modules") != len(contract["expected_fp8_modules"])):
+        raise ValueError("Reference adaptation/module identity differs from authenticated metadata")
+
+
 def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_floor,
              qualification_scope="reference_self_check", model_id=BF16_MODEL_ID,
-             fp8_kernel_revision=None, fp8_kernel_sha256=None):
+             fp8_kernel_revision=None, fp8_kernel_sha256=None, model_path=None):
     import numpy as np
 
     for number in (max_nrmse, min_top1, rms_floor):
@@ -208,6 +270,7 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
     if fp8:
         require_digest(fp8_kernel_revision, r"[0-9a-f]{40}")
         require_digest(fp8_kernel_sha256)
+    adaptation_contract = reference_adaptation_contract(model_path, manifest) if fp8 else None
     if spec.get("model", None if fp8 else model_id) != model_id:
         raise ValueError("RunSpec model identity differs from requested profile")
     if native:
@@ -284,6 +347,7 @@ def validate(run_dir, workload_path, manifest_path, max_nrmse, min_top1, rms_flo
                     kernel = validate_reference_kernel(
                         record, fp8_kernel_revision, fp8_kernel_sha256,
                     )
+                    validate_adaptation_record(record["fp8_loading"], adaptation_contract)
                     if reference_kernel is None:
                         reference_kernel = kernel
                     elif reference_kernel != kernel:
@@ -381,6 +445,7 @@ def main():
     parser.add_argument("--model-id", choices=MODEL_IDS, default=BF16_MODEL_ID)
     parser.add_argument("--fp8-kernel-revision")
     parser.add_argument("--fp8-kernel-sha256")
+    parser.add_argument("--model-path", type=Path)
     for name in ("run-dir", "workload", "manifest", "output"):
         parser.add_argument("--" + name, required=True, type=Path)
     for name in ("max-nrmse", "min-top1", "rms-floor"):
@@ -391,7 +456,8 @@ def main():
     try:
         result = validate(args.run_dir, args.workload, args.manifest,
                           args.max_nrmse, args.min_top1, args.rms_floor, args.qualification_scope,
-                          args.model_id, args.fp8_kernel_revision, args.fp8_kernel_sha256)
+                          args.model_id, args.fp8_kernel_revision, args.fp8_kernel_sha256,
+                          args.model_path)
     except (OSError, ValueError, KeyError, TypeError, ImportError, zipfile.BadZipFile) as exc:
         # Do not echo exception strings, which may contain private runtime paths.
         result = {"verdict": "INCONCLUSIVE", "qualification_scope": args.qualification_scope,

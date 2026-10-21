@@ -7,6 +7,7 @@ GPU dependencies are imported only after input integrity checks.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import importlib.util
 import json
@@ -54,6 +55,11 @@ REQUIRED = {
     "tokenizer.json",
     "model.safetensors.index.json",
 }
+TRIAL_STAGES = frozenset({
+    "setup", "integrity", "workload", "kernel", "imports", "device", "tokenization",
+    "config_adaptation", "checkpoint_load", "loading_info", "fp8_inspection",
+    "result_metadata", "logits", "finalization",
+})
 
 
 def sha256_file(path: Path) -> str:
@@ -198,13 +204,16 @@ def kernel_policy() -> dict:
 
 
 def run(args: argparse.Namespace) -> dict:
+    args._trial_stage = "setup"
     scope = getattr(args, "qualification_scope", "reference_self_check")
     if scope not in {"reference_self_check", "native_text_smoke"}:
         raise ValueError("Unknown qualification scope")
     if scope == "native_text_smoke" and args.mode != "full":
         raise ValueError("Native smoke reference must use full-prefix recomputation")
     model_id = getattr(args, "model_id", MODEL_ID)
+    args._trial_stage = "integrity"
     manifest_hash = verify_manifest(args.model_path, args.manifest, args.model_revision, model_id)
+    args._trial_stage = "workload"
     cases, workload_hash = load_workload(args.workload, model_id)
     config = json.loads(model_file(args.model_path, "config.json").read_bytes())
     vocab_size = config["text_config"]["vocab_size"]
@@ -212,6 +221,7 @@ def run(args: argparse.Namespace) -> dict:
         raise ValueError("Expected positive text vocabulary size")
     if args.output.exists():
         raise ValueError("Refusing to overwrite an existing trial result")
+    args._trial_stage = "kernel"
     policy = kernel_policy()
     reference_kernel = None
     if model_id == FP8_MODEL_ID:
@@ -224,23 +234,49 @@ def run(args: argparse.Namespace) -> dict:
         )
         policy = {**policy, "fp8_linear": "finegrained_fp8", "deepgemm": False}
     # CPU-only smoke checks must not import optional GPU packages.
+    args._trial_stage = "imports"
     import numpy as np
     import torch
     import transformers
     from transformers import AutoTokenizer, Qwen3_5ForConditionalGeneration
 
+    args._trial_stage = "device"
     if not torch.cuda.is_available() or torch.cuda.device_count() != 1:
         raise ValueError("Trial requires exactly one visible CUDA GPU")
     if not torch.cuda.is_bf16_supported():
         raise ValueError("Visible CUDA GPU does not support BF16")
     if torch.cuda.get_device_name(0) != args.device_model:
         raise ValueError("Visible CUDA GPU differs from frozen device model")
+    args._trial_stage = "tokenization"
     tokenizer = AutoTokenizer.from_pretrained(
         args.model_path,
         local_files_only=True,
         trust_remote_code=False,
     )
     tokens = [tokenize_case(tokenizer, case) for case in cases]
+    load_options = {}
+    adaptation = None
+    expected_names = None
+    if model_id == FP8_MODEL_ID:
+        args._trial_stage = "config_adaptation"
+        if __package__:
+            from .fp8_reference import adapt_reference_config, expected_fp8_modules
+        else:
+            from fp8_reference import adapt_reference_config, expected_fp8_modules
+        from transformers import Qwen3_5Config
+        index = json.loads(model_file(args.model_path, "model.safetensors.index.json").read_bytes())
+        expected_names = expected_fp8_modules(index)
+        meta_config = Qwen3_5Config.from_dict(copy.deepcopy(config))
+        meta_config._attn_implementation = "eager"
+        with torch.device("meta"):
+            skeleton = Qwen3_5ForConditionalGeneration(meta_config)
+        if any(parameter.device.type != "meta" for parameter in skeleton.parameters()):
+            raise ValueError("Reference configuration inspection allocated real parameters")
+        adapted, adaptation = adapt_reference_config(
+            config, index, set(dict(skeleton.named_modules())))
+        del skeleton
+        load_options["config"] = Qwen3_5Config.from_dict(adapted)
+    args._trial_stage = "checkpoint_load"
     model, loading = Qwen3_5ForConditionalGeneration.from_pretrained(
         args.model_path,
         dtype=torch.bfloat16,
@@ -251,20 +287,25 @@ def run(args: argparse.Namespace) -> dict:
         attn_implementation="eager",
         use_kernels=False,
         output_loading_info=True,
+        **load_options,
     )
+    args._trial_stage = "loading_info"
     if any(loading.get(key) for key in ("missing_keys", "mismatched_keys", "error_msgs")):
         raise ValueError("Reference checkpoint did not load all required parameters")
+    if any(name.startswith(("model.language_model.", "lm_head."))
+           for name in loading.get("unexpected_keys", ())):
+        raise ValueError("Reference checkpoint has unexpected text parameters")
     fp8_loading = None
     if model_id == FP8_MODEL_ID:
+        args._trial_stage = "fp8_inspection"
         if __package__:
             from .fp8_reference import inspect_reference_fp8
         else:
             from fp8_reference import inspect_reference_fp8
         from transformers.integrations.finegrained_fp8 import FP8Linear
-        index = json.loads(model_file(args.model_path, "model.safetensors.index.json").read_bytes())
-        expected_count = sum(name.startswith("model.language_model.layers.")
-                             and name.endswith(".weight_scale_inv") for name in index["weight_map"])
-        fp8_loading = inspect_reference_fp8(model, torch, FP8Linear, expected_count)
+        fp8_loading = inspect_reference_fp8(model, torch, FP8Linear, expected_names)
+        fp8_loading["config_adaptation"] = adaptation
+    args._trial_stage = "result_metadata"
     model.eval()
     result = {
         "schema_version": 1,
@@ -303,6 +344,7 @@ def run(args: argparse.Namespace) -> dict:
         result["source_provenance"] = capture_sources(excluded_run_dir=args.output.parents[2])
 
     def finalize(record):
+        args._trial_stage = "finalization"
         if reference_kernel is not None:
             if __package__:
                 from .fp8_reference import recheck_reference_kernel
@@ -310,6 +352,7 @@ def run(args: argparse.Namespace) -> dict:
                 from fp8_reference import recheck_reference_kernel
             recheck_reference_kernel(record["reference_kernel"])
 
+    args._trial_stage = "logits"
     return write_traces(
         result, args.output, cases, tokens,
         lambda prompt, continuation: collect_logits(model, torch, prompt, continuation, args.mode),
@@ -368,8 +411,13 @@ def main(argv: list[str] | None = None) -> int:
         run(args)
     except Exception as error:
         # Exceptions from libraries/filesystems can contain personal runtime paths.
+        stage = getattr(args, "_trial_stage", "setup")
+        if stage not in TRIAL_STAGES:
+            stage = "setup"
         print(
-            f"Trial incomplete ({type(error).__name__}); no qualification verdict", file=sys.stderr
+            json.dumps({"status": "incomplete", "stage": stage,
+                        "error_type": type(error).__name__, "qualification_verdict": None}),
+            file=sys.stderr,
         )
         return 1
     return 0

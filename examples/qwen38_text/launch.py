@@ -68,6 +68,7 @@ def main():
     validator = (sys.executable, str(example / "validate.py"),
                  "--run-dir", "{run_dir}", "--workload", str(args.workload.resolve()),
                  "--manifest", str(args.manifest.resolve()),
+                 "--model-path", str(args.model_path.resolve()),
                  "--max-nrmse", str(args.max_nrmse), "--min-top1", str(args.min_top1),
                  "--rms-floor", str(args.rms_floor), "--output", "{result}")
     baseline = trial + ("--mode", "full", "--qualification-scope", args.qualification_scope)

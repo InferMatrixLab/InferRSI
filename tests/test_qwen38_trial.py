@@ -209,6 +209,24 @@ def test_failure_message_does_not_disclose_runtime_paths(monkeypatch, capsys):
     assert result == 1
     output = capsys.readouterr()
     assert "OSError" in output.err and "example-user" not in output.err
+    assert json.loads(output.err)["stage"] == "setup"
+
+
+@pytest.mark.parametrize("stage,expected", [("checkpoint_load", "checkpoint_load"),
+                                           ("fp8_inspection", "fp8_inspection"),
+                                           ("/private/example-user", "setup")])
+def test_failure_stage_is_bounded_and_safe(monkeypatch, capsys, stage, expected):
+    def fail(args):
+        args._trial_stage = stage
+        raise ValueError("/private/example-user: injected library detail")
+    monkeypatch.setattr(trial, "run", fail)
+    assert trial.main(["--model-path", "model", "--model-revision", REVISION,
+                       "--device-model", "TEST GPU", "--manifest", "manifest",
+                       "--workload", "workload", "--mode", "full", "--output", "result"]) == 1
+    stderr = capsys.readouterr().err
+    assert json.loads(stderr) == {"status": "incomplete", "stage": expected,
+                                  "error_type": "ValueError", "qualification_verdict": None}
+    assert "example-user" not in stderr
 
 
 @pytest.fixture
@@ -308,6 +326,24 @@ def test_result_artifacts_are_linked_and_labeled_self_check(model_bundle, tmp_pa
     assert len(calls) == 2
     with pytest.raises(ValueError, match="overwrite"):
         trial.run(args)
+
+
+def test_unexpected_text_scale_is_rejected_at_loading_info(model_bundle, tmp_path, fake_runtime):
+    import sys
+
+    loader = sys.modules["transformers"].Qwen3_5ForConditionalGeneration
+    original = loader.from_pretrained
+    def unexpected(*args, **kwargs):
+        model, loading = original(*args, **kwargs)
+        loading["unexpected_keys"] = [
+            "model.language_model.layers.0.mlp.gate_proj.weight_scale_inv"]
+        return model, loading
+    loader.from_pretrained = unexpected
+    args = trial_args(model_bundle, tmp_path)
+    with pytest.raises(ValueError, match="unexpected text"):
+        trial.run(args)
+    assert args._trial_stage == "loading_info"
+    assert not args.output.exists()
 
 
 @pytest.mark.parametrize("count", [0, 2])

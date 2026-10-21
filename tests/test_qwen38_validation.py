@@ -283,7 +283,8 @@ def test_native_synthetic_traces_use_distinct_repos_in_common_loop(
         kernel = upgrade_fp8_bundle(native_bundle)
         model_id = "Qwen/Qwen3.8-27B-FP8"
         fp8_args = ("--model-id", model_id, "--fp8-kernel-revision", kernel["revision"],
-                    "--fp8-kernel-sha256", kernel["snapshot_sha256"])
+                    "--fp8-kernel-sha256", kernel["snapshot_sha256"],
+                    "--model-path", str(manifest.parent / "model-metadata"))
     if malformed:
         mutate_case(native_bundle, lambda r: r.update(loading=None))
     declared = json.loads((fixture / "run.lock.json").read_text())
@@ -421,9 +422,29 @@ def upgrade_fp8_bundle(bundle):
 
     run, workload, manifest = bundle
     profile = precision(FP8_MODEL_ID)
+    from examples.qwen38_text.fp8_reference import adapt_reference_config
+    model_path = manifest.parent / "model-metadata"
+    model_path.mkdir()
+    gate = "model.language_model.layers.0.mlp.gate"
+    projection = gate + "_proj"
+    config = {"model_type": "qwen3_5", "architectures": ["Qwen3_5ForConditionalGeneration"],
+              "text_config": {"model_type": "qwen3_5_text", "dtype": "bfloat16",
+                              "num_hidden_layers": 1},
+              "quantization_config": {**profile["quantization"],
+                                      "modules_to_not_convert": [gate, "lm_head"]}}
+    index = {"weight_map": {projection + ".weight": "layer.safetensors",
+                            projection + ".weight_scale_inv": "layer.safetensors"}}
+    files_metadata = []
+    for name, document in (("config.json", config), ("model.safetensors.index.json", index)):
+        path = model_path / name
+        path.write_text(json.dumps(document))
+        files_metadata.append({"path": name, "sha256": digest(path), "size": path.stat().st_size})
+    _adapted, adaptation = adapt_reference_config(config, index, {projection})
     for path in (workload, manifest):
         record = json.loads(path.read_text())
         record.update(model_id=FP8_MODEL_ID, precision=profile)
+        if path == manifest:
+            record["files"] = files_metadata
         path.write_text(json.dumps(record))
     spec = json.loads((run / "run.lock.json").read_text())
     spec.update(model=FP8_MODEL_ID, workload_id=digest(workload))
@@ -447,7 +468,9 @@ def upgrade_fp8_bundle(bundle):
                                      "backend": "finegrained_fp8", "weight_dtype": "float8_e4m3fn",
                                      "activation_dtype": "bfloat16", "fp8_linear_modules": 1,
                                      "scale_dtype": "float32", "bf16_scale_upcasts": 1,
-                                     "scale_normalization": "lossless_float32"}
+                                     "scale_normalization": "lossless_float32",
+                                     "config_adaptation": adaptation,
+                                     "fp8_module_names": [projection]}
         else:
             record["kernel_policy"].update(fp8_linear="triton_block_fp8")
             record["fp8_execution"] = {"modules": 1, "total_calls": 4}
@@ -475,7 +498,8 @@ def upgrade_fp8_bundle(bundle):
 def test_fp8_complete_identity_and_no_dequantized_candidate(native_bundle, mutation):
     kernel = upgrade_fp8_bundle(native_bundle)
     extra = ("--model-id", "Qwen/Qwen3.8-27B-FP8", "--fp8-kernel-revision", kernel["revision"],
-             "--fp8-kernel-sha256", kernel["snapshot_sha256"])
+             "--fp8-kernel-sha256", kernel["snapshot_sha256"],
+             "--model-path", str(native_bundle[2].parent / "model-metadata"))
     code, result = native_validator_subprocess(native_bundle, extra)
     assert code == 0 and result["verdict"] == "PASS"
     mutate_case(native_bundle, mutation)
@@ -490,6 +514,9 @@ def test_fp8_complete_identity_and_no_dequantized_candidate(native_bundle, mutat
     lambda r: r["fp8_loading"].update(dequantized=True),
     lambda r: r.update(fp8_loading=None),
     lambda r: r["kernel_policy"].update(deepgemm=True),
+    lambda r: r["fp8_loading"].update(fp8_module_names=["same_count_wrong_module"]),
+    lambda r: r["fp8_loading"]["config_adaptation"].update(removed_exclusions=[]),
+    lambda r: r["fp8_loading"]["config_adaptation"].update(adapted_config_sha256="f" * 64),
 ])
 def test_fp8_reference_kernel_and_loading_must_match_frozen_profile(native_bundle, mutation):
     kernel = upgrade_fp8_bundle(native_bundle)
@@ -498,6 +525,37 @@ def test_fp8_reference_kernel_and_loading_must_match_frozen_profile(native_bundl
     mutation(record)
     path.write_text(json.dumps(record))
     extra = ("--model-id", "Qwen/Qwen3.8-27B-FP8", "--fp8-kernel-revision", kernel["revision"],
+             "--fp8-kernel-sha256", kernel["snapshot_sha256"],
+             "--model-path", str(native_bundle[2].parent / "model-metadata"))
+    code, result = native_validator_subprocess(native_bundle, extra)
+    assert code == 2 and result["verdict"] == "INCONCLUSIVE"
+
+
+@pytest.mark.parametrize("mutation", ["no_path", "missing", "tamper", "escape", "malformed"])
+def test_fp8_reference_requires_authenticated_metadata(native_bundle, mutation, tmp_path):
+    kernel = upgrade_fp8_bundle(native_bundle)
+    model_path = native_bundle[2].parent / "model-metadata"
+    metadata = model_path / "config.json"
+    extra = ("--model-id", "Qwen/Qwen3.8-27B-FP8", "--fp8-kernel-revision", kernel["revision"],
              "--fp8-kernel-sha256", kernel["snapshot_sha256"])
+    if mutation != "no_path":
+        extra += ("--model-path", str(model_path))
+    if mutation == "missing":
+        metadata.unlink()
+    elif mutation == "tamper":
+        metadata.write_text(metadata.read_text() + " ")
+    elif mutation == "escape":
+        outside = tmp_path / "outside-config.json"
+        outside.write_bytes(metadata.read_bytes())
+        metadata.unlink()
+        metadata.symlink_to(outside)
+    elif mutation == "malformed":
+        index = model_path / "model.safetensors.index.json"
+        index.write_text(json.dumps({"weight_map": [1]}))
+        manifest = json.loads(native_bundle[2].read_text())
+        for item in manifest["files"]:
+            if item["path"] == index.name:
+                item.update(sha256=digest(index), size=index.stat().st_size)
+        native_bundle[2].write_text(json.dumps(manifest))
     code, result = native_validator_subprocess(native_bundle, extra)
     assert code == 2 and result["verdict"] == "INCONCLUSIVE"

@@ -21,17 +21,19 @@ def reference_modules():
 
     module = Linear()
     quant = NS(dequantize=False, activation_scheme="dynamic", weight_block_size=[128, 128])
-    model = NS(hf_quantizer=NS(quantization_config=quant), modules=lambda: [module])
+    model = NS(hf_quantizer=NS(quantization_config=quant),
+               named_modules=lambda: [("projection", module)])
     torch = NS(float8_e4m3fn="fp8", float32="fp32", bfloat16="bf16")
     return model, torch, Linear, module, quant
 
 
 def test_actual_fp8_tensor_coverage_is_required(reference_modules):
     model, torch, linear, module, _quant = reference_modules
-    assert fp8_reference.inspect_reference_fp8(model, torch, linear, 1)["dequantized"] is False
+    report = fp8_reference.inspect_reference_fp8(model, torch, linear, {"projection"})
+    assert report["dequantized"] is False
     module.weight = NS(dtype="bf16")
     with pytest.raises(ValueError, match="dequantized"):
-        fp8_reference.inspect_reference_fp8(model, torch, linear, 1)
+        fp8_reference.inspect_reference_fp8(model, torch, linear, {"projection"})
 
 
 @pytest.mark.parametrize("field,value", [("dequantize", True), ("activation_scheme", "static"),
@@ -40,13 +42,99 @@ def test_reference_quantizer_fallback_is_rejected(reference_modules, field, valu
     model, torch, linear, _module, quant = reference_modules
     setattr(quant, field, value)
     with pytest.raises(ValueError):
-        fp8_reference.inspect_reference_fp8(model, torch, linear, 1)
+        fp8_reference.inspect_reference_fp8(model, torch, linear, {"projection"})
 
 
 def test_partial_fp8_model_is_rejected(reference_modules):
     model, torch, linear, _module, _quant = reference_modules
     with pytest.raises(ValueError, match="coverage"):
-        fp8_reference.inspect_reference_fp8(model, torch, linear, 2)
+        fp8_reference.inspect_reference_fp8(model, torch, linear, {"projection", "missing"})
+
+
+def test_same_count_wrong_fp8_projection_is_rejected(reference_modules):
+    model, torch, linear, _module, _quant = reference_modules
+    with pytest.raises(ValueError, match="coverage"):
+        fp8_reference.inspect_reference_fp8(model, torch, linear, {"different_projection"})
+
+
+@pytest.fixture
+def dense_alias_config():
+    gate = "model.language_model.layers.0.mlp.gate"
+    projection = gate + "_proj"
+    config = {"model_type": "qwen3_5", "text_config": {"num_hidden_layers": 1},
+              "quantization_config": {"modules_to_not_convert": [gate, "lm_head", "model.visual"]}}
+    index = {"weight_map": {projection + ".weight": "layer.safetensors",
+                            projection + ".weight_scale_inv": "layer.safetensors"}}
+    return config, index, {projection, "lm_head", "model.visual"}, gate, projection
+
+
+def test_dense_alias_repair_preserves_original_and_true_exclusions(dense_alias_config):
+    import copy
+    import re
+
+    config, index, names, gate, projection = dense_alias_config
+    original = copy.deepcopy(config)
+    # The installed Transformers matcher accepts a regex prefix without a boundary.
+    assert re.match(gate, projection)
+    adapted, record = fp8_reference.adapt_reference_config(config, index, names)
+    assert config == original
+    assert adapted["quantization_config"]["modules_to_not_convert"] == ["lm_head", "model.visual"]
+    assert record["removed_exclusions"] == [gate]
+    assert record["expected_fp8_modules"] == [projection]
+    assert record["original_config_sha256"] != record["adapted_config_sha256"]
+    assert record == fp8_reference.adapt_reference_config(config, index, names)[1]
+
+
+def test_installed_transformers_dense_gate_prefix_regression(dense_alias_config):
+    """Exercise the real installed matcher/replacement, without weights or a GPU."""
+    torch = pytest.importorskip("torch")
+    pytest.importorskip("transformers")
+    from transformers.integrations.finegrained_fp8 import FP8Linear, replace_with_fp8_linear
+    from transformers.utils.quantization_config import FineGrainedFP8Config
+
+    config, index, _names, _gate, projection = dense_alias_config
+    def skeleton():
+        root = torch.nn.Module()
+        parent = root
+        for component in projection.split(".")[:-1]:
+            child = torch.nn.Module()
+            parent.add_module(component, child)
+            parent = child
+        with torch.device("meta"):
+            parent.add_module("gate_proj", torch.nn.Linear(128, 128, bias=False))
+        return root
+
+    original = skeleton()
+    quant = FineGrainedFP8Config(activation_scheme="dynamic", weight_block_size=[128, 128])
+    replace_with_fp8_linear(
+        original, config["quantization_config"]["modules_to_not_convert"], quant, True)
+    assert type(original.get_submodule(projection)) is torch.nn.Linear
+    repaired = skeleton()
+    adapted, _record = fp8_reference.adapt_reference_config(
+        config, index, set(dict(repaired.named_modules())))
+    replace_with_fp8_linear(
+        repaired, adapted["quantization_config"]["modules_to_not_convert"], quant, True)
+    assert isinstance(repaired.get_submodule(projection), FP8Linear)
+    assert repaired.get_submodule(projection).weight.device.type == "meta"
+
+
+@pytest.mark.parametrize("change", ["real_gate", "missing_projection", "missing_weight",
+                                    "missing_scale", "missing_alias", "duplicate_alias"])
+def test_alias_repair_requires_model_and_checkpoint_agreement(dense_alias_config, change):
+    config, index, names, gate, projection = dense_alias_config
+    if change == "real_gate":
+        names.add(gate)
+    elif change == "missing_projection":
+        names.remove(projection)
+    elif change in {"missing_weight", "missing_scale"}:
+        suffix = ".weight" if change == "missing_weight" else ".weight_scale_inv"
+        del index["weight_map"][projection + suffix]
+    elif change == "missing_alias":
+        config["quantization_config"]["modules_to_not_convert"].remove(gate)
+    else:
+        config["quantization_config"]["modules_to_not_convert"].append(gate)
+    with pytest.raises(ValueError):
+        fp8_reference.adapt_reference_config(config, index, names)
 
 
 @pytest.fixture
@@ -120,7 +208,7 @@ def test_reference_scale_upcast_is_explicit_and_recorded(reference_modules):
             return NS(dtype="fp32")
 
     module.weight_scale_inv = Scale()
-    result = fp8_reference.inspect_reference_fp8(model, torch, linear, 1)
+    result = fp8_reference.inspect_reference_fp8(model, torch, linear, {"projection"})
     assert result["bf16_scale_upcasts"] == 1
     assert result["scale_dtype"] == "float32"
     assert module.weight.dtype == "fp8"
