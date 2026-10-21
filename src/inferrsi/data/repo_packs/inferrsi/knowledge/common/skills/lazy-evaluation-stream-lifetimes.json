@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e3a82241132debf4cd469863024fc9de53b1dbcc/src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
-      "commit": "e3a82241132debf4cd469863024fc9de53b1dbcc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/de072b9faf40ee5e54d2788d9b00aba24fae968d/src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+      "commit": "de072b9faf40ee5e54d2788d9b00aba24fae968d",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/metadata.json",
@@ -42,9 +42,9 @@
   "checkout_ref": "checkout:lazy-evaluation-stream-lifetimes",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md": "a95569bcc0da6e715fd74783a6a1e0489e92b680c582f15dafbf98df589d505a",
-    "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/metadata.json": "44cd6e812606ace54060d81062dcae07ae6197e8521a81e52c884ec0b9e26490",
+    "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/metadata.json": "b6b37bc285c9a2177fc3082d7690ebd45b2b771cdc838af02d2e1c7f7dc7dde7",
     "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md": "c4bc41e08aca68f661325f61e6f0db1760a079dc362f295c847bdc374fee3bf6",
-    "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md": "ccbc70ece4e910b5f3734617cd189fb61b6bb75bd652d2add7a59663d478f83e",
+    "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md": "798b9cb89ed6b885eb47464ca9f137d2802a54571b9327e631d7742d3e5abd5d",
     "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/validation.md": "ebfc00bf7d6ab0a1dc415953ae84d56ccdc713d5614aff85e433c4a843793bff",
     "src/inferrsi/data/skill_library/skill-index.json": "4dce86af5b35cb3f1d8234f50350c62eef82b1f61102fb62346f23b0dcaf4f18"
   },
@@ -80,7 +80,15 @@
           "mlx/backend/metal/eval.cpp",
           "mlx/backend/cuda/eval.cpp",
           "python/src/transforms.cpp",
-          "python/tests/test_eval.py"
+          "python/tests/test_eval.py",
+          "LICENSE",
+          "mlx/scheduler.cpp",
+          "python/tests/test_memory.py",
+          "CMakeLists.txt",
+          "setup.py",
+          "python/tests/test_device.py",
+          "python/tests/mlx_tests.py",
+          ".github/workflows/build_and_test.yml"
         ],
         "readset": "references/source-map.md"
       }
