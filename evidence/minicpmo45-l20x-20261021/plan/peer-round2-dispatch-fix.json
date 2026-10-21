@@ -1,0 +1,8 @@
+{
+  "frozen_at_utc": "2026-10-21T06:48:06.501149+00:00",
+  "parent_revision": "86732dde68fcfc90455e2db663c85f6e4fbc375d",
+  "hypothesis": "Enable CUDA FP16 at the remaining _ragged_body runtime gate; test the actual service dispatch against the ragged numerical reference.",
+  "validation": "New dispatch test must fail on parent then pass after fix; rerun DiT regressions before service screen.",
+  "service": "Same64 tuning prompts,C1/C16/C32,discard plus one measured repeat; only runtime dispatch changed vs nominal fp16-fused screen.",
+  "quality": "Existing noninferiority margins unchanged; reserved256 remain unused."
+}

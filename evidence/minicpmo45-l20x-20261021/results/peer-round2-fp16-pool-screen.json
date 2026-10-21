@@ -1,0 +1,55 @@
+{
+  "source_revision": "86732dde68fcfc90455e2db663c85f6e4fbc375d",
+  "verdict": "FAIL",
+  "scope": "Screening throughput regression only; quality qualification pending.",
+  "cells": {
+    "1": {
+      "throughput_frames_s": 190.1563748436996,
+      "ttfa_p50_s": 0.3220428288914263,
+      "ttfa_p95_s": 0.3682864622678607,
+      "rtf_mean": 0.13257556265977197,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "16": {
+      "throughput_frames_s": 503.4867028463122,
+      "ttfa_p50_s": 1.2908506174571812,
+      "ttfa_p95_s": 2.5626851960550994,
+      "rtf_mean": 0.7839277616593806,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "32": {
+      "throughput_frames_s": 562.2434215047659,
+      "ttfa_p50_s": 2.584794282913208,
+      "ttfa_p95_s": 4.256634762324393,
+      "rtf_mean": 1.370429968875393,
+      "n_failed": 0,
+      "n_requests": 64
+    }
+  },
+  "mechanism_correction": "Initialization accepts FP16 but _ragged_body still gates ordinary nonresident fusion on FP32 input. Resident slots use fused code; fallback rows do not. Earlier GPU numerical tests called the fused kernel directly and did not cover this service dispatch.",
+  "nominal_fused_without_pool": {
+    "1": {
+      "throughput_frames_s": 178.93305943833786,
+      "ttfa_p50_s": 0.3553368877619505,
+      "ttfa_p95_s": 0.3926191593986004,
+      "rtf_mean": 0.14193875948468465,
+      "n_failed": 0
+    },
+    "16": {
+      "throughput_frames_s": 485.79583281009093,
+      "ttfa_p50_s": 1.386609590612352,
+      "ttfa_p95_s": 2.3111644179560242,
+      "rtf_mean": 0.8048504978511333,
+      "n_failed": 0
+    },
+    "32": {
+      "throughput_frames_s": 528.1696524060178,
+      "ttfa_p50_s": 2.7802301486954093,
+      "ttfa_p95_s": 4.777805440267548,
+      "rtf_mean": 1.4424365392733642,
+      "n_failed": 0
+    }
+  }
+}

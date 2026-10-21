@@ -1,0 +1,157 @@
+{
+  "scope": "Reused64 tuning prompts; descriptive quality screening, not unused-holdout acceptance.",
+  "verdict": "INCONCLUSIVE",
+  "profiles": {
+    "screen-torch-mps": {
+      "1": {
+        "n": 64,
+        "sim": 50.0388879776001,
+        "utmos": 4.210992179811001,
+        "wer": 0.019801980198019802,
+        "wer_counts": {
+          "substitutions": 11,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 695
+        },
+        "wer_mean": 0.02427338286713287
+      },
+      "16": {
+        "n": 64,
+        "sim": 50.04513117671013,
+        "utmos": 4.222677733749151,
+        "wer": 0.019801980198019802,
+        "wer_counts": {
+          "substitutions": 9,
+          "deletions": 1,
+          "insertions": 4,
+          "hits": 697
+        },
+        "wer_mean": 0.024652170745920746
+      },
+      "32": {
+        "n": 64,
+        "sim": 51.00280150771141,
+        "utmos": 4.220405284315348,
+        "wer": 0.018387553041018388,
+        "wer_counts": {
+          "substitutions": 9,
+          "deletions": 1,
+          "insertions": 3,
+          "hits": 697
+        },
+        "wer_mean": 0.023331876456876458
+      }
+    },
+    "screen-fp16-mps": {
+      "1": {
+        "n": 64,
+        "sim": 50.12503969669342,
+        "utmos": 4.20760940387845,
+        "wer": 0.018387553041018388,
+        "wer_counts": {
+          "substitutions": 10,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 696
+        },
+        "wer_mean": 0.022971299533799533
+      },
+      "16": {
+        "n": 64,
+        "sim": 50.11029088497162,
+        "utmos": 4.227166544646025,
+        "wer": 0.016973125884016973,
+        "wer_counts": {
+          "substitutions": 7,
+          "deletions": 1,
+          "insertions": 4,
+          "hits": 699
+        },
+        "wer_mean": 0.02188774766899767
+      },
+      "32": {
+        "n": 64,
+        "sim": 51.173108011484146,
+        "utmos": 4.223404936492443,
+        "wer": 0.02263083451202263,
+        "wer_counts": {
+          "substitutions": 11,
+          "deletions": 1,
+          "insertions": 4,
+          "hits": 695
+        },
+        "wer_mean": 0.02813774766899767
+      }
+    },
+    "screen-fp16-pool-mps": {
+      "1": {
+        "n": 64,
+        "sim": 50.141796231269836,
+        "utmos": 4.207637004554272,
+        "wer": 0.018387553041018388,
+        "wer_counts": {
+          "substitutions": 10,
+          "deletions": 1,
+          "insertions": 2,
+          "hits": 696
+        },
+        "wer_mean": 0.022710882867132867
+      },
+      "16": {
+        "n": 64,
+        "sim": 50.09496396780014,
+        "utmos": 4.203806925565004,
+        "wer": 0.018387553041018388,
+        "wer_counts": {
+          "substitutions": 8,
+          "deletions": 1,
+          "insertions": 4,
+          "hits": 698
+        },
+        "wer_mean": 0.02463395979020979
+      },
+      "32": {
+        "n": 64,
+        "sim": 50.29212284088135,
+        "utmos": 4.207753740251064,
+        "wer": 0.016973125884016973,
+        "wer_counts": {
+          "substitutions": 7,
+          "deletions": 1,
+          "insertions": 4,
+          "hits": 699
+        },
+        "wer_mean": 0.022029793123543126
+      }
+    },
+    "screen-capacity32-mps": {
+      "16": {
+        "n": 64,
+        "sim": 50.58166968822479,
+        "utmos": 4.228141937404871,
+        "wer": 0.015558698727015558,
+        "wer_counts": {
+          "substitutions": 7,
+          "deletions": 1,
+          "insertions": 3,
+          "hits": 699
+        },
+        "wer_mean": 0.020609338578088575
+      },
+      "32": {
+        "n": 64,
+        "sim": 50.76721328496933,
+        "utmos": 4.218518011271954,
+        "wer": 0.026874115983026876,
+        "wer_counts": {
+          "substitutions": 13,
+          "deletions": 1,
+          "insertions": 5,
+          "hits": 693
+        },
+        "wer_mean": 0.04141899766899767
+      }
+    }
+  }
+}
