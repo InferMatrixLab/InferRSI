@@ -1,0 +1,14 @@
+{
+  "frozen_at_utc": "2026-10-21T06:17:42.002236+00:00",
+  "hypothesis": "Align all three stage capacities with C32 to remove a possible active-sequence cap; keep FP32 flow, Torch speaker, MPS and sampling unchanged.",
+  "changes": {
+    "stage_max_num_seqs": [
+      32,
+      32,
+      32
+    ],
+    "talker_kv_cache_bytes": 8589934592
+  },
+  "kv_reason": "Stage1 32*4096 maximum context needs twice the original 4GiB capacity; avoid relying on unsupported physical-preemption replay.",
+  "screen": "Original first64 tuning prompts, C16/C32, discard plus1 measured repeat; compare against native Torch+MPS screen, not independent quality qualification."
+}

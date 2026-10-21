@@ -1,0 +1,8 @@
+{
+  "recorded_at_utc": "2026-10-21T06:19:15.937522+00:00",
+  "initial_startup": "Failed before service readiness because torchaudio.load requires TorchCodec, absent from pinned engine.lock.",
+  "change": "Install torchcodec0.14.0+cu130 without dependency upgrades. All locked package versions, engine source, model and config retained.",
+  "validation": "Official HT_ref_audio.wav loads as mono96256samples at16000Hz.",
+  "source": "https://github.com/meta-pytorch/torchcodec",
+  "sample_or_gate_changes": false
+}
