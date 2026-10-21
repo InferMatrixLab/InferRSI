@@ -310,3 +310,25 @@ adds **no 🟢 cell and no measured NPU coverage**; every Drama3 NPU status is
 `unverified`, and target qualification is pending the owner-resolved
 hardware/software/model/service/evaluation/authority tuple. The five resource
 rows above remain authoritative; the two-matrix contract is unchanged.
+
+## MLX framework guidance (source-derived)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+|---|---|---|---|
+| Accelerator | Observe / Diagnose / Verify: submission versus completion, fence/event dependency ordering and selected backend dispatch | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | Pinned CPU/Metal/CUDA source paths; no native device execution or measured gain |
+| RAM / Host | Observe / Diagnose / Verify: graph-reference detachment versus in-flight Data retention and result availability | [execution/lifetime contract](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md) | Backend-specific retention mechanisms; allocator eviction and physical-memory release remain outside the readset |
+
+No new measured or green coverage is credited. Stream dependency guidance does
+not add a Communication/Network capability; no SSD or OS control is introduced.
+`common` indexing categorizes framework guidance and certifies no backend.
+
+## MLX-LM application guidance (source-derived)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+|---|---|---|---|
+| RAM / Host | Observe / Diagnose / Configure / Verify: request UID/stage/cache-row alignment, prefix identity/copy/trim/eviction and cooperative stop | [generation-cache-lifecycle](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md) | Logical cache state and allocated storage differ; native model/row/stop behavior unrun |
+| Accelerator | Observe / Diagnose / Verify: prefill cache evaluation and asynchronous decode submission/read boundary | [generation/batch contract](../src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/generation-batch.md) | Application calls MLX primitives; CPU checks cannot certify Metal/CUDA dispatch, quality or serving performance |
+
+No measured or green coverage is credited. Application batching is not a new
+Network/OS capability; no SSD mechanism is added. `common` indexes guidance and
+does not certify backend compatibility.

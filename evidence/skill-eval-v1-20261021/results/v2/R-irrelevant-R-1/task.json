@@ -1,0 +1,122 @@
+{
+  "id": "R-irrelevant",
+  "split": "development",
+  "mode": "extract",
+  "provenance": "Historical latency slices plus explicitly counterfactual test metadata; this exercise is not a new hardware measurement.",
+  "request": "Only calculate the median-of-trial-means latency reduction. Do not audit or judge acceptance. Return report_verdict=null, empty findings, claim_scope=none, and cite the latency arrays.",
+  "contract": {
+    "min_reduction_pct": 20,
+    "scope": "fixed_workload",
+    "required_regimes": [
+      "C1"
+    ],
+    "quality_required": true,
+    "all_requests_required": true,
+    "max_relative_spread_pct": 12,
+    "statistical_significance_required": false,
+    "verdict_definitions": {
+      "PASS": "Comparable and sufficient evidence satisfies all frozen acceptance gates.",
+      "FAIL": "Comparable and sufficient evidence demonstrates a quality, request-completion or gain gate violation. Do not use FAIL merely to reject an unsupported claim.",
+      "INCONCLUSIVE": "Workloads are incomparable, evidence scope is insufficient for the target claim, or required evidence is missing; the target claim cannot be decided."
+    },
+    "output_field_semantics": {
+      "latency_reduction_pct": "Use null if baseline/candidate workloads differ. Otherwise return the descriptive median-of-trial-means reduction, even when acceptance fails.",
+      "claim_scope": "fixed_workload only for a passing full acceptance; kernel_only when kernel timings support only that scope; none for other failed/inconclusive acceptance."
+    }
+  },
+  "evidence_scope": "http_fixed_workload",
+  "baseline": {
+    "latencies_ms": [
+      [
+        372.41509900195524,
+        371.3580180192366,
+        373.0233380338177
+      ],
+      [
+        376.7005709814839,
+        371.54191598528996,
+        374.26815601065755
+      ],
+      [
+        387.99277698853984,
+        385.33629797166213,
+        388.8338229735382
+      ],
+      [
+        377.53721000626683,
+        375.21973199909553,
+        377.49633099883795
+      ],
+      [
+        374.10804396495223,
+        371.0321800317615,
+        372.8009989717975
+      ]
+    ],
+    "workload": {
+      "steps": 8,
+      "concurrency": 1,
+      "shape": [
+        1280,
+        704
+      ]
+    },
+    "quality": "passed",
+    "total_requests": 15,
+    "reported_requests": 15,
+    "failed_requests": 0
+  },
+  "candidate": {
+    "latencies_ms": [
+      [
+        265.70219499990344,
+        265.0600480264984,
+        267.7416979568079
+      ],
+      [
+        267.1461410354823,
+        265.44704200932756,
+        268.20882299216464
+      ],
+      [
+        264.7882750025019,
+        263.74643499730155,
+        265.52936201915145
+      ],
+      [
+        263.19980702828616,
+        261.21169299585745,
+        263.74280703021213
+      ],
+      [
+        272.3064509918913,
+        269.21763800783083,
+        273.1188469915651
+      ]
+    ],
+    "workload": {
+      "steps": 8,
+      "concurrency": 1,
+      "shape": [
+        1280,
+        704
+      ]
+    },
+    "quality": "passed",
+    "total_requests": 15,
+    "reported_requests": 15,
+    "failed_requests": 0
+  },
+  "evidence_keys": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ]
+}

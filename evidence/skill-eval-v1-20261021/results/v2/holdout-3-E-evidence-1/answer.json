@@ -1,0 +1,19 @@
+{
+  "report_verdict": "INCONCLUSIVE",
+  "latency_reduction_pct": null,
+  "findings": ["workload_mismatch"],
+  "claim_scope": "none",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成，验收结论无法确定。先计算每轮请求平均延迟，再取中位数：基线374.170214毫秒，候选266.167980毫秒。基线为8步，候选为4步，工作量不可比；冻结合同因此要求降幅为null，无法判断20%收益门槛。质量通过且15个请求全部报告、失败数为0，没有证据支持其他违规项。依据指定技能的“Level 3 — Isolated scenario benchmark”和“Methodology cost and evidence boundaries”章节，工作量不一致不能支持固定工作量收益；最终判定遵循冻结合同。最小下一步：保持并发1和形状不变，将候选统一为8步，补测完整重复组并保留质量及全部请求记录，再重新验收。"
+}

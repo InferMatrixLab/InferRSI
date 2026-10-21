@@ -143,13 +143,14 @@ for the 34 review points, qualifications and suggested acceptance checks.
 | --- | --- |
 | [Quickstart](docs/quickstart.md) | Installation, real A/B experiments, and reports |
 | [Operation guide](docs/operations.md) | Every CLI/Python operation: entry point, effect class, boundary and example |
+| [Bounded skill evaluation](docs/skill-evaluation.md) | Real-client skill/task comparisons, independent outcomes and evidence limits |
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
-| [Skill catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable records for 50 categorized skills, linking full packaged procedures and resources |
+| [Skill catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable records linking categorized skills to full packaged procedures and resources |
 | [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |
 | [Daily learning prompt](docs/daily-learning-prompt.md) | 06:00 Asia/Shanghai L2C + performance workflow and prerequisites |
-| [Complete skill library](src/inferrsi/data/skill_library/README.md) | 50 registered skills and 21 English engine/workflow documents, organized by owner |
+| [Complete skill library](src/inferrsi/data/skill_library/README.md) | Registered skills and English engine/workflow documents, organized by owner |
 | [vLLM-Omni experience records](src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md) | Backend-scoped tuning methods, sources, and applicability |
 | [Contributor guide](docs/contributing.md) | Development workflow, evidence contracts, and CI |
 | [Engine delivery template](docs/template/README.md) | Copyable engine scaffold, branding, evidence and schema-v1 catalog recipe |

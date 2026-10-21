@@ -1,0 +1,64 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "report_verdict",
+    "latency_reduction_pct",
+    "findings",
+    "claim_scope",
+    "evidence",
+    "reason"
+  ],
+  "properties": {
+    "report_verdict": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "PASS",
+        "FAIL",
+        "INCONCLUSIVE",
+        null
+      ]
+    },
+    "latency_reduction_pct": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "workload_mismatch",
+          "unsupported_service_claim",
+          "quality_missing",
+          "quality_failed",
+          "completion_gate_failed",
+          "failed_requests_omitted",
+          "gain_gate_failed"
+        ]
+      }
+    },
+    "claim_scope": {
+      "type": "string",
+      "enum": [
+        "none",
+        "kernel_only",
+        "fixed_workload"
+      ]
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reason": {
+      "type": "string"
+    }
+  }
+}
