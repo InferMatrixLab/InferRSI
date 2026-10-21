@@ -37,7 +37,7 @@ against the owning directory as well as ID/repository/backend/component.
 `repo` always identifies the source owner, not a validated downstream target.
 
 The [InferRSI skill catalog](../repo_packs/inferrsi/knowledge/README.md)
-adds generated contribution-tier records for all 48 migrated skills. Their full
+provides generated contribution-tier records for registered skills. Their full
 procedures, sidecars, references and cases now live in the
 [packaged skill library](../skill_library/README.md); `skill_documents.original`
 links each record to its procedure. Hardware guidance lives under the matching
