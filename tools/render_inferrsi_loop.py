@@ -33,10 +33,10 @@ AMBER = (244, 189, 112)
 CENTERS = (222, 608, 994, 1380)
 NODE_Y, NODE_W, NODE_H = 392, 280, 136
 NODES = (
-    ("Analyze", "Profile", "Use knowledge"),
-    ("Generate", "Candidate", "Code + config"),
-    ("Execute", "Build + run", "Benchmark"),
-    ("Evaluate", "Quality", "Performance"),
+    ("Analyze", "Profile + knowledge", "Human / agent-driven"),
+    ("Generate", "Candidate changes", "Human / agent-driven"),
+    ("Execute", "AB/BA trials", "Shared Harness runner"),
+    ("Evaluate", "Quality + performance", "Evidence-based verdict"),
 )
 TRACKS = (
     ((362, 460), (458, 460)),
@@ -107,8 +107,14 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     def text(x, y, value, font="small", fill=TEXT, anchor="la"):
         draw.text((x, y), value, font=fonts[font], fill=fill, anchor=anchor)
 
-    def arrow(points, color=LINE, width=3):
-        draw.line(points, fill=color, width=width, joint="curve")
+    def arrow(points, color=LINE, width=3, dashed=False):
+        if dashed:
+            length = sum(math.dist(a, b) for a, b in zip(points, points[1:]))
+            for offset in range(0, math.ceil(length), 16):
+                segment = (along(points, offset / length), along(points, (offset + 9) / length))
+                draw.line(segment, fill=color, width=2)
+        else:
+            draw.line(points, fill=color, width=width, joint="curve")
         a, b = points[-2:]
         angle = math.atan2(b[1] - a[1], b[0] - a[0])
         size = 10
@@ -129,24 +135,24 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     text(82, 126, "Model · backend · workload · quality · budget", "small", MUTED)
     text(1076, 126, "Reusable, source-grounded knowledge", "small", MUTED)
     draw.rounded_rectangle((48, 318, 1552, 628), radius=26, outline=LINE, width=2)
-    text(72, 336, "Harness · Optimization loop", "body")
-    text(1528, 340, "State · budget · candidates", "small", MUTED, "ra")
+    text(72, 336, "Harness · Target optimization workflow", "body")
+    text(1528, 340, "Outer: candidates · Inner: AB/BA", "small", MUTED, "ra")
 
-    knowledge_edge = (
-        6 if state.stage == 0 and state.kind == "stage" else 7 if state.kind == "done" else -1
-    )
+    knowledge_edge = 6 if state.stage == 0 and state.kind == "stage" else -1
 
-    for path in TRACKS:
-        arrow(path)
+    # Candidate storage is a separate authorized action, never a verdict-triggered flow.
+    for edge, path in enumerate(TRACKS):
+        arrow(path, dashed=edge == 7)
     if state.edge >= 0:
         arrow(TRACKS[state.edge], ACCENT)
     if knowledge_edge >= 0:
         arrow(TRACKS[knowledge_edge], ACCENT)
-    text(322, 275, "Frozen RunSpec", "small", MUTED)
+    text(322, 275, "RunSpec snapshot", "small", MUTED)
     text(1222, 275, "Retrieve", "small", MUTED, "ra")
-    text(1376, 275, "Review + store", "small", MUTED)
-    text(800, 541, "Evaluation feedback → Next candidate", "body", TEXT, "ma")
-    text(800, 591, "Continue within budget", "small", MUTED, "ma")
+    text(1376, 265, "Optional · authorized", "micro", MUTED)
+    text(1376, 290, "Store candidates", "micro", MUTED)
+    text(800, 541, "Human / agent review → Next candidate", "body", TEXT, "ma")
+    text(800, 591, "Explicit next run · Within budget", "small", MUTED, "ma")
     text(1364, 648, "Target met / budget ended", "micro", MUTED, "ra")
 
     cli_active = state.kind == "cli"
@@ -158,7 +164,7 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
         width=2,
     )
     text(298, 169, "CLI", "node", TEXT, "ma")
-    text(298, 220, "Parse · validate · freeze RunSpec", "small", MUTED, "ma")
+    text(298, 220, "Parse · validate · resolve RunSpec", "small", MUTED, "ma")
     draw.rounded_rectangle(
         (1076, 158, 1518, 258),
         radius=20,
@@ -216,17 +222,13 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
         particle(state.edge, state.fraction)
     if knowledge_edge >= 0:
         cycle = seconds * PLAYBACK_SPEED % BASE_PERIOD
-        fraction = (
-            (cycle - 17) / 1.2
-            if knowledge_edge == 7
-            else (cycle - 1.8 - (0 if state.candidate == 1 else 7.5)) / 1.2
-        )
+        fraction = (cycle - 1.8 - (0 if state.candidate == 1 else 7.5)) / 1.2
         particle(knowledge_edge, fraction)
 
     if state.kind == "cli":
         phase, summary, color = (
             "CLI",
-            "Parse and validate inputs, then freeze RunSpec for Harness.",
+            "Resolve inputs; record a RunSpec snapshot for an authorized run.",
             TEXT,
         )
     elif done:
@@ -238,13 +240,13 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     elif state.kind == "feedback":
         phase, summary, color = (
             "Feedback",
-            "FAIL · Reject candidate, keep evidence, and iterate.",
+            "FAIL · Review evidence; choose whether to try another candidate.",
             AMBER,
         )
     elif state.kind == "exit":
         phase, summary, color = (
             "Deliver",
-            "Freeze the candidate; package outputs, evidence, and scope.",
+            "Package candidate outputs, evidence, and verification scope.",
             GREEN,
         )
     elif state.stage == 3:
@@ -258,9 +260,9 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     else:
         phase = NODES[state.stage][0]
         summary = (
-            "Use profiles and prior knowledge to select one hypothesis.",
-            "Create a candidate within the frozen task contract.",
-            "Run on the target backend and record raw evidence.",
+            "Human/agent: inspect profiles and cited knowledge; select a hypothesis.",
+            "Human/agent: prepare candidate changes under frozen campaign gates.",
+            "Harness: run alternating AB/BA trials and retain candidate evidence.",
         )[state.stage]
         color = TEXT
     identity = "RunSpec" if state.kind == "cli" else f"C{state.candidate:03d}"

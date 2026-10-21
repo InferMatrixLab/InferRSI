@@ -29,41 +29,46 @@ You drive profiling and code changes; InferRSI runs and evaluates the benchmark 
 ## 🔁 How It Works
 
 The target workflow connects **CLI**, **Harness**, and **Knowledge Base**. This
-is an orchestration view: model protocols and repository/hardware behavior stay
-in the [Model and Infra adapters](docs/architecture.md#module-responsibilities-and-dependencies).
+is a workflow view; [Architecture](#architecture) describes the implemented
+module boundaries. Model protocols and quality validators belong to Model;
+repository, device and process ownership belong to Infra.
 
 - **CLI** resolves the declared model, backend, workload, metric, quality command,
   and budget into a `RunSpec`. `plan` previews the specification; `run` records a
-  snapshot. Previewing a specification does not freeze campaign gates or authorize
-  execution. Public configuration uses CLI arguments; JSON holds evidence and
+  snapshot. Campaign gates and validators are frozen separately before candidate
+  search; a preview or snapshot does not establish that freeze or grant execution
+  authority. Public configuration uses CLI arguments; JSON holds evidence and
   internal metadata.
-- **Harness** connects **Analyze → Generate → Execute → Evaluate** in the target
-  loop. Today its shared runner owns alternating AB/BA trials, deadlines, source
-  checks, evidence and evaluation. Model-specific validators check the declared
-  quality scope. Complete comparisons can pass or fail the frozen gates; missing
-  or interrupted evidence remains `INCONCLUSIVE`. Each decision retains its
-  evidence and actual `PASS` / `FAIL` / `INCONCLUSIVE` verdict.
+- **Harness** groups **Analyze → Generate → Execute → Evaluate** in the target
+  workflow. The **outer candidate cycle** is human/agent-driven today: inspect
+  profiles and cited knowledge, prepare a candidate, then decide whether to start
+  another comparison. Within **Execute**, the shared runner performs the **inner
+  AB/BA measurement loop** for one baseline/candidate pair, with deadlines, source
+  checks and retained evidence. Evaluation combines performance, source integrity
+  and the declared model-specific quality checks. Complete comparisons can pass or
+  fail the frozen gates; missing or interrupted evidence remains `INCONCLUSIVE`.
 - **Knowledge Base** supplies source-pinned records, skills and cases through
-  search and normalized Collect/Read operations. The explicitly authorized local
-  `KnowledgeStore` can create or update store-owned **candidates**, preserving
-  revisions and evidence. Neither a successful experiment nor a store write
-  automatically promotes knowledge or proves a new environment locally validated.
+  search and normalized, read-only Collect/Read operations. A **separate, optional
+  and explicitly authorized** local `KnowledgeStore` operation can create or update
+  store-owned **candidates**, preserving revisions and evidence. A successful run
+  does not trigger a store write; storing a candidate does not promote knowledge
+  or prove a new environment locally validated.
 
 <a href="docs/assets/inferrsi-loop.mp4">
   <picture>
     <source media="(prefers-reduced-motion: reduce)" srcset="docs/assets/inferrsi-loop.png">
-    <img src="docs/assets/inferrsi-loop.gif" alt="InferRSI target workflow: CLI resolves RunSpec; Harness loops through Analyze, Generate, Execute and Evaluate with Knowledge Base context" width="1280">
+    <img src="docs/assets/inferrsi-loop.gif" alt="InferRSI target workflow: CLI resolves RunSpec; human/agent-driven Analyze and Generate lead to Harness AB/BA trials and evaluation; candidate knowledge storage is optional and separately authorized" width="1280">
   </picture>
 </a>
 
-The animation illustrates one task: `C001` misses its performance target and
-feeds back into the Harness; `C002` passes the required gates and exits.
-Knowledge retrieval and reviewed storage are separate flows. These are synthetic
+The animation illustrates one task: `C001` misses its performance target; a human
+or agent reviews the evidence and chooses another candidate. `C002` passes the
+required gates and exits. The dashed storage arrow represents a separate,
+optional authorized write, independent of the verdict. These are synthetic
 states, not measured results; the dark, 2:1 animation repeats a 10-second cycle at
 2× playback. [Watch the MP4](docs/assets/inferrsi-loop.mp4) for smoother playback.
 
-**Human/agent-driven today:** profiling, candidate changes and the decision to
-start another comparison. `--agent` is a handoff label, not an agent launcher.
+**Current boundary:** `--agent` is a handoff label, not an agent launcher.
 Automatic candidate search, evidence-to-knowledge promotion and knowledge-driven
 RunSpec population remain planned. Target completion or budget exhaustion returns
 available artifacts and the real verdict; it cannot turn missing evidence into
