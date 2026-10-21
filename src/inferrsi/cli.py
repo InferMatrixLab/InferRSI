@@ -44,6 +44,16 @@ def _revisions(pairs: list[str]) -> dict[str, str]:
     return revisions
 
 
+def _tsv(value: str) -> str:
+    # One line per record: free-text fields may contain tabs or line breaks.
+    return (
+        value.replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
+
 def _run_directory(output_dir: str, run_id: str) -> Path:
     root = Path(output_dir).resolve()
     directory = (root / run_id).resolve()
@@ -180,15 +190,15 @@ def main(argv: list[str] | None = None) -> int:
                             applicability, ensure_ascii=False, sort_keys=True
                         )
                     print(
-                        f"{item['ref']}\t{item['revision']}\t{item['kind']}\t{item['state']}"
-                        f"\t{applicability}"
+                        f"{item['ref']}\t{item['revision']}\t{item['kind']}"
+                        f"\t{_tsv(item['state'])}\t{_tsv(applicability)}"
                     )
                     if args.material and "content" in item:
                         print(f"--- begin content {item['ref']} @ {item['revision']} ---")
                         print(item["content"], end="" if item["content"].endswith("\n") else "\n")
                         print(f"--- end content {item['ref']} ---")
                 for omission in result["omissions"]:
-                    detail = f"\t{omission['detail']}" if "detail" in omission else ""
+                    detail = f"\t{_tsv(omission['detail'])}" if "detail" in omission else ""
                     print(f"{omission['id']}\tomitted\t{omission['reason']}{detail}")
                 if result["no_match"]:
                     print(

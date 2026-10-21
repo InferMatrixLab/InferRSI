@@ -199,6 +199,16 @@ def test_collect_material_appears_in_text_and_json_modes():
     assert envelope["items"][0]["content"]
 
 
+def _escaped(value: str) -> str:
+    # Independent reimplementation of the CLI's one-line-per-item escaping.
+    return (
+        value.replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
+
 def test_collect_text_lines_match_the_json_envelope():
     code, stdout, _ = run_cli("collect", "Qwen", "--limit", "2")
     assert code == 0
@@ -213,11 +223,11 @@ def test_collect_text_lines_match_the_json_envelope():
         assert fields[0] == item["ref"]
         assert fields[1] == item["revision"]
         assert fields[2] == item["kind"]
-        assert fields[3] == item["state"]
+        assert fields[3] == _escaped(item["state"])
         applicability = item.get("applicability") or "-"
         if not isinstance(applicability, str):
             applicability = json.dumps(applicability, ensure_ascii=False, sort_keys=True)
-        assert fields[4] == applicability
+        assert fields[4] == _escaped(applicability)
 
 
 def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path):
@@ -287,3 +297,37 @@ def test_unsafe_resource_path_is_an_input_error(tmp_path):
         str(tmp_path / "out.md"),
     )
     assert "Unsafe bundle path" in stderr
+
+
+def test_collect_escapes_control_characters_to_keep_one_line_per_item(tmp_path):
+    state = "two\tlines\nbroken"
+    cases = tmp_path / "owner" / "cases"
+    cases.mkdir(parents=True)
+    (tmp_path / "owner" / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: test\n---\nBody", encoding="utf-8"
+    )
+    (cases / "note.md").write_text("observation", encoding="utf-8")
+    (cases / "note.json").write_text(
+        json.dumps(
+            {
+                "id": "escape-check",
+                "kind": "case",
+                "state": state,
+                "content": "note.md",
+                "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+                "applicability": [],
+                "limitations": [],
+                "attribution": "fixture",
+            }
+        ),
+        encoding="utf-8",
+    )
+    code, stdout, _ = run_cli("collect", "--id", "escape-check", "--skill-root", str(tmp_path))
+    assert code == 0
+    item_lines = [
+        line for line in stdout.splitlines() if line.split("\t")[1].startswith("sha256:")
+    ]
+    assert len(item_lines) == 1
+    fields = item_lines[0].split("\t")
+    assert len(fields) == 5
+    assert fields[3] == "two\\tlines\\nbroken"

@@ -50,8 +50,10 @@ inferrsi resource weight-loading-optimization methods/weight-loading-optimizatio
 ```
 
 The revision for `resource` is the second field of the `collect` text-mode line,
-or the `revision` field in `collect --json` / `read` output; the JSON mode also
-carries the full evidence and validation metadata.
+or the `revision` field in `collect --json` / `read` output. The JSON mode returns
+the complete normalized envelope; fields kept only in a package record's original
+entrypoint document are read with `--material` or `resource`, not projected into
+the normalized metadata.
 
 Sources are selected explicitly: the installed package by default, a checkout
 via `--skill-root`, an existing store opened read-only via `--store`. A store
