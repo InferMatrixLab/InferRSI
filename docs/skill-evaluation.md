@@ -69,6 +69,17 @@ Counterfactual metadata is explicitly labeled as a test fixture, never as a new
 GPU result. Two development instances and four sealed instances are selected
 before calls. Do not tune skills or gates on the final held-out results.
 
+The initial development campaign exposed a task-contract ambiguity: agents could
+correctly reject a kernel-to-service claim while using FAIL where the hidden
+oracle expected INCONCLUSIVE. Preserve those original calls and verdicts as
+development diagnostics; they are not skill-harm evidence. Revised task inputs
+state verdict and output-field semantics explicitly. `prepare --final-only`
+selects four revised instances with a distinct historical baseline slice and
+three R checks; two final instances repeat twice and two once (21 calls). Freeze
+the revision and remaining `--campaign-seconds` / `--token-limit` before those
+calls. Keep original and revised contracts separate and respect the Issue's
+combined call cap; do not silently reinterpret old outputs.
+
 The verifier runs outside the agent command sandbox and never executes generated
 code. It checks structured answers, numeric results, findings and evidence keys.
 Raw client captures remain private. Publish reviewed redacted evidence with its

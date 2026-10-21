@@ -142,6 +142,15 @@ def test_verifier_rejects_malformed_generated_answers():
         assert not verifier.verify(task, answer)["passed"]
 
 
+def test_final_fixture_protocol_is_explicit_and_uses_distinct_latency_inputs():
+    pilot = load_tool("skill_eval_pilot")
+    original, final = pilot.fixtures(), pilot.fixtures(True)
+    assert original[0]["baseline"]["latencies_ms"] != final[0]["baseline"]["latencies_ms"]
+    for task in final:
+        assert set(task["contract"]["verdict_definitions"]) == {"PASS", "FAIL", "INCONCLUSIVE"}
+        assert "Use null" in task["contract"]["output_field_semantics"]["latency_reduction_pct"]
+
+
 def test_expired_real_executor_deadline_records_missing_events(tmp_path):
     workspace = tmp_path / "workspace"
     workspace.mkdir()

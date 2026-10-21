@@ -59,7 +59,7 @@ SCHEMA = {
 }
 
 
-def fixtures():
+def fixtures(final_only=False):
     source = json.loads(
         (ROOT / "evidence/qwen21-turbo-b300-review-20261012/results/summary.json").read_text(
             encoding="utf-8"
@@ -115,6 +115,23 @@ def fixtures():
             "evidence_scope",
         ],
     }
+    base["contract"]["verdict_definitions"] = {
+        "PASS": "Comparable and sufficient evidence satisfies all frozen acceptance gates.",
+        "FAIL": "Comparable and sufficient evidence demonstrates a quality, request-completion "
+        "or gain gate violation. Do not use FAIL merely to reject an unsupported claim.",
+        "INCONCLUSIVE": "Workloads are incomparable, evidence scope is insufficient for the "
+        "target claim, or required evidence is missing; the target claim cannot be decided.",
+    }
+    base["contract"]["output_field_semantics"] = {
+        "latency_reduction_pct": "Use null if baseline/candidate workloads differ. Otherwise "
+        "return the descriptive median-of-trial-means reduction, even when acceptance fails.",
+        "claim_scope": "fixed_workload only for a passing full acceptance; kernel_only when "
+        "kernel timings support only that scope; none for other failed/inconclusive acceptance.",
+    }
+    if final_only:
+        base["baseline"]["latencies_ms"] = [
+            [r["latency_ms"] for r in group] for group in arms[1]["requests"]
+        ]
     result = [base]
     for identity, split in (
         ("dev-kernel", "development"),
@@ -147,11 +164,19 @@ def fixtures():
     return result
 
 
-def prepare(output: Path, model: str, effort: str, protected_roots: list[Path]):
+def prepare(
+    output: Path,
+    model: str,
+    effort: str,
+    protected_roots: list[Path],
+    final_only=False,
+    campaign_seconds=5400,
+    token_limit=3000000,
+):
     output.mkdir(parents=True, exist_ok=False)
     for name in ("plan", "validator", "results", "patch"):
         (output / name).mkdir()
-    tasks = fixtures()
+    tasks = fixtures(final_only)
     write_json(output / "plan/tasks.json", tasks)
     write_json(output / "plan/schema.json", SCHEMA)
     shutil.copyfile(ROOT / "tools/skill_eval_verifier.py", output / "validator/verify.py")
@@ -159,7 +184,12 @@ def prepare(output: Path, model: str, effort: str, protected_roots: list[Path]):
     bundles = {name: reader.read("checkout:" + name).view() for name in SKILLS}
     schedule = []
     for task in tasks:
-        for repeat in range(1, 2 if task["split"] == "development" else 3):
+        if final_only and task["split"] == "development":
+            continue
+        repeats = 1 if task["split"] == "development" else 2
+        if final_only:
+            repeats = 2 if task["id"] in {"holdout-4", "holdout-6"} else 1
+        for repeat in range(1, repeats + 1):
             conditions = ["N", "E-benchmark", "E-evidence"]
             shift = (len(schedule) // 3 + repeat - 1) % 3
             for condition in conditions[shift:] + conditions[:shift]:
@@ -177,9 +207,11 @@ def prepare(output: Path, model: str, effort: str, protected_roots: list[Path]):
         "effort": effort,
         "client": subprocess.check_output(["codex", "--version"], text=True).strip(),
         "timeout_seconds": 180,
-        "campaign_seconds": 5400,
-        "max_task_calls": 33,
-        "token_stop_new_trials": 3000000,
+        "campaign_seconds": campaign_seconds,
+        "max_task_calls": len(schedule),
+        "contract_revision": "v2-explicit-verdict-and-field-semantics",
+        "phase": "final_after_retained_v1_development" if final_only else "development_and_final",
+        "token_stop_new_trials": token_limit,
         "cost": None,
         "retry_policy": "none",
         "seed_control": "not_exposed_by_client",
@@ -389,11 +421,28 @@ def main():
     parser.add_argument("--effort", default="xhigh")
     parser.add_argument("--protected-root", action="append", type=Path, default=[])
     parser.add_argument("--max-new-trials", type=int)
+    parser.add_argument("--final-only", action="store_true")
+    parser.add_argument("--campaign-seconds", type=int, default=5400)
+    parser.add_argument("--token-limit", type=int, default=3000000)
     args = parser.parse_args()
+    if (
+        args.campaign_seconds <= 0
+        or args.token_limit <= 0
+        or (args.max_new_trials is not None and args.max_new_trials <= 0)
+    ):
+        parser.error("budgets and batch limits must be positive")
     if args.mode == "prepare":
         if not args.model or not args.protected_root:
             parser.error("prepare requires --model and --protected-root")
-        prepare(args.output, args.model, args.effort, args.protected_root)
+        prepare(
+            args.output,
+            args.model,
+            args.effort,
+            args.protected_root,
+            args.final_only,
+            args.campaign_seconds,
+            args.token_limit,
+        )
     else:
         execute(args.output, args.max_new_trials)
 
