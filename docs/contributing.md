@@ -199,7 +199,7 @@ Keep the existing four lanes:
 | --- | --- |
 | [Draft](../.github/workflows/ci-draft.yml) | Lint and lightweight CPU smoke |
 | [Ready](../.github/workflows/ci-ready.yml) | Full repository checks for PRs |
-| [Merge](../.github/workflows/ci-merge.yml) | Lightweight manifest check on main |
+| [Merge](../.github/workflows/ci-merge.yml) | Manifest check and lightweight CPU smoke on main |
 | [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests and evidence layout |
 
 Ready CI also builds the source distribution and wheel, installs the wheel with
@@ -210,6 +210,11 @@ helpers and CLI reads without installing any inference engine.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.
+
+The merge lane runs the same small smoke selection as draft on every main push,
+including direct pushes. It is a post-push safety check, not a branch-protection
+rule or a substitute for the full ready checks before merging. Required checks
+and permission to push directly remain repository-owner settings.
 
 Do not add default model downloads, GPU jobs or campaign thresholds to these
 lanes. Dependency drift and hardware qualification require their own evidence.
