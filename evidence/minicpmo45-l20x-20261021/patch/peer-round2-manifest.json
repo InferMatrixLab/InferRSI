@@ -1,0 +1,21 @@
+{
+  "base_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "implementations": {
+    "fp16-dispatch": {
+      "source_revision": "b6dacdf03756dbedeee8592577798670f5e22329",
+      "patch": "peer-round2-fp16-dispatch.patch",
+      "status": "Exploratory implementation; not quality/performance qualified"
+    },
+    "hift-tf32": {
+      "source_revision": "460b64d7727585516be3b3c992cf0154b82f2cf9",
+      "patch": "peer-round2-hift-tf32.patch",
+      "status": "Exploratory implementation; not quality/performance qualified"
+    },
+    "batch-prompt-setup": {
+      "source_revision": "d255857c1d1441ba77362da6d4cb628fa5dc47a8",
+      "patch": "peer-round2-batch-prompt-setup.patch",
+      "status": "Exploratory implementation; not quality/performance qualified"
+    }
+  },
+  "note": "Apply each patch independently to the base. Default behavior remains unchanged unless the corresponding opt-in config is enabled. Do not combine or promote failed candidates as a qualified release."
+}

@@ -1,0 +1,146 @@
+diff --git a/tests/model_executor/models/cosyvoice3/test_hift_tf32_policy.py b/tests/model_executor/models/cosyvoice3/test_hift_tf32_policy.py
+new file mode 100644
+index 0000000000..c7c2922157
+--- /dev/null
++++ b/tests/model_executor/models/cosyvoice3/test_hift_tf32_policy.py
+@@ -0,0 +1,31 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++import pytest
++import torch
++
++from vllm_omni.model_executor.models.cosyvoice3.code2wav_core.hifigan import _upsample_tf32
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++@pytest.mark.parametrize("enabled", [False, True])
++@pytest.mark.parametrize("initial", [False, True])
++@pytest.mark.parametrize("raise_error", [False, True])
++def test_upsample_policy_restores_after_call(enabled, initial, raise_error):
++    old = (torch.backends.cudnn.allow_tf32, torch.backends.cuda.matmul.allow_tf32)
++    try:
++        torch.backends.cudnn.allow_tf32 = initial
++        torch.backends.cuda.matmul.allow_tf32 = not initial
++        try:
++            with _upsample_tf32(enabled):
++                assert torch.backends.cudnn.allow_tf32 == (True if enabled else initial)
++                assert torch.backends.cuda.matmul.allow_tf32 == (True if enabled else not initial)
++                if raise_error:
++                    raise RuntimeError("decoder failure")
++        except RuntimeError as exc:
++            assert str(exc) == "decoder failure"
++        assert torch.backends.cudnn.allow_tf32 == initial
++        assert torch.backends.cuda.matmul.allow_tf32 == (not initial)
++    finally:
++        torch.backends.cudnn.allow_tf32, torch.backends.cuda.matmul.allow_tf32 = old
+diff --git a/vllm_omni/model_executor/models/cosyvoice3/code2wav_core/hifigan.py b/vllm_omni/model_executor/models/cosyvoice3/code2wav_core/hifigan.py
+index 293315d620..5dcae8c21b 100644
+--- a/vllm_omni/model_executor/models/cosyvoice3/code2wav_core/hifigan.py
++++ b/vllm_omni/model_executor/models/cosyvoice3/code2wav_core/hifigan.py
+@@ -8,6 +8,7 @@
+ 
+ import math
+ import os
++from contextlib import contextmanager
+ 
+ import numpy as np
+ import torch
+@@ -35,6 +36,23 @@ This code is modified from https://github.com/jik876/hifi-gan
+ """
+ 
+ 
++@contextmanager
++def _upsample_tf32(enabled: bool):
++    """Scope reduced precision to the HiFT upsampling blocks."""
++    if not enabled:
++        yield
++        return
++    previous_cudnn = torch.backends.cudnn.allow_tf32
++    previous_matmul = torch.backends.cuda.matmul.allow_tf32
++    try:
++        torch.backends.cudnn.allow_tf32 = True
++        torch.backends.cuda.matmul.allow_tf32 = True
++        yield
++    finally:
++        torch.backends.cudnn.allow_tf32 = previous_cudnn
++        torch.backends.cuda.matmul.allow_tf32 = previous_matmul
++
++
+ def init_weights(m, mean=0.0, std=0.01):
+     classname = m.__class__.__name__
+     if classname.find("Conv") != -1:
+@@ -589,6 +607,7 @@ class HiFTGenerator(nn.Module):
+     ):
+         super().__init__()
+ 
++        self.upsample_tf32 = False
+         self.out_channels = 1
+         self.nb_harmonics = nb_harmonics
+         self.sampling_rate = sampling_rate
+@@ -838,26 +857,26 @@ class HiFTGenerator(nn.Module):
+         s_stft = torch.cat([s_stft_real, s_stft_imag], dim=1)
+ 
+         x = self.conv_pre(x)
+-        for i in range(self.num_upsamples):
+-            x = F.leaky_relu(x, self.lrelu_slope)
+-            x = self.ups[i](x)
+-
+-            if i == self.num_upsamples - 1:
+-                x = self.reflection_pad(x)
+-
+-            # fusion
+-            si = self.source_downs[i](s_stft)
+-            si = self.source_resblocks[i](si)
+-            x = x + si
+-
+-            xs = None
+-            for j in range(self.num_kernels):
+-                if xs is None:
+-                    xs = self.resblocks[i * self.num_kernels + j](x)
+-                else:
+-                    xs += self.resblocks[i * self.num_kernels + j](x)
+-            x = xs / self.num_kernels
+-
++        with _upsample_tf32(self.upsample_tf32 and x.is_cuda):
++            for i in range(self.num_upsamples):
++                x = F.leaky_relu(x, self.lrelu_slope)
++                x = self.ups[i](x)
++
++                if i == self.num_upsamples - 1:
++                    x = self.reflection_pad(x)
++
++                # fusion
++                si = self.source_downs[i](s_stft)
++                si = self.source_resblocks[i](si)
++                x = x + si
++
++                xs = None
++                for j in range(self.num_kernels):
++                    if xs is None:
++                        xs = self.resblocks[i * self.num_kernels + j](x)
++                    else:
++                        xs += self.resblocks[i * self.num_kernels + j](x)
++                x = xs / self.num_kernels
+         x = F.leaky_relu(x)
+         x = self.conv_post(x)
+         magnitude = torch.exp(x[:, : self.istft_params["n_fft"] // 2 + 1, :])
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+index 4fdbe44879..799f58f57c 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+@@ -1559,6 +1559,13 @@ class MiniCPMO45Code2Wav(nn.Module):
+         finally:
+             torch.set_default_dtype(previous_dtype)
+ 
++        hift_tf32 = read_bool_flag(extra, "hift_upsample_tf32", False)
++        if hift_tf32 and not current_omni_platform.is_cuda():
++            raise ValueError("hift_upsample_tf32 requires CUDA")
++        token2wav.hift.upsample_tf32 = hift_tf32
++        if hift_tf32:
++            logger.info("MiniCPM-o Code2Wav: TF32 enabled for HiFT upsampling blocks")
++
+         trt_stepper = None
+         # Parsed before the platform branches: a typo in a shared stage config
+         # must fail at startup on every platform, not only where the toggle is
