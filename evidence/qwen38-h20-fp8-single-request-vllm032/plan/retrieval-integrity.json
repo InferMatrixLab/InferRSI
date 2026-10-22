@@ -6,5 +6,6 @@
   "validator/diagnostics/prepare_retrieval.py": "0571ed279b9ef750654b2bc077e70a61d722506e05804c1c632425e57c19d38b",
   "validator/diagnostics/prepare_retrieval_v2.py": "035c1b317c4a1d0d09c47eb07ebeb95da144751b0cd2b04fea85b39e7c96339d",
   "validator/diagnostics/retrieval_baseline.py": "128f3e7903a94aea37f1234fe8850b47822b2fd8843fa68fa154a7908c0a8bf1",
-  "validator/diagnostics/retrieval_baseline_v2.py": "f79c744e4285fd7ff31af16376884cf67905a3b1faca7c584630537344870456"
+  "validator/diagnostics/retrieval_baseline_v2.py": "f79c744e4285fd7ff31af16376884cf67905a3b1faca7c584630537344870456",
+  "validator/diagnostics/retrieval_baseline_v3.py": "10f7d81bd971337f237ed9a20ff704ee7bcd84cfbd769a9e94b049bf6d21d671"
 }

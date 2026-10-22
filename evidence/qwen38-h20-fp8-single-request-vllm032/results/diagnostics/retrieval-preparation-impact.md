@@ -28,3 +28,11 @@ were changed, and no candidate was optimized against these final-set targets.
 KnowledgeStore candidate `case.qwen38-retrieval-construction-cand`, revision
 `sha256:f061eeb3c8c18d57eec16253fb990e42880483b3a9fad3f5beca2c9cf5b7a4fb`,
 was created and read back byte-for-byte; no library promotion.
+
+Subsequent independent v2 and v3 review found no blocking issue. V2 removes the
+construct shortcut; ten independent scorer edge cases passed. V3 asserts and
+records absent OMP override and requests30-second server shutdown with45-second
+observer wait. Scorer/inputs/client/kernels unchanged. Five raw baseline streams
+and five synthetic invalid mutations confirm the prospective wire expression;
+this does not rescore1961. A separately declared30-case baseline qualification
+is submitted under Issue67 comment6347838911, max1800 GPU-seconds; outcome pending.

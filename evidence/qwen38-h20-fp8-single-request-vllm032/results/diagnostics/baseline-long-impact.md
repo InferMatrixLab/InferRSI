@@ -13,7 +13,8 @@ requests satisfied that assumption. No original valid flag or verdict is edited.
 
 Pinned upstream RequestOutputCollector explicitly aggregates DELTA outputs when
 the producer gets ahead of the consumer. The official HTTP client timestamps
-choices and derives TPOT from usage token count, independently of choice count.
+choices and returns usage token counts. This observer computes TPOT from those
+returned values, independently of choice count.
 Thus the observed aggregation is supported default behavior, not evidence of
 missing tokens or invalid model execution. A future observer must preserve
 this timing semantics, check timing-event count against choices, and separately

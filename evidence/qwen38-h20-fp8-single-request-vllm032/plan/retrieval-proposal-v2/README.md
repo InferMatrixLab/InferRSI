@@ -37,3 +37,16 @@ retained byte-for-byte as `metadata.json`. The existing bundle-sha256 schema
 classifies and authenticates this metadata, compressed inputs and observer
 sources through `plan/retrieval-integrity.json`; no validator schema or gate is
 weakened. Original remote artifacts retain their generated names.
+
+Independent review of v2 found no blocking issue. A v3 observer successor makes
+the intended CPU policy enforceable: assert no OMP_NUM_THREADS override before
+launch, record the actual environment value, and let vLLM apply its default.
+It also requests30 seconds for vLLM shutdown and allows45 seconds before observer
+escalation. Wrapper unsets OMP explicitly; scorer/inputs/client/kernels unchanged.
+All earlier observers remain immutable and unexecuted retrieval prototypes are
+labelled as such. The added source snapshot increases inventory coverage to121.
+Five original1961 raw streams satisfy the prospective v2/v3 validity expression,
+including coalesced choices; five synthetic mutations (missing DONE, error event,
+missing usage, wrong prompt and timing count) are rejected. That CPU check does
+not change the original1961 job verdict. Eight local scorer boundary cases and
+ten independent reviewer scorer cases passed. No retrieval GPU result yet.
