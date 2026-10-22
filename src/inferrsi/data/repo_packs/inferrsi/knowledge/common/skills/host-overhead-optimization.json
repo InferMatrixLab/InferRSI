@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/537429708a0dedbea0ba188418f0fb5e1cbf9ede/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
-      "commit": "537429708a0dedbea0ba188418f0fb5e1cbf9ede",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/62ad8ca8dfb6a38c21f5a544b38e1708f560b1ea/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
+      "commit": "62ad8ca8dfb6a38c21f5a544b38e1708f560b1ea",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json",
