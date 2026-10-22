@@ -1,0 +1,311 @@
+--- a/protocol.py
++++ b/protocol.py
+@@ -26,7 +26,14 @@
+ def validator_identity():
+     return {
+         name: sha((Path(__file__).parent / name).read_bytes())
+-        for name in ("protocol.py", "prepare.py", "run.py", "score.py", "source-lock.json")
++        for name in (
++            "protocol.py",
++            "prepare.py",
++            "run.py",
++            "score.py",
++            "sandbox_provenance.py",
++            "source-lock.json",
++        )
+     }
+ 
+ 
+--- a/score.py
++++ b/score.py
+@@ -3,7 +3,6 @@
+ import argparse
+ import hashlib
+ import json
+-import re
+ from pathlib import Path
+ 
+ from prepare import jsonl_lines, lines, write
+@@ -18,6 +17,13 @@
+     validator_identity,
+ )
+ from run import parse_events, select, termination_policy
++from sandbox_provenance import (
++    digest,
++    document,
++    execution_record,
++    frozen_protocol,
++    same_identity,
++)
+ 
+ 
+ def score(
+@@ -29,6 +35,9 @@
+     generation_config_sha256,
+     human_results=None,
+     sandbox_record=None,
++    sandbox_protocol=None,
++    sandbox_protocol_sha256=None,
++    sandbox_qualification=None,
+ ):
+     prepared_manifest = json.loads((prepared / "prepared.json").read_bytes())
+     for item in prepared_manifest["files"]:
+@@ -52,24 +61,21 @@
+     expected = frozen["expected_ids"]
+     if expected != [row["id"] for row in requests]:
+         raise ValueError("run cohort differs from frozen inputs")
+-    if set(r["id"] for r in records) - set(expected):
++    if {r["id"] for r in records} - set(expected):
+         raise ValueError("unexpected response IDs")
+     labels = json.loads((prepared / "labels.json").read_bytes())
+-    human = json.loads(human_results.read_bytes()) if human_results else None
++    human_raw = human_results.read_bytes() if human_results else None
++    human = document(human_raw) if human_raw is not None else None
++    sandbox_raw = None
++    evaluator_protocol = None
+     if human is not None:
+-        if sandbox_record is None:
+-            raise ValueError("sandbox execution provenance required")
+-        sandbox = json.loads(sandbox_record.read_bytes())
+         from prepare import EVALPLUS_REV
+ 
+-        if (
+-            sandbox.get("evaluator_revision") != EVALPLUS_REV
+-            or sandbox.get("network") != "none"
+-            or sandbox.get("exit_code") != 0
+-            or re.fullmatch(r"sha256:[0-9a-f]{64}", str(sandbox.get("image_digest", ""))) is None
+-            or sandbox.get("results_sha256") != sha(human_results.read_bytes())
+-        ):
+-            raise ValueError("unqualified sandbox evidence")
++        evaluator_protocol = frozen_protocol(
++            sandbox_protocol, sandbox_protocol_sha256, sandbox_qualification, EVALPLUS_REV
++        )
++        sandbox_raw = sandbox_record.read_bytes() if sandbox_record is not None else None
++        sandbox = execution_record(sandbox_raw, evaluator_protocol, human_raw)
+     counts = {
+         task: {
+             "expected": sum(sample_id in labels[task] for sample_id in expected),
+@@ -192,13 +198,35 @@
+             "tokenized_manifest_sha256": frozen["tokenized_manifest_sha256"],
+             "validator_files": validator_identity(),
+             "termination_policy": stopping,
+-            "human_results_sha256": sha(human_results.read_bytes()) if human_results else None,
++            "human_results_sha256": sha(human_raw) if human_raw is not None else None,
++            "sandbox_protocol": evaluator_protocol,
++            "sandbox_protocol_sha256": sandbox_protocol_sha256 if human is not None else None,
++            "sandbox_record_sha256": sha(sandbox_raw) if sandbox_raw is not None else None,
+         },
+     )
+ 
+ 
+-def compare(baseline, candidate, output):
+-    b, c = (json.loads(path.read_bytes()) for path in (baseline, candidate))
++def compare(
++    baseline, candidate, output, sandbox_protocol, sandbox_protocol_sha256, sandbox_qualification
++):
++    from prepare import EVALPLUS_REV
++
++    expected_protocol = frozen_protocol(
++        sandbox_protocol, sandbox_protocol_sha256, sandbox_qualification, EVALPLUS_REV
++    )
++    baseline_raw, candidate_raw = baseline.read_bytes(), candidate.read_bytes()
++    b, c = (document(raw) for raw in (baseline_raw, candidate_raw))
++    for row in (b, c):
++        for name in (
++            "run_manifest_sha256",
++            "responses_sha256",
++            "prepared_manifest_sha256",
++            "tokenized_manifest_sha256",
++            "human_results_sha256",
++            "sandbox_record_sha256",
++            "sandbox_protocol_sha256",
++        ):
++            digest(row.get(name))
+     if any(row["phase"] != "final" or row["evaluation_complete"] is not True for row in (b, c)):
+         raise ValueError("complete final evaluation required")
+     if b["arm"] != "baseline" or c["arm"] != "candidate":
+@@ -213,9 +241,17 @@
+         )
+     ):
+         raise ValueError("datasets/prompts/scorers differ")
++    if any(
++        not same_identity(row.get("sandbox_protocol"), expected_protocol)
++        or row.get("sandbox_protocol_sha256") != sandbox_protocol_sha256
++        for row in (b, c)
++    ):
++        raise ValueError("quality evaluator differs from independent frozen protocol")
+     result = compare_counts(b["counts"], c["counts"])
+-    result["baseline_summary_sha256"] = sha(baseline.read_bytes())
+-    result["candidate_summary_sha256"] = sha(candidate.read_bytes())
++    result["baseline_summary_sha256"] = sha(baseline_raw)
++    result["candidate_summary_sha256"] = sha(candidate_raw)
++    result["sandbox_protocol"] = expected_protocol
++    result["sandbox_protocol_sha256"] = sandbox_protocol_sha256
+     result["limitation"] = "task-quality gate only; does not award campaign PASS"
+     write(output, result)
+ 
+@@ -231,8 +267,14 @@
+     p.add_argument("--run", type=Path, required=True)
+     p.add_argument("--human-results", type=Path)
+     p.add_argument("--sandbox-record", type=Path)
++    p.add_argument("--sandbox-protocol", type=Path)
++    p.add_argument("--sandbox-protocol-sha256")
++    p.add_argument("--sandbox-qualification", type=Path)
+     p.add_argument("--output", type=Path, required=True)
+     p = sub.add_parser("compare")
++    p.add_argument("--sandbox-protocol", type=Path, required=True)
++    p.add_argument("--sandbox-protocol-sha256", required=True)
++    p.add_argument("--sandbox-qualification", type=Path, required=True)
+     p.add_argument("--baseline", type=Path, required=True)
+     p.add_argument("--candidate", type=Path, required=True)
+     p.add_argument("--output", type=Path, required=True)
+@@ -247,9 +289,19 @@
+             args.generation_config_sha256,
+             args.human_results,
+             args.sandbox_record,
++            args.sandbox_protocol,
++            args.sandbox_protocol_sha256,
++            args.sandbox_qualification,
+         )
+     else:
+-        compare(args.baseline, args.candidate, args.output)
++        compare(
++            args.baseline,
++            args.candidate,
++            args.output,
++            args.sandbox_protocol,
++            args.sandbox_protocol_sha256,
++            args.sandbox_qualification,
++        )
+ 
+ 
+ if __name__ == "__main__":
+--- /dev/null
++++ b/sandbox_provenance.py
+@@ -0,0 +1,116 @@
++"""Bind quality evidence to a separately frozen evaluator protocol.
++
++This reader authenticates identities and report scope, not isolation by itself.
++The qualification artifact must contain independently reviewed execution evidence
++before its digest is accepted into the campaign freeze. Test fixtures are not
++qualification artifacts. No OCI identity is inferred from readonly file binds.
++"""
++
++import hashlib
++import json
++import re
++
++
++def sha(raw):
++    return hashlib.sha256(raw).hexdigest()
++
++
++def unique_keys(pairs):
++    result = {}
++    for key, value in pairs:
++        if key in result:
++            raise ValueError("duplicate provenance key")
++        result[key] = value
++    return result
++
++
++def document(raw):
++    value = json.loads(raw, object_pairs_hook=unique_keys)
++    if not isinstance(value, dict):
++        raise TypeError("provenance must be an object")
++    return value
++
++
++def digest(value):
++    if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
++        raise ValueError("invalid provenance digest")
++
++
++def same_identity(actual, expected):
++    return json.dumps(actual, sort_keys=True, allow_nan=False) == json.dumps(
++        expected, sort_keys=True, allow_nan=False
++    )
++
++
++def protocol_identity(protocol, evaluator_revision):
++    hashes = {
++        "executor_sha256",
++        "driver_sha256",
++        "sandbox_binary_sha256",
++        "policy_sha256",
++        "qualification_sha256",
++    }
++    if set(protocol) != hashes | {
++        "schema_version",
++        "runtime_kind",
++        "runtime_digest",
++        "evaluator_revision",
++    }:
++        raise ValueError("unexpected evaluator protocol schema")
++    if type(protocol["schema_version"]) is not int or protocol["schema_version"] != 1:
++        raise ValueError("unsupported evaluator protocol version")
++    if (
++        protocol["runtime_kind"] != "readonly-bind-set-v1"
++        or protocol["evaluator_revision"] != evaluator_revision
++    ):
++        raise ValueError("evaluator kind or revision differs")
++    value = protocol["runtime_digest"]
++    if not isinstance(value, str) or not value.startswith("sha256:"):
++        raise ValueError("invalid readonly-runtime digest")
++    digest(value[7:])
++    for name in hashes:
++        digest(protocol[name])
++    return {name: value for name, value in protocol.items() if name != "qualification_sha256"}
++
++
++def frozen_protocol(path, expected_sha256, qualification_path, evaluator_revision):
++    if path is None or qualification_path is None:
++        raise ValueError("independent frozen evaluator protocol and qualification required")
++    digest(expected_sha256)
++    protocol_raw = path.read_bytes()
++    if sha(protocol_raw) != expected_sha256:
++        raise ValueError("frozen evaluator protocol bytes changed")
++    protocol = document(protocol_raw)
++    identity = protocol_identity(protocol, evaluator_revision)
++    qualification_raw = qualification_path.read_bytes()
++    if sha(qualification_raw) != protocol["qualification_sha256"]:
++        raise ValueError("frozen qualification artifact changed")
++    qualification = document(qualification_raw)
++    if (
++        qualification.get("scope") != "generated-code-executor"
++        or qualification.get("verdict") != "PASS"
++        or qualification.get("qualified_generated_code_executor") is not True
++        or not same_identity(qualification.get("identity"), identity)
++    ):
++        raise ValueError("qualification scope or evaluator identity differs")
++    return protocol
++
++
++def execution_record(raw, protocol, results_raw):
++    if raw is None:
++        raise ValueError("sandbox execution provenance required")
++    record = document(raw)
++    if (
++        not same_identity(record.get("protocol"), protocol)
++        or record.get("network") != "none"
++        or type(record.get("exit_code")) is not int
++        or record["exit_code"] != 0
++        or record.get("timed_out") is not False
++        or record.get("cleanup_complete") is not True
++        or record.get("qualified_generated_code_executor") is not True
++        or record.get("results_sha256") != sha(results_raw)
++    ):
++        raise ValueError("execution differs from frozen evaluator or did not complete")
++    for name in ("samples_sha256", "dataset_sha256"):
++        digest(record.get(name))
++    return record
+--- a/prepare_guard.py
++++ b/prepare_guard.py
+@@ -17,6 +17,7 @@
+     "prepare.py",
+     "run.py",
+     "score.py",
++    "sandbox_provenance.py",
+     "retrieval.py",
+     "source-lock.json",
+     "prepare_guard.py",
