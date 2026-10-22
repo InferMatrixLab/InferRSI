@@ -3,7 +3,10 @@
   "bundles": {
     "_template": {"kind": "template", "manifests": []},
     "qwen38-h20-fp8-single-request-vllm032": {
-      "kind": "campaign", "manifests": [{"path": "plan/retrieval-integrity.json", "schema": "bundle-sha256"}],
+      "kind": "campaign", "manifests": [
+        {"path": "plan/retrieval-integrity.json", "schema": "bundle-sha256"},
+        {"path": "results/diagnostics/sandbox-offline-prefetch-integrity.json", "schema": "bundle-sha256"}
+      ],
       "external": ["Takeover diagnostics and prospective plans only; no activated acceptance freeze. Private operational logs and earlier readiness evidence remain in controlled task storage."]
     },
     "drama3-b300-scale150": {
