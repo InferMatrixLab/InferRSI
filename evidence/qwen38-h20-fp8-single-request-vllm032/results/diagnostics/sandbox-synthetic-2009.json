@@ -1,0 +1,88 @@
+{
+  "scope": "trusted_four_case_synthetic_evaluator",
+  "verdict": "INCONCLUSIVE",
+  "job": 2009,
+  "slurm_state": "COMPLETED",
+  "slurm_exit_code": "0:0",
+  "allocated_seconds": 116,
+  "allocated_cpus": 4,
+  "allocated_gpus": 0,
+  "requested_memory_gib": 16,
+  "walltime_limit_seconds": 900,
+  "allocation_released": true,
+  "terminal": {
+    "completed": true,
+    "signal": "none",
+    "exit_code": 0,
+    "job_id": "2009"
+  },
+  "rootfs_digest": "sha256:2d6fff81631384f7025f222c31115cbddf8153552571a92dcec61a68e15498f5",
+  "rootfs_json_sha256": "1b514a1d39c33dd273c9b989075dfc7778c1d98cdab7e7b92fc23153fbc0e168",
+  "readonly_bind_entry_count": 25241,
+  "rootfs_before_after_equal": true,
+  "reference_2006_difference_only_probe": true,
+  "checked_evaluator_python_sources": 43,
+  "package_count": 97,
+  "probe_checks_passed": 4,
+  "postflight_checks_passed": 9,
+  "probe_stdout_sha256": "b5fd8773611054c083cf9de73ef9a1d28caffad61356fbd95f6cecc39ac0ab5a",
+  "probe_execution_sha256": "afb4645ce50d5ca267c72368a7325c3deb59f1c51ea61eafe462ef29e09fd347",
+  "statuses": {
+    "Synthetic/correct": [
+      [
+        "pass",
+        "pass"
+      ]
+    ],
+    "Synthetic/exception": [
+      [
+        "fail",
+        "fail"
+      ]
+    ],
+    "Synthetic/input_timeout": [
+      [
+        "fail",
+        "fail"
+      ]
+    ],
+    "Synthetic/plus_wrong": [
+      [
+        "pass",
+        "fail"
+      ]
+    ]
+  },
+  "evaluator_elapsed_seconds": 11.31006149307359,
+  "evaluator_module_sha256": "47f766df2dbb2280f7dd2c1040bfff0396c2b414a8d44b639424aa941bee7eab",
+  "sampled_peaks": {
+    "errors": 1,
+    "processes": 5,
+    "samples": 857,
+    "sum_fds": 58,
+    "sum_rss_bytes": 412422144,
+    "sum_vms_bytes": 4910592000,
+    "threads": 10
+  },
+  "sampling_failures": [],
+  "sampling_thread_joined": true,
+  "known_live_descendants_after_exit": [],
+  "inside_live_children_after_evaluate": 0,
+  "sampling_error_reason_not_recorded": true,
+  "aggregate_hard_bounds_or_exhaustive_cleanup_proven": false,
+  "generated_code_executed": false,
+  "real_benchmark_data_mounted": false,
+  "full_evaluator_executed": true,
+  "qualified_generated_code_executor": false,
+  "measured_e2e_effect": null,
+  "private_evidence_sha256": {
+    "submission.private.txt": "f57ecfc1e13bf5bc575effdd8785723b8a0aadef6fb0c109bb16fd7af77ac612",
+    "scontrol-final.private.txt": "41caa1c94fad7d5876ee16a9df9429fe39c2e156db33bf17d08f6a89ba17e63f",
+    "squeue-final.private.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostic.private.log": "b1a149ec1937495c613cc3af3e507708025f9483609cae586d3e3da7f1e49528",
+    "output.private.tar": "fb3ed76accb4d569537cb0fc370357684f0426a4d7ba7d4a3278588e6928a0e5"
+  },
+  "readiness_gpu_seconds_used": 2388,
+  "readiness_gpu_seconds_cap": 7200,
+  "earlier_diagnostic_gpu_seconds_separate": 147
+}
