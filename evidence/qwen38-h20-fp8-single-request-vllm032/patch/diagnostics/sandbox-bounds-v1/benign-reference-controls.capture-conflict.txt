@@ -1,0 +1,5 @@
+{"benign_reference_cases": 13, "cases": ["observed_success", "exit_bool", "exit_nonzero", "timeout", "wrong_phase", "wrong_output_digest", "wrong_rootfs", "wrong_executor", "empty_checks", "missing_check", "integer_check", "integer_passed", "duplicate_key"], "optimized_python": true, "evaluator_or_sandbox_executed": false, "passed": true}
+ true,
+  "evaluator_or_sandbox_executed": false,
+  "passed": true
+}
