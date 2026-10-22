@@ -1,0 +1,26 @@
+{
+ "id": "case.qwen38-upstream-fp8-kernels-vs-own-triton",
+ "kind": "case",
+ "origin": ["first_party"],
+ "state": "historical_observation",
+ "content": "qwen38-upstream-fp8-kernels-vs-own-triton.md",
+ "sources": [
+  {
+   "type": "local",
+   "note": "Qwen3.8 dedicated-engine campaign, FP8 kernel microbenchmarks",
+   "paths": ["evidence/"]
+  }
+ ],
+ "applicability": [
+  "SM90-class accelerator, FP8 e4m3 with 128x128 block scales",
+  "M in the thousands (prefill), batch size 1 decode measured separately",
+  "torch 2.14 engine environment"
+ ],
+ "tags": ["fp8", "gemm", "build-vs-borrow", "microbenchmark", "licensing"],
+ "limitations": [
+  "Single card; numbers are microbenchmarks, not end-to-end",
+  "Thresholds registered for one shape family and one device",
+  "Upstream versions may change both performance and licensing"
+ ],
+ "attribution": "Dedicated-engine campaign; measurements taken on the target card"
+}

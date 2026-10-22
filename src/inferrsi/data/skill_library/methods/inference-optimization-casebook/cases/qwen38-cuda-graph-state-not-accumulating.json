@@ -1,0 +1,26 @@
+{
+ "id": "case.qwen38-cuda-graph-state-not-accumulating",
+ "kind": "case",
+ "origin": ["first_party"],
+ "state": "historical_observation",
+ "content": "qwen38-cuda-graph-state-not-accumulating.md",
+ "sources": [
+  {
+   "type": "local",
+   "note": "Qwen3.8 dedicated-engine campaign, run records for the CUDA Graph round",
+   "paths": ["evidence/"]
+  }
+ ],
+ "applicability": [
+  "Single device, batch size 1",
+  "Hybrid linear-attention model (48 DeltaNet + 16 full-attention layers)",
+  "PyTorch CUDA Graph capture of one decode step"
+ ],
+ "tags": ["cuda-graph", "correctness-gate", "state-management", "silent-wrong-result"],
+ "limitations": [
+  "One H20-3e card, one workload; no concurrency",
+  "Graph path acceptance recorded INCONCLUSIVE after the timing run",
+  "Does not establish behaviour for multi-request or paged-state graphs"
+ ],
+ "attribution": "Dedicated-engine campaign; defect and fix verified by per-step logits comparison"
+}

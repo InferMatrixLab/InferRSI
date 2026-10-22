@@ -86,6 +86,12 @@ Current owner-local records retain rejected directions alongside their limits:
   attention/cache alternatives and missing gain on one 910B1 cohort.
 - [Drama3 B300](cases/drama3-rejected-directions.md): invalid controls,
   correct kernels without service gain, prefix reuse and analytical rejection.
+- [CUDA Graph state not accumulating](cases/qwen38-cuda-graph-state-not-accumulating.md):
+  token ids matched while per-step logits diverged, so ids are not a correctness oracle.
+- [Silent capacity and error failures](cases/qwen38-silent-capacity-and-error-failures.md):
+  HTTP 200 with an error frame, HTTP 400 with an empty body, failure at token 993.
+- [Upstream FP8 kernels vs own Triton](cases/qwen38-upstream-fp8-kernels-vs-own-triton.md):
+  a numerically cautious kernel ran 100x slower than the borrowed library.
 
 Each `.json` sibling owns identity, origin, source pins and limitations; the
 Markdown owns the observation and suggested revisit check. Read them as
