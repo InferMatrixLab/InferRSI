@@ -53,3 +53,8 @@ The completed10-request boundary repair and its remaining numerical differences
 are recorded in `results/diagnostics/graph-demotion-impact.md`. Engine PR9 is
 merged; full Graph/eager sequences agree on3/5 pairs and campaign acceptance
 remains INCONCLUSIVE. Readiness allocation use is839 GPU-seconds.
+
+Fixed-history follow-up `results/diagnostics/graph-forced96-impact.md` narrows
+the case783 discrepancy: all96 capacity-eager/Graph logits and live states
+are exact; compact-versus-capacity changes argmax at index81. This remains
+a bounded diagnosis, not task-quality acceptance. Readiness total904 seconds.
