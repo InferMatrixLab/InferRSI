@@ -1,9 +1,7 @@
 {
-  "title": "Example engine end-to-end throughput",
-  "subtitle": [
-    "Replace every value with the campaign's recorded measurements; this file is a shape example, not a result.",
-    "State the screen protocol in the subtitle: how many requests, how many repeats, and what a delta does not prove."
-  ],
+  "title": "Example engine end-to-end throughput optimization",
+  "layout": "chain",
+  "phases": ["Bring-up", "Kernels", "Replication"],
   "unit": "frames/s",
   "baseline": {"label": "pinned baseline snapshot", "metrics": {"C16": 500.0, "C32": 520.0}},
   "metrics": [
@@ -11,45 +9,41 @@
     {"key": "C32", "label": "C32"}
   ],
   "label_metric": "C32",
-  "sort": "gain",
-  "axis": {"tick": 50, "label": "End-to-end gain versus the pinned baseline snapshot"},
-  "references": [
-    {"label": "peer target, C32", "metric": "C32", "value": 1400.0}
-  ],
-  "statuses": {
-    "open": {"mark": "", "strong": false},
-    "rejected": {"mark": "", "strong": false},
-    "flat": {"mark": "×", "strong": false},
-    "regressed": {"mark": "×", "strong": false}
+  "axis": {
+    "step": 0.5,
+    "label": "Campaign step, in the order the work landed",
+    "y_label": "End-to-end throughput vs baseline"
   },
-  "trials": [
+  "references": [{"label": "peer target, C32", "metric": "C32", "value": 2400.0}],
+  "points": [
     {
-      "group": "Kernel",
+      "phase": "Bring-up",
+      "label": "baseline",
+      "values": {"C16": 500.0, "C32": 520.0},
+      "baseline": true,
+      "note": "AS IS"
+    },
+    {
+      "phase": "Bring-up",
+      "label": "async scheduling",
+      "values": {"C16": 640.0, "C32": 671.0},
+      "note": "whole pipeline"
+    },
+    {
+      "phase": "Kernels",
       "label": "fused epilogue",
-      "values": {"C16": 600.0, "C32": 640.0},
-      "status": "open",
-      "note": "one screen on the tuning cohort"
+      "values": {"C16": 826.0, "C32": 858.0}
     },
     {
-      "group": "Kernel",
-      "label": "graph capacity raise",
-      "values": {"C16": 505.0, "C32": 521.0},
-      "status": "flat",
-      "note": "no gain versus its parent"
+      "phase": "Kernels",
+      "label": "graph capture",
+      "values": {"C16": 900.0, "C32": 940.0},
+      "note": "no measured change"
     },
     {
-      "group": "Kernel",
-      "label": "pooled precision path",
-      "values": {"C16": 480.0, "C32": 540.0},
-      "status": "regressed",
-      "note": "1.9% slower than baseline at C16"
-    },
-    {
-      "group": "Replication",
+      "phase": "Replication",
       "label": "two replicas",
-      "values": {"C16": 900.0, "C32": 1100.0},
-      "status": "rejected",
-      "note": "quality gate failed"
+      "values": {"C16": 1100.0, "C32": 1250.0}
     }
   ]
 }
