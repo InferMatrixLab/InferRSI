@@ -28,22 +28,23 @@ You drive profiling and code changes; InferRSI runs and evaluates the benchmark 
 
 ## 🔁 How It Works
 
-**Analyze → Generate → Execute → Evaluate.** A human or coding agent prepares
-candidates; InferRSI runs the CLI-declared AB/BA comparison and records the verdict.
-Review the evidence before starting another iteration.
-[Architecture](#architecture) covers the module boundaries.
+**Optimize with evidence. Reuse reviewed lessons.** Humans and coding agents
+prepare candidates; Workbench runs controlled comparisons against the target
+engine. Evidence guides the next experiment and may inform reusable knowledge,
+including limitations from failed attempts.
+[Architecture](#architecture) · [Roadmap](https://github.com/InferMatrixLab/InferRSI/issues/61).
 
 <a href="docs/assets/inferrsi-loop.mp4">
   <picture>
     <source media="(prefers-reduced-motion: reduce)" srcset="docs/assets/inferrsi-loop.png">
-    <img src="docs/assets/inferrsi-loop.gif" alt="InferRSI target workflow: CLI resolves RunSpec; human/agent-driven Analyze and Generate lead to Harness AB/BA trials and evaluation; candidate knowledge storage is optional and separately authorized" width="1280">
+    <img src="docs/assets/inferrsi-loop.gif" alt="InferRSI experiment and knowledge loops: humans or coding agents declare a task; Workbench compares an external target engine; evidence supports another experiment and optional reviewed lessons; candidate storage requires separate authorization" width="1280">
   </picture>
 </a>
 
 Illustrative target workflow; no measured results. [Watch the MP4](docs/assets/inferrsi-loop.mp4).
 
 Knowledge retrieval is read-only; candidate storage is optional and separately
-authorized. Automatic search and knowledge promotion remain planned. Missing
+authorized. Automatic search and automatic knowledge promotion remain planned. Missing
 or incomplete evidence stays `INCONCLUSIVE`.
 
 ## Choose your starting path

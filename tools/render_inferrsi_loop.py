@@ -2,6 +2,7 @@
 
 Visual reference only (layout/animation research; no runtime validation):
 https://github.com/InferMatrixLab/vllm-rlt/blob/9d601ceaf9af63121c742df5f584467e23630a0b/README.md#how-it-works
+Workflow grouping and role boundaries: https://github.com/InferMatrixLab/InferRSI/issues/61
 
 Requires Pillow; optional MP4 export requires imageio-ffmpeg. No control-package
 dependencies are changed. Fonts and output location are supplied through CLI.
@@ -30,23 +31,31 @@ LINE = (57, 77, 95)
 ACCENT = (77, 211, 192)
 GREEN = (117, 222, 170)
 AMBER = (244, 189, 112)
-CENTERS = (222, 608, 994, 1380)
-NODE_Y, NODE_W, NODE_H = 392, 280, 136
+EXTERNAL = (42, 35, 28)
+CENTERS = (188, 440, 692, 944)
+NODE_Y, NODE_W, NODE_H = 430, 216, 120
 NODES = (
-    ("Analyze", "Profile + knowledge", "Human / agent-driven"),
-    ("Generate", "Candidate changes", "Human / agent-driven"),
-    ("Execute", "AB/BA trials", "Shared Harness runner"),
-    ("Evaluate", "Quality + performance", "Evidence-based verdict"),
+    ("Analyze", "Profile + context", "Human / agent"),
+    ("Generate", "Candidate change", "Human / agent"),
+    ("Execute", "Harness: AB/BA", "Model + Infra"),
+    ("Evaluate", "Judge + evidence", "Source / quality / perf."),
 )
 TRACKS = (
-    ((362, 460), (458, 460)),
-    ((748, 460), (844, 460)),
-    ((1134, 460), (1230, 460)),
-    ((1380, 528), (1380, 580), (222, 580), (222, 538)),
-    ((1380, 528), (1380, 670)),
-    ((298, 258), (298, 308)),
-    ((1244, 258), (1244, 308)),
-    ((1354, 318), (1354, 268)),
+    ((296, 490), (322, 490)),
+    ((548, 490), (574, 490)),
+    ((800, 490), (826, 490)),
+    ((944, 550), (944, 598), (188, 598), (188, 560)),
+    ((944, 550), (944, 672), (1120, 672), (1120, 720), (1130, 720)),
+    ((782, 266), (782, 342)),
+    ((1116, 410), (1078, 410)),
+    ((1068, 604), (1106, 604)),
+)
+TARGET_PATH = ((1040, 342), (1040, 304), (1064, 304), (1064, 215), (1090, 215))
+KNOWLEDGE_TRACKS = (
+    ((1288, 467), (1370, 467)),
+    ((1450, 494), (1450, 541)),
+    ((1380, 578), (1298, 578)),
+    ((1218, 551), (1218, 504)),
 )
 
 
@@ -93,7 +102,7 @@ def along(points: tuple, fraction: float) -> tuple[float, float]:
 
 
 def load_fonts(font_name: str, latin_name: str) -> dict:
-    sizes = {"title": 44, "node": 34, "body": 25, "small": 22, "micro": 20}
+    sizes = {"title": 42, "node": 30, "body": 25, "small": 22, "micro": 20}
     fonts = {key: ImageFont.truetype(font_name, value) for key, value in sizes.items()}
     fonts["latin"] = ImageFont.truetype(latin_name, 24)
     return fonts
@@ -129,52 +138,63 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
         )
         draw.polygon((tip, left, right), fill=color)
 
-    text(72, 24, "INFERRSI / OPTIMIZATION LOOP", "latin", ACCENT)
-    text(72, 64, "One goal. Continuous improvement.", "title")
-    text(1528, 31, "Target design", "small", MUTED, "ra")
-    text(82, 126, "Model · backend · workload · quality · budget", "small", MUTED)
-    text(1076, 126, "Reusable, source-grounded knowledge", "small", MUTED)
-    draw.rounded_rectangle((48, 318, 1552, 628), radius=26, outline=LINE, width=2)
-    text(72, 336, "Harness · Target optimization workflow", "body")
-    text(1528, 340, "Outer: candidates · Inner: AB/BA", "small", MUTED, "ra")
+    def box(bounds, active=False, external=False, color=ACCENT):
+        draw.rounded_rectangle(
+            bounds,
+            radius=18,
+            fill=EXTERNAL if external else (22, 51, 57) if active else SURFACE,
+            outline=color if active else LINE,
+            width=2,
+        )
 
-    knowledge_edge = 6 if state.stage == 0 and state.kind == "stage" else -1
+    analyzing = state.stage == 0 and state.kind == "stage"
+    executing = state.stage == 2 and state.kind == "stage"
+    reviewing = state.kind == "feedback"
+    actor_active = state.kind == "cli" or state.stage in (0, 1) or reviewing
 
-    # Candidate storage is a separate authorized action, never a verdict-triggered flow.
+    text(72, 24, "INFERRSI / TWO CONNECTED LOOPS", "latin", ACCENT)
+    text(72, 64, "Optimize with evidence. Reuse reviewed lessons.", "title")
+    text(1528, 31, "Target workflow", "small", MUTED, "ra")
+    text(64, 126, "External actor", "micro", MUTED)
+    text(562, 126, "Entry & Contracts", "micro", MUTED)
+    text(1100, 126, "External runtime", "micro", MUTED)
+    box((64, 160, 464, 266), actor_active, external=True, color=AMBER)
+    text(264, 173, "Human / Coding Agent", "node", TEXT, "ma")
+    text(264, 225, "Profile · Prepare · Review", "small", MUTED, "ma")
+    box((562, 160, 1002, 266), state.kind == "cli")
+    text(782, 173, "CLI / Contracts", "node", TEXT, "ma")
+    text(782, 225, "RunSpec snapshot · Declared rules", "small", MUTED, "ma")
+    box((1100, 160, 1536, 266), executing, external=True)
+    text(1318, 173, "Target System", "node", TEXT, "ma")
+    text(1318, 225, "Inference service / engine", "small", MUTED, "ma")
+    arrow(((464, 215), (552, 215)), ACCENT if state.kind == "cli" else LINE)
+    arrow(TARGET_PATH, ACCENT if executing else LINE)
+    arrow(tuple(reversed(TARGET_PATH)), ACCENT if executing else LINE)
+    text(1100, 300, "Benchmark ↔ outputs", "micro", MUTED)
+
+    draw.rounded_rectangle((48, 352, 1068, 654), radius=24, outline=LINE, width=2)
+    draw.rounded_rectangle((1116, 352, 1552, 654), radius=24, outline=LINE, width=2)
+    text(72, 366, "Workbench · Experiment loop", "body")
+    text(1048, 370, "Human / agent-driven", "micro", MUTED, "ra")
+    text(72, 400, "Harness · Model · Infra", "micro", MUTED)
+    text(1048, 400, "Read-only context", "micro", MUTED, "ra")
+    text(1134, 366, "Knowledge · Reuse loop", "body")
+    text(1134, 400, "Sources + evidence · Human/agent review", "micro", MUTED)
+
+    # Dashed paths describe human/agent workflow. No verdict triggers a store write.
     for edge, path in enumerate(TRACKS):
         arrow(path, dashed=edge == 7)
     if state.edge >= 0:
         arrow(TRACKS[state.edge], ACCENT)
-    if knowledge_edge >= 0:
-        arrow(TRACKS[knowledge_edge], ACCENT)
-    text(322, 275, "RunSpec snapshot", "small", MUTED)
-    text(1222, 275, "Retrieve", "small", MUTED, "ra")
-    text(1376, 265, "Optional · authorized", "micro", MUTED)
-    text(1376, 290, "Store candidates", "micro", MUTED)
-    text(800, 541, "Human / agent review → Next candidate", "body", TEXT, "ma")
-    text(800, 591, "Explicit next run · Within budget", "small", MUTED, "ma")
-    text(1364, 648, "Target met / budget ended", "micro", MUTED, "ra")
-
-    cli_active = state.kind == "cli"
-    draw.rounded_rectangle(
-        (82, 158, 514, 258),
-        radius=20,
-        fill=(22, 51, 57) if cli_active else SURFACE,
-        outline=ACCENT if cli_active else LINE,
-        width=2,
-    )
-    text(298, 169, "CLI", "node", TEXT, "ma")
-    text(298, 220, "Parse · validate · resolve RunSpec", "small", MUTED, "ma")
-    draw.rounded_rectangle(
-        (1076, 158, 1518, 258),
-        radius=20,
-        fill=(22, 51, 57) if knowledge_edge >= 0 else SURFACE,
-        outline=ACCENT if knowledge_edge >= 0 else LINE,
-        width=2,
-    )
-    text(1297, 162, "Knowledge Base", "node", TEXT, "ma")
-    text(1297, 204, "Sources · revisions · applicability", "small", MUTED, "ma")
-    text(1297, 229, "Imported is not local validation", "micro", MUTED, "ma")
+    if analyzing:
+        arrow(TRACKS[6], ACCENT)
+    if reviewing:
+        arrow(TRACKS[7], AMBER, dashed=True)
+        arrow(TRACKS[4], AMBER)
+    text(800, 289, "Authorized run", "micro", MUTED)
+    text(566, 564, "Review evidence → Choose next candidate", "small", TEXT, "ma")
+    text(72, 620, "Human / agent chooses the next run", "micro", MUTED)
+    text(1048, 620, "Evidence for optional review", "micro", MUTED, "ra")
 
     for index, (center, labels) in enumerate(zip(CENTERS, NODES)):
         active = index == state.stage and state.kind != "done"
@@ -190,24 +210,38 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
             draw.rounded_rectangle(
                 (left + 21, NODE_Y, right - 21, NODE_Y + 4), radius=2, fill=ACCENT
             )
-        text(center, NODE_Y + 12, labels[0], "node", TEXT, "ma")
-        text(center, NODE_Y + 64, labels[1], "latin", ACCENT if active else MUTED, "ma")
-        text(center, NODE_Y + 101, labels[2], "small", MUTED, "ma")
+        text(center, NODE_Y + 10, labels[0], "node", TEXT, "ma")
+        text(center, NODE_Y + 57, labels[1], "micro", ACCENT if active else MUTED, "ma")
+        text(center, NODE_Y + 88, labels[2], "micro", MUTED, "ma")
+
+    for path in KNOWLEDGE_TRACKS:
+        arrow(path, dashed=True)
+    for label, x, y in (
+        ("Extract", 1218, 467),
+        ("Review", 1450, 467),
+        ("Store", 1450, 578),
+        ("Reuse", 1218, 578),
+    ):
+        active = (label in ("Extract", "Review") and reviewing) or (label == "Reuse" and analyzing)
+        box((x - 70, y - 27, x + 70, y + 27), active, color=AMBER if reviewing else ACCENT)
+        text(x, y - 16, label, "latin", TEXT, "ma")
+    # The Store node and both adjoining paths always stay neutral and static.
+    text(1334, 620, "Candidate store · Separate authorization", "micro", MUTED, "ma")
 
     done = state.kind == "done"
     draw.rounded_rectangle(
-        (1240, 680, 1520, 746),
+        (1140, 690, 1536, 752),
         radius=16,
-        fill=(20, 47, 40) if done else SURFACE,
-        outline=GREEN if done else LINE,
+        fill=(20, 47, 40) if done else EXTERNAL if reviewing else SURFACE,
+        outline=GREEN if done else AMBER if reviewing else LINE,
         width=2,
     )
-    text(1380, 684, "Artifacts + evidence", "small", TEXT, "ma")
-    text(1380, 716, "Verdict + scope", "micro", MUTED, "ma")
+    text(1338, 693, "Evidence from every verdict", "small", TEXT, "ma")
+    text(1338, 724, "PASS / FAIL / INCONCLUSIVE", "micro", MUTED, "ma")
 
-    def particle(edge: int, fraction: float):
+    def particle(edge: int, fraction: float, points=None):
         nonlocal image, draw
-        x, y = along(TRACKS[edge], fraction)
+        x, y = along(TRACKS[edge] if points is None else points, fraction)
         halo = Image.new("RGBA", image.size, (0, 0, 0, 0))
         halo_draw = ImageDraw.Draw(halo)
         for radius, alpha in ((23, 12), (15, 25)):
@@ -220,27 +254,32 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
 
     if state.edge >= 0:
         particle(state.edge, state.fraction)
-    if knowledge_edge >= 0:
+    if analyzing:
         cycle = seconds * PLAYBACK_SPEED % BASE_PERIOD
         fraction = (cycle - 1.8 - (0 if state.candidate == 1 else 7.5)) / 1.2
-        particle(knowledge_edge, fraction)
+        particle(6, fraction)
+    if executing:
+        cycle = seconds * PLAYBACK_SPEED % BASE_PERIOD
+        local = cycle - 1.8 - (0 if state.candidate == 1 else 7.5) - 3.6
+        fraction = min(1.0, max(0.0, local / 1.2))
+        particle(0, 1 - abs(2 * fraction - 1), TARGET_PATH)
 
     if state.kind == "cli":
         phase, summary, color = (
             "CLI",
-            "Resolve inputs; record a RunSpec snapshot for an authorized run.",
+            "Human/agent: declare the task and comparison rules through CLI.",
             TEXT,
         )
     elif done:
         phase, summary, color = (
             "Deliver",
-            "PASS · All required gates passed; deliver artifacts and evidence.",
+            "PASS · Deliver evidence. Knowledge storage is a separate decision.",
             GREEN,
         )
     elif state.kind == "feedback":
         phase, summary, color = (
             "Feedback",
-            "FAIL · Review evidence; choose whether to try another candidate.",
+            "FAIL · A human/agent may extract a useful limitation from the evidence.",
             AMBER,
         )
     elif state.kind == "exit":
@@ -260,19 +299,19 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     else:
         phase = NODES[state.stage][0]
         summary = (
-            "Human/agent: inspect profiles and cited knowledge; select a hypothesis.",
+            "Human/agent: profile the target and consult reviewed knowledge.",
             "Human/agent: prepare candidate changes under frozen campaign gates.",
             "Harness: run alternating AB/BA trials and retain candidate evidence.",
         )[state.stage]
         color = TEXT
     identity = "RunSpec" if state.kind == "cli" else f"C{state.candidate:03d}"
-    text(72, 654, f"{identity}  /  {phase}", "body", ACCENT)
-    text(72, 698, summary, "body", color)
+    text(72, 682, f"{identity}  /  {phase}", "body", ACCENT)
+    text(72, 725, summary, "small", color)
     text(
         72,
-        764,
-        "No measured data · Missing evidence → INCONCLUSIVE · "
-        "Automated search / knowledge promotion planned",
+        770,
+        "Illustrative workflow · No measured data · Missing evidence → INCONCLUSIVE · "
+        "No autonomous edits or promotion",
         "micro",
         MUTED,
     )
