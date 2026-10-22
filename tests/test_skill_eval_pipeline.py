@@ -109,7 +109,10 @@ def test_client_failures_are_persisted_evaluation_errors(tmp_path, mode, state, 
      ("missing_assertions", "invalid_verifier_result"),
      ("empty_assertions", "invalid_verifier_result"),
      ("string_assertion", "invalid_verifier_result"),
-     ("inconsistent", "invalid_verifier_result"), ("wrong_exit", "verifier_exit")],
+     ("inconsistent", "invalid_verifier_result"), ("wrong_exit", "verifier_exit"),
+     ("nan_assertion", "invalid_verifier_result"),
+     ("infinite_assertion", "invalid_verifier_result"),
+     ("overflow_assertion", "invalid_verifier_result")],
 )
 def test_verifier_faults_cannot_be_completed_passes(tmp_path, fault, error):
     record = run_case(tmp_path, fault=fault)
@@ -128,7 +131,7 @@ def test_pilot_persists_mixed_summary_without_model_calls(tmp_path, monkeypatch)
     for name in ("plan", "validator", "results", "patch"):
         (tmp_path / name).mkdir()
     tasks = []
-    for mode in ("correct", "incorrect", "missing_output", "unknown_usage"):
+    for mode in ("correct", "incorrect", "missing_output", "unknown_usage", "partial_usage"):
         tasks.append({**copy.deepcopy(DATA["task"]), "id": mode, "client_mode": mode})
     atomic_write_json(tmp_path / "plan/tasks.json", tasks)
     atomic_write_json(tmp_path / "plan/schema.json", skill_eval_pilot.SCHEMA)
@@ -152,16 +155,26 @@ def test_pilot_persists_mixed_summary_without_model_calls(tmp_path, monkeypatch)
     skill_eval_pilot.execute(tmp_path)
     summary_path = tmp_path / "results/summary.json"
     group = json.loads(summary_path.read_text(encoding="utf-8"))["conditions"]["N"]
-    assert group["trials"] == 4
-    assert group["verdicts"] == {"PASS": 2, "FAIL": 1, "INCONCLUSIVE": 1}
+    assert group["trials"] == 5
+    assert group["verdicts"] == {"PASS": 3, "FAIL": 1, "INCONCLUSIVE": 1}
     assert group["evaluation_errors"] == 1
     assert group["input_tokens"] is None and group["output_tokens"] is None
     assert group["cost"] is None
     trials = json.loads((tmp_path / "results/trials.json").read_text(encoding="utf-8"))
-    assert [trial["verdict"] for trial in trials] == ["PASS", "FAIL", "INCONCLUSIVE", "PASS"]
+    assert [trial["verdict"] for trial in trials] == [
+        "PASS", "FAIL", "INCONCLUSIVE", "PASS", "PASS",
+    ]
     for trial in trials:
         persisted = tmp_path / "results" / (trial["task_id"] + "-N-1") / "result.json"
         assert json.loads(persisted.read_text(encoding="utf-8")) == trial
+    status_path = tmp_path / "results/status.json"
+    status = json.loads(status_path.read_text(encoding="utf-8"))
+    assert status["observed_tokens"] == 77
+    assert status["token_usage_complete"] is False
+    # 恢复已完成记录也必须能读取部分 usage，且不能重跑客户端。
+    monkeypatch.setattr(FakeClient, "command", lambda *args: pytest.fail("Unexpected rerun"))
+    skill_eval_pilot.execute(tmp_path)
+    assert json.loads(status_path.read_text(encoding="utf-8"))["observed_tokens"] == 77
 
 
 def test_partial_usage_stays_unknown_per_metric():

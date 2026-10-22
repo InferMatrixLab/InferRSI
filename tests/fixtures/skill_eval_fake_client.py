@@ -20,5 +20,7 @@ if mode != "missing_output":
 event = {"type": "turn.completed"}
 if mode != "unknown_usage":
     event["usage"] = {"input_tokens": 17, "output_tokens": 3}
+    if mode == "partial_usage":
+        del event["usage"]["output_tokens"]
 print("{broken" if mode == "invalid_trace" else json.dumps(event), flush=True)
 raise SystemExit(7 if mode == "nonzero" else 0)

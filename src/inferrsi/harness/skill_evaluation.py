@@ -222,14 +222,17 @@ def run_trial(
             evaluation_error = "missing_verifier_result"
         else:
             try:
-                checks = json.loads(result_path.read_text(encoding="utf-8"))
+                raw_checks = json.loads(result_path.read_text(encoding="utf-8"))
             except ValueError:
                 evaluation_error = "invalid_verifier_result"
-            if evaluation_error is None:
-                if not valid_checks(checks):
+            else:
+                if not valid_checks(raw_checks):
                     evaluation_error = "invalid_verifier_result"
-                elif verification["returncode"] != (0 if checks["passed"] else 1):
-                    evaluation_error = "verifier_exit"
+                else:
+                    # 原始结果保留在 verification/result.json；记录只接收已校验字段。
+                    checks = {key: raw_checks[key] for key in ("passed", "assertions")}
+                    if verification["returncode"] != (0 if checks["passed"] else 1):
+                        evaluation_error = "verifier_exit"
     after = {
         p.relative_to(workspace).as_posix(): sha256(p) for p in workspace.rglob("*") if p.is_file()
     }

@@ -77,6 +77,10 @@ verdicts. Missing token/cost observations stay unknown, including partially
 reported token metrics. Cached input is a subset of
 input tokens, not an additional charge. Paired regressions and recoveries remain
 visible, including neutral/negative results.
+The controller's `observed_tokens` counts only known token fields and is a lower
+bound when `token_usage_complete` is false; unknown totals remain null in the
+summary. Invalid verifier payloads remain in their raw verification artifact;
+only validated boolean checks enter the trial record.
 
 ## CPU checks and paid execution
 

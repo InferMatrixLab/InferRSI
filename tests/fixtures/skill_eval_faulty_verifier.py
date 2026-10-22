@@ -18,8 +18,14 @@ results = {
     "string_assertion": {"passed": True, "assertions": {"check": "false"}},
     "inconsistent": {"passed": True, "assertions": {"check": False}},
     "wrong_exit": {"passed": True, "assertions": {"check": True}},
+    "nan_assertion": {"passed": False, "assertions": {"check": float("nan")}},
+    "infinite_assertion": {"passed": False, "assertions": {"check": float("inf")}},
 }
+if mode == "overflow_assertion":
+    payload = '{"passed":false,"assertions":{"check":1e999}}'
+else:
+    payload = "{broken" if mode == "invalid_json" else json.dumps(results[mode])
 Path(os.environ["INFERRSI_RESULT_PATH"]).write_text(
-    "{broken" if mode == "invalid_json" else json.dumps(results[mode]), encoding="utf-8"
+    payload, encoding="utf-8"
 )
 raise SystemExit(7 if mode == "wrong_exit" else 0)
