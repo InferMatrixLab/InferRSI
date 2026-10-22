@@ -1,6 +1,6 @@
 # Recovery reference evidence
 
-Inspected 2026-10-15. Scope is recovery contracts, not performance or arbitrary
+Original inspection: 2026-10-15. Scope is recovery contracts, not performance or arbitrary
 checkpoint-system investigation. Sources are independent implementations;
 NVIDIA local checkpointing includes Megatron-Core lineage and is not counted
 again as a separately mined Megatron mechanism.
@@ -23,9 +23,9 @@ without a tested torch_npu/GLM integration.
 
 - C3 saver/loader groups are actual contract participants; "all ranks" must
   not silently mean every world rank regardless of its saving role.
-- C3 replica restoration invokes a manager and sets shared-memory metadata;
-  its excerpt alone is insufficient to prove payload restoration. Keep that
-  claim conditional pending implementation/restore evidence.
+- The original C3 excerpt did not audit the saver/replica implementation. The
+  extension below supplies that source trace; restored-byte validity remains
+  unverified, with concrete gather/consumer boundaries retained.
 - C4 `find_latest` caches its result until a save invalidates it, explicitly
   assuming no other invalidation. It is not a continuously refreshed durability
   monitor. `load` requires a prior `find_latest`.
@@ -37,3 +37,42 @@ without a tested torch_npu/GLM integration.
 
 All derived failure-domain and verification requirements are candidate guidance.
 No source throughput numbers, runtime results or empirical PASS are imported.
+
+## DLRover extension: inspected 2026-10-22
+
+All new source reads use `intelligent-machine-learning/dlrover` at full revision
+`e35b1ad90e2928ca6bacf5d22117f713566c5cb0`, fetched as immutable UTF-8 files
+through the GitHub connector. The following ranges were directly read; method
+names and file paths describe evidence, not instructions to execute upstream
+scripts. The [operating reference](dlrover-persistence-replicas.md) distills the
+behavior and proposed checks. Existing C4 evidence was not refreshed.
+
+| File / inspected lines | Directly observed scope |
+|---|---|
+| [`ddp.py`, 15–125](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/dlrover/trainer/torch/flash_checkpoint/ddp.py#L15-L125) | Public wrapper, state/path mapping, saver construction, discarded save return and wait delegation |
+| [`full_ckpt_engine.py`, 15–220](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/dlrover/trainer/torch/flash_checkpoint/full_ckpt_engine.py#L103-L220) | Cached-step branch, save event/barrier/return, memory-first load and explicit-path versus tracker-selected storage fallback |
+| [`engine.py`, 60–116, 139–158, 214–310, 365–469](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/dlrover/trainer/torch/flash_checkpoint/engine.py#L365-L469) | Existing readiness/step/backend and helper-lifetime contracts; manager selection, shared-memory save/backup, gather consumer and timeout return |
+| [`ckpt_saver.py`, 98–112, 176–231, 303–396, 419–466](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/dlrover/python/elastic_agent/torch/ckpt_saver.py#L303-L396) | Shared-memory create/copy and writing flag; load rejection; saver storage construction, handler/lock/executor ownership |
+| [`ckpt_saver.py`, 619–746, 770–852, 892–1122, 1341–1345](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/dlrover/python/elastic_agent/torch/ckpt_saver.py#L962-L1122) | Event consumer, shard lock/step/write/done ordering and exception result; interrupted-worker save gates; common-directory count/timeout/tracker protocol and serialization map; DDP saver inheritance |
+| [`replica.py`, 31–363](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/dlrover/trainer/torch/flash_checkpoint/replica.py#L31-L363) | Full/sharded selection; CPU/Gloo groups, topology world positions, byte/metadata gather and peer-memory writes; full presence/broadcast and shard-owner lookup |
+| [`storage.py`, 24–62, 89–192, 264–320](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/dlrover/python/common/storage.py#L128-L192) | Storage boundary, POSIX write/fsync and callback-owned payload serialization, read/move/list/commit; optional deletion callback |
+| [`LICENSE`, complete file](https://github.com/intelligent-machine-learning/dlrover/blob/e35b1ad90e2928ca6bacf5d22117f713566c5cb0/LICENSE) and inspected Python file headers, 1–12 | Root applies Apache-2.0 unless otherwise noted; scoped files retain DLRover Authors' Apache-2.0 headers. Root also retains third-party notices; no implementation text is copied into this extension |
+
+### Observation versus proposed evidence
+
+The saver compares done-file count, not an authenticated rank/content manifest.
+`PosixDiskStorage.write` contains `fsync` before context close and no explicit
+buffer flush before that call; payload serialization is delegated. These facts
+do not prove power-loss durability or a reproduced durability failure.
+
+Sharded gather keys handlers by global rank but initially indexes by loop
+position (`replica.py`, 224–255). The engine's missing-local-memory branch
+allocates and sets metadata without visibly copying the returned bytes
+(`engine.py`, 423–440). These are source observations motivating specific
+topology and restored-value checks, not executed failure reports.
+
+Excluded: TempDir commit implementation, framework-specific serializers beyond
+the DDP/common saver, third-party serializer internals, custom storage, device
+execution, distributed collectives, failure injection, power-loss tests and
+agent-use evaluation. No new runtime qualification or measured coverage follows
+from this readset.
