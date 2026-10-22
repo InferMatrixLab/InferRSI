@@ -6,7 +6,9 @@
     "prefetch",
     "offload",
     "serving",
-    "npu"
+    "npu",
+    "collectives",
+    "tensor-parallel"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -32,6 +34,25 @@
         "LICENSE"
       ],
       "readset": "references/llama-loading-readset.md"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/foundation-model-stack/fastsafetensors",
+      "commit": "219e2561a41ede2d5d8eba611c248bb0effbf580",
+      "paths": [
+        "fastsafetensors/loader.py",
+        "fastsafetensors/file_buffer.py",
+        "fastsafetensors/tensor_factory.py",
+        "fastsafetensors/parallel_loader.py",
+        "fastsafetensors/frameworks/_torch.py",
+        "fastsafetensors/frameworks/_paddle.py",
+        "docs/overview.md",
+        "examples/run_parallel.py",
+        "tests/unit/test_broadcast_runs.py",
+        "tests/unit/test_subgroup.py",
+        "LICENSE"
+      ],
+      "readset": "references/fastsafetensors-transfer-readset.md"
     }
   ],
   "empirical_validation": "not_run",
@@ -40,11 +61,13 @@
   },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Only the existing llama.cpp loading slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
-    "The llama.cpp readset records static mechanisms and source recommendations, not validated startup, memory, placement or backend performance."
+    "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
+    "The readsets record static mechanisms and source recommendations, not validated startup, memory, placement or backend performance.",
+    "The fastsafetensors delivery readset does not revalidate inherited I/O/save claims or qualify uneven scatter, accelerator/NPU compatibility, inter-node transport or agent efficacy."
   ],
   "provenance_readsets": [
-    "references/llama-loading-readset.md"
+    "references/llama-loading-readset.md",
+    "references/fastsafetensors-transfer-readset.md"
   ],
   "references": [],
   "consumption_mode": "packaged"
