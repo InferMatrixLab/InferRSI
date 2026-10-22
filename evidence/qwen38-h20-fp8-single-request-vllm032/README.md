@@ -14,6 +14,19 @@ original stores; this directory does not replace or retrospectively freeze them.
 - `patch/diagnostics/`: separate configured-backend and model-prefill repairs.
 - `validator/diagnostics/`: diagnostic observer; not the final acceptance validator.
 
+Publication follow-up: `results/diagnostics/http-impact.md` binds the clean
+main-based engine commits to actual HTTP timing and token evidence. The repaired
+Graph matches eager for all six short requests; original main differs on two.
+The exact publication-head CPU suite has one inherited failure, reproduced on
+unmodified main; see the report rather than transferring earlier green totals.
+The official benchmark HTTP API prerequisites remain outstanding.
+
+The HTTP follow-up consumed 0.04 GPU-hours of the owner-approved 44 GPU-hour
+phased ceiling. It does not activate the statistical/retrieval freeze proposal.
+KnowledgeStore record `store:case.qwen38-publication-http-prefill-cand`, revision
+`sha256:83c7df1d6debb6e2797a96fd30d6a8270d842d6cf97428610821b3d78a964c32`,
+retains positive, negative and inconclusive observations with verified readback.
+
 Current local engine implementation has two independently bounded commits: the
 configured FP8 backend is validated/reported, and initial prefill preserves its
 original K/V operands with reserved Graph storage. GPU repair evidence applies
