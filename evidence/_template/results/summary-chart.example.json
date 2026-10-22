@@ -1,0 +1,55 @@
+{
+  "title": "Example engine end-to-end throughput",
+  "subtitle": [
+    "Replace every value with the campaign's recorded measurements; this file is a shape example, not a result.",
+    "State the screen protocol in the subtitle: how many requests, how many repeats, and what a delta does not prove."
+  ],
+  "unit": "frames/s",
+  "baseline": {"label": "pinned baseline snapshot", "metrics": {"C16": 500.0, "C32": 520.0}},
+  "metrics": [
+    {"key": "C16", "label": "C16"},
+    {"key": "C32", "label": "C32"}
+  ],
+  "label_metric": "C32",
+  "sort": "gain",
+  "axis": {"tick": 50, "label": "End-to-end gain versus the pinned baseline snapshot"},
+  "references": [
+    {"label": "peer target, C32", "metric": "C32", "value": 1400.0}
+  ],
+  "statuses": {
+    "open": {"mark": "", "strong": false},
+    "rejected": {"mark": "", "strong": false},
+    "flat": {"mark": "×", "strong": false},
+    "regressed": {"mark": "×", "strong": false}
+  },
+  "trials": [
+    {
+      "group": "Kernel",
+      "label": "fused epilogue",
+      "values": {"C16": 600.0, "C32": 640.0},
+      "status": "open",
+      "note": "one screen on the tuning cohort"
+    },
+    {
+      "group": "Kernel",
+      "label": "graph capacity raise",
+      "values": {"C16": 505.0, "C32": 521.0},
+      "status": "flat",
+      "note": "no gain versus its parent"
+    },
+    {
+      "group": "Kernel",
+      "label": "pooled precision path",
+      "values": {"C16": 480.0, "C32": 540.0},
+      "status": "regressed",
+      "note": "1.9% slower than baseline at C16"
+    },
+    {
+      "group": "Replication",
+      "label": "two replicas",
+      "values": {"C16": 900.0, "C32": 1100.0},
+      "status": "rejected",
+      "note": "quality gate failed"
+    }
+  ]
+}

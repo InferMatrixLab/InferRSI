@@ -25,6 +25,7 @@ Effect classes used below:
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
+| Summarize campaign gains | `tools/campaign_summary_chart.py` | Figure-generating | Renders recorded values into one gain figure plus a matching table; validates the specification and computes nothing new |
 
 The `collect`, `read` and `resource` commands share the reader's rules; they
 are distinct from `knowledge search`, whose package catalog filters
@@ -132,3 +133,14 @@ compatibility.
 Operation success, recorded execution state and the experiment verdict are
 distinct conclusions; a completed run does not upgrade imported knowledge or
 unvalidated candidates.
+
+## Campaign summary figure
+
+### Summarize a campaign figure — `tools/campaign_summary_chart.py`
+
+- **Inputs:** one JSON specification with baseline, metrics, trials and optional references; an output path.
+- **Scope:** recorded values only. The renderer computes gains, validates the specification and writes a figure; it measures nothing.
+- **Output:** an SVG figure, plus a Markdown table with the same values when `--markdown` is given.
+- **Side effects:** writes the two requested files; nothing is executed and no network or GPU is touched.
+- **Failure behavior:** exit code 2 with the offending field name when the specification is incomplete, ambiguous or inconsistent.
+- **Example:** [campaign summary chart](campaign-summary-chart.md)
