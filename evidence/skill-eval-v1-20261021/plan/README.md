@@ -28,8 +28,14 @@ complete skill bundle; R receives both through native `.agents/skills` discovery
 The same client/model request, tools, task input and deadline apply. Input
 hashes detect edits. Expected answers and the verifier stay outside the task
 workspace. The verifier reads JSON only and does not execute model code.
-Conditions are counterbalanced and paired on task/repeat. Seeds are not exposed
-by this client. Provider cached input is recorded, not treated as a fresh output.
+Conditions are paired on task/repeat. Order corrigendum (2026-10-22): the original
+counterbalanced description was incorrect. The frozen v2 groups ran N,
+E-benchmark and E-evidence first 4, 2 and 0 times, respectively. Historical times
+are descriptive observations confounded by ordering, cache or provider drift,
+not estimates of a causal skill-time effect. See the [report's corrigendum](../README.md#order-corrigendum--2026-10-22).
+Seeds are not exposed by this client. Provider cached input is recorded, not
+treated as a fresh output. Frozen protocols and results retain their original
+bytes; the original publication manifest is archived as `integrity.initial.json`.
 
 The task audits historical latency slices with explicitly counterfactual
 metadata. Its own frozen contract specifies the gain, quality, all-request,

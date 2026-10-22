@@ -164,6 +164,25 @@ def fixtures(final_only=False):
     return result
 
 
+def build_schedule(tasks: list[dict], final_only=False) -> list[dict]:
+    schedule = []
+    for task in tasks:
+        if final_only and task["split"] == "development":
+            continue
+        repeats = 1 if task["split"] == "development" else 2
+        if final_only:
+            repeats = 2 if task["id"] in {"holdout-4", "holdout-6"} else 1
+        for repeat in range(1, repeats + 1):
+            conditions = ["N", "E-benchmark", "E-evidence"]
+            # 每个 matched group 只轮换一次；repeat 仅用于配对标识。
+            shift = (len(schedule) // 3) % 3
+            for condition in conditions[shift:] + conditions[:shift]:
+                schedule.append({"task_id": task["id"], "condition": condition, "repeat": repeat})
+    for mode in ("relevant", "ambiguous", "irrelevant"):
+        schedule.append({"task_id": "R-" + mode, "condition": "R", "repeat": 1})
+    return schedule
+
+
 def prepare(
     output: Path,
     model: str,
@@ -182,20 +201,7 @@ def prepare(
     shutil.copyfile(ROOT / "tools/skill_eval_verifier.py", output / "validator/verify.py")
     reader = KnowledgeReader(skill_root=ROOT / "src/inferrsi/data/skill_library")
     bundles = {name: reader.read("checkout:" + name).view() for name in SKILLS}
-    schedule = []
-    for task in tasks:
-        if final_only and task["split"] == "development":
-            continue
-        repeats = 1 if task["split"] == "development" else 2
-        if final_only:
-            repeats = 2 if task["id"] in {"holdout-4", "holdout-6"} else 1
-        for repeat in range(1, repeats + 1):
-            conditions = ["N", "E-benchmark", "E-evidence"]
-            shift = (len(schedule) // 3 + repeat - 1) % 3
-            for condition in conditions[shift:] + conditions[:shift]:
-                schedule.append({"task_id": task["id"], "condition": condition, "repeat": repeat})
-    for mode in ("relevant", "ambiguous", "irrelevant"):
-        schedule.append({"task_id": "R-" + mode, "condition": "R", "repeat": 1})
+    schedule = build_schedule(tasks, final_only)
     source_files = [
         ROOT / "src/inferrsi/harness/skill_evaluation.py",
         Path(__file__),

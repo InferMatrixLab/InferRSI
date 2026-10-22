@@ -1,5 +1,7 @@
 import importlib.util
+import json
 import time
+from collections import Counter
 from pathlib import Path
 
 import pytest
@@ -149,6 +151,62 @@ def test_final_fixture_protocol_is_explicit_and_uses_distinct_latency_inputs():
     for task in final:
         assert set(task["contract"]["verdict_definitions"]) == {"PASS", "FAIL", "INCONCLUSIVE"}
         assert "Use null" in task["contract"]["output_field_semantics"]["latency_reduction_pct"]
+
+
+@pytest.mark.parametrize("final_only,group_count", [(False, 10), (True, 6)])
+def test_schedule_balances_positions_without_model_calls(final_only, group_count):
+    pilot = load_tool("skill_eval_pilot")
+    tasks = pilot.fixtures(final_only)
+    schedule = pilot.build_schedule(tasks, final_only)
+    assert schedule == pilot.build_schedule(tasks, final_only)
+    matched = [entry for entry in schedule if entry["condition"] != "R"]
+    assert len(matched) == group_count * 3
+    conditions = {"N", "E-benchmark", "E-evidence"}
+    groups = [matched[index:index + 3] for index in range(0, len(matched), 3)]
+    keys = []
+    for group in groups:
+        assert Counter(entry["condition"] for entry in group) == Counter(conditions)
+        assert len({(entry["task_id"], entry["repeat"]) for entry in group}) == 1
+        keys.append((group[0]["task_id"], group[0]["repeat"]))
+    assert len(set(keys)) == group_count
+    repetitions = (
+        {"holdout-3": 1, "holdout-4": 2, "holdout-5": 1, "holdout-6": 2}
+        if final_only else
+        {"dev-1": 1, "dev-2": 1, "holdout-3": 2, "holdout-4": 2,
+         "holdout-5": 2, "holdout-6": 2}
+    )
+    expected = {
+        (task_id, repeat)
+        for task_id, count in repetitions.items()
+        for repeat in range(1, count + 1)
+    }
+    assert set(keys) == expected
+    for start in range(0, len(groups) - 2, 3):
+        for position in range(3):
+            assert Counter(group[position]["condition"] for group in groups[start:start + 3]) == (
+                Counter(conditions)
+            )
+    for position in range(3):
+        counts = Counter(group[position]["condition"] for group in groups)
+        if final_only:
+            assert counts == {condition: 2 for condition in conditions}
+        else:
+            assert max(counts.values()) - min(counts.values()) <= 1
+    assert schedule[-3:] == [
+        {"task_id": "R-" + mode, "condition": "R", "repeat": 1}
+        for mode in ("relevant", "ambiguous", "irrelevant")
+    ]
+
+
+def test_retained_final_protocol_keeps_the_actual_unbalanced_order():
+    protocol = json.loads(
+        (ROOT / "evidence/skill-eval-v1-20261021/plan/protocol-v2.json").read_text("utf-8")
+    )
+    matched = [entry for entry in protocol["schedule"] if entry["condition"] != "R"]
+    assert len(matched) == 18
+    assert Counter(entry["condition"] for entry in matched[::3]) == {
+        "N": 4, "E-benchmark": 2,
+    }
 
 
 def test_expired_real_executor_deadline_records_missing_events(tmp_path):

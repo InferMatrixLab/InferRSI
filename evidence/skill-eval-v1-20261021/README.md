@@ -7,9 +7,44 @@ Both pinned skills were consumed and applied appropriately, but neither improved
 task correctness over the no-skill baseline on this explicit audit task family.
 All 18 final matched trials and three discovery probes passed. Across 12 N/E
 pairs there were zero failure recoveries and zero correctness regressions.
-Explicit full-bundle exposure used more tokens and time. The result supports
-keeping the useful decision rules and narrowing their scope/consumption cost;
+Explicit conditions recorded higher token totals and mean elapsed times; the
+time comparison is confounded by run order, not a causal skill-time effect.
+The result supports keeping the useful decision rules and narrowing their scope/consumption cost;
 it does not support promoting either candidate as empirically more effective.
+
+## Order corrigendum — 2026-10-22
+
+The original description of the schedule as counterbalanced was incorrect
+([review finding](https://github.com/InferMatrixLab/InferRSI/pull/69#discussion_r4339359590)).
+The scheduler counted `repeat - 1` in addition to the matched-group index.
+The frozen v2 protocol's six groups therefore used rotations `0,1,0,0,1,0`.
+Their actual position counts were:
+
+| Condition | First | Second | Third |
+| --- | --- | --- | --- |
+| N | 4 | 0 | 2 |
+| E-benchmark | 2 | 4 | 0 |
+| E-evidence | 0 | 2 | 4 |
+
+The measured times and token counts below remain unchanged. In particular,
++12.5% and +36.2% are descriptive differences with order, cache and provider-drift
+confounding; they cannot be interpreted as elapsed-time increases caused by
+the skills. The limited observation of no incremental correctness benefit
+also remains unchanged; it is not a general efficacy estimate.
+
+Future schedules rotate by matched-group index alone. Each condition occupies
+each position twice across the six final groups, but this correction does not
+rebalance or rerun the historical trial. A credible time-effect study needs a
+separately authorized frozen design and budget; no new model calls accompany
+this correction.
+
+Historical protocols, outputs, verdicts, measurements and their hashes are
+unchanged. The original publication manifest is preserved byte-for-byte as
+[`plan/integrity.initial.json`](plan/integrity.initial.json); the
+[original report](https://github.com/InferMatrixLab/InferRSI/blob/9a8f565f7629be091ea9f170ab2b93a4b01ec223/evidence/skill-eval-v1-20261021/README.md)
+and [plan description](https://github.com/InferMatrixLab/InferRSI/blob/9a8f565f7629be091ea9f170ab2b93a4b01ec223/evidence/skill-eval-v1-20261021/plan/README.md)
+remain available at their original revision. The current publication manifest
+updates only these two explanatory documents and adds the archived manifest.
 
 ## Final outcomes and resource use
 
@@ -26,15 +61,17 @@ independent verifier results. Per-trial answers/checks are under
 [`results/v2/`](results/v2/); paired comparisons and exact resource totals are in
 [`results/summary.json`](results/summary.json).
 
-| Condition | Tasks passed | Input + output tokens, total | Mean agent elapsed time |
+| Condition | Tasks passed | Input + output tokens, total | Observed mean agent elapsed time |
 | --- | --- | --- | --- |
 | N | 6/6 | 195,918 | 58.63 s |
 | E-benchmark | 6/6 | 349,476 (+78.4% vs N) | 65.97 s (+12.5%) |
 | E-evidence | 6/6 | 379,322 (+93.6% vs N) | 79.88 s (+36.2%) |
 | R, separate probes | 3/3 | 143,885 | 66.56 s |
 
-These are descriptive totals/means for this client and exposure strategy, not
-statistically established latency effects or billing prices. E supplies the
+These are descriptive totals/means for this client and exposure strategy.
+Elapsed differences are confounded by the unbalanced condition order and may
+reflect cache or provider drift; they are not causal skill-time effects or
+billing prices. E supplies the
 complete bundle inline and as files, and agents also read those files: these
 numbers do not estimate the cost of every possible skill-loading strategy.
 Input includes cached input (a subset); reasoning output is a subset of output.
@@ -111,7 +148,8 @@ and elapsed time. The other 24 entries of that original schedule were not run;
 Before further calls, an independently reviewed revision made verdict, numeric
 null and scope semantics explicit for every condition. Skills and verifier were
 unchanged. The four revised final instances used different historical baseline
-values and a frozen counterbalanced 18-call N/E schedule plus three R probes.
+values and a frozen, position-unbalanced 18-call N/E schedule plus three R probes
+(actual first-position distribution 4/2/0; see the order corrigendum above).
 These are new values of familiar semantic types, not independent new task types.
 One old workload instance was already exposed during development. This is a
 bounded final phase with no skill selection/tuning, not an untouched new task

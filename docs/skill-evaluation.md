@@ -8,6 +8,10 @@ The first [real-client pilot report](../evidence/skill-eval-v1-20261021/README.m
 includes per-trial answers, retained development failures, discovery observations
 and CPU-only replay of the frozen verifier. Its conclusions apply to that
 selected task family, skill revisions and client/model configuration.
+Its [order corrigendum](../evidence/skill-eval-v1-20261021/README.md#order-corrigendum--2026-10-22)
+records the historical 4/2/0 first-position imbalance. Recorded elapsed differences
+are observations with order/cache/provider-drift confounding, not causal skill
+effects; a time-effect study needs a separately authorized frozen plan and budget.
 
 The small report-audit driver reuses `KnowledgeReader` bundles, the real Codex
 CLI and `infra.executors.local.execute_command`. It adapts the sibling pilot's
@@ -22,6 +26,13 @@ platform source is copied. Existing knowledge retains its source/license limits.
 | N | No target instructions or resources | Same-client baseline |
 | E-benchmark / E-evidence | One explicit, complete reader bundle | Attribute each skill's effect separately |
 | R | Both skills through native `.agents/skills` discovery | Observe relevant, ambiguous and irrelevant activation |
+
+Future N/E schedules rotate by matched-group index alone; repeat numbers identify
+pairs without changing the rotation. Every group contains all three conditions
+once. Each consecutive block of three groups balances positions; across the six
+`--final-only` groups each condition occupies each position twice. The ordinary
+ten-group schedule has position counts of three or four. R probes follow these
+groups. This fix leaves historical frozen schedules and outcomes unchanged.
 
 Each trial starts a fresh ephemeral client and workspace. Global/bundled skills,
 plugins, apps, memory and web are disabled for that client only. For this pilot,

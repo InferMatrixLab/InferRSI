@@ -2,11 +2,11 @@
   "patch/README.md": "2d7d6ac8d3aa2c57c502e715a87f9d2d5a6507f00f25182a0aef3481c370c8a8",
   "plan/protocol-v1.json": "3c224b27b97226b0a74ef4107733c9f64064bd3a4ffddc46bdb6d3a75657ebbb",
   "plan/protocol-v2.json": "5042c04035e849029d8ce68416181fc39aea6f5c0256739e3ce2ff2c617563a8",
-  "plan/README.md": "00931d05dd973fb148068fd3dbd31251ed646f0d89c5c9e226c3b5a2ee5a5cf9",
+  "plan/README.md": "42b13183b515bb81fb4bebd9aa827fa3677cc8d0124a9a77e1a5fe461ccf59cf",
   "plan/schema.json": "89de6085fa63da835e0e6653785771d02abefd665cb2b21ad2df772ffc0b4f62",
   "plan/tasks-v1.json": "47ac4adf8c201fca88f2341e4a7f3b6f8ff8a409c1138dadee30fce1ec63529c",
   "plan/tasks-v2.json": "081c267bcdbafd5a1223e734c54f448ebaf8e1acfdcdbe403ee32da3ef53dee7",
-  "README.md": "41217abfea683badc51da9dbe2eed20faad22b2ebe51a4ce9a5be84124c64a7e",
+  "README.md": "20b603dfe31fd3046ada99c156f56993de5005c119daa37df50f21d9b326eeef",
   "results/readiness.json": "1d43a154518f307e0bdd67f5b59037bc4bbe703b96f2da7f4c6daa7d24ff66cc",
   "results/summary.json": "df2a1c197d5a34e2c643ec7251cc067a70da18b3f12b75b98adf321fafd0a6e8",
   "results/v1/dev-1-E-benchmark-1/answer.json": "217f4fca41d041727f5dee99e8b17d7c72c5b5324ad4ef58f544a71483ae32d2",
@@ -104,5 +104,6 @@
   "results/v2-summary.json": "8549a5eadc9adeb8d1734f197ec3d413407482c08c719bfb2134f647fd619bbd",
   "validator/README.md": "26beec26283c3a3d2a4444d4ff7450aaa030e379ecda95fc2e8f588db0b1a64d",
   "validator/replay.py": "da864fb4abb80ced4f08da9c0a09b7fba4506cdb485dc28a8464a1ecc28dbd82",
-  "validator/verify.py": "17cb461e8b664c97220be0c5322ef9d3888fcf45b81360c2b58fb5920956f88d"
+  "validator/verify.py": "17cb461e8b664c97220be0c5322ef9d3888fcf45b81360c2b58fb5920956f88d",
+  "plan/integrity.initial.json": "d7f16c034c15180ed4997e970a2715e8fe144b1642550132e63dc4ff504894e1"
 }
