@@ -45,17 +45,17 @@ TRACKS = (
     ((548, 490), (574, 490)),
     ((800, 490), (826, 490)),
     ((944, 550), (944, 598), (188, 598), (188, 560)),
-    ((944, 550), (944, 672), (1120, 672), (1120, 720), (1130, 720)),
-    ((782, 266), (782, 342)),
+    ((944, 550), (944, 680)),
+    ((540, 266), (540, 342)),
     ((1116, 410), (1078, 410)),
     ((1068, 604), (1106, 604)),
 )
-TARGET_PATH = ((1040, 342), (1040, 304), (1064, 304), (1064, 215), (1090, 215))
+TARGET_PATH = ((876, 342), (876, 276))
 KNOWLEDGE_TRACKS = (
-    ((1288, 467), (1370, 467)),
-    ((1450, 494), (1450, 541)),
-    ((1380, 578), (1298, 578)),
-    ((1218, 551), (1218, 504)),
+    ((1288, 330), (1370, 330)),
+    ((1450, 357), (1450, 463)),
+    ((1380, 500), (1298, 500)),
+    ((1218, 473), (1218, 367)),
 )
 
 
@@ -156,30 +156,31 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     text(72, 64, "Optimize with evidence. Reuse reviewed lessons.", "title")
     text(1528, 31, "Target workflow", "small", MUTED, "ra")
     text(64, 126, "External actor", "micro", MUTED)
-    text(562, 126, "Entry & Contracts", "micro", MUTED)
-    text(1100, 126, "External runtime", "micro", MUTED)
-    box((64, 160, 464, 266), actor_active, external=True, color=AMBER)
-    text(264, 173, "Human / Coding Agent", "node", TEXT, "ma")
-    text(264, 225, "Profile · Prepare · Review", "small", MUTED, "ma")
-    box((562, 160, 1002, 266), state.kind == "cli")
-    text(782, 173, "CLI / Contracts", "node", TEXT, "ma")
-    text(782, 225, "RunSpec snapshot · Declared rules", "small", MUTED, "ma")
-    box((1100, 160, 1536, 266), executing, external=True)
-    text(1318, 173, "Target System", "node", TEXT, "ma")
-    text(1318, 225, "Inference service / engine", "small", MUTED, "ma")
-    arrow(((464, 215), (552, 215)), ACCENT if state.kind == "cli" else LINE)
+    text(400, 126, "Entry & Contracts", "micro", MUTED)
+    text(736, 126, "External runtime", "micro", MUTED)
+    box((64, 160, 344, 266), actor_active, external=True, color=AMBER)
+    text(204, 175, "Human / Coding Agent", "body", TEXT, "ma")
+    text(204, 225, "Profile · Prepare · Review", "micro", MUTED, "ma")
+    box((400, 160, 680, 266), state.kind == "cli")
+    text(540, 173, "CLI / Contracts", "node", TEXT, "ma")
+    text(540, 225, "Task · Rules · RunSpec", "micro", MUTED, "ma")
+    box((736, 160, 1016, 266), executing, external=True)
+    text(876, 173, "Target System", "node", TEXT, "ma")
+    text(876, 225, "Inference service / engine", "micro", MUTED, "ma")
+    arrow(((344, 215), (390, 215)), ACCENT if state.kind == "cli" else LINE)
     arrow(TARGET_PATH, ACCENT if executing else LINE)
     arrow(tuple(reversed(TARGET_PATH)), ACCENT if executing else LINE)
-    text(1100, 300, "Benchmark ↔ outputs", "micro", MUTED)
+    text(894, 289, "Benchmark ↔ outputs", "micro", MUTED)
 
     draw.rounded_rectangle((48, 352, 1068, 654), radius=24, outline=LINE, width=2)
-    draw.rounded_rectangle((1116, 352, 1552, 654), radius=24, outline=LINE, width=2)
+    draw.rounded_rectangle((1116, 160, 1552, 654), radius=24, outline=LINE, width=2)
     text(72, 366, "Workbench · Experiment loop", "body")
     text(1048, 370, "Human / agent-driven", "micro", MUTED, "ra")
     text(72, 400, "Harness · Model · Infra", "micro", MUTED)
     text(1048, 400, "Read-only context", "micro", MUTED, "ra")
-    text(1134, 366, "Knowledge · Reuse loop", "body")
-    text(1134, 400, "Sources + evidence · Human/agent review", "micro", MUTED)
+    text(1134, 174, "Knowledge · Reuse loop", "body")
+    text(1134, 216, "Sources + evidence · Human/agent review", "micro", MUTED)
+    text(1334, 262, "Skills · Cases · Source revisions", "micro", MUTED, "ma")
 
     # Dashed paths describe human/agent workflow. No verdict triggers a store write.
     for edge, path in enumerate(TRACKS):
@@ -191,10 +192,10 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     if reviewing:
         arrow(TRACKS[7], AMBER, dashed=True)
         arrow(TRACKS[4], AMBER)
-    text(800, 289, "Authorized run", "micro", MUTED)
+    text(558, 289, "Authorized run", "micro", MUTED)
     text(566, 564, "Review evidence → Choose next candidate", "small", TEXT, "ma")
     text(72, 620, "Human / agent chooses the next run", "micro", MUTED)
-    text(1048, 620, "Evidence for optional review", "micro", MUTED, "ra")
+    text(1134, 572, "Evidence → optional review", "micro", MUTED)
 
     for index, (center, labels) in enumerate(zip(CENTERS, NODES)):
         active = index == state.stage and state.kind != "done"
@@ -217,10 +218,10 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     for path in KNOWLEDGE_TRACKS:
         arrow(path, dashed=True)
     for label, x, y in (
-        ("Extract", 1218, 467),
-        ("Review", 1450, 467),
-        ("Store", 1450, 578),
-        ("Reuse", 1218, 578),
+        ("Extract", 1218, 330),
+        ("Review", 1450, 330),
+        ("Store", 1450, 500),
+        ("Reuse", 1218, 500),
     ):
         active = (label in ("Extract", "Review") and reviewing) or (label == "Reuse" and analyzing)
         box((x - 70, y - 27, x + 70, y + 27), active, color=AMBER if reviewing else ACCENT)
@@ -230,14 +231,14 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
 
     done = state.kind == "done"
     draw.rounded_rectangle(
-        (1140, 690, 1536, 752),
+        (784, 690, 1104, 752),
         radius=16,
         fill=(20, 47, 40) if done else EXTERNAL if reviewing else SURFACE,
         outline=GREEN if done else AMBER if reviewing else LINE,
         width=2,
     )
-    text(1338, 693, "Evidence from every verdict", "small", TEXT, "ma")
-    text(1338, 724, "PASS / FAIL / INCONCLUSIVE", "micro", MUTED, "ma")
+    text(944, 693, "Evidence from every verdict", "small", TEXT, "ma")
+    text(944, 724, "PASS / FAIL / INCONCLUSIVE", "micro", MUTED, "ma")
 
     def particle(edge: int, fraction: float, points=None):
         nonlocal image, draw
@@ -279,7 +280,7 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     elif state.kind == "feedback":
         phase, summary, color = (
             "Feedback",
-            "FAIL · A human/agent may extract a useful limitation from the evidence.",
+            "FAIL · Review retained evidence; extract useful limitations.",
             AMBER,
         )
     elif state.kind == "exit":
@@ -300,7 +301,7 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
         phase = NODES[state.stage][0]
         summary = (
             "Human/agent: profile the target and consult reviewed knowledge.",
-            "Human/agent: prepare candidate changes under frozen campaign gates.",
+            "Human/agent: prepare candidate changes under frozen gates.",
             "Harness: run alternating AB/BA trials and retain candidate evidence.",
         )[state.stage]
         color = TEXT
