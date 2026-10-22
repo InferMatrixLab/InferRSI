@@ -48,3 +48,8 @@ failed long-output request, readiness-file preflight race and separate Graph
 demotion fix. See `plan/diagnostics/benchmark-http.md` and
 `plan/diagnostics/graph-demotion.md`. Original observers/results are preserved;
 versioned successors do not retroactively change their verdicts.
+
+The completed10-request boundary repair and its remaining numerical differences
+are recorded in `results/diagnostics/graph-demotion-impact.md`. Engine PR9 is
+merged; full Graph/eager sequences agree on3/5 pairs and campaign acceptance
+remains INCONCLUSIVE. Readiness allocation use is839 GPU-seconds.
