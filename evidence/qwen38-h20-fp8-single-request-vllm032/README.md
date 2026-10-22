@@ -19,7 +19,9 @@ main-based engine commits to actual HTTP timing and token evidence. The repaired
 Graph matches eager for all six short requests; original main differs on two.
 The exact publication-head CPU suite has one inherited failure, reproduced on
 unmodified main; see the report rather than transferring earlier green totals.
-The official benchmark HTTP API prerequisites remain outstanding.
+The subsequent accounting adapter and failed long-output boundary check are
+recorded in `results/diagnostics/benchmark-http-impact.md`; full model readiness
+remains outstanding.
 
 The HTTP follow-up consumed 0.04 GPU-hours of the owner-approved 44 GPU-hour
 phased ceiling. It does not activate the statistical/retrieval freeze proposal.
@@ -40,3 +42,9 @@ long-context, quality and performance qualification remain outstanding.
 Knowledge candidates were recorded using InferRSI KnowledgeStore, with retained
 revisions and verified readback. They are not promoted library coverage. Raw
 operational logs and private device identities remain in controlled task storage.
+
+Further bounded diagnostics retain the official-client accounting adapter,
+failed long-output request, readiness-file preflight race and separate Graph
+demotion fix. See `plan/diagnostics/benchmark-http.md` and
+`plan/diagnostics/graph-demotion.md`. Original observers/results are preserved;
+versioned successors do not retroactively change their verdicts.
