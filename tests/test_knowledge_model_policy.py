@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, urlsplit
 import pytest
 import yaml
 
+from tools import check_knowledge_model_policy as checker
 from tools.check_knowledge_model_policy import (
     APPROVAL,
     DECLARATION,
@@ -19,6 +20,7 @@ from tools.check_knowledge_model_policy import (
     check_pr,
     check_prs,
     declaration,
+    event_pull_request,
     file_page_numbers,
     json_block,
     matching,
@@ -285,6 +287,20 @@ def test_events_refresh_all_open_prs_and_reject_unhandled_queue():
             refresh_event({}, event_name)
 
 
+@pytest.mark.parametrize("event_name,event", [
+    ("pull_request_target", {"number": 123}),
+    ("issue_comment", {"issue": {"number": 123, "pull_request": {}}}),
+])
+def test_event_pr_scope_requires_a_positive_integer(event_name, event):
+    assert event_pull_request(event, event_name) == 123
+    for invalid in (0, -1, True, "123", None):
+        value = copy.deepcopy(event)
+        target = value if event_name == "pull_request_target" else value["issue"]
+        target["number"] = invalid
+        with pytest.raises(ValueError, match="positive integer"):
+            event_pull_request(value, event_name)
+
+
 def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     value = yaml.safe_load(
         (ROOT / ".github/workflows/knowledge-model-policy.yml").read_text(encoding="utf-8")
@@ -522,3 +538,103 @@ def test_api_batch_revalidates_earlier_pr_before_publication(api_fixture, policy
     assert [r["state"] for r in results] == ["failure", "success"]
     assert latest_status(state)["state"] == "failure"
     assert latest_status(state, "c" * 40)["state"] == "success"
+
+
+def run_event_check(api, policy, event_name, tmp_path, monkeypatch, event=None, extra=()):
+    monkeypatch.setattr(checker, "GitHub", lambda repository, token: api)
+    monkeypatch.setenv("GITHUB_TOKEN", "fixture-token")
+    monkeypatch.setenv("GITHUB_EVENT_NAME", event_name)
+    policy_path, event_path = tmp_path / "policy.json", tmp_path / "event.json"
+    policy_path.write_text(json.dumps(policy), encoding="utf-8")
+    event_path.write_text(json.dumps(event or {}), encoding="utf-8")
+    return checker.main([
+        "--repository", "example/repository", "--policy-sha", BASE,
+        "--policy", str(policy_path), "--event-path", str(event_path), *extra,
+    ])
+
+
+@pytest.mark.parametrize("event_name", ["pull_request_target", "issue_comment"])
+@pytest.mark.parametrize("own_ok,other_ok", [(True, False), (False, True), (False, False)])
+def test_pr_job_result_is_scoped_but_all_statuses_are_published(
+        api_fixture, policy, tmp_path, monkeypatch, capsys, event_name, own_ok, other_ok):
+    api, state = api_fixture
+    other_head = "c" * 40
+    state["prs"][124] = separate_pr(124, other_head)
+    if not own_ok:
+        state["prs"][123]["body"] = None
+    if not other_ok:
+        state["prs"][124]["body"] = None
+    event = ({"number": 123} if event_name == "pull_request_target" else
+             {"issue": {"number": 123, "pull_request": {}}})
+    assert run_event_check(api, policy, event_name, tmp_path, monkeypatch, event) == int(not own_ok)
+    assert latest_status(state)["state"] == ("success" if own_ok else "failure")
+    assert latest_status(state, other_head)["state"] == ("success" if other_ok else "failure")
+    results = [json.loads(line) for line in capsys.readouterr().out.splitlines()]
+    assert {result["pull_request"] for result in results} == {123, 124}
+
+
+@pytest.mark.parametrize("event_name", ["push", "workflow_dispatch"])
+@pytest.mark.parametrize("other_ok", [True, False])
+def test_repository_refresh_job_still_aggregates_all_results(
+        api_fixture, policy, tmp_path, monkeypatch, event_name, other_ok):
+    api, state = api_fixture
+    state["prs"][124] = separate_pr(124, "c" * 40)
+    if not other_ok:
+        state["prs"][124]["body"] = None
+    assert run_event_check(api, policy, event_name, tmp_path, monkeypatch) == int(not other_ok)
+
+
+@pytest.mark.parametrize("state_name,base_ref", [("closed", "main"), ("open", "release")])
+def test_inapplicable_trigger_is_checked_against_live_metadata(
+        api_fixture, policy, tmp_path, monkeypatch, state_name, base_ref):
+    api, state = api_fixture
+    state["prs"][123]["state"] = state_name
+    state["prs"][123]["base"]["ref"] = base_ref
+    state["prs"][124] = separate_pr(124, "c" * 40)
+    state["prs"][124]["body"] = None
+    assert run_event_check(api, policy, "pull_request_target", tmp_path, monkeypatch,
+                           {"number": 123}) == 0
+    assert latest_status(state, "c" * 40)["state"] == "failure"
+    assert ("GET", "pulls/123") in state["requests"]
+
+
+def test_missing_trigger_result_fails_closed(api_fixture, policy, tmp_path, monkeypatch):
+    api, _ = api_fixture
+    monkeypatch.setattr(checker, "check_prs", lambda *args: [])
+    with pytest.raises(ValueError, match="missing from the evaluated results"):
+        run_event_check(api, policy, "pull_request_target", tmp_path, monkeypatch,
+                        {"number": 123})
+
+
+@pytest.mark.parametrize("state_name,base_ref", [(None, "main"), ("open", None)])
+def test_invalid_trigger_metadata_fails_closed(
+        api_fixture, policy, tmp_path, monkeypatch, state_name, base_ref):
+    api, state = api_fixture
+    state["prs"][123]["state"] = state_name
+    state["prs"][123]["base"]["ref"] = base_ref
+    monkeypatch.setattr(checker, "check_prs", lambda *args: [])
+    with pytest.raises(ValueError, match="Invalid current PR scope metadata"):
+        run_event_check(api, policy, "pull_request_target", tmp_path, monkeypatch,
+                        {"number": 123})
+
+
+def test_failed_trigger_metadata_read_fails_closed(api_fixture, policy, tmp_path, monkeypatch):
+    api, _ = api_fixture
+    monkeypatch.setattr(checker, "check_prs", lambda *args: [])
+
+    def unavailable(route):
+        raise OSError("Synthetic API failure")
+
+    monkeypatch.setattr(api, "get", unavailable)
+    with pytest.raises(OSError, match="Synthetic API failure"):
+        run_event_check(api, policy, "pull_request_target", tmp_path, monkeypatch,
+                        {"number": 123})
+
+
+def test_explicit_pr_check_keeps_its_selected_result(api_fixture, policy, tmp_path, monkeypatch):
+    api, state = api_fixture
+    state["prs"][124] = separate_pr(124, "c" * 40)
+    state["prs"][124]["body"] = None
+    assert run_event_check(api, policy, "unknown", tmp_path, monkeypatch,
+                           extra=("--pull-request", "123")) == 0
+    assert not any(status["sha"] == "c" * 40 for status in state["statuses"])

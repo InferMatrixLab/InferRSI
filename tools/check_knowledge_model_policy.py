@@ -395,6 +395,18 @@ def refresh_event(event, event_name):
     raise ValueError("Unsupported policy event; merge queue requires an explicit integration")
 
 
+def event_pull_request(event, event_name):
+    if event_name == "pull_request_target":
+        number = event["number"]
+    elif event_name == "issue_comment" and "pull_request" in event["issue"]:
+        number = event["issue"]["number"]
+    else:
+        return None
+    if type(number) is not int or number <= 0:
+        raise ValueError("Event PR number must be a positive integer")
+    return number
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Check declared knowledge authorship")
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY"), required=False)
@@ -413,6 +425,7 @@ def main(argv=None):
     if policy["schema_version"] != 1:
         raise ValueError("Unsupported policy schema")
     api = GitHub(args.repository or "", token)
+    triggering_pr = args.pull_request
     if args.pull_request is not None:
         if args.pull_request <= 0:
             raise ValueError("PR number must be positive")
@@ -420,12 +433,22 @@ def main(argv=None):
     else:
         event = json.loads(Path(args.event_path).read_text(encoding="utf-8"))
         # 所有触发共用一个 writer；待运行事件被合并时仍覆盖全部 open PR。
-        numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
-    failed = False
-    for result in check_prs(api, policy, args.policy_sha, args.dry_run, numbers):
+        event_name = os.environ["GITHUB_EVENT_NAME"]
+        numbers = None if refresh_event(event, event_name) else []
+        triggering_pr = event_pull_request(event, event_name)
+    results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers)
+    for result in results:
         print(json.dumps(result, ensure_ascii=True))
-        failed |= result["state"] == "failure"
-    return int(failed)
+    if triggering_pr is not None:
+        # Statuses still cover every open main PR; the job belongs to its trigger.
+        results = [result for result in results if result["pull_request"] == triggering_pr]
+        if not results:
+            current = api.get(f"pulls/{triggering_pr}")
+            if current["state"] not in {"open", "closed"} or not text(current["base"]["ref"]):
+                raise ValueError("Invalid current PR scope metadata")
+            if current["state"] == "open" and current["base"]["ref"] == policy["base_branch"]:
+                raise ValueError("Triggering PR is missing from the evaluated results")
+    return int(any(result["state"] != "success" for result in results))
 
 
 if __name__ == "__main__":

@@ -150,6 +150,13 @@ current head and latest run.
 The shared concurrency group belongs to the declaration job. Ordinary Issue
 comments skip that job and do not displace queued PR/base refreshes.
 
+For PR and PR-comment events, the job exit code reflects only the triggering PR;
+other PRs keep their own published statuses and logged results. A closed PR or a
+PR against another base has no applicable result, verified against current API
+metadata. A missing result for an open main-target PR or a failed metadata read
+fails the job. Main-push and manual refreshes aggregate all evaluated PRs, while
+an explicit `--pull-request` invocation reports that selected PR.
+
 File pagination must exactly match `changed_files`; more than the GitHub files
 API's 3,000-file limit fails visibly. Exception/policy approvals require complete
 commit attribution within the PR commits API's 250-commit limit. API failures
