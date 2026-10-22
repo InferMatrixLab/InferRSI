@@ -47,10 +47,34 @@ Skill bundles keep their original relative paths and declared shared resources.
 Other cross-skill navigation is not automatically made available. Skill identity,
 content revision and resource/dependency revisions come from the existing reader.
 
-Agent execution status and trial verdict are separate. Completed wrong or missing
-answers fail; timeouts, client errors and unavailable verification are
-INCONCLUSIVE. Rejecting a bad performance report can correctly pass an agent
-task. Missing token/cost observations stay unknown. Cached input is a subset of
+Agent execution status and trial verdict are separate:
+
+| Meaning | Example | Recorded trial verdict |
+| --- | --- | --- |
+| Input report verdict | A faster optimization fails quality | The correct answer says `report_verdict=FAIL` |
+| Task correctness | The answer correctly rejects that report | `PASS`, with `evaluation_error=null` |
+| Completed wrong answer | Valid JSON has incorrect fields, or is not an object | `FAIL`, with `evaluation_error=null` |
+| Evaluation error | Timeout, missing/invalid JSON output, or unavailable/invalid grading | `INCONCLUSIVE`, with an `evaluation_error` category |
+
+The verifier returns a boolean `passed` and a nonempty map of boolean
+`assertions`; `passed` must equal their conjunction. Exit 0 accompanies a pass,
+exit 1 a completed negative judgment. Other exits, missing/malformed results and
+inconsistent result fields are evaluation errors. Invalid task latency inputs
+(including empty groups, nonfinite aggregates or a nonpositive baseline) cannot
+be graded as task success or failure. The pipeline retains execution and
+verification records and saves the trial classification for these failure paths.
+
+Grading checks structured verdict, scope, findings, numeric reduction and evidence
+keys. Free-text `reason` is checked only for nonempty text; its meaning is not
+judged. Audit rules retain their first-applicable precedence: workload mismatch,
+kernel-only scope, missing quality, failed quality, failed requests, then gain
+threshold. Extract mode only computes the descriptive reduction. The answer's
+numeric tolerance remains 0.02 percentage points.
+
+Condition summaries retain `PASS` / `FAIL` / `INCONCLUSIVE` counts and count
+`evaluation_errors`; older records without that field keep their original
+verdicts. Missing token/cost observations stay unknown, including partially
+reported token metrics. Cached input is a subset of
 input tokens, not an additional charge. Paired regressions and recoveries remain
 visible, including neutral/negative results.
 
@@ -59,7 +83,7 @@ visible, including neutral/negative results.
 After the normal development setup, with checkout `src` on `PYTHONPATH`:
 
 ```console
-pytest tests/test_skill_evaluation.py
+pytest tests/test_skill_evaluation.py tests/test_skill_eval_verifier.py tests/test_skill_eval_pipeline.py
 python tools/skill_eval_pilot.py prepare --output <PRIVATE_OUTPUT> --model <EXACT_MODEL> --effort <EFFORT> --protected-root <KNOWLEDGE_AND_EVIDENCE_ROOT>
 ```
 

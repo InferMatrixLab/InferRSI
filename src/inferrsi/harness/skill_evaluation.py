@@ -1,5 +1,5 @@
 import json
-import shutil
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import Path
@@ -92,14 +92,23 @@ def trace_metrics(path: Path) -> dict:
     return {"usage": usage, "commands": commands, "errors": errors, "completed_turns": completed}
 
 
-def task_verdict(execution: dict, trace: dict, output: dict | None, checks: dict | None) -> str:
+def valid_checks(checks) -> bool:
+    return (
+        isinstance(checks, dict)
+        and isinstance(checks.get("passed"), bool)
+        and isinstance(checks.get("assertions"), dict)
+        and bool(checks["assertions"])
+        and all(isinstance(value, bool) for value in checks["assertions"].values())
+        and checks["passed"] == all(checks["assertions"].values())
+    )
+
+
+def task_verdict(execution: dict, trace: dict, output, checks) -> str:
     if execution["status"] != "completed" or trace["completed_turns"] != 1 or trace["errors"]:
         return "INCONCLUSIVE"
-    if output is None:
-        return "FAIL"
-    if checks is None:
+    if not valid_checks(checks):
         return "INCONCLUSIVE"
-    return "PASS" if checks["passed"] else "FAIL"
+    return "PASS" if isinstance(output, dict) and checks["passed"] else "FAIL"
 
 
 def summarize(trials: list[dict]) -> dict:
@@ -113,11 +122,14 @@ def summarize(trials: list[dict]) -> dict:
                 v: sum(t["verdict"] == v for t in selected)
                 for v in ("PASS", "FAIL", "INCONCLUSIVE")
             },
+            "evaluation_errors": sum(t.get("evaluation_error") is not None for t in selected),
             "elapsed_seconds": sum(t["elapsed_seconds"] for t in selected)
             if all(t["elapsed_seconds"] is not None for t in selected)
             else None,
-            "input_tokens": sum(u["input_tokens"] for u in usage) if all(usage) else None,
-            "output_tokens": sum(u["output_tokens"] for u in usage) if all(usage) else None,
+            "input_tokens": sum(u["input_tokens"] for u in usage)
+            if all(u and u.get("input_tokens") is not None for u in usage) else None,
+            "output_tokens": sum(u["output_tokens"] for u in usage)
+            if all(u and u.get("output_tokens") is not None for u in usage) else None,
             "cost": None,
         }
     paired = []
@@ -175,40 +187,56 @@ def run_trial(
     atomic_write_json(trial_dir / "execution.json", execution)
     try:
         trace = trace_metrics(trial_dir / "agent/stdout.log")
-    except (ValueError, KeyError, FileNotFoundError) as error:
+    except (ValueError, KeyError, TypeError, FileNotFoundError) as error:
         trace = {
             "usage": None,
             "commands": [],
             "errors": [type(error).__name__],
             "completed_turns": 0,
         }
-    output, checks = None, None
-    if final.is_file():
-        try:
-            output = json.loads(final.read_text(encoding="utf-8"))
-        except ValueError:
-            pass
-    verification = None
-    if output is not None and execution["status"] == "completed":
+    evaluation_error = None
+    if execution["status"] != "completed":
+        evaluation_error = "agent_" + execution["status"]
+    elif trace["completed_turns"] != 1 or trace["errors"]:
+        evaluation_error = "agent_trace_error"
+    output, checks, verification = None, None, None
+    if evaluation_error is None:
+        if not final.is_file():
+            evaluation_error = "missing_output"
+        else:
+            try:
+                output = json.loads(final.read_text(encoding="utf-8"))
+            except ValueError:
+                evaluation_error = "invalid_output_json"
+    if evaluation_error is None:
         verification = execute_command(
-            (
-                shutil.which("python") or "python",
-                str(verifier),
-                str(workspace / "task.json"),
-                str(final),
-            ),
+            (sys.executable, str(verifier), str(workspace / "task.json"), str(final)),
             workspace,
             trial_dir / "verification",
             min(deadline, time.monotonic() + 30),
         )
         result_path = trial_dir / "verification/result.json"
-        if verification["status"] in ("completed", "failed") and result_path.is_file():
-            checks = json.loads(result_path.read_text(encoding="utf-8"))
+        if verification["status"] not in ("completed", "failed"):
+            evaluation_error = "verifier_" + verification["status"]
+        elif not result_path.is_file():
+            evaluation_error = "missing_verifier_result"
+        else:
+            try:
+                checks = json.loads(result_path.read_text(encoding="utf-8"))
+            except ValueError:
+                evaluation_error = "invalid_verifier_result"
+            if evaluation_error is None:
+                if not valid_checks(checks):
+                    evaluation_error = "invalid_verifier_result"
+                elif verification["returncode"] != (0 if checks["passed"] else 1):
+                    evaluation_error = "verifier_exit"
     after = {
         p.relative_to(workspace).as_posix(): sha256(p) for p in workspace.rglob("*") if p.is_file()
     }
     verdict = task_verdict(execution, trace, output, checks)
     if before != after:
+        evaluation_error = evaluation_error or "inputs_changed"
+    if evaluation_error is not None:
         verdict = "INCONCLUSIVE"
     record = {
         "task_id": task["id"],
@@ -217,6 +245,7 @@ def run_trial(
         "split": task["split"],
         "execution_state": execution["status"],
         "verdict": verdict,
+        "evaluation_error": evaluation_error,
         "checks": checks,
         "verification": verification,
         "elapsed_seconds": execution["elapsed_seconds"],
