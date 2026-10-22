@@ -163,9 +163,9 @@ unvalidated candidates.
 
 ### Summarize a campaign figure — `tools/campaign_summary_chart.py`
 
-- **Inputs:** one JSON specification with baseline, metrics, trials and optional references; an output path.
+- **Inputs:** one JSON specification (chain of accumulating steps, or a set of independent trials); an output path.
 - **Scope:** recorded values only. The renderer computes gains, validates the specification and writes a figure; it measures nothing.
-- **Output:** an SVG figure, plus a Markdown table with the same values when `--markdown` is given.
-- **Side effects:** writes the two requested files; nothing is executed and no network or GPU is touched.
-- **Failure behavior:** exit code 2 with the offending field name when the specification is incomplete, ambiguous or inconsistent.
+- **Output:** an SVG figure, plus a Markdown table with the same values when `--markdown` is given. `report` and `run` also write `summary-chart.svg` into the run directory and inline it in the HTML report.
+- **Side effects:** writes the requested files; nothing is executed and no network or GPU is touched.
+- **Failure behavior:** exit code 2 with the offending field name when the specification is incomplete, ambiguous or inconsistent; a report without a paired measurement states why it has no figure.
 - **Example:** [campaign summary chart](campaign-summary-chart.md)
