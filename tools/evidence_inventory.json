@@ -2,6 +2,10 @@
   "version": 1,
   "bundles": {
     "_template": {"kind": "template", "manifests": []},
+    "qwen38-h20-fp8-single-request-vllm032": {
+      "kind": "campaign", "manifests": [],
+      "external": ["Takeover diagnostics and prospective plans only; no activated acceptance freeze. Private operational logs and earlier readiness evidence remain in controlled task storage."]
+    },
     "drama3-b300-scale150": {
       "kind": "campaign",
       "manifests": [{"path": "plan/freeze.json", "schema": "bundle-sha256"}],
