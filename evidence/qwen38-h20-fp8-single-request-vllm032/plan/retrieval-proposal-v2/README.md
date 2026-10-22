@@ -31,3 +31,9 @@ DONE. The pinned official client remains unchanged. Its source is retained but
 has not run on a GPU. A separate prospective workload/cost declaration and
 independent review precede baseline execution. The proposed9/10 qualification
 and candidate nonregression gates still require owner confirmation.
+
+Publication layout: the generator output originally named `manifest.json` is
+retained byte-for-byte as `metadata.json`. The existing bundle-sha256 schema
+classifies and authenticates this metadata, compressed inputs and observer
+sources through `plan/retrieval-integrity.json`; no validator schema or gate is
+weakened. Original remote artifacts retain their generated names.

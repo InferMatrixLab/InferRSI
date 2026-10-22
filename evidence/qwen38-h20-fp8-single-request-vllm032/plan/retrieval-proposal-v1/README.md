@@ -17,7 +17,7 @@ manifest correspondence and positions. This is preparation, not retrieval
 accuracy or model execution. The generator is retained unchanged under
 validator/diagnostics/prepare_retrieval.py.
 
-Extraction is predeclared in manifest.json: strip surrounding whitespace;
+Extraction is predeclared in metadata.json: strip surrounding whitespace;
 optionally unwrap a single enclosing lowercase `json` code fence; parse the
 entire remainder as JSON; reject duplicate keys, missing/extra keys and nonstring
 values. Score exact expected strings, without case folding or substring matching.
@@ -33,3 +33,9 @@ drafts from plan/freeze-proposal.md. No final-set candidate tuning is authorized
 Disposition before any model answers: independent review rejected this version
 for freezing because targets differ in format and decoys repeat. See sibling
 retrieval-proposal-v2 for the revised inputs; original bytes are retained.
+
+Publication layout: the generator output originally named `manifest.json` is
+retained byte-for-byte as `metadata.json`. The existing bundle-sha256 schema
+classifies and authenticates this metadata, compressed inputs and observer
+sources through `plan/retrieval-integrity.json`; no validator schema or gate is
+weakened. Original remote artifacts retain their generated names.
