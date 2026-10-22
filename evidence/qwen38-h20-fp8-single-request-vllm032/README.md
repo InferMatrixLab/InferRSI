@@ -58,3 +58,9 @@ Fixed-history follow-up `results/diagnostics/graph-forced96-impact.md` narrows
 the case783 discrepancy: all96 capacity-eager/Graph logits and live states
 are exact; compact-versus-capacity changes argmax at index81. This remains
 a bounded diagnosis, not task-quality acceptance. Readiness total904 seconds.
+
+Baseline readiness follow-up: `results/diagnostics/baseline-long-impact.md`
+retains failed infrastructure1959, CPU transport1960, and observer-rejected1961.
+All target lengths returned the requested short outputs;128K coalesced two
+tokens into one choice, a supported upstream behavior rejected by the observer.
+Original failure remains; no formal baseline or parity PASS. Readiness1509s.
