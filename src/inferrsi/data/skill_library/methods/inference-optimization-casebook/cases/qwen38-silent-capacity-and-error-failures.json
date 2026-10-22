@@ -1,0 +1,25 @@
+{
+ "id": "case.qwen38-silent-capacity-and-error-failures",
+ "kind": "case",
+ "origin": ["first_party"],
+ "state": "historical_observation",
+ "content": "qwen38-silent-capacity-and-error-failures.md",
+ "sources": [
+  {
+   "type": "local",
+   "note": "Qwen3.8 dedicated-engine campaign, serving-layer debug rounds",
+   "paths": ["evidence/"]
+  }
+ ],
+ "applicability": [
+  "OpenAI-compatible HTTP wrapper over a custom inference engine",
+  "Bucketed CUDA Graph decode with a headroom-selected bucket"
+ ],
+ "tags": ["serving", "error-handling", "observability", "capacity", "silent-failure"],
+ "limitations": [
+  "One engine, one card",
+  "Behaviour past capacity not characterised beyond the failure itself",
+  "No concurrency or multi-client qualification"
+ ],
+ "attribution": "Dedicated-engine campaign; each symptom reproduced and fixed"
+}
