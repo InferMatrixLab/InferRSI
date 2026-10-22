@@ -22,7 +22,10 @@ WIDTH, HEIGHT = 1600, 800
 GIF_WIDTH = 1280
 BASE_PERIOD = 20.0
 PLAYBACK_SPEED = 2.0
-PERIOD = BASE_PERIOD / PLAYBACK_SPEED
+# Analyze lights three boxes; feedback lights five. Add reading time only there.
+# Each entry is (base-cycle start, base-cycle end, extra playback seconds).
+READING_HOLDS = ((1.8, 3.0, 0.6), (8.4, 9.3, 0.8), (9.3, 10.5, 0.6))
+PERIOD = BASE_PERIOD / PLAYBACK_SPEED + sum(extra for _, _, extra in READING_HOLDS)
 BACKGROUND = (11, 21, 33)
 SURFACE = (19, 33, 48)
 TEXT = (231, 239, 247)
@@ -68,8 +71,29 @@ class State:
     fraction: float = 0.0
 
 
+def playback_seconds(cycle: float) -> float:
+    return cycle / PLAYBACK_SPEED + sum(
+        extra * min(1.0, max(0.0, (cycle - start) / (end - start)))
+        for start, end, extra in READING_HOLDS
+    )
+
+
+def cycle_at(seconds: float) -> float:
+    elapsed = seconds % PERIOD
+    extra_elapsed = 0.0
+    for start, end, extra in READING_HOLDS:
+        begins = start / PLAYBACK_SPEED + extra_elapsed
+        ends = end / PLAYBACK_SPEED + extra_elapsed + extra
+        if elapsed < begins:
+            return (elapsed - extra_elapsed) * PLAYBACK_SPEED
+        if elapsed < ends:
+            return start + (elapsed - begins) * (end - start) / (ends - begins)
+        extra_elapsed += extra
+    return (elapsed - extra_elapsed) * PLAYBACK_SPEED
+
+
 def state_at(seconds: float) -> State:
-    cycle = seconds * PLAYBACK_SPEED % BASE_PERIOD
+    cycle = cycle_at(seconds)
     if cycle < 1.8:
         return State(0, -1, "cli", -1 if cycle < 0.8 else 5, cycle - 0.8)
     t = cycle - 1.8
@@ -256,11 +280,11 @@ def draw_frame(seconds: float, fonts: dict) -> Image.Image:
     if state.edge >= 0:
         particle(state.edge, state.fraction)
     if analyzing:
-        cycle = seconds * PLAYBACK_SPEED % BASE_PERIOD
+        cycle = cycle_at(seconds)
         fraction = (cycle - 1.8 - (0 if state.candidate == 1 else 7.5)) / 1.2
         particle(6, fraction)
     if executing:
-        cycle = seconds * PLAYBACK_SPEED % BASE_PERIOD
+        cycle = cycle_at(seconds)
         local = cycle - 1.8 - (0 if state.candidate == 1 else 7.5) - 3.6
         fraction = min(1.0, max(0.0, local / 1.2))
         particle(0, 1 - abs(2 * fraction - 1), TARGET_PATH)
@@ -324,7 +348,7 @@ def render(args) -> None:
     output.mkdir(parents=True, exist_ok=True)
     fonts = load_fonts(args.font, args.latin_font)
     # One static fallback, sampled on a feedback frame to expose the loop.
-    draw_frame(8.85 / PLAYBACK_SPEED, fonts).save(output / "inferrsi-loop.png")
+    draw_frame(playback_seconds(8.85), fonts).save(output / "inferrsi-loop.png")
     fps = 25
     frames = []
     for index in range(round(PERIOD * fps)):
