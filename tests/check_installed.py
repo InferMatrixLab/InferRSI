@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 103, "Knowledge is missing from the installation"
+assert len(records) == 106, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -26,6 +26,22 @@ assert (
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
+mlx_ids = {
+    "mlx.mlx.execution.evaluation_completion",
+    "mlx.mlx.execution.cross_stream_dependency",
+    "mlx.mlx.execution.post_detachment_buffer_lifetime",
+}
+mlx_records = search_knowledge(repo="mlx", tier="dependency", backend="mlx", limit=100)
+assert {record["id"] for record in mlx_records} == mlx_ids
+assert all(record["backend"] == "mlx" for record in mlx_records)
+mlx_document = "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+mlx_reader = KnowledgeReader()
+for record in mlx_records:
+    bundle = mlx_reader.read("package:" + record["id"])
+    assert mlx_reader.resource(
+        "package:" + record["id"], mlx_document, revision=bundle.revision
+    ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
+assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
 assert len(skill_index) == 58, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
@@ -124,7 +140,7 @@ helper = strata.joinpath("scripts", "summarize_trials.py")
 assert helper.is_file()
 with as_file(helper) as path:
     compile(path.read_text(encoding="utf-8"), str(path), "exec")
-inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers"}
+inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(
     "Qwen-Image-2.1", repo="vllm_omni", backend="ascend", scenario="diffusion.image_generation"

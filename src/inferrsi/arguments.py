@@ -17,10 +17,15 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--repo-type", choices=REPO_TYPES, default="vllm_omni")
     parser.add_argument("--backend", choices=BACKENDS, default="cpu")
     parser.add_argument(
-        "--device-ids", default="", help="Comma-separated caller-assigned device IDs"
+        "--device-ids", default="",
+        help=(
+            "Comma-separated caller-assigned device IDs; "
+            "unsupported by MLX unified-memory discovery"
+        ),
     )
     parser.add_argument(
-        "--device-model", help="Expected CUDA device model; other probes retain raw output"
+        "--device-model",
+        help="Expected CUDA device model or Apple Silicon chip (case-insensitive match)",
     )
     parser.add_argument(
         "--python", default=sys.executable, help="Python used for target package inspection"

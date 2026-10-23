@@ -7,7 +7,7 @@ experiment; repository conventions stay with their owning repository.
 | Tier / CLI value | Sources | Learning output |
 | --- | --- | --- |
 | Contribution / `contribution` | vLLM, vLLM-Omni, vllm-ascend; legacy repository packs also retain imported Strata, SGLang and SGLang-Omni procedures | L2C blind attempt → comparison → scoped skill; separate performance evidence/candidates |
-| Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, Triton, Diffusers, Transformers | API/capability constraints and downstream impact; no blind coding session required |
+| Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, Triton, Diffusers, Transformers, MLX | API/capability constraints and downstream impact; no blind coding session required |
 | Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT, Qwen3-TTS engine, DeepInfer | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
 
 This is an acquisition policy, not a ranking or fixed dependency graph.
@@ -130,6 +130,26 @@ model, service or performance validation is claimed.
 | peer | deepinfer | [DeepInfer zero-overhead scheduling: defer the previous step's post-process to overlap host prep with device work](peer/deepinfer/common/llm/zero-overhead-deferred-scheduling.json) |
 | peer | deepinfer | [DeepInfer verification budget: spend verification rows by marginal acceptance, not by fixed draft width](peer/deepinfer/common/llm/speculative-verification-budget.json) |
 | peer | deepinfer | [DeepInfer bounded replay: compact query rows with a derived dependency closure and separately preserved historical state](peer/deepinfer/common/llm/bounded-windowed-replay.json) |
+
+## MLX source cards
+
+Three dependency cards reuse the existing
+[MLX evaluation/stream/lifetime procedure](../skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md)
+and its original 2026-10-21 readset. Their selected implementation ranges were
+rechecked on 2026-10-23 at the same bff10220c742907f0c68e55ff174aaea56f74e3d pin.
+They retain MIT/Apple attribution and imported, locally unverified state.
+
+| Source | Card |
+| --- | --- |
+| dependency / mlx | [Evaluation submission versus readable completion](dependency/mlx/mlx/execution/evaluation-completion.json) |
+| dependency / mlx | [Cross-stream producer-consumer dependency](dependency/mlx/mlx/execution/cross-stream-dependency.json) |
+| dependency / mlx | [Buffer ownership after graph detachment](dependency/mlx/mlx/execution/post-detachment-buffer-lifetime.json) |
+
+Search with --tier dependency --repo-type mlx --backend mlx. These source-owned
+IDs are separate from the existing inferrsi.common.skills discovery abstracts.
+MLX discovery does not qualify a backend or model, and the separate MLX-LM
+procedure/source identity is unchanged. Compiler/fusion and allocator policy are
+outside these three bounded observations.
 
 ## Maintaining the tiers
 

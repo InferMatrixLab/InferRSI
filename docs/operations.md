@@ -35,6 +35,25 @@ are distinct from `knowledge search`, whose package catalog filters
 
 ## Discovery and reading
 
+### Discover MLX hardware — doctor --backend mlx
+
+- **Inputs:** a prepared Git checkout and its existing repo type, target Python,
+  optional case-insensitive --device-model chip match. Discrete --device-ids are
+  unsupported for this unified-memory discovery probe.
+- **Effect:** read-only. On macOS, the existing bounded command runner queries
+  sysctl hw.optional.arm64 machdep.cpu.brand_string. Non-macOS hosts are rejected
+  without a sysctl call. Target-Python metadata includes mlx version/null without
+  importing MLX.
+- **Output:** actual probe facts and chip identity when available; explicit
+  unavailable or device_model_mismatch reasons otherwise. doctor exits 1 for
+  unavailable/mismatched discovery. compatibility stays unverified even when
+  the chip is available or the MLX package is installed.
+- **Boundary:** no engine adapter, package installation, model execution or
+  Metal/performance qualification. The dependency/mlx source cards are separate
+  imported guidance; common skill discovery records are not counted as MLX
+  backend records.
+- **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
+
 ### Search packaged records — `knowledge search` / `knowledge show`
 
 - **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`; `show` takes one record ID.
