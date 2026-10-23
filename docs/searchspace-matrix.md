@@ -176,6 +176,7 @@ System-level: scheduler, DVFS, process isolation, environment variables, driver 
 | Distributed recovery qualification | RAM / SSD / Network / Verify | Low | C3/C4 contracts extracted; replica transport, whole-state completeness, world-size changes and actual failure recovery remain unvalidated |
 | Cross-resource applicability and historical evidence | Accelerator / RAM / OS | Low | DeepSpeed buffer_size units/dispatch outside inspected config; MindSpeed full pin/license/implementation/current compatibility unresolved; CR6 is expert methodology, not measured gains |
 | OS/System isolcpus and scheduler priorities (nice / ionice / SCHED_FIFO / RR) | OS / Optimize | Low | cgroup v2 controls are now sourced (`cgroup-resource-controls`); the scheduler-priority class remains without a source and deferred |
+| vLLM-RLT recurrent-depth KV finalization | Accelerator / KV correctness / Verify | Intake only; not coverage | `vllm_rlt` remains descriptor-only; canonical owner corrected. Follow the [bounded early-exit intake](reviews/issue91-vllm-rlt-intake.md) before extraction; tensor copying, written-position bookkeeping and device completion remain distinct, with no runtime qualification |
 
 **Resolved gaps since initial matrix (all high/medium priority cleared):**
 - ~~Host overhead profiling + optimization skills~~ → `host-overhead-profiling`, `host-overhead-optimization` ✅
