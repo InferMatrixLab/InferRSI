@@ -1,0 +1,18 @@
+{
+  "campaign": "drama3-ascend-20261023",
+  "verdict": "INCONCLUSIVE",
+  "verdict_reason": "Targets unmet (C1 RTF 0.95-1.15 vs <0.1; C64 RTF 2-5 vs <1); the kept change is measured but the acceptance bars for this campaign are not.",
+  "kept_change": {
+    "name": "decode FULL graphs for Drama-3 stage 0 on Ascend",
+    "c1_frames_per_s": {"control": 17.31, "candidate": 22.4, "repeat": 22.91, "loaded": 18.77},
+    "c1_rtf_mean": {"control": 1.237, "candidate": 0.962, "repeat": 0.947, "loaded": 1.147},
+    "c1_ttfa_p50_s": {"control": 0.91, "candidate": 0.80, "repeat": 0.78, "loaded": 0.89},
+    "batching": {"c16_best": 133, "c32_best": 137, "c64_best": 305, "c64_repeats": [137, 197, 188]}
+  },
+  "rejected": [
+    {"change": "bind fla_npu causal_conv1d_update into the GDN decode path", "result": "no measurable effect; FULL capture succeeds with the portable update", "evidence": "serve-full-without-conv1d-control.log"},
+    {"change": "native block-FP8 experts on A2", "result": "not available: MXFP8 method is 950-only; A2 expands experts to bf16", "evidence": "vllm-ascend fp8_block.py is_950() branch"}
+  ],
+  "verification_locally_verified": true,
+  "artifacts_retained_at": "/dataset/home/why/drama3-opt/evidence and /dataset/home/why/drama3-opt/runs"
+}
