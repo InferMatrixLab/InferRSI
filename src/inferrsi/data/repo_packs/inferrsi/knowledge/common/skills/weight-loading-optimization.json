@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging and synchronous checkpoint save semantics. Use when startup/loading latency dominates; route DCP asynchronous save performance and distributed recovery validity to their separate skills.\n",
+  "summary": "Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging, synchronous checkpoint save semantics and fastsafetensors broadcast/scatter/coalesced delivery. Use when startup/loading latency dominates; route DCP asynchronous save performance and distributed recovery validity to their separate skills.\n",
   "tags": [
     "storage",
     "weight-loading",
@@ -16,7 +16,9 @@
     "prefetch",
     "offload",
     "serving",
-    "npu"
+    "npu",
+    "collectives",
+    "tensor-parallel"
   ],
   "origin": [
     "external"
@@ -24,15 +26,16 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/62ad8ca8dfb6a38c21f5a544b38e1708f560b1ea/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "62ad8ca8dfb6a38c21f5a544b38e1708f560b1ea",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5eb9937be7d6e26ab99d376a3fb1569813f2444/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "d5eb9937be7d6e26ab99d376a3fb1569813f2444",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
+        "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "df168c23a6f0fadddc147925a11e9eefc61f340be8e7c01a3fbe3aab002aa490"
+      "content_sha256": "5ef3c454c846ac55e7fb3baa3c059c70bcfd3d0a156c894c85df1cbc968e5859"
     }
   ],
   "index_type": "packaged-skill",
@@ -41,14 +44,15 @@
   },
   "checkout_ref": "checkout:weight-loading-optimization",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "df168c23a6f0fadddc147925a11e9eefc61f340be8e7c01a3fbe3aab002aa490",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "857481988451065967f9edb8a0c60b16d51508d79dbd37ecc2326fbf95df9348",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "5ef3c454c846ac55e7fb3baa3c059c70bcfd3d0a156c894c85df1cbc968e5859",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "71cd6227a8d8c2ecbd9a9853162b096df7cd940a7818137ac123b660dd57e718",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",
     "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",
-    "description": "Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging and synchronous checkpoint save semantics. Use when startup/loading latency dominates; route DCP asynchronous save performance and distributed recovery validity to their separate skills.\n",
+    "description": "Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging, synchronous checkpoint save semantics and fastsafetensors broadcast/scatter/coalesced delivery. Use when startup/loading latency dominates; route DCP asynchronous save performance and distributed recovery validity to their separate skills.\n",
     "tags": [
       "storage",
       "weight-loading",
@@ -56,7 +60,9 @@
       "prefetch",
       "offload",
       "serving",
-      "npu"
+      "npu",
+      "collectives",
+      "tensor-parallel"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -82,6 +88,25 @@
           "LICENSE"
         ],
         "readset": "references/llama-loading-readset.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/foundation-model-stack/fastsafetensors",
+        "commit": "219e2561a41ede2d5d8eba611c248bb0effbf580",
+        "paths": [
+          "fastsafetensors/loader.py",
+          "fastsafetensors/file_buffer.py",
+          "fastsafetensors/tensor_factory.py",
+          "fastsafetensors/parallel_loader.py",
+          "fastsafetensors/frameworks/_torch.py",
+          "fastsafetensors/frameworks/_paddle.py",
+          "docs/overview.md",
+          "examples/run_parallel.py",
+          "tests/unit/test_broadcast_runs.py",
+          "tests/unit/test_subgroup.py",
+          "LICENSE"
+        ],
+        "readset": "references/fastsafetensors-transfer-readset.md"
       }
     ],
     "empirical_validation": "not_run",
@@ -90,11 +115,13 @@
     },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Only the existing llama.cpp loading slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
-      "The llama.cpp readset records static mechanisms and source recommendations, not validated startup, memory, placement or backend performance."
+      "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
+      "The readsets record static mechanisms and source recommendations, not validated startup, memory, placement or backend performance.",
+      "The fastsafetensors delivery readset does not revalidate inherited I/O/save claims or qualify uneven scatter, accelerator/NPU compatibility, inter-node transport or agent efficacy."
     ],
     "provenance_readsets": [
-      "references/llama-loading-readset.md"
+      "references/llama-loading-readset.md",
+      "references/fastsafetensors-transfer-readset.md"
     ],
     "references": [],
     "consumption_mode": "packaged"
@@ -112,8 +139,9 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Only the existing llama.cpp loading slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
-    "The llama.cpp readset records static mechanisms and source recommendations, not validated startup, memory, placement or backend performance."
+    "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
+    "The readsets record static mechanisms and source recommendations, not validated startup, memory, placement or backend performance.",
+    "The fastsafetensors delivery readset does not revalidate inherited I/O/save claims or qualify uneven scatter, accelerator/NPU compatibility, inter-node transport or agent efficacy."
   ],
   "verification": {
     "locally_verified": false,

@@ -1,6 +1,6 @@
 ---
 name: weight-loading-optimization
-description: 'Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging and synchronous checkpoint save semantics. Use when startup/loading latency dominates; route DCP asynchronous save performance and distributed recovery validity to their separate skills.
+description: 'Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source, format, placement, duplication), account startup fixed overhead separately from per-request cost with bytes-and-counts lines and hit-criteria warmup validation, verify sharded weight downloads against the safetensors index, apply device-side weight prefetch only on profiled memory-bound hot spots, and order CPU-tier offload candidates by change surface. Includes source-scoped disk-loading modes, pinned staging, synchronous checkpoint save semantics and fastsafetensors broadcast/scatter/coalesced delivery. Use when startup/loading latency dominates; route DCP asynchronous save performance and distributed recovery validity to their separate skills.
 
   '
 ---
@@ -18,6 +18,9 @@ for loading modes and high-throughput mechanics — ggml-org/llama.cpp @
 ## SearchSpace mapping
 
 SSD / Storage row → Diagnose + Optimize + Verify cells (loading-path level).
+Communication / Network row → Configure + Optimize + Verify for §9's
+cross-rank collectives only; local staging, cloning and H2D remain storage /
+memory work.
 
 Second-level targets: model weight sharding/loading, startup latency,
 weight prefetch, CPU-tier offload, loading-mode selection.
@@ -291,6 +294,85 @@ What the save path actually supports at 219e256 (observed in `saver.py`,
   through host copy.
 - Concurrent saves to the same base: last rename wins per path; no
   locking (in-process threads only).
+
+## 9. Choose distributed tensor delivery (fastsafetensors pattern)
+
+Use this procedure when files have designated loading ranks and the consumer
+needs replicated weights or tensor-parallel (TP) slices. TP means ranks hold
+different slices of a model tensor. The source-scoped
+[transfer contract and readset](references/fastsafetensors-transfer-readset.md)
+bind these rules to `219e2561a41ede2d5d8eba611c248bb0effbf580` (Apache-2.0).
+They describe implementation and proposed checks, not measured gains.
+
+1. **Fix ownership and order before choosing a collective.** Give every rank
+   the same file-to-loader-group-rank map, tensor names, shapes, dtypes and
+   call order. The file owner reads the selected data into its device buffer;
+   `FilesBufferOnDevice` then delivers it. Use ranks within the loader's
+   process group, including for a subgroup whose members differ from world
+   ranks. A file assignment is not the final model-shard assignment.
+2. **Choose by the required output, not by file size.**
+
+   | Required output | Entry and path at this source pin | Cost / condition |
+   |---|---|---|
+   | Complete tensor on every rank | `get_tensor(name)` → `get_sharded(name, -1)` → broadcast | Owner clones its tensor; receivers allocate a full tensor. Every rank retains a full copy. |
+   | A slice along one tensor dimension | `get_sharded(name, dim)` → `shuffle` → scatter | Source forms contiguous slices; each rank allocates its slice. This is not direct reading of only that rank's shard bytes from storage. |
+   | Whole tensors streamed through the pipeline | `ParallelLoader.iterate_weights()` → eligible coalesced runs, otherwise per-tensor broadcast | This iterator does not choose TP shard dimensions; apply the consumer's slicing contract separately if needed. |
+   | Independent, rank-specific filtered reads | `ParallelLoader(all_local=True, tensor_filter=...)` | Uses a single-process loader group per rank; no cross-rank loader broadcast. Do not count these reads as network optimization. |
+
+   Scatter uses `block = ceil(shape[dim] / group_size)` and rank `r`'s
+   interval `[r * block, min((r + 1) * block, shape[dim]))`. Validate that this
+   partition matches the model's expected shard layout. Uneven or empty
+   slices need backend-specific qualification; the slicing calculation alone
+   does not establish that a collective accepts unequal sizes. Start with a
+   divisible dimension and supported dtype rather than promising arbitrary
+   TP layouts or packed-dtype behavior.
+3. **Consider coalescing for many adjacent replicated tensors.** At this pin
+   it is enabled only for a multi-rank PyTorch loader, positive
+   `broadcast_run_bytes` and `broadcast_run_tensors`, and
+   `resident_tensor is None`. Defaults are 16 MiB and 64 tensors; either
+   limit set to zero disables it. All ranks must use identical limits and
+   planning inputs. Runs preserve checkpoint order and split at a different
+   file/owner, byte gap, byte or count limit, incompatible dtype alignment,
+   or empty tensor. An individual tensor larger than the byte limit travels
+   alone; the setting does not split tensors or impose a hard peak-memory cap.
+4. **Charge the local work and preserve completion.** The coalesced PyTorch
+   path waits for every source range in the run, clones the contiguous span
+   once into owned byte storage, broadcasts it once and rebuilds typed views
+   sharing that storage. Receivers allocate the run too. This reduces collective
+   calls where tensors can join; it does not eliminate payload bytes or the
+   source clone. For CUDA/NCCL, `work.wait()` orders the current CUDA stream;
+   it is not a CPU-blocking whole-device drain. CPU/Gloo completion follows
+   that backend's wait contract; do not apply CUDA stream semantics to it.
+   The iterator drains transient CUDA runs and its final CUDA stream before
+   releasing the load buffers. Keep that completion path.
+5. **Match retention to the consumer.** Default owning outputs survive buffer
+   close, but a small retained view can keep an entire coalesced run alive.
+   A `resident_tensor` predicate disables coalescing so selected resident
+   tensors do not retain unrelated run storage. With
+   `accumulate_resident=False`, relocate and release each yielded tensor
+   before requesting the next; do not retain a dictionary of transient views.
+   Close a partially consumed iterator before closing its loader. Borrowed
+   tensors require a single-process loader group and completion before
+   advance/close; they cannot be combined with this distributed path.
+
+**Counter-signals:** one rank or Paddle does not select this coalesced
+PyTorch path; rank-specific filters with a distributed loader are rejected;
+different rank orders/plans can mismatch collectives. Gapped or mostly large
+tensors may offer few joins, and retaining a run to keep one small tensor can
+cost more memory than individual delivery. A faster H2D copy or a local clone
+does not prove faster cross-rank communication or inter-node network use.
+
+**Proposed verification before adoption:** compare coalescing disabled versus
+enabled with identical checkpoint, rank mapping, backend, topology, dtype,
+cache state, chunk/queue budgets and consumer retention. On every rank compare
+key order, shape, dtype and tensor bytes with the reference; for scatter
+compare the expected dimension slice, including a non-prefix subgroup. Cover
+mixed dtypes/alignment, gaps, an empty tensor, an oversized singleton,
+early iterator close and filtered-read rejection. Observe actual collective
+count/payload, copy/wait time and peak live storage separately from file I/O;
+check completion and buffer release after both exhaustion and early close.
+Then measure complete startup under §2/§7's accounting protocol. These are
+verification targets, not results from this distillation.
 
 ## Negative findings and remaining gaps
 
