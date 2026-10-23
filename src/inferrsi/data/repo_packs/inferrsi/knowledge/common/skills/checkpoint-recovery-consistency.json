@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Assess distributed checkpoint recovery using DLRover shared-memory readiness and step agreement, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate local publish, collective completeness, application-state validity and durable recovery.\n",
+  "summary": "Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate queued saves, publication, application-state validity and durable recovery.\n",
   "tags": [
     "checkpoint",
     "recovery",
@@ -22,15 +22,16 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5eb9937be7d6e26ab99d376a3fb1569813f2444/src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
-      "commit": "d5eb9937be7d6e26ab99d376a3fb1569813f2444",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c66653a0e932c910328c11eef55f8d75b83901e/src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
+      "commit": "3c66653a0e932c910328c11eef55f8d75b83901e",
       "paths": [
         "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
         "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json",
+        "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md",
         "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "30d55d7d0475d95f369f7c9aa3e594406a9407ded2a4e623df0c39cd487ba724"
+      "content_sha256": "6b7db1eb2780dec27858cb7aa0a3c093c5b5dfa4c30261aebfeaa255213ff688"
     }
   ],
   "index_type": "packaged-skill",
@@ -39,14 +40,15 @@
   },
   "checkout_ref": "checkout:checkpoint-recovery-consistency",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md": "30d55d7d0475d95f369f7c9aa3e594406a9407ded2a4e623df0c39cd487ba724",
+    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md": "6b7db1eb2780dec27858cb7aa0a3c093c5b5dfa4c30261aebfeaa255213ff688",
     "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json": "5c18a225cd3b88051c57cb29d3d9cca3dcf18826aff86cef1cec39f315a1fc1d",
-    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md": "7c95f3058bbfeda1dd7e83d05917a94be0548350c95d7066dd5bf49cb232775a",
+    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc",
+    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233",
     "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
   },
   "skill_metadata": {
     "name": "checkpoint-recovery-consistency",
-    "description": "Assess distributed checkpoint recovery using DLRover shared-memory readiness and step agreement, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate local publish, collective completeness, application-state validity and durable recovery.\n",
+    "description": "Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate queued saves, publication, application-state validity and durable recovery.\n",
     "tags": [
       "checkpoint",
       "recovery",

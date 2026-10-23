@@ -9,9 +9,17 @@ from pathlib import Path
 def expected(task):
     contract, baseline, candidate = task["contract"], task["baseline"], task["candidate"]
     findings = set()
-    before = statistics.median(statistics.mean(g) for g in baseline["latencies_ms"])
-    after = statistics.median(statistics.mean(g) for g in candidate["latencies_ms"])
+    baseline_means = [statistics.mean(g) for g in baseline["latencies_ms"]]
+    candidate_means = [statistics.mean(g) for g in candidate["latencies_ms"]]
+    if not all(math.isfinite(value) for value in baseline_means + candidate_means):
+        raise ValueError("Latency group means must be finite")
+    before = statistics.median(baseline_means)
+    after = statistics.median(candidate_means)
+    if before <= 0:
+        raise ValueError("Latency aggregates must be finite with a positive baseline")
     gain = (before - after) / before * 100
+    if not math.isfinite(gain):
+        raise ValueError("Latency reduction must be finite")
     verdict, scope = "PASS", "fixed_workload"
     if task["mode"] == "extract":
         return None, gain, set(), "none"
@@ -39,14 +47,18 @@ def expected(task):
 
 
 def verify(task, answer):
+    verdict, gain, findings, scope = expected(task)
     if (
         not isinstance(answer, dict)
+        or not {
+            "report_verdict", "claim_scope", "findings", "latency_reduction_pct", "evidence",
+            "reason",
+        } <= answer.keys()
         or not isinstance(answer.get("findings"), list)
         or not isinstance(answer.get("evidence"), list)
         or not all(isinstance(v, str) for v in answer["findings"] + answer["evidence"])
     ):
         return {"passed": False, "assertions": {"schema": False}}
-    verdict, gain, findings, scope = expected(task)
     required_evidence = {"baseline.latencies_ms", "candidate.latencies_ms"}
     if task["mode"] == "audit":
         required_evidence.add("contract")

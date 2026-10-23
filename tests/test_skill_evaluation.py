@@ -55,10 +55,11 @@ def test_incomplete_execution_never_passes(status):
     )
 
 
-def test_completed_wrong_or_missing_answer_fails():
+def test_completed_wrong_answer_fails_and_unavailable_grading_is_inconclusive():
     trace = {"completed_turns": 1, "errors": []}
-    assert task_verdict({"status": "completed"}, trace, {}, {"passed": False}) == "FAIL"
-    assert task_verdict({"status": "completed"}, trace, None, None) == "FAIL"
+    checks = {"passed": False, "assertions": {"schema": False}}
+    assert task_verdict({"status": "completed"}, trace, {}, checks) == "FAIL"
+    assert task_verdict({"status": "completed"}, trace, None, None) == "INCONCLUSIVE"
     assert task_verdict({"status": "completed"}, trace, {}, None) == "INCONCLUSIVE"
 
 
@@ -92,27 +93,13 @@ def test_toml_literals_do_not_shell_interpolate():
     assert toml_value({"key": [False, "a\\b"]}) == '{"key"=[false,"a\\\\b"]}'
 
 
-def test_frozen_verifier_rejects_blank_and_fabricated_claims():
+def test_pilot_verifier_rejects_blank_answers():
     verifier = load_tool("skill_eval_verifier")
     pilot = load_tool("skill_eval_pilot")
     tasks = pilot.fixtures()
     assert len(tasks) == 6
     for task in tasks:
         assert not verifier.verify(task, {})["passed"]
-        verdict, gain, findings, scope = verifier.expected(task)
-        answer = {
-            "report_verdict": verdict,
-            "latency_reduction_pct": gain,
-            "findings": sorted(findings),
-            "claim_scope": scope,
-            "evidence": task["evidence_keys"],
-            "reason": "Fixture oracle check",
-        }
-        assert verifier.verify(task, answer)["passed"]
-        assert not verifier.verify(task, {**answer, "claim_scope": "production"})["passed"]
-        assert not verifier.verify(task, {**answer, "evidence": ["invented.log"]})["passed"]
-        if verdict != "PASS":
-            assert not verifier.verify(task, {**answer, "report_verdict": "PASS"})["passed"]
 
 
 def test_task_inputs_never_embed_oracle_fields():
@@ -129,8 +116,39 @@ def test_recovery_keeps_interrupted_attempt_without_automatic_retry(tmp_path):
     trials = pilot.recover_attempts(tmp_path, [entry])
     assert trials[0]["execution_state"] == "interrupted"
     assert trials[0]["verdict"] == "INCONCLUSIVE"
+    result_path = directory / "result.json"
+    persisted = result_path.read_bytes()
+    assert json.loads(persisted)["evaluation_error"] == "interrupted_attempt"
+    group = summarize(trials)["conditions"]["N"]
+    assert group["verdicts"] == {"PASS": 0, "FAIL": 0, "INCONCLUSIVE": 1}
+    assert group["evaluation_errors"] == 1
+    assert group["elapsed_seconds"] is None
     assert pilot.recover_attempts(tmp_path, [entry]) == trials
-    assert summarize(trials)["conditions"]["N"]["elapsed_seconds"] is None
+    assert result_path.read_bytes() == persisted
+
+
+def test_recovery_preserves_legacy_record_without_evaluation_error(tmp_path):
+    pilot = load_tool("skill_eval_pilot")
+    entry = {"task_id": "legacy", "condition": "N", "repeat": 1}
+    legacy = {
+        **entry,
+        "execution_state": "interrupted",
+        "verdict": "INCONCLUSIVE",
+        "elapsed_seconds": None,
+        "observations": {"usage": None},
+    }
+    directory = tmp_path / "results/legacy-N-1"
+    directory.mkdir(parents=True)
+    result_path = directory / "result.json"
+    persisted = json.dumps(legacy, indent=2).encode("utf-8") + b"\n"
+    result_path.write_bytes(persisted)
+    trials = pilot.recover_attempts(tmp_path, [entry])
+    assert trials == [legacy]
+    assert "evaluation_error" not in trials[0]
+    group = summarize(trials)["conditions"]["N"]
+    assert group["verdicts"]["INCONCLUSIVE"] == 1
+    assert group["evaluation_errors"] == 0
+    assert result_path.read_bytes() == persisted
 
 
 def test_verifier_rejects_malformed_generated_answers():

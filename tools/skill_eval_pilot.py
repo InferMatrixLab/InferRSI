@@ -263,6 +263,7 @@ def recover_attempts(output: Path, schedule: list[dict]) -> list[dict]:
                 **entry,
                 "execution_state": "interrupted",
                 "verdict": "INCONCLUSIVE",
+                "evaluation_error": "interrupted_attempt",
                 "elapsed_seconds": None,
                 "checks": None,
                 "observations": {
@@ -277,6 +278,16 @@ def recover_attempts(output: Path, schedule: list[dict]) -> list[dict]:
             write_json(directory / "result.json", record)
         trials.append(record)
     return trials
+
+
+def observed_tokens(usage: dict | None) -> int:
+    # 预算计数只累计已观测字段；完整性在状态与 summary 中单独表达。
+    if usage is None:
+        return 0
+    return sum(
+        value for key, value in usage.items()
+        if key in ("input_tokens", "output_tokens") and value is not None
+    )
 
 
 def execute(output: Path, max_new_trials: int | None = None):
@@ -297,9 +308,7 @@ def execute(output: Path, max_new_trials: int | None = None):
         assert reader.read("checkout:" + name).revision == bundle["revision"]
     trials = recover_attempts(output, plan["schedule"])
     tokens = sum(
-        t["observations"]["usage"]["input_tokens"] + t["observations"]["usage"]["output_tokens"]
-        for t in trials
-        if t["observations"]["usage"]
+        observed_tokens(t["observations"]["usage"]) for t in trials
     )
     prior = {(t["task_id"], t["condition"], t["repeat"]) for t in trials}
     start_path = output / "results/start.json"
@@ -387,8 +396,7 @@ def execute(output: Path, max_new_trials: int | None = None):
         trials.append(result)
         new_trials += 1
         usage = result["observations"]["usage"]
-        if usage:
-            tokens += usage["input_tokens"] + usage["output_tokens"]
+        tokens += observed_tokens(usage)
         write_json(trial_dir / "result.json", result)
         write_json(output / "results/trials.json", trials)
         write_json(output / "results/summary.json", summarize(trials))
@@ -413,6 +421,14 @@ def execute(output: Path, max_new_trials: int | None = None):
             "expected_trials": len(plan["schedule"]),
             "recorded_trials": len(trials),
             "observed_tokens": tokens,
+            "token_usage_complete": all(
+                trial["observations"]["usage"] is not None
+                and all(
+                    trial["observations"]["usage"].get(key) is not None
+                    for key in ("input_tokens", "output_tokens")
+                )
+                for trial in trials
+            ),
             "execution_state": "completed" if len(trials) == len(plan["schedule"]) else "stopped",
             "stop_reason": stop_reason,
         },
