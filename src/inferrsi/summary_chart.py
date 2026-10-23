@@ -85,6 +85,8 @@ FOOTER_HEIGHT = 62.0
 PLOT_WIDTH = 860.0
 GROUP_SIZE = 9.6
 MARGIN = 24.0
+FOOTER_NEED = 96.0
+FOOTER_STAGGER = 11.0
 
 
 class SpecError(ValueError):
@@ -130,6 +132,37 @@ def _spacing(axis: dict, name: str, default: float, where: str) -> float:
     if not math.isfinite(value) or value <= 0:
         raise SpecError(f"{where}.{name} must be finite and positive, got {value!r}")
     return float(value)
+
+
+def _header_lines(spec: dict, default_title: str) -> list[str]:
+    """Title, then the baseline label, then each subtitle line, in draw order."""
+    lines = [str(spec.get("title", default_title))]
+    control = spec.get("baseline", {}).get("label")
+    if control:
+        lines.append(f"baseline: {control}")
+    subtitle = spec.get("subtitle", [])
+    if isinstance(subtitle, str):
+        subtitle = [subtitle]
+    lines.extend(str(line) for line in subtitle)
+    return lines
+
+
+def _footer_rows(count: int, slot: float) -> list[int]:
+    """Stagger crowded footer labels into two rows rather than let them collide.
+
+    Alternating the row keeps every label on the figure: dropping labels would
+    hide a step, and rotating them makes a 20-step campaign unreadable. A footer
+    entry needs roughly FOOTER_NEED points of horizontal room.
+    """
+    if slot >= FOOTER_NEED:
+        return [0] * count
+    return [index % 2 for index in range(count)]
+
+
+def _clamp_label(x: float, text: str, size: float, low: float, high: float) -> float:
+    """Keep a centred label inside the canvas instead of clipping its first glyph."""
+    half = _text_width(text, size) / 2
+    return min(max(x, low + half), high - half)
 
 
 def _metric_keys(spec: dict) -> list[str]:
@@ -396,20 +429,20 @@ def _build_chain(spec: dict) -> str:
     span = CHAIN_WIDTH - CHAIN_LEFT - CHAIN_RIGHT
     slot = span / (len(points) - 1) if len(points) > 1 else 0.0
 
-    header_lines = [str(spec.get("title", "Campaign gain summary"))]
-    subtitle = spec.get("subtitle", [])
-    if isinstance(subtitle, str):
-        subtitle = [subtitle]
-    control = spec.get("baseline", {}).get("label")
-    if control:
-        header_lines.append(f"baseline: {control}")
-    header_lines.extend(str(line) for line in subtitle)
+    header_lines = _header_lines(spec, "Campaign gain summary")
     plot_top = 40.0 + 18.0 * len(header_lines) + CHAIN_TOP_BAND
     plot_bottom = plot_top + CHAIN_PLOT_HEIGHT
 
     label_rows = [_point_label(point, label_metric, unit) for point in points]
-    label_w = max(_text_width(entry[0], 9.0) for entry in label_rows) + 16.0
-    height = plot_bottom + 78.0
+    # The right gutter holds the reference captions; size it from them so a long
+    # caption cannot run off the canvas and a short one does not leave a void.
+    reference_w = max(
+        [_text_width(reference["label"], 8.8) for reference in references] + [0.0]
+    )
+    right_gutter = max(CHAIN_RIGHT, reference_w + 24.0)
+    canvas = CHAIN_WIDTH - CHAIN_RIGHT + right_gutter
+    footer_rows = _footer_rows(len(points), slot)
+    height = plot_bottom + 78.0 + FOOTER_STAGGER * footer_rows.count(1)
 
     def x_of(index: int) -> float:
         return CHAIN_LEFT + index * slot
@@ -419,11 +452,10 @@ def _build_chain(spec: dict) -> str:
 
     parts = [
         '<?xml version="1.0" encoding="utf-8"?>',
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{CHAIN_WIDTH + label_w:.0f}" '
-        f'height="{height:.0f}" viewBox="0 0 {CHAIN_WIDTH + label_w:.0f} {height:.0f}" '
-        f'role="img">',
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{canvas:.0f}" '
+        f'height="{height:.0f}" viewBox="0 0 {canvas:.0f} {height:.0f}" role="img">',
         f"<title>{escape(header_lines[0])}</title>",
-        f'<rect width="{CHAIN_WIDTH + label_w:.0f}" height="{height:.0f}" fill="{SURFACE}"/>',
+        f'<rect width="{canvas:.0f}" height="{height:.0f}" fill="{SURFACE}"/>',
         _svg_text(MARGIN, 38.0, header_lines[0], 16.5, fill=INK, font_weight="bold"),
     ]
     line_y = 62.0
@@ -455,7 +487,7 @@ def _build_chain(spec: dict) -> str:
         )
 
     legend = "   ".join(metric_label(spec, key) for key in keys)
-    swatch_x = CHAIN_WIDTH - CHAIN_RIGHT - _text_width(legend, 9.4) - 12.0 * len(keys)
+    swatch_x = canvas - MARGIN - _text_width(legend, 9.4) - 12.0 * len(keys)
     for slot_index, key in enumerate(keys):
         parts.append(
             f'<circle cx="{swatch_x + 12.0 * slot_index:.1f}" cy="34.0" '
@@ -476,7 +508,7 @@ def _build_chain(spec: dict) -> str:
             _svg_text(
                 CHAIN_LEFT - 18.0,
                 y,
-                f"{tick:.2f}×".rstrip("0").rstrip(".") + "×" if False else _multiple_label(tick),
+                _multiple_label(tick),
                 8.6,
                 fill=INK_3,
                 text_anchor="end",
@@ -536,10 +568,11 @@ def _build_chain(spec: dict) -> str:
                 text_anchor="middle",
             )
         )
+        offset = FOOTER_STAGGER * footer_rows[index]
         parts.append(
             _svg_text(
-                x,
-                plot_bottom + 22.0,
+                _clamp_label(x, point["label"], 9.0, CHAIN_LEFT - 60.0, canvas - MARGIN),
+                plot_bottom + 22.0 + offset,
                 point["label"],
                 9.0,
                 fill=INK_2,
@@ -550,8 +583,8 @@ def _build_chain(spec: dict) -> str:
         if note:
             parts.append(
                 _svg_text(
-                    x,
-                    plot_bottom + 38.0,
+                    _clamp_label(x, note, 8.2, CHAIN_LEFT - 60.0, canvas - MARGIN),
+                    plot_bottom + 38.0 + offset,
                     note,
                     8.2,
                     fill=INK_3,
@@ -560,7 +593,12 @@ def _build_chain(spec: dict) -> str:
             )
         parts.append(
             _svg_text(
-                x, plot_bottom + 54.0, f"T+{index}", 8.4, fill=INK_3, text_anchor="middle"
+                x,
+                plot_bottom + 54.0 + offset,
+                f"T+{index}",
+                8.4,
+                fill=INK_3,
+                text_anchor="middle",
             )
         )
 
@@ -569,7 +607,7 @@ def _build_chain(spec: dict) -> str:
         parts.append(
             _svg_text(
                 (CHAIN_LEFT + CHAIN_WIDTH - CHAIN_RIGHT) / 2,
-                plot_bottom + 74.0,
+                plot_bottom + 74.0 + FOOTER_STAGGER * footer_rows.count(1),
                 axis_label,
                 9.6,
                 fill=INK_2,
@@ -647,17 +685,13 @@ def _build_branch(spec: dict) -> str:
         x_min = low - tick / 2
         x_max = high + tick / 2
 
-    legend = "  ".join(metric_label(spec, key) for key in keys)
-    control = spec.get("baseline", {}).get("label")
-    header_lines = [str(spec.get("title", "Campaign gain summary"))]
-    subtitle = spec.get("subtitle", [])
-    if isinstance(subtitle, str):
-        subtitle = [subtitle]
-    if control:
-        header_lines.append(f"baseline: {control}")
-    header_lines.extend(str(line) for line in subtitle)
-    plot_top = 40.0 + 18.0 * len(header_lines) + CHAIN_TOP_BAND
-    plot_bottom = plot_top + CHAIN_PLOT_HEIGHT
+    legend = "   ".join(metric_label(spec, key) for key in keys)
+    header_lines = _header_lines(spec, "Campaign gain summary")
+    # Header text height decides where the plot starts, so resolve it before
+    # emitting the document preamble that needs the page height.
+    plot_top = max(HEADER_HEIGHT, 66.0 + 15.0 * (len(header_lines) - 1) + 14.0)
+    plot_bottom = plot_top + len(trials) * ROW_HEIGHT
+    height = plot_bottom + FOOTER_HEIGHT
 
     group_w = max(_text_width(trial["group"], GROUP_SIZE) for trial in trials) + 14.0
     label_w = max(
@@ -685,7 +719,6 @@ def _build_branch(spec: dict) -> str:
     value_x = plot_right + 10.0
     note_x = value_x + value_w
     width = note_x + note_w + MARGIN
-    height = HEADER_HEIGHT + len(trials) * ROW_HEIGHT + FOOTER_HEIGHT
 
     def x_of(gain: float) -> float:
         span = x_max - x_min
@@ -704,9 +737,6 @@ def _build_branch(spec: dict) -> str:
     for line in header_lines[1:]:
         parts.append(_svg_text(MARGIN, line_y, line, 9.4, fill=INK_2))
         line_y += 15.0
-
-    plot_top = HEADER_HEIGHT
-    plot_bottom = plot_top + len(trials) * ROW_HEIGHT
 
     groups: list[tuple[str, int, int]] = []
     for index, trial in enumerate(trials):

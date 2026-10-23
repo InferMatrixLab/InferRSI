@@ -242,3 +242,45 @@ def test_a_bad_spacing_never_aborts_report_generation(tmp_path, bad_axis):
     assert "No gain figure" in report
     assert "axis.step" in report
     assert "<h2>Evaluation</h2>" in report
+
+
+def test_dense_footers_stagger_instead_of_colliding():
+    """A long chain keeps every step label, alternating rows when space is tight."""
+    points = [
+        {"phase": "B", "label": f"step {index}", "values": {"m": 100.0 + index * 30.0}}
+        for index in range(1, 13)
+    ]
+    spec = {
+        "layout": "chain",
+        "title": "12 steps",
+        "metrics": [{"key": "m", "label": "m"}],
+        "baseline": {"label": "base", "metrics": {"m": 100.0}},
+        "points": [{"phase": "B", "label": "base", "values": {"m": 100.0}, "baseline": True}]
+        + points,
+    }
+    svg = summary_chart.build_svg(spec)
+    root = ET.fromstring(svg)
+    labels = [node for node in root.iter(f"{NS}text") if (node.text or "").startswith("step ")]
+    assert len(labels) == len(points)
+    # Two distinct baselines prove the rows alternate rather than overprint.
+    assert len({node.get("y") for node in labels}) == 2
+
+
+def test_a_short_chain_keeps_one_footer_row():
+    root = ET.fromstring(summary_chart.build_svg(chain_spec()))
+    labels = [
+        node
+        for node in root.iter(f"{NS}text")
+        if node.text in {point["label"] for point in chain_spec()["points"]}
+    ]
+    assert len({node.get("y") for node in labels}) == 1
+
+
+def test_the_right_gutter_fits_the_longest_reference_caption():
+    spec = chain_spec()
+    caption_text = "a very long peer target caption"
+    spec["references"] = [{"label": caption_text, "metric": "C32", "value": 2400.0}]
+    root = ET.fromstring(summary_chart.build_svg(spec))
+    width = float(root.get("width"))
+    caption = next(node for node in root.iter(f"{NS}text") if node.text == caption_text)
+    assert float(caption.get("x")) + summary_chart._text_width(caption.text, 8.8) <= width

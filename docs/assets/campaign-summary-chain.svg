@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" width="1140" height="624" viewBox="0 0 1140 624" role="img">
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="624" viewBox="0 0 1040 624" role="img">
 <title>Chain layout: ordered steps, running gain</title>
-<rect width="1140" height="624" fill="#fcfcfb"/>
+<rect width="1040" height="624" fill="#fcfcfb"/>
 <text x="24.0" y="38.0" font-size="16.5" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" font-weight="bold">Chain layout: ordered steps, running gain</text>
 <text x="24.0" y="62.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">baseline: pinned baseline snapshot</text>
 <text x="24.0" y="78.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">Illustrative shape only. Values are the template example, not any engine's measurements.</text>
@@ -11,9 +11,9 @@
 <text x="536.0" y="134.0" font-size="10.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" font-weight="bold" text-anchor="middle">Kernels</text>
 <rect x="712.0" y="146.0" width="118.0" height="400.0" fill="#f1f1ee"/>
 <text x="771.0" y="134.0" font-size="10.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" font-weight="bold" text-anchor="middle">Replication</text>
-<circle cx="726.9" cy="34.0" r="4" fill="#2a78d6"/>
-<circle cx="738.9" cy="34.0" r="4" fill="#eb6834"/>
-<text x="750.9" y="37.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">C16   C32</text>
+<circle cx="942.9" cy="34.0" r="4" fill="#2a78d6"/>
+<circle cx="954.9" cy="34.0" r="4" fill="#eb6834"/>
+<text x="966.9" y="37.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">C16   C32</text>
 <line x1="84.0" y1="546.0" x2="812.0" y2="546.0" stroke="#e4e3df" stroke-width="1"/>
 <text x="78.0" y="546.0" font-size="8.6" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#8a8984" text-anchor="end" dominant-baseline="middle">1×</text>
 <line x1="84.0" y1="496.0" x2="812.0" y2="496.0" stroke="#e4e3df" stroke-width="1"/>
