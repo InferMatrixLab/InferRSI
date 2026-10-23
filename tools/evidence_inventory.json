@@ -45,6 +45,31 @@
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
       "external": ["Original private client captures and unredacted host-specific plans remain outside the repository; the public bundle retains labelled redactions, original digests and replayable answer checks."]
     },
+    "qwen3-omni-2gpu-20261023": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "plan/frozen-files-v3.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "plan/model-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "b2069f704bd1ae9d4669aaffa2cb05b3e98f6fd79797920ce6232464f2e4274c"
+        },
+        {
+          "path": "results/baseline-v3-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "7e6972a84b09434bf759f8ac79bbc383b3b8c18887b0e491670903f71870999d"
+        },
+        {
+          "path": "results/baseline-v3-quality-audio-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "ddfaada8768e70ad29eb0891bef695f878bce601dd8ff758afeb5159e26eef1d"
+        }
+      ],
+      "external": ["Original host logs, model weights and captured audio remain private; public results retain hashes and redaction boundaries."]
+    },
     "qwen3-tts-ascend-import": {
       "kind": "import", "manifests": [],
       "external": ["Original campaign validators and artifacts remain at the upstream source described in plan/README.md."]
