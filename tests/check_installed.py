@@ -154,5 +154,30 @@ with contextlib.redirect_stdout(output):
     assert main(["skills", "resource", "audit-h3-runtime-residency",
                  "references/phase-residency.md"]) == 0
 assert Path(json.loads(output.getvalue())["path"]).is_file()
+output = io.StringIO()
+with contextlib.redirect_stdout(output):
+    assert main([
+        "knowledge", "research", "MiniMax-H3", "--framework", "mlx",
+        "--target-backend", "metal", "--target-device", "M5 Mac Studio",
+        "--target-memory-gib", "64", "--limit", "12",
+    ]) == 0
+research = json.loads(output.getvalue())
+assert research["profile"]["model"] == "MiniMax-H3"
+assert research["target_validation"] == "unverified"
+assert research["target"]["device"] == "M5 Mac Studio"
+assert any(
+    item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+    for item in research["items"]
+)
+assert {item["group"] for item in research["queries"]} == {
+    "model", "framework", "task", "modality", "mechanism",
+}
+for key in ("procedure_resource", "worked_example_resource"):
+    assert package.joinpath(research[key]).read_text(encoding="utf-8")
+for key in ("skill_resource", "inventory_resource"):
+    assert package.joinpath(research["profile"][key]).read_text(encoding="utf-8")
+assert set(research["profile"]["knowledge_ids"]) <= {
+    item["record"]["id"] for item in research["items"]
+}
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
