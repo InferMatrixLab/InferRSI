@@ -49,7 +49,11 @@ Checkout filters, Git export attributes and replacement refs cannot substitute
 different bytes. Snapshot inspection, raw blob reads and source diffs all use
 Git's [`--no-replace-objects`](https://git-scm.com/docs/git#Documentation/git.txt---no-replace-objects)
 and [`--no-lazy-fetch`](https://git-scm.com/docs/git/2.46.0#Documentation/git.txt---no-lazy-fetch).
-The Git executable must support these options. Missing commits, trees or blobs
+Preparation requires Git **2.45 or newer**, and checks `git --version` before
+creating output or reading snapshot objects; older clients fail with an explicit
+prerequisite error. The lazy-fetch control was introduced in the
+[Git 2.45 release](https://github.com/git/git/blob/master/Documentation/RelNotes/2.45.0.adoc).
+Missing commits, trees or blobs
 fail locally; partial-clone promisor remotes are not contacted by preparation.
 The retained bundles include the full body, owner-local resources and declared
 references/dependencies. `reader.read(..., revision=...)` checks those bytes;
@@ -87,6 +91,12 @@ Latency data must contain nonempty groups of finite, strictly positive samples.
 Unknown quality values, negative/zero/nonfinite samples and empty groups are
 rejected before freezing; they cannot produce a passing comparison from an
 invalid input such as a negative candidate latency and a reduction above 100%.
+When request counts are supplied, all three fields are required and must be
+nonnegative; reported and failed counts cannot exceed the total. Nonempty
+latency data requires a positive request total. Every unreported request must
+be accounted for by the known failed count. An unexplained reporting gap is
+rejected before preparation; known failures and their omitted records remain
+valid negative audit cases, including the old pilot's omission fixtures.
 Free-text requests and provenance remain caller-authored inputs to review.
 
 ## Execution boundary

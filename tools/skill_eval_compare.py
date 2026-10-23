@@ -75,6 +75,17 @@ def validate_audit_values(task: dict) -> None:
                 not math.isfinite(sample) or sample <= 0 for group in groups for sample in group
             ):
                 raise ValueError(f"Expected nonempty groups of finite positive latencies at {role}")
+        count_keys = ("total_requests", "reported_requests", "failed_requests")
+        if any(name in report for name in count_keys):
+            if not all(name in report for name in count_keys):
+                raise ValueError(f"Incomplete request count fields at {role}")
+            total, reported, failed = (report[name] for name in count_keys)
+            if min(total, reported, failed) < 0 or reported > total or failed > total:
+                raise ValueError(f"Inconsistent request counts at {role}")
+            if total == 0 and report.get("latencies_ms"):
+                raise ValueError(f"Latency observations require a positive request total at {role}")
+            if total - reported > failed:
+                raise ValueError(f"Unaccounted unreported requests at {role}")
 
 
 def validate(config: dict, tasks: list[dict]) -> None:
@@ -181,10 +192,18 @@ def snapshot(repo: Path, revision: str, skill_root: str, destination: Path, *,
     return destination / skill_root
 
 
+def require_git_version(version: str) -> None:
+    parsed = re.match(r"git version (\d+)\.(\d+)(?:\.|$)", version.strip())
+    if parsed is None or tuple(map(int, parsed.groups())) < (2, 45):
+        raise ValueError("Snapshot preparation requires Git >= 2.45 for --no-lazy-fetch; found "
+                         + version.strip())
+
+
 def prepare(config_path: Path, repo: Path, output: Path) -> str:
     config = read_json(config_path)
     tasks = read_json(config_path.parent / config["cases"])
     validate(config, tasks)
+    require_git_version(subprocess.check_output(("git", "--version"), cwd=repo, text=True))
     schema = read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA
     grader = config_path.parent / config["grader"] if "grader" in config else (
         ROOT / "tools/skill_eval_verifier.py"

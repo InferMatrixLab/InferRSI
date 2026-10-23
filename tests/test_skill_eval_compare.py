@@ -396,6 +396,45 @@ def test_missing_promisor_objects_fail_locally_without_lazy_fetch(tmp_path, miss
                for event in events)
 
 
+def test_git_version_preflight_rejects_unsupported_clients():
+    for version in ("git version 2.43.0", "git version 2.44.5", "git version 1.9.0", "unknown"):
+        with pytest.raises(ValueError, match="requires Git >= 2.45"):
+            compare.require_git_version(version)
+    for version in ("git version 2.45.0", "git version 2.45.0.rc0",
+                    "git version 2.53.0.windows.2", "git version 3.0.0"):
+        compare.require_git_version(version)
+
+
+@pytest.mark.parametrize("role", compare.ROLES)
+def test_request_counts_reject_unaccounted_or_inconsistent_evidence(tmp_path, role):
+    config, repo = configuration(tmp_path, ids=("one",))
+    cases = tmp_path / "cases.json"
+    original = json.loads(cases.read_text())
+    invalid = [(-1, 0, 0), (6, -1, 0), (6, 6, -1), (6, 7, 0), (6, 6, 7),
+               (6, 5, 0), (6, 4, 1), (0, 0, 0)]
+    for index, (total, reported, failed) in enumerate(invalid):
+        tasks = json.loads(json.dumps(original))
+        tasks[0][role].update(total_requests=total, reported_requests=reported,
+                             failed_requests=failed)
+        write_json(cases, tasks)
+        output = tmp_path / f"counts-{index}"
+        with pytest.raises(ValueError, match="request"):
+            compare.prepare(config, repo, output)
+        assert not output.exists()
+    for name in ("total_requests", "reported_requests", "failed_requests"):
+        tasks = json.loads(json.dumps(original))
+        tasks[0][role].pop(name)
+        write_json(cases, tasks)
+        output = tmp_path / name
+        with pytest.raises(ValueError, match="Incomplete request count fields"):
+            compare.prepare(config, repo, output)
+        assert not output.exists()
+    for reported, failed in ((6, 0), (6, 1), (5, 1), (3, 3)):
+        task = json.loads(json.dumps(original[0]))
+        task[role].update(total_requests=6, reported_requests=reported, failed_requests=failed)
+        compare.validate_audit_values(task)
+
+
 def test_prepare_and_report_cli_are_model_free(tmp_path):
     config, repo = configuration(tmp_path, "addition", ids=("one",))
     output = tmp_path / "run"
