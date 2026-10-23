@@ -1,0 +1,164 @@
+{
+  "schema_version": 1,
+  "phase": "SCREENING",
+  "status": "INCONCLUSIVE",
+  "promotion_eligible": false,
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/112",
+  "protocol": "../plan/protocol-v3.json",
+  "protocol_sha256": "16d7630cdc54ce4c556abe7a13269a3b73965ca2c975e7a91ac7985d340c719c",
+  "server_source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "benchmark_source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "revision_basis": "Actual source supplied by campaign operator; deployment bytes read from this commit.",
+  "source_attribution": {
+    "optimization_origin_sha": "d93e1a8e09d2a0d386c4a58424470d685ee7743c",
+    "url": "https://github.com/vllm-project/vllm-omni/blob/d93e1a8e09d2a0d386c4a58424470d685ee7743c/docs/design/qwen3_omni_mrv2_performance.md",
+    "qualification": "Existing upstream MRv2 mechanisms enabled by deployment; no new optimization or measured improvement attributed to this campaign."
+  },
+  "deployment": {
+    "files": [
+      {
+        "file": "qwen3_omni_moe.yaml",
+        "source_path": "vllm_omni/deploy/qwen3_omni_moe.yaml",
+        "source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      },
+      {
+        "file": "qwen3_omni_moe_mrv2.yaml",
+        "source_path": "vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml",
+        "source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      }
+    ],
+    "inheritance": "qwen3_omni_moe_mrv2.yaml inherits qwen3_omni_moe.yaml; baseline two-GPU stage placement retained.",
+    "logical_stage_devices": {
+      "thinker": 0,
+      "talker": 1,
+      "code2wav": 1
+    },
+    "requested_model_runners": "v2 for all three stages",
+    "runtime_evidence": "mrv2-runtime-excerpts.txt; MR v2 AR runner selection confirmed in startup logs. The generic V1 LLM engine banner is not the model-runner selection."
+  },
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "count": 2,
+    "logical_devices": [
+      "0",
+      "1"
+    ],
+    "physical_mapping": "Host device indices redacted; both campaign-assigned GPUs used."
+  },
+  "environment": {
+    "torch": "2.13.0+cu130",
+    "vllm": "0.32.0",
+    "transformers": "5.16.1",
+    "flashinfer-python": "0.7.0.post1",
+    "triton": "3.7.1",
+    "numpy": "2.2.6",
+    "soundfile": "0.14.0",
+    "openai-whisper": "20250625",
+    "jiwer": "4.0.0",
+    "zhon": "2.1.1",
+    "omni_source_override": "PYTHONPATH selects frozen worktree; installed vllm-omni distribution metadata is stale and not the executed revision",
+    "tokenizers": "0.23.1",
+    "vllm-omni_distribution_metadata_only": "0.31.0rc2.dev289+g04aa51e9f.d20261019",
+    "OMP_NUM_THREADS": "1",
+    "HF_HUB_OFFLINE": "1",
+    "CUDA_VISIBLE_DEVICES": "<ASSIGNED_GPU_0>,<ASSIGNED_GPU_1>",
+    "overlay": "task-local runtime overlay ahead of site-packages; shared installation unchanged",
+    "transformers_metadata_sha256": "a552b99768921327581cb0e1389718d39cb25f09d4f49b80aa9fc27a843d09e4",
+    "tokenizers_metadata_sha256": "67226b8d55c78feec1f100f38cd5b04ad7385af8484696b7fd332c1d8cec4345"
+  },
+  "environment_basis": "Same task-local overlay and environment as baseline, per campaign operator; no claim of independent historical import capture.",
+  "workload": {
+    "dataset": "Seed-TTS Eval EN",
+    "selection": "first 256 rows, original order, no oversampling",
+    "meta_sha256": "7cd29f701743e6c7033edbca764ddc0b979de8c4f4907eff5e5454682114661f",
+    "selected_sha256": "4f6dea171994e984a9cd3db71dcb1fdddb590b26f87f82d21a457869d01e4024",
+    "user_prompt_wrapper": "benchmark_readback.py; target remains unwrapped for WER"
+  },
+  "run_order": [
+    1,
+    64
+  ],
+  "baseline_run_order": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+  ],
+  "runs": [
+    {
+      "file": "mrv2-v3-c1.json",
+      "sha256": "38c1cf263f0b5cf32be75c7dccb1bd7115880caf2591556e5899bba47111ef10",
+      "original_sha256": "59889f51c17747077705f308fb063b8d4bb156315693ec25040b679be1a7cc16",
+      "concurrency": 1,
+      "requests": 256,
+      "replicate": 1,
+      "phase": "SCREENING",
+      "summary": {
+        "throughput_frames_s": 223549.72747102423,
+        "ttfa_p50_ms": 79.34334268793464,
+        "ttfa_p95_ms": 89.84337840229273,
+        "rtf_mean": 0.1112851237125902,
+        "completed": 256
+      }
+    },
+    {
+      "file": "mrv2-v3-c64.json",
+      "sha256": "363e1a3728461bd582c922cece4888027c31d2cbe777b507b1c206a974b747a4",
+      "original_sha256": "db88eb8d2a4f03672160e830167c4d211edd9fbac648e868adc8f9f4bc8309f3",
+      "concurrency": 64,
+      "requests": 256,
+      "replicate": 1,
+      "phase": "SCREENING",
+      "summary": {
+        "throughput_frames_s": 1894553.971709544,
+        "ttfa_p50_ms": 225.18666181713343,
+        "ttfa_p95_ms": 3164.7642890457064,
+        "rtf_mean": 0.8189927486902044,
+        "completed": 256
+      }
+    }
+  ],
+  "jit_observations": {
+    "artifact": "mrv2-runtime-excerpts.txt",
+    "sha256": "cccdd67cc5c9257057f651a07acd286e329a6e69052a41f882841300f320f58c",
+    "events": [
+      {
+        "local_time": "2026-10-23 12:27:13 Asia/Shanghai",
+        "stage": "Thinker",
+        "kernel": "fused_moe_kernel"
+      },
+      {
+        "local_time": "2026-10-23 12:29:51 Asia/Shanghai",
+        "stage": "Talker",
+        "kernel": "fused_moe_kernel",
+        "scope": "During the C64 screening run, as identified by campaign operator"
+      }
+    ],
+    "interpretation": "Shape warmup was incomplete. Raw latency spikes and all request samples are retained; no outlier removal or warmed-comparison claim."
+  },
+  "quality": {
+    "status": "not_run",
+    "promotion_blocker": true
+  },
+  "limitations": [
+    "Only C1 then C64 were screened; baseline warmed across the full increasing concurrency matrix. These are not matched warmed trials.",
+    "Inference-time JIT compilation was logged, including during C64; observed metrics cannot establish warmed comparative gain or regression.",
+    "No quality qualification, full candidate matrix or repeated alternating AB/BA trials exist in this bundle.",
+    "Both raw RTF values exceed their requested targets; these screening observations are not campaign acceptance.",
+    "PCM sample frames/s is reported, not codec frames/s."
+  ],
+  "redaction": {
+    "changes": [
+      "tokenizer_id replaced by <MODEL_PATH>",
+      "Startup paths and process IDs replaced by placeholders",
+      "Host device indices represented as logical 0/1"
+    ],
+    "preserved": "All request rows, timings, errors, generated text and numeric aggregates; no outliers excluded.",
+    "originals": "Private original JSON/logs retained locally; original hashes do not imply public availability."
+  }
+}

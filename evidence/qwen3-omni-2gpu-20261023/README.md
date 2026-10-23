@@ -21,3 +21,5 @@ See [the actual baseline run manifest](results/baseline-v3-run-manifest.json) fo
 Baseline quality: mean WER 0.0383296 over 256 items, with no failed requests, missing PCM or ASR failures. Native Seed-TTS evaluation uses the frozen Whisper scorer. UTMOS is supplementary. These baseline values do not meet the issue's RTF targets.
 
 [Candidate hypotheses and sources](plan/candidates.json) separate configuration adaptations from upstream algorithms. [PR #9278](https://github.com/vllm-project/vllm-omni/pull/9278) corrects valid-audio timestamps and preserves per-request benchmark measurements; it is instrumentation, not an inference speedup.
+
+The [MRv2 screening record](results/mrv2-run-manifest.json) retains C1/C64 results, including a C64 inference-time MoE compilation event. Its C1→C64 order differs from the full baseline matrix, so it is not a warmed comparative trial or promotion evidence. No outliers were removed.
