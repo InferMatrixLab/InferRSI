@@ -1,0 +1,2 @@
+base_config: <OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml
+cuda_mps: false

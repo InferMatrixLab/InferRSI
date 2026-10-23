@@ -104,6 +104,11 @@
           "path": "results/placement-run-manifest.json",
           "schema": "metadata-sha256",
           "sha256": "75801357f4643164e75fd7e75490b3d622b15c8df09ecf5cf1947c0e4b9bbd86"
+        },
+        {
+          "path": "results/adapter-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "4f17ba497710c8f89f22428eb6912b964df273b14d38ef36715461d239b28d7b"
         }
       ],
       "external": ["Original host logs, model weights and captured audio remain private; public results retain hashes and redaction boundaries."]
