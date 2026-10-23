@@ -1,0 +1,123 @@
+{
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/112",
+  "status": "INCONCLUSIVE",
+  "baseline_sha": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+  "model": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+  "model_revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "count": 2
+  },
+  "scenario": "text_to_streaming_speech_full_pipeline",
+  "concurrency": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+  ],
+  "formal_requests": 256,
+  "warmups": "max(5, 2 * concurrency), excluded from timing; same policy for baseline and candidate",
+  "repetitions": 3,
+  "order": "AB/BA alternating",
+  "targets": {
+    "mean_rtf_c1_lt": 0.06,
+    "mean_rtf_c64_lt": 0.3
+  },
+  "metrics": {
+    "throughput_frames_s": "total_audio_frames / duration; PCM sample frames, not codec tokens",
+    "ttfa_p50_ms": "median_audio_ttfp_ms; request start to first audio",
+    "ttfa_p95_ms": "p95_audio_ttfp_ms",
+    "rtf_mean": "mean_audio_rtf; arithmetic mean(request start to last audio / audio duration)"
+  },
+  "quality": {
+    "protocol": "vLLM-Omni Seed-TTS WER; separate from performance",
+    "gate": "candidate aggregate WER <= baseline on identical rows and scorer; all outputs nonempty and finite; no request failures",
+    "audio_input": "separate qualification required",
+    "scorer": "Whisper-large-v3 via native Seed-TTS; SIM excluded for default voice without reference speaker; UTMOS supplementary",
+    "identity_gate": "identical ordered utterance IDs and original reference text; identical frozen scorer manifests",
+    "manifest_fields": [
+      "quality_scorer"
+    ]
+  },
+  "sources": [
+    {
+      "path": "vllm_omni/deploy/qwen3_omni_moe.yaml",
+      "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+      "url": "https://github.com/vllm-project/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/vllm_omni/deploy/qwen3_omni_moe.yaml"
+    },
+    {
+      "path": "vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml",
+      "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a",
+      "url": "https://github.com/vllm-project/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml"
+    },
+    {
+      "path": "vllm_omni/deploy/qwen3_omni_moe_mrv2_h200.yaml",
+      "sha256": "e1fbd356470f71df3cc657c65b016369f798bd380ed24f87d738f3098da9be96",
+      "url": "https://github.com/vllm-project/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/vllm_omni/deploy/qwen3_omni_moe_mrv2_h200.yaml"
+    },
+    {
+      "path": "vllm_omni/benchmarks/patch/patch.py",
+      "sha256": "4d9bf1182de55e582bcbd146868942f7196b861ea568abbfe99d6d527863c68c",
+      "url": "https://github.com/vllm-project/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/vllm_omni/benchmarks/patch/patch.py"
+    },
+    {
+      "path": "vllm_omni/benchmarks/data_modules/seed_tts_eval.py",
+      "sha256": "3a98760ff30d521db0774e15f751a37194f70ff4c6af4a338fa3e1ea54b97681",
+      "url": "https://github.com/vllm-project/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/vllm_omni/benchmarks/data_modules/seed_tts_eval.py"
+    },
+    {
+      "path": "vllm_omni/benchmarks/metrics/metrics.py",
+      "sha256": "4bfffc564a582f4bda1030a0f8849258ba404490fc2241988358503086a8e6e1",
+      "url": "https://github.com/vllm-project/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/vllm_omni/benchmarks/metrics/metrics.py"
+    }
+  ],
+  "workload": {
+    "dataset": "Seed-TTS Eval EN",
+    "selection": "first 256 rows, original order, no oversampling",
+    "meta_sha256": "7cd29f701743e6c7033edbca764ddc0b979de8c4f4907eff5e5454682114661f",
+    "selected_sha256": "4f6dea171994e984a9cd3db71dcb1fdddb590b26f87f82d21a457869d01e4024",
+    "user_prompt_wrapper": "benchmark_readback.py; target remains unwrapped for WER"
+  },
+  "protocol_revision": 5,
+  "engine_baseline_sha": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+  "benchmark_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "supersedes": "protocol-v4.json (never used for formal trials): resolve independent review findings on conditioning coverage and deterministic JIT retry rules before any formal paired trial",
+  "runtime": {
+    "transformers": "5.16.1",
+    "tokenizers": "0.23.1",
+    "isolation": "task-local PYTHONPATH overlay, shared environment unchanged"
+  },
+  "raw_audio_gate": "all ordered audio_request_metrics rows successful with finite positive audio measurements; recompute aggregates and check 24 kHz sample-rate consistency",
+  "scope": "text readback full pipeline; speech-input accuracy remains separate and unverified",
+  "conditioning": "For every server process/configuration instance, run all seven concurrency points in ascending order, 256 rows each, using benchmark-v4.sh. Every conditioning JSON must pass check_results_v3.py with expected=256 before measurements. Record server PID/start identity privately and a public run identity. Any restart/config change requires a fresh conditioning matrix.",
+  "comparison": "All formal baseline/candidate measurements must use this revision; v3 results remain historical baseline/screening, not pooled with v4.",
+  "harness": "benchmark-v4.sh plus unchanged benchmark_readback.py; native CLI and metrics unchanged",
+  "jit_observation": {
+    "server_flag": "--jit-monitor-verbose; identical for baseline and candidate",
+    "evidence": "Record server log byte offset immediately before and after each measured matrix. Inspect the retained interval for every verbose monitor line containing during inference:. This conservatively includes native warmups and CLI setup time in that matrix, not only timed requests. Save byte bounds, raw interval SHA256, redacted JIT lines and count. Verify startup confirms verbose JIT monitoring is active.",
+    "limitation": "vLLM monitor covers its supported JIT hooks; absence of logged events is not proof that no unmonitored compilation occurred."
+  },
+  "paired_attempts": {
+    "sequence": [
+      [
+        "baseline",
+        "candidate"
+      ],
+      [
+        "candidate",
+        "baseline"
+      ],
+      [
+        "baseline",
+        "candidate"
+      ]
+    ],
+    "retry_unit": "entire paired repetition, both arms, preserving assigned order",
+    "maximum_attempts_per_pair": 2,
+    "selection": "Use the first pair with complete conditioning/raw measurement gates and zero observed JIT events in both measured matrices. Retain every attempt and reason. Do not remove requests or select fastest runs. If neither attempt qualifies, report INCONCLUSIVE; do not claim promotion.",
+    "target_reporting": "Report every qualifying replicate and pooled equal-request metrics; each candidate replicate must independently satisfy both endpoint RTF targets for a target-attainment claim."
+  }
+}
