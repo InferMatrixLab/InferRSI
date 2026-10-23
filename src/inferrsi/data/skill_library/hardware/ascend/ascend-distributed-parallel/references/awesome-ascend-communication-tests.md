@@ -56,7 +56,7 @@ copies no implementation. The separate imported cannbot KV material declares
 5. **C/P: Keep metric provenance and every attempted case.** The Python script
    derives bandwidth from `S`, local mean elapsed time and operation-specific
    factors; e.g. all-reduce bus bandwidth is `2(n-1)S/(n t)`. Reduce-scatter's
-   displayed denominator uses its output-sized `S`, while its input has `nS`
+   bandwidth calculation uses its output-sized `S`, while its input has `nS`
    bytes. These formula-derived fields are not measured physical link counters
    or proof of the backend's chosen algorithm. The native quick wrapper accepts
    a zero process status plus a `success` or `NULL` text marker; its parser

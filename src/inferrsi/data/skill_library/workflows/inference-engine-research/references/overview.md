@@ -6,6 +6,15 @@ The main design lesson is to organize knowledge by **work unit, state ownership,
 
 ## Start here
 
+For a new model/hardware pair, first follow [model-aware preparation](model-aware-preparation.md)
+for independent model/framework/task/modality/mechanism discovery, native reference
+selection and complete weight/residency accounting. Model-specific procedures,
+inventories and comparisons stay with their repository owners; for MiniMax-H3,
+use the [h3.c residency audit](../../../repositories/h3-c/audit-h3-runtime-residency/SKILL.md).
+The five original source snapshots below remain independent imports; the
+preparation procedure does not change their provenance or establish new runtime
+compatibility.
+
 | Repository | Knowledge emphasized | Skill |
 |---|---|---|
 | Strata | Heterogeneous MoE, CPU/GPU placement, memory and speculation | [Skill](../../../repositories/strata/SKILL.md) |
