@@ -162,6 +162,8 @@ pytest
 
 Generate a complete offline example for either mode:
 
+See the [offline summary excerpt](examples/skill-eval-pr/summary-example.md).
+
 ```bash
 python -m tests.fixtures.skill_eval_pr_demo --mode addition --output <new-addition-output>
 python -m tests.fixtures.skill_eval_pr_demo --mode update --output <new-update-output>

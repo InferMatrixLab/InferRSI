@@ -62,6 +62,8 @@ def test_unsupported_file_mode_does_not_disappear_or_become_a_pass(tmp_path):
     plan = integration.prepare(repo, mapping, identity, tmp_path / "plan")
     assert plan["estimated_calls"] == 0
     assert "Executable snapshot entries" in plan["comparisons"][0]["unsupported"]
+    assert all(c["coverage"] == "unsupported" for c in plan["coverage"]
+               if c["path"].startswith("library/selected/"))
 
 
 @pytest.mark.parametrize("field", ["plan_sha256", "version", "base", "head", "budget"])
@@ -218,6 +220,11 @@ def test_symlinks_and_forged_grades_are_rejected_without_executing_artifact_scri
     write_json(path, record)
     write_json(path.parent / "receipt.json", {"result_sha256": sha256(path)})
     with pytest.raises(ValueError, match="trusted grader"):
+        integration.reports(output)
+    record["inputs_unchanged"] = "False"
+    write_json(path, record)
+    write_json(path.parent / "receipt.json", {"result_sha256": sha256(path)})
+    with pytest.raises(ValueError, match="must be a boolean"):
         integration.reports(output)
     assert len(client.calls) == 2
 

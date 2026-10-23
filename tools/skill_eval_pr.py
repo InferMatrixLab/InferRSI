@@ -91,7 +91,13 @@ def prepare(repo, mapping_path, identity, output):
         except ValueError as error:
             # Unsupported snapshots remain visible; they are never task passes.
             comparisons.append({"skill": item["skill"], "unsupported": str(error)})
+            for entry in coverage:
+                if any(entry["path"] == p or entry["path"].startswith(p.rstrip("/") + "/")
+                       for p in item["paths"]):
+                    entry["coverage"] = "unsupported"
             continue
+        finally:
+            config_path.unlink()
         plan = compare.load_plan(destination)
         comparisons.append({"skill": item["skill"], "mode": plan["mode"],
                             "plan_sha256": digest, "cases": [
@@ -214,6 +220,13 @@ def reports(output):
         if "plan_sha256" not in item:
             continue
         directory = output / item["skill"]
+        for entry in compare.load_plan(directory)["schedule"]:
+            path = compare.trial_directory(directory, entry) / "result.json"
+            if path.is_file():
+                record = compare.read_json(path)
+                if (not isinstance(record, dict)
+                        or type(record.get("inputs_unchanged")) is not bool):
+                    raise ValueError("Untrusted input-integrity flag must be a boolean")
         result = compare.report(directory)
         tasks = {t["id"]: t for t in compare.read_json(directory / "plan/tasks.json")}
         for trial in [p[r] for p in result["pairs"] for r in compare.ROLES] + result["discovery"]:
@@ -231,6 +244,7 @@ def summary(plan, results, evidence_url, expires_at, now):
     lines = [MARKER, "## Skill evaluation", "", f"Plan SHA-256: `{fingerprint(plan)}`",
              f"Base: `{plan['base']}` · Head: `{plan['head']}`",
              f"Trusted implementation: `{plan['version']}`", "",
+             "Applicable only while these revisions and inputs match the current PR.", "",
              "Model/settings: `" + canonical(plan["model"]) + "`",
              "Budget: `" + canonical(budget(plan)) + "`", "",
              "Token usage stops new trials; it is not a hard provider token or monetary cap.",
