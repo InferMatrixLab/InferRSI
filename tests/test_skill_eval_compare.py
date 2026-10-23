@@ -242,6 +242,17 @@ def test_client_errors_cannot_be_fixes_or_regressions(tmp_path, failure, error):
     assert result["conditions"]["candidate"]["evaluation_errors"] == 1
     persisted = json.loads((output / "results/one-candidate-1/result.json").read_text())
     assert persisted["evaluation_error"] == error
+    status = json.loads((output / "results/status.json").read_text())
+    assert status["recorded_trials"] == status["expected_trials"] == len(client.calls) == 2
+    if failure in ("timeout", "nonzero"):
+        assert status["execution_state"] == "stopped"
+        assert status["stop_reason"] == (
+            "client_timeout" if failure == "timeout" else "client_failed")
+    else:
+        assert status["execution_state"] == "completed" and status["stop_reason"] is None
+    regenerated = compare.report(output)
+    for name in ("execution_state", "stop_reason", "recorded_trials", "expected_trials"):
+        assert regenerated["status"][name] == result["status"][name] == status[name]
     if failure == "invalid_utf8":
         assert trial["output"] == "\\xff\\xfe"
         assert compare.report(output)["pairs"][0]["candidate"]["output"] == "\\xff\\xfe"
@@ -399,7 +410,7 @@ def test_default_audit_requires_complete_inputs():
 
 @pytest.mark.parametrize("changes", [
     {"quality": "failed"}, {"quality": "missing"}, {"failed_requests": 1},
-    {"failed_requests": 1, "reported_requests": 5},
+    {"failed_requests": 1, "reported_requests": 5, "latencies_ms": [[100] * 5]},
 ])
 def test_default_audit_rejects_unsupported_baseline_evidence(changes):
     task = copy.deepcopy(DATA["task"])
@@ -423,6 +434,12 @@ def test_default_audit_supported_gates_match_the_existing_grader():
             target[keys[-1]] = value
         if task["mode"] == "extract":
             task["contract"] = {}
+        # Preserve the legacy verifier's branch expectations with complete comparison inputs.
+        if case["id"] in ("below-threshold", "above-threshold"):
+            task["candidate"]["latencies_ms"] = [group * 2
+                                                  for group in task["candidate"]["latencies_ms"]]
+        if case["id"] == "omitted-failures":
+            task["candidate"].update(total_requests=7, reported_requests=6)
         compare.validate_input(task, compare.CASE_INPUT)
         compare.validate_audit_values(task)
         compare.validate_default_audit(task)
@@ -434,6 +451,17 @@ def test_default_audit_supported_gates_match_the_existing_grader():
     assert verifier.verify(task, answer)["passed"] is True
     task["contract"]["min_reduction_pct"] = 20
     with pytest.raises(ValueError, match="extract mode cannot enforce"):
+        compare.validate_default_audit(task)
+
+
+@pytest.mark.parametrize("role", compare.ROLES)
+@pytest.mark.parametrize("latencies", [[[1]], [[100] * 5], [[100] * 7]])
+def test_default_audit_requires_one_latency_sample_per_reported_request(role, latencies):
+    task = copy.deepcopy(DATA["task"])
+    task[role]["latencies_ms"] = latencies
+    compare.validate_input(task, compare.CASE_INPUT)
+    compare.validate_audit_values(task)
+    with pytest.raises(ValueError, match="latency samples must match reported_requests"):
         compare.validate_default_audit(task)
 
 
@@ -449,7 +477,8 @@ def test_default_audit_boundary_runs_before_output_and_covers_explicit_grader_co
         write_json(config, raw)
         for field, value in (("contract.statistical_significance_required", True),
                              ("contract.min_reduction_pct", float("nan")), ("evidence_keys", []),
-                             ("baseline.quality", "failed"), ("baseline.failed_requests", 1)):
+                             ("baseline.quality", "failed"), ("baseline.failed_requests", 1),
+                             ("baseline.latencies_ms", [[1]]), ("candidate.latencies_ms", [[1]])):
             tasks = copy.deepcopy(original)
             target = tasks[0]
             keys = field.split(".")

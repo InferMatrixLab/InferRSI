@@ -130,6 +130,9 @@ def validate_default_audit(task: dict) -> None:
         report = task[role]
         if REPORT_INPUT.keys() - report.keys():
             raise ValueError(f"Default audit requires complete report fields at {role}")
+        if sum(len(group) for group in report["latencies_ms"]) != report["reported_requests"]:
+            raise ValueError(
+                f"Default audit latency samples must match reported_requests at {role}")
         workload = report["workload"]
         if {"steps", "concurrency"} - workload.keys() or any(
             workload.get(name, 0) <= 0 for name in ("steps", "concurrency")
@@ -429,7 +432,8 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
     status = {"client_runtime": runtime,
               "recorded_trials": completed, "expected_trials": len(plan["schedule"]),
               "observed_tokens": tokens, "stop_reason": stop_reason,
-              "execution_state": "completed" if completed == len(plan["schedule"]) else "stopped"}
+              "execution_state": "completed" if completed == len(plan["schedule"])
+              and stop_reason is None else "stopped"}
     atomic_write_json(output / "results/status.json", status)
     atomic_write_json(output / "results/status.receipt.json",
                       {"result_sha256": sha256(output / "results/status.json")})

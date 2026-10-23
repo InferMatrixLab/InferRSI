@@ -97,6 +97,7 @@ accepted contract cannot add promises that this grader does not enforce.
 | `mode=extract` | Requires an empty `contract`; checks descriptive reduction only and returns no acceptance verdict or claim. |
 | `evidence_scope` | `http_fixed_workload` or `kernel`. Kernel-only evidence produces an inconclusive service audit rather than a service PASS. |
 | Both reports | Require latency groups, workload, quality, and all three request counts. Workload needs positive integer `steps` and `concurrency`; optional `shape` must have at least one dimension, all positive integers. Differing valid workloads remain negative audit cases. |
+| Measurement coverage | The total number of latency samples across all groups must equal `reported_requests` in each arm, including extract mode. Groups may have different sizes; partial or extra observations are rejected before creating a plan. |
 | Audit baseline | Requires `quality="passed"` and zero failed requests; existing request accounting then requires every baseline request to be reported. Failed/missing baseline quality or failed baseline requests cannot support this default comparison. Candidate quality/completion failures remain valid negative audit cases. |
 | `evidence_keys` | Audit requires the complete reference set listed below, so negative cases remain answerable. Extract requires both latency paths only. Additional references may name existing report fields; unknown paths are rejected. The grader checks the answer's references and its computed verdict, findings, scope and reduction. |
 
@@ -156,6 +157,10 @@ and elapsed time bound the run. The token threshold stops new trials using
 observed usage; it is not a provider-side hard token or monetary cap, and one
 trial can cross it. Missing/partial usage and monetary cost remain unknown.
 An execution failure stops new trials and retains the remaining missing sides.
+Run status is `completed` only when every scheduled trial is recorded and no
+execution stop reason exists. A failed or timed-out final trial remains `stopped`
+with `client_failed` or `client_timeout`, even when recorded and expected trial
+counts are equal.
 Before starting a real trial, execution resolves the configured client executable,
 probes its version without a model call, and uses that resolved executable for
 every trial. Execution evidence records its full command path locally; JSON and
