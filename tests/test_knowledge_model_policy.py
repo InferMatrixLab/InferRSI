@@ -344,7 +344,7 @@ def api_fixture():
     # A local HTTP fixture drives the real GitHub adapter and records the shared status POSTs.
     state = {"prs": {123: pr()}, "comments": {}, "statuses": [], "requests": [],
              "before_request": None, "errors": [], "base": BASE, "fail": lambda route: False,
-             "pulls_scans": 0}
+             "fail_status": lambda route: False, "pulls_scans": 0}
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -416,6 +416,9 @@ def api_fixture():
                 self.send_error(404)
                 return
             state["requests"].append(("POST", route))
+            if state["fail_status"](route):
+                self.send_error(503)
+                return
             sha, context = route.split("/")[1], str(value.get("context") or "")
             # GitHub rejects a write past the per-SHA/context cap instead of discarding it, and
             # treats the context name case-insensitively.
@@ -1116,6 +1119,27 @@ def test_api_repeated_sweeps_keep_one_reserved_terminal_verdict(api_fixture, pol
     assert [r["kind"] for r in results] == ["budget-exhausted"] * 3
     assert all(r["rerun"] is False for r in results)
     assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_failed_reserve_write_is_retried(api_fixture, policy):
+    api, state = api_fixture
+    # The reserve is already used up, so the outcome of this run is that one reserved write. It
+    # fails while the newest entry is still a success, so the result must ask for another run
+    # instead of settling terminally and leaving the green in place.
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE)
+    state["fail_status"] = lambda route: True
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "publication-failed"
+    assert result["state"] == "failure"
+    assert result["rerun"] is True
+    assert exit_code([result]) == EXIT_RERUN
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE
+    assert latest_status(state)["state"] == "success"
+    # The retry writes the reserved verdict once, and later sweeps recognise that entry.
+    state["fail_status"] = lambda route: False
+    assert check_pr(api, 123, policy, BASE, False)["kind"] == "budget-exhausted"
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE + 1
     assert latest_status(state)["state"] == "failure"
 
 

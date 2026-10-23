@@ -46,10 +46,6 @@ RERUN_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publica
                "invalidation-failed", "history-unavailable"}
 # A lifecycle kind forbids publication: the captured head is no longer the current target.
 NO_PUBLISH = {"closed", "advanced"}
-# Results produced after confirming the target but before any evidence was assessed. The target's
-# earlier verdict was not replaced, so none of these may be overwritten by an evaluation verdict.
-PRE_EVALUATION_KINDS = {"invalidation-failed", "history-unavailable", "budget-exhausted",
-                        "budget-saturated"}
 
 
 def summarize(results):
@@ -527,7 +523,10 @@ def invalidated(api, head, dry_run):
         try:
             api.status(head, result["state"], result["description"])
         except API_ERRORS as error:
-            return {**result,
+            # The reserved slot is free and the newest entry may still be an old success, so the
+            # write must be retried: `publication-failed` is retryable, unlike the settled
+            # `budget-exhausted`. A later sweep recognises a completed entry and writes nothing.
+            return {**result, "kind": "publication-failed",
                     "errors": [*result["errors"],
                                evaluation_failure(error)["errors"][0]]}, False
         return result, False
@@ -591,7 +590,8 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
             # Without a published invalidation an old success would still be the head's effective
             # state, so this target gets no verdict and asks the runner for a fresh attempt.
             records[number] = {"head": head, "snapshot": None, "comments": [],
-                               "ownership": None, "result": failure, "publish": publish}
+                               "ownership": None, "result": failure, "publish": publish,
+                               "pre": True}
             continue
         # An unreadable collection must not be mistaken for a shared head under an explicit
         # --pull-request target; the target itself is the only known peer in that case.
@@ -630,7 +630,7 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                  "errors": ["Head advanced before publication; rerun required"]}
             continue
         result = record["result"]
-        if result["kind"] in PRE_EVALUATION_KINDS:
+        if record.get("pre"):
             # The premise was already confirmed for this target and head. A verdict is never
             # published for a target whose earlier result was not replaced. Some of these
             # results own their write (`record["publish"]`): a saturated head cannot accept
