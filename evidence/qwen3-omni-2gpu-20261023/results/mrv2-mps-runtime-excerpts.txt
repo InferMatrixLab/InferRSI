@@ -1,0 +1,9 @@
+source_line=46 (APIServer pid=<PROCESS_ID>) INFO 10-23 12:53:35 [cuda_mps.py:92] Started private MPS for <GPU_UUID> at <PRIVATE_MPS_DIRECTORY>
+source_line=47 (APIServer pid=<PROCESS_ID>) INFO 10-23 12:53:36 [cuda_mps.py:92] Started private MPS for <GPU_UUID> at <PRIVATE_MPS_DIRECTORY>
+source_line=66 (StageEngineCoreProc_stage0_replica0 pid=<PROCESS_ID>) INFO 10-23 12:54:27 [gpu_ar_worker.py:127] Using MR v2 OmniARModelRunner for omni AR stage (stage_id=0 model_stage=thinker).
+source_line=67 (StageEngineCoreProc_stage1_replica0 pid=<PROCESS_ID>) INFO 10-23 12:54:27 [gpu_ar_worker.py:127] Using MR v2 OmniARModelRunner for omni AR stage (stage_id=1 model_stage=talker).
+source_line=396 (StageEngineCoreProc_stage2_replica0 pid=<PROCESS_ID>) INFO 10-23 12:58:05 [gpu_generation_worker.py:111] Using MR v2 OmniGenerationModelRunner for generation stage.
+source_line=625 (StageEngineCoreProc_stage0_replica0 pid=<PROCESS_ID>) WARNING 10-23 12:59:29 [jit_monitor.py:140] Triton kernel JIT compilation during inference: fused_moe_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+source_line=626 (StageEngineCoreProc_stage1_replica0 pid=<PROCESS_ID>) WARNING 10-23 12:59:31 [jit_monitor.py:140] Triton kernel JIT compilation during inference: _topk_topp_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+source_line=627 (StageEngineCoreProc_stage1_replica0 pid=<PROCESS_ID>) WARNING 10-23 12:59:31 [jit_monitor.py:140] Triton kernel JIT compilation during inference: _gumbel_sample_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+source_line=1213 (StageEngineCoreProc_stage1_replica0 pid=<PROCESS_ID>) WARNING 10-23 13:02:17 [jit_monitor.py:140] Triton kernel JIT compilation during inference: fused_moe_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.

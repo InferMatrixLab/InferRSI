@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "phase": "SCREENING",
+  "status": "INCONCLUSIVE",
+  "promotion_eligible": false,
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/112",
+  "server_source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "benchmark_source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "revision_basis": "Server and benchmark source f9feff996da2a60009d7626f9b7b09154acef824 supplied by campaign operator; later JIT configuration fix applied only after server stop.",
+  "source_attribution": {
+    "optimization_origin_sha": "d93e1a8e09d2a0d386c4a58424470d685ee7743c",
+    "url": "https://github.com/vllm-project/vllm-omni/blob/d93e1a8e09d2a0d386c4a58424470d685ee7743c/docs/design/qwen3_omni_mrv2_performance.md",
+    "qualification": "MRv2 mechanisms are existing upstream optimizations; enabling MPS is deployment adaptation, not a newly implemented algorithm. No qualified gain is claimed."
+  },
+  "deployment": {
+    "files": [
+      {
+        "file": "qwen3_omni_moe.yaml",
+        "source_path": "vllm_omni/deploy/qwen3_omni_moe.yaml",
+        "source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      },
+      {
+        "file": "qwen3_omni_moe_mrv2.yaml",
+        "source_path": "vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml",
+        "source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      }
+    ],
+    "inheritance": "cuda_mps: true overlay inherits MRv2 YAML and baseline two-GPU stage placement.",
+    "logical_stage_devices": {
+      "thinker": 0,
+      "talker": 1,
+      "code2wav": 1
+    },
+    "requested_model_runners": "v2 for all three stages",
+    "runtime_evidence": "mrv2-mps-runtime-excerpts.txt",
+    "overlay": {
+      "file": "mrv2-mps.yaml",
+      "original_sha256": "e72602f0ae3657aba6370e2b91951e41646d493c99358306e52588f4a71a6286",
+      "retained_sha256": "473e57426a3c15214f375b7815f0df86c26b10c7ac50519361ab5b31f3e128fc",
+      "redaction": "Absolute base_config repository root replaced by <OMNI_REPO>"
+    }
+  },
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "count": 2,
+    "logical_devices": [
+      "0",
+      "1"
+    ],
+    "physical_mapping": "Host device indices redacted; both campaign-assigned GPUs used."
+  },
+  "environment": {
+    "torch": "2.13.0+cu130",
+    "vllm": "0.32.0",
+    "transformers": "5.16.1",
+    "flashinfer-python": "0.7.0.post1",
+    "triton": "3.7.1",
+    "numpy": "2.2.6",
+    "soundfile": "0.14.0",
+    "openai-whisper": "20250625",
+    "jiwer": "4.0.0",
+    "zhon": "2.1.1",
+    "omni_source_override": "PYTHONPATH selects frozen worktree; installed vllm-omni distribution metadata is stale and not the executed revision",
+    "tokenizers": "0.23.1",
+    "vllm-omni_distribution_metadata_only": "0.31.0rc2.dev289+g04aa51e9f.d20261019",
+    "OMP_NUM_THREADS": "1",
+    "HF_HUB_OFFLINE": "1",
+    "CUDA_VISIBLE_DEVICES": "<ASSIGNED_GPU_0>,<ASSIGNED_GPU_1>",
+    "overlay": "task-local runtime overlay ahead of site-packages; shared installation unchanged",
+    "transformers_metadata_sha256": "a552b99768921327581cb0e1389718d39cb25f09d4f49b80aa9fc27a843d09e4",
+    "tokenizers_metadata_sha256": "67226b8d55c78feec1f100f38cd5b04ad7385af8484696b7fd332c1d8cec4345"
+  },
+  "environment_basis": "Same task-local overlay and environment as baseline, per campaign operator; no claim of independent historical import capture.",
+  "workload": {
+    "dataset": "Seed-TTS Eval EN",
+    "selection": "first 256 rows, original order, no oversampling",
+    "meta_sha256": "7cd29f701743e6c7033edbca764ddc0b979de8c4f4907eff5e5454682114661f",
+    "selected_sha256": "4f6dea171994e984a9cd3db71dcb1fdddb590b26f87f82d21a457869d01e4024",
+    "user_prompt_wrapper": "benchmark_readback.py; target remains unwrapped for WER"
+  },
+  "run_order": [
+    1,
+    64
+  ],
+  "baseline_run_order": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+  ],
+  "runs": [
+    {
+      "file": "mrv2-mps-screen-c1.json",
+      "sha256": "94f1a1cbe5ec51552beab33715815bc1c3803fe86ac7c9d1f2f6ded97ffe0e4b",
+      "original_sha256": "be103466850f63885377f74d176bcba53b33695d2ed76dcc32c07626346d983f",
+      "requests": 256,
+      "concurrency": 1,
+      "phase": "SCREENING",
+      "summary": {
+        "throughput_frames_s": 200079.04218920553,
+        "ttfa_p50_ms": 77.63959793373942,
+        "ttfa_p95_ms": 88.32603320479393,
+        "rtf_mean": 0.12354174732472394,
+        "completed": 256
+      }
+    },
+    {
+      "file": "mrv2-mps-screen-c64.json",
+      "sha256": "cc8e46cc5d92920d0e10852420dbac6063273e6783760f07db554229798f642b",
+      "original_sha256": "118fc9b8e2ae5ad120a800b77b33aa55943a781102a8baffab049b9080f09dd7",
+      "requests": 256,
+      "concurrency": 64,
+      "phase": "SCREENING",
+      "summary": {
+        "throughput_frames_s": 2323139.0544572636,
+        "ttfa_p50_ms": 217.25047146901488,
+        "ttfa_p95_ms": 684.8432219121605,
+        "rtf_mean": 0.6500455175995324,
+        "completed": 256
+      }
+    }
+  ],
+  "jit_observations": {
+    "artifact": "mrv2-mps-runtime-excerpts.txt",
+    "sha256": "19c76dac07278957b43369def0b1478671cda8fbab03dfef5eaf887a9c69114f",
+    "scope": "Selected startup/runtime lines only. Verbose JIT monitoring was not active; this is not evidence of zero compilation events."
+  },
+  "quality": {
+    "status": "not_run",
+    "promotion_blocker": true
+  },
+  "limitations": [
+    "SCREENING/INCONCLUSIVE: GPU isolation is unestablished; no fair performance comparison or promotion can be claimed.",
+    "Only C1 and C64 were measured after the v4 shell warmups, without full conditioning or repeated paired trials.",
+    "No quality qualification. All raw samples and outliers retained.",
+    "The verbose-JIT CLI startup failure and subsequent fix are separate from the measured f9 source.",
+    "Physical GPU reservation changed after this run; future comparisons require their own provenance and conditioning."
+  ],
+  "redaction": {
+    "changes": [
+      "tokenizer_id replaced by <MODEL_PATH>",
+      "Startup paths and process IDs replaced by placeholders",
+      "Host device indices represented as logical 0/1",
+      "GPU UUIDs, MPS directories and foreign PID omitted/replaced by placeholders",
+      "Overlay repository root replaced by <OMNI_REPO>"
+    ],
+    "preserved": "All request rows, timings, errors, generated text and numeric aggregates; no outliers excluded.",
+    "originals": "Private original JSON/logs retained locally; original hashes do not imply public availability."
+  },
+  "candidate": "mrv2-mps",
+  "harness": {
+    "file": "../plan/benchmark-v4.sh",
+    "sha256": "2503f2f2a94dd7c4125579ba9e6e8ae41026b78a969ff8e6f809d54b7db5e6b3",
+    "warmups": "max(5, 2 * concurrency)",
+    "scope": "C1 then C64 screening only, without full conditioning matrix; not a formal v4/v5 trial."
+  },
+  "isolation": {
+    "established": false,
+    "observation_source": "Campaign operator post-run NVIDIA process inspection",
+    "observation": "Immediately after the run, a foreign pytest process held 1118 MiB on the first assigned GPU. Process start was approximately 12:51 local time, but allocation overlap was not continuously timestamped.",
+    "interpretation": "Isolation during timed requests is not established. This does not prove that CUDA allocation or execution overlapped the measurements.",
+    "action": "Released that GPU without modifying the foreign job; future reservations use a different GPU pair. Host device indices and foreign PID are omitted from the public record."
+  }
+}
