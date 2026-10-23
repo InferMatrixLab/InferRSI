@@ -1,10 +1,6 @@
 ---
 name: serving-cache
 description: "Audit Lithos Metal local serving, prepared-pack identity, exact target/draft prefix checkpoints, disk integrity, session adoption and idle release when startup, cache reuse or request isolation fails."
-disable-model-invocation: true
-license: Apache-2.0
-metadata:
-  disco-role: operating
 ---
 
 # Validate serving and cache ownership

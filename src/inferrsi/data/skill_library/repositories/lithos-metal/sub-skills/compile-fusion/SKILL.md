@@ -1,10 +1,6 @@
 ---
 name: compile-fusion
 description: "Audit Lithos Metal task compilation, chip-qualified fusion, normalized controls, ICB barriers and scratch lifetimes when changing a recipe or diagnosing a fused kernel."
-disable-model-invocation: true
-license: Apache-2.0
-metadata:
-  disco-role: operating
 ---
 
 # Compile and qualify a fusion region

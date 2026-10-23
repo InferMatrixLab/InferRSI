@@ -1,10 +1,6 @@
 ---
 name: lithos-metal
 description: "Inspect Lithos Metal compilation and fusion, GPU-resident generation and DSpark state, or local serving and exact-prefix caches on Apple silicon; use when changing recipes, diagnosing stale state, or qualifying an inference claim."
-disable-model-invocation: true
-license: Apache-2.0
-metadata:
-  disco-role: operating
 ---
 
 # Lithos Metal operating guide

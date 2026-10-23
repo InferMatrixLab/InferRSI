@@ -1,10 +1,6 @@
 ---
 name: generation-state
 description: "Trace Lithos Metal GPU-resident generation and DSpark verification, commit/rollback, token-ring and cancellation state when continuation, acceptance or stop behavior is wrong."
-disable-model-invocation: true
-license: Apache-2.0
-metadata:
-  disco-role: operating
 ---
 
 # Trace generation and speculative state

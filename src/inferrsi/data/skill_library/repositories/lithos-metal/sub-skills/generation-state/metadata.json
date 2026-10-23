@@ -41,5 +41,10 @@
     "../../references/source-notes.md"
   ],
   "references": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "license": "Apache-2.0",
+  "disable-model-invocation": true,
+  "metadata": {
+    "disco-role": "operating"
+  }
 }

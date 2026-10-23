@@ -54,6 +54,12 @@ automation, benchmark archives and client launchers. The owner has no complete
 Apple GPU support or service-readiness claim. Exact citations to model-related
 contracts do not imply those models were loaded or compared.
 
+InferRSI `local-skill-v1` keeps only name/description in SKILL frontmatter.
+The AREX license, `disable-model-invocation` and `metadata.disco-role` fields
+are preserved in each sidecar and exposed by the effective metadata reader.
+This destination normalization replaces AREX's raw-frontmatter gate; it does
+not claim direct DisCo import compatibility.
+
 AREX's repo2skill structure, source/script maps, installed inspection and
 assertion-backed verification were adapted for an InferRSI candidate. InferRSI
 owns discovery via its registry/catalog and two matrices. No DisCo fixed-taxonomy
