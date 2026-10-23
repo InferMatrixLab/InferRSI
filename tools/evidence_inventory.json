@@ -53,6 +53,10 @@
           "schema": "bundle-sha256"
         },
         {
+          "path": "plan/frozen-files-v4.json",
+          "schema": "bundle-sha256"
+        },
+        {
           "path": "plan/model-manifest.json",
           "schema": "metadata-sha256",
           "sha256": "b2069f704bd1ae9d4669aaffa2cb05b3e98f6fd79797920ce6232464f2e4274c"
