@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+import time
 from fnmatch import fnmatchcase
 from pathlib import Path
 from urllib.error import HTTPError
@@ -29,6 +30,12 @@ STATUS_RESERVE = 8
 # Description of the reserved terminal verdict. A later run recognises the entry it already
 # recorded by this text and leaves it in place instead of spending another reserved slot.
 BUDGET_DESCRIPTION = "Status history is nearly full; push a new head"
+# A head can carry statuses from other contexts, so the page count alone does not bound the scan.
+# Both bounds are needed: pages stop a pathological history and elapsed time stops slow responses,
+# and either raises through the API-error path while the workflow still has time to publish the
+# failure that replaces an earlier success.
+HISTORY_PAGES = 50
+HISTORY_SECONDS = 60
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
          "advanced", "publication-failed", "invalidation-failed", "history-unavailable",
@@ -325,7 +332,10 @@ class GitHub:
         key = CONTEXT.casefold()
         found = []
         page = 1
+        started = time.monotonic()
         while True:
+            if page > HISTORY_PAGES or time.monotonic() - started > HISTORY_SECONDS:
+                raise ValueError("Status history scan exceeded its budget")
             query = urlencode({"per_page": 100, "page": page})
             items, links = self.request(f"commits/{head}/statuses?{query}")
             if not isinstance(items, list):

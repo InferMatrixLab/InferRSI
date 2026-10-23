@@ -15,6 +15,7 @@ from tools.check_knowledge_model_policy import (
     EXIT_COMPLIANT,
     EXIT_NONCOMPLIANT,
     EXIT_RERUN,
+    HISTORY_PAGES,
     STATUS_LIMIT,
     STATUS_RESERVE,
     GitHub,
@@ -1191,12 +1192,21 @@ def test_api_history_failure_is_written_before_the_next_target(api_fixture, poli
     def break_history(route):
         if route.startswith(f"commits/{first}"):
             raise OSError("connection reset")
-        # The sweep is cut off on the second target right after the first one was handled.
-        if route == "pulls/124":
-            raise OSError("connection reset")
 
     state["before_request"] = break_history
-    check_prs(api, policy, BASE, False, [123, 124])
+    # A genuinely uncaught interruption: the sweep dies on the second target instead of reaching
+    # the publication pass. A server-side failure would surface as an OSError that check_prs
+    # catches, so this one is raised by the adapter itself.
+    get = api.get
+
+    def interrupt(route):
+        if route == "pulls/124":
+            raise RuntimeError("sweep interrupted")
+        return get(route)
+
+    api.get = interrupt
+    with pytest.raises(RuntimeError):
+        check_prs(api, policy, BASE, False, [123, 124])
     # The first target's failure must already be published, because the sweep never reached the
     # publication pass. Deferring it would have left the earlier success as the newest entry.
     posts = [route for method, route in state["requests"] if method == "POST"]
@@ -1218,6 +1228,31 @@ def test_api_failed_history_failure_write_is_retried(api_fixture, policy):
     assert latest_status(state)["state"] == "success"
     state["fail_status"] = lambda route: False
     assert check_pr(api, 123, policy, BASE, False)["kind"] == "history-unavailable"
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_foreign_page_budget_still_publishes_the_failure(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # Other contexts can fill the head without ever matching this one, so the scan is bounded by
+    # pages. Exhausting that bound must still reach the failure publication.
+    seed_history(state, (HISTORY_PAGES + 5) * 100, context="other-ci")
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "history-unavailable"
+    assert result["rerun"] is True
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_slow_history_scan_stops_before_the_workflow_deadline(api_fixture, policy,
+                                                                  monkeypatch):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    seed_history(state, 400, context="other-ci")
+    # A page cap does not bound elapsed time, so slow successful responses must trip the time
+    # budget on their own.
+    monkeypatch.setattr("tools.check_knowledge_model_policy.HISTORY_SECONDS", 0)
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "history-unavailable"
     assert latest_status(state)["state"] == "failure"
 
 

@@ -180,13 +180,19 @@ stop accepting writes.
 The checker therefore reads this context's history for the head before writing,
 counting case-insensitively, and keeps a reserve of 8 statuses. At or below 990
 recorded statuses it evaluates normally; 991 to 999 use the reserve handling
-below; 1,000 is saturated. Between that margin and the cap it publishes
-one `budget-exhausted` failure instead of evaluating, so the newest entry is a
-failure rather than an earlier success, and reports that a new head is required.
+below; 1,000 is saturated. At 991 or above it publishes one `budget-exhausted`
+failure instead of evaluating, so the newest entry is a failure rather than an
+earlier success, and reports that a new head is required.
 That verdict is terminal: a later sweep recognises it as its own and writes
 nothing, so repeated sweeps do not consume the reserve. If that one write
 fails, the run reports `publication-failed`; the next sweep attempts the same
 single write once more.
+
+A head can also carry statuses from other contexts, so the read is bounded by
+both 50 pages and 60 seconds. Exhausting either bound is reported as
+`history-unavailable`, which publishes the failure immediately, so a long scan
+cannot consume the workflow's deadline before anything replaces an earlier
+success.
 
 At or above the cap nothing can be written at all. The run reports
 `budget-saturated` without attempting a write. An earlier `success` may still be
