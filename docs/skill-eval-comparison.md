@@ -39,13 +39,15 @@ performance-report audit schema and `tools/skill_eval_verifier.py`.
 | `skill`, `skill_root` | Stable checkout skill ID and its library root; no version registry |
 | `snapshots.baseline/candidate.git_revision` | Full immutable commit SHAs available in the local repository; no fetch |
 | Optional `bundle_revision` per snapshot | Reader content-revision assertion after the Git snapshot is materialized |
-| `cases` | JSON list of performance-report audit inputs with unique safe `id`, `request` and `split`; no answer/oracle fields |
+| `cases` | JSON list of supported performance-report audit inputs with unique safe `id`, `request` and `split`; unknown fields are rejected at every structured level |
 | `model` | Shared `name` and `effort`; independent ephemeral session for every trial |
 | `limits` | Positive integer repeats, maximum calls, per-trial timeout, whole-run seconds and observed-token stop threshold |
 
 Each historical library is materialized from raw Git blobs in a short temporary
 directory, then read and exported through `KnowledgeReader` and `export_bundle`.
-Checkout filters and Git export attributes cannot substitute different bytes.
+Checkout filters, Git export attributes and replacement refs cannot substitute
+different bytes. Snapshot inspection, raw blob reads and source diffs all use
+Git's [`--no-replace-objects`](https://git-scm.com/docs/git#Documentation/git.txt---no-replace-objects).
 The retained bundles include the full body, owner-local resources and declared
 references/dependencies. `reader.read(..., revision=...)` checks those bytes;
 it never retrieves a historical Git version.
@@ -61,6 +63,16 @@ surfaces changed source paths and dependencies. Two Git commits can contain the
 same bundle: `same_bundle=true` makes that visible. Case, schema, grader or
 exported-resource changes after preparation are rejected. Custom graders must
 be standalone scripts implementing the existing verifier result/exit contract.
+
+The input shape is the existing performance-report audit, not an arbitrary
+grader payload. Supported fields are `id`, `split`, `mode`, `provenance`,
+`request`, `contract`, `evidence_scope`, `baseline`, `candidate`, and
+`evidence_keys`. Each report arm accepts latency groups, `workload` (`steps`,
+`concurrency`, `shape`), quality and request counts. The contract accepts the
+pilot's gates, scope, regimes, verdict definitions and output-field semantics.
+Unknown keys and incompatible nested types are rejected before any output is
+created; grader expectations/metadata never become additional task fields.
+Free-text requests and provenance remain caller-authored inputs to review.
 
 ## Execution boundary
 
@@ -100,7 +112,10 @@ See the generated [Markdown example excerpt](examples/skill-comparison/report-ex
 and [JSON example excerpt](examples/skill-comparison/report-example.json).
 
 `report` reads the frozen plan and retained results without invoking a client,
-grader or trial. It can run after the original source checkout is unavailable.
+grader or trial. It verifies the frozen comparison, pilot, harness, local
+executor and process-cleanup controller hashes before interpreting results.
+It can run after the original skill source checkout is unavailable, using the
+same controller implementation; changed controller code requires a new plan.
 
 | Pair outcome | Meaning |
 | --- | --- |
@@ -115,12 +130,20 @@ take precedence over comparing an incomplete pair. Neither category becomes a
 fix or regression. Trial grades describe answer correctness; an answer correctly
 rejecting an input report can itself PASS.
 
+For every retained trial, reporting reads the answer bytes once and compares
+their SHA-256 with `result.json`'s recorded `output_sha256`. Missing or modified
+answers become INCONCLUSIVE even when the retained grade was PASS. Original
+trial records remain untouched; JSON shows the recorded and current output
+hashes, and both report formats retain available output/evidence links.
+
 `report.json` and `report.md` retain revisions, settings, limits, source/resource
 changes, case outputs, grading assertions and relative evidence links. Raw
 execution commands and local workspace paths stay in local artifacts. Preserve
 the complete output directory to keep its evidence links usable.
 Invalid UTF-8 output bytes are displayed as backslash escapes; the linked raw
-output remains unchanged and the error stays INCONCLUSIVE.
+output remains unchanged and the error stays INCONCLUSIVE. The Markdown output
+fence is longer than every backtick run in the answer so malformed model text
+cannot escape its code block.
 
 Run offline acceptance and the old pilot regression tests with:
 

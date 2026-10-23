@@ -15,6 +15,9 @@ elif mode == "nonobject":
     answer = []
 if mode == "invalid_utf8":
     Path(final_path).write_bytes(b"\xff\xfe")
+elif mode == "markdown_fence":
+    Path(final_path).write_text("````\n# Untrusted heading\n[link](https://example.invalid)\n"
+                                "````````\n", encoding="utf-8")
 elif mode != "missing_output":
     Path(final_path).write_text(
         "{broken" if mode == "invalid_json" else json.dumps(answer), encoding="utf-8"

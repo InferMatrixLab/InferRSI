@@ -1,5 +1,7 @@
+import importlib.util
 import json
 import os
+import shutil
 import subprocess
 import sys
 
@@ -11,8 +13,10 @@ from tests.fixtures.skill_eval_compare_support import (
     ROOT,
     FixedOutputClient,
     configuration,
+    git,
 )
 from tools import skill_eval_compare as compare
+from tools import skill_eval_pilot
 
 
 @pytest.mark.parametrize("mode", ["addition", "update"])
@@ -108,6 +112,7 @@ def test_budget_stops_leave_missing_sides_and_unknown_usage(tmp_path):
 @pytest.mark.parametrize("failure,error", [("timeout", "agent_timeout"),
     ("nonzero", "agent_failed"), ("missing_output", "missing_output"),
     ("invalid_json", "invalid_output_json"), ("invalid_utf8", "invalid_output_json"),
+    ("markdown_fence", "invalid_output_json"),
     ("invalid_trace", "agent_trace_error")])
 def test_client_errors_cannot_be_fixes_or_regressions(tmp_path, failure, error):
     config, repo = configuration(tmp_path, ids=("one",))
@@ -126,18 +131,22 @@ def test_client_errors_cannot_be_fixes_or_regressions(tmp_path, failure, error):
         assert trial["output"] == "\\xff\\xfe"
         assert compare.report(output)["pairs"][0]["candidate"]["output"] == "\\xff\\xfe"
         assert (output / "results/one-candidate-1/answer.json").read_bytes() == b"\xff\xfe"
+    if failure == "markdown_fence":
+        rendered = (output / "report.md").read_text(encoding="utf-8")
+        assert "\n`````````text\n" + trial["output"] + "\n`````````\n" in rendered
+        assert "\n````text\n" + trial["output"] not in rendered
 
 
 @pytest.mark.parametrize("fault", ["exception", "wrong_exit", "invalid_json"])
 def test_grader_errors_and_interrupted_attempt_are_retained(tmp_path, fault):
     config, repo = configuration(tmp_path, ids=("one",))
     raw = json.loads(config.read_text())
-    raw["grader"] = str(ROOT / "tests/fixtures/skill_eval_faulty_verifier.py")
+    # Freeze the test fault in the grader rather than model-visible case data.
+    grader = tmp_path / "faulty.py"
+    source = (ROOT / "tests/fixtures/skill_eval_faulty_verifier.py").read_text(encoding="utf-8")
+    grader.write_text(source.replace('task["verifier_fault"]', repr(fault)), encoding="utf-8")
+    raw["grader"] = grader.name
     write_json(config, raw)
-    tasks_path = config.parent / "cases.json"
-    tasks = json.loads(tasks_path.read_text())
-    tasks[0]["verifier_fault"] = fault
-    write_json(tasks_path, tasks)
     output = tmp_path / "run"
     authorization = compare.prepare(config, repo, output)
     result = compare.execute(output, authorization, client=FixedOutputClient(tmp_path))
@@ -202,6 +211,11 @@ def test_repeat_identity_and_balanced_schedule():
     ]
 
 
+def test_supported_input_shape_accepts_existing_pilot_cases():
+    for task in skill_eval_pilot.fixtures():
+        compare.validate_input(task, compare.CASE_INPUT)
+
+
 def test_prepare_and_report_cli_are_model_free(tmp_path):
     config, repo = configuration(tmp_path, "addition", ids=("one",))
     output = tmp_path / "run"
@@ -234,3 +248,107 @@ def test_invalid_configs_fail_before_creating_outputs(tmp_path):
     with pytest.raises(ValueError, match="immutable"):
         compare.prepare(config, repo, tmp_path / "mutable")
     assert not (tmp_path / "mutable").exists()
+
+
+def test_retained_answer_integrity_changes_invalidate_positive_pairs(tmp_path):
+    config, repo = configuration(tmp_path, ids=("fix", "same"))
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path, {("fix", "baseline"): "incorrect"})
+    original = compare.execute(output, authorization, client=client)
+    assert original["counts"]["fix"] == original["counts"]["unchanged_correct"] == 1
+    for case, role in (("fix", "candidate"), ("same", "baseline")):
+        directory = output / "results" / f"{case}-{role}-1"
+        answer = directory / "answer.json"
+        content = answer.read_bytes()
+        record = (directory / "result.json").read_bytes()
+        for mutation, error in ((None, "missing_retained_output"),
+                                (content + b" ", "retained_output_hash_mismatch")):
+            if mutation is None:
+                answer.unlink()
+            else:
+                answer.write_bytes(mutation)
+            result = compare.report(output)
+            pair = next(p for p in result["pairs"] if p["case_id"] == case)
+            assert pair["outcome"] == "inconclusive"
+            assert pair[role]["verdict"] == "INCONCLUSIVE"
+            assert pair[role]["evaluation_error"] == error
+            assert result["conditions"][role]["evaluation_errors"] == 1
+            assert result["counts"]["fix" if case == "fix" else "unchanged_correct"] == 0
+            assert result["counts"]["regression"] == 0
+            assert (directory / "result.json").read_bytes() == record
+            answer.write_bytes(content)
+            assert compare.report(output) == original
+    assert len(client.calls) == 4
+
+
+def test_git_replacement_refs_do_not_substitute_snapshot_or_diff(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",))
+    raw = json.loads(config.read_text())
+    before, after = (raw["snapshots"][role]["git_revision"] for role in compare.ROLES)
+    resource = ":library/selected/resource.txt"
+    old_blob = git(repo, "rev-parse", before + resource)
+    new_blob = git(repo, "rev-parse", after + resource)
+    git(repo, "replace", before, after)
+    git(repo, "replace", old_blob, new_blob)
+    assert "New body" in git(repo, "show", before + ":library/selected/SKILL.md")
+    output = tmp_path / "run"
+    compare.prepare(config, repo, output)
+    plan = compare.load_plan(output)
+    baseline = output / "plan/bundles/baseline/selected"
+    assert "Old body" in (baseline / "SKILL.md").read_text(encoding="utf-8")
+    assert (baseline / "resource.txt").read_bytes() == b"old resource"
+    assert any("selected/SKILL.md" in change for change in plan["source_changes"])
+    assert plan["arms"]["baseline"]["git_revision"] == before
+
+
+def test_changed_runtime_controllers_reject_execution_and_report_without_calls(tmp_path):
+    # Load a real controller copy so filesystem changes cannot affect concurrent tests.
+    runtime = tmp_path / "runtime"
+    for name in (*compare.CONTROLLERS, "tools/skill_eval_verifier.py"):
+        target = runtime / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(ROOT / name, target)
+    spec = importlib.util.spec_from_file_location(
+        "comparison_runtime", runtime / "tools/skill_eval_compare.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    config, repo = configuration(tmp_path, ids=("one",))
+    output = tmp_path / "run"
+    authorization = module.prepare(config, repo, output)
+    module.report(output)
+    saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
+    assert "src/inferrsi/infra/executors/local.py" in module.CONTROLLERS
+    assert "src/inferrsi/infra/processes.py" in module.CONTROLLERS
+    client = FixedOutputClient(tmp_path)
+    for name in module.CONTROLLERS:
+        target = runtime / name
+        original = target.read_bytes()
+        target.write_bytes(original + b"\n# Changed after the plan was frozen.\n")
+        with pytest.raises(ValueError, match="Controller changed after freeze"):
+            module.execute(output, authorization, client=client)
+        with pytest.raises(ValueError, match="Controller changed after freeze"):
+            module.report(output)
+        assert not (output / "results/start.json").exists()
+        assert saved == ((output / "report.json").read_bytes(), (output / "report.md").read_bytes())
+        target.write_bytes(original)
+    assert client.calls == []
+
+
+@pytest.mark.parametrize("extra", [
+    {"answer": "hidden"}, {"expected": "hidden"}, {"expected_answer": "hidden"},
+    {"oracle": {"answer": "hidden"}}, {"metadata": {"answer": "hidden"}},
+    {"contract": {"min_reduction_pct": 20, "oracle": "hidden"}},
+    {"evidence_keys": [{"answer": "hidden"}]},
+    {"candidate": {"workload": {"steps": 8, "metadata": {"answer": "hidden"}}}},
+])
+def test_answer_keys_are_rejected_by_supported_input_shape(tmp_path, extra):
+    config, repo = configuration(tmp_path, ids=("one",))
+    cases = tmp_path / "cases.json"
+    tasks = json.loads(cases.read_text())
+    tasks[0].update(extra)
+    write_json(cases, tasks)
+    output = tmp_path / "run"
+    with pytest.raises(ValueError, match="input"):
+        compare.prepare(config, repo, output)
+    assert not output.exists()

@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import re
 import shutil
@@ -15,11 +16,46 @@ from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("baseline", "candidate")
 CONTROLLERS = ("tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
-               "src/inferrsi/harness/skill_evaluation.py")
+               "src/inferrsi/harness/skill_evaluation.py",
+               "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py")
+NUMBER = (int, float)
+REPORT_INPUT = {
+    "latencies_ms": [[NUMBER]],
+    "workload": {"steps": int, "concurrency": int, "shape": [int]},
+    "quality": str, "total_requests": int, "reported_requests": int, "failed_requests": int,
+}
+CASE_INPUT = {
+    "id": str, "split": str, "mode": str, "provenance": str, "request": str,
+    "contract": {
+        "min_reduction_pct": NUMBER, "scope": str, "required_regimes": [str],
+        "quality_required": bool, "all_requests_required": bool,
+        "max_relative_spread_pct": NUMBER, "statistical_significance_required": bool,
+        "verdict_definitions": {"PASS": str, "FAIL": str, "INCONCLUSIVE": str},
+        "output_field_semantics": {"latency_reduction_pct": str, "claim_scope": str},
+    },
+    "evidence_scope": str, "baseline": REPORT_INPUT, "candidate": REPORT_INPUT,
+    "evidence_keys": [str],
+}
 
 
 def read_json(path: Path):
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def validate_input(value, shape, field="case") -> None:
+    # Only the supported audit inputs may cross into the model-visible workspace.
+    if isinstance(shape, dict):
+        if not isinstance(value, dict) or value.keys() - shape.keys():
+            raise ValueError(f"Unsupported input fields at {field}")
+        for key, item in value.items():
+            validate_input(item, shape[key], field + "." + key)
+    elif isinstance(shape, list):
+        if not isinstance(value, list):
+            raise ValueError(f"Expected input list at {field}")
+        for item in value:
+            validate_input(item, shape[0], field + "[]")
+    elif type(value) not in (shape if isinstance(shape, tuple) else (shape,)):
+        raise ValueError(f"Unsupported input type at {field}")
 
 
 def validate(config: dict, tasks: list[dict]) -> None:
@@ -55,12 +91,11 @@ def validate(config: dict, tasks: list[dict]) -> None:
     if not tasks or len({t["id"] for t in tasks}) != len(tasks):
         raise ValueError("cases must be nonempty with unique IDs")
     for task in tasks:
+        validate_input(task, CASE_INPUT)
         if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9._-]*", task["id"]):
             raise ValueError("case IDs must be safe path components")
         if task["split"] not in ("development", "holdout", "discovery"):
             raise ValueError("Unknown case split")
-        if "answer" in task or "expected" in task:
-            raise ValueError("Cases must contain inputs only, never grading answers")
     if len(tasks) * limits["repeats"] * 2 > limits["max_task_calls"]:
         raise ValueError("schedule exceeds max_task_calls")
 
@@ -78,11 +113,13 @@ def build_schedule(tasks: list[dict], repeats: int) -> list[dict]:
 
 def snapshot(repo: Path, revision: str, skill_root: str, destination: Path) -> Path:
     # Short temporary paths also accommodate deep libraries on Windows.
-    kind = subprocess.check_output(["git", "cat-file", "-t", revision], cwd=repo, text=True)
+    kind = subprocess.check_output(
+        ["git", "--no-replace-objects", "cat-file", "-t", revision], cwd=repo, text=True,
+    )
     if kind.strip() != "commit":
         raise ValueError("Snapshot revision must identify a Git commit")
     entries = subprocess.check_output(
-        ["git", "ls-tree", "-rz", revision, "--", skill_root], cwd=repo,
+        ["git", "--no-replace-objects", "ls-tree", "-rz", revision, "--", skill_root], cwd=repo,
     ).split(b"\0")[:-1]
     if not entries:
         raise ValueError("Snapshot skill_root contains no files")
@@ -94,7 +131,8 @@ def snapshot(repo: Path, revision: str, skill_root: str, destination: Path) -> P
             raise ValueError("Snapshot symlinks and submodules are not supported")
         members.append((safe_path(name.decode("utf-8")), digest))
     # Read raw Git blobs: archive/export attributes and checkout filters must not alter bytes.
-    data = subprocess.run(["git", "cat-file", "--batch"], cwd=repo, check=True,
+    data = subprocess.run(["git", "--no-replace-objects", "cat-file", "--batch"],
+                          cwd=repo, check=True,
                           input=b"".join(digest + b"\n" for _, digest in members),
                           capture_output=True).stdout
     offset = 0
@@ -145,7 +183,7 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
     changes = [{"path": path, "baseline": old.get(path), "candidate": new.get(path)}
                for path in sorted(old.keys() | new.keys()) if old.get(path) != new.get(path)]
     source_changes = subprocess.check_output(
-        ["git", "diff", "--name-status", arms["baseline"]["git_revision"],
+        ["git", "--no-replace-objects", "diff", "--name-status", arms["baseline"]["git_revision"],
          arms["candidate"]["git_revision"], "--"], cwd=repo, text=True,
     ).splitlines()
     files = {p.relative_to(output).as_posix(): sha256(p)
@@ -172,6 +210,9 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
 
 def load_plan(output: Path) -> dict:
     plan = read_json(output / "plan/freeze.json")
+    for name, digest in plan["controllers"].items():
+        if sha256(ROOT / name) != digest:
+            raise ValueError(f"Controller changed after freeze: {name}")
     for name, digest in plan["files"].items():
         if sha256(output / name) != digest:
             raise ValueError(f"Frozen input changed: {name}")
@@ -191,9 +232,6 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
-    for name, digest in plan["controllers"].items():
-        if sha256(ROOT / name) != digest:
-            raise ValueError(f"Controller changed after freeze: {name}")
     if any((output / "results").iterdir()):
         raise ValueError("Execution requires fresh results; prepare a new output directory")
     write_json(output / "results/start.json", {"started_at": time.time()})
@@ -250,7 +288,17 @@ def retained_trial(output: Path, entry: dict) -> dict:
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
                 "verdict", "checks", "elapsed_seconds", "observations")}
     selected["observations"] = {"usage": record["observations"]["usage"]}
+    answer = directory / "answer.json"
+    data = answer.read_bytes() if answer.is_file() else None
+    actual_hash = hashlib.sha256(data).hexdigest() if data is not None else None
+    text = data.decode("utf-8", errors="backslashreplace") if data is not None else None
+    if text is not None:
+        text = text.replace("\r\n", "\n").replace("\r", "\n")
     error = record.get("evaluation_error")
+    if data is None:
+        error = error or "missing_retained_output"
+    elif actual_hash != record["output_sha256"]:
+        error = error or "retained_output_hash_mismatch"
     if error or record["execution_state"] != "completed" or not record["inputs_unchanged"]:
         selected["verdict"] = "INCONCLUSIVE"
     evidence = {}
@@ -258,10 +306,9 @@ def retained_trial(output: Path, entry: dict) -> dict:
                  "verification/result.json", "verification/stdout.log", "verification/stderr.log"):
         if (directory / name).is_file():
             evidence[name] = (directory / name).relative_to(output).as_posix()
-    answer = directory / "answer.json"
     return {**selected, "evaluation_error": error, "missing": False,
-            "output": answer.read_text(encoding="utf-8", errors="backslashreplace")
-            if answer.is_file() else None,
+            "output": text,
+            "output_sha256": record["output_sha256"], "retained_output_sha256": actual_hash,
             "evidence": evidence}
 
 
@@ -351,14 +398,17 @@ def markdown(result: dict) -> str:
                   "Discovery totals: `" + json.dumps(result["discovery_conditions"], sort_keys=True)
                   + "`", ""]
     for trial in [p[role] for p in result["pairs"] for role in ROLES] + result["discovery"]:
+        output_text = trial["output"] if trial["output"] is not None else "(unavailable)"
+        longest = max((len(run) for run in re.findall(r"`+", output_text)), default=0)
+        fence = "`" * max(4, longest + 1)
         lines += [f"### {trial['task_id']} / {trial['repeat']} / {trial['condition']}", "",
                   f"Verdict: {trial['verdict'] or 'missing'}; error: "
                   f"{trial['evaluation_error'] or 'none'}; split: {trial['split']}", ""]
         lines += [f"[{name}]({path})" for name, path in trial["evidence"].items()]
         lines += ["", "Grading assertions:", "", "```json",
                   json.dumps(trial["checks"], ensure_ascii=False, sort_keys=True), "```", "",
-                  "Output (invalid UTF-8 bytes are shown as backslash escapes):", "", "````text",
-                  trial["output"] or "(unavailable)", "````", ""]
+                  "Output (invalid UTF-8 bytes are shown as backslash escapes):", "",
+                  fence + "text", output_text, fence, ""]
     lines += ["## Snapshot changes", "", "### Exported resources and dependencies", "",
               "```json", json.dumps(result["bundle_changes"], indent=2), "```", "",
               "### Git source changes", "", "The same frozen exam is used by both arms. "

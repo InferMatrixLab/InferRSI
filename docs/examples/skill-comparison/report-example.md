@@ -28,6 +28,8 @@ Counts:
 
 The regression candidate returned `claim_scope=production`; the independently specified audit contract rejected it. The error candidate returned malformed JSON and remained INCONCLUSIVE. The observed-token limit stopped new trials before the missing pair; neither missing side is counted as a fix or regression.
 
+JSON includes the recorded/current answer hashes and all five frozen controllers. Deleting a retained passing answer invalidates that trial; the focused integrity regression covers deletion and modification without rerunning the client.
+
 Candidate output and grading evidence for the regression:
 
 ```json
@@ -45,6 +47,8 @@ Candidate output and grading evidence for the regression:
       "evidence": true,
       "explanation": true
     }
-  }
+  },
+  "output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
+  "retained_output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e"
 }
 ```

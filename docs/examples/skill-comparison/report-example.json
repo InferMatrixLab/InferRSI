@@ -5,11 +5,11 @@
   "skill": "selected",
   "revisions": {
     "baseline": {
-      "git_revision": "9a9c592856d501037edb4a4ca56c62f789b824db",
+      "git_revision": "b3e500d6702db46f37f92202d80c757441e269a3",
       "bundle_revision": "sha256:db78dfd40c109c9e99bfefe5006812f2e492d4002c9f5a256f4ec424bed0b59d"
     },
     "candidate": {
-      "git_revision": "d57379b705988943694288b36bb614da0e0aada3",
+      "git_revision": "d1569ccb5cae512d2b6c2a76528c905e00df3dbb",
       "bundle_revision": "sha256:7fbb9ba7387ce05ec0ef18b559fbb914b2c2371c537e19c2bceddf18cad334ae"
     }
   },
@@ -28,6 +28,13 @@
     "cases": "b6b928910c61938f2b8ed0dcaa07df33796e6bfdc65a9b5df2271254b3d496f9",
     "schema": "89de6085fa63da835e0e6653785771d02abefd665cb2b21ad2df772ffc0b4f62",
     "grader": "a11ef015770706aa33e4c801dcf31c0bb08870c80dc8aa5b8a713d049f16b7ff"
+  },
+  "frozen_controllers": {
+    "tools/skill_eval_compare.py": "9e949de1ab340b535dd561e4cc24927d87e1ad38ac03354f8caa57dd766c3379",
+    "tools/skill_eval_pilot.py": "c7ec6c91463df119c9a8adffd772a799fbfdd371c6d25d97740a4b713e0f15aa",
+    "src/inferrsi/harness/skill_evaluation.py": "8af9faf0fd083aa2731d284cebcf8caed135d6b3723bf1c869d1d79f81fde19d",
+    "src/inferrsi/infra/executors/local.py": "b089cdc7daaaf7834698c2d280a12c5e755915ded926aa039c8de5f521bd46f0",
+    "src/inferrsi/infra/processes.py": "3b96ebc7a50913e78e86ff3dcba74c8ee8d03d547d9591ca6488f390ac1e6189"
   },
   "counts": {
     "fix": 1,
@@ -56,7 +63,9 @@
             "evidence": true,
             "explanation": true
           }
-        }
+        },
+        "output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
+        "retained_output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e"
       },
       "candidate": {
         "verdict": "PASS",
@@ -72,7 +81,9 @@
             "evidence": true,
             "explanation": true
           }
-        }
+        },
+        "output_sha256": "0f0c9f0f76ff65f67c097c86422dab0927b3e777d881df0d19e964c56d10cb20",
+        "retained_output_sha256": "0f0c9f0f76ff65f67c097c86422dab0927b3e777d881df0d19e964c56d10cb20"
       }
     },
     {
@@ -93,7 +104,9 @@
             "evidence": true,
             "explanation": true
           }
-        }
+        },
+        "output_sha256": "0f0c9f0f76ff65f67c097c86422dab0927b3e777d881df0d19e964c56d10cb20",
+        "retained_output_sha256": "0f0c9f0f76ff65f67c097c86422dab0927b3e777d881df0d19e964c56d10cb20"
       },
       "candidate": {
         "verdict": "FAIL",
@@ -109,7 +122,9 @@
             "evidence": true,
             "explanation": true
           }
-        }
+        },
+        "output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
+        "retained_output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e"
       }
     },
     {
@@ -130,13 +145,17 @@
             "evidence": true,
             "explanation": true
           }
-        }
+        },
+        "output_sha256": "0f0c9f0f76ff65f67c097c86422dab0927b3e777d881df0d19e964c56d10cb20",
+        "retained_output_sha256": "0f0c9f0f76ff65f67c097c86422dab0927b3e777d881df0d19e964c56d10cb20"
       },
       "candidate": {
         "verdict": "INCONCLUSIVE",
         "evaluation_error": "invalid_output_json",
         "output": "{broken",
-        "checks": null
+        "checks": null,
+        "output_sha256": "be302461cda285db3ed2d45fb767b23e08ca8808b35a638009937df22b332d73",
+        "retained_output_sha256": "be302461cda285db3ed2d45fb767b23e08ca8808b35a638009937df22b332d73"
       }
     },
     {
@@ -147,13 +166,17 @@
         "verdict": null,
         "evaluation_error": null,
         "output": null,
-        "checks": null
+        "checks": null,
+        "output_sha256": null,
+        "retained_output_sha256": null
       },
       "candidate": {
         "verdict": null,
         "evaluation_error": null,
         "output": null,
-        "checks": null
+        "checks": null,
+        "output_sha256": null,
+        "retained_output_sha256": null
       }
     }
   ]
