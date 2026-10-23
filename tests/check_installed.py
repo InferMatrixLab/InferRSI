@@ -128,5 +128,27 @@ output = io.StringIO()
 with contextlib.redirect_stdout(output):
     assert main(["skills", "show", "ascend-operator-profiling"]) == 0
 assert json.loads(output.getvalue())["name"] == "ascend-operator-profiling"
+output = io.StringIO()
+with contextlib.redirect_stdout(output):
+    assert main([
+        "knowledge", "research", "MiniMax-H3", "--framework", "mlx",
+        "--target-backend", "metal", "--target-memory-gib", "64", "--limit", "12",
+    ]) == 0
+research = json.loads(output.getvalue())
+assert research["profile"]["model"] == "MiniMax-H3"
+assert research["target_validation"] == "unverified"
+assert any(
+    item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+    for item in research["items"]
+)
+assert {item["group"] for item in research["queries"]} == {
+    "model", "framework", "task", "modality", "mechanism",
+}
+for key in ("procedure_resource", "worked_example_resource"):
+    assert package.joinpath(research[key]).read_text(encoding="utf-8")
+inventory = json.loads(router.joinpath(
+    "references", "minimax-h3-weight-inventory.json"
+).read_text(encoding="utf-8"))
+assert len(inventory["selections"]) == 2
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")

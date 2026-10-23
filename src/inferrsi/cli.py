@@ -149,6 +149,24 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "knowledge":
             if args.knowledge_action == "show":
                 _print(get_knowledge(args.id))
+            elif args.knowledge_action == "research":
+                from .research import research_knowledge
+
+                _print(research_knowledge(
+                    args.model,
+                    frameworks=args.framework,
+                    tasks=args.task,
+                    modalities=args.modality,
+                    mechanisms=args.mechanism,
+                    repo=args.repo_type,
+                    tier=args.tier,
+                    backend=args.backend,
+                    scenario=args.scenario,
+                    limit=args.limit,
+                    target_backend=args.target_backend,
+                    target_device=args.target_device,
+                    target_memory_gib=args.target_memory_gib,
+                ))
             else:
                 records = search_knowledge(
                     args.query,

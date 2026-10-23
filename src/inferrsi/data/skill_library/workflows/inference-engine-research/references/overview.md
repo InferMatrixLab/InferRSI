@@ -6,6 +6,14 @@ The main design lesson is to organize knowledge by **work unit, state ownership,
 
 ## Start here
 
+For a new model/hardware pair, first follow [model-aware preparation](model-aware-preparation.md)
+for independent model/framework/task/modality/mechanism discovery, native reference
+selection and complete weight/residency accounting. The [MiniMax-H3 Apple Silicon
+example](minimax-h3-apple.md) applies it with pinned sources and explicitly
+unverified target feasibility. The five original source snapshots below remain
+independent imports; this preparation supplement does not change their provenance
+or establish new runtime compatibility.
+
 | Repository | Knowledge emphasized | Skill |
 |---|---|---|
 | Strata | Heterogeneous MoE, CPU/GPU placement, memory and speculation | [Skill](../../../repositories/strata/SKILL.md) |

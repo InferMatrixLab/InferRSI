@@ -17,6 +17,7 @@ Effect classes used below:
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
 | Search packaged records | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Installed package catalog with the existing tier/repo/backend/scenario filters and IDs; these package-only filters exclude skills and cases from every other authority |
+| Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
 | Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
 | Collect normalized knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Explicit sources, authority-qualified identities, exact revisions, bounded output and explicit omissions |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
@@ -45,6 +46,26 @@ are distinct from `knowledge search`, whose package catalog filters
 The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
 [three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.
+
+### Prepare model-aware research — `knowledge research`
+
+- **Inputs:** model identity; repeatable `--framework`, `--task`, `--modality`, `--mechanism`; optional existing `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit` hard filters; optional `--target-backend`, `--target-device`, positive finite `--target-memory-gib` annotations.
+- **Scope:** installed package records only. A packaged MiniMax-H3 profile supplies its source-grounded diffusion/video/audio identity and component roles. Unknown models require explicit dimensions and source inspection; no architecture is guessed.
+- **Output:** JSON query groups and match counts, a bounded deduplicated union with `matched_queries`, unchanged full records/provenance, active filters, component roles, preparation/example resource paths and an unverified target state. Queries take turns contributing results; this ordering does not rank engine quality.
+- **Side effects:** none; no network requests, hardware probes, model download or engine execution. Target annotations do not add runtime backends.
+- **Failure behavior:** no match returns an explicit empty envelope and exits 0; invalid limits/memory or unsupported catalog filters exit 2. A zero-match dimension stays visible.
+- **Example:** `inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12`
+- **Python:** `from inferrsi.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
+
+Exact `knowledge search` and `context` still AND query tokens. Independent
+research queries broaden discovery without relaxing the active package filters.
+Keep those filters explicit when transferring mechanisms from other backends;
+target intent does not qualify their applicability. Read the canonical
+[preparation procedure](../src/inferrsi/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
+and [H3 worked example](../src/inferrsi/data/skill_library/workflows/inference-engine-research/references/minimax-h3-apple.md)
+for native-engine reference selection, full encoder/DiT/VAE accounting,
+quantized-package compatibility and target hardware decisions. Returned resource
+paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.
 
 ### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
 

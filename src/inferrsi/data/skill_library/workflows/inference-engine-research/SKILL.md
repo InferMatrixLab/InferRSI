@@ -1,6 +1,6 @@
 ---
 name: inference-engine-research
-description: "Route inference-engine research across Strata, vLLM, SGLang and their Omni repositories; derive source-grounded, correctness-constrained search and validation plans."
+description: "Prepare model-aware inference-engine research: broaden knowledge discovery, select source references, inventory full-pipeline weights and screen target feasibility before engine design. Route relevant Strata, vLLM, SGLang and Omni knowledge."
 license: Apache-2.0
 metadata:
   disco-role: operating
@@ -8,10 +8,11 @@ metadata:
 
 # Inference engine research router
 
-Use this collection to compare architectures or design a constrained search for an inference engine. If the user names one repository, load its entry directly. Keep the library's `repositories/` and `workflows/` layout when using this router so its links reach the repository and framework owners; the repository skills can also be distributed independently.
+Use this collection to prepare a dedicated engine, compare architectures or design a constrained search. Start from the model's actual task and component graph, then discover both model-specific and transferable knowledge. A model name and a preferred framework alone are insufficient. Keep the library's `repositories/` and `workflows/` layout so links reach their owners; repository skills can also be distributed independently.
 
 | Question | Route |
 |---|---|
+| Prepare a new model/hardware pair: discovery, reference selection, full weights and feasibility | [Model-aware preparation](references/model-aware-preparation.md); [MiniMax-H3 on Apple Silicon example](references/minimax-h3-apple.md) when applicable |
 | Compare graph, cache, lifetime, stop and completion contracts across source slices | [Cross-repository mechanisms](references/cross-repository-mechanisms.md) and [source scope](references/repository-source-scope.md) |
 | Strata heterogeneous MoE, CPU/GPU expert placement, memory and speculative execution | [strata](../../repositories/strata/SKILL.md) |
 | vLLM token scheduling, KV/prefix reuse, execution/parallelism or model integration | [vllm](../../repositories/vllm/SKILL.md) |
@@ -21,12 +22,13 @@ Use this collection to compare architectures or design a constrained search for 
 
 ## Comparison procedure
 
-1. Fix the model/checkpoint/tokenizer, modalities, hardware/interconnect, software versions, input/output distributions, arrival/concurrency pattern, latency SLO and quality contract. Ask only for missing facts that alter a decision; otherwise state reversible assumptions.
-2. Load the smallest relevant repository branches. Trace work units, state ownership, scheduling, memory, communication, output and cleanup before comparing feature names.
-3. Produce three separate candidate classes: supported existing settings; implementation changes preserving semantics; research extensions with explicit new assumptions or approximation budgets.
-4. Screen constraints before benchmarking: supported model/backend combinations, memory/lifetime, partition/layout, numerical/quality contract, abort/termination and queue stability.
-5. Measure matched real workloads. Separate CPU/static, mocked contract, accelerator/native transport, real-model quality and service performance evidence. Do not promote a weaker layer into a stronger claim.
-6. Return a source-backed table of candidates, interactions, tests, expected observations and recovery. Rank only valid runs, reporting conflicting objectives as a Pareto frontier rather than claiming a universal winner.
+1. Fix the model/checkpoint/tokenizer, tasks/modalities, component graph, target hardware/memory, software and quality contract. Ask only for missing facts that alter a decision; otherwise state reversible assumptions. Do not infer architecture from a family name.
+2. Search model, framework, task, modality and mechanism dimensions independently and union the results. Use `inferrsi knowledge research <model> --framework <framework>` with explicit `--task`, `--modality` or `--mechanism` additions as needed; known profiles supply grounded terms, unknown models require source inspection. Exact `knowledge search` still ANDs all tokens. Retain hard filters and record empty dimensions; broaden an over-restrictive scope only explicitly.
+3. Compare eligible native implementations at pinned revisions. If the user requests the most-starred reference, record the candidate set, eligibility, observation date and counts; choose the largest count within that set, then check license and compatibility. Read that source directly or distill its relevant paths with an available repo-to-skill workflow before engine generation. Popularity is a reference-selection input, not a quality or hardware guarantee.
+4. Inventory every selected encoder, denoiser, VAE/decoder, adapter and auxiliary asset. Reconcile tensor shapes, dtypes, quantization metadata, files and actual execution paths. Separate full checkpoint weights, required subsets, phase peaks, activations/workspace, unified/host memory and storage. Do not count alternative task checkpoints twice or equate a DiT-only quant with a complete pipeline. Follow the [preparation procedure](references/model-aware-preparation.md) before deciding target feasibility.
+5. Load the smallest relevant repository branches. Trace work units, state ownership, scheduling, memory, communication, output and cleanup. Produce supported settings, semantics-preserving implementation changes and research extensions as separate candidate classes, with explicit approximation budgets.
+6. Screen supported model/backend/format pairs, residency, partition/layout, numerical/quality contracts, abort/termination and queue stability before benchmarking. Mark unsupported and unverified paths separately; preparation alone does not establish target feasibility.
+7. Freeze the workload and validators before candidate experiments. Measure matched real workloads, separating CPU/static, mocked contract, accelerator/native transport, real-model quality and service evidence. Rank only valid runs and report conflicting objectives without claiming a universal winner.
 
 ## Transfer rules
 
