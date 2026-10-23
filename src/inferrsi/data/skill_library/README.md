@@ -47,7 +47,10 @@ device compatibility; readers do not execute helpers or promote candidates.
 The registered [audit-llama-runtime-state](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md)
 candidate separates partial decode progress, frontend graph reuse, backend input readiness
 and server task/slot cancellation. Its pinned source contracts are untested natively;
-loading and host placement remain with their existing owners.
+[loading](methods/weight-loading-optimization/SKILL.md) and
+[host placement](hardware/host/os-process-placement/SKILL.md) remain with their
+existing owners. The [scope and source map](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope)
+links all three responsibilities and their separate source snapshots.
 
 ## Engine knowledge
 
