@@ -90,14 +90,19 @@ def validate(config: dict, tasks: list[dict]) -> None:
                  "token_stop_new_trials"):
         if type(limits[name]) is not int or limits[name] <= 0:
             raise ValueError(f"{name} must be a positive integer")
-    if not tasks or len({t["id"] for t in tasks}) != len(tasks):
+    if not tasks:
         raise ValueError("cases must be nonempty with unique IDs")
     for task in tasks:
         validate_input(task, CASE_INPUT)
+        missing = {"id", "split", "request"} - task.keys()
+        if missing:
+            raise ValueError("Missing required case fields: " + ", ".join(sorted(missing)))
         if not re.fullmatch(r"[a-zA-Z0-9][a-zA-Z0-9._-]*", task["id"]):
             raise ValueError("case IDs must be safe path components")
         if task["split"] not in ("development", "holdout", "discovery"):
             raise ValueError("Unknown case split")
+    if len({task["id"] for task in tasks}) != len(tasks):
+        raise ValueError("cases must be nonempty with unique IDs")
     if len(tasks) * limits["repeats"] * 2 > limits["max_task_calls"]:
         raise ValueError("schedule exceeds max_task_calls")
 
@@ -270,6 +275,8 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
             result["evidence_sha256"] = {name: sha256(directory / name) for name in EVIDENCE
                                          if (directory / name).is_file()}
             atomic_write_json(directory / "result.json", result)
+            atomic_write_json(directory / "receipt.json",
+                              {"result_sha256": sha256(directory / "result.json")})
         tokens += observed_tokens(result["observations"]["usage"])
         completed += 1
         if result["execution_state"] != "completed":
@@ -291,19 +298,44 @@ def retained_trial(output: Path, entry: dict) -> dict:
                 "evaluation_error": "interrupted_attempt" if interrupted else None,
                 "missing": not interrupted, "checks": None, "output": None,
                 "evidence": {}, "elapsed_seconds": None, "observations": {"usage": None}}
-    record = read_json(path)
-    if any(record[key] != entry[key] for key in ("task_id", "condition", "repeat", "split")):
-        raise ValueError("Result identity disagrees with frozen schedule")
-    # Select report fields; raw commands and private workspace paths stay in local artifacts.
-    selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
-                "verdict", "checks", "elapsed_seconds", "observations")}
-    selected["observations"] = {"usage": record["observations"]["usage"]}
+    raw_record = path.read_bytes()
+    receipt_path = directory / "receipt.json"
+    receipt_error = None
+    if not receipt_path.is_file():
+        receipt_error = "missing_retained_trial_receipt"
+    else:
+        try:
+            receipt = read_json(receipt_path)
+        except ValueError:
+            receipt_error = "invalid_retained_trial_receipt"
+        else:
+            if not isinstance(receipt, dict):
+                receipt_error = "invalid_retained_trial_receipt"
+            elif receipt.get("result_sha256") != hashlib.sha256(raw_record).hexdigest():
+                receipt_error = "retained_trial_record_hash_mismatch"
     answer = directory / "answer.json"
     data = answer.read_bytes() if answer.is_file() else None
     actual_hash = hashlib.sha256(data).hexdigest() if data is not None else None
     text = data.decode("utf-8", errors="backslashreplace") if data is not None else None
     if text is not None:
         text = text.replace("\r\n", "\n").replace("\r", "\n")
+    evidence = {name: (directory / name).relative_to(output).as_posix()
+                for name in ("result.json", "receipt.json", "answer.json", *EVIDENCE)
+                if (directory / name).is_file()}
+    if receipt_error:
+        # Reject untrusted record bytes before parsing any of their fields.
+        return {**entry, "verdict": "INCONCLUSIVE", "evaluation_error": receipt_error,
+                "missing": False, "checks": None, "output": text, "evidence": evidence,
+                "elapsed_seconds": None, "observations": {"usage": None},
+                "output_sha256": None, "retained_output_sha256": actual_hash,
+                "evidence_sha256": None, "retained_evidence_sha256": {}}
+    record = json.loads(raw_record)
+    if any(record[key] != entry[key] for key in ("task_id", "condition", "repeat", "split")):
+        raise ValueError("Result identity disagrees with frozen schedule")
+    # Select report fields; raw commands and private workspace paths stay in local artifacts.
+    selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
+                "verdict", "checks", "elapsed_seconds", "observations")}
+    selected["observations"] = {"usage": record["observations"]["usage"]}
     error = record.get("evaluation_error")
     if data is None:
         error = error or "missing_retained_output"
@@ -327,10 +359,6 @@ def retained_trial(output: Path, entry: dict) -> dict:
                 error = error or "retained_evidence_hash_mismatch"
     if error or record["execution_state"] != "completed" or not record["inputs_unchanged"]:
         selected["verdict"] = "INCONCLUSIVE"
-    evidence = {}
-    for name in ("result.json", "answer.json", *EVIDENCE):
-        if (directory / name).is_file():
-            evidence[name] = (directory / name).relative_to(output).as_posix()
     return {**selected, "evaluation_error": error, "missing": False,
             "output": text,
             "output_sha256": record["output_sha256"], "retained_output_sha256": actual_hash,

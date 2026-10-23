@@ -30,6 +30,8 @@ The regression candidate returned `claim_scope=production`; the independently sp
 
 JSON includes the recorded/current answer and execution/grader evidence hashes, plus all five frozen controllers. Missing or modified retained answers, execution records, agent traces or grader artifacts invalidate the trial. Reporting performs these checks without rerunning the client or grader.
 
+Each completed record also has a separate SHA-256 receipt. Changing only the regression candidate's recorded verdict/checks produced INCONCLUSIVE (`retained_trial_record_hash_mismatch`) and no accepted assertions; unchanged grader evidence could not become a positive pair. Restoring the original record regenerated identical reports without model or grader calls.
+
 Candidate output and grading evidence for the regression:
 
 ```json
@@ -51,7 +53,7 @@ Candidate output and grading evidence for the regression:
   "output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
   "retained_output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
   "evidence_sha256": {
-    "execution.json": "bc33e03fa5692ceb465273e107a6726dbe13994d448882845a6b6fc4fe7a5677",
+    "execution.json": "5db7e5532b0d2b3df10860daceedeafb35a4bfd0a6dc39ec2019972cd6fabf05",
     "agent/stdout.log": "cae0a0049534a8720917a328866e40de12e3a95495ab4f5c07cbeb525eb7ccdf",
     "agent/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "verification/result.json": "8a64fcee2c58d57083f195a727ba7a1b35d2f400bdf0699ec8d0eaac72b14f73",
@@ -59,7 +61,7 @@ Candidate output and grading evidence for the regression:
     "verification/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "retained_evidence_sha256": {
-    "execution.json": "bc33e03fa5692ceb465273e107a6726dbe13994d448882845a6b6fc4fe7a5677",
+    "execution.json": "5db7e5532b0d2b3df10860daceedeafb35a4bfd0a6dc39ec2019972cd6fabf05",
     "agent/stdout.log": "cae0a0049534a8720917a328866e40de12e3a95495ab4f5c07cbeb525eb7ccdf",
     "agent/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "verification/result.json": "8a64fcee2c58d57083f195a727ba7a1b35d2f400bdf0699ec8d0eaac72b14f73",

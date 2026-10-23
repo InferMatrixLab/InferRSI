@@ -39,7 +39,7 @@ performance-report audit schema and `tools/skill_eval_verifier.py`.
 | `skill`, `skill_root` | Stable checkout skill ID and its library root; no version registry |
 | `snapshots.baseline/candidate.git_revision` | Full immutable commit SHAs available in the local repository; no fetch |
 | Optional `bundle_revision` per snapshot | Reader content-revision assertion after the Git snapshot is materialized |
-| `cases` | JSON list of supported performance-report audit inputs with unique safe `id`, `request` and `split`; unknown fields are rejected at every structured level |
+| `cases` | JSON list of supported performance-report audit inputs; each case requires string `id`, `request` and `split`, with unique safe IDs; unknown fields are rejected at every structured level |
 | `model` | Shared `name` and `effort`; independent ephemeral session for every trial |
 | `limits` | Positive integer repeats, maximum calls, per-trial timeout, whole-run seconds and observed-token stop threshold |
 
@@ -73,8 +73,9 @@ grader payload. Supported fields are `id`, `split`, `mode`, `provenance`,
 `evidence_keys`. Each report arm accepts latency groups, `workload` (`steps`,
 `concurrency`, `shape`), quality and request counts. The contract accepts the
 pilot's gates, scope, regimes, verdict definitions and output-field semantics.
-Unknown keys and incompatible nested types are rejected before any output is
-created; grader expectations/metadata never become additional task fields.
+Missing execution fields (`id`, `request`, `split`), unknown keys and incompatible
+nested types are rejected before any output is created; grader
+expectations/metadata never become additional task fields.
 Free-text requests and provenance remain caller-authored inputs to review.
 
 ## Execution boundary
@@ -143,6 +144,12 @@ and error log, and verifier result/output/error logs in `evidence_sha256`.
 Report regeneration checks those files against the recorded hashes. Missing or
 changed evidence becomes INCONCLUSIVE; older comparison records without these
 hashes also remain INCONCLUSIVE rather than retaining an unsupported PASS.
+After completing each comparison trial, the controller separately writes
+`receipt.json` with the SHA-256 of `result.json`. Reporting verifies this receipt
+before accepting that record's verdict, grading assertions or usage. A missing,
+invalid or mismatched receipt makes the trial INCONCLUSIVE, with no accepted
+assertions or usage, even when its answer and grader files are unchanged.
+Report regeneration leaves the original record and receipt untouched.
 These local checks detect missing or changed artifacts; they are not signatures
 against coordinated modification of both an artifact and its recorded hash.
 

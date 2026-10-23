@@ -250,6 +250,101 @@ def test_invalid_configs_fail_before_creating_outputs(tmp_path):
     assert not (tmp_path / "mutable").exists()
 
 
+def test_required_execution_case_fields_are_validated_before_freeze(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",))
+    cases = tmp_path / "cases.json"
+    original = json.loads(cases.read_text())
+    invalid = []
+    for key in ("request", "id", "split"):
+        task = {name: value for name, value in original[0].items() if name != key}
+        invalid.append((task, "Missing required case fields"))
+    invalid.append(({"id": "one", "split": "holdout"}, "Missing required case fields"))
+    for value in (None, 42, ["audit"]):
+        invalid.append(({**original[0], "request": value}, "Unsupported input type"))
+    for index, (task, error) in enumerate(invalid):
+        write_json(cases, [task])
+        output = tmp_path / f"invalid-{index}"
+        with pytest.raises(ValueError, match=error):
+            compare.prepare(config, repo, output)
+        assert not output.exists()
+
+
+def test_modified_trial_verdicts_and_checks_cannot_override_retained_grades(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",))
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path, {("one", role): "incorrect" for role in compare.ROLES})
+    original = compare.execute(output, authorization, client=client)
+    saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
+    assert original["counts"]["unchanged_incorrect"] == 1
+    directories = {role: output / "results" / f"one-{role}-1" for role in compare.ROLES}
+    records = {role: (directory / "result.json").read_bytes()
+               for role, directory in directories.items()}
+    for roles in (("candidate",), ("baseline",), compare.ROLES):
+        for field in ("verdict", "checks", "both"):
+            for role in roles:
+                record = json.loads(records[role])
+                if field in ("verdict", "both"):
+                    record["verdict"] = "PASS"
+                if field in ("checks", "both"):
+                    record["checks"] = {"passed": True, "assertions": {"fabricated": True}}
+                write_json(directories[role] / "result.json", record)
+            result = compare.report(output)
+            assert result["counts"]["inconclusive"] == 1
+            assert result["counts"]["fix"] == result["counts"]["regression"] == 0
+            assert result["counts"]["unchanged_correct"] == 0
+            for role in roles:
+                trial = result["pairs"][0][role]
+                assert trial["verdict"] == "INCONCLUSIVE"
+                assert trial["checks"] is None
+                assert trial["evaluation_error"] == "retained_trial_record_hash_mismatch"
+                assert result["conditions"][role]["evaluation_errors"] == 1
+                grader = json.loads((directories[role] / "verification/result.json").read_text())
+                assert grader["passed"] is False
+            assert compare.report(output) == result
+            for role in roles:
+                (directories[role] / "result.json").write_bytes(records[role])
+            assert compare.report(output) == original
+            assert saved == ((output / "report.json").read_bytes(),
+                             (output / "report.md").read_bytes())
+    path = directories["candidate"] / "result.json"
+    malformed = (b"{broken", b"null",
+                 json.dumps({**json.loads(records["candidate"]), "observations": None}).encode(),
+                 json.dumps({**json.loads(records["candidate"]),
+                             "evidence_sha256": {"execution.json": float("nan")}}).encode())
+    for mutation in malformed:
+        path.write_bytes(mutation)
+        result = compare.report(output)
+        trial = result["pairs"][0]["candidate"]
+        assert trial["verdict"] == "INCONCLUSIVE" and trial["checks"] is None
+        assert trial["evaluation_error"] == "retained_trial_record_hash_mismatch"
+        assert trial["observations"]["usage"] is None and trial["elapsed_seconds"] is None
+        assert trial["output"] is not None and "result.json" in trial["evidence"]
+        assert path.read_bytes() == mutation
+        assert compare.report(output) == result
+        path.write_bytes(records["candidate"])
+        assert compare.report(output) == original
+    receipt = directories["candidate"] / "receipt.json"
+    content = receipt.read_bytes()
+    invalid_receipts = ((None, "missing_retained_trial_receipt"),
+                        (b"{broken", "invalid_retained_trial_receipt"),
+                        (b'{"result_sha256": "changed"}', "retained_trial_record_hash_mismatch"))
+    for mutation, error in invalid_receipts:
+        if mutation is None:
+            receipt.unlink()
+        else:
+            receipt.write_bytes(mutation)
+        result = compare.report(output)
+        trial = result["pairs"][0]["candidate"]
+        assert trial["verdict"] == "INCONCLUSIVE" and trial["checks"] is None
+        assert trial["evaluation_error"] == error
+        assert result["counts"]["inconclusive"] == 1
+        assert (directories["candidate"] / "result.json").read_bytes() == records["candidate"]
+        receipt.write_bytes(content)
+        assert compare.report(output) == original
+    assert len(client.calls) == 2
+
+
 def test_retained_answer_integrity_changes_invalidate_positive_pairs(tmp_path):
     config, repo = configuration(tmp_path, ids=("fix", "same"))
     output = tmp_path / "run"
@@ -323,8 +418,9 @@ def test_retained_grader_execution_and_trace_evidence_cannot_go_missing_or_chang
     record = json.loads(path.read_text())
     record.pop("evidence_sha256")
     write_json(path, record)
+    (path.parent / "receipt.json").unlink()
     result = compare.report(output)
-    assert result["pairs"][0]["candidate"]["evaluation_error"] == "missing_retained_evidence_hashes"
+    assert result["pairs"][0]["candidate"]["evaluation_error"] == "missing_retained_trial_receipt"
     assert result["counts"]["fix"] == 0
     assert len(client.calls) == 4
 
