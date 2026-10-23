@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.lithos_metal",
+  "title": "lithos-metal",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Inspect Lithos Metal compilation and fusion, GPU-resident generation and DSpark state, or local serving and exact-prefix caches on Apple silicon; use when changing recipes, diagnosing stale state, or qualifying an inference claim.",
+  "tags": [
+    "lithos-metal",
+    "metal",
+    "apple-silicon",
+    "repository-guide"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
+      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/references/mlx-license.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/references/notices.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/references/package-api.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/references/source-notes.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/references/upstream-notice.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/scripts/inspect_contract.py",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/references/mechanisms.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/references/state-machine.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/references/workflows.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "4c71ba2f26c275829466bba2412738aa27799842e642c75cdfd36d9ed8713f7f"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/lithos-metal/SKILL.md"
+  },
+  "checkout_ref": "checkout:lithos-metal",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md": "4c71ba2f26c275829466bba2412738aa27799842e642c75cdfd36d9ed8713f7f",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/metadata.json": "7472ada3c504f5b56aa90af43c8018289dd010e85d5b6c67407b944bfe8c53b4",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/references/mlx-license.md": "ccfab7ccb2ea306f71531c8ca77bb55507606cd90768b1e32b8b52ab5b48cf01",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/references/notices.md": "b2c9d2481ef2c9d16b3240c951ae65db417e5d309cd06b7917db9d84fe175886",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/references/package-api.md": "4f3ecfabafb2a15eddf21ccf964b8c37635bbb7862418a2c404e7049c0fa2898",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/references/repo-provenance.md": "c0c7c3dd45eab0d55bcf154760156db58e8e365f9cfb2c6bd246dd6a06f3ef3c",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/references/source-notes.md": "110dbc995c7fc727632017d4c26c71df7ecf12d4df5d89df0cd4afd75c5892f2",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/references/troubleshooting.md": "1894bbe1a18018f81318b11e2150201ee97f3819f84a7a81f3cf5fb01549c165",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/references/upstream-notice.md": "cd80bddd6b6204dbc61c6ac762ed206c73d9264755d9884383d0860de29d185d",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/scripts/inspect_contract.py": "9cfc20310d191cf28017f2bfdfb2622e6110464af5a80a5d5dec920934b30f1f",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/SKILL.md": "e0d927763f3774440abddefc45913528946cd29f7f089766fab47b212f9b6693",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/metadata.json": "3858d91ec4808ec3e63a40877fca0b2c90733de7f4469d919a7425c86a1f7704",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/references/mechanisms.md": "6173a8b73ec5138cb12791f108f3d5d83278a117d443d48187c842e16bdc6eff",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/compile-fusion/references/troubleshooting.md": "f18ca9324d9a80f2ba327a1ad4ccf84a01049080366fe12410f2800d5f178232",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/SKILL.md": "bd8cd27ddb18a04c9e2b31ce9f16e676864133e160267473979de828b1915f63",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/metadata.json": "e17333dd24ff539fa52672742cdb3272ac8871713bfa350f9f7579f32ac8464d",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/references/state-machine.md": "d812ad31d4e343539119cf82f8ce241fe14c691dd73398048893cc5de3ab8e22",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/generation-state/references/troubleshooting.md": "7ca629e66ef3b0a67077a7d2536befef683315ad01939728a9e6e7523cc8414c",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/SKILL.md": "01c38c2678d6e8292a3908bf5619b332432c5f1289fd5d5a67eb44a2141adb90",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/metadata.json": "baa7e6fd039d5413042143f9b8d3621118e00be4a258c8e9621aac8945fab56c",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/references/troubleshooting.md": "52c6e27a76547475b5c66121f873f4d2c1662c811a69da64ce85614f1bd44749",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/references/workflows.md": "298d27d3c748fe22774b872ed0465b707e53812379a7a538c95f25d1727fc796",
+    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+  },
+  "skill_metadata": {
+    "name": "lithos-metal",
+    "description": "Inspect Lithos Metal compilation and fusion, GPU-resident generation and DSpark state, or local serving and exact-prefix caches on Apple silicon; use when changing recipes, diagnosing stale state, or qualifying an inference claim.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "tags": [
+      "lithos-metal",
+      "metal",
+      "apple-silicon",
+      "repository-guide"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/lithos-ai/lithos-metal",
+        "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+        "paths": [
+          "kernels/common/spec_ops.metal",
+          "monolith/backends/metal/base.py",
+          "monolith/backends/metal/registry.py",
+          "monolith/compiler/arena.py",
+          "monolith/compiler/barriers.py",
+          "monolith/compiler/coverage.py",
+          "monolith/compiler/decoder_fusion.py",
+          "monolith/compiler/emit.py",
+          "monolith/compiler/region_fusion.py",
+          "monolith/compiler/static_fusion.py",
+          "monolith/core/step_state.py",
+          "monolith/generate.py",
+          "monolith/runtime/engine.py",
+          "monolith/runtime/prefix_cache.py",
+          "monolith/runtime/prefix_store.py",
+          "monolith/serve.py",
+          "monolith/serving/cache.py",
+          "monolith/serving/lifecycle.py",
+          "monolith/serving/setup.py",
+          "monolith/spec/dspark/model.py",
+          "runtime/src/metal_core.mm"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "applicability": {
+      "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately."
+    },
+    "limitations": [
+      "Source-derived candidate; empirical efficacy validation not_run.",
+      "CPU/software and synthetic Metal contracts do not qualify full-model/DSpark numerics, quality or E2E performance.",
+      "No model downloads, live DisCo deployment or inference backend integration is provided."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged",
+    "license": "Apache-2.0",
+    "disable-model-invocation": true,
+    "metadata": {
+      "disco-role": "operating"
+    }
+  },
+  "applicability": {
+    "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical efficacy validation not_run.",
+    "CPU/software and synthetic Metal contracts do not qualify full-model/DSpark numerics, quality or E2E performance.",
+    "No model downloads, live DisCo deployment or inference backend integration is provided."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
