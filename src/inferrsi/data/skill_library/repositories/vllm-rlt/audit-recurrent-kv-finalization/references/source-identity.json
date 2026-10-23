@@ -183,7 +183,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/pyproject.toml",
       "bytes": 1276,
       "content_sha256": "ebe2999a760158d24c84a24119597cd9ddbc5c5ea03dca322f0ace9bb173cdff",
-      "line_count": 53
+      "line_count": 52
     },
     {
       "path": "vllm_rlt/config.py",
@@ -202,7 +202,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/config.py",
       "bytes": 6565,
       "content_sha256": "90be05f4d3303dde526f9cbed14be8fb0cb41eabbc902caa4669a37cd6a134c5",
-      "line_count": 160
+      "line_count": 159
     },
     {
       "path": "vllm_rlt/engine/stage_engine.py",
@@ -233,7 +233,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/engine/stage_engine.py",
       "bytes": 37086,
       "content_sha256": "faf106a8106f2d8713e7d5d32586731607191d3061581919ad9a457977aec9ed",
-      "line_count": 807
+      "line_count": 806
     },
     {
       "path": "vllm_rlt/core/scheduler.py",
@@ -256,7 +256,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/core/scheduler.py",
       "bytes": 45060,
       "content_sha256": "a8c0ca3d3977f512b1d551876a4cb9a035ed1195299b11337089d1cea5e37002",
-      "line_count": 991
+      "line_count": 990
     },
     {
       "path": "vllm_rlt/worker/executor.py",
@@ -268,14 +268,14 @@
         ],
         [
           132,
-          208
+          207
         ]
       ],
       "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/worker/executor.py",
       "bytes": 9156,
       "content_sha256": "b5349da4f766d7bb9fd88993718b177640eee2d1eebf44212725539358324161",
-      "line_count": 208
+      "line_count": 207
     },
     {
       "path": "vllm_rlt/attention/__init__.py",
@@ -283,14 +283,14 @@
       "ranges": [
         [
           1,
-          30
+          29
         ]
       ],
       "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/attention/__init__.py",
       "bytes": 693,
       "content_sha256": "be826f33e112661b417c781e7b5589466814d6bf9cc5fec1a2b34b08cc041356",
-      "line_count": 30
+      "line_count": 29
     },
     {
       "path": "vllm_rlt/attention/backend.py",
@@ -309,7 +309,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/attention/backend.py",
       "bytes": 5753,
       "content_sha256": "898cf352ae22f7b133653719eb0e442c888f1b3aa2ae5db60c1c6d713729ae30",
-      "line_count": 144
+      "line_count": 143
     },
     {
       "path": "vllm_rlt/models/ouro.py",
@@ -340,7 +340,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/models/ouro.py",
       "bytes": 16825,
       "content_sha256": "40bf2a982cee75994af88ea4cbffa1ea7ccb1ab75e3db1bdd1af073273cc8996",
-      "line_count": 372
+      "line_count": 371
     },
     {
       "path": "vllm_rlt/layers/__init__.py",
@@ -348,14 +348,14 @@
       "ranges": [
         [
           1,
-          17
+          16
         ]
       ],
       "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/layers/__init__.py",
       "bytes": 360,
       "content_sha256": "3cd59909bb787a93fb6ee1bfc91278a547c31fb26f8efd32bf7745cac33448e5",
-      "line_count": 17
+      "line_count": 16
     },
     {
       "path": "vllm_rlt/__init__.py",
@@ -370,7 +370,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/__init__.py",
       "bytes": 573,
       "content_sha256": "6182fa7a786e92456887ee2b9ebd2bf51b46beef0a4c62ce9871c3c3e4f7f849",
-      "line_count": 26
+      "line_count": 25
     },
     {
       "path": "tests/conftest.py",
@@ -378,14 +378,14 @@
       "ranges": [
         [
           1,
-          28
+          27
         ]
       ],
       "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/tests/conftest.py",
       "bytes": 799,
       "content_sha256": "fdabf08e0fe579ab7af6c1e8e50f68c3ddb2301bb253e1525ff037b7ae1374c7",
-      "line_count": 28
+      "line_count": 27
     },
     {
       "path": "vllm_rlt/request.py",
@@ -408,7 +408,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/request.py",
       "bytes": 8295,
       "content_sha256": "59bbf1c00497806883ea649b27ebf37509b29389379dae084948d285545f465f",
-      "line_count": 215
+      "line_count": 214
     },
     {
       "path": "vllm_rlt/worker/metadata.py",
@@ -431,7 +431,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/worker/metadata.py",
       "bytes": 11242,
       "content_sha256": "4f66c49cb2981d3b2b895937c41720dde35c7a48d3205e57bfb31821ecbc82a4",
-      "line_count": 298
+      "line_count": 297
     },
     {
       "path": "vllm_rlt/kernels/paged_attention.py",
@@ -446,7 +446,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/kernels/paged_attention.py",
       "bytes": 2157,
       "content_sha256": "0b8426436c4e004fd748a5b3d2fbde09c3694688dec03a443884f0326cb9a6b1",
-      "line_count": 55
+      "line_count": 54
     },
     {
       "path": "vllm_rlt/worker/buffers.py",
@@ -465,7 +465,7 @@
       "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/worker/buffers.py",
       "bytes": 15156,
       "content_sha256": "819d6b18f103bc3d906dc2ce309e95bfadb33756f5af4ed783e343a37b9ecaca",
-      "line_count": 346
+      "line_count": 345
     }
   ]
 }
