@@ -108,7 +108,9 @@ Each context resource carries its complete UTF-8 `content`, canonical resource
 `path`, exact-byte `sha256`, `role` (`core` or `reference`) and
 `locator=whole-resource`. The parent view supplies its owning ref and revision;
 `resource` can read exactly those bytes. The full canonical `SKILL.md`, declared
-references, provenance readsets and owner license (when present) are mandatory.
+references, provenance readsets and owner licenses (when present) are mandatory.
+Licenses are retained along each required resource's skill/repository/framework
+directory ancestry inside the packaged library, including cross-skill prerequisites.
 If that set does not fit, the owner's entire context is omitted, with required
 and available bytes, and a later smaller context can still fit. The owning item
 can still be returned. Mandatory instructions are never truncated.

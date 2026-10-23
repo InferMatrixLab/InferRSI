@@ -212,6 +212,29 @@ def test_h3_readsets_are_mandatory_even_without_lexical_overlap():
         assert prefix + path in paths
 
 
+def test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_references():
+    identity = "inferrsi.common.skills.audit_vllm_kv_lifetimes"
+    license_path = "data/skill_library/repositories/vllm/LICENSE"
+    reader = KnowledgeReader()
+    for owner in (identity, AFD):
+        result = reader.collect(ids=[owner], context_bytes=100000)
+        assert not result["context_omissions"]
+        context = result["contexts"][0]
+        license_resource, = [r for r in context["resources"] if r["path"] == license_path]
+        expected = reader.resource(context["ref"], license_path, revision=context["revision"])
+        assert license_resource["content"].encode() == expected
+        assert license_resource["sha256"] == hashlib.sha256(expected).hexdigest()
+    bundle = reader.read(identity)
+    core = bundle.metadata["skill_documents"]["original"]
+    limited = reader.collect(ids=[identity], context_bytes=len(bundle.content[core]))
+    assert not limited["contexts"]
+    omission = limited["context_omissions"][0]
+    assert omission["reason"] == "context_limit"
+    assert omission["required_bytes"] >= (
+        len(bundle.content[core]) + len(bundle.content[license_path])
+    )
+
+
 def test_optimized_request_preserves_identity_collisions(tmp_path):
     owner = tmp_path / "owner"
     cases = owner / "cases"

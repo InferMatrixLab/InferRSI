@@ -56,8 +56,13 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
             raise SkillIndexError(f"Unavailable declared skill reference: {relative}")
         if path not in required:
             required.append(path)
-    if prefix + "LICENSE" in content:
-        required.append(prefix + "LICENSE")
+    for resource in list(required):
+        directory = posixpath.dirname(resource)
+        while directory.startswith("data/skill_library/"):
+            license_path = directory + "/LICENSE"
+            if license_path in content and license_path not in required:
+                required.append(license_path)
+            directory = posixpath.dirname(directory)
     optional = sorted(
         path for path in content
         if path.startswith(prefix) and path not in required
