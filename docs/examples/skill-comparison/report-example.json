@@ -1,0 +1,160 @@
+{
+  "artifact": "Generated offline report excerpt; full evidence is reproduced by the demo",
+  "claim": "Pipeline results only; fixed-output offline clients do not establish skill efficacy. Discovery is separate. Unknown usage and cost remain unknown.",
+  "mode": "update",
+  "skill": "selected",
+  "revisions": {
+    "baseline": {
+      "git_revision": "9a9c592856d501037edb4a4ca56c62f789b824db",
+      "bundle_revision": "sha256:db78dfd40c109c9e99bfefe5006812f2e492d4002c9f5a256f4ec424bed0b59d"
+    },
+    "candidate": {
+      "git_revision": "d57379b705988943694288b36bb614da0e0aada3",
+      "bundle_revision": "sha256:7fbb9ba7387ce05ec0ef18b559fbb914b2c2371c537e19c2bceddf18cad334ae"
+    }
+  },
+  "model": {
+    "name": "offline-fixture",
+    "effort": "test"
+  },
+  "limits": {
+    "repeats": 1,
+    "max_task_calls": 8,
+    "timeout_seconds": 60,
+    "campaign_seconds": 900,
+    "token_stop_new_trials": 120
+  },
+  "exam": {
+    "cases": "b6b928910c61938f2b8ed0dcaa07df33796e6bfdc65a9b5df2271254b3d496f9",
+    "schema": "89de6085fa63da835e0e6653785771d02abefd665cb2b21ad2df772ffc0b4f62",
+    "grader": "a11ef015770706aa33e4c801dcf31c0bb08870c80dc8aa5b8a713d049f16b7ff"
+  },
+  "counts": {
+    "fix": 1,
+    "regression": 1,
+    "unchanged_correct": 0,
+    "unchanged_incorrect": 0,
+    "missing_pair": 1,
+    "inconclusive": 1
+  },
+  "pairs": [
+    {
+      "case_id": "fix",
+      "repeat": 1,
+      "outcome": "fix",
+      "baseline": {
+        "verdict": "FAIL",
+        "evaluation_error": null,
+        "output": "{\"report_verdict\": \"PASS\", \"claim_scope\": \"production\", \"findings\": [], \"latency_reduction_pct\": 20, \"evidence\": [\"baseline.latencies_ms\", \"candidate.latencies_ms\", \"contract\"], \"reason\": \"Group means are 100/200/300 and 50/160/900: medians 200 and 160 give exactly 20 percent.\"}",
+        "checks": {
+          "passed": false,
+          "assertions": {
+            "report_verdict": true,
+            "claim_scope": false,
+            "findings": true,
+            "reduction": true,
+            "evidence": true,
+            "explanation": true
+          }
+        }
+      },
+      "candidate": {
+        "verdict": "PASS",
+        "evaluation_error": null,
+        "output": "{\"report_verdict\": \"PASS\", \"claim_scope\": \"fixed_workload\", \"findings\": [], \"latency_reduction_pct\": 20, \"evidence\": [\"baseline.latencies_ms\", \"candidate.latencies_ms\", \"contract\"], \"reason\": \"Group means are 100/200/300 and 50/160/900: medians 200 and 160 give exactly 20 percent.\"}",
+        "checks": {
+          "passed": true,
+          "assertions": {
+            "report_verdict": true,
+            "claim_scope": true,
+            "findings": true,
+            "reduction": true,
+            "evidence": true,
+            "explanation": true
+          }
+        }
+      }
+    },
+    {
+      "case_id": "regression",
+      "repeat": 1,
+      "outcome": "regression",
+      "baseline": {
+        "verdict": "PASS",
+        "evaluation_error": null,
+        "output": "{\"report_verdict\": \"PASS\", \"claim_scope\": \"fixed_workload\", \"findings\": [], \"latency_reduction_pct\": 20, \"evidence\": [\"baseline.latencies_ms\", \"candidate.latencies_ms\", \"contract\"], \"reason\": \"Group means are 100/200/300 and 50/160/900: medians 200 and 160 give exactly 20 percent.\"}",
+        "checks": {
+          "passed": true,
+          "assertions": {
+            "report_verdict": true,
+            "claim_scope": true,
+            "findings": true,
+            "reduction": true,
+            "evidence": true,
+            "explanation": true
+          }
+        }
+      },
+      "candidate": {
+        "verdict": "FAIL",
+        "evaluation_error": null,
+        "output": "{\"report_verdict\": \"PASS\", \"claim_scope\": \"production\", \"findings\": [], \"latency_reduction_pct\": 20, \"evidence\": [\"baseline.latencies_ms\", \"candidate.latencies_ms\", \"contract\"], \"reason\": \"Group means are 100/200/300 and 50/160/900: medians 200 and 160 give exactly 20 percent.\"}",
+        "checks": {
+          "passed": false,
+          "assertions": {
+            "report_verdict": true,
+            "claim_scope": false,
+            "findings": true,
+            "reduction": true,
+            "evidence": true,
+            "explanation": true
+          }
+        }
+      }
+    },
+    {
+      "case_id": "error",
+      "repeat": 1,
+      "outcome": "inconclusive",
+      "baseline": {
+        "verdict": "PASS",
+        "evaluation_error": null,
+        "output": "{\"report_verdict\": \"PASS\", \"claim_scope\": \"fixed_workload\", \"findings\": [], \"latency_reduction_pct\": 20, \"evidence\": [\"baseline.latencies_ms\", \"candidate.latencies_ms\", \"contract\"], \"reason\": \"Group means are 100/200/300 and 50/160/900: medians 200 and 160 give exactly 20 percent.\"}",
+        "checks": {
+          "passed": true,
+          "assertions": {
+            "report_verdict": true,
+            "claim_scope": true,
+            "findings": true,
+            "reduction": true,
+            "evidence": true,
+            "explanation": true
+          }
+        }
+      },
+      "candidate": {
+        "verdict": "INCONCLUSIVE",
+        "evaluation_error": "invalid_output_json",
+        "output": "{broken",
+        "checks": null
+      }
+    },
+    {
+      "case_id": "missing",
+      "repeat": 1,
+      "outcome": "missing_pair",
+      "baseline": {
+        "verdict": null,
+        "evaluation_error": null,
+        "output": null,
+        "checks": null
+      },
+      "candidate": {
+        "verdict": null,
+        "evaluation_error": null,
+        "output": null,
+        "checks": null
+      }
+    }
+  ]
+}
