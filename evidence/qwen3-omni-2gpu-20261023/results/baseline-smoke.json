@@ -1,0 +1,210 @@
+{
+  "date": "20261023-115032",
+  "endpoint_type": "openai-chat-omni",
+  "backend": "openai-chat-omni",
+  "label": null,
+  "model_id": "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+  "tokenizer_id": "<MODEL_PATH>",
+  "num_prompts": 4,
+  "request_rate": "inf",
+  "burstiness": 1.0,
+  "max_concurrency": 1,
+  "duration": 1.4825652576982975,
+  "completed": 4,
+  "failed": 0,
+  "total_input_tokens": 576,
+  "total_output_tokens": 52,
+  "request_throughput": 2.698026261731004,
+  "request_goodput": null,
+  "output_throughput": 35.07434140250305,
+  "total_token_throughput": 423.5901230917676,
+  "total_audio_duration_s": 12.6275,
+  "total_audio_frames": 303060,
+  "audio_throughput": 8.517331655002062,
+  "total_images": 0,
+  "image_throughput": 0.0,
+  "average_pixels_per_image": 0.0,
+  "mean_denoise_step_latency_ms": 0.0,
+  "total_video_duration_s": 0,
+  "total_video_frames": 0,
+  "video_throughput": 0.0,
+  "mean_video_rtf": 0.0,
+  "median_video_rtf": 0.0,
+  "percentiles_video_rtf": [
+    [
+      50.0,
+      0.0
+    ],
+    [
+      95.0,
+      0.0
+    ],
+    [
+      99.0,
+      0.0
+    ]
+  ],
+  "mean_video_generation_ms": 0.0,
+  "median_video_generation_ms": 0.0,
+  "percentiles_video_generation_ms": [
+    [
+      50.0,
+      0.0
+    ],
+    [
+      95.0,
+      0.0
+    ],
+    [
+      99.0,
+      0.0
+    ]
+  ],
+  "mean_peak_memory_mb": 0.0,
+  "median_peak_memory_mb": 0.0,
+  "percentiles_peak_memory_mb": [
+    [
+      50.0,
+      0.0
+    ],
+    [
+      95.0,
+      0.0
+    ],
+    [
+      99.0,
+      0.0
+    ]
+  ],
+  "stage_durations_mean": {},
+  "stage_durations_p50": {},
+  "stage_durations_p99": {},
+  "input_lens": [
+    141,
+    141,
+    153,
+    141
+  ],
+  "start_times": [
+    6716127.31005033,
+    6716127.615052358,
+    6716127.946617123,
+    6716128.513778744
+  ],
+  "output_lens": [
+    10,
+    10,
+    22,
+    10
+  ],
+  "ttfts": [
+    0.0571818919852376,
+    0.054990687407553196,
+    0.07059408444911242,
+    0.055726573802530766
+  ],
+  "itls": [
+    [
+      0.002778060734272003,
+      0.004455311223864555,
+      0.004230658523738384,
+      0.0043539730831980705,
+      0.004310127347707748,
+      0.004717637784779072,
+      0.004294693470001221,
+      0.00428400281816721,
+      0.00458539929240942
+    ],
+    [
+      0.002415143884718418,
+      0.004530147649347782,
+      0.005102621391415596,
+      0.003576701506972313,
+      0.006468749605119228,
+      0.003472326323390007,
+      0.0030990689992904663,
+      0.004371302202343941,
+      0.004762663505971432
+    ],
+    [
+      0.0023440634831786156,
+      0.004785467870533466,
+      0.003773908130824566,
+      0.004518504254519939,
+      0.004314815625548363,
+      0.0043144430965185165,
+      0.004809059202671051,
+      0.004134776070713997,
+      0.004221487790346146,
+      0.00435788556933403,
+      0.004471305757761002,
+      0.0046884240582585335,
+      0.00432733166962862,
+      0.004413250833749771,
+      0.004283576272428036,
+      0.005633288063108921,
+      0.0033770697191357613,
+      0.004330272786319256,
+      0.004257304593920708,
+      0.004424054175615311,
+      0.004924425855278969
+    ],
+    [
+      0.002582717686891556,
+      0.004327856935560703,
+      0.004338846541941166,
+      0.004281685687601566,
+      0.0049426984041929245,
+      0.003964364528656006,
+      0.0045906538143754005,
+      0.0043082470074296,
+      0.004612075164914131
+    ]
+  ],
+  "generated_texts": [
+    "Get the trust fund to the bank early.",
+    "The stained glass offered a hypnotic atmosphere.",
+    "One by one, the campfires were extinguished, and the oasis fell as quiet as the desert.",
+    "The boy knew the desert sensed his fear."
+  ],
+  "errors": [
+    "",
+    "",
+    "",
+    ""
+  ],
+  "max_output_tokens_per_s": 42.0,
+  "max_concurrent_requests": 3,
+  "rtfx": 0.0,
+  "num_ttft_samples": 4,
+  "num_tpot_samples": 4,
+  "num_itl_samples": 48,
+  "num_audio_ttfp_samples": 4,
+  "num_audio_rtf_samples": 4,
+  "mean_ttft_ms": 59.623309411108494,
+  "median_ttft_ms": 56.45423289388418,
+  "p50_ttft_ms": 56.45423289388418,
+  "p95_ttft_ms": 68.58225557953118,
+  "p99_ttft_ms": 70.19171867519616,
+  "mean_e2el_ms": 370.2070766594261,
+  "median_e2el_ms": 317.91936280205846,
+  "p50_e2el_ms": 317.91936280205846,
+  "p95_e2el_ms": 531.4775210339575,
+  "p99_e2el_ms": 559.7557915095239,
+  "mean_audio_rtf": 0.11906172447004047,
+  "median_audio_rtf": 0.11990696489807609,
+  "p50_audio_rtf": 0.11990696489807609,
+  "p95_audio_rtf": 0.1250640931620721,
+  "p99_audio_rtf": 0.1252187758666059,
+  "mean_audio_ttfp_ms": 125.93844532966614,
+  "median_audio_ttfp_ms": 120.14068616554141,
+  "p50_audio_ttfp_ms": 120.14068616554141,
+  "p95_audio_ttfp_ms": 142.24072298966348,
+  "p99_audio_ttfp_ms": 145.2296863030642,
+  "mean_audio_duration_s": 3.156875,
+  "median_audio_duration_s": 2.6568750000000003,
+  "p50_audio_duration_s": 2.6568750000000003,
+  "p95_audio_duration_s": 4.760874999999999,
+  "p99_audio_duration_s": 5.029674999999999,
+  "evidence_status": "INCONCLUSIVE: preliminary old-runtime/default-prompt screen; not a formal baseline"
+}
