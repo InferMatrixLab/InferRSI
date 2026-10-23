@@ -397,6 +397,19 @@ def test_default_audit_requires_complete_inputs():
             compare.validate_default_audit(task)
 
 
+@pytest.mark.parametrize("changes", [
+    {"quality": "failed"}, {"quality": "missing"}, {"failed_requests": 1},
+    {"failed_requests": 1, "reported_requests": 5},
+])
+def test_default_audit_rejects_unsupported_baseline_evidence(changes):
+    task = copy.deepcopy(DATA["task"])
+    task["baseline"].update(changes)
+    compare.validate_input(task, compare.CASE_INPUT)
+    compare.validate_audit_values(task)
+    with pytest.raises(ValueError, match="passed baseline with no failed requests"):
+        compare.validate_default_audit(task)
+
+
 def test_default_audit_supported_gates_match_the_existing_grader():
     for case in DATA["cases"]:
         task = copy.deepcopy(DATA["task"])
@@ -434,13 +447,15 @@ def test_default_audit_boundary_runs_before_output_and_covers_explicit_grader_co
         if grader is not None:
             raw["grader"] = grader
         write_json(config, raw)
-        for field in ("statistical_significance_required", "min_reduction_pct", "evidence_keys"):
+        for field, value in (("contract.statistical_significance_required", True),
+                             ("contract.min_reduction_pct", float("nan")), ("evidence_keys", []),
+                             ("baseline.quality", "failed"), ("baseline.failed_requests", 1)):
             tasks = copy.deepcopy(original)
-            if field == "evidence_keys":
-                tasks[0][field] = []
-            else:
-                tasks[0]["contract"][field] = (
-                    True if field.startswith("statistical") else float("nan"))
+            target = tasks[0]
+            keys = field.split(".")
+            for key in keys[:-1]:
+                target = target[key]
+            target[keys[-1]] = value
             (tmp_path / "cases.json").write_text(json.dumps(tasks), encoding="utf-8")
             output = tmp_path / f"invalid-{index}-{field}"
             with pytest.raises(ValueError, match="[Dd]efault audit"):

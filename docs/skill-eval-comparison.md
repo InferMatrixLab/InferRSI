@@ -97,6 +97,7 @@ accepted contract cannot add promises that this grader does not enforce.
 | `mode=extract` | Requires an empty `contract`; checks descriptive reduction only and returns no acceptance verdict or claim. |
 | `evidence_scope` | `http_fixed_workload` or `kernel`. Kernel-only evidence produces an inconclusive service audit rather than a service PASS. |
 | Both reports | Require latency groups, workload, quality, and all three request counts. Workload needs positive integer `steps` and `concurrency`; optional `shape` must have at least one dimension, all positive integers. Differing valid workloads remain negative audit cases. |
+| Audit baseline | Requires `quality="passed"` and zero failed requests; existing request accounting then requires every baseline request to be reported. Failed/missing baseline quality or failed baseline requests cannot support this default comparison. Candidate quality/completion failures remain valid negative audit cases. |
 | `evidence_keys` | Audit requires the complete reference set listed below, so negative cases remain answerable. Extract requires both latency paths only. Additional references may name existing report fields; unknown paths are rejected. The grader checks the answer's references and its computed verdict, findings, scope and reduction. |
 
 The audit reference set is `contract`, `evidence_scope`, `baseline.latencies_ms`,

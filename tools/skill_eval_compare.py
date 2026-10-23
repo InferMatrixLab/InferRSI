@@ -137,6 +137,11 @@ def validate_default_audit(task: dict) -> None:
             not workload["shape"] or any(dimension <= 0 for dimension in workload["shape"])
         )):
             raise ValueError(f"Default audit requires a positive workload at {role}")
+    baseline = task["baseline"]
+    if task["mode"] == "audit" and (
+        baseline["quality"] != "passed" or baseline["failed_requests"] != 0
+    ):
+        raise ValueError("Default audit requires a passed baseline with no failed requests")
     evidence = {"contract", "evidence_scope"} | {
         f"{role}.{name}" for role in ROLES for name in REPORT_INPUT
     }

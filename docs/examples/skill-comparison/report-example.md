@@ -71,7 +71,7 @@ Candidate output and grading evidence for the regression:
   "output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
   "retained_output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
   "evidence_sha256": {
-    "execution.json": "63b74a37d2770b109807ae161ec089eca2451c0ef0f724edcbec053e9aadffa9",
+    "execution.json": "db32f242cb50b77b121bf47ad4d931ee62d091a8b188d56469e1d2c71a75104b",
     "agent/stdout.log": "cae0a0049534a8720917a328866e40de12e3a95495ab4f5c07cbeb525eb7ccdf",
     "agent/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "verification/result.json": "8a64fcee2c58d57083f195a727ba7a1b35d2f400bdf0699ec8d0eaac72b14f73",
@@ -79,7 +79,7 @@ Candidate output and grading evidence for the regression:
     "verification/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
   },
   "retained_evidence_sha256": {
-    "execution.json": "63b74a37d2770b109807ae161ec089eca2451c0ef0f724edcbec053e9aadffa9",
+    "execution.json": "db32f242cb50b77b121bf47ad4d931ee62d091a8b188d56469e1d2c71a75104b",
     "agent/stdout.log": "cae0a0049534a8720917a328866e40de12e3a95495ab4f5c07cbeb525eb7ccdf",
     "agent/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "verification/result.json": "8a64fcee2c58d57083f195a727ba7a1b35d2f400bdf0699ec8d0eaac72b14f73",
