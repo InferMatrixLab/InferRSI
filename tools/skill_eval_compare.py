@@ -137,7 +137,9 @@ def snapshot(repo: Path, revision: str, skill_root: str, destination: Path, *,
     for entry in entries:
         header, name = entry.split(b"\t", 1)
         mode, kind, digest = header.split()
-        if mode not in (b"100644", b"100755") or kind != b"blob":
+        if mode == b"100755":
+            raise ValueError("Executable snapshot entries are not supported")
+        if mode != b"100644" or kind != b"blob":
             raise ValueError("Snapshot symlinks and submodules are not supported")
         members.append((safe_path(name.decode("utf-8")), digest))
     # Read raw Git blobs: archive/export attributes and checkout filters must not alter bytes.
@@ -239,16 +241,50 @@ def trial_directory(output: Path, entry: dict) -> Path:
     return output / "results" / f"{entry['task_id']}-{entry['condition']}-{entry['repeat']}"
 
 
+def resolve_client(client):
+    runtime = {"implementation": type(client).__module__ + "." + type(client).__qualname__,
+               "executable": None, "executable_sha256": None, "version": None}
+    if isinstance(client, CodexClient):
+        executable = shutil.which(client.executable)
+        if executable is None:
+            raise ValueError("Configured client executable is unavailable")
+        executable = str(Path(executable).resolve())
+        version = subprocess.check_output((executable, "--version"), text=True,
+                                          timeout=min(10, client.timeout_seconds)).strip()
+        if not version:
+            raise ValueError("Client version output is empty")
+        runtime.update(executable=Path(executable).name, executable_sha256=sha256(Path(executable)),
+                       version=version)
+        client = CodexClient(client.model, client.effort, client.timeout_seconds, executable)
+    return client, runtime
+
+
+def receipt_error(raw_record: bytes, receipt_path: Path, label: str) -> str | None:
+    if not receipt_path.is_file():
+        return f"missing_retained_{label}_receipt"
+    try:
+        receipt = read_json(receipt_path)
+    except ValueError:
+        return f"invalid_retained_{label}_receipt"
+    if not isinstance(receipt, dict):
+        return f"invalid_retained_{label}_receipt"
+    if receipt.get("result_sha256") != hashlib.sha256(raw_record).hexdigest():
+        return f"retained_{label}_record_hash_mismatch"
+    return None
+
+
 def execute(output: Path, authorization: str, *, client=None) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
     if any((output / "results").iterdir()):
         raise ValueError("Execution requires fresh results; prepare a new output directory")
-    write_json(output / "results/start.json", {"started_at": time.time()})
     if client is None:
         client = CodexClient(plan["model"]["name"], plan["model"]["effort"],
                              plan["limits"]["timeout_seconds"])
+    client, runtime = resolve_client(client)
+    write_json(output / "results/start.json",
+               {"started_at": time.time(), "client_runtime": runtime})
     tasks = {task["id"]: task for task in read_json(output / "plan/tasks.json")}
     deadline = time.monotonic() + plan["limits"]["campaign_seconds"]
     tokens, completed, stop_reason = 0, 0, None
@@ -282,10 +318,13 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
         if result["execution_state"] != "completed":
             stop_reason = "client_" + result["execution_state"]
             break
-    status = {"recorded_trials": completed, "expected_trials": len(plan["schedule"]),
+    status = {"client_runtime": runtime,
+              "recorded_trials": completed, "expected_trials": len(plan["schedule"]),
               "observed_tokens": tokens, "stop_reason": stop_reason,
               "execution_state": "completed" if completed == len(plan["schedule"]) else "stopped"}
-    write_json(output / "results/status.json", status)
+    atomic_write_json(output / "results/status.json", status)
+    atomic_write_json(output / "results/status.receipt.json",
+                      {"result_sha256": sha256(output / "results/status.json")})
     return report(output)
 
 
@@ -299,20 +338,7 @@ def retained_trial(output: Path, entry: dict) -> dict:
                 "missing": not interrupted, "checks": None, "output": None,
                 "evidence": {}, "elapsed_seconds": None, "observations": {"usage": None}}
     raw_record = path.read_bytes()
-    receipt_path = directory / "receipt.json"
-    receipt_error = None
-    if not receipt_path.is_file():
-        receipt_error = "missing_retained_trial_receipt"
-    else:
-        try:
-            receipt = read_json(receipt_path)
-        except ValueError:
-            receipt_error = "invalid_retained_trial_receipt"
-        else:
-            if not isinstance(receipt, dict):
-                receipt_error = "invalid_retained_trial_receipt"
-            elif receipt.get("result_sha256") != hashlib.sha256(raw_record).hexdigest():
-                receipt_error = "retained_trial_record_hash_mismatch"
+    error = receipt_error(raw_record, directory / "receipt.json", "trial")
     answer = directory / "answer.json"
     data = answer.read_bytes() if answer.is_file() else None
     actual_hash = hashlib.sha256(data).hexdigest() if data is not None else None
@@ -322,9 +348,9 @@ def retained_trial(output: Path, entry: dict) -> dict:
     evidence = {name: (directory / name).relative_to(output).as_posix()
                 for name in ("result.json", "receipt.json", "answer.json", *EVIDENCE)
                 if (directory / name).is_file()}
-    if receipt_error:
+    if error:
         # Reject untrusted record bytes before parsing any of their fields.
-        return {**entry, "verdict": "INCONCLUSIVE", "evaluation_error": receipt_error,
+        return {**entry, "verdict": "INCONCLUSIVE", "evaluation_error": error,
                 "missing": False, "checks": None, "output": text, "evidence": evidence,
                 "elapsed_seconds": None, "observations": {"usage": None},
                 "output_sha256": None, "retained_output_sha256": actual_hash,
@@ -403,6 +429,18 @@ def report(output: Path) -> dict:
         pairs.append({"case_id": entry["task_id"], "repeat": entry["repeat"],
                       "outcome": outcome, **arms})
     discovery = [t for t in trials if t["split"] == "discovery"]
+    status = {"execution_state": "not_completed"}
+    status_path = output / "results/status.json"
+    status_receipt = output / "results/status.receipt.json"
+    if status_path.is_file() or status_receipt.is_file():
+        raw_status = status_path.read_bytes() if status_path.is_file() else None
+        error = "missing_retained_status_record" if raw_status is None else (
+            receipt_error(raw_status, status_receipt, "status"))
+        status = {"execution_state": "unverified", "evaluation_error": error,
+                  "expected_trials": len(plan["schedule"]), "recorded_trials": None,
+                  "observed_tokens": None, "stop_reason": None, "client_runtime": None}
+        if error is None:
+            status = json.loads(raw_status)
     result = {
         "mode": plan["mode"], "skill": plan["skill"],
         "plan_sha256": sha256(output / "plan/freeze.json"),
@@ -415,8 +453,7 @@ def report(output: Path) -> dict:
             "fix", "regression", "unchanged_correct", "unchanged_incorrect", "missing_pair",
             "inconclusive")},
         "discovery": discovery, "discovery_conditions": condition_summary(discovery),
-        "status": read_json(output / "results/status.json")
-        if (output / "results/status.json").is_file() else {"execution_state": "not_completed"},
+        "status": status,
         "claim": "Pipeline results only; fixed-output offline clients do not establish "
         "skill efficacy. Discovery is separate. Unknown usage and cost remain unknown.",
     }
@@ -436,6 +473,8 @@ def markdown(result: dict) -> str:
                      + (f"`{bundle['revision']}`" if bundle else "absent") + " |")
     lines += ["", "Shared model/settings: `" + json.dumps(result["model"], sort_keys=True) + "`",
               "", "Execution limits: `" + json.dumps(result["limits"], sort_keys=True) + "`",
+              "", "Execution status/client runtime: `"
+              + json.dumps(result["status"], sort_keys=True) + "`",
               "", "Frozen exam hashes: `" + json.dumps(result["exam"], sort_keys=True) + "`",
               "", f"Identical bundle: {result['same_bundle']}", "",
               "Counts: `" + json.dumps(result["counts"], sort_keys=True) + "`", "",

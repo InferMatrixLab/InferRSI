@@ -4,10 +4,11 @@ import os
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import pytest
 
-from inferrsi.infra.artifacts import write_json
+from inferrsi.infra.artifacts import sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, RevisionConflict
 from tests.fixtures.skill_eval_compare_support import (
     ROOT,
@@ -107,6 +108,105 @@ def test_budget_stops_leave_missing_sides_and_unknown_usage(tmp_path):
     assert result["pairs"][0]["baseline"]["output"] is not None
     assert result["pairs"][0]["candidate"]["missing"] is True
     assert result["pairs"][1]["baseline"]["missing"] is True
+
+
+def test_run_status_receipt_rejects_changed_completion_and_budget_fields(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",), token_stop_new_trials=1)
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path, {("one", "baseline"): "partial_usage"})
+    original = compare.execute(output, authorization, client=client)
+    assert original["status"]["execution_state"] == "stopped"
+    assert original["status"]["stop_reason"] == "token_budget"
+    assert original["status"]["client_runtime"]["version"] is None
+    path, receipt = output / "results/status.json", output / "results/status.receipt.json"
+    record, proof = path.read_bytes(), receipt.read_bytes()
+    saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
+    edits = {"execution_state": "completed", "recorded_trials": 2, "expected_trials": 99,
+             "stop_reason": None, "observed_tokens": 0,
+             "client_runtime": {"version": "fabricated"}}
+    mutations = [json.dumps({**json.loads(record), key: value}).encode()
+                 for key, value in edits.items()]
+    mutations += [json.dumps(edits).encode(), b"{broken", b"null"]
+    for mutation in mutations:
+        path.write_bytes(mutation)
+        result = compare.report(output)
+        status = result["status"]
+        assert status["execution_state"] == "unverified"
+        assert status["evaluation_error"] == "retained_status_record_hash_mismatch"
+        assert status["expected_trials"] == 2
+        assert all(status[key] is None for key in (
+            "recorded_trials", "observed_tokens", "stop_reason", "client_runtime"))
+        assert result["pairs"] == original["pairs"]
+        assert path.read_bytes() == mutation and receipt.read_bytes() == proof
+        assert compare.report(output) == result
+        path.write_bytes(record)
+        assert compare.report(output) == original
+        assert saved == ((output / "report.json").read_bytes(), (output / "report.md").read_bytes())
+    for mutation, error in ((None, "missing_retained_status_receipt"),
+                            (b"{broken", "invalid_retained_status_receipt")):
+        if mutation is None:
+            receipt.unlink()
+        else:
+            receipt.write_bytes(mutation)
+        assert compare.report(output)["status"]["evaluation_error"] == error
+        assert path.read_bytes() == record
+        receipt.write_bytes(proof)
+        assert compare.report(output) == original
+    path.unlink()
+    status = compare.report(output)["status"]
+    assert status["execution_state"] == "unverified"
+    assert status["evaluation_error"] == "missing_retained_status_record"
+    assert status["recorded_trials"] is None and status["observed_tokens"] is None
+    path.write_bytes(record)
+    assert compare.report(output) == original
+    assert len(client.calls) == 1
+
+
+def test_real_client_runtime_resolution_only_probes_version_without_models(tmp_path):
+    client = compare.CodexClient("never-called", "test", 60, sys.executable)
+    resolved, runtime = compare.resolve_client(client)
+    assert resolved.executable == str(Path(sys.executable).resolve())
+    assert runtime["executable"] == os.path.basename(resolved.executable)
+    assert runtime["executable_sha256"] == sha256(Path(resolved.executable))
+    assert sys.version.split()[0] in runtime["version"]
+    assert runtime["implementation"].endswith(".CodexClient")
+    # Isolate relative PATH lookup in a real child process without changing the test host.
+    script = tmp_path / "runtime.py"
+    script.write_text(
+        "import json, sys\n"
+        "from tools.skill_eval_compare import CodexClient, resolve_client\n"
+        "client, runtime = resolve_client(CodexClient('never-called', 'test', 60, sys.argv[1]))\n"
+        "print(json.dumps({'executable': client.executable, 'runtime': runtime}))\n",
+        encoding="utf-8",
+    )
+    environment = {**os.environ, "PATH": ".",
+                   "PYTHONPATH": os.pathsep.join((str(ROOT), str(ROOT / "src")))}
+    observed = json.loads(subprocess.check_output(
+        (sys.executable, str(script), os.path.basename(sys.executable)),
+        cwd=Path(sys.executable).parent, env=environment, text=True,
+    ))
+    assert observed["executable"] == resolved.executable
+    assert observed["runtime"] == runtime
+
+
+def test_executable_snapshot_entries_are_rejected_instead_of_losing_modes(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",))
+    raw = json.loads(config.read_text())
+    candidate = raw["snapshots"]["candidate"]["git_revision"]
+    resource = "library/selected/resource.txt"
+    git(repo, "update-index", "--chmod=+x", resource)
+    git(repo, "commit", "--quiet", "-m", "Fixture executable resource")
+    executable = git(repo, "rev-parse", "HEAD")
+    assert git(repo, "rev-parse", executable + ":" + resource) == (
+        git(repo, "rev-parse", candidate + ":" + resource))
+    for role in compare.ROLES:
+        changed = {**raw, "snapshots": {**raw["snapshots"], role: {"git_revision": executable}}}
+        write_json(config, changed)
+        output = tmp_path / role
+        with pytest.raises(ValueError, match="Executable snapshot entries are not supported"):
+            compare.prepare(config, repo, output)
+        assert list((output / "results").iterdir()) == []
 
 
 @pytest.mark.parametrize("failure,error", [("timeout", "agent_timeout"),

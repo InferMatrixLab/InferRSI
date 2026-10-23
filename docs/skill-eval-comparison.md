@@ -51,6 +51,9 @@ Git's [`--no-replace-objects`](https://git-scm.com/docs/git#Documentation/git.tx
 The retained bundles include the full body, owner-local resources and declared
 references/dependencies. `reader.read(..., revision=...)` checks those bytes;
 it never retrieves a historical Git version.
+This entry point accepts regular non-executable Git blobs only. Executable
+entries (`100755`), symlinks and submodules are rejected during preparation;
+their semantics must not be silently changed by byte-only bundle export.
 
 In addition mode, the baseline workspace contains only `task.json`, even if the
 source revision itself contains the target skill. That baseline commit may also
@@ -104,6 +107,13 @@ and elapsed time bound the run. The token threshold stops new trials using
 observed usage; it is not a provider-side hard token or monetary cap, and one
 trial can cross it. Missing/partial usage and monetary cost remain unknown.
 An execution failure stops new trials and retains the remaining missing sides.
+Before starting a real trial, execution resolves the configured client executable,
+probes its version without a model call, and uses that resolved executable for
+every trial. Execution evidence records its full command path locally; JSON and
+Markdown reports expose its basename, SHA-256 and version. An unavailable client
+or failed version probe fails before starting trials. Injected offline clients
+are identified by their implementation class; unavailable executable/version
+metadata remains null.
 
 `CodexClient` disables global/bundled skills, apps, plugins, memories and web,
 and creates fresh sessions. Its controlled exposure is not OS read confinement.
@@ -152,6 +162,12 @@ assertions or usage, even when its answer and grader files are unchanged.
 Report regeneration leaves the original record and receipt untouched.
 These local checks detect missing or changed artifacts; they are not signatures
 against coordinated modification of both an artifact and its recorded hash.
+The final run status has its own `results/status.receipt.json`. Reporting checks
+it before using completion, trial counts, stop reason, observed tokens or client
+runtime. Missing/invalid proof or changed status bytes produce an `unverified`
+status with unknown completion/budget fields, while individually verified trial
+grades remain available. Neither report regeneration nor integrity checking
+invokes the client or grader.
 
 `report.json` and `report.md` retain revisions, settings, limits, source/resource
 changes, case outputs, grading assertions and relative evidence links. Raw
