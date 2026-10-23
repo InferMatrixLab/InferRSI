@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.diffusers_invocation_state",
+  "title": "diffusers-invocation-state",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption produce unexpected schedules or retained request state; scoped to FluxPipeline and FlowMatchEulerDiscreteScheduler source evidence.",
+  "tags": [
+    "diffusers",
+    "flux",
+    "scheduler",
+    "state-ownership",
+    "interruption"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+        "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json",
+        "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md",
+        "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md",
+        "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "e106650ca07dc42a98dea679c681e02f440411d25a131e081093404254154958"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md"
+  },
+  "checkout_ref": "checkout:diffusers-invocation-state",
+  "source_files": {
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "e106650ca07dc42a98dea679c681e02f440411d25a131e081093404254154958",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "a50b84089c98d81aad9feb8d00321ab2ccae360c9a4aa3b4b348b6f429e1fea2",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "diffusers-invocation-state",
+    "description": "Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption produce unexpected schedules or retained request state; scoped to FluxPipeline and FlowMatchEulerDiscreteScheduler source evidence.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "license": "Apache-2.0",
+    "tags": [
+      "diffusers",
+      "flux",
+      "scheduler",
+      "state-ownership",
+      "interruption"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/huggingface/diffusers",
+        "commit": "aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e",
+        "paths": [
+          "src/diffusers/pipelines/pipeline_utils.py",
+          "src/diffusers/pipelines/flux/pipeline_flux.py",
+          "src/diffusers/schedulers/scheduling_flow_match_euler_discrete.py",
+          "tests/pipelines/flux/test_pipeline_flux.py",
+          "setup.py",
+          "LICENSE"
+        ],
+        "readset": "references/source-map.md"
+      }
+    ],
+    "applicability": {
+      "scope": "FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin; inspect the actual caller contract."
+    },
+    "limitations": [
+      "Source-derived candidate; no installed API, native scheduler, model, concurrency or service validation.",
+      "Supplied manifest verifies a selected pipeline_utils Git blob, not the whole source tree.",
+      "Other pipelines and schedulers require separate contracts; common indexing is not backend qualification."
+    ],
+    "provenance_readsets": [
+      "references/source-map.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin; inspect the actual caller contract."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no installed API, native scheduler, model, concurrency or service validation.",
+    "Supplied manifest verifies a selected pipeline_utils Git blob, not the whole source tree.",
+    "Other pipelines and schedulers require separate contracts; common indexing is not backend qualification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

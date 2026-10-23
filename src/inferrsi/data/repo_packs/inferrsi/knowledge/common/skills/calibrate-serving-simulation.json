@@ -1,0 +1,96 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.calibrate_serving_simulation",
+  "title": "calibrate-serving-simulation",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Build an evidence-gated serving-configuration shortlist from a profiled simulator while separating empirical predictions from physical bounds and near-capacity queueing risk.",
+  "tags": [],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json",
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/calibrate-serving-simulation/SKILL.md"
+  },
+  "checkout_ref": "checkout:calibrate-serving-simulation",
+  "source_files": {
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "553406b95177a38d73ea6f305c30f361765a437dfe8cfec86c26d4c00e1ac41c",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "calibrate-serving-simulation",
+    "description": "Build an evidence-gated serving-configuration shortlist from a profiled simulator while separating empirical predictions from physical bounds and near-capacity queueing risk.",
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "source_pack": "A",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "paper",
+        "id": "arxiv:2405.05465",
+        "version": "v2",
+        "url": "https://arxiv.org/abs/2405.05465v2",
+        "sections": [
+          "3-7",
+          "A.1-A.2"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

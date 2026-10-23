@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.performance_ceiling_analysis",
+  "title": "performance-ceiling-analysis",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use when asked whether a target speedup is worth pursuing, or to identify the binding bottleneck.\n",
+  "tags": [
+    "performance",
+    "roofline",
+    "profiling",
+    "bottleneck",
+    "inference"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/README.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/READSET.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/STATIC_CHECKS.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/agentic-kernel.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/vidur.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "3a4d5e6146286bf07407b75f0bd9d8957c589817ae8f0eece26123231eafa0ec"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/performance-ceiling-analysis/SKILL.md"
+  },
+  "checkout_ref": "checkout:performance-ceiling-analysis",
+  "source_files": {
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "3a4d5e6146286bf07407b75f0bd9d8957c589817ae8f0eece26123231eafa0ec",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "87f9fc598b384e17f1fdf1d12f29230ba7eb85fbe4efb0b446b6c01a2e7302ea",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/README.md": "17b2d1c7c14124d59ac8a0d5ad4200ad2803d991e784a1a98cd97188cc364999",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/READSET.md": "66459ce393858b2b2160f1e2973373bfc4b9902a12644631934b4ebe3140296a",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/STATIC_CHECKS.md": "cb0aa7d148352ebb7b1678fc42a557a099575054716a341dfa25b6a998029064",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/cases/decision-cases.md": "781a675a6533e0a18c044aaaee0d010da7013b6504654b8b8292a35176db801e",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/procedure.md": "ce036a4d8a0908da204515c47e2ff9623548d09de264fa65bd58fedce52a78a0",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/govern-optimization-experiments/references/source-notes.md": "f9a8254e45473ddb2b73e576957b6d3db83c62b99dff1922f4d1e606e569559e",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md": "5780d6eb5257612ec45deb94f85f334a6ecabf7e466d1678706041f6549bda79",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md": "6593a63fce9c474b515663a560c94b7df048dc5f6e77a95b8e54e4a64cd10a09",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md": "6ff3a7bc31f1172db92aedaf7df1f1aac688bf769227b583a4cd82bfad52da67",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/agentic-kernel.md": "7190573b85f94a4391bb0d887ccbd37a31b3f08bb0531114ad7afd72fe1567a7",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md": "3926369acd88ff3c370bee5718e74dd15f3219c3e4f6311095e30e917bffa4cf",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md": "35d47ac078591221fcb666219bcd824f9400fc17aafecdc0499d8336f7178238",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "performance-ceiling-analysis",
+    "description": "Estimate optimization headroom before modifying an inference system. Produces a three-level ceiling model (analytical, empirical component, end-to-end) and a prioritized measurement plan. Use when asked whether a target speedup is worth pursuing, or to identify the binding bottleneck.\n",
+    "schema_version": 1,
+    "status": "candidate",
+    "sources": [
+      {
+        "url": "https://github.com/NVIDIA/TensorRT-LLM",
+        "commit": "f33e0e5fd55b",
+        "paths": [
+          ".claude/skills/perf-analysis/SKILL.md",
+          ".claude/skills/perf-nsight-compute-analysis/references/roofline-analysis.md",
+          ".claude/skills/perf-workload-profiling/SKILL.md",
+          ".claude/skills/perf-optimization/SKILL.md",
+          ".claude/skills/perf-optimization-casebook/SKILL.md",
+          ".claude/skills/exec-env-check/SKILL.md",
+          ".claude/skills/exec-remote-slurm/SKILL.md",
+          ".claude/agents/perf-profiling-specialist.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/hahnyuan/LLM-Viewer",
+        "commit": "1893e4b5705d",
+        "paths": [
+          "roofline_model.py",
+          "model_analyzer.py",
+          "hardwares/hardware_params.py",
+          "configs/DiT.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/ebugger/Empirical-Roofline-Toolkit",
+        "commit": "0771fa9621d0",
+        "paths": [
+          "Empirical_Roofline_Tool-1.1.0/README.md",
+          "Empirical_Roofline_Tool-1.1.0/Drivers/driver1.c",
+          "Empirical_Roofline_Tool-1.1.0/Kernels/kernel1.c",
+          "Empirical_Roofline_Tool-1.1.0/Scripts/roofline.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "source_grounded",
+      "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. No local accelerator measurements or automatic calculator."
+    },
+    "applicability": {
+      "scope": "inference serving systems (LLM, diffusion, audio)",
+      "hardware": "any; CUDA examples from sources, NPU adaptation required",
+      "prerequisites": "profiler access (nsys/ncu or NPU equivalent), or willingness to work at L1 analytical only"
+    },
+    "tags": [
+      "performance",
+      "roofline",
+      "profiling",
+      "bottleneck",
+      "inference"
+    ],
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation."
+    ],
+    "provenance_readsets": [
+      "references/papers-20261015/cases/decision-cases.md",
+      "references/papers-20261015/govern-optimization-experiments/procedure.md",
+      "references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
+      "references/papers-20261015/INTEGRATION_NOTES.md",
+      "references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
+      "references/papers-20261015/MECHANISMS.md",
+      "references/papers-20261015/README.md",
+      "references/papers-20261015/READSET.md",
+      "references/papers-20261015/redirect-cross-layer-optimization/procedure.md",
+      "references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
+      "references/papers-20261015/references/agentic-kernel.md",
+      "references/papers-20261015/references/flashvector.md",
+      "references/papers-20261015/references/inferencebench.md",
+      "references/papers-20261015/references/prior-coverage.md",
+      "references/papers-20261015/references/vidur.md",
+      "references/papers-20261015/STATIC_CHECKS.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "inference serving systems (LLM, diffusion, audio)",
+    "hardware": "any; CUDA examples from sources, NPU adaptation required",
+    "prerequisites": "profiler access (nsys/ncu or NPU equivalent), or willingness to work at L1 analytical only"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

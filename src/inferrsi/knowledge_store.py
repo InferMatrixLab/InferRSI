@@ -40,7 +40,7 @@ class KnowledgeStore:
     store candidate cannot shadow them. Repository-owned amendments use PRs.
     """
 
-    def __init__(self, workspace: Path, *, skill_root: Path | None):
+    def __init__(self, workspace: Path, *, skill_root: Path | None, read_only: bool = False):
         # The caller authorizes an existing dedicated directory; none is created or guessed.
         workspace = Path(workspace)
         if workspace.is_symlink() or not workspace.is_dir():
@@ -51,9 +51,16 @@ class KnowledgeStore:
                 raise ValueError(f"Store workspace must be outside read-only sources: {root}")
         self.skill_root = Path(skill_root).resolve() if skill_root is not None else None
         self.adapters = KnowledgeReader(skill_root=self.skill_root)
+        self.read_only = read_only
         self.database = self.workspace / "knowledge.sqlite3"
         if self.database.is_symlink():
             raise ValueError("Store database cannot be a symlink")
+        if read_only:
+            # Reading an existing store must not create or migrate anything.
+            if not self.database.is_file():
+                raise ValueError(f"Read-only store requires an existing database: {self.database}")
+            self._verify_reserved_skill_root()
+            return
         with closing(self._connect()) as connection, connection:
             connection.executescript(
                 "CREATE TABLE IF NOT EXISTS revisions ("
@@ -66,12 +73,53 @@ class KnowledgeStore:
                 "FOREIGN KEY (id, revision) REFERENCES revisions(id, revision));"
                 "CREATE TABLE IF NOT EXISTS current (id TEXT PRIMARY KEY, revision TEXT NOT NULL, "
                 "FOREIGN KEY (id, revision) REFERENCES revisions(id, revision));"
+                "CREATE TABLE IF NOT EXISTS meta ("
+                "key TEXT PRIMARY KEY, value TEXT NOT NULL);"
+            )
+            reserved = connection.execute(
+                "SELECT value FROM meta WHERE key='skill_root'"
+            ).fetchone()
+            if reserved is None:
+                connection.execute(
+                    "INSERT INTO meta VALUES ('skill_root', ?)", (self._reserved_skill_root(),)
+                )
+            elif reserved[0] != self._reserved_skill_root():
+                raise ValueError(
+                    f"Store reserves the skills checkout {reserved[0] or 'package-only'}; "
+                    "reopen it with the same skill_root"
+                )
+
+    def _reserved_skill_root(self) -> str:
+        # The reserved checkout is recorded so later opens cannot silently drop it;
+        # an empty value records a package-only store.
+        return str(self.skill_root) if self.skill_root is not None else ""
+
+    def _verify_reserved_skill_root(self) -> None:
+        # Stores created before reservation recording have no meta row and stay usable.
+        with closing(self._connect()) as connection:
+            present = connection.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name='meta'"
+            ).fetchone()
+            reserved = (
+                connection.execute("SELECT value FROM meta WHERE key='skill_root'").fetchone()
+                if present
+                else None
+            )
+        if reserved is not None and reserved[0] != self._reserved_skill_root():
+            raise ValueError(
+                f"Store reserves the skills checkout {reserved[0] or 'package-only'}; "
+                "open it with the same --skill-root, or without one for a package-only store"
             )
 
     def _connect(self):
         if self.database.is_symlink() or self.database.resolve().parent != self.workspace:
             raise ValueError("Store database escapes the authorized workspace")
-        connection = sqlite3.connect(self.database, timeout=5)
+        if self.read_only:
+            # mode=ro fails every write at the SQLite level; as_uri() percent-encodes
+            # spaces and non-ASCII so the file: URI stays valid on Windows too.
+            connection = sqlite3.connect(self.database.as_uri() + "?mode=ro", uri=True, timeout=5)
+        else:
+            connection = sqlite3.connect(self.database, timeout=5)
         connection.execute("PRAGMA foreign_keys=ON")
         return connection
 
@@ -86,9 +134,13 @@ class KnowledgeStore:
         return self.reader().collect(query, **options)
 
     def create(self, bundle: Bundle) -> str:
+        if self.read_only:
+            raise ValueError("Store is read-only; create requires a writable store")
         return self._publish(bundle, expected=None, reason="create", evidence=[])
 
     def update(self, bundle: Bundle, *, expected: str, reason: str, evidence: list[dict]) -> str:
+        if self.read_only:
+            raise ValueError("Store is read-only; update requires a writable store")
         if not expected or not reason.strip():
             raise ValueError("Update requires expected old revision and reason")
         if not isinstance(evidence, list):

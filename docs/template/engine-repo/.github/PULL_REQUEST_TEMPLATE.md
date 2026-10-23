@@ -15,6 +15,8 @@ needed. Link the governing task/acceptance issue here, rather than in commits.
 - Not-run, failed or skipped checks and why:
 - Target hardware/model/quality/E2E validation still required:
 - Source/brand/license attribution and link checks:
+- README architecture matches the implementation; optimization figure, source
+  data and evidence mapping agree, with illustrative/unmeasured status explicit:
 - Risks, dependencies and follow-up:
 
 ## Review and completion

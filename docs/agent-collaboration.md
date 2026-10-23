@@ -99,13 +99,85 @@ sequenceDiagram
 3. **Evidence:** link checks to actual checked content and relevant environment/test definitions. Distinguish passed, failed, cancelled, skipped, timed-out and not-run. H/B/T—reviewed head, assessed base, tested content—may come from existing records, not mandatory worksheets.
 4. **Refresh:** reassess affected evidence after relevant head/base/content/environment/check changes. Refresh checks or explain continued applicability. Neither blanket reuse nor full hardware reruns is the default; changed hashes alone prove neither content change nor equivalence.
 5. **Handoff:** only for an actual transfer or accepted decision change, record the delta, recipient and next action. Keep acceptance status/link, communication status and application status separate. "Applied" needs artifact/evidence; otherwise retain pending or unknown. No full conversation traces or new ledger.
-6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use non-closing `Refs #N` until closure is authorized. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/InferRSI/issues/17) are optional; no automatic promotion.
+6. **Completion:** merged PR ≠ accepted goal ≠ campaign `PASS` ≠ release. Use non-closing `Refs #N` until closure is authorized. Subtasks cannot implicitly close a parent goal. Knowledge proposals to [#17](https://github.com/InferMatrixLab/InferRSI/issues/17) are optional; no automatic promotion. Before an authorized closure, publish a closure summary card ([closure summaries](#closure-summaries)).
+
+## Closure summaries
+
+Before an authorized closure, the accountable parent publishes one closure comment
+on the Issue: a compact visual summary of what changed and what was accepted, so a
+human understands the outcome without reconstructing every PR. The Issue owner
+summarizes the whole Issue across delivery PRs; PRs may carry slice-level summaries
+but need not duplicate a full issue card.
+
+One focused diagram plus three short entries:
+
+| Entry | Required content |
+| --- | --- |
+| Delivered | Actual scope, relevant PRs, accepted revision |
+| Verified | Tests/experiments actually completed and evidence links |
+| Limits | Untested, unsupported or deferred scope; distinguish unknown from PASS |
+
+Use the diagram that fits the work; do not force one architecture onto every task:
+
+| Task | Preferred visual |
+| --- | --- |
+| Feature | Before / after capability or user workflow |
+| Bug fix | Trigger and faulty path vs corrected path |
+| Refactor / code change | Changed modules, interfaces or data flow; label additions/modifications/removals |
+| Knowledge delivery | Pinned sources → reused/new assets → discovery/access, with validation state |
+| Investigation / negative result | Question → evidence → conclusion and limits |
+| Duplicate / cancelled / not planned | Disposition and destination; do not invent a delivered change |
+
+Default to GitHub-renderable Mermaid, about 4–7 meaningful boxes, consistent
+abstraction levels and short labels. A code-change diagram is not a screenshot of a
+large textual diff; link the actual diff. File counts and lines changed are not
+evidence of value. The card summarizes evidence; it does not replace or upgrade it.
+Keep the full acceptance record in a collapsible `<details>` section, with exact
+revisions and stated limitations preserved.
+
+Reusable closure-comment template:
+
+````markdown
+### <Accepted / Disposition>: <title>
+
+```mermaid
+flowchart LR
+    A["Before"] --> B["Delivered change"]
+    B --> C["Verified outcome"]
+    B -.-> D["Remaining limits"]
+```
+
+- **Delivered:** actual scope, relevant PRs, accepted revision.
+- **Verified:** tests/experiments actually completed, with evidence links.
+- **Limits:** untested, unsupported or deferred scope; distinguish unknown from PASS.
+
+<details><summary>Full acceptance record</summary>
+
+Exact revisions, acceptance scope, preserved limitations and follow-ups.
+
+</details>
+````
+
+Examples: [functional change and scoped acceptance (#40)](https://github.com/InferMatrixLab/InferRSI/issues/40#issuecomment-6330534277) and [knowledge delivery with preserved validation limits (#48)](https://github.com/InferMatrixLab/InferRSI/issues/48#issuecomment-6330592855).
+
+Non-delivery closures (duplicate, cancelled, not planned) keep the same entries but
+record disposition and destination instead of a delivered change. Illustrative card:
+
+```mermaid
+flowchart LR
+    A["Duplicate report"] --> B["Canonical issue #N"]
+    B --> C["Closed as duplicate"]
+```
+
+- **Delivered:** none.
+- **Verified:** overlap with the canonical issue confirmed by the acceptance owner.
+- **Limits:** none applicable.
 
 ## Records
 
 - **Issue:** goal/criteria; scope; accountable account and parent agent if assigned; acting contributor if known; acceptance/delegation link; completion/closure owner. Unknown fields may remain TBD while proposed. Ordinary work starts from the [scoped-task template](../.github/ISSUE_TEMPLATE/scoped-task.md); baseline-vs-candidate campaigns use the [campaign acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml).
 - **PR:** governing Issue; delivered artifacts; checks/results/limitations; dependencies and gaps. Add requirement-to-artifact mapping only when useful, and handoff fields only when applicable. No author-prefilled independent approval. Start from the [PR template](../.github/PULL_REQUEST_TEMPLATE.md).
-- **Commit:** short descriptive subject; why/what when useful. Keep governing Issue references out of commit subjects, bodies and trailers — the PR body carries them. Preserve author identity and the required DCO sign-off (`git commit -s`); never invent a signing identity. Agent-assisted commits identify material agent contributors with `Agent-assisted-by: <actual agent name> (<role>)` trailers; repeat for multiple contributors and retain attribution when squashing. A known model/version is optional. The trailer is self-reported provenance, not cryptographic signing, independent review or approval; review attribution belongs on the revision-scoped review record.
+- **Commit:** short descriptive subject; why/what when useful. Keep governing Issue references out of commit subjects, bodies and trailers — the PR body carries them. Preserve author identity and the required DCO sign-off (`git commit -s`); never invent a signing identity. Agent-assisted commits identify material agent contributors with `Agent-assisted-by: <actual agent name> (<role>)` trailers; repeat for multiple contributors and retain attribution when squashing. Protected knowledge contributions require the [current-head knowledge declaration](knowledge-model-policy.md) and use `Agent-assisted-by: <tool> / <model-id> [effort=<level>] (<role>)` when known. Unknown values stay truthful and do not satisfy admission; model/version remains optional for other work. The trailer is self-reported provenance, not cryptographic signing, independent review or approval; review attribution belongs on the revision-scoped review record.
 - **Squash merge:** the required integration method. Before an authorized merge, prepare a concise squash message: subject plus a short summary, no governing Issue references, no redundant intermediate-commit messages; preserve the required DCO sign-off and material `Agent-assisted-by` attribution. Never invent identities or sign-offs.
 
 Labels document coordination intent; they do not grant it. Reuse existing labels

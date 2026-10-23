@@ -1,0 +1,19 @@
+{
+  "report_verdict": "FAIL",
+  "latency_reduction_pct": 28.86446592032322,
+  "findings": ["quality_failed"],
+  "claim_scope": "none",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成，FAIL 是被审计报告的验收结论。两组 C1 工作负载一致；每轮请求均值的中位数分别为 374.170214 ms 和 266.167980 ms，降幅为 (基线−候选)/基线×100%=28.864466%，超过 20% 门槛。相对极差分别为 4.04% 和 3.32%，均低于 12%；15 个请求全部报告且无失败。但候选质量明确失败，因此未通过完整验收，claim_scope 为 none。技能 inference-benchmark-design 的 Statistical requirements 节指导中位数及极差计算，What a benchmark cannot prove 节约束外推；具体门槛以冻结合同为准。最小下一步：修复质量问题，再按相同固定工作负载复验质量与延迟。"
+}

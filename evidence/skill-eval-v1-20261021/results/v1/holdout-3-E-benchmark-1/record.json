@@ -1,0 +1,41 @@
+{
+  "task_id": "holdout-3",
+  "condition": "E-benchmark",
+  "repeat": 1,
+  "execution_state": "interrupted",
+  "verdict": "INCONCLUSIVE",
+  "checks": null,
+  "elapsed_seconds": null,
+  "activation_observation": "unknown",
+  "declared_exposure_bundles": [
+    {
+      "id": "inference-benchmark-design",
+      "revision": "sha256:54184fe055e1f072ca8c311eb8571ef54d458a25be86671d9af06b55f0bf845a",
+      "entrypoint": "methods/inference-benchmark-design/SKILL.md",
+      "resources": {
+        "methods/inference-benchmark-design/SKILL.md": "dcaa6d7bdcbe4c29116b9679d95ec076faaada3e66c647e95acdd46c2343a2eb",
+        "methods/inference-benchmark-design/metadata.json": "1e04bcca099b0cdbcbdfd8e9c88b47c1accb656cb5317ccb7a929fcacb0a0d87",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+      },
+      "dependencies": {
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "sha256:755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "sha256:41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+      }
+    }
+  ],
+  "observations": {
+    "usage": null,
+    "completed_turns": 0,
+    "errors": [
+      "interrupted_attempt"
+    ],
+    "commands": []
+  },
+  "publication": {
+    "original_result_sha256": "f8fd5726972e1f3003abf86faac16faedbc12df3202a9de1bb35657a940e9aab",
+    "original_events_sha256": "67a79a95350d5d9d4739868e879956c103b2428d7342428d62c7f60118dbd187",
+    "omitted": "Raw service/session events, host argv/paths and process identifiers. Command outputs are explicitly truncated excerpts; private originals retained.",
+    "task_reconstruction": "From frozen tasks and controller R transformations; matches recorded input SHA-256 when available."
+  }
+}

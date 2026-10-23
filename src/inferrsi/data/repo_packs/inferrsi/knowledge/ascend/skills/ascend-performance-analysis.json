@@ -1,0 +1,132 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.ascend_performance_analysis",
+  "title": "ascend-performance-analysis",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines and evidence acceptance for automated NPU optimization stages. Use when profiling data is available or a stage report needs its execution and validation evidence checked.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "profiling",
+    "performance",
+    "cann"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md"
+  },
+  "checkout_ref": "checkout:ascend-performance-analysis",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "dccbc404b18cb7ec46b0cfa85d8937e2626456526bd2453db8136f730debd456",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "ascend-performance-analysis",
+    "description": "Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines and evidence acceptance for automated NPU optimization stages. Use when profiling data is available or a stage report needs its execution and validation evidence checked.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "profiling",
+      "performance",
+      "cann"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://gitcode.com/cann/cannbot",
+        "commit": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          ".gitmodules",
+          "plugins-official/LICENSE",
+          "plugins-official/README.md",
+          "plugins-official/model-infer-optimize/.claude-plugin/plugin.json",
+          "plugins-official/model-infer-optimize/.codex-plugin/plugin.json",
+          "plugins-official/model-infer-optimize/AGENTS.md",
+          "plugins-official/model-infer-optimize/plugin-sources.json",
+          "plugins-official/model-infer-optimize/plugin-install.json",
+          "plugins-official/model-infer-optimize/workflows/optimize-workflow.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-analyzer.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-implementer.md",
+          "plugins-official/model-infer-optimize/agents/model-infer-reviewer.md",
+          "plugins-official/model-infer-optimize/hooks/hooks.json",
+          "plugins-official/model-infer-optimize/hooks/pre_tool_use.py",
+          "plugins-official/model-infer-optimize/hooks/post_tool_use.py",
+          "plugins-official/model-infer-optimize/hooks/subagent_stop.py",
+          "plugins-official/model-infer-optimize/workflows/scripts/archive_progress.py"
+        ],
+        "readset": "references/cannbot-stage-evidence.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Only the incremental canonical CannBot fixed-stage evidence boundary is normalized; inherited MindIE-SD guidance remains unchanged.",
+      "CannBot callback predicates do not establish numerical accuracy or performance; dependent skills, agent-host integration and NPU execution are unverified."
+    ],
+    "provenance_readsets": [
+      "references/cannbot-stage-evidence.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "Only the incremental canonical CannBot fixed-stage evidence boundary is normalized; inherited MindIE-SD guidance remains unchanged.",
+    "CannBot callback predicates do not establish numerical accuracy or performance; dependent skills, agent-host integration and NPU execution are unverified."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

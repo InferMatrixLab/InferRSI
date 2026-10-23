@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.cann_attribution_overlap",
+  "title": "cann-attribution-overlap",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Attribute NPU trace kernels to model source and plan bounded multistream overlap: select a representative step, map kernels to source owners via code_ref, build the module/operator dependency DAG (data, state, event, collective-order edges), classify serial/candidate/pending groups, choose minimal-first overlap with an explicit execution-mode synchronization contract, and accept only through correctness-first checks. Keeps the !302 import lineage distinct from later revisions, carries known formula/threshold conflicts as unresolved, and qualifies memory evidence by domain (device HBM/UB counters are not host RAM). Planning procedure only — no formula automation for disputed definitions.\n",
+  "tags": [
+    "cann",
+    "npu",
+    "attribution",
+    "dependency-dag",
+    "multistream",
+    "overlap",
+    "trace"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "0e6f094dc554abea12e07def50f20b233b47127779a8aefad595b4ab1efd24c2"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md"
+  },
+  "checkout_ref": "checkout:cann-attribution-overlap",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md": "0e6f094dc554abea12e07def50f20b233b47127779a8aefad595b4ab1efd24c2",
+    "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json": "64b83aae3b9be5ada75e6111114a93bf55173d9df913b4ea8bafd2b4cea23018",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "cann-attribution-overlap",
+    "description": "Attribute NPU trace kernels to model source and plan bounded multistream overlap: select a representative step, map kernels to source owners via code_ref, build the module/operator dependency DAG (data, state, event, collective-order edges), classify serial/candidate/pending groups, choose minimal-first overlap with an explicit execution-mode synchronization contract, and accept only through correctness-first checks. Keeps the !302 import lineage distinct from later revisions, carries known formula/threshold conflicts as unresolved, and qualifies memory evidence by domain (device HBM/UB counters are not host RAM). Planning procedure only — no formula automation for disputed definitions.\n",
+    "tags": [
+      "cann",
+      "npu",
+      "attribution",
+      "dependency-dag",
+      "multistream",
+      "overlap",
+      "trace"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

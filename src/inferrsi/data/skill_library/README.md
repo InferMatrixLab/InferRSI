@@ -1,66 +1,132 @@
-# Inference-engine knowledge / 推理引擎知识库
+# InferRSI skill library
 
-Source-grounded English and Chinese knowledge for five repositories, distilled
-with the [AREX direct workflow](https://github.com/VectorSpaceLab/AREX-Skill/tree/ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6).
-Each repository has an entry skill and three focused sub-skills. The collection
-router connects all five: **21 skill nodes per language, 42 in total**.
+The English-only library contains **79 skill documents**: 58 registered skills
+and 21 engine and research-router skills. Complete procedures, metadata,
+references, cases and source notices ship with the package.
 
-[English overview](OVERVIEW.en.md) · [中文总览](OVERVIEW.zh-CN.md) ·
-[Import and verification boundaries / 导入与验证边界](IMPORT.md)
+## Browse by owner
 
-| Repository | Focus / 重点 | English | 中文 | CLI catalog |
-| --- | --- | --- | --- | --- |
-| Strata | Heterogeneous MoE, placement, memory and speculative execution / 异构执行与搜索空间 | [Skill](en/strata/SKILL.md) | [Skill](zh-CN/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
-| vLLM | Token scheduling, KV ownership and parallel execution / 调度、缓存与并行 | [Skill](en/vllm/SKILL.md) | [Skill](zh-CN/vllm/SKILL.md) | [Records](../repo_packs/vllm/knowledge/README.md) |
-| SGLang | Radix/HiCache, prefill/decode and extensions / 缓存、运行时与扩展 | [Skill](en/sglang/SKILL.md) | [Skill](zh-CN/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
-| SGLang-Omni | Stage pipelines, streaming and transport / 阶段流水线、流式与传输 | [Skill](en/sglang-omni/SKILL.md) | [Skill](zh-CN/sglang-omni/SKILL.md) | [Records](../repo_packs/sglang_omni/knowledge/README.md) |
-| vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts / 编排、扩散与输出契约 | [Skill](en/vllm-omni/SKILL.md) | [Skill](zh-CN/vllm-omni/SKILL.md) | [Records](../repo_packs/vllm_omni/knowledge/README.md) |
-| Cross-repository router / 总入口 | Constrained engine design and validation / 受约束的设计与验证 | [Skill](en/inference-engine-research/SKILL.md) | [Skill](zh-CN/inference-engine-research/SKILL.md) | — |
+| Directory | Content |
+| --- | --- |
+| [Hardware](hardware/) | Ascend (13 registered skills), CUDA (2) and host resource guidance (5) |
+| [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
+| [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
+| [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
+| [Workflows](workflows/) | Research, acceptance, evidence, source checking and skill lifecycle |
 
-The original Strata design-space analysis is also included in
-[English](STRATA-ANALYSIS.en.md) and [中文](STRATA-ANALYSIS.zh-CN.md).
+Only this README and [`skill-index.json`](skill-index.json) live at the library
+root. Supporting material belongs to its owner's `references/`, `cases/` or
+existing resource directory.
 
-## Use from InferRSI
+## Read registered skills
+
+[`skill-index.json`](skill-index.json) maps 58 stable skill IDs to their canonical
+paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
-inferrsi knowledge search --repo-type strata
-inferrsi knowledge search Radix --repo-type sglang
-inferrsi context --repo-type vllm --backend cuda --scenario llm.serving
-inferrsi context --repo-type sglang_omni --backend cuda
-inferrsi context --repo-type vllm_omni --backend cuda
+inferrsi skills list --json
+inferrsi skills show ascend-graph-mode
+inferrsi skills resource inference-optimization-casebook cases/qwen-ascend-rejected-directions.md
 ```
 
-Named JSON records in `repo_packs/` are the canonical searchable abstracts,
-conditions and validation plans. Their `skill_documents` fields point to the
-detailed bilingual procedures in this library; they are package-relative paths,
-not network downloads. `knowledge show <id>` returns the complete record and
-`context` retains these document pointers. There are no per-record Markdown
-summary copies. Existing backend-scoped experiences keep their original IDs.
+The [generated catalog](../repo_packs/inferrsi/knowledge/README.md) links each
+registered procedure through `skill_documents.original`. Core catalog reads do
+not require the optional YAML parser:
 
-For an installed wheel, locate the library without assuming a checkout path:
+```bash
+inferrsi knowledge search --repo-type inferrsi --backend ascend
+inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
+```
+
+An explicit `inferrsi skills --root <path>` selects a custom flat tree or a
+categorized library with `skill-index.json`. Backend scope does not certify
+device compatibility; readers do not execute helpers or promote candidates.
+
+## Focused llama.cpp runtime audit
+
+The registered [audit-llama-runtime-state](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md)
+candidate separates partial decode progress, frontend graph reuse, backend input readiness
+and server task/slot cancellation. Its pinned source contracts are untested natively;
+loading and host placement remain with their existing owners.
+
+## Engine knowledge
+
+Five repository entry skills, 15 focused sub-skills and one research router
+provide source-grounded procedures. These 21 documents are available through
+the links and catalog records below, separately from the 58-ID registry.
+The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
+these imports and use generated abstracts rather than runtime repository packs.
+
+| Repository | Focus | Entry | Catalog |
+| --- | --- | --- | --- |
+| ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](repositories/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
+| stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
+| h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json) |
+| Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](repositories/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
+| vLLM | Token scheduling, KV ownership and parallel execution | [Skill](repositories/vllm/SKILL.md) | [Records](../repo_packs/vllm/knowledge/README.md) |
+| SGLang | Radix/HiCache, prefill/decode, extensions and a separately pinned [diffusion lifetime candidate](repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | [Skill](repositories/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
+| SGLang-Omni | Stage pipelines, streaming and transport | [Skill](repositories/sglang-omni/SKILL.md) | [Records](../repo_packs/sglang_omni/knowledge/README.md) |
+| vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts | [Skill](repositories/vllm-omni/SKILL.md) | [Records](../repo_packs/vllm_omni/knowledge/README.md) |
+| Research router | Constrained engine design and validation | [Skill](workflows/inference-engine-research/SKILL.md) | — |
+
+See the [collection overview](workflows/inference-engine-research/references/overview.md),
+[import boundaries](workflows/inference-engine-research/references/import.md) and
+[Strata design-space analysis](repositories/strata/references/design-space-analysis.md).
+Catalog records link detailed procedures through `skill_documents.en`;
+`knowledge show` and `context` retain these package-relative pointers.
+
+```bash
+inferrsi knowledge search Radix --repo-type sglang
+inferrsi context --repo-type vllm --backend cuda --scenario llm.serving
+```
+
+For an installed wheel, locate a document without assuming a checkout path:
 
 ```python
 from importlib.resources import files
 library = files("inferrsi").joinpath("data", "skill_library")
-print(library.joinpath("zh-CN", "inference-engine-research", "SKILL.md").read_text(encoding="utf-8"))
+router = library.joinpath("workflows", "inference-engine-research", "SKILL.md")
+print(router.read_text(encoding="utf-8"))
 ```
 
-Load a single repository or follow the router progressively. Copy one language
-edition if installing these as agent skills: both editions use the same skill
-IDs. Keep all six sibling directories for the collection router. InferRSI ships
-the documents and reads catalog JSON; it does not automatically install skills,
-execute their instructions, download models or launch an inference engine.
-
-中文使用方式：先通过 CLI 查找相关知识，再读取 `skill_documents` 指向的完整中文
-Skill。固定源码版本、模型、硬件和负载后再开展实验；文档或 CPU 检查不能证明
-GPU 正确性、模型质量或性能收益。`common` 只表示仓库内通用方法，不代表任意
-后端已经验证。
+Load one repository or follow the router progressively. When copying material,
+retain its owner layout and referenced dependency bundles. Document and CPU
+checks do not establish GPU correctness, model quality or performance gains.
 
 ## Maintain
 
-Keep source revisions and licenses in [source-manifest.json](source-manifest.json)
-and each repository's provenance references. These are research-source snapshots,
-not campaign baseline/candidate defaults. For an update, check changed source
-contracts, update the affected language pair and its catalog abstract together,
-then run catalog, local-link and installed-package checks. Preserve negative
-results and `locally_verified=false` until a separate qualified campaign exists.
+Edit the canonical owner directory. Keep the library in English, preserve source
+notices, negative results, candidate states and unknown-license declarations.
+For registered skills, update `skill-index.json` when paths or backends change
+and regenerate abstracts with `tools/build_skill_index.py`.
+
+For engine knowledge, update the procedure and catalog abstract together and
+retain source revisions and licenses in the
+[source manifest](workflows/inference-engine-research/references/source-manifest.json).
+Source snapshots are research provenance, not campaign defaults. Check local
+links, dependencies, catalog reads and noneditable installed-package access;
+retain `locally_verified=false` until a separate qualified campaign exists.
+
+## MLX framework guidance
+
+[Diagnose MLX evaluation and lifetimes](frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md)
+separates graph construction, cross-stream ordering, backend buffer retention and
+result availability. It is source-derived candidate guidance; CPU, Metal and CUDA
+runtime behavior and performance remain unverified. MLX-LM request/cache policy and
+MLX platform discovery belong to their separate owners.
+
+## MLX-LM application guidance
+
+[Trace MLX-LM generation and cache lifecycle](repositories/mlx-lm/generation-cache-lifecycle/SKILL.md)
+links prefill/decode boundaries, three-stage batch-row ownership, prefix-cache
+identity and cooperative stopping. It is a source-derived candidate with no
+installed API, model, native-backend or service validation. MLX framework execution
+and MLX platform discovery remain separate responsibilities.
+
+## Diffusers invocation guidance
+
+[Trace Diffusers invocation state](frameworks/diffusers/diffusers-invocation-state/SKILL.md)
+separates pipeline-wrapper fields, reused component identities, scheduler progress
+and cooperative interruption. The candidate is scoped to FluxPipeline and
+FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
+and performance remain unverified; the existing offload card keeps its own pin.

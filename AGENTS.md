@@ -4,11 +4,14 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 ## What this repo is
 
-**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/inferrsi/` (rename on copy), with recipes, benchmarks, and a first-class `evidence/` tree.
+**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/inferrsi/` (rename on copy), with runnable examples and a first-class `evidence/` tree.
+
+This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/operations.md).
 
 | Start here | Purpose |
 | --- | --- |
 | [README.md](README.md) | Layout, dev smoke, copy checklist |
+| [docs/operations.md](docs/operations.md) | Every CLI/Python operation: entry, effect class, boundary |
 | [docs/contributing.md](docs/contributing.md) | Development, acceptance, evidence and CI |
 | [docs/agent-collaboration.md](docs/agent-collaboration.md) | Issue-led human–agent collaboration |
 | [docs/architecture.md](docs/architecture.md) | Module boundaries and extension contracts |
@@ -52,6 +55,8 @@ Repo `tests/` are **scaffold smoke** (imports, layout, verdict enum); they are n
 
 Use placeholders in docs and agent output, e.g. `<baseline_sha>`, `<candidate_sha>`, `<campaign-id>` — **never** commit real campaign SHAs into workflows, skills, recipes defaults, or this file.
 
+Campaign parameters (baseline/candidate SHAs, numeric gates) are issue-scoped. Research source citations in knowledge records and skill references are different: they are immutable provenance, preserved with their content — see the [knowledge-base contract](docs/knowledge-base.md). Do not strip provenance under a blanket “no pins” rule.
+
 Parameterized or manual acceptance runs are issue-scoped; they are not the default merge lane.
 
 ## RSI contract
@@ -71,7 +76,7 @@ Parameterized or manual acceptance runs are issue-scoped; they are not the defau
 
 - Cite **acceptance issues + pinned SHAs** in downstream text; do not invent gain or quality bars.
 - **Public wording only after `PASS`** — follow [evidence and claim rules](docs/contributing.md#evidence-and-claims); until then, label unverified or `INCONCLUSIVE`.
-- Use [skills/cite-check-downstream-pr](skills/cite-check-downstream-pr/SKILL.md) and [skills/competitor-scan](skills/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
+- Use [cite-check-downstream-pr](src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md) and [competitor-scan](src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md) as **operators**, not campaign scripts (no pins in skill bodies).
 
 ## Evidence and clearing the bar
 
@@ -92,7 +97,7 @@ Agents and human reviewers **clear** work only with artifacts—not vibes. Green
 
 ## Skills
 
-Portable operator guidance lives under [skills/](skills/) (draft acceptance issue, claim contract, RSI evidence, cite-check downstream PR, competitor scan). Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
+Portable operator guidance and candidate procedures live in [src/inferrsi/data/skill_library/](src/inferrsi/data/skill_library/README.md), with hardware-specific guidance under `hardware/<backend-or-host>/`, framework/repository guidance under its owner, and generic `methods/` and `workflows/`. The library owns complete procedures, metadata, references and cases. Keep library content in English; supporting documents stay in owner-local resource directories. The [knowledge-base contract](docs/knowledge-base.md) and two matrices define ownership and coverage. Keep **AGENTS.md** short; follow skill bodies for procedures—skills must remain free of campaign SHAs.
 
 ## Dev smoke (local)
 
@@ -110,3 +115,13 @@ ruff check src tests
 2. Prefer minimal diffs; match existing layout and naming.
 3. Do not reopen closed campaign work or add pins to shared automation without explicit human direction.
 4. Work Issue-first: confirm the governing Issue's accepted scope before changing code, keep each change a bounded delegated slice with independent review, and report PR readiness and Issue completion separately — see [agent collaboration](docs/agent-collaboration.md).
+
+## Privacy and security
+
+Follow [privacy and security rules](docs/privacy-security.md) for every new or
+modified artifact, including logs, evidence and PR text. Use placeholders for
+real addresses, IPs, hostnames, usernames and personal paths; never embed or
+disclose credentials. Inject secrets at runtime, redact before capture/sharing,
+and check artifacts before publication. Preserve evidence verdicts and public
+source attribution. Required DCO identity remains valid. Existing sensitive
+content is not permission to copy it; historical cleanup is separately scoped.

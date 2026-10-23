@@ -12,7 +12,7 @@ from pathlib import Path
 from inferrsi.knowledge_operations import Bundle, KnowledgeReader
 from inferrsi.knowledge_store import KnowledgeStore
 
-skills = Path("skills")
+skills = Path("src/inferrsi/data/skill_library")
 store = KnowledgeStore(Path("/authorized/local/knowledge-workspace"), skill_root=skills)
 source = KnowledgeReader(skill_root=skills).read("calibrate-serving-simulation")
 draft = Bundle(

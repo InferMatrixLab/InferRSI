@@ -7,8 +7,7 @@ boundary called out separately.
 
 ## Three-objective delivery framing
 
-The current WIP develops three connected objectives, detailed in the
-[README overview](../README.md#three-objectives-of-the-current-wip):
+The current WIP develops three connected objectives:
 
 1. **Roofline / Optimization Headroom:** source-grounded bounds, observed
    attainable limits, calibrated predictions and experiment selection. The
@@ -38,8 +37,10 @@ Paper knowledge does not supply repository-only schema fields such as a Git SHA,
 so it remains linked Markdown rather than a parallel registry or fabricated
 `repo_packs` record. The [knowledge-base contract](knowledge-base.md) defines
 local sidecar ownership, typed source examples, shared checkout references and
-legacy package compatibility. Normalized Collect and a writable store are separate
-follow-ups; existing commands remain supported.
+legacy package compatibility. Normalized reads and bounded Collect
+([knowledge-operations.md](knowledge-operations.md)) and the authorized local
+store ([knowledge-store.md](knowledge-store.md)) are implemented Python
+interfaces; existing CLI commands remain supported.
 
 ## Module responsibilities and dependencies
 
@@ -71,7 +72,9 @@ src/inferrsi/
   cli.py, arguments.py       Existing CLI
   runspec.py, contracts.py   Immutable experiment contract and compatibility export
   catalog.py                Knowledge search and cited context
-  skill_catalog.py          Explicit local skill metadata/instructions/resource resolution
+  skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
+  knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
+  knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
   harness/
     runner.py               One AB/BA loop; execute/snapshot adapter hooks
     evaluation.py           Performance/quality/source-integrity adjudication
@@ -99,7 +102,7 @@ src/inferrsi/
   data/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
-    skill_library/          Bilingual procedures, provenance, licenses and helpers
+    skill_library/          Complete categorized English skills and resources
     platform_packs/         Backend metadata and qualification context
   execution.py              Compatibility entrypoint -> harness.runner
   evaluation.py             Compatibility exports -> harness.evaluation
@@ -107,7 +110,6 @@ src/inferrsi/
   reporting.py              Compatibility export -> harness.reporting
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
-benchmarks/harness/         Compatibility command entrypoints
 ```
 
 ## Where to extend
@@ -191,6 +193,14 @@ change the AB/BA algorithm, process cleanup or evaluator.
 
 ## Compatibility and historical evidence
 
+The supervised server helpers (`infra.processes.launch_server` / `stop_server`)
+require Linux with a readable `/proc` process table. They reject other platforms
+before launch; missing or inaccessible process enumeration raises an error rather
+than reporting successful cleanup. Workers must remain in their owned process
+group. Windows Job Object support in the general command executor does not extend
+to these server helpers. These constraints do not restrict read-only knowledge
+operations or the control CLI to Linux.
+
 - Existing CLI flags, root import paths, external JSON metrics, run artifacts,
   cancellation handling and report generation are retained.
 - `examples/qwen21_turbo_b300.py` retains its command interface and campaign
@@ -242,13 +252,20 @@ guidance or reported measurements independently from a source's merge status.
 Imported skills are source material, not executable tool authority. CPU tests
 do not upgrade imported knowledge to a validated claim.
 
-The optional `skills` CLI reads an explicit local `--root` (default `./skills`),
-using PyYAML from the `skills` extra. It lists only frontmatter, loads only a
-named skill's instructions, and resolves a named resource inside that skill for
-an external file reader. It never installs, routes, executes or updates skills.
-These checkout assets are not wheel package data; the catalog is a projection,
-not another authoritative matrix. Core knowledge commands remain independent
-of the optional parser.
+The optional `skills` CLI defaults to the installed `data/skill_library/` and
+its `skill-index.json` registry of stable skill IDs. Hardware-specific content
+lives under `hardware/ascend`, `hardware/cuda` or `hardware/host`; other skills
+are grouped by framework, repository, method or workflow. Full procedures,
+sidecars, references and cases ship with the package. Engine entry skills live
+under `repositories/<engine>/`, the collection router under
+`workflows/inference-engine-research/`. All library content is in English.
+Supporting documents are owner-local; only `README.md` and `skill-index.json`
+remain at the library root. An explicit
+`--root` can still select a custom flat skills tree or a registry-based library. The CLI uses PyYAML from the `skills` extra,
+lists metadata, reads a named body or resolves a named resource for an external
+file reader. It never executes, installs or promotes skills. Core knowledge
+commands read catalog JSON and packaged documents without the optional parser;
+the two matrices retain their authority.
 
 Run evidence remains in the caller-selected run directory; frozen campaign
 plans/results/patches/validators remain under `evidence/`.
@@ -260,3 +277,17 @@ The earlier [component design](assets/component-architecture-en.svg) and
 [complete workflow](assets/gpu-workflow-en.svg) remain long-term references.
 Their [Chinese component](assets/component-architecture.svg) and
 [Chinese workflow](assets/gpu-workflow.svg) originals are preserved.
+
+The supplied system overview is also available in [English](assets/system-architecture-en.svg)
+and [Chinese](assets/system-architecture-zh-CN.svg). It summarizes inputs,
+normalization, the AB/BA loop, adjudication and retained evidence. Its feedback
+arrow represents explicit review and reuse by the caller, not implemented
+automatic promotion into the knowledge catalog or RunSpec. The original diagram
+is preserved; the [source audit](reviews/source-audit-ac70272.md) tracks cleanup
+portability and other implementation gaps.
+
+The migrated skills have [generated catalog records](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
+in `data/repo_packs/inferrsi/knowledge/`, with backend-scoped IDs and
+`skill_documents.original` pointing to the complete packaged procedures.
+Normalized reads retain the library's dependency resources. The library is the
+single content owner.

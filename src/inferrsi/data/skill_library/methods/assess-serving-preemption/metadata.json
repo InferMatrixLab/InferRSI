@@ -1,0 +1,24 @@
+{
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "source_pins": "orca-osdi22-and-fastserve-2305.05920v3",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "sources": [],
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "limitations": [
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "provenance_readsets": [
+    "references/source-notes.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}

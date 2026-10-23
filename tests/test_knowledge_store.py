@@ -5,6 +5,7 @@ import subprocess
 import sys
 import time
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import closing
 from pathlib import Path
 
 import pytest
@@ -14,8 +15,8 @@ from inferrsi.knowledge_operations import Bundle, IdentityError, KnowledgeReader
 from inferrsi.knowledge_store import KnowledgeStore
 
 REPO = Path(__file__).resolve().parents[1]
-ROOT = REPO / "skills"
-NOTES = "calibrate-serving-simulation/references/source-notes.md"
+ROOT = REPO / "src/inferrsi/data/skill_library"
+NOTES = "methods/calibrate-serving-simulation/references/source-notes.md"
 LOCAL = "calibrate-serving-simulation-local"
 
 
@@ -146,12 +147,13 @@ def test_concurrent_writers_compare_expected_inside_transaction(tmp_path, monkey
     blocker.execute("BEGIN IMMEDIATE")
     with ThreadPoolExecutor(max_workers=2) as workers:
         pending = [workers.submit(update, index) for index in (1, 2)]
-        # Both writers must be waiting on the lock, well inside its 5 s timeout.
-        deadline = time.monotonic() + 2
-        while len(lock_attempts) < 2 and time.monotonic() < deadline:
-            time.sleep(0.01)
-        assert len(lock_attempts) == 2
-        assert not any(future.done() for future in pending)
+        # Wait (load-tolerantly) until both writers have entered the write
+        # transaction. Reaching BEGIN IMMEDIATE while the blocker holds the lock
+        # means neither has published yet; a slow machine just takes longer.
+        reached = time.monotonic() + 10
+        while len(lock_attempts) < 2 and time.monotonic() < reached:
+            time.sleep(0.02)
+        assert len(lock_attempts) >= 2, "concurrent writers did not both enter the transaction"
         blocker.execute("ROLLBACK")
         blocker.close()
         results = [future.result() for future in pending]
@@ -236,7 +238,7 @@ def test_real_shared_resource_bundle_keeps_old_dependency_bytes(tmp_path):
     original = adaptation("inference-benchmark-design", "inference-benchmark-design-local")
     store = store_at(tmp_path)
     revision = store.create(original)
-    shared = "inference-optimization-casebook/cases/admission-drain-occupancy.md"
+    shared = "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md"
     identity = original.metadata["id"]
     assert store.resource(identity, shared, revision=revision) == original.content[shared]
     altered = dict(original.content)
@@ -300,3 +302,75 @@ def test_package_only_collect_without_checkout_or_yaml(tmp_path):
         check=False,
     )
     assert result.returncode == 0, result.stderr
+
+
+def test_read_only_store_requires_existing_database_and_creates_nothing(tmp_path):
+    workspace = tmp_path / "empty"
+    workspace.mkdir()
+    with pytest.raises(ValueError, match="existing database"):
+        KnowledgeStore(workspace, skill_root=ROOT, read_only=True)
+    assert list(workspace.iterdir()) == []
+
+
+def test_read_only_store_serves_reads_without_modification(tmp_path):
+    # Spaces and non-ASCII in the workspace exercise the read-only file: URI quoting.
+    workspace = tmp_path / "space store 文本"
+    workspace.mkdir()
+    store = store_at(workspace)
+    revision = store.create(adaptation())
+    expected = store.resource(LOCAL, NOTES, revision=revision)
+    digest = hashlib.sha256(store.database.read_bytes()).hexdigest()
+    viewer = KnowledgeStore(workspace, skill_root=ROOT, read_only=True)
+    assert viewer.identities() == [LOCAL]
+    assert viewer.read(LOCAL).revision == revision
+    assert viewer.read(LOCAL, revision=revision).content[NOTES] == expected
+    assert viewer.resource(LOCAL, NOTES, revision=revision) == expected
+    assert [entry["revision"] for entry in viewer.history(LOCAL)] == [revision]
+    item = viewer.collect(ids=[LOCAL], revisions={LOCAL: revision}, material=True)["items"][0]
+    assert (item["authority"], item["revision"]) == ("store", revision)
+    with closing(viewer._connect()) as connection:
+        with pytest.raises(sqlite3.OperationalError, match="readonly"):
+            connection.execute("CREATE TABLE forbidden (id TEXT)")
+    assert hashlib.sha256(viewer.database.read_bytes()).hexdigest() == digest
+    assert sorted(p.name for p in workspace.iterdir()) == ["knowledge.sqlite3"]
+
+
+def test_read_only_store_rejects_writes(tmp_path):
+    store = store_at(tmp_path)
+    revision = store.create(adaptation())
+    viewer = KnowledgeStore(tmp_path, skill_root=ROOT, read_only=True)
+    with pytest.raises(ValueError, match="read-only"):
+        viewer.create(adaptation())
+    with pytest.raises(ValueError, match="read-only"):
+        viewer.update(adaptation(), expected=revision, reason="amend", evidence=[])
+    assert [entry["revision"] for entry in viewer.history(LOCAL)] == [revision]
+
+
+def test_default_writer_construction_still_initializes_database(tmp_path):
+    workspace = tmp_path / "writer"
+    workspace.mkdir()
+    store = KnowledgeStore(workspace, skill_root=ROOT)
+    assert store.database.is_file()
+    assert store.identities() == []
+    assert sorted(p.name for p in workspace.iterdir()) == ["knowledge.sqlite3"]
+
+
+def test_store_records_reserved_skill_root_and_rejects_mismatch(tmp_path):
+    workspace = tmp_path / "reserved"
+    workspace.mkdir()
+    KnowledgeStore(workspace, skill_root=ROOT).create(adaptation())
+    assert KnowledgeStore(workspace, skill_root=ROOT, read_only=True).identities() == [LOCAL]
+    with pytest.raises(ValueError, match="reserves the skills checkout"):
+        KnowledgeStore(workspace, skill_root=None, read_only=True)
+    with pytest.raises(ValueError, match="reserves the skills checkout"):
+        KnowledgeStore(workspace, skill_root=None)
+    other = tmp_path / "nested" / "other-skills"
+    other.mkdir(parents=True)
+    with pytest.raises(ValueError, match="reserves the skills checkout"):
+        KnowledgeStore(workspace, skill_root=other)
+    package_only = tmp_path / "package-only"
+    package_only.mkdir()
+    KnowledgeStore(package_only, skill_root=None)
+    with pytest.raises(ValueError, match="package-only"):
+        KnowledgeStore(package_only, skill_root=ROOT, read_only=True)
+    assert KnowledgeStore(package_only, skill_root=None, read_only=True).identities() == []

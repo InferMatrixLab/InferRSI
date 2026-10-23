@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.ascend_operator_tuning",
+  "title": "ascend-operator-tuning",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Run a staged, accuracy-gated tuning campaign on a single Ascend NPU operator: set a numeric target up front, block tuning until an on-device accuracy pass is logged, escalate code-level then scheduling then instruction-level tuning with per-stage stall counters and kill-switches, and route each change by the metric contract (core utilization, bubble rate, load balance). Use after ascend-operator-profiling has measured a baseline and the operator is confirmed as the bottleneck.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "operator",
+    "tuning",
+    "performance",
+    "pypto",
+    "tile"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md"
+  },
+  "checkout_ref": "checkout:ascend-operator-tuning",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "ab7dedfa873b8572db277e43536e6ce04c68ac987aee189ffd5861e4e9bb2d6d",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "ascend-operator-tuning",
+    "description": "Run a staged, accuracy-gated tuning campaign on a single Ascend NPU operator: set a numeric target up front, block tuning until an on-device accuracy pass is logged, escalate code-level then scheduling then instruction-level tuning with per-stage stall counters and kill-switches, and route each change by the metric contract (core utilization, bubble rate, load balance). Use after ascend-operator-profiling has measured a baseline and the operator is confirmed as the bottleneck.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "operator",
+      "tuning",
+      "performance",
+      "pypto",
+      "tile"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

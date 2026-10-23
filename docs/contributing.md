@@ -11,7 +11,7 @@ Use a task branch and keep each change reviewable. Sign commits with DCO:
 
 ```bash
 python -m pip install -e '.[dev,image]'
-ruff check src tests benchmarks/harness
+ruff check src tests tools
 pytest
 git commit -s
 ```
@@ -19,10 +19,21 @@ git commit -s
 Issue-led ownership, review and completion conventions for humans and agents
 are in [agent collaboration](agent-collaboration.md).
 
+Apply [privacy and security rules](privacy-security.md) before capturing logs,
+recording evidence or sharing changes. Use placeholders for private connection
+details, inject credentials securely at runtime and review artifacts for leaks.
+
 `image` is optional for the control CLI and required to run PNG quality tests.
 Synthetic benchmark scripts belong in `tests/fixtures/`; historical validator
 snapshots in `tests/fixtures/legacy/` remain byte-for-byte frozen. Current runnable
 examples are the three Qwen scripts under `examples/`.
+
+Git treats recorded bundles under `evidence/` and `tests/fixtures/legacy/` as
+exact bytes (`-text`), so checkout and add do not normalize their line endings.
+The evidence README and reusable `_template/` remain ordinary LF text. This
+policy does not renormalize existing blobs or authorize edits to frozen files.
+Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
+`false`, `true` and `input`.
 
 Use `harness/scenarios` and `model/protocols` / `model/validators` for new models,
 `infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` with
@@ -39,11 +50,31 @@ Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the
 [knowledge maintenance guide](../src/inferrsi/data/repo_packs/vllm_omni/knowledge/README.md#maintaining-the-pack).
 
-The [bilingual engine library](../src/inferrsi/data/skill_library/README.md) holds
-detailed source-grounded procedures. Catalog abstracts link to both editions via
-package-relative `skill_documents`; update the affected abstract and language
-pair together. Source snapshot revisions there identify research evidence, not
-campaign defaults. Include linked helper scripts and licenses in wheel checks.
+Protected changes also require a current-head
+[knowledge authorship declaration](knowledge-model-policy.md). Every material AI
+author must use an approved model at `xhigh` or `max`; human-only work is declared
+explicitly. Mechanical/generated changes have no automatic exemption. The first
+rollout reports failures without yet requiring the check for merging.
+
+The [skill library](../src/inferrsi/data/skill_library/README.md) owns complete
+procedures, metadata, references and cases. Place platform-specific skills under
+`hardware/ascend`, `hardware/cuda` or `hardware/host`; use `frameworks/<name>`,
+`repositories/<name>`, `methods` or `workflows` for other primary owners. Maintain
+the registered stable IDs and their categorized paths in `skill-index.json`, then refresh
+their generated abstracts with `tools/build_skill_index.py`. Keep all skill
+content in the canonical library. Preserve source state and
+`UNKNOWN` license declarations; moving content does not resolve licensing.
+
+Keep all library content in English. Engine procedures belong under
+`repositories/<engine>/` and the collection router under
+`workflows/inference-engine-research/`, with their sub-skills and references.
+Keep supporting Markdown and JSON with their owner; the library
+root contains only `README.md` and `skill-index.json`.
+Catalog abstracts link to packaged bodies via `skill_documents.original` for
+migrated skills or `skill_documents.en` for engine procedures. Update
+affected source content and catalog records together. Source snapshot revisions
+identify research evidence, not campaign defaults. Check linked resources,
+licenses, local links and reads from a noneditable wheel installation.
 
 ## Acceptance checklist
 
@@ -109,6 +140,25 @@ a retained warmup image cannot substitute for the measured workload.
 
 ## Validation levels
 
+Run `python tools/validate_evidence.py` for a read-only check of every committed
+evidence bundle. [The inventory](../tools/evidence_inventory.json) declares
+campaign, template, source-import, review-summary and external-archive layouts;
+new directories and recognizable manifests require an explicit classification.
+The nightly lane runs this CPU-only check. It verifies available bytes using
+existing bundle SHA-256 maps, historical file mappings or archive SHA-256/size
+records. Historical mappings point only to preserved snapshots, never current
+implementations. Do not invent hashes or update frozen manifests to silence a
+failure.
+
+The JSON result separates structural/hash errors (nonzero exit) from unavailable
+external dependencies. Remote archives are not downloaded; if supplied at their
+declared inventory paths, their recorded size and digest are checked. A missing
+locally required hashed file is an error. Raw outputs and original source files
+not committed here remain explicitly unavailable. Successful inventory checks
+do not verify those external bytes, replay validators, qualify hardware, or
+change any campaign verdict. This inventory is editable validation policy;
+the evidence it describes remains frozen.
+
 | Level | Evidence | Scope |
 | --- | --- | --- |
 | L0 | Operator correctness | Numerical contracts, edge cases and fallbacks |
@@ -155,8 +205,22 @@ Keep the existing four lanes:
 | --- | --- |
 | [Draft](../.github/workflows/ci-draft.yml) | Lint and lightweight CPU smoke |
 | [Ready](../.github/workflows/ci-ready.yml) | Full repository checks for PRs |
-| [Merge](../.github/workflows/ci-merge.yml) | Lightweight manifest check on main |
+| [Merge](../.github/workflows/ci-merge.yml) | Manifest check and lightweight CPU smoke on main |
 | [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests and evidence layout |
+
+Ready CI also builds the source distribution and wheel, installs the wheel with
+the optional `skills` parser in a fresh virtual environment, and runs
+`tests/check_installed.py` outside the checkout with `PYTHONPATH` unset and Python
+isolated mode enabled. This checks packaged knowledge, skill bodies, licenses,
+helpers and CLI reads without installing any inference engine.
+The ready test and installed-package jobs cover the declared minimum Python
+3.10 alongside Python 3.11. This matrix does not certify later Python releases
+or accelerator runtime compatibility.
+
+The merge lane runs the same small smoke selection as draft on every main push,
+including direct pushes. It is a post-push safety check, not a branch-protection
+rule or a substitute for the full ready checks before merging. Required checks
+and permission to push directly remain repository-owner settings.
 
 Do not add default model downloads, GPU jobs or campaign thresholds to these
 lanes. Dependency drift and hardware qualification require their own evidence.
@@ -164,7 +228,7 @@ lanes. Dependency drift and hardware qualification require their own evidence.
 When copying the repository, rename `src/inferrsi`, update package metadata,
 imports and tests, and keep the three module boundaries explicit. Copy the
 [evidence template](../evidence/_template/) for each campaign. Reuse portable
-[skills](../skills/) as workflow guidance; keep campaign pins out of them.
+[workflows](../src/inferrsi/data/skill_library/workflows/) as workflow guidance; keep campaign pins out of them.
 
 For a standalone engine delivery, start with the
 [engine delivery template](template/README.md) in `docs/template/` instead of
@@ -174,5 +238,6 @@ recipes for [InferMatrixLab/recipe](https://github.com/InferMatrixLab/recipe).
 The engine owns implementation and recipes; catalog maintainers own collection,
 schema and website; the acceptance owner owns performance verdicts. Follow the
 template's copy, validation and catalog-registration steps. Missing hardware
-verification remains explicit, and existing InferRSI scenario recipes and four
-CI lanes retain their current roles.
+verification remains explicit. Workbench experiments use the
+[quickstart](quickstart.md) and [evidence template](../evidence/_template/);
+the four CI lanes retain their current roles.

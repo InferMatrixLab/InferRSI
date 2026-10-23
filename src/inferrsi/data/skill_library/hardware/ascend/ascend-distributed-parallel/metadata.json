@@ -1,0 +1,47 @@
+{
+  "tags": [
+    "ascend",
+    "npu",
+    "distributed",
+    "parallelism",
+    "usp",
+    "hccl",
+    "communication"
+  ],
+  "status": "candidate",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/ascend-ai-coding/awesome-ascend-skills",
+      "commit": "75ec89ce9d401be8ac95980e1c3f42f8d4315057",
+      "paths": [
+        "README.md",
+        "skills/training/hccl-test/scripts/quick-verify.sh",
+        "skills/training/hccl-test/scripts/parse-hccl-result.py",
+        "skills/training/torch-npu-comm-test/scripts/comm-bench.py",
+        "skills/training/torch-npu-comm-test/references/supported-ops.md"
+      ],
+      "readset": "references/awesome-ascend-communication-tests.md"
+    }
+  ],
+  "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "limitations": [
+    "Source-derived candidate; no local efficacy validation.",
+    "Only the incremental awesome-ascend-skills communication-test slice is normalized; inherited strategy guidance and its source identities remain unchanged.",
+    "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains."
+  ],
+  "provenance_readsets": [
+    "references/awesome-ascend-communication-tests.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}

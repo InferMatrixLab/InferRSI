@@ -1,0 +1,186 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="860" viewBox="0 0 1440 860" role="img" aria-labelledby="pt pd" xml:lang="en">
+  <title id="pt">InferRSI System Architecture — Inputs, Processing Pipeline, Outputs</title>
+  <desc id="pd">InferRSI normalizes user-provided benchmark scripts, quality scripts, code checkouts, and devices through RunSpec and environment checks, then feeds them into one alternating AB/BA scheduling loop. Evaluation produces a three-way verdict, an HTML report, and an evidence directory.</desc>
+
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#7A8699"/>
+    </marker>
+    <marker id="ar2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#5B8FF9"/>
+    </marker>
+    <marker id="ar3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 Z" fill="#B37FEB"/>
+    </marker>
+  </defs>
+
+  <rect width="1440" height="860" fill="#FFFFFF"/>
+
+  <g font-family="Arial, Helvetica, sans-serif">
+
+    <!-- ── Title ── -->
+    <text x="60" y="52" font-size="26" font-weight="700" fill="#1B2430">InferRSI System Architecture</text>
+    <text x="60" y="80" font-size="14" fill="#6B7787">Inputs → Normalization → Alternating Scheduling → Verdict → Outputs · Solid: data flow; dashed: read-only references</text>
+    <line x1="60" y1="98" x2="1380" y2="98" stroke="#E3E8EF" stroke-width="1.5"/>
+
+    <!-- ══════ Group 1: Inputs ══════ -->
+    <rect x="60" y="122" width="290" height="470" rx="10" fill="#F7F9FC" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="80" y="150" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">① INPUTS · USER PROVIDED</text>
+
+    <rect x="80" y="166" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="192" font-size="14" font-weight="700" fill="#1B2430">Benchmark script</text>
+    <text x="96" y="213" font-size="11.5" fill="#6B7787">Any language; emits one JSON</text>
+
+    <rect x="80" y="246" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="272" font-size="14" font-weight="700" fill="#1B2430">Quality check script</text>
+    <text x="96" y="293" font-size="11.5" fill="#6B7787">Nonzero completion rejects quality gate</text>
+
+    <rect x="80" y="326" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="352" font-size="13" font-weight="700" fill="#1B2430">Baseline / candidate checkouts</text>
+    <text x="96" y="373" font-size="11.5" fill="#6B7787">Two Git worktrees, each at its root</text>
+
+    <rect x="80" y="406" width="250" height="66" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="96" y="432" font-size="14" font-weight="700" fill="#1B2430">Provisioned device</text>
+    <text x="96" y="453" font-size="11.5" fill="#6B7787">CUDA / ROCm / Ascend / CPU</text>
+
+    <rect x="80" y="486" width="250" height="86" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2" stroke-dasharray="4 3"/>
+    <text x="96" y="512" font-size="14" font-weight="700" fill="#1B2430">Tuning knowledge base</text>
+    <text x="96" y="533" font-size="11.5" fill="#6B7787">Optional: search prior experience</text>
+    <text x="96" y="552" font-size="11.5" fill="#9AA6B6">Read only; no automatic execution</text>
+
+    <!-- ══════ Group 2: Normalization ══════ -->
+    <rect x="386" y="122" width="266" height="470" rx="10" fill="#F7F9FC" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="406" y="150" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">② NORMALIZATION</text>
+
+    <rect x="406" y="166" width="226" height="120" rx="8" fill="#EDF3FF" stroke="#5B8FF9" stroke-width="1.4"/>
+    <text x="422" y="192" font-size="14" font-weight="700" fill="#1D39C4">RunSpec</text>
+    <text x="422" y="214" font-size="11.5" fill="#3C4A5C">Immutable experiment contract</text>
+    <line x1="422" y1="224" x2="616" y2="224" stroke="#BFD3F7" stroke-width="1"/>
+    <text x="422" y="243" font-size="11.5" fill="#5A6B80">Command · metric key · direction</text>
+    <text x="422" y="261" font-size="11.5" fill="#5A6B80">Rounds · thresholds · time limits</text>
+    <text x="422" y="279" font-size="11.5" fill="#5A6B80">Device · backend · scenario</text>
+
+    <rect x="406" y="304" width="226" height="120" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="422" y="330" font-size="14" font-weight="700" fill="#1B2430">Environment checks</text>
+    <text x="422" y="352" font-size="11.5" fill="#5A6B80">Repo identity · device detection</text>
+    <text x="422" y="372" font-size="11.5" fill="#5A6B80">Versions · device visibility variables</text>
+    <text x="422" y="396" font-size="10" fill="#9AA6B6">Records facts; no compatibility certification</text>
+
+    <rect x="406" y="442" width="226" height="60" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="422" y="467" font-size="13" font-weight="700" fill="#1B2430">Source fingerprint</text>
+    <text x="422" y="488" font-size="11.5" fill="#6B7787">HEAD + local diff + untracked files</text>
+
+    <!-- ══════ Group 3: Scheduling Loop (Core) ══════ -->
+    <rect x="678" y="122" width="404" height="470" rx="10" fill="#EDF9F2" stroke="#B7E4C7" stroke-width="1.6"/>
+    <text x="698" y="150" font-size="11.5" font-weight="700" letter-spacing="0.7" fill="#2F7D52">③ ALTERNATING SCHEDULER · SHARED LOOP</text>
+
+    <!-- Two arms -->
+    <rect x="698" y="166" width="170" height="72" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="192" font-size="13.5" font-weight="700" fill="#1B4332">Baseline</text>
+    <text x="714" y="213" font-size="11.5" fill="#5A6B80">Original implementation</text>
+    <text x="714" y="229" font-size="11" fill="#9AA6B6">A</text>
+
+    <rect x="894" y="166" width="170" height="72" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="910" y="192" font-size="13.5" font-weight="700" fill="#1B4332">Candidate</text>
+    <text x="910" y="213" font-size="11.5" fill="#5A6B80">Your optimization</text>
+    <text x="910" y="229" font-size="11" fill="#9AA6B6">B</text>
+
+    <text x="883" y="188" text-anchor="middle" font-size="13" fill="#2F7D52">×</text>
+    <text x="883" y="249" text-anchor="middle" font-size="10.5" fill="#9AA6B6">N rounds</text>
+
+    <!-- Loop -->
+    <rect x="698" y="256" width="366" height="62" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="281" font-size="13.5" font-weight="700" fill="#1B4332">Alternating AB / BA</text>
+    <text x="714" y="303" font-size="11.5" fill="#5A6B80">Even rounds A→B; odd rounds B→A to offset time drift</text>
+
+    <rect x="698" y="332" width="366" height="62" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="357" font-size="13.5" font-weight="700" fill="#1B4332">Snapshot source before and after each trial</text>
+    <text x="714" y="379" font-size="11.5" fill="#5A6B80">Code changes during a trial → INCONCLUSIVE</text>
+
+    <rect x="698" y="408" width="366" height="62" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <text x="714" y="433" font-size="13.5" font-weight="700" fill="#1B4332">Process and device cleanup</text>
+    <text x="714" y="455" font-size="10.8" fill="#5A6B80">Reap the process group; release child-owned device resources</text>
+
+    <rect x="698" y="484" width="366" height="52" rx="8" fill="#E4F6EC" stroke="#52A877" stroke-width="1.1" stroke-dasharray="4 3"/>
+    <text x="714" y="506" font-size="11.5" fill="#2F7D52">Only extension points: execution and fingerprint hooks</text>
+    <text x="714" y="524" font-size="11" fill="#6B7787">Do not duplicate the loop, cleanup, or verdict logic</text>
+
+    <!-- ══════ Group 4: Verdict ══════ -->
+    <rect x="1108" y="122" width="272" height="470" rx="10" fill="#F7F9FC" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="1128" y="150" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">④ VERDICT &amp; OUTPUTS</text>
+
+    <rect x="1128" y="166" width="232" height="96" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="1144" y="192" font-size="13.5" font-weight="700" fill="#1B2430">Evaluation</text>
+    <text x="1144" y="214" font-size="11.5" fill="#5A6B80">Median comparison · quality gate</text>
+    <text x="1144" y="233" font-size="11.5" fill="#5A6B80">Complete evidence · consistent source</text>
+    <text x="1144" y="252" font-size="11" fill="#9AA6B6">No statistical significance inference</text>
+
+    <rect x="1128" y="278" width="232" height="86" rx="8" fill="#FFFFFF" stroke="#52A877" stroke-width="1.3"/>
+    <circle cx="1146" cy="302" r="4" fill="#2FA36B"/>
+    <text x="1158" y="307" font-size="13" font-weight="700" fill="#1B4332">PASS</text>
+    <text x="1158" y="327" font-size="9.5" fill="#5A6B80">Complete evidence; required gates met</text>
+    <circle cx="1146" cy="345" r="4" fill="#D9534F"/>
+    <text x="1158" y="350" font-size="13" font-weight="700" fill="#8B2E2B">FAIL</text>
+
+    <rect x="1128" y="380" width="232" height="56" rx="8" fill="#FFF8E6" stroke="#E0B341" stroke-width="1.3"/>
+    <circle cx="1146" cy="402" r="4" fill="#E0B341"/>
+    <text x="1158" y="407" font-size="13" font-weight="700" fill="#8A6410">INCONCLUSIVE</text>
+    <text x="1158" y="425" font-size="10.5" fill="#8A6410">Insufficient evidence — never a PASS</text>
+
+    <rect x="1128" y="452" width="232" height="84" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.2"/>
+    <text x="1144" y="477" font-size="13" font-weight="700" fill="#1B2430">Deliverables</text>
+    <text x="1144" y="498" font-size="11.5" fill="#5A6B80">HTML report · raw logs</text>
+    <text x="1144" y="517" font-size="11.5" fill="#5A6B80">Per-trial results and source snapshots</text>
+
+    <!-- ══════ Main Flow Arrows ══════ -->
+    <g fill="none" stroke="#5B8FF9" stroke-width="2" marker-end="url(#ar2)">
+      <path d="M 352 330 H 382"/>
+      <path d="M 654 330 H 674"/>
+    </g>
+    <g fill="none" stroke="#7A8699" stroke-width="1.8" marker-end="url(#ar)">
+      <path d="M 1074 330 H 1104"/>
+    </g>
+
+    <!-- Read-only knowledge base reference -->
+    <path d="M 206 486 V 640 H 1180 V 572" fill="none" stroke="#B37FEB" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ar3)"/>
+    <text x="640" y="662" text-anchor="middle" font-size="12" fill="#8A5FC7">Read-only knowledge retrieval: prior experience is reference material; it is neither executed nor promoted to a conclusion automatically</text>
+
+    <!-- ══════ Bottom: Evidence Feedback ══════ -->
+    <rect x="60" y="700" width="1320" height="112" rx="10" fill="#FBFCFE" stroke="#DFE5EC" stroke-width="1.4"/>
+    <text x="80" y="728" font-size="12" font-weight="700" letter-spacing="1.5" fill="#7A8699">⑤ RETAINED EVIDENCE · START THE NEXT ROUND HERE</text>
+
+    <rect x="80" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="96" y="764" font-size="12.5" font-weight="700" fill="#1B2430">Frozen plan</text>
+    <text x="96" y="783" font-size="10.5" fill="#6B7787">Fix hypotheses, thresholds, and rounds before running</text>
+
+    <rect x="388" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="404" y="764" font-size="12.5" font-weight="700" fill="#1B2430">Raw results</text>
+    <text x="404" y="783" font-size="11" fill="#6B7787">Keep complete output, including failed attempts</text>
+
+    <rect x="696" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="712" y="764" font-size="12.5" font-weight="700" fill="#1B2430">Candidate diff</text>
+    <text x="712" y="783" font-size="11" fill="#6B7787">What changed and the associated commit</text>
+
+    <rect x="1004" y="742" width="292" height="52" rx="8" fill="#FFFFFF" stroke="#C8D3E0" stroke-width="1.1"/>
+    <text x="1020" y="764" font-size="12.5" font-weight="700" fill="#1B2430">Frozen validator</text>
+    <text x="1020" y="783" font-size="10.2" fill="#6B7787">Freeze before search; prevent post-hoc criteria changes</text>
+
+    <!-- Feedback arrow -->
+    <path d="M 1150 700 V 682 H 206 V 640" fill="none" stroke="#7A8699" stroke-width="1.6" stroke-dasharray="6 4" marker-end="url(#ar)"/>
+    <text x="678" y="676" text-anchor="middle" font-size="11.5" fill="#8A97A8">Feedback: the frozen validator and prior conclusions constrain the next RunSpec</text>
+
+    <!-- ── Legend ── -->
+    <g font-size="11.5" fill="#6B7787">
+      <rect x="60" y="830" width="14" height="10" rx="2" fill="#EDF3FF" stroke="#5B8FF9"/>
+      <text x="82" y="839">Contract</text>
+      <rect x="150" y="830" width="14" height="10" rx="2" fill="#EDF9F2" stroke="#52A877"/>
+      <text x="172" y="839">Core loop</text>
+      <line x1="245" y1="835" x2="275" y2="835" stroke="#5B8FF9" stroke-width="2"/>
+      <text x="283" y="839">Data flow</text>
+      <line x1="355" y1="835" x2="385" y2="835" stroke="#B37FEB" stroke-width="1.6" stroke-dasharray="6 4"/>
+      <text x="393" y="839">Read-only reference</text>
+      <text x="1380" y="839" text-anchor="end" font-size="11" fill="#9AA6B6">InferRSI · Architecture overview</text>
+    </g>
+
+  </g>
+</svg>

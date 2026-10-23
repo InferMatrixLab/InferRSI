@@ -2,7 +2,7 @@
 
 > Historical snapshot from 2026-10-14. Its inventory, proposed next steps and
 > sibling-workstream reports are not current implementation or validation status.
-> Use the [three-objective overview](README.md#three-objectives-of-the-current-wip),
+> Use the [three-objective overview](docs/architecture.md#three-objective-delivery-framing),
 > [Reference Matrix](docs/reference-matrix.md) and
 > [SearchSpace Matrix](docs/searchspace-matrix.md) for current framing and evidence.
 > The original report below is preserved; new Magpie coordination evidence remains

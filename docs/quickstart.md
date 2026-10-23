@@ -14,9 +14,55 @@ inferrsi --help
 inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
+Package-only knowledge commands (`knowledge`, `context`, package `collect`/`read`)
+work with this base install. Reading skill libraries — the `skills` command and
+any `--skill-root` selection — additionally requires
+`python -m pip install '.[skills]'` (PyYAML); without it those operations fail
+with that install hint instead of a traceback.
+
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
 benchmark/quality command contract; set the acceptance threshold from your plan.
+
+## Discover knowledge and skills
+
+Read-only discovery and export — the [operation guide](operations.md) maps every
+entry point, effect class and boundary:
+
+```bash
+inferrsi knowledge search 'Qwen-Image-2.1' --repo-type vllm_omni --backend ascend
+inferrsi context --repo-type vllm_omni --backend cuda --output context.md
+inferrsi skills list --json   # requires python -m pip install '.[skills]'
+inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
+```
+
+Normalized Collect, exact-revision reads and resource access are available as
+CLI commands and as the Python `KnowledgeReader`
+([contract](knowledge-operations.md)); authorized local candidate Create/Update
+remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)).
+The `--skill-root` examples below require the `skills` extra from above:
+
+```bash
+inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
+inferrsi read calibrate-serving-simulation --skill-root src/inferrsi/data/skill_library --material
+inferrsi resource weight-loading-optimization methods/weight-loading-optimization/SKILL.md \
+  --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/data/skill_library --output SKILL.md
+```
+
+The revision for `resource` is the second field of the `collect` text-mode line,
+or the `revision` field in `collect --json` / `read` output. The JSON mode returns
+the complete normalized envelope; fields kept only in a package record's original
+entrypoint document are read with `--material` or `resource`, not projected into
+the normalized metadata.
+
+Sources are selected explicitly: the installed package by default, an explicit
+skills root via `--skill-root`, an existing store opened read-only via `--store`.
+A store records the skills root it reserves and rejects a mismatched or missing
+`--skill-root` on open.
+
+The `skills` command defaults to the installed library's registered skills;
+its full bodies and resources are packaged. `--skill-root` in the normalized
+examples above explicitly adds that root's skill and case IDs.
 
 ## The actual configuration interface
 

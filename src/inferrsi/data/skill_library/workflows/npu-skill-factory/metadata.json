@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "status": "candidate",
+  "sources": [
+    {
+      "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+      "commit": "ac3fe1af",
+      "paths": [
+        "docs/disco-meta-skills.md",
+        "docs/disco-workflows.md",
+        "src/disco/skills/create-paper-module-skill/SKILL.md",
+        "src/disco/skills/create-paper-module-skill/scripts/create_skill_skeleton.py",
+        "src/disco/skills/create-paper-module-skill/scripts/validate_skill_tree.py",
+        "src/disco/modes/skill-policy.ts",
+        "src/core/repo-skills-library-manager.ts"
+      ],
+      "type": "git",
+      "revision_precision": "prefix"
+    },
+    {
+      "url": "https://github.com/SkillOpt/SkillOpt",
+      "commit": "343db229",
+      "paths": [
+        "skillopt/evaluation/gate.py",
+        "skillopt/optimizer/skill.py",
+        "skillopt/optimizer/clip.py",
+        "skillopt_sleep/cycle.py",
+        "skillopt_sleep/harvest_sources.py"
+      ],
+      "type": "git",
+      "revision_precision": "prefix"
+    },
+    {
+      "url": "https://github.com/WillowMindIE/MindIE-SD",
+      "commit": "8481d39b",
+      "paths": [
+        ".agents/skills/profiling-analyze/SKILL.md",
+        ".agents/skills/dit-perf-opt/SKILL.md",
+        ".agents/skills/perf-gate/SKILL.md",
+        ".agents/skills/dit-parallel-opt/SKILL.md"
+      ],
+      "type": "git",
+      "revision_precision": "prefix"
+    }
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "source_grounded",
+    "note": "Historical repository extraction and sibling schema at 82218b4, not a current local factory implementation. Reviewed paper additions and exact versions live in references/papers-20261015/references/readset.md and docs/reference-matrix.md; no efficacy or paper-to-code equivalence established."
+  },
+  "applicability": {
+    "scope": "InferRSI skill lifecycle management",
+    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+  },
+  "tags": [
+    "skill-factory",
+    "distillation",
+    "evaluation",
+    "npu",
+    "ascend"
+  ],
+  "profile": "local-skill-v1",
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "empirical_validation": "not_run",
+  "limitations": [
+    "Source-derived candidate; no local efficacy validation."
+  ],
+  "provenance_readsets": [
+    "references/papers-20261015/cases/methodology-counterexamples.md",
+    "references/papers-20261015/COMPARISON.md",
+    "references/papers-20261015/INTEGRATION_NOTES.md",
+    "references/papers-20261015/knowledge/evidence-routing.md",
+    "references/papers-20261015/QA.md",
+    "references/papers-20261015/README.md",
+    "references/papers-20261015/references/learning-to-commit.md",
+    "references/papers-20261015/references/protocol-details.md",
+    "references/papers-20261015/references/readset.md",
+    "references/papers-20261015/references/repo-to-skill.md",
+    "references/papers-20261015/references/skillopt.md",
+    "references/papers-20261015/references/trace2skill.md",
+    "references/papers-20261015/UNREAD_LEADS.md",
+    "references/papers-20261015/updates/bounded-updates.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}

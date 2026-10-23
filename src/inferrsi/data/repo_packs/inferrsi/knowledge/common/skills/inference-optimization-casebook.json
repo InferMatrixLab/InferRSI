@@ -1,0 +1,108 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.inference_optimization_casebook",
+  "title": "inference-optimization-casebook",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n",
+  "tags": [
+    "optimization",
+    "casebook",
+    "prior-art",
+    "decision-support"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/inference-optimization-casebook/SKILL.md"
+  },
+  "checkout_ref": "checkout:inference-optimization-casebook",
+  "source_files": {
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "677d95abb353cecdfca81132759e6a8cd5804ee48c4163e150dde72a2b89f335",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md": "fbe1061e07502072a08841974845cccb3e133cded0c8eead0c27a912b1554d02",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "5adddf5cd6455b8c0bb40f96a22da29b87caf578a14d48dc671b17025748f4f1",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "65b4228f8e4ea980b93197e505190ccfedfc5a0f7fd1c28671ec693e3d2a4218",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "a2df4056af372fbbb2fbe90db01acc926fad78775844fa91cff8bc2f3286ff58",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "fdcadb4488e29ca45edf21a350ed28ed4f6c6a9fb4772a61d90ca8f62ce5bb04",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "6aa0dd8ae9a8b45d770593f236ce39a6c2e06a8e67ad7176b47d484686028f63",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "inference-optimization-casebook",
+    "description": "How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook pattern from TensorRT-LLM's perf-optimization-casebook skill. Use when building a record of optimization experiments or when deciding which optimization to try next based on prior art.\n",
+    "tags": [
+      "optimization",
+      "casebook",
+      "prior-art",
+      "decision-support"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

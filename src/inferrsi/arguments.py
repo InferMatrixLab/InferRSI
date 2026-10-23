@@ -106,9 +106,13 @@ def parser() -> argparse.ArgumentParser:
         child.add_argument("--output-dir", default="runs")
 
     skills = commands.add_parser(
-        "skills", help="Read explicitly selected local skills; never install or execute them"
+        "skills", help="Read explicitly selected skills; never install or execute them"
     )
-    skills.add_argument("--root", type=Path, default=Path("skills"), help="Local skill directory")
+    skills.add_argument(
+        "--root",
+        type=Path,
+        help="Skill library or flat skill directory (default: installed library)",
+    )
     actions = skills.add_subparsers(dest="skills_action", required=True)
     listing = actions.add_parser("list", help="List frontmatter and sidecar metadata only")
     listing.add_argument("--json", action="store_true")
@@ -125,7 +129,11 @@ def parser() -> argparse.ArgumentParser:
         "knowledge", help="Search or inspect source-grounded imported experience"
     )
     actions = knowledge.add_subparsers(dest="knowledge_action", required=True)
-    search = actions.add_parser("search")
+    search = actions.add_parser(
+        "search",
+        help="Search installed package records only; the repo/tier/backend/scenario "
+        "filters exclude checkout and store items",
+    )
     search.add_argument("query", nargs="?", default="")
     search.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
     search.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
@@ -135,6 +143,99 @@ def parser() -> argparse.ArgumentParser:
     search.add_argument("--json", action="store_true")
     show = actions.add_parser("show")
     show.add_argument("id")
+    research = actions.add_parser(
+        "research", help="Union model/framework/task/modality/mechanism queries for preparation"
+    )
+    research.add_argument("model")
+    for dimension in ("framework", "task", "modality", "mechanism"):
+        research.add_argument(
+            f"--{dimension}", action="append", default=[],
+            help=f"Additional independent {dimension} query (repeatable)",
+        )
+    research.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
+    research.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
+    research.add_argument("--backend", choices=BACKENDS, help="Hard package-record filter")
+    research.add_argument("--scenario")
+    research.add_argument("--limit", type=int, default=10)
+    research.add_argument(
+        "--target-backend", help="Research target only; no runtime support implied"
+    )
+    research.add_argument("--target-device", help="Caller-declared research target")
+    research.add_argument(
+        "--target-memory-gib", type=float, help="Caller-declared unified/device GiB"
+    )
+
+    collect = commands.add_parser(
+        "collect",
+        help="Collect explicitly selected sources as a revision-pinned envelope; "
+        "package-only unless --skill-root or --store adds them",
+    )
+    collect.add_argument("query", nargs="?", default="")
+    collect.add_argument("--kind", choices=("skill", "knowledge", "case"))
+    collect.add_argument(
+        "--id", action="append", dest="ids", metavar="ID", help="Exact requested identity"
+    )
+    collect.add_argument(
+        "--revision",
+        action="append",
+        dest="revisions",
+        metavar="ID=REV",
+        help="Pin a requested ID to its exact revision",
+    )
+    collect.add_argument("--limit", type=int, default=10)
+    collect.add_argument("--max-bytes", type=int)
+    collect.add_argument("--material", action="store_true")
+    collect.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Select an explicit skills root (requires the 'skills' extra)",
+    )
+    collect.add_argument(
+        "--store",
+        type=Path,
+        help="Open an existing store read-only; its database must already exist",
+    )
+    collect.add_argument("--json", action="store_true")
+
+    read = commands.add_parser(
+        "read",
+        help="Read one bundle; select sources explicitly with --skill-root/--store",
+    )
+    read.add_argument("id")
+    read.add_argument("--revision", help="Exact revision returned by collect or read")
+    read.add_argument("--material", action="store_true")
+    read.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Select an explicit skills root (requires the 'skills' extra)",
+    )
+    read.add_argument(
+        "--store",
+        type=Path,
+        help="Open an existing store read-only; its database must already exist",
+    )
+
+    resource = commands.add_parser(
+        "resource",
+        help="Write one raw bundle resource of an exact revision to --output",
+    )
+    resource.add_argument("id")
+    resource.add_argument("path")
+    resource.add_argument(
+        "--revision", required=True, help="Exact revision returned by collect or read"
+    )
+    resource.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Select an explicit skills root (requires the 'skills' extra)",
+    )
+    resource.add_argument(
+        "--store",
+        type=Path,
+        help="Open an existing store read-only; its database must already exist",
+    )
+    resource.add_argument("--output", type=Path, required=True, help="File receiving the raw bytes")
+
     context = commands.add_parser(
         "context", help="Export cited knowledge for manual Codex/Agent handoff"
     )

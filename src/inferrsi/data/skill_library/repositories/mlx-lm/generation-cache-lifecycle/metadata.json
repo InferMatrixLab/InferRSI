@@ -1,0 +1,49 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "MIT",
+  "tags": [
+    "mlx-lm",
+    "generation",
+    "batching",
+    "kv-cache",
+    "cancellation"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/ml-explore/mlx-lm",
+      "commit": "ab7f7048dc341ced2d84b1887eeb17d60b0d1b02",
+      "paths": [
+        "mlx_lm/generate.py",
+        "mlx_lm/models/cache.py",
+        "mlx_lm/server.py",
+        "tests/test_generate.py",
+        "tests/test_prompt_cache.py",
+        "LICENSE",
+        "pyproject.toml",
+        "mlx_lm/cache_prompt.py",
+        ".github/workflows/pull_request.yml"
+      ],
+      "readset": "references/source-map.md"
+    }
+  ],
+  "applicability": {
+    "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification."
+  },
+  "limitations": [
+    "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
+    "Static content checks do not promote this candidate or establish installed API conformance."
+  ],
+  "provenance_readsets": [
+    "references/source-map.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}

@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.os_process_placement",
+  "title": "os-process-placement",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Place and configure inference/training processes at the OS level before measuring or optimizing: check then pin CPU affinity to the accelerator-local NUMA node (taskset/numactl), keep affinity constant across measurement rounds, set thread-count environment variables (OMP_NUM_THREADS, OMP_PROC_BIND, CPU_AFFINITY_CONF) per scenario, run a device-busy preflight (npu-smi/nvidia-smi usages, graceful-then-force PID cleanup), and structure environment checks as ERROR vs WARNING with per-failure remediation. Use before any performance measurement on shared multi-socket or multi-tenant hosts. Does not cover cgroups, cpuset, isolcpus, or scheduler priorities — no source evidence for those.\n",
+  "tags": [
+    "os",
+    "numa",
+    "cpu-affinity",
+    "process-placement",
+    "threads",
+    "environment",
+    "preflight"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "8d38af7ee1cd08a99bc6981a4ed1891be6331a6a56ea2537364fc0a1b79702b9"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/host/os-process-placement/SKILL.md"
+  },
+  "checkout_ref": "checkout:os-process-placement",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md": "8d38af7ee1cd08a99bc6981a4ed1891be6331a6a56ea2537364fc0a1b79702b9",
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "88cea21bc171c8ef89b73013672cca7c3af1e15eab00e388dd05b114368c1411",
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "os-process-placement",
+    "description": "Place and configure inference/training processes at the OS level before measuring or optimizing: check then pin CPU affinity to the accelerator-local NUMA node (taskset/numactl), keep affinity constant across measurement rounds, set thread-count environment variables (OMP_NUM_THREADS, OMP_PROC_BIND, CPU_AFFINITY_CONF) per scenario, run a device-busy preflight (npu-smi/nvidia-smi usages, graceful-then-force PID cleanup), and structure environment checks as ERROR vs WARNING with per-failure remediation. Use before any performance measurement on shared multi-socket or multi-tenant hosts. Does not cover cgroups, cpuset, isolcpus, or scheduler priorities — no source evidence for those.\n",
+    "tags": [
+      "os",
+      "numa",
+      "cpu-affinity",
+      "process-placement",
+      "threads",
+      "environment",
+      "preflight"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/ggml-org/llama.cpp",
+        "commit": "3e390af18de1131dda27913c00511725b4274c8a",
+        "paths": [
+          "common/arg.cpp",
+          "common/common.cpp",
+          "src/llama.cpp",
+          "src/llama-model-loader.cpp",
+          "src/llama-mmap.cpp",
+          "ggml/src/ggml-cpu/ggml-cpu.c",
+          "ggml/src/ggml-cpu/ggml-cpu.cpp",
+          "LICENSE"
+        ],
+        "readset": "references/llama-numa-thread-readset.md"
+      }
+    ],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+      "Linux NUMA source paths and separate configuration controls do not establish universally optimal thread counts, affinity combinations or measured placement gains."
+    ],
+    "provenance_readsets": [
+      "references/llama-numa-thread-readset.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
+    "Linux NUMA source paths and separate configuration controls do not establish universally optimal thread counts, affinity combinations or measured placement gains."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.npu_skill_factory",
+  "title": "npu-skill-factory",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Design and operation of the InferRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus selection, hide-and-re-distill procedure, and skill evolution cycle. Use when deciding where new skill artifacts belong, how to distill a candidate skill, or how to run the No-Skill vs Human-Skill vs Distilled-Skill comparison.\n",
+  "tags": [
+    "skill-factory",
+    "distillation",
+    "evaluation",
+    "npu",
+    "ascend"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/skill-index.json",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/QA.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/README.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/UNREAD_LEADS.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/protocol-details.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/readset.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/repo-to-skill.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/skillopt.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/source-manifest.json",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/trace2skill.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/updates/bounded-updates.md",
+        "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/skill-factory-design-20261014.md"
+      ],
+      "content_sha256": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/workflows/npu-skill-factory/SKILL.md"
+  },
+  "checkout_ref": "checkout:npu-skill-factory",
+  "source_files": {
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "8d82e5e7bf2eece16056076e1ab888669330c2533fee26fabe747fbb551e1388",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/QA.md": "3f3785ec39a6938a5d1f2e874e99153fe92c0e666dd3e78a499c8b47d891346a",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/README.md": "221785e91c45588f82b3caab6d52f1ea1d102b16139c20a0802921e2789e6d28",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/UNREAD_LEADS.md": "6c1d87ebe491d27666703149eb05ad582c7e5aff77f0ac5c11a7b89c946f96ee",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/cases/methodology-counterexamples.md": "f9fc21753ea41eef77ca020d78d031e945e5dd835b5d09c5ff0e53749ceb2ca4",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/knowledge/evidence-routing.md": "406d5d74c3fef4c1a23d495492e21a084c3c46495a1a84b385703ed104358874",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md": "9c2d1d738e896d05c00f53e6adf14c9df2501ecc3f0020e71b5a1c2192547086",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/protocol-details.md": "41298c6bde3a28f0712fa06a18bbc4ac59aea6d17cc9eb1318744f4121e3bab6",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/readset.md": "6f953d20d8958c68339c9ceeae348604d0fea3e9c6ccb9b64a63d3b210426a22",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/repo-to-skill.md": "5ebdac2a2bbbe6614f9d4096bc9895bd685acdf76414e2c3c1fb7b50d57c738d",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/skillopt.md": "148075daa67e19f4b4351710498438d17c279a9bce56b2d01cab26ff3be33e99",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/source-manifest.json": "716cd49ed01824ee9f6b6fc55ebf2b24fdd5d5a3e677f6e28e34a472616bbe25",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/references/trace2skill.md": "230d13b77ba819b5e3edee147523e8cad6bfce95afccc140fb4946d6c8747a2e",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/updates/bounded-updates.md": "d02c5bd0109846d1e1987de074810321cb4af277cd3f66ab2ac268aadd5ee142",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/skill-factory-design-20261014.md": "fb8ce1ad83b7a6ddc657e89ee2eebb710873b213cfd85bdd6d823c8691b3cb9f"
+  },
+  "skill_metadata": {
+    "name": "npu-skill-factory",
+    "description": "Design and operation of the InferRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus selection, hide-and-re-distill procedure, and skill evolution cycle. Use when deciding where new skill artifacts belong, how to distill a candidate skill, or how to run the No-Skill vs Human-Skill vs Distilled-Skill comparison.\n",
+    "schema_version": 1,
+    "status": "candidate",
+    "sources": [
+      {
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1af",
+        "paths": [
+          "docs/disco-meta-skills.md",
+          "docs/disco-workflows.md",
+          "src/disco/skills/create-paper-module-skill/SKILL.md",
+          "src/disco/skills/create-paper-module-skill/scripts/create_skill_skeleton.py",
+          "src/disco/skills/create-paper-module-skill/scripts/validate_skill_tree.py",
+          "src/disco/modes/skill-policy.ts",
+          "src/core/repo-skills-library-manager.ts"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/SkillOpt/SkillOpt",
+        "commit": "343db229",
+        "paths": [
+          "skillopt/evaluation/gate.py",
+          "skillopt/optimizer/skill.py",
+          "skillopt/optimizer/clip.py",
+          "skillopt_sleep/cycle.py",
+          "skillopt_sleep/harvest_sources.py"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/WillowMindIE/MindIE-SD",
+        "commit": "8481d39b",
+        "paths": [
+          ".agents/skills/profiling-analyze/SKILL.md",
+          ".agents/skills/dit-perf-opt/SKILL.md",
+          ".agents/skills/perf-gate/SKILL.md",
+          ".agents/skills/dit-parallel-opt/SKILL.md"
+        ],
+        "type": "git",
+        "revision_precision": "prefix"
+      }
+    ],
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "source_grounded",
+      "note": "Historical repository extraction and sibling schema at 82218b4, not a current local factory implementation. Reviewed paper additions and exact versions live in references/papers-20261015/references/readset.md and docs/reference-matrix.md; no efficacy or paper-to-code equivalence established."
+    },
+    "applicability": {
+      "scope": "InferRSI skill lifecycle management",
+      "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+    },
+    "tags": [
+      "skill-factory",
+      "distillation",
+      "evaluation",
+      "npu",
+      "ascend"
+    ],
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation."
+    ],
+    "provenance_readsets": [
+      "references/papers-20261015/cases/methodology-counterexamples.md",
+      "references/papers-20261015/COMPARISON.md",
+      "references/papers-20261015/INTEGRATION_NOTES.md",
+      "references/papers-20261015/knowledge/evidence-routing.md",
+      "references/papers-20261015/QA.md",
+      "references/papers-20261015/README.md",
+      "references/papers-20261015/references/learning-to-commit.md",
+      "references/papers-20261015/references/protocol-details.md",
+      "references/papers-20261015/references/readset.md",
+      "references/papers-20261015/references/repo-to-skill.md",
+      "references/papers-20261015/references/skillopt.md",
+      "references/papers-20261015/references/trace2skill.md",
+      "references/papers-20261015/UNREAD_LEADS.md",
+      "references/papers-20261015/updates/bounded-updates.md"
+    ],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "InferRSI skill lifecycle management",
+    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

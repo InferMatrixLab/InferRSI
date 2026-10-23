@@ -90,8 +90,8 @@ levels must improve, and which must not regress beyond the rollback line.
 **Row 4 —** one variable per round and one plane per step per
 [AGENTS.md](../../AGENTS.md). Justify conditional headroom against the campaign
 target and locally measured noise using
-[performance-ceiling-analysis](../../skills/performance-ceiling-analysis/SKILL.md)
-and its [bounds guidance](../../skills/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md).
+[performance-ceiling-analysis](../../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md)
+and its [bounds guidance](../../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md).
 Record conditionally removable exposed critical-path time, assumptions and
 uncertainty, including overlap, synchronization, capacity, queueing, batching and
 bottleneck migration. A non-dominant stage is not by itself a rejection reason;
@@ -132,7 +132,7 @@ tampering but do not prevent it.
 | 1 | The delivery scaffold requires a "campaign contract" that no file defines | [engine-task.md](../template/engine-repo/.github/ISSUE_TEMPLATE/engine-task.md) and [reproducibility.md](../template/engine-repo/docs/reproducibility.md) point at a contract, while [plan/README.md](../../evidence/_template/plan/README.md) is three bullets and [campaign-acceptance.yml](../../.github/ISSUE_TEMPLATE/campaign-acceptance.yml) carries a free-text checklist |
 | 2 | Model and hardware identity are not a required set | A RunSpec has no SKU, IDs, topology, driver, container digest or weight hash; [drama3-npu-readiness.md](../drama3-npu-readiness.md) had to invent a TBD tuple |
 | 3 | Search intent has no home and no version | Directions are reconstructed from the H1–H19 ledger ([qwen-image-2.1-turbo-b300.md](../qwen-image-2.1-turbo-b300.md)) or casebook rejections; "one plane per step" has nothing to check against |
-| 4 | The test plan is split and partly contradictory | L0–L4 in [contributing.md](../contributing.md) versus L0–L5 with different L2/L4 in [dense-performance-evidence](../../skills/dense-performance-evidence/SKILL.md); [inference-benchmark-design](../../skills/inference-benchmark-design/SKILL.md) proposes plan files that do not exist |
+| 4 | The test plan is split and partly contradictory | L0–L4 in [contributing.md](../contributing.md) versus L0–L5 with different L2/L4 in [dense-performance-evidence](../../src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md); [inference-benchmark-design](../../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md) proposes plan files that do not exist |
 | 5 | Imported evidence cannot be checked against a plan | The Ascend 910B1 cohort is `INCONCLUSIVE` for exactly these fields ([qwen-image-2.1-turbo-ascend.md](../qwen-image-2.1-turbo-ascend.md)) |
 | 6 | No budget, spend accounting or stop condition | `experiment_protocol` in [plan.json](../../evidence/drama3-b300-scale150/plan/plan.json) states a stop rule in prose, but no cap, no planned-versus-spent account and no acceptance reserve |
 | 7 | Freezing detects tampering, it does not prevent it | [freeze.json](../../evidence/drama3-b300-scale150/plan/freeze.json) is a hash manifest; nothing names who owns the device, the validator or the freeze, or how the generator is kept away from them |
@@ -190,7 +190,7 @@ nothing about that cohort's `INCONCLUSIVE` verdict.
 | 7 | Control and authority | Author-reported and imported: no local device owner, no local evaluator, and no generator/evaluator separation; the cohort is owned by the importing campaign |
 
 The `D-04` to `D-06` entries are the casebook's recorded directions
-([qwen-ascend-rejected-directions.md](../../skills/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md));
+([qwen-ascend-rejected-directions.md](../../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md));
 their revisit conditions are diagnostic suggestions, not reproduced causes.
 Filling the table mechanically reports the missing fields — model revision, weight
 hash, corpus hash, validator, driver stack, service timing boundary and AB/BA
@@ -223,7 +223,7 @@ explicitly as UTF-8 is a one-line existing fix.
 ## 8. Open questions
 
 1. **Ladder authority** — [contributing.md](../contributing.md) defines L0–L4;
-   [dense-performance-evidence](../../skills/dense-performance-evidence/SKILL.md)
+   [dense-performance-evidence](../../src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md)
    defines L0–L5 with different L2/L4. Row 3 must cite one by name.
 2. **File and format** — keep the existing `plan.json` name and JSON encoding so
    `freeze.json` and current readers keep working, or move to `campaign-plan.yaml`?
@@ -232,7 +232,7 @@ explicitly as UTF-8 is a one-line existing fix.
 4. **Enforcement** — template and tests only, or also a required acceptance-form
    field and a reviewer checklist item before a `PASS`?
 5. **Reconcile the benchmark-design plan set** — fold the
-   [inference-benchmark-design](../../skills/inference-benchmark-design/SKILL.md)
+   [inference-benchmark-design](../../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md)
    files (`hypothesis.md`, `runspec.json`, `slo.yaml`, `decision.yaml`) into this
    table, keep them as optional sub-artifacts, or drop them?
 6. **Change approval** — does a row-4 revision need an approver, or is appending
@@ -248,4 +248,4 @@ explicitly as UTF-8 is a one-line existing fix.
 No runtime or CLI capability, no threshold, no pin, no campaign, no hardware or
 performance result; no recorded verdict changes. Conventions followed:
 [agent collaboration](../agent-collaboration.md),
-[rsi-evidence](../../skills/rsi-evidence/SKILL.md), [AGENTS.md](../../AGENTS.md).
+[rsi-evidence](../../src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md), [AGENTS.md](../../AGENTS.md).

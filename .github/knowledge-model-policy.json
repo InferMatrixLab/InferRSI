@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "base_branch": "main",
+  "protected_paths": [
+    "src/inferrsi/data/skill_library/**",
+    "src/inferrsi/data/knowledge_packs/**",
+    "src/inferrsi/data/repo_packs/**/knowledge/**",
+    "docs/reference-matrix.md",
+    "docs/searchspace-matrix.md",
+    "docs/knowledge-base.md",
+    "docs/knowledge-operations.md",
+    "docs/knowledge-store.md",
+    "src/inferrsi/catalog.py",
+    "src/inferrsi/skill_catalog.py",
+    "src/inferrsi/knowledge_operations.py"
+  ],
+  "policy_paths": [
+    ".github/knowledge-model-policy.json",
+    ".github/workflows/knowledge-model-policy.yml",
+    "tools/check_knowledge_model_policy.py",
+    "tools/run_knowledge_model_policy.sh",
+    "docs/knowledge-model-policy.md"
+  ],
+  "models": {
+    "claude-opus-5-5": {
+      "aliases": ["anthropic.claude-opus-5-5"],
+      "efforts": ["xhigh", "max"],
+      "suspended": false,
+      "source": "https://platform.claude.com/docs/en/models/opus-5-5/overview"
+    },
+    "gpt-6-astra": {
+      "aliases": [],
+      "efforts": ["xhigh", "max"],
+      "suspended": false,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6-astra"
+    },
+    "gpt-6.1-sol": {
+      "aliases": [],
+      "efforts": ["xhigh", "max"],
+      "suspended": false,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+    }
+  },
+  "approval_owners": ["Dong1017"],
+  "independent_approvers": []
+}

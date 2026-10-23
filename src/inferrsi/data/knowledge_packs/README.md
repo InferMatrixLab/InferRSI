@@ -8,7 +8,7 @@ experiment; repository conventions stay with their owning repository.
 | --- | --- | --- |
 | Contribution / `contribution` | vLLM, vLLM-Omni, vllm-ascend; legacy repository packs also retain imported Strata, SGLang and SGLang-Omni procedures | L2C blind attempt → comparison → scoped skill; separate performance evidence/candidates |
 | Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, Triton, Diffusers, Transformers | API/capability constraints and downstream impact; no blind coding session required |
-| Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
+| Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT, Qwen3-TTS engine, DeepInfer | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
 
 This is an acquisition policy, not a ranking or fixed dependency graph.
 Cache-DiT, for example, can also be a direct dependency of vLLM-Omni. Its entry
@@ -24,7 +24,9 @@ inferrsi/data/
     README.md                                         Cross-repository navigation
     dependency/REPO/BACKEND/COMPONENT/ENTRY.json        Dependency impact
     peer/REPO/BACKEND/COMPONENT/ENTRY.json              Technique candidates
-skills/learned/REPO/BACKEND/COMPONENT/                  Future reviewed L2C skills
+  skill_library/                                     Full categorized skills/resources
+    hardware/, frameworks/, repositories/             Hardware and implementation owners
+    methods/, workflows/                              General methods and workflows
 runs/learning/RUN_ID/                                  Future learning logs/state
 ```
 
@@ -34,8 +36,21 @@ to `contribution`. New external records declare `tier`; the loader checks it
 against the owning directory as well as ID/repository/backend/component.
 `repo` always identifies the source owner, not a validated downstream target.
 
-Skills/log directories above are future workflow destinations, not a running
-L2C integration. There are no learned L2C skills or vLLM/vllm-ascend performance
+The [InferRSI skill catalog](../repo_packs/inferrsi/knowledge/README.md)
+provides generated contribution-tier records for registered skills. Their full
+procedures, sidecars, references and cases now live in the
+[packaged skill library](../skill_library/README.md); `skill_documents.original`
+links each record to its procedure. Hardware guidance lives under the matching
+`hardware/ascend`, `hardware/cuda` or `hardware/host` directory; other owners are
+frameworks, repositories, methods and workflows. Search with `--repo-type inferrsi`
+and optionally `--backend ascend` or `--backend cuda`. Original state, provenance
+and unknown licensing are preserved separately from the unverified catalog
+record. Backend classification and `skills.discovery` imply no qualification.
+
+Future reviewed L2C skills use these same owner directories; provenance and
+learning tier do not introduce another top-level skill category. The learning
+log path is a future workflow destination, not a running L2C integration.
+There are no learned L2C skills or vLLM/vllm-ascend performance
 records in this import. Existing imported vLLM-Omni guidance does not become
 L2C training output merely by receiving a tier.
 
@@ -102,6 +117,20 @@ speedup numbers whose conditions or isolated contribution are unclear.
 | peer | xdit | [xDiT parallelism: separate current-state attention from stale-state pipelines](peer/xdit/cuda/diffusion/parallelism-freshness-and-topology.json) |
 | peer | cache_dit | [Cache-DiT residual reuse needs model- and schedule-specific calibration](peer/cache_dit/common/diffusion/residual-cache-calibration.json) |
 
+## DeepInfer extraction: 2026-10-20
+
+Three source-derived candidates at the same immutable DeepInfer revision.
+Owner review on 2026-10-22 corrected query/KV ownership, nested feature gates,
+verification budgeting and release-scope attribution. Original access dates
+are retained; newly inspected sources carry their own access date. No native,
+model, service or performance validation is claimed.
+
+| Tier | Source | Card |
+| --- | --- | --- |
+| peer | deepinfer | [DeepInfer zero-overhead scheduling: defer the previous step's post-process to overlap host prep with device work](peer/deepinfer/common/llm/zero-overhead-deferred-scheduling.json) |
+| peer | deepinfer | [DeepInfer verification budget: spend verification rows by marginal acceptance, not by fixed draft width](peer/deepinfer/common/llm/speculative-verification-budget.json) |
+| peer | deepinfer | [DeepInfer bounded replay: compact query rows with a derived dependency closure and separately preserved historical state](peer/deepinfer/common/llm/bounded-windowed-replay.json) |
+
 ## Maintaining the tiers
 
 1. Search for an existing ID and topic before adding a card. Keep one canonical
@@ -129,3 +158,14 @@ The daily contribution-tier workflow is specified in
 [the 06:00 learning prompt](../../../../docs/daily-learning-prompt.md). Its
 assessment gates, isolation and persistent orchestrator are prerequisites,
 not capabilities provided by this catalog refactor.
+
+## Qwen3-TTS Ascend source import
+
+These peer candidates describe a standalone engine, not a registered runtime target.
+All remain imported and locally unverified; downstream support requires separate validation.
+
+| Tier | Source | Card |
+| --- | --- | --- |
+| peer | qwen3_tts_engine | [Qwen3-TTS codec: cache fixed codebooks and retain request-owned causal state](peer/qwen3_tts_engine/ascend/audio/codec-constants-and-state.json) |
+| peer | qwen3_tts_engine | [Qwen3-TTS NPU graphs: batch prefill while preserving request state](peer/qwen3_tts_engine/ascend/audio/graph-batching-state-ownership.json) |
+| peer | qwen3_tts_engine | [Qwen3-TTS CustomVoice: cache only model-fixed prompt embeddings](peer/qwen3_tts_engine/ascend/audio/fixed-customvoice-prompt.json) |

@@ -37,9 +37,12 @@ weights, logos or upstream code.
    cp <inferrsi-checkout>/docs/template/recipe.yaml <engine-checkout>/recipes/<recipe-id>.yaml
    ```
 
-3. Rename the README title and fill in the engine identity, model/task,
-   independently supported hardware combinations, source/license attribution,
-   architecture, environment and real commands. Keep only relevant folders.
+3. Set the repository name and README title using the naming convention in the
+   [engine README template](engine-repo/README.md). Keep its linked InferRSI
+   generation attribution as the final nonempty README line. Fill in the engine
+   identity, model/task, independently supported hardware combinations, source/license attribution,
+   architecture, environment and real commands. Adapt both README figures using
+   the visual documentation contract below. Keep only relevant folders.
    Adapt the implementation/test paths to the engine's language. Retain the
    local organization mark and provenance following [branding](branding.md); the InferRSI banner
    identifies InferRSI and is not a shared engine logo.
@@ -88,13 +91,45 @@ weights, logos or upstream code.
    pnpm build
    ```
 
+## README visual documentation contract
+
+Every generated engine README embeds two local figures, not just links to a
+separate design document. The reference layout is the
+[MiniCPM-o 4.5 single-GPU engine](https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine):
+explain the engine, show its architecture, give executable setup/request steps,
+then report scoped results and limitations with evidence links.
+
+| Required figure | Included source | Adaptation and verification |
+| --- | --- | --- |
+| Architecture | [Editable SVG](engine-repo/docs/figures/architecture.svg) and [architecture guide](engine-repo/docs/architecture.md) | Show the engine's actual request path, modules, processes/devices, memory and outputs; verify boxes against code |
+| End-to-end optimization progress | [SVG](engine-repo/docs/figures/end-to-end-optimization.svg), [example CSV](engine-repo/docs/figures/optimization-progress.example.csv) and [plot script](engine-repo/tools/plot_optimization_progress.py) | Use phase bands, labeled milestones and cumulative gain against one fixed baseline; verify each measured point against comparable E2E evidence |
+
+![Engine architecture template](engine-repo/docs/figures/architecture.svg)
+
+![Illustrative end-to-end optimization progress; synthetic values only](engine-repo/docs/figures/end-to-end-optimization.svg)
+
+Both previews are **templates**. The architecture is generic; the curve uses
+synthetic values and establishes no performance result. The curve's presentation
+is inspired by the phase/milestone chart in
+[Z.ai's inference infrastructure article](https://z.ai/blog/glm-built-its-inference-infrastructure);
+its image and benchmark numbers are not copied. Follow the
+[progress guide](engine-repo/docs/optimization-progress.md) to replace the sample
+data, redraw the figure and retain negative/incomplete results. If measurements
+are unavailable, keep an explicit illustrative or “not measured” caption.
+Do not infer E2E gain by multiplying kernel speedups or mixing workloads.
+
+These documentation tools are optional authoring dependencies, independent of
+the engine runtime. Keep the figure assets local, record their
+[provenance](engine-repo/docs/assets/README.md), check light/dark and narrow/wide
+rendering, and preserve the README's final InferRSI attribution line.
+
 ## Recipe contract and status
 
 The canonical contract is
 [InferMatrixLab/recipe, schema version 1](https://github.com/InferMatrixLab/recipe/blob/main/schemas/recipe.schema.json).
 Update that schema, its documentation and this template together when changing
-the interface. The older [InferRSI scenario recipe](../../recipes/README.md) is
-an internal RunSpec/evidence scaffold; it has a different purpose and format.
+the interface. For Workbench experiments, follow the
+[quickstart](../quickstart.md) and [evidence template](../../evidence/_template/).
 
 - Keep every top-level and nested key from this template. Use a snake_case task
   name and the actual backend string; backend names are not a closed enum.
@@ -123,8 +158,14 @@ an internal RunSpec/evidence scaffold; it has a different purpose and format.
 
 ## Delivery checklist
 
+- Repository name and README title follow the [engine README naming convention](engine-repo/README.md);
+  its final nonempty line retains the InferRSI generation attribution and link.
 - README describes supported combinations, real commands, limits, license and
   upstream sources; local assets render on both light and dark surfaces.
+- README embeds the engine architecture and end-to-end optimization progress
+  figures. Architecture matches code; progress data, units, baseline, milestones,
+  evidence links and verdicts agree. Synthetic/unmeasured content is clearly
+  labeled, including the image itself; no sample curve becomes a result claim.
 - Recipe matches schema version 1 with actual identity, date, maintainer,
   deployment version and source ownership; no publishable content has placeholders.
 - Evidence has `plan/`, `results/`, `patch/` and `validator/`; missing required

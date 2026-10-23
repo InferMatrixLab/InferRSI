@@ -1,0 +1,32 @@
+{
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "source_pins": "2205.14135v2;2307.08691v1;2407.08608v2",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "sources": [],
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "limitations": [
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "provenance_readsets": [
+    "references/mechanisms.md",
+    "references/papers-20261015/cases/io-reduction-can-plateau.md",
+    "references/papers-20261015/cases/overlap-and-fp8-counter-signals.md",
+    "references/papers-20261015/cases/partitioning-after-fusion.md",
+    "references/papers-20261015/INTEGRATION_NOTES.md",
+    "references/papers-20261015/knowledge/attention-cost-model-boundaries.md",
+    "references/papers-20261015/NEXT_GATE_LEADS.md",
+    "references/papers-20261015/README.md",
+    "references/sources.md"
+  ],
+  "references": [],
+  "consumption_mode": "packaged"
+}

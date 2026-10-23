@@ -12,11 +12,13 @@ REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang",
 # Legacy repository-pack records retain their contribution tier; an independent
 # peer card can describe a different learning use case for the same source repo.
 KNOWLEDGE_SCOPES = {
-    "contribution": (*REPO_TYPES, "vllm_ascend"),
+    "contribution": (*REPO_TYPES, "vllm_ascend", "inferrsi"),
     "dependency": (
         "flashinfer", "flashattention", "pytorch", "triton", "diffusers", "transformers"
     ),
-    "peer": ("sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit"),
+    "peer": (
+        "sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit", "qwen3_tts_engine", "deepinfer"
+    ),
 }
 KNOWLEDGE_REPOS = tuple(
     dict.fromkeys(repo for repos in KNOWLEDGE_SCOPES.values() for repo in repos)

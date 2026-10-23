@@ -40,7 +40,9 @@ Conventions: docs/agent-collaboration.md -->
 
 <!-- On completion, link changed artifacts and evidence, then let the named
 acceptance owner decide closure. A merged PR does not itself satisfy this goal.
-Subtasks can be delegated; they do not auto-close a human-owned parent goal. -->
+Subtasks can be delegated; they do not auto-close a human-owned parent goal.
+Before authorized closure, the accountable parent posts one closure summary
+comment per docs/agent-collaboration.md (Closure summaries). -->
 
 - **Who accepts completion and may close:**
 - **Remaining uncertainty / next decision:**

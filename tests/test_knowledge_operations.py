@@ -10,7 +10,7 @@ from inferrsi.knowledge_operations import (
     safe_path,
 )
 
-ROOT = Path(__file__).resolve().parents[1] / "skills"
+ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
 
 
 def test_normalized_sources_and_original_catalog_identity():
@@ -26,7 +26,8 @@ def test_normalized_sources_and_original_catalog_identity():
     record = reader.read("vllm.common.llm.runtime_and_kv_ownership")
     assert record.metadata["state"] == "imported"
     assert record.metadata["tier"] == "contribution"
-    assert any("zh-CN" in path for path in record.content)
+    assert not any("zh-CN" in path for path in record.content)
+    assert any(path.endswith("architecture-search-space/SKILL.md") for path in record.content)
     assert any(path.endswith("LICENSE") for path in record.content)
     assert record.dependencies["data/skill_library"].startswith("sha256:")
 
@@ -49,7 +50,7 @@ def test_resource_only_change_invalidates_old_snapshot_revision(tmp_path):
 def test_collect_limits_omissions_and_shared_resource_revision():
     reader = KnowledgeReader(skill_root=ROOT)
     selected = reader.read("inference-benchmark-design")
-    shared = "inference-optimization-casebook/cases/admission-drain-occupancy.md"
+    shared = "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md"
     assert shared in selected.content and shared in selected.dependencies
     result = reader.collect(
         ids=["inference-benchmark-design", "dense-performance-evidence"], limit=1

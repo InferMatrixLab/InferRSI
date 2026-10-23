@@ -20,7 +20,7 @@ def test_sias_readmes() -> None:
 def test_maintained_documentation_links_resolve() -> None:
     documents = [REPO_ROOT / "README.md", REPO_ROOT / "AGENTS.md"]
     documents += list((REPO_ROOT / "docs").rglob("*.md"))
-    documents += list((REPO_ROOT / "skills").rglob("*.md"))
+    documents += list((REPO_ROOT / "src/inferrsi/data/skill_library").rglob("*.md"))
     documents += [REPO_ROOT / "evidence/README.md"]
     for document in documents:
         for target in re.findall(

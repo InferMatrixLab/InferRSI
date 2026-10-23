@@ -11,6 +11,32 @@ Refs #`<issue-number>`
 - **What this PR delivers:**
 - **What it does not deliver:**
 
+## Knowledge authorship declaration
+
+<!-- Required for paths protected by docs/knowledge-model-policy.md. Fill the
+current full head SHA and list EVERY material AI author's actual settings.
+Human-only work explicitly sets human_only=true and material_ai_authors=[].
+Unknown settings stay truthful and do not qualify. Update after new commits.
+Mechanical/generated changes have no automatic exemption. Exceptions require
+an authorized maintainer's separate exact-head approval. Other changes receive
+Not applicable from the same policy status. -->
+
+```knowledge-model-policy
+{
+  "schema_version": 1,
+  "head_sha": "<current-full-head-sha>",
+  "human_only": false,
+  "material_ai_authors": [
+    {
+      "tool": "<actual-tool-or-agent>",
+      "model_id": "<exact-model-id-or-unknown>",
+      "effort": "<actual-effort-or-unknown>",
+      "role": "author"
+    }
+  ]
+}
+```
+
 ## Changed artifacts and evidence
 
 <!-- For small changes, a short paragraph is enough. For multi-requirement
@@ -37,7 +63,8 @@ explanation only when a material integration identity question remains. -->
 
 <!-- Do not self-declare independent approval or authorized merge. A merged PR
 need not close its parent Issue. Commits must retain DCO sign-off; agent-assisted
-commits add `Agent-assisted-by: <actual agent name> (<role>)` trailers. Keep
+commits retain material Agent-assisted-by attribution per the collaboration
+guide and knowledge admission policy. Keep
 governing Issue references in this PR body, out of commit subjects, bodies,
 trailers and the final squash message; integration is a squash merge. -->
 

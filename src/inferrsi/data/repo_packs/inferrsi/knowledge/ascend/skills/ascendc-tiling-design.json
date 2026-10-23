@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.ascendc_tiling_design",
+  "title": "ascendc-tiling-design",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Design tiling for a custom AscendC operator: normalize the shape first (axis-collapse or flatten), answer the fullload-vs-split question for UB, apply the universal four-element template (multi-core split, UB split, buffer plan, branch matrix), and route per operator class (reduction, broadcast, elementwise, matmul, conversion) using algorithm-selection and chip-generation tables (DAV_2201 vs DAV_3510). Use when writing or restructuring an AscendC operator's tiling logic, before running any performance tuning campaign.\n",
+  "tags": [
+    "ascend",
+    "npu",
+    "ascendc",
+    "tiling",
+    "operator",
+    "kernel",
+    "ub"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md"
+  },
+  "checkout_ref": "checkout:ascendc-tiling-design",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json": "04dd3e8961d5c67105b11ff52f1354f34124d9af1b03f9da08cba67cb9f9d463",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+  },
+  "skill_metadata": {
+    "name": "ascendc-tiling-design",
+    "description": "Design tiling for a custom AscendC operator: normalize the shape first (axis-collapse or flatten), answer the fullload-vs-split question for UB, apply the universal four-element template (multi-core split, UB split, buffer plan, branch matrix), and route per operator class (reduction, broadcast, elementwise, matmul, conversion) using algorithm-selection and chip-generation tables (DAV_2201 vs DAV_3510). Use when writing or restructuring an AscendC operator's tiling logic, before running any performance tuning campaign.\n",
+    "tags": [
+      "ascend",
+      "npu",
+      "ascendc",
+      "tiling",
+      "operator",
+      "kernel",
+      "ub"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "sources": [],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
+    "limitations": [
+      "Source-derived candidate; no local efficacy validation.",
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    ],
+    "provenance_readsets": [],
+    "references": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; no local efficacy validation.",
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
