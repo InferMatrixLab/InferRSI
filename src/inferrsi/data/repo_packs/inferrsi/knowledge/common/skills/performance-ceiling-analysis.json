@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/678748f89ac34c8a4cf452a1f57089f68b52ee49/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "678748f89ac34c8a4cf452a1f57089f68b52ee49",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/0322910db9f2a30e5214f36dd63b45e664f7e491/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "0322910db9f2a30e5214f36dd63b45e664f7e491",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
