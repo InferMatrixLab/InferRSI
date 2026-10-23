@@ -11,3 +11,11 @@ These observations belong to [acceptance issue #112](https://github.com/InferMat
 - **Profile time sums are not recoverable latency.** GPU kernels overlap across stages, and host synchronization often overlaps active GPU work. Use interval unions and request-level measurements rather than adding kernel durations or treating every synchronization interval as idle time. The retained [baseline profile](baseline-profile-summary.json) and [full-bundle trace manifests](full-cuda-run-manifest.json) are diagnostic observations under profiler overhead, not acceptance benchmarks.
 
 The [source table](../plan/source-attribution.md) distinguishes existing mechanisms, deployment adaptations and new measurement fixes. Failed and inconclusive attempts remain part of the evidence; they are not removed from the search history.
+
+## UNTESTED follow-up: device-specific MoE tuning
+
+Status: **INCONCLUSIVE**; tuning has not been run. Installed vLLM 0.32.0 logs report missing `E=128,N=384,device_name=NVIDIA_L20X.json` (Talker) and `E=128,N=768,device_name=NVIDIA_L20X.json` (Thinker). Exact-name lookup falls back to generic parameters, not H100/H200 configurations. A missing file is not proof of a performance regression; SM90 compatibility does not establish optimal launch parameters.
+
+The BF16, TP1 shapes are Talker `(experts=128, hidden=1024, intermediate=384, top_k=6)` and Thinker `(128, 2048, 768, 8)`. A bounded follow-up would tune representative token batches using the native utility, retain results in a task-local `VLLM_TUNED_CONFIG_FOLDER`, and validate numerical/quality behavior and the full paired service gates before promotion. Existing H100/H200 configurations are search candidates only. This does not modify the frozen campaign.
+
+Private full-CUDA trace analysis observed `fused_moe_kernel` duration sums of 52.49 ms for Talker and 185.89 ms for Thinker. These are profiler kernel sums from an eight-request C4 diagnostic, not interval unions, recoverable latency, or measured optimization gains. See the [source verification record](../plan/source-attribution.md#l20x-moe-source-verification).
