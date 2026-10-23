@@ -1,6 +1,7 @@
 import io
 import shutil
 import zipfile
+from urllib.parse import parse_qs, urlsplit
 
 from inferrsi.infra.artifacts import write_json
 from tests.fixtures.skill_eval_compare_support import configuration, git
@@ -92,4 +93,25 @@ class SimulatedGitHub(integration.GitHub):
                 self.fail_response = False
                 raise ConnectionError("Offline lost response after server accepted publication")
             return {"html_url": "https://github.com/example/fixture/pull/7#issuecomment-1"}
+        raise AssertionError((method, path))
+
+
+class SimulatedWorkflowHistory(integration.GitHub):
+    def __init__(self, plan, responses):
+        super().__init__(plan["repository"], "offline-not-a-credential")
+        self.plan, self.responses, self.pages_requested = plan, responses, []
+
+    def request(self, method, path, data=None, *, binary=False):
+        assert method == "GET" and not binary and data is None
+        if path.startswith("/collaborators/"):
+            return {"permission": "write"}
+        if path.startswith("/pulls/"):
+            return {"state": "open", **{key: {"sha": self.plan[key]}
+                                       for key in ("base", "head")}}
+        if path.startswith("/actions/workflows/skill-eval-pr.yml/runs?"):
+            query = parse_qs(urlsplit(path).query)
+            assert query["event"] == ["workflow_dispatch"] and query["per_page"] == ["100"]
+            page = int(query["page"][0])
+            self.pages_requested.append(page)
+            return self.responses[page - 1]
         raise AssertionError((method, path))

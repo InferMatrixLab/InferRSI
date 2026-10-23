@@ -104,6 +104,12 @@ The Actions run is the durable execution tombstone, not the expiring artifact.
 An interrupted or failed attempt is consumed even if it might have stopped
 before any paid work. There is no automatic paid retry/resume. Do not delete
 execution workflow runs; inaccessible/incomplete run history fails closed.
+Authorization requires a stable integer `total_count`, exactly that many unique
+run IDs and no overlapping pages. GitHub's filtered workflow-run searches have a
+[1,000-result limit](https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-workflow).
+Reaching that limit is ambiguous, so a reported total of 1,000 or more blocks
+execution immediately. Missing/changing totals or an early short/empty page
+also block execution; a short page alone never proves complete history.
 Deleting this coordination history removes duplicate-prevention evidence and
 requires human reconciliation before any further execution of the same plan.
 Workflow reruns may republish results but must not rerun evaluation.

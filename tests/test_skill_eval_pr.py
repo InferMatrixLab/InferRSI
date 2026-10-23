@@ -1,6 +1,7 @@
 import copy
 import io
 import stat
+import sys
 import threading
 import urllib.request
 import zipfile
@@ -11,7 +12,13 @@ import yaml
 
 from inferrsi.infra.artifacts import sha256, write_json
 from tests.fixtures.skill_eval_compare_support import ROOT, FixedOutputClient, git
-from tests.fixtures.skill_eval_pr_support import SimulatedGitHub, approval, envelope, setup
+from tests.fixtures.skill_eval_pr_support import (
+    SimulatedGitHub,
+    SimulatedWorkflowHistory,
+    approval,
+    envelope,
+    setup,
+)
 from tools import skill_eval_compare as compare
 from tools import skill_eval_pr as integration
 
@@ -109,6 +116,97 @@ def test_dispatch_history_blocks_duplicate_failed_cancelled_and_rerun_attempts(t
             integration.claim(plan, runs, run, attempt)
     with pytest.raises(ValueError):
         integration.claim(plan, [], 1, 1)
+
+
+@pytest.fixture
+def history_plan():
+    return {"repository": "example/fixture", "pr": 7, "base": "a" * 40, "head": "b" * 40,
+            "version": "c" * 40, "estimated_calls": 2,
+            "limits": {"repeats": 1, "max_task_calls": 2, "timeout_seconds": 60,
+                       "campaign_seconds": 900, "token_stop_new_trials": 20000},
+            "comparisons": [{"plan_sha256": "d" * 64}]}
+
+
+@pytest.mark.parametrize("reported_total", [1000, 1001])
+def test_filtered_history_cap_cannot_authorize_an_omitted_older_execution(
+    tmp_path, monkeypatch, history_plan, reported_total,
+):
+    title = integration.run_title(7, integration.fingerprint(history_plan))
+    runs = [{"id": i, "event": "workflow_dispatch",
+             "display_title": title if i in (1, 1001) else "another execution"}
+            for i in range(1001, 0, -1)]
+    visible = runs[:1000]
+    assert runs[-1]["id"] == 1 and runs[-1]["display_title"] == title
+    assert all(r["id"] != 1 for r in visible)
+    responses = [{"total_count": reported_total, "workflow_runs": visible[i:i + 100]}
+                 for i in range(0, 1100, 100)]
+    api = SimulatedWorkflowHistory(history_plan, responses)
+    inputs = {key: history_plan[key] for key in ("version", "base", "head")}
+    inputs.update(pr="7", plan_sha256=integration.fingerprint(history_plan),
+                  budget=integration.canonical(integration.budget(history_plan)))
+    write_json(tmp_path / "event.json", {"inputs": inputs})
+    write_json(tmp_path / "pr-plan.json", history_plan)
+    for key, value in {"GITHUB_EVENT_PATH": str(tmp_path / "event.json"),
+                       "GITHUB_REPOSITORY": "example/fixture", "GITHUB_RUN_ID": "1001",
+                       "GITHUB_RUN_ATTEMPT": "1", "GITHUB_ACTOR": "fixture-operator",
+                       "GITHUB_TOKEN": "offline-not-a-credential"}.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
+    monkeypatch.setattr(sys, "argv", ["skill_eval_pr", "authorize", "--output", str(tmp_path)])
+    with pytest.raises(ValueError, match="history"):
+        integration.main()
+    assert not (tmp_path / "approval.json").exists()
+    assert api.pages_requested == [1]
+
+
+@pytest.mark.parametrize("total", [0, 100, 101, 999])
+def test_counted_workflow_history_accepts_complete_pages(history_plan, total):
+    runs = [{"id": i + 1} for i in range(total)]
+    responses = [{"total_count": total, "workflow_runs": runs[i:i + 100]}
+                 for i in range(0, max(1, total), 100)]
+    api = SimulatedWorkflowHistory(history_plan, responses)
+    actual = api.pages("/actions/workflows/skill-eval-pr.yml/runs?event=workflow_dispatch",
+                       "workflow_runs", require_complete=True)
+    assert actual == runs
+    assert api.pages_requested == list(range(1, len(responses) + 1))
+
+
+def test_complete_workflow_history_keeps_an_older_duplicate_in_the_claim(history_plan):
+    title = integration.run_title(7, integration.fingerprint(history_plan))
+    runs = [{"id": i, "event": "workflow_dispatch",
+             "display_title": title if i in (1, 101) else "another execution"}
+            for i in range(101, 0, -1)]
+    api = SimulatedWorkflowHistory(history_plan, [
+        {"total_count": 101, "workflow_runs": runs[:100]},
+        {"total_count": 101, "workflow_runs": runs[100:]},
+    ])
+    actual = api.pages("/actions/workflows/skill-eval-pr.yml/runs?event=workflow_dispatch",
+                       "workflow_runs", require_complete=True)
+    with pytest.raises(ValueError, match="Duplicate or uncertain"):
+        integration.claim(history_plan, actual, 101, 1)
+    assert integration.claim(history_plan, actual, 1, 1) == integration.execution_id(history_plan)
+
+
+@pytest.mark.parametrize("responses", [
+    [{"workflow_runs": []}],
+    [{"total_count": None, "workflow_runs": []}],
+    [{"total_count": True, "workflow_runs": [{"id": 1}]}],
+    [{"total_count": -1, "workflow_runs": []}],
+    [{"total_count": 2, "workflow_runs": [{"id": 1}]}],
+    [{"total_count": 0, "workflow_runs": [{"id": 1}]}],
+    [{"total_count": 101, "workflow_runs": [{"id": i} for i in range(100)]},
+     {"total_count": 101, "workflow_runs": []}],
+    [{"total_count": 101, "workflow_runs": [{"id": i} for i in range(100)]},
+     {"total_count": 102, "workflow_runs": [{"id": 100}]}],
+    [{"total_count": 101, "workflow_runs": [{"id": i} for i in range(100)]},
+     {"total_count": 101, "workflow_runs": [{"id": 99}]}],
+], ids=["missing-total", "null-total", "boolean-total", "negative-total", "short-page",
+        "extra-record", "empty-last-page", "changing-total", "overlapping-pages"])
+def test_workflow_history_rejects_incomplete_or_uncertain_pages(history_plan, responses):
+    api = SimulatedWorkflowHistory(history_plan, responses)
+    with pytest.raises(ValueError, match="history"):
+        api.pages("/actions/workflows/skill-eval-pr.yml/runs?event=workflow_dispatch",
+                  "workflow_runs", require_complete=True)
 
 
 def test_concurrent_duplicate_calls_execute_only_one_paid_schedule(tmp_path):

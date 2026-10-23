@@ -304,14 +304,33 @@ class GitHub:
             raw = response.read(MAX_ARCHIVE + 1)
         return raw if binary else json.loads(raw)
 
-    def pages(self, path, key=None):
-        records, page = [], 1
+    def pages(self, path, key=None, *, require_complete=False):
+        records, page, total, seen = [], 1, None, set()
         while True:
             data = self.request("GET", path + ("&" if "?" in path else "?")
                                 + f"per_page=100&page={page}")
             batch = data[key] if key else data
+            if require_complete:
+                count = data.get("total_count")
+                # Filtered workflow-run searches stop at 1,000; that boundary is ambiguous.
+                if type(count) is not int or not 0 <= count < 1000:
+                    raise ValueError(
+                        "Workflow history total is unknown or reaches the search limit")
+                if total is not None and count != total:
+                    raise ValueError("Workflow history changed during pagination")
+                total = count
+                identities = {record["id"] for record in batch}
+                if len(identities) != len(batch) or seen & identities:
+                    raise ValueError("Workflow history pages contain duplicate records")
+                if len(records) + len(batch) > total:
+                    raise ValueError("Workflow history exceeds its reported total")
+                seen.update(identities)
             records.extend(batch)
+            if require_complete and len(records) == total:
+                return records
             if len(batch) < 100:
+                if require_complete:
+                    raise ValueError("Workflow history ended before its reported total")
                 return records
             page += 1
 
@@ -429,7 +448,7 @@ def main():
         request["budget"] = json.loads(inputs["budget"])
         approval = authorize(plan, request, actor, permission, api.pr(pr))
         runs = api.pages("/actions/workflows/skill-eval-pr.yml/runs?event=workflow_dispatch",
-                         "workflow_runs")
+                         "workflow_runs", require_complete=True)
         claim(plan, runs, run_id, int(os.environ["GITHUB_RUN_ATTEMPT"]))
         write_json(output / "approval.json", approval)
         return
