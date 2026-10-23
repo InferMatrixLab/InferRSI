@@ -118,6 +118,20 @@ def _text(value: object, where: str) -> str:
     return value.strip()
 
 
+def _spacing(axis: dict, name: str, default: float, where: str) -> float:
+    """Read one axis spacing, rejecting zero, negative and non-finite values.
+
+    A zero step divides the data range and would abort report generation, so it
+    is a specification error with the field name rather than a crash.
+    """
+    value = axis.get(name, default)
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise SpecError(f"{where}.{name} must be a number, got {value!r}")
+    if not math.isfinite(value) or value <= 0:
+        raise SpecError(f"{where}.{name} must be finite and positive, got {value!r}")
+    return float(value)
+
+
 def _metric_keys(spec: dict) -> list[str]:
     metrics = spec.get("metrics")
     if not isinstance(metrics, list) or not metrics:
@@ -369,11 +383,14 @@ def _build_chain(spec: dict) -> str:
         raise SpecError("a reference value is not finite against its baseline")
     lowest = min([1.0, *[min(values) for values in multiples.values()], *reference_multiples])
     highest = max([1.0, *[max(values) for values in multiples.values()], *reference_multiples])
-    step = float(axis.get("step", 0.5))
+    step = _spacing(axis, "step", 0.5, "axis")
     floor = max(0.0, math.floor(lowest / step) * step)
     ceiling = math.ceil(highest / step) * step
-    if ceiling <= floor:
-        raise SpecError("the chain has no vertical span; check the recorded values")
+    # A flat campaign still draws: centre the window on the flat value so the
+    # line sits in the middle of the plot instead of hugging an edge.
+    if ceiling - floor <= step * 1e-9:
+        floor = max(0.0, lowest - step / 2)
+        ceiling = floor + step
 
     spans = _phase_spans(points, phases)
     span = CHAIN_WIDTH - CHAIN_LEFT - CHAIN_RIGHT
@@ -605,7 +622,8 @@ def _build_branch(spec: dict) -> str:
     references = _references(spec, keys)
     label_metric = _label_metric(spec, keys)
     unit = str(spec.get("unit", "")).strip()
-    tick = float(spec.get("axis", {}).get("tick", 50))
+    axis = spec.get("axis", {}) if isinstance(spec.get("axis", {}), dict) else {}
+    tick = _spacing(axis, "tick", 50.0, "axis")
 
     gains = _finite(
         {
@@ -623,8 +641,11 @@ def _build_branch(spec: dict) -> str:
     high = max([0.0, *[max(values) for values in gains.values()], *reference_gains])
     x_min = math.floor(low / tick) * tick
     x_max = math.ceil(high / tick) * tick
-    if x_max <= x_min:
-        raise SpecError("every trial sits at zero gain; the figure would have no span")
+    # Every trial at zero gain is a valid flat result; centre the axis on it
+    # instead of failing, with zero in the middle of the plot.
+    if x_max - x_min <= tick * 1e-9:
+        x_min = low - tick / 2
+        x_max = high + tick / 2
 
     legend = "  ".join(metric_label(spec, key) for key in keys)
     control = spec.get("baseline", {}).get("label")

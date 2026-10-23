@@ -173,3 +173,72 @@ def test_overflow_in_a_report_still_produces_an_artifact(tmp_path):
     )
     report = write_report(tmp_path).read_text(encoding="utf-8")
     assert "No gain figure" in report
+
+
+def flat_chain_spec():
+    return {
+        "layout": "chain",
+        "title": "Flat campaign",
+        "metrics": [{"key": "m", "label": "m"}],
+        "baseline": {"label": "b", "metrics": {"m": 100.0}},
+        "axis": {"step": 0.25},
+        "points": [
+            {"label": "base", "values": {"m": 100.0}, "baseline": True},
+            {"label": "step A", "values": {"m": 100.0}},
+        ],
+    }
+
+
+def flat_branch_spec():
+    return {
+        "layout": "branch",
+        "title": "All-flat screens",
+        "metrics": [{"key": "m", "label": "m"}],
+        "baseline": {"label": "b", "metrics": {"m": 100.0}},
+        "trials": [
+            {"group": "K", "label": "a", "values": {"m": 100.0}, "status": "flat"},
+            {"group": "K", "label": "b", "values": {"m": 100.0}, "status": "flat"},
+        ],
+    }
+
+
+@pytest.mark.parametrize("builder", [flat_chain_spec, flat_branch_spec])
+def test_equal_values_still_draw_a_flat_figure(builder):
+    """Two equal measurements are a valid result, not a reason to refuse."""
+    spec = builder()
+    svg = summary_chart.build_svg(spec)
+    assert "polyline" in svg or "circle" in svg
+    assert "1.00\u00d7" in svg or "+0.0%" in svg
+
+
+def test_a_flat_run_draws_a_figure_through_the_report(tmp_path):
+    (tmp_path / "evaluation.json").write_text(
+        json.dumps(evaluation(baseline={"median": 100.0}, candidate={"median": 100.0})),
+        encoding="utf-8",
+    )
+    report = write_report(tmp_path).read_text(encoding="utf-8")
+    assert "No gain figure" not in report
+    assert '<figure class="summary-chart">' in report
+    assert (tmp_path / "summary-chart.svg").is_file()
+
+
+@pytest.mark.parametrize("value", [0, 0.0, -1, float("inf"), float("nan"), "x", True, None])
+@pytest.mark.parametrize("name", ["step", "tick"])
+def test_invalid_axis_spacing_is_a_field_error(value, name):
+    spec = chain_spec() if name == "step" else branch_spec()
+    spec["axis"] = {name: value}
+    with pytest.raises(summary_chart.SpecError, match=f"axis\\.{name}"):
+        summary_chart.build_svg(spec)
+
+
+@pytest.mark.parametrize("bad_axis", [{"step": 0}, {"step": "x"}, {"step": -0.5}])
+def test_a_bad_spacing_never_aborts_report_generation(tmp_path, bad_axis):
+    """The figure is optional, so a bad spec must not stop the report."""
+    spec = chain_spec()
+    spec["axis"] = bad_axis
+    (tmp_path / "summary-chart.json").write_text(json.dumps(spec), encoding="utf-8")
+    (tmp_path / "evaluation.json").write_text(json.dumps(evaluation()), encoding="utf-8")
+    report = write_report(tmp_path).read_text(encoding="utf-8")
+    assert "No gain figure" in report
+    assert "axis.step" in report
+    assert "<h2>Evaluation</h2>" in report
