@@ -19,22 +19,26 @@ EXIT_COMPLIANT = 0
 EXIT_NONCOMPLIANT = 1
 EXIT_RERUN = 2
 API_ERRORS = (ValueError, KeyError, TypeError, OSError)
-# GitHub keeps a bounded number of statuses for one SHA and context; writes past that bound are
-# discarded, so the newest entry could stay an earlier success forever.
-# https://docs.github.com/en/rest/commits/statuses#about-commit-statuses
+# GitHub keeps at most 1,000 statuses for one SHA and context and answers a write past the cap
+# with a validation error, so an already-full head cannot record any further verdict at all.
+# https://docs.github.com/en/rest/commits/statuses#create-a-commit-status
 STATUS_LIMIT = 1000
 # Capacity held back so a head that is out of budget can still record a non-success verdict.
 # Evaluation stops publishing success below this margin; only a new head restores normal runs.
 STATUS_RESERVE = 8
+# Description of the reserved terminal verdict. A later run recognises the entry it already
+# recorded by this text and leaves it in place instead of spending another reserved slot.
+BUDGET_DESCRIPTION = "Status history is nearly full; push a new head"
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
          "advanced", "publication-failed", "invalidation-failed", "history-unavailable",
-         "budget-exhausted")
+         "budget-exhausted", "budget-saturated")
 # Per-PR verdict: a rejection is this PR's red status, not a failure of the sweep.
 REJECTION_KINDS = {"noncompliant"}
 # Sweep execution problems, reported as errors and never as a per-PR verdict.
 ERROR_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publication-failed",
-               "invalidation-failed", "history-unavailable", "budget-exhausted"}
+               "invalidation-failed", "history-unavailable", "budget-exhausted",
+               "budget-saturated"}
 FAILING_KINDS = REJECTION_KINDS | ERROR_KINDS
 # Only the outer runner retries; these kinds ask it for a fresh trusted checkout. A head out of
 # status budget is not retryable: a rerun cannot add capacity, it would only consume the reserve.
@@ -44,7 +48,8 @@ RERUN_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publica
 NO_PUBLISH = {"closed", "advanced"}
 # Results produced after confirming the target but before any evidence was assessed. The target's
 # earlier verdict was not replaced, so none of these may be overwritten by an evaluation verdict.
-PRE_EVALUATION_KINDS = {"invalidation-failed", "history-unavailable", "budget-exhausted"}
+PRE_EVALUATION_KINDS = {"invalidation-failed", "history-unavailable", "budget-exhausted",
+                        "budget-saturated"}
 
 
 def summarize(results):
@@ -318,19 +323,22 @@ class GitHub:
         self.request(f"statuses/{head}", payload)
 
     def history(self, head):
-        # The per-SHA status list is newest first and bounded by the service, so only a complete
-        # count is trustworthy. Stop scanning once the limit is exceeded; the exact excess is
-        # irrelevant because anything at or past the limit is already saturated.
-        total = 0
+        # GitHub treats the context name case-insensitively, so counting only the exact spelling
+        # would miss equivalent entries and could spend the last free slots on a pending and a
+        # success. The list is newest first, which makes entry 0 the head's effective status.
+        key = CONTEXT.casefold()
+        found = []
         page = 1
         while True:
             query = urlencode({"per_page": 100, "page": page})
             items, links = self.request(f"commits/{head}/statuses?{query}")
             if not isinstance(items, list):
                 raise ValueError("Expected a paginated GitHub API list")
-            total += sum(item.get("context") == CONTEXT for item in items)
-            if total > STATUS_LIMIT or 'rel="next"' not in links:
-                return total
+            found.extend(item for item in items
+                         if str(item.get("context") or "").casefold() == key)
+            # The cap is per context, so the tail is irrelevant once the limit is reached.
+            if len(found) >= STATUS_LIMIT or 'rel="next"' not in links:
+                return found
             if len(items) != 100:
                 raise ValueError("Incomplete commit status pagination")
             page += 1
@@ -474,34 +482,62 @@ def within_budget(used):
     return used + 2 <= STATUS_LIMIT - STATUS_RESERVE
 
 
+def recorded_budget_failure(entries):
+    # The reserve exists so that this verdict can be written once. A later sweep must recognise
+    # that entry instead of appending another failure until the cap is reached.
+    if not entries:
+        return False
+    newest = entries[0]
+    return newest.get("state") == "failure" and newest.get("description") == BUDGET_DESCRIPTION
+
+
 def invalidated(api, head, dry_run):
     # A verdict from an earlier run must not survive an evaluation that has produced no evidence
     # yet. Replacing it is itself a write, so it can fail; the caller then stops this target's
     # success path and reports the uncertainty instead of evaluating onward.
     #
-    # The per-SHA status history is bounded. Once the reserve is all that is left, no success is
-    # written and the target is reported as out of budget: retrying cannot restore capacity, so
-    # only a new head resumes normal evaluation.
+    # Returns the failure result and whether the publication pass may still write it.
+    #
+    # The per-SHA status history is bounded. Past the reserve no success is written and the
+    # target is reported as out of budget: retrying cannot restore capacity, so only a new head
+    # resumes normal evaluation.
     if dry_run:
-        return None
+        return None, True
     try:
-        used = api.history(head)
+        entries = api.history(head)
     except API_ERRORS as error:
         return {"state": "failure", "kind": "history-unavailable",
                 "description": "Status history could not be read",
-                "errors": [evaluation_failure(error)["errors"][0]]}
-    if not within_budget(used):
-        return {"state": "failure", "kind": "budget-exhausted",
-                "description": "Status history is nearly full; push a new head",
-                "errors": [f"{used} statuses recorded for this head and context "
-                           f"(limit {STATUS_LIMIT})"]}
+                "errors": [evaluation_failure(error)["errors"][0]]}, True
+    if len(entries) >= STATUS_LIMIT:
+        # GitHub rejects every write at the cap. The newest entry, possibly an old success,
+        # cannot be replaced by this checker; a new head is the only recovery.
+        return {"state": "failure", "kind": "budget-saturated",
+                "description": "Status history is full; a new head is required",
+                "errors": [f"{len(entries)} statuses recorded for this head and context "
+                           f"(limit {STATUS_LIMIT}); no further status can be written"]}, False
+    if not within_budget(len(entries)):
+        result = {"state": "failure", "kind": "budget-exhausted",
+                  "description": BUDGET_DESCRIPTION,
+                  "errors": [f"{len(entries)} statuses recorded for this head and context "
+                             f"(limit {STATUS_LIMIT}); no success is published"]}
+        if recorded_budget_failure(entries):
+            # The reserved slot already holds this verdict; leave it in place.
+            return result, False
+        try:
+            api.status(head, result["state"], result["description"])
+        except API_ERRORS as error:
+            return {**result,
+                    "errors": [*result["errors"],
+                               evaluation_failure(error)["errors"][0]]}, False
+        return result, False
     try:
         api.status(head, "pending", "Admission evaluation in progress")
     except API_ERRORS as error:
         return {"state": "failure", "kind": "invalidation-failed",
                 "description": "Earlier admission result could not be invalidated",
-                "errors": [evaluation_failure(error)["errors"][0]]}
-    return None
+                "errors": [evaluation_failure(error)["errors"][0]]}, False
+    return None, True
 
 
 def lifecycle_result(result, scan_error):
@@ -539,7 +575,7 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
         except API_ERRORS as error:
             # The target cannot be read, so no status is written to a head that may be merged.
             records[number] = {"head": "", "snapshot": None, "comments": [],
-                               "ownership": None,
+                               "ownership": None, "publish": False,
                                "result": unverified(evaluation_failure(error)["errors"][0])}
             continue
         head = pr["head"]["sha"]
@@ -547,21 +583,21 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
             raise ValueError("Invalid PR head")
         if not addressable(pr, policy):
             records[number] = {"head": head, "snapshot": None, "comments": [],
-                               "ownership": None,
+                               "ownership": None, "publish": False,
                                "result": closed_result("Not open against the policy branch")}
             continue
-        failure = invalidated(api, head, dry_run)
+        failure, publish = invalidated(api, head, dry_run)
         if failure is not None:
             # Without a published invalidation an old success would still be the head's effective
             # state, so this target gets no verdict and asks the runner for a fresh attempt.
             records[number] = {"head": head, "snapshot": None, "comments": [],
-                               "ownership": None, "result": failure}
+                               "ownership": None, "result": failure, "publish": publish}
             continue
         # An unreadable collection must not be mistaken for a shared head under an explicit
         # --pull-request target; the target itself is the only known peer in that case.
         result, comments = read_pr_result(api, pr, policy, policy_sha, open_prs or [pr])
         records[number] = {"head": head, "snapshot": admission_snapshot(pr),
-                           "comments": comments, "result": result,
+                           "comments": comments, "result": result, "publish": True,
                            "ownership": (None if scan_error is not None
                                          else head_owner(open_prs or [pr], number, head))}
     # One publication pass. Ownership and metadata are read fresh here; a target that left the
@@ -596,14 +632,15 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
         result = record["result"]
         if result["kind"] in PRE_EVALUATION_KINDS:
             # The premise was already confirmed for this target and head. A verdict is never
-            # published for a target whose earlier result was not replaced, and an
-            # `invalidation-failed` writes nothing because that write is the operation that
-            # just failed. A head out of status budget spends one reserved slot on its failure
-            # verdict and is not retried, because a rerun cannot restore capacity.
-            if result["kind"] != "invalidation-failed" and not dry_run:
+            # published for a target whose earlier result was not replaced. Some of these
+            # results own their write (`record["publish"]`): a saturated head cannot accept
+            # one, and an already-recorded reserve verdict must not be duplicated.
+            if record["publish"] and not dry_run:
                 try:
                     api.status(head, result["state"], result["description"])
                 except API_ERRORS as error:
+                    # The failure is still reported; a retry is harmless because a later sweep
+                    # re-reads the history and preserves or records the terminal verdict once.
                     result = {**result, "kind": "publication-failed", "state": "failure",
                               "errors": [*result["errors"],
                                          evaluation_failure(error)["errors"][0]]}

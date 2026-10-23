@@ -33,6 +33,7 @@ from tools.check_knowledge_model_policy import (
     refresh_event,
     snapshot,
     summarize,
+    within_budget,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -415,7 +416,16 @@ def api_fixture():
                 self.send_error(404)
                 return
             state["requests"].append(("POST", route))
-            state["statuses"].append({"sha": route.split("/")[1], **value})
+            sha, context = route.split("/")[1], str(value.get("context") or "")
+            # GitHub rejects a write past the per-SHA/context cap instead of discarding it, and
+            # treats the context name case-insensitively.
+            recorded = sum(s["sha"] == sha
+                           and str(s["context"]).casefold() == context.casefold()
+                           for s in state["statuses"])
+            if recorded >= STATUS_LIMIT:
+                self.send_error(422)
+                return
+            state["statuses"].append({"sha": sha, **value})
             self.respond(value)
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
@@ -434,7 +444,8 @@ def api_fixture():
 
 def latest_status(state, head=HEAD):
     return next(s for s in reversed(state["statuses"])
-                if s["sha"] == head and s["context"] == "knowledge-model-policy")
+                if s["sha"] == head
+                and str(s["context"]).casefold() == DECLARATION.casefold())
 
 
 @pytest.mark.parametrize("order", [(123, 124), (124, 123)])
@@ -643,7 +654,7 @@ def test_api_batch_separates_rejection_from_lifecycle_outcomes(api_fixture, poli
                                        "unverified": 0, "deferred": 0, "closed": 1,
                                        "advanced": 0, "publication-failed": 0,
                                        "invalidation-failed": 0, "history-unavailable": 0,
-                                       "budget-exhausted": 0},
+                                       "budget-exhausted": 0, "budget-saturated": 0},
                        "results": 3, "failed": 1, "noncompliant_pull_requests": [124],
                        "execution": "ok", "rerun": False}
     # A per-PR rejection keeps that PR red; it does not fail the sweep.
@@ -1056,12 +1067,13 @@ def seed_history(state, count, head=HEAD, context="knowledge-model-policy"):
 
 
 def test_status_budget_boundary_reserves_capacity_for_a_failure():
-    from tools.check_knowledge_model_policy import STATUS_LIMIT, STATUS_RESERVE, within_budget
     # The last run that may still evaluate needs room for a pending plus its verdict.
     assert within_budget(STATUS_LIMIT - STATUS_RESERVE - 2)
     # Past that point the reserved slots can only hold a non-success verdict.
     assert not within_budget(STATUS_LIMIT - STATUS_RESERVE - 1)
     assert not within_budget(STATUS_LIMIT)
+    # A saturated head is a different state: no write is possible at all.
+    assert STATUS_LIMIT - STATUS_RESERVE < STATUS_LIMIT
 
 
 def test_api_head_near_the_status_budget_never_publishes_success(api_fixture, policy):
@@ -1081,12 +1093,40 @@ def test_api_head_near_the_status_budget_never_publishes_success(api_fixture, po
 def test_api_exhausted_history_cannot_leave_a_success_newest(api_fixture, policy):
     api, state = api_fixture
     assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
-    # The head already holds a full history: the earlier success is the newest surviving entry.
-    seed_history(state, STATUS_LIMIT - 1)
+    # A head already at the cap cannot accept any write, so the earlier success stays the newest
+    # entry. The run must report that state as blocked, not claim it turned it red.
+    seed_history(state, STATUS_LIMIT - len(state["statuses"]))
     for _ in range(3):
         result = check_pr(api, 123, policy, BASE, False)
-        assert result["kind"] == "budget-exhausted"
+        assert result["kind"] == "budget-saturated"
+        assert result["state"] == "failure"
         assert result["rerun"] is False
+        assert exit_code([result]) == EXIT_NONCOMPLIANT
+    assert len(state["statuses"]) == STATUS_LIMIT
+    assert latest_status(state)["state"] == "success"
+
+
+def test_api_repeated_sweeps_keep_one_reserved_terminal_verdict(api_fixture, policy):
+    api, state = api_fixture
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1)
+    results = [check_pr(api, 123, policy, BASE, False) for _ in range(3)]
+    # The first sweep spends one reserved slot on the failure; later sweeps recognise that entry
+    # instead of appending another one, so a failing sweep does not loop and does not consume the
+    # whole reserve.
+    assert [r["kind"] for r in results] == ["budget-exhausted"] * 3
+    assert all(r["rerun"] is False for r in results)
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_context_names_are_counted_case_insensitively(api_fixture, policy):
+    api, state = api_fixture
+    # GitHub treats the context as case-insensitive, so these entries count against the budget.
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1, context="Knowledge-Model-Policy")
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "budget-exhausted"
+    assert result["rerun"] is False
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE
     assert latest_status(state)["state"] == "failure"
 
 
