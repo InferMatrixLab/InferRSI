@@ -348,3 +348,9 @@ those dependencies, a build-complete checkout or a complete serving system.
 The three peer cards summarize related source observations; generated abstracts
 point to the complete procedures. Neither independently corroborates or promotes
 the candidate mechanisms.
+
+## Task-specific benchmark selection (issue #60)
+
+| Source / revision | Inspected scope | Reuse, extraction and limits |
+| --- | --- | --- |
+| [Issue #60 report](https://github.com/InferMatrixLab/InferRSI/issues/60#issuecomment-6310920198), 2026-10-21; eight Git source inventories in the [owner metadata](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json) | Task/quality/workload separation across text, agentic coding, work agents, TTS, full-duplex interaction and image/video; selected pinned AIPerf/realtime/FDB/video sources rechecked and the current InferRSI metric contract inspected | Extend [inference-benchmark-design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md) with [task selection](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md) and [command templates](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md). Candidate guidance; source review and bounded smoke do not qualify all tasks or establish a performance gain. Replay scores, reference parity and task quality retain separate meanings. |
