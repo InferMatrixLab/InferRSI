@@ -23,3 +23,5 @@ Baseline quality: mean WER 0.0383296 over 256 items, with no failed requests, mi
 [Candidate hypotheses and sources](plan/candidates.json) separate configuration adaptations from upstream algorithms. [PR #9278](https://github.com/vllm-project/vllm-omni/pull/9278) corrects valid-audio timestamps and preserves per-request benchmark measurements; it is instrumentation, not an inference speedup.
 
 The [MRv2 screening record](results/mrv2-run-manifest.json) retains C1/C64 results, including a C64 inference-time MoE compilation event. Its C1→C64 order differs from the full baseline matrix, so it is not a warmed comparative trial or promotion evidence. No outliers were removed.
+
+Source checkout: campaign-only benchmark commits are published on the [user fork](https://github.com/amy-why-3459/vllm-omni/tree/f9feff996da2a60009d7626f9b7b09154acef824). The frozen protocol used upstream URL prefixes for these commits; [source-location errata](results/source-location-errata.json) corrects their location without altering source bytes or frozen gates.

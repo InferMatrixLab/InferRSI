@@ -1,0 +1,12 @@
+{
+  "scope": "Source location correction only; frozen source bytes, gates and measured revisions unchanged",
+  "reason": "Campaign-only instrumentation commits are published on the user fork; upstream GitHub commit API does not resolve them until integrated. Historical protocol source URLs used the upstream repository prefix.",
+  "canonical_repository": "https://github.com/amy-why-3459/vllm-omni",
+  "benchmark_revision": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "baseline_server_revision": "9449b3cafc1a98f1efa599d75d4a6a0508299437",
+  "fetch_branch": "perf-qwen3-omni-2gpu-rsi",
+  "source_url_replacement": {
+    "from": "https://github.com/vllm-project/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/",
+    "to": "https://github.com/amy-why-3459/vllm-omni/blob/f9feff996da2a60009d7626f9b7b09154acef824/"
+  }
+}
