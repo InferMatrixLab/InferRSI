@@ -236,6 +236,10 @@
     "audit-afd-p2p-exchanges": {
       "path": "repositories/afd-plugin/audit-afd-p2p-exchanges",
       "backend": "cuda"
+    },
+    "reason-hopper-kernels": {
+      "path": "hardware/cuda/reason-hopper-kernels",
+      "backend": "cuda"
     }
   }
 }

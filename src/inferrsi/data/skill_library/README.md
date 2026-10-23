@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **80 skill documents**: 59 registered skills
+The English-only library contains **81 skill documents**: 60 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -8,7 +8,7 @@ references, cases and source notices ship with the package.
 
 | Directory | Content |
 | --- | --- |
-| [Hardware](hardware/) | Ascend (13 registered skills), CUDA (2) and host resource guidance (5) |
+| [Hardware](hardware/) | Ascend (13 registered skills), CUDA (3) and host resource guidance (5) |
 | [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 59 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 60 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -53,7 +53,7 @@ loading and host placement remain with their existing owners.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 59-ID registry.
+the links and catalog records below, separately from the 60-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -131,3 +131,14 @@ separates pipeline-wrapper fields, reused component identities, scheduler progre
 and cooperative interruption. The candidate is scoped to FluxPipeline and
 FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
 and performance remain unverified; the existing offload card keeps its own pin.
+
+## Hopper kernel reasoning
+
+The CUDA-owned [reason-hopper-kernels](hardware/cuda/reason-hopper-kernels/SKILL.md)
+candidate distills the pinned KDA → KernelWiki lineage into TMA/mbarrier/WGMMA
+lifetime reasoning, register/pipeline/layout/software-scheduling tradeoffs and
+selected FP8 GEMM contracts. Its [coverage inventory](hardware/cuda/reason-hopper-kernels/references/source-inventory.json)
+separates mined mechanisms, unmined source headers and Blackwell-only recipes;
+[source/license qualifications](hardware/cuda/reason-hopper-kernels/references/sources.md)
+retain contradictions and distribution discrepancies. GPU execution and efficacy
+remain not_run.
