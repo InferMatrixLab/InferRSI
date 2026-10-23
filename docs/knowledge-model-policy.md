@@ -168,6 +168,22 @@ the superseded verdict and its replacement. A `pending` status is not a merge
 signal; callers must read the latest status of the current head, not any earlier
 entry.
 
+### Status capacity on a long-lived head
+
+GitHub keeps at most 1,000 commit statuses for one SHA and context, and discards
+writes past that bound. Because every run writes an invalidation and a verdict, an
+unchanged head would eventually stop accepting writes while an earlier `success`
+remained the newest entry — a green no later run could replace.
+
+The checker therefore reads the head's history for this context before writing and
+keeps a reserve of 8 statuses. Below `1,000 - 8` it evaluates normally. At or above
+it, the run publishes one `budget-exhausted` failure instead of evaluating, so the
+newest entry is a failure rather than an old success, and reports that a new head is
+required. That result is not retried: a rerun cannot create capacity and would only
+consume the reserve. Pushing a new head restores normal evaluation. If the history
+cannot be read, the result is `history-unavailable`: no success is published, the
+previous verdict is replaced by an explicit failure, and the run retries.
+
 ### Paths that cannot invalidate an old result
 
 Fail-closed invalidation is not universal. These paths are reported explicitly and
@@ -181,6 +197,7 @@ must not be described as enforced:
 | The PR is closed before publication | No verdict is written. If the target was still open at evaluation time it keeps the `pending` it received there, and the workflow reports success without a verdict for that head |
 | The head advances before publication | No verdict is written. The superseded head keeps its `pending`; the new head has no status until a run covers it, and the run exits `2` for that retry |
 | A merge attempt races the run | The check reads metadata, invalidates, evaluates and publishes without holding any lock. A merge authorized by the previous state can land between the last read and the status write |
+| The head has used its status capacity | Result is `budget-exhausted`: the newest entry becomes a failure, no success is published, and the state is not retried because a rerun adds no capacity. Only a new head resumes evaluation |
 | GitHub has not yet dispatched the event | Enforcement cannot precede the event that triggers it. A commit or body edit is enforced only after a run for that change has published a result |
 
 `pending` narrows the window in which an old success describes stale evidence. It
@@ -209,6 +226,8 @@ Each result carries `kind` alongside the status `state`:
 | `advanced` | The evaluated head was superseded; nothing is written to the new head |
 | `publication-failed` | Status write failed; the verdict was not recorded |
 | `invalidation-failed` | The earlier result could not be replaced by `pending`; no verdict was published |
+| `history-unavailable` | The head's status history could not be read, so the capacity margin is unproven; an explicit failure replaces the old result |
+| `budget-exhausted` | The head has used its reserved status capacity; no success is published and a new head is required |
 
 The final JSON summary counts each kind, lists the `noncompliant_pull_requests`, and
 states the sweep `execution` as `ok`, `failed` or `unfinished`. Exit codes: `0`

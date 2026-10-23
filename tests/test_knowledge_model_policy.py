@@ -13,7 +13,10 @@ from tools.check_knowledge_model_policy import (
     APPROVAL,
     DECLARATION,
     EXIT_COMPLIANT,
+    EXIT_NONCOMPLIANT,
     EXIT_RERUN,
+    STATUS_LIMIT,
+    STATUS_RESERVE,
     GitHub,
     approved,
     assemble_file_pages,
@@ -390,6 +393,14 @@ def api_fixture():
                 else:
                     state["errors"].append(route)
                     self.send_error(404)
+            elif route.startswith("commits/") and route.endswith("/statuses"):
+                sha = route.split("/")[1]
+                query = parse_qs(parsed.query)
+                page = int(query["page"][0])
+                history = [s for s in reversed(state["statuses"]) if s["sha"] == sha]
+                links = ('<http://fixture.invalid/next>; rel="next"'
+                         if len(history) > page * 100 else None)
+                self.respond(history[(page - 1) * 100:page * 100], links)
             elif route.startswith("issues/") and route.endswith("/comments"):
                 self.respond(state["comments"].get(int(route.split("/")[1]), []))
             else:
@@ -631,7 +642,8 @@ def test_api_batch_separates_rejection_from_lifecycle_outcomes(api_fixture, poli
     assert summary == {"kind_counts": {"compliant": 1, "noncompliant": 1, "evaluator-error": 0,
                                        "unverified": 0, "deferred": 0, "closed": 1,
                                        "advanced": 0, "publication-failed": 0,
-                                       "invalidation-failed": 0},
+                                       "invalidation-failed": 0, "history-unavailable": 0,
+                                       "budget-exhausted": 0},
                        "results": 3, "failed": 1, "noncompliant_pull_requests": [124],
                        "execution": "ok", "rerun": False}
     # A per-PR rejection keeps that PR red; it does not fail the sweep.
@@ -1035,3 +1047,78 @@ def test_api_target_entering_the_sweep_mid_run_is_never_published_uninvalidated(
     assert [r["kind"] for r in results] == ["deferred"]
     assert results[0]["rerun"] is True
     assert state["statuses"] == []
+
+
+def seed_history(state, count, head=HEAD, context="knowledge-model-policy"):
+    # Simulate a long-lived head whose status history is close to the service's per-SHA limit.
+    state["statuses"].extend({"sha": head, "context": context, "state": "success"}
+                             for _ in range(count))
+
+
+def test_status_budget_boundary_reserves_capacity_for_a_failure():
+    from tools.check_knowledge_model_policy import STATUS_LIMIT, STATUS_RESERVE, within_budget
+    # The last run that may still evaluate needs room for a pending plus its verdict.
+    assert within_budget(STATUS_LIMIT - STATUS_RESERVE - 2)
+    # Past that point the reserved slots can only hold a non-success verdict.
+    assert not within_budget(STATUS_LIMIT - STATUS_RESERVE - 1)
+    assert not within_budget(STATUS_LIMIT)
+
+
+def test_api_head_near_the_status_budget_never_publishes_success(api_fixture, policy):
+    api, state = api_fixture
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1)
+    results = check_prs(api, policy, BASE, False, [123])
+    assert [r["kind"] for r in results] == ["budget-exhausted"]
+    assert results[0]["state"] == "failure"
+    # A rerun cannot add capacity, so the runner must not loop on this head.
+    assert results[0]["rerun"] is False
+    assert exit_code(results) == EXIT_NONCOMPLIANT
+    # One reserved write records the failure; the old success is not left as the newest entry.
+    assert [s["state"] for s in state["statuses"]][-2:] == ["success", "failure"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_exhausted_history_cannot_leave_a_success_newest(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # The head already holds a full history: the earlier success is the newest surviving entry.
+    seed_history(state, STATUS_LIMIT - 1)
+    for _ in range(3):
+        result = check_pr(api, 123, policy, BASE, False)
+        assert result["kind"] == "budget-exhausted"
+        assert result["rerun"] is False
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_budget_exhaustion_still_reports_a_declaration_rejection(api_fixture, policy):
+    api, state = api_fixture
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1)
+    state["prs"][123]["body"] = None
+    result = check_pr(api, 123, policy, BASE, False)
+    # Without evaluation the specific rejection is unknown, but the head is never green.
+    assert result["state"] == "failure"
+    assert result["kind"] == "budget-exhausted"
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_unreadable_history_stops_the_success_path(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    state["fail"] = lambda route: route.endswith("/statuses")
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "history-unavailable"
+    assert result["state"] == "failure"
+    assert result["rerun"] is True
+    # An unreadable history cannot prove the capacity margin, so the old green is replaced by an
+    # explicit failure and the run retries with a fresh checkout.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success", "failure"]
+    assert latest_status(state)["state"] == "failure"
+    assert exit_code([result]) == EXIT_RERUN
+
+
+def test_api_other_contexts_do_not_consume_the_budget(api_fixture, policy):
+    api, state = api_fixture
+    # A foreign context with a full history must not block this policy's evaluation.
+    seed_history(state, 400, context="other-ci")
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    assert latest_status(state)["state"] == "success"

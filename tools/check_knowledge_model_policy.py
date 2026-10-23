@@ -19,20 +19,32 @@ EXIT_COMPLIANT = 0
 EXIT_NONCOMPLIANT = 1
 EXIT_RERUN = 2
 API_ERRORS = (ValueError, KeyError, TypeError, OSError)
+# GitHub keeps a bounded number of statuses for one SHA and context; writes past that bound are
+# discarded, so the newest entry could stay an earlier success forever.
+# https://docs.github.com/en/rest/commits/statuses#about-commit-statuses
+STATUS_LIMIT = 1000
+# Capacity held back so a head that is out of budget can still record a non-success verdict.
+# Evaluation stops publishing success below this margin; only a new head restores normal runs.
+STATUS_RESERVE = 8
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
-         "advanced", "publication-failed", "invalidation-failed")
+         "advanced", "publication-failed", "invalidation-failed", "history-unavailable",
+         "budget-exhausted")
 # Per-PR verdict: a rejection is this PR's red status, not a failure of the sweep.
 REJECTION_KINDS = {"noncompliant"}
 # Sweep execution problems, reported as errors and never as a per-PR verdict.
 ERROR_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publication-failed",
-               "invalidation-failed"}
+               "invalidation-failed", "history-unavailable", "budget-exhausted"}
 FAILING_KINDS = REJECTION_KINDS | ERROR_KINDS
-# Only the outer runner retries; these kinds ask it for a fresh trusted checkout.
+# Only the outer runner retries; these kinds ask it for a fresh trusted checkout. A head out of
+# status budget is not retryable: a rerun cannot add capacity, it would only consume the reserve.
 RERUN_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publication-failed",
-               "invalidation-failed"}
+               "invalidation-failed", "history-unavailable"}
 # A lifecycle kind forbids publication: the captured head is no longer the current target.
 NO_PUBLISH = {"closed", "advanced"}
+# Results produced after confirming the target but before any evidence was assessed. The target's
+# earlier verdict was not replaced, so none of these may be overwritten by an evaluation verdict.
+PRE_EVALUATION_KINDS = {"invalidation-failed", "history-unavailable", "budget-exhausted"}
 
 
 def summarize(results):
@@ -305,6 +317,24 @@ class GitHub:
             payload["target_url"] = f"{repository_url}actions/runs/{run_id}"
         self.request(f"statuses/{head}", payload)
 
+    def history(self, head):
+        # The per-SHA status list is newest first and bounded by the service, so only a complete
+        # count is trustworthy. Stop scanning once the limit is exceeded; the exact excess is
+        # irrelevant because anything at or past the limit is already saturated.
+        total = 0
+        page = 1
+        while True:
+            query = urlencode({"per_page": 100, "page": page})
+            items, links = self.request(f"commits/{head}/statuses?{query}")
+            if not isinstance(items, list):
+                raise ValueError("Expected a paginated GitHub API list")
+            total += sum(item.get("context") == CONTEXT for item in items)
+            if total > STATUS_LIMIT or 'rel="next"' not in links:
+                return total
+            if len(items) != 100:
+                raise ValueError("Incomplete commit status pagination")
+            page += 1
+
 
 def snapshot(pr):
     return (pr["head"]["sha"], pr["base"]["ref"], pr["base"]["sha"],
@@ -437,12 +467,34 @@ def addressable(pr, policy):
     return pr["state"] == "open" and pr["base"]["ref"] == policy["base_branch"]
 
 
+def within_budget(used):
+    # Two writes are still needed: the invalidation and its replacement verdict. Publishing once
+    # the margin is consumed would leave an old success as the newest entry that later writes
+    # can no longer displace.
+    return used + 2 <= STATUS_LIMIT - STATUS_RESERVE
+
+
 def invalidated(api, head, dry_run):
     # A verdict from an earlier run must not survive an evaluation that has produced no evidence
     # yet. Replacing it is itself a write, so it can fail; the caller then stops this target's
     # success path and reports the uncertainty instead of evaluating onward.
+    #
+    # The per-SHA status history is bounded. Once the reserve is all that is left, no success is
+    # written and the target is reported as out of budget: retrying cannot restore capacity, so
+    # only a new head resumes normal evaluation.
     if dry_run:
         return None
+    try:
+        used = api.history(head)
+    except API_ERRORS as error:
+        return {"state": "failure", "kind": "history-unavailable",
+                "description": "Status history could not be read",
+                "errors": [evaluation_failure(error)["errors"][0]]}
+    if not within_budget(used):
+        return {"state": "failure", "kind": "budget-exhausted",
+                "description": "Status history is nearly full; push a new head",
+                "errors": [f"{used} statuses recorded for this head and context "
+                           f"(limit {STATUS_LIMIT})"]}
     try:
         api.status(head, "pending", "Admission evaluation in progress")
     except API_ERRORS as error:
@@ -542,7 +594,23 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                  "errors": ["Head advanced before publication; rerun required"]}
             continue
         result = record["result"]
-        if record["snapshot"] is None and result["kind"] != "invalidation-failed":
+        if result["kind"] in PRE_EVALUATION_KINDS:
+            # The premise was already confirmed for this target and head. A verdict is never
+            # published for a target whose earlier result was not replaced, and an
+            # `invalidation-failed` writes nothing because that write is the operation that
+            # just failed. A head out of status budget spends one reserved slot on its failure
+            # verdict and is not retried, because a rerun cannot restore capacity.
+            if result["kind"] != "invalidation-failed" and not dry_run:
+                try:
+                    api.status(head, result["state"], result["description"])
+                except API_ERRORS as error:
+                    result = {**result, "kind": "publication-failed", "state": "failure",
+                              "errors": [*result["errors"],
+                                         evaluation_failure(error)["errors"][0]]}
+            published[number] = {**result, "head": head,
+                                 "rerun": result["kind"] in RERUN_KINDS}
+            continue
+        if record["snapshot"] is None:
             # This target was outside the sweep when it was read. If it is now addressable at the
             # same head it was never invalidated, so publishing from here would skip the
             # invalidation contract; the runner re-evaluates it from the start instead.
@@ -551,12 +619,6 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                  "description": "Target entered the sweep during this run",
                                  "errors": ["Target entered the sweep during this run; "
                                             "rerun required"]}
-            continue
-        if result["kind"] == "invalidation-failed":
-            # Reaching this point already confirmed the same open target and head. The failure
-            # is reported as unfinished so the runner retries; nothing is written over the old
-            # result, because a write here would itself be the invalidation that just failed.
-            published[number] = {**result, "head": head, "rerun": True}
             continue
         premise = admission_snapshot(live) != record["snapshot"]
         if record["comments"]:
