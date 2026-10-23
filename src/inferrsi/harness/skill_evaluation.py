@@ -10,7 +10,7 @@ from ..knowledge_operations import KnowledgeReader
 
 
 def global_skills() -> list[str]:
-    # 只禁用本次客户端的全局 skills，不修改用户配置。
+    # Disable global skills for this client only; do not modify user configuration.
     return sorted(
         str(path.resolve())
         for root in (Path.home() / ".codex/skills", Path.home() / ".agents/skills")
@@ -76,7 +76,7 @@ class CodexClient:
 
 
 def trace_metrics(path: Path) -> dict:
-    # 缺失 usage 保持未知；cached_input 是 input 的子集。
+    # Missing usage stays unknown; cached_input is a subset of input.
     usage, commands, errors, completed = None, [], [], 0
     for line in path.read_text(encoding="utf-8").splitlines():
         event = json.loads(line)
@@ -229,7 +229,7 @@ def run_trial(
                 if not valid_checks(raw_checks):
                     evaluation_error = "invalid_verifier_result"
                 else:
-                    # 原始结果保留在 verification/result.json；记录只接收已校验字段。
+                    # Keep raw results in verification/result.json; accept validated fields only.
                     checks = {key: raw_checks[key] for key in ("passed", "assertions")}
                     if verification["returncode"] != (0 if checks["passed"] else 1):
                         evaluation_error = "verifier_exit"

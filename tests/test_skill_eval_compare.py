@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 import sys
 
@@ -205,14 +206,17 @@ def test_prepare_and_report_cli_are_model_free(tmp_path):
     config, repo = configuration(tmp_path, "addition", ids=("one",))
     output = tmp_path / "run"
     prefix = [sys.executable, "-m", "tools.skill_eval_compare"]
+    # Match pytest's source path in child processes without requiring an editable install.
+    environment = {**os.environ, "PYTHONPATH": str(ROOT / "src")}
     subprocess.run([*prefix, "prepare", "--config", str(config), "--repo", str(repo),
-                    "--output", str(output)], cwd=ROOT, check=True, capture_output=True)
-    subprocess.run([*prefix, "report", "--output", str(output)], cwd=ROOT,
+                    "--output", str(output)], cwd=ROOT, env=environment,
                    check=True, capture_output=True)
+    subprocess.run([*prefix, "report", "--output", str(output)], cwd=ROOT,
+                   env=environment, check=True, capture_output=True)
     assert json.loads((output / "report.json").read_text())["counts"]["missing_pair"] == 1
     assert not (output / "results/start.json").exists()
     denied = subprocess.run([*prefix, "execute", "--output", str(output)], cwd=ROOT,
-                            capture_output=True)
+                            env=environment, capture_output=True)
     assert denied.returncode != 0 and b"--authorize" in denied.stderr
 
 

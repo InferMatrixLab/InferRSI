@@ -110,7 +110,7 @@ def test_rule_precedence_and_extract_bypass(changes, case_id):
     "gain,passed", [(-0.0201, False), (-0.02, True), (0, True), (0.02, True), (0.0201, False)]
 )
 def test_point_zero_two_percentage_point_tolerance(gain, passed):
-    # 以精确的零收益检查边界，避免 20.02 - 20 的浮点表示影响断言。
+    # Use exactly zero gain to avoid floating-point error from 20.02 - 20 at the boundary.
     task = task_with({
         "candidate.latencies_ms": FIXTURE["task"]["baseline"]["latencies_ms"],
         "contract.min_reduction_pct": 0,

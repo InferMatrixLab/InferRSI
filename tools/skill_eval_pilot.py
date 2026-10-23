@@ -174,7 +174,7 @@ def build_schedule(tasks: list[dict], final_only=False) -> list[dict]:
             repeats = 2 if task["id"] in {"holdout-4", "holdout-6"} else 1
         for repeat in range(1, repeats + 1):
             conditions = ["N", "E-benchmark", "E-evidence"]
-            # 每个 matched group 只轮换一次；repeat 仅用于配对标识。
+            # Rotate each matched group once; repeat identifies the pair only.
             shift = (len(schedule) // 3) % 3
             for condition in conditions[shift:] + conditions[:shift]:
                 schedule.append({"task_id": task["id"], "condition": condition, "repeat": repeat})
@@ -281,7 +281,7 @@ def recover_attempts(output: Path, schedule: list[dict]) -> list[dict]:
 
 
 def observed_tokens(usage: dict | None) -> int:
-    # 预算计数只累计已观测字段；完整性在状态与 summary 中单独表达。
+    # Count observed token fields only; report completeness separately in status and summary.
     if usage is None:
         return 0
     return sum(
