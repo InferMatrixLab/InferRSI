@@ -13,16 +13,48 @@
   "origin": [
     "external"
   ],
-  "sources": [],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://gitcode.com/cann/cannbot",
+      "commit": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110",
+      "paths": [
+        "LICENSE",
+        "README.md",
+        ".gitmodules",
+        "plugins-official/LICENSE",
+        "plugins-official/README.md",
+        "plugins-official/model-infer-optimize/.claude-plugin/plugin.json",
+        "plugins-official/model-infer-optimize/.codex-plugin/plugin.json",
+        "plugins-official/model-infer-optimize/AGENTS.md",
+        "plugins-official/model-infer-optimize/plugin-sources.json",
+        "plugins-official/model-infer-optimize/plugin-install.json",
+        "plugins-official/model-infer-optimize/workflows/optimize-workflow.md",
+        "plugins-official/model-infer-optimize/agents/model-infer-analyzer.md",
+        "plugins-official/model-infer-optimize/agents/model-infer-implementer.md",
+        "plugins-official/model-infer-optimize/agents/model-infer-reviewer.md",
+        "plugins-official/model-infer-optimize/hooks/hooks.json",
+        "plugins-official/model-infer-optimize/hooks/pre_tool_use.py",
+        "plugins-official/model-infer-optimize/hooks/post_tool_use.py",
+        "plugins-official/model-infer-optimize/hooks/subagent_stop.py",
+        "plugins-official/model-infer-optimize/workflows/scripts/archive_progress.py"
+      ],
+      "readset": "references/cannbot-stage-evidence.md"
+    }
+  ],
   "empirical_validation": "not_run",
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "Only the incremental canonical CannBot fixed-stage evidence boundary is normalized; inherited MindIE-SD guidance remains unchanged.",
+    "CannBot callback predicates do not establish numerical accuracy or performance; dependent skills, agent-host integration and NPU execution are unverified."
   ],
-  "provenance_readsets": [],
+  "provenance_readsets": [
+    "references/cannbot-stage-evidence.md"
+  ],
   "references": [],
   "consumption_mode": "packaged"
 }
