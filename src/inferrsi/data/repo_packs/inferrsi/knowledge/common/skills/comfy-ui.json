@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/48dd4504e9e23f2525fa356b14e301ce9d7ad483/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
-      "commit": "48dd4504e9e23f2525fa356b14e301ce9d7ad483",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
