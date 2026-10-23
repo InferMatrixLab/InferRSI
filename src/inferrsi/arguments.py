@@ -185,6 +185,11 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--limit", type=int, default=10)
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
+    collect.add_argument("--relevance", help="Opt-in lexical cue for packaged skill selection")
+    collect.add_argument(
+        "--context-bytes", type=int,
+        help="Opt-in context view; total UTF-8 resource-body byte budget",
+    )
     collect.add_argument(
         "--skill-root",
         type=Path,
