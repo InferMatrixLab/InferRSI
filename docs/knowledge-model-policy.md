@@ -189,10 +189,14 @@ fails, the run reports `publication-failed`; the next sweep attempts the same
 single write once more.
 
 A head can also carry statuses from other contexts, so the read is bounded by
-both 50 pages and 60 seconds. Exhausting either bound is reported as
-`history-unavailable`, which publishes the failure immediately, so a long scan
-cannot consume the workflow's deadline before anything replaces an earlier
-success.
+both 50 pages and a deadline. The deadline belongs to the sweep, not to one
+head: targets are processed serially under one workflow timeout, so a fresh
+budget per head would let a long sweep run out of time before a later target's
+failure is published. Each history request is also capped by the time remaining,
+and 15 seconds are held back so that publication still fits. Exhausting either
+bound is reported as `history-unavailable`, which publishes the failure
+immediately, so a long scan cannot consume the workflow's deadline before
+anything replaces an earlier success.
 
 At or above the cap nothing can be written at all. The run reports
 `budget-saturated` without attempting a write. An earlier `success` may still be

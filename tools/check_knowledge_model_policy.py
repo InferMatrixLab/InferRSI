@@ -31,11 +31,12 @@ STATUS_RESERVE = 8
 # recorded by this text and leaves it in place instead of spending another reserved slot.
 BUDGET_DESCRIPTION = "Status history is nearly full; push a new head"
 # A head can carry statuses from other contexts, so the page count alone does not bound the scan.
-# Both bounds are needed: pages stop a pathological history and elapsed time stops slow responses,
-# and either raises through the API-error path while the workflow still has time to publish the
-# failure that replaces an earlier success.
+# The deadline is set once per sweep, not per head: targets are processed serially under one
+# workflow timeout, so a fresh budget for each read would let a long sweep die before a later
+# target's failure is published. The reserve keeps time free for that publication.
 HISTORY_PAGES = 50
 HISTORY_SECONDS = 60
+HISTORY_RESERVE = 15
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
          "advanced", "publication-failed", "invalidation-failed", "history-unavailable",
@@ -286,7 +287,7 @@ class GitHub:
         self.root = f"https://api.github.com/repos/{repository}/"
         self.token = token
 
-    def request(self, route, payload=None):
+    def request(self, route, payload=None, timeout=30):
         headers = {"Accept": "application/vnd.github+json", "User-Agent": CONTEXT,
                    "X-GitHub-Api-Version": "2022-11-28"}
         if self.token:
@@ -295,7 +296,7 @@ class GitHub:
         if data is not None:
             headers["Content-Type"] = "application/json"
         request = Request(self.root + route, data=data, headers=headers)
-        with urlopen(request, timeout=30) as response:
+        with urlopen(request, timeout=timeout) as response:
             return json.load(response), response.headers.get("Link", "")
 
     def get(self, route):
@@ -325,19 +326,20 @@ class GitHub:
             payload["target_url"] = f"{repository_url}actions/runs/{run_id}"
         self.request(f"statuses/{head}", payload)
 
-    def history(self, head):
+    def history(self, head, deadline):
         # GitHub treats the context name case-insensitively, so counting only the exact spelling
         # would miss equivalent entries and could spend the last free slots on a pending and a
         # success. The list is newest first, which makes entry 0 the head's effective status.
         key = CONTEXT.casefold()
         found = []
         page = 1
-        started = time.monotonic()
         while True:
-            if page > HISTORY_PAGES or time.monotonic() - started > HISTORY_SECONDS:
+            remaining = deadline - time.monotonic()
+            if page > HISTORY_PAGES or remaining <= HISTORY_RESERVE:
                 raise ValueError("Status history scan exceeded its budget")
             query = urlencode({"per_page": 100, "page": page})
-            items, links = self.request(f"commits/{head}/statuses?{query}")
+            items, links = self.request(f"commits/{head}/statuses?{query}",
+                                        timeout=min(30, remaining))
             if not isinstance(items, list):
                 raise ValueError("Expected a paginated GitHub API list")
             found.extend(item for item in items
@@ -497,7 +499,7 @@ def recorded_budget_failure(entries):
     return newest.get("state") == "failure" and newest.get("description") == BUDGET_DESCRIPTION
 
 
-def invalidated(api, head, dry_run):
+def invalidated(api, head, dry_run, deadline):
     # A verdict from an earlier run must not survive an evaluation that has produced no evidence
     # yet. Replacing it is itself a write, so it can fail; the caller then stops this target's
     # success path and reports the uncertainty instead of evaluating onward.
@@ -510,7 +512,7 @@ def invalidated(api, head, dry_run):
     if dry_run:
         return None, True
     try:
-        entries = api.history(head)
+        entries = api.history(head, deadline)
     except API_ERRORS as error:
         # Capacity is unproven, so the old verdict must not survive. The write happens here rather
         # than in the publication pass: a sweep that processes other targets first can be cut off
@@ -572,6 +574,9 @@ def lifecycle_result(result, scan_error):
 
 
 def check_prs(api, policy, policy_sha, dry_run, numbers=None):
+    # One deadline for the whole sweep: history reads share it, so a long scan on an early target
+    # cannot leave a later target without time to publish its own failure.
+    deadline = time.monotonic() + HISTORY_SECONDS
     scan_error = None
     try:
         open_prs = api.pages("pulls?state=open")
@@ -605,7 +610,7 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                "ownership": None, "publish": False,
                                "result": closed_result("Not open against the policy branch")}
             continue
-        failure, publish = invalidated(api, head, dry_run)
+        failure, publish = invalidated(api, head, dry_run, deadline)
         if failure is not None:
             # Without a published invalidation an old success would still be the head's effective
             # state, so this target gets no verdict and asks the runner for a fresh attempt.

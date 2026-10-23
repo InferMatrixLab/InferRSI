@@ -3,6 +3,7 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
+from types import SimpleNamespace
 from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 
@@ -966,7 +967,7 @@ def test_api_invalidation_failure_stops_the_success_path(api_fixture, policy):
     # Only status POSTs fail: evaluation metadata is fully readable.
     original = api.request
 
-    def request(route, payload=None):
+    def request(route, payload=None, **kwargs):
         if payload is not None and route.startswith("statuses/"):
             raise HTTPError(route, 503, "Unavailable", {}, None)
         return original(route, payload)
@@ -987,7 +988,7 @@ def test_api_invalidation_failure_never_publishes_a_later_success(api_fixture, p
     calls = {"posts": 0}
     original = api.request
 
-    def request(route, payload=None):
+    def request(route, payload=None, **kwargs):
         if payload is not None and route.startswith("statuses/"):
             calls["posts"] += 1
             raise HTTPError(route, 503, "Unavailable", {}, None)
@@ -1254,6 +1255,30 @@ def test_api_slow_history_scan_stops_before_the_workflow_deadline(api_fixture, p
     result = check_pr(api, 123, policy, BASE, False)
     assert result["kind"] == "history-unavailable"
     assert latest_status(state)["state"] == "failure"
+
+
+def test_api_history_deadline_is_shared_across_the_sweep(api_fixture, policy, monkeypatch):
+    api, state = api_fixture
+    other = "c" * 40
+    state["prs"][124] = {**pr(), "number": 124, "head": {"sha": other}}
+    clock = {"now": 1000.0}
+    # A slow but successful read on the first target consumes nearly the whole budget; the second
+    # target then has no time left, so it must report the failure instead of starting a new scan.
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+
+    def slow(route):
+        if route.endswith("/statuses") or "/statuses?" in route:
+            clock["now"] += 55
+
+    state["before_request"] = slow
+    results = check_prs(api, policy, BASE, False, [123, 124])
+    assert [r["kind"] for r in results] == ["compliant", "history-unavailable"]
+    assert results[1]["rerun"] is True
+    assert [r["state"] for r in results] == ["success", "failure"]
+    # The second target's failure is published, so its earlier state cannot survive the sweep.
+    assert next(s for s in reversed(state["statuses"])
+                if s["sha"] == other)["state"] == "failure"
 
 
 def test_api_other_contexts_do_not_consume_the_budget(api_fixture, policy):
