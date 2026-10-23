@@ -282,6 +282,89 @@ def test_retained_answer_integrity_changes_invalidate_positive_pairs(tmp_path):
     assert len(client.calls) == 4
 
 
+def test_retained_grader_execution_and_trace_evidence_cannot_go_missing_or_change(tmp_path):
+    config, repo = configuration(tmp_path, ids=("fix", "same"))
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path, {("fix", "baseline"): "incorrect"})
+    original = compare.execute(output, authorization, client=client)
+    saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
+    assert original["counts"]["fix"] == original["counts"]["unchanged_correct"] == 1
+    for case, role in (("fix", "candidate"), ("same", "baseline")):
+        directory = output / "results" / f"{case}-{role}-1"
+        record = (directory / "result.json").read_bytes()
+        trial = next(p for p in original["pairs"] if p["case_id"] == case)[role]
+        assert set(trial["evidence_sha256"]) == set(compare.EVIDENCE)
+        assert trial["evidence_sha256"] == trial["retained_evidence_sha256"]
+        for name in compare.EVIDENCE:
+            artifact = directory / name
+            content = artifact.read_bytes()
+            for mutation, error in ((None, "missing_retained_evidence"),
+                                    (content + b" ", "retained_evidence_hash_mismatch")):
+                if mutation is None:
+                    artifact.unlink()
+                else:
+                    artifact.write_bytes(mutation)
+                result = compare.report(output)
+                pair = next(p for p in result["pairs"] if p["case_id"] == case)
+                assert pair["outcome"] == "inconclusive"
+                assert pair[role]["verdict"] == "INCONCLUSIVE"
+                assert pair[role]["evaluation_error"] == error
+                assert result["conditions"][role]["evaluation_errors"] == 1
+                assert result["counts"]["fix" if case == "fix" else "unchanged_correct"] == 0
+                assert result["counts"]["regression"] == 0
+                assert (directory / "result.json").read_bytes() == record
+                artifact.write_bytes(content)
+                assert compare.report(output) == original
+                assert saved == ((output / "report.json").read_bytes(),
+                                 (output / "report.md").read_bytes())
+    # Older records without integrity metadata cannot substantiate a positive verdict.
+    path = output / "results/fix-candidate-1/result.json"
+    record = json.loads(path.read_text())
+    record.pop("evidence_sha256")
+    write_json(path, record)
+    result = compare.report(output)
+    assert result["pairs"][0]["candidate"]["evaluation_error"] == "missing_retained_evidence_hashes"
+    assert result["counts"]["fix"] == 0
+    assert len(client.calls) == 4
+
+
+@pytest.mark.parametrize("mode", ["addition", "update"])
+def test_baseline_predating_skill_library_is_allowed_only_for_addition(tmp_path, mode):
+    config, source = configuration(tmp_path, mode, ids=("one",))
+    repo = tmp_path / "new-library"
+    repo.mkdir()
+    git(repo, "init", "--quiet")
+    (repo / "seed.txt").write_text("Before any skills", encoding="utf-8")
+    git(repo, "add", "seed.txt")
+    git(repo, "commit", "--quiet", "-m", "Fixture before skill library")
+    baseline = git(repo, "rev-parse", "HEAD")
+    shutil.copytree(source / "library", repo / "library")
+    git(repo, "add", "library")
+    git(repo, "commit", "--quiet", "-m", "Fixture first skill library")
+    raw = json.loads(config.read_text())
+    raw["snapshots"] = {"baseline": {"git_revision": baseline},
+                        "candidate": {"git_revision": git(repo, "rev-parse", "HEAD")}}
+    write_json(config, raw)
+    output = tmp_path / "run"
+    if mode == "update":
+        with pytest.raises(ValueError, match="Snapshot skill_root contains no files"):
+            compare.prepare(config, repo, output)
+        return
+    authorization = compare.prepare(config, repo, output)
+    plan = compare.load_plan(output)
+    assert plan["arms"]["baseline"] == {"git_revision": baseline, "bundle": None}
+    assert not (output / "plan/bundles/baseline").exists()
+    assert (output / "plan/bundles/candidate/selected/resource.txt").read_bytes() == b"new resource"
+    client = FixedOutputClient(tmp_path)
+    result = compare.execute(output, authorization, client=client)
+    assert result["counts"]["unchanged_correct"] == 1
+    assert len(client.calls) == 2
+    assert set(client.calls[0]["inputs"]) == {"task.json"}
+    assert "selected" not in client.calls[0]["prompt"]
+    assert compare.report(output) == result
+
+
 def test_git_replacement_refs_do_not_substitute_snapshot_or_diff(tmp_path):
     config, repo = configuration(tmp_path, ids=("one",))
     raw = json.loads(config.read_text())

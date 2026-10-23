@@ -9,7 +9,7 @@ import time
 from pathlib import Path
 
 from inferrsi.harness.skill_evaluation import CodexClient, export_bundle, run_trial, summarize
-from inferrsi.infra.artifacts import sha256, write_json
+from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 
@@ -18,6 +18,8 @@ ROLES = ("baseline", "candidate")
 CONTROLLERS = ("tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py")
+EVIDENCE = ("execution.json", "agent/stdout.log", "agent/stderr.log",
+            "verification/result.json", "verification/stdout.log", "verification/stderr.log")
 NUMBER = (int, float)
 REPORT_INPUT = {
     "latencies_ms": [[NUMBER]],
@@ -111,7 +113,8 @@ def build_schedule(tasks: list[dict], repeats: int) -> list[dict]:
     return schedule
 
 
-def snapshot(repo: Path, revision: str, skill_root: str, destination: Path) -> Path:
+def snapshot(repo: Path, revision: str, skill_root: str, destination: Path, *,
+             allow_empty: bool = False) -> Path:
     # Short temporary paths also accommodate deep libraries on Windows.
     kind = subprocess.check_output(
         ["git", "--no-replace-objects", "cat-file", "-t", revision], cwd=repo, text=True,
@@ -122,6 +125,8 @@ def snapshot(repo: Path, revision: str, skill_root: str, destination: Path) -> P
         ["git", "--no-replace-objects", "ls-tree", "-rz", revision, "--", skill_root], cwd=repo,
     ).split(b"\0")[:-1]
     if not entries:
+        if allow_empty:
+            return destination / skill_root
         raise ValueError("Snapshot skill_root contains no files")
     members = []
     for entry in entries:
@@ -168,7 +173,8 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         for role, short in zip(ROLES, ("b", "c")):
             selected = config["snapshots"][role]
             root = snapshot(repo, selected["git_revision"], config["skill_root"],
-                            Path(temporary) / short)
+                            Path(temporary) / short,
+                            allow_empty=role == "baseline" and config["mode"] == "addition")
             bundle = None
             if role == "candidate" or config["mode"] == "update":
                 reader = KnowledgeReader(skill_root=root)
@@ -257,9 +263,13 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
                 shutil.copytree(output / "plan/bundles" / role, workspace / folder)
                 if task["split"] != "discovery":
                     prompt += "\nUse the assigned skill at " + folder + "/" + bundle["entrypoint"]
+            directory = trial_directory(output, entry)
             result = run_trial(client, task, role, entry["repeat"], workspace,
-                               trial_directory(output, entry), output / "plan/schema.json",
+                               directory, output / "plan/schema.json",
                                output / "validator/verify.py", prompt, deadline)
+            result["evidence_sha256"] = {name: sha256(directory / name) for name in EVIDENCE
+                                         if (directory / name).is_file()}
+            atomic_write_json(directory / "result.json", result)
         tokens += observed_tokens(result["observations"]["usage"])
         completed += 1
         if result["execution_state"] != "completed":
@@ -299,16 +309,32 @@ def retained_trial(output: Path, entry: dict) -> dict:
         error = error or "missing_retained_output"
     elif actual_hash != record["output_sha256"]:
         error = error or "retained_output_hash_mismatch"
+    digests = record.get("evidence_sha256")
+    retained = {}
+    if digests is None:
+        error = error or "missing_retained_evidence_hashes"
+    else:
+        for name in EVIDENCE:
+            if name not in digests:
+                if record["verdict"] in ("PASS", "FAIL"):
+                    error = error or "missing_retained_evidence_hashes"
+                continue
+            artifact = directory / name
+            retained[name] = sha256(artifact) if artifact.is_file() else None
+            if retained[name] is None:
+                error = error or "missing_retained_evidence"
+            elif retained[name] != digests[name]:
+                error = error or "retained_evidence_hash_mismatch"
     if error or record["execution_state"] != "completed" or not record["inputs_unchanged"]:
         selected["verdict"] = "INCONCLUSIVE"
     evidence = {}
-    for name in ("result.json", "answer.json", "execution.json", "agent/stdout.log",
-                 "verification/result.json", "verification/stdout.log", "verification/stderr.log"):
+    for name in ("result.json", "answer.json", *EVIDENCE):
         if (directory / name).is_file():
             evidence[name] = (directory / name).relative_to(output).as_posix()
     return {**selected, "evaluation_error": error, "missing": False,
             "output": text,
             "output_sha256": record["output_sha256"], "retained_output_sha256": actual_hash,
+            "evidence_sha256": digests, "retained_evidence_sha256": retained,
             "evidence": evidence}
 
 

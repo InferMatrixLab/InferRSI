@@ -53,7 +53,10 @@ references/dependencies. `reader.read(..., revision=...)` checks those bytes;
 it never retrieves a historical Git version.
 
 In addition mode, the baseline workspace contains only `task.json`, even if the
-source revision itself contains the target skill. In update mode, each side
+source revision itself contains the target skill. That baseline commit may also
+predate the entire skill library; its Git revision is still validated and
+recorded. Update baselines and all candidates require a nonempty library.
+In update mode, each side
 receives its corresponding retained bundle. Source libraries and answer keys
 are not copied into trial workspaces.
 
@@ -135,6 +138,13 @@ their SHA-256 with `result.json`'s recorded `output_sha256`. Missing or modified
 answers become INCONCLUSIVE even when the retained grade was PASS. Original
 trial records remain untouched; JSON shows the recorded and current output
 hashes, and both report formats retain available output/evidence links.
+Comparison execution also records hashes for the execution record, agent trace
+and error log, and verifier result/output/error logs in `evidence_sha256`.
+Report regeneration checks those files against the recorded hashes. Missing or
+changed evidence becomes INCONCLUSIVE; older comparison records without these
+hashes also remain INCONCLUSIVE rather than retaining an unsupported PASS.
+These local checks detect missing or changed artifacts; they are not signatures
+against coordinated modification of both an artifact and its recorded hash.
 
 `report.json` and `report.md` retain revisions, settings, limits, source/resource
 changes, case outputs, grading assertions and relative evidence links. Raw

@@ -28,7 +28,7 @@ Counts:
 
 The regression candidate returned `claim_scope=production`; the independently specified audit contract rejected it. The error candidate returned malformed JSON and remained INCONCLUSIVE. The observed-token limit stopped new trials before the missing pair; neither missing side is counted as a fix or regression.
 
-JSON includes the recorded/current answer hashes and all five frozen controllers. Deleting a retained passing answer invalidates that trial; the focused integrity regression covers deletion and modification without rerunning the client.
+JSON includes the recorded/current answer and execution/grader evidence hashes, plus all five frozen controllers. Missing or modified retained answers, execution records, agent traces or grader artifacts invalidate the trial. Reporting performs these checks without rerunning the client or grader.
 
 Candidate output and grading evidence for the regression:
 
@@ -49,6 +49,22 @@ Candidate output and grading evidence for the regression:
     }
   },
   "output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
-  "retained_output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e"
+  "retained_output_sha256": "d42de8a3924cc9b0867cfbf510433b510acad688f5a872829b235b8224e0dc2e",
+  "evidence_sha256": {
+    "execution.json": "bc33e03fa5692ceb465273e107a6726dbe13994d448882845a6b6fc4fe7a5677",
+    "agent/stdout.log": "cae0a0049534a8720917a328866e40de12e3a95495ab4f5c07cbeb525eb7ccdf",
+    "agent/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/result.json": "8a64fcee2c58d57083f195a727ba7a1b35d2f400bdf0699ec8d0eaac72b14f73",
+    "verification/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "retained_evidence_sha256": {
+    "execution.json": "bc33e03fa5692ceb465273e107a6726dbe13994d448882845a6b6fc4fe7a5677",
+    "agent/stdout.log": "cae0a0049534a8720917a328866e40de12e3a95495ab4f5c07cbeb525eb7ccdf",
+    "agent/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/result.json": "8a64fcee2c58d57083f195a727ba7a1b35d2f400bdf0699ec8d0eaac72b14f73",
+    "verification/stdout.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification/stderr.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  }
 }
 ```
