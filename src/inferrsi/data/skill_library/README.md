@@ -42,6 +42,13 @@ An explicit `inferrsi skills --root <path>` selects a custom flat tree or a
 categorized library with `skill-index.json`. Backend scope does not certify
 device compatibility; readers do not execute helpers or promote candidates.
 
+## Foundational mechanism decisions
+
+The [optimization-search-policy decision guide](methods/optimization-search-policy/references/foundational-mechanism-decisions.md)
+compares six scheduling, caching/reuse and parallelism/pipelining situations using
+existing owner evidence. It preserves source versions and historical negatives;
+retrieval checks do not establish automatic method selection or measured gains.
+
 ## Focused llama.cpp runtime audit
 
 The registered [audit-llama-runtime-state](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md)
