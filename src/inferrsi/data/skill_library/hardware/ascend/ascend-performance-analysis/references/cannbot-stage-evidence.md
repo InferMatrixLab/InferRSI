@@ -98,7 +98,7 @@ inspected callback/helper headers retain:
 > Copyright (c) 2026 Huawei Technologies Co., Ltd.
 
 The complete selected agreement is bundled as
-[cannbot-CANN-2.0-LICENSE.txt](cannbot-CANN-2.0-LICENSE.txt). Its sections 2.1
+[cannbot-CANN-2.0-LICENSE.md](cannbot-CANN-2.0-LICENSE.md). Its sections 2.1
 and 3 limit the stated purpose to systems with Huawei AI Processors and/or
 Software and require the agreement and notices for covered distribution.
 This attribution concerns this selected CannBot source only. It does not
