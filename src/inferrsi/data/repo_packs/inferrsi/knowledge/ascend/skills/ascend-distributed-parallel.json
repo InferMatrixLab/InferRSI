@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
-      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/cdffd9475a0db4c4481a78e0e819a59b28b12dcb/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "cdffd9475a0db4c4481a78e0e819a59b28b12dcb",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
