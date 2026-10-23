@@ -116,8 +116,39 @@ def test_recovery_keeps_interrupted_attempt_without_automatic_retry(tmp_path):
     trials = pilot.recover_attempts(tmp_path, [entry])
     assert trials[0]["execution_state"] == "interrupted"
     assert trials[0]["verdict"] == "INCONCLUSIVE"
+    result_path = directory / "result.json"
+    persisted = result_path.read_bytes()
+    assert json.loads(persisted)["evaluation_error"] == "interrupted_attempt"
+    group = summarize(trials)["conditions"]["N"]
+    assert group["verdicts"] == {"PASS": 0, "FAIL": 0, "INCONCLUSIVE": 1}
+    assert group["evaluation_errors"] == 1
+    assert group["elapsed_seconds"] is None
     assert pilot.recover_attempts(tmp_path, [entry]) == trials
-    assert summarize(trials)["conditions"]["N"]["elapsed_seconds"] is None
+    assert result_path.read_bytes() == persisted
+
+
+def test_recovery_preserves_legacy_record_without_evaluation_error(tmp_path):
+    pilot = load_tool("skill_eval_pilot")
+    entry = {"task_id": "legacy", "condition": "N", "repeat": 1}
+    legacy = {
+        **entry,
+        "execution_state": "interrupted",
+        "verdict": "INCONCLUSIVE",
+        "elapsed_seconds": None,
+        "observations": {"usage": None},
+    }
+    directory = tmp_path / "results/legacy-N-1"
+    directory.mkdir(parents=True)
+    result_path = directory / "result.json"
+    persisted = json.dumps(legacy, indent=2).encode("utf-8") + b"\n"
+    result_path.write_bytes(persisted)
+    trials = pilot.recover_attempts(tmp_path, [entry])
+    assert trials == [legacy]
+    assert "evaluation_error" not in trials[0]
+    group = summarize(trials)["conditions"]["N"]
+    assert group["verdicts"]["INCONCLUSIVE"] == 1
+    assert group["evaluation_errors"] == 0
+    assert result_path.read_bytes() == persisted
 
 
 def test_verifier_rejects_malformed_generated_answers():

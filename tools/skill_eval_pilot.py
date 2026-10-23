@@ -263,6 +263,7 @@ def recover_attempts(output: Path, schedule: list[dict]) -> list[dict]:
                 **entry,
                 "execution_state": "interrupted",
                 "verdict": "INCONCLUSIVE",
+                "evaluation_error": "interrupted_attempt",
                 "elapsed_seconds": None,
                 "checks": None,
                 "observations": {
