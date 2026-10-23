@@ -77,15 +77,41 @@ same bundle: `same_bundle=true` makes that visible. Case, schema, grader or
 exported-resource changes after preparation are rejected. Custom graders must
 be standalone scripts implementing the existing verifier result/exit contract.
 
-The input shape is the existing performance-report audit, not an arbitrary
-grader payload. Supported fields are `id`, `split`, `mode`, `provenance`,
-`request`, `contract`, `evidence_scope`, `baseline`, `candidate`, and
-`evidence_keys`. Each report arm accepts latency groups, `workload` (`steps`,
-`concurrency`, `shape`), quality and request counts. The contract accepts the
-pilot's gates, scope, regimes, verdict definitions and output-field semantics.
-Missing execution fields (`id`, `request`, `split`), unknown keys and incompatible
-nested types are rejected before any output is created; grader
-expectations/metadata never become additional task fields.
+The input shape is the existing performance-report audit. Fields are `id`,
+`split`, `mode`, `provenance`, `request`, `contract`, `evidence_scope`, `baseline`,
+`candidate`, and `evidence_keys`. Missing execution fields (`id`, `request`,
+`split`), unknown keys and incompatible nested types are rejected before output
+is created; grader expectations/metadata never become additional task fields.
+
+### Default audit support
+
+Preparation checks the following complete support boundary against the actual
+default grader, including an explicitly selected or byte-identical copy. An
+accepted contract cannot add promises that this grader does not enforce.
+
+| Input | Supported contract / behavior |
+| --- | --- |
+| `mode=audit` | Requires `contract.min_reduction_pct`, finite and within `[0, 100]`. The grader compares the median of per-group latency means against this threshold. |
+| Optional audit flags | `scope="fixed_workload"`, `quality_required=true`, `all_requests_required=true`, `statistical_significance_required=false` only. Quality and completion checks are always enabled; omitted flags do not disable them. |
+| Other contract fields | Rejected, including spread limits, required regimes, statistical significance enabled, and custom verdict/output semantics. No statistical testing or regime-coverage framework is provided. |
+| `mode=extract` | Requires an empty `contract`; checks descriptive reduction only and returns no acceptance verdict or claim. |
+| `evidence_scope` | `http_fixed_workload` or `kernel`. Kernel-only evidence produces an inconclusive service audit rather than a service PASS. |
+| Both reports | Require latency groups, workload, quality, and all three request counts. Workload needs positive integer `steps` and `concurrency`; optional `shape` must have at least one dimension, all positive integers. Differing valid workloads remain negative audit cases. |
+| `evidence_keys` | Audit requires the complete reference set listed below, so negative cases remain answerable. Extract requires both latency paths only. Additional references may name existing report fields; unknown paths are rejected. The grader checks the answer's references and its computed verdict, findings, scope and reduction. |
+
+The audit reference set is `contract`, `evidence_scope`, `baseline.latencies_ms`,
+`candidate.latencies_ms`, `baseline.workload`, `candidate.workload`,
+`candidate.quality`, `candidate.failed_requests`, `candidate.total_requests`,
+and `candidate.reported_requests`. Missing references fail preparation instead
+of creating an exam that no answer can pass.
+
+Missing default-audit inputs and unsupported settings fail before creating a
+plan. The old pilot's interface, inputs and grader remain unchanged; its broader
+contract metadata is not silently accepted as supported comparison gates.
+A distinct custom standalone grader owns its declared contract and may use the
+broader typed input shape, including the pilot's contract metadata. Both arms
+still share that frozen grader; preparation never executes it.
+
 Each report arm's quality value must be `passed`, `failed` or `missing`.
 Latency data must contain nonempty groups of finite, strictly positive samples.
 Unknown quality values, negative/zero/nonfinite samples and empty groups are
@@ -98,6 +124,10 @@ be accounted for by the known failed count. An unexplained reporting gap is
 rejected before preparation; known failures and their omitted records remain
 valid negative audit cases, including the old pilot's omission fixtures.
 Free-text requests and provenance remain caller-authored inputs to review.
+On Git older than 2.45, comparison snapshot integration tests are explicitly
+skipped with the prerequisite reason; pure support-boundary and version checks
+still run. Run the integration tests with a supported Git before claiming they
+passed.
 
 ## Execution boundary
 
@@ -145,7 +175,7 @@ and [JSON example excerpt](examples/skill-comparison/report-example.json).
 
 `report` reads the frozen plan and retained results without invoking a client,
 grader or trial. It verifies the frozen comparison, pilot, harness, local
-executor and process-cleanup controller hashes before interpreting results.
+executor, process-cleanup and artifact-helper controller hashes before interpreting results.
 It can run after the original skill source checkout is unavailable, using the
 same controller implementation; changed controller code requires a new plan.
 

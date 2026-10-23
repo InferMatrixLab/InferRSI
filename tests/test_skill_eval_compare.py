@@ -1,3 +1,4 @@
+import copy
 import importlib.util
 import json
 import os
@@ -11,13 +12,27 @@ import pytest
 from inferrsi.infra.artifacts import sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, RevisionConflict
 from tests.fixtures.skill_eval_compare_support import (
+    DATA,
     ROOT,
     FixedOutputClient,
-    configuration,
     git,
+)
+from tests.fixtures.skill_eval_compare_support import (
+    configuration as comparison_configuration,
 )
 from tools import skill_eval_compare as compare
 from tools import skill_eval_pilot
+from tools import skill_eval_verifier as verifier
+
+SNAPSHOT_GIT_VERSION = subprocess.check_output(("git", "--version"), text=True)
+
+
+def configuration(*args, **kwargs):
+    try:
+        compare.require_git_version(SNAPSHOT_GIT_VERSION)
+    except ValueError as error:
+        pytest.skip(str(error))
+    return comparison_configuration(*args, **kwargs)
 
 
 @pytest.mark.parametrize("mode", ["addition", "update"])
@@ -315,6 +330,130 @@ def test_supported_input_shape_accepts_existing_pilot_cases():
     for task in skill_eval_pilot.fixtures():
         compare.validate_input(task, compare.CASE_INPUT)
         compare.validate_audit_values(task)
+
+
+@pytest.mark.parametrize("field,value", [
+    ("mode", "unknown"), ("evidence_scope", "unknown"), ("evidence_scope", ""),
+    ("evidence_keys", ["contract", "nonexistent.result"]),
+    ("contract.statistical_significance_required", True),
+    ("contract.max_relative_spread_pct", 12), ("contract.required_regimes", ["C1"]),
+    ("contract.verdict_definitions", {"PASS": "Ignore failed quality"}),
+    ("contract.output_field_semantics", {"claim_scope": "production"}),
+    ("contract.scope", "production"), ("contract.quality_required", False),
+    ("contract.all_requests_required", False),
+    ("contract.min_reduction_pct", float("nan")),
+    ("contract.min_reduction_pct", float("inf")),
+    ("contract.min_reduction_pct", float("-inf")),
+    ("contract.min_reduction_pct", -1), ("contract.min_reduction_pct", 101),
+])
+def test_default_audit_rejects_promises_outside_its_support(field, value):
+    task = copy.deepcopy(DATA["task"])
+    target = task
+    keys = field.split(".")
+    for key in keys[:-1]:
+        target = target[key]
+    target[keys[-1]] = value
+    compare.validate_input(task, compare.CASE_INPUT)
+    with pytest.raises(ValueError, match="[Dd]efault audit"):
+        compare.validate_default_audit(task)
+
+
+@pytest.mark.parametrize("role", compare.ROLES)
+@pytest.mark.parametrize("workload", [
+    {}, {"steps": 8}, {"steps": 0, "concurrency": 1}, {"steps": -1, "concurrency": 1},
+    {"steps": 8, "concurrency": 0}, {"steps": 8, "concurrency": -1},
+    {"steps": 8, "concurrency": 1, "shape": []},
+    {"steps": 8, "concurrency": 1, "shape": [1280, 0]},
+    {"steps": 8, "concurrency": 1, "shape": [-1, 704]},
+])
+def test_default_audit_requires_positive_workload_dimensions(role, workload):
+    task = copy.deepcopy(DATA["task"])
+    task[role]["workload"] = workload
+    with pytest.raises(ValueError, match="positive workload"):
+        compare.validate_default_audit(task)
+
+
+def test_default_audit_requires_complete_inputs():
+    original = DATA["task"]
+    for name in ("mode", "contract", "evidence_scope", *compare.ROLES, "evidence_keys"):
+        task = copy.deepcopy(original)
+        task.pop(name)
+        with pytest.raises(ValueError, match="Default audit requires"):
+            compare.validate_default_audit(task)
+    for role in compare.ROLES:
+        for name in compare.REPORT_INPUT:
+            task = copy.deepcopy(original)
+            task[role].pop(name)
+            with pytest.raises(ValueError, match="complete report"):
+                compare.validate_default_audit(task)
+    task = copy.deepcopy(original)
+    task["contract"] = {}
+    with pytest.raises(ValueError, match="requires contract.min_reduction_pct"):
+        compare.validate_default_audit(task)
+    for name in compare.DEFAULT_AUDIT_EVIDENCE:
+        task = copy.deepcopy(original)
+        task["evidence_keys"].remove(name)
+        with pytest.raises(ValueError, match="Missing default audit evidence_keys"):
+            compare.validate_default_audit(task)
+
+
+def test_default_audit_supported_gates_match_the_existing_grader():
+    for case in DATA["cases"]:
+        task = copy.deepcopy(DATA["task"])
+        task["contract"].update(scope="fixed_workload", quality_required=True,
+                                all_requests_required=True, statistical_significance_required=False)
+        for field, value in case.get("changes", {}).items():
+            target = task
+            keys = field.split(".")
+            for key in keys[:-1]:
+                target = target[key]
+            target[keys[-1]] = value
+        if task["mode"] == "extract":
+            task["contract"] = {}
+        compare.validate_input(task, compare.CASE_INPUT)
+        compare.validate_audit_values(task)
+        compare.validate_default_audit(task)
+        assert verifier.verify(task, case["answer"])["passed"] is True
+    task = copy.deepcopy(DATA["task"])
+    task.update(mode="extract", contract={})
+    answer = {**DATA["cases"][0]["answer"], "report_verdict": None, "claim_scope": "none"}
+    compare.validate_default_audit(task)
+    assert verifier.verify(task, answer)["passed"] is True
+    task["contract"]["min_reduction_pct"] = 20
+    with pytest.raises(ValueError, match="extract mode cannot enforce"):
+        compare.validate_default_audit(task)
+
+
+def test_default_audit_boundary_runs_before_output_and_covers_explicit_grader_copies(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",))
+    original = json.loads((tmp_path / "cases.json").read_text())
+    raw = json.loads(config.read_text())
+    copied = tmp_path / "copied_grader.py"
+    shutil.copyfile(ROOT / "tools/skill_eval_verifier.py", copied)
+    for index, grader in enumerate((None, str(ROOT / "tools/skill_eval_verifier.py"), copied.name)):
+        if grader is not None:
+            raw["grader"] = grader
+        write_json(config, raw)
+        for field in ("statistical_significance_required", "min_reduction_pct", "evidence_keys"):
+            tasks = copy.deepcopy(original)
+            if field == "evidence_keys":
+                tasks[0][field] = []
+            else:
+                tasks[0]["contract"][field] = (
+                    True if field.startswith("statistical") else float("nan"))
+            (tmp_path / "cases.json").write_text(json.dumps(tasks), encoding="utf-8")
+            output = tmp_path / f"invalid-{index}-{field}"
+            with pytest.raises(ValueError, match="[Dd]efault audit"):
+                compare.prepare(config, repo, output)
+            assert not output.exists()
+    tasks = copy.deepcopy(original)
+    tasks[0]["contract"]["statistical_significance_required"] = True
+    write_json(tmp_path / "cases.json", tasks)
+    raw["grader"] = "custom_grader.py"
+    (tmp_path / raw["grader"]).write_text("raise RuntimeError('Custom grader, never executed')\n")
+    write_json(config, raw)
+    # A separate frozen grader owns its contract; preparation does not invoke it.
+    compare.prepare(config, repo, tmp_path / "custom")
 
 
 @pytest.mark.parametrize("role", compare.ROLES)
@@ -718,6 +857,7 @@ def test_changed_runtime_controllers_reject_execution_and_report_without_calls(t
     saved = (output / "report.json").read_bytes(), (output / "report.md").read_bytes()
     assert "src/inferrsi/infra/executors/local.py" in module.CONTROLLERS
     assert "src/inferrsi/infra/processes.py" in module.CONTROLLERS
+    assert "src/inferrsi/infra/artifacts.py" in module.CONTROLLERS
     client = FixedOutputClient(tmp_path)
     for name in module.CONTROLLERS:
         target = runtime / name

@@ -19,7 +19,8 @@ ROLES = ("baseline", "candidate")
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 CONTROLLERS = ("tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
                "src/inferrsi/harness/skill_evaluation.py",
-               "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py")
+               "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py",
+               "src/inferrsi/infra/artifacts.py")
 EVIDENCE = ("execution.json", "agent/stdout.log", "agent/stderr.log",
             "verification/result.json", "verification/stdout.log", "verification/stderr.log")
 NUMBER = (int, float)
@@ -39,6 +40,18 @@ CASE_INPUT = {
     },
     "evidence_scope": str, "baseline": REPORT_INPUT, "candidate": REPORT_INPUT,
     "evidence_keys": [str],
+}
+DEFAULT_AUDIT_CONTRACT = {
+    "min_reduction_pct": None,
+    "scope": ("fixed_workload",),
+    "quality_required": (True,),
+    "all_requests_required": (True,),
+    "statistical_significance_required": (False,),
+}
+DEFAULT_AUDIT_EVIDENCE = {
+    "contract", "evidence_scope", "baseline.latencies_ms", "candidate.latencies_ms",
+    "baseline.workload", "candidate.workload", "candidate.quality",
+    "candidate.failed_requests", "candidate.total_requests", "candidate.reported_requests",
 }
 
 
@@ -88,7 +101,55 @@ def validate_audit_values(task: dict) -> None:
                 raise ValueError(f"Unaccounted unreported requests at {role}")
 
 
-def validate(config: dict, tasks: list[dict]) -> None:
+def validate_default_audit(task: dict) -> None:
+    # This boundary matches the existing grader, rather than promising new audit gates.
+    required = {"mode", "contract", "evidence_scope", "baseline", "candidate", "evidence_keys"}
+    if required - task.keys():
+        raise ValueError("Default audit requires: " + ", ".join(sorted(required - task.keys())))
+    if task["mode"] not in ("audit", "extract"):
+        raise ValueError("Default audit supports audit and extract modes only")
+    if task["evidence_scope"] not in ("http_fixed_workload", "kernel"):
+        raise ValueError("Unsupported default audit evidence_scope")
+    contract = task["contract"]
+    if task["mode"] == "extract":
+        if contract:
+            raise ValueError("Default extract mode cannot enforce contract gates")
+    else:
+        if contract.keys() - DEFAULT_AUDIT_CONTRACT.keys():
+            raise ValueError("Unsupported default audit contract fields: " + ", ".join(
+                sorted(contract.keys() - DEFAULT_AUDIT_CONTRACT.keys())))
+        if "min_reduction_pct" not in contract:
+            raise ValueError("Default audit requires contract.min_reduction_pct")
+        threshold = contract["min_reduction_pct"]
+        if not math.isfinite(threshold) or not 0 <= threshold <= 100:
+            raise ValueError("Default audit min_reduction_pct must be finite and within [0, 100]")
+        for name, allowed in DEFAULT_AUDIT_CONTRACT.items():
+            if name in contract and allowed is not None and contract[name] not in allowed:
+                raise ValueError(f"Unsupported default audit contract value: {name}")
+    for role in ROLES:
+        report = task[role]
+        if REPORT_INPUT.keys() - report.keys():
+            raise ValueError(f"Default audit requires complete report fields at {role}")
+        workload = report["workload"]
+        if {"steps", "concurrency"} - workload.keys() or any(
+            workload.get(name, 0) <= 0 for name in ("steps", "concurrency")
+        ) or ("shape" in workload and (
+            not workload["shape"] or any(dimension <= 0 for dimension in workload["shape"])
+        )):
+            raise ValueError(f"Default audit requires a positive workload at {role}")
+    evidence = {"contract", "evidence_scope"} | {
+        f"{role}.{name}" for role in ROLES for name in REPORT_INPUT
+    }
+    if set(task["evidence_keys"]) - evidence:
+        raise ValueError("Unsupported default audit evidence_keys")
+    required_evidence = DEFAULT_AUDIT_EVIDENCE if task["mode"] == "audit" else {
+        "baseline.latencies_ms", "candidate.latencies_ms"}
+    if required_evidence - set(task["evidence_keys"]):
+        raise ValueError("Missing default audit evidence_keys: " + ", ".join(
+            sorted(required_evidence - set(task["evidence_keys"]))))
+
+
+def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) -> None:
     if set(config) - {"mode", "skill", "skill_root", "cases", "schema", "grader",
                       "snapshots", "model", "limits"}:
         raise ValueError("Unknown configuration field")
@@ -130,6 +191,8 @@ def validate(config: dict, tasks: list[dict]) -> None:
             raise ValueError("case IDs must be safe path components")
         if task["split"] not in ("development", "holdout", "discovery"):
             raise ValueError("Unknown case split")
+        if default_grader:
+            validate_default_audit(task)
     if len({task["id"] for task in tasks}) != len(tasks):
         raise ValueError("cases must be nonempty with unique IDs")
     if len(tasks) * limits["repeats"] * 2 > limits["max_task_calls"]:
@@ -202,12 +265,13 @@ def require_git_version(version: str) -> None:
 def prepare(config_path: Path, repo: Path, output: Path) -> str:
     config = read_json(config_path)
     tasks = read_json(config_path.parent / config["cases"])
-    validate(config, tasks)
-    require_git_version(subprocess.check_output(("git", "--version"), cwd=repo, text=True))
-    schema = read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA
     grader = config_path.parent / config["grader"] if "grader" in config else (
         ROOT / "tools/skill_eval_verifier.py"
     )
+    validate(config, tasks, default_grader=(
+        grader.read_bytes() == (ROOT / "tools/skill_eval_verifier.py").read_bytes()))
+    require_git_version(subprocess.check_output(("git", "--version"), cwd=repo, text=True))
+    schema = read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA
     output.mkdir(parents=True, exist_ok=False)
     for name in ("plan", "validator", "results"):
         (output / name).mkdir()
