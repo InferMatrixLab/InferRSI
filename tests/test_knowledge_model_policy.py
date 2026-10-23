@@ -1180,6 +1180,47 @@ def test_api_unreadable_history_stops_the_success_path(api_fixture, policy):
     assert exit_code([result]) == EXIT_RERUN
 
 
+def test_api_history_failure_is_written_before_the_next_target(api_fixture, policy):
+    api, state = api_fixture
+    other = "c" * 40
+    state["prs"][124] = {**pr(), "number": 124, "head": {"sha": other}}
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    first = HEAD
+    state["requests"].clear()
+
+    def break_history(route):
+        if route.startswith(f"commits/{first}"):
+            raise OSError("connection reset")
+        # The sweep is cut off on the second target right after the first one was handled.
+        if route == "pulls/124":
+            raise OSError("connection reset")
+
+    state["before_request"] = break_history
+    check_prs(api, policy, BASE, False, [123, 124])
+    # The first target's failure must already be published, because the sweep never reached the
+    # publication pass. Deferring it would have left the earlier success as the newest entry.
+    posts = [route for method, route in state["requests"] if method == "POST"]
+    assert posts == [f"statuses/{first}"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_failed_history_failure_write_is_retried(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    state["fail"] = lambda route: route.endswith("/statuses")
+    state["fail_status"] = lambda route: True
+    result = check_pr(api, 123, policy, BASE, False)
+    # The failure could not be published, so the earlier green still describes the head: the run
+    # must stay retryable and must not claim the old result was cleared.
+    assert result["kind"] == "publication-failed"
+    assert result["rerun"] is True
+    assert exit_code([result]) == EXIT_RERUN
+    assert latest_status(state)["state"] == "success"
+    state["fail_status"] = lambda route: False
+    assert check_pr(api, 123, policy, BASE, False)["kind"] == "history-unavailable"
+    assert latest_status(state)["state"] == "failure"
+
+
 def test_api_other_contexts_do_not_consume_the_budget(api_fixture, policy):
     api, state = api_fixture
     # A foreign context with a full history must not block this policy's evaluation.

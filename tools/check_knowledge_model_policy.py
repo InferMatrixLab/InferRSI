@@ -502,9 +502,19 @@ def invalidated(api, head, dry_run):
     try:
         entries = api.history(head)
     except API_ERRORS as error:
-        return {"state": "failure", "kind": "history-unavailable",
-                "description": "Status history could not be read",
-                "errors": [evaluation_failure(error)["errors"][0]]}, True
+        # Capacity is unproven, so the old verdict must not survive. The write happens here rather
+        # than in the publication pass: a sweep that processes other targets first can be cut off
+        # before it reaches this one, and an earlier success would then remain the newest entry.
+        result = {"state": "failure", "kind": "history-unavailable",
+                  "description": "Status history could not be read",
+                  "errors": [evaluation_failure(error)["errors"][0]]}
+        try:
+            api.status(head, result["state"], result["description"])
+        except API_ERRORS as failure:
+            return {**result, "kind": "publication-failed",
+                    "errors": [*result["errors"],
+                               evaluation_failure(failure)["errors"][0]]}, False
+        return result, False
     if len(entries) >= STATUS_LIMIT:
         # GitHub rejects every write at the cap. The newest entry, possibly an old success,
         # cannot be replaced by this checker; a new head is the only recovery.

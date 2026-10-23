@@ -178,8 +178,9 @@ run writes an invalidation and a verdict, an unchanged head would eventually
 stop accepting writes.
 
 The checker therefore reads this context's history for the head before writing,
-counting case-insensitively, and keeps a reserve of 8 statuses. Below
-`1,000 - 8` it evaluates normally. Between that margin and the cap it publishes
+counting case-insensitively, and keeps a reserve of 8 statuses. At or below 990
+recorded statuses it evaluates normally; 991 to 999 use the reserve handling
+below; 1,000 is saturated. Between that margin and the cap it publishes
 one `budget-exhausted` failure instead of evaluating, so the newest entry is a
 failure rather than an earlier success, and reports that a new head is required.
 That verdict is terminal: a later sweep recognises it as its own and writes
@@ -189,11 +190,14 @@ single write once more.
 
 At or above the cap nothing can be written at all. The run reports
 `budget-saturated` without attempting a write. An earlier `success` may still be
-the head's newest entry, and this checker cannot replace it: the head is blocked
-and unrecoverable on that head alone. A new head is the only recovery, and the
-result is not retried. If the history cannot be read, the result is
-`history-unavailable`: no success is published, the previous verdict is replaced
-by an explicit failure, and the run retries.
+the head's newest entry and can therefore still satisfy the required context:
+this head is blocked from receiving new statuses, not necessarily blocked from
+merging, and this checker cannot replace that entry. A new head is the only
+recovery, and the result is not retried. If the history cannot be read, the
+result is `history-unavailable`: the failure is published immediately rather than
+in the publication pass, so a sweep that is cut off before reaching this target
+still replaces the old verdict. If that write fails, the result is
+`publication-failed` and the run retries.
 
 ### Paths that cannot invalidate an old result
 
@@ -209,7 +213,8 @@ must not be described as enforced:
 | The head advances before publication | No verdict is written. The superseded head keeps its `pending`; the new head has no status until a run covers it, and the run exits `2` for that retry |
 | A merge attempt races the run | The check reads metadata, invalidates, evaluates and publishes without holding any lock. A merge authorized by the previous state can land between the last read and the status write |
 | The head has used its reserved status capacity | Result is `budget-exhausted`: one failure is recorded there and no success is published. The entry is recognised on later sweeps, so nothing further is appended and the state is not retried. Only a new head resumes evaluation |
-| The head is already at the 1,000-status cap | Result is `budget-saturated`: no write is possible, so an earlier `success` may still be the head's newest entry and this checker cannot replace it. The head is blocked, not repaired; only a new head resumes evaluation |
+| The head is already at the 1,000-status cap | Result is `budget-saturated`: no write is possible, so an earlier `success` may still be the head's newest entry and this checker cannot replace it. The head is blocked from new statuses, not necessarily from merging; only a new head resumes evaluation |
+| The status history cannot be read | The failure is published immediately rather than in the publication pass, so a sweep cut off before reaching this target still replaces the old verdict. If that write also fails, the head keeps the earlier verdict and the result is `publication-failed`, which retries |
 | GitHub has not yet dispatched the event | Enforcement cannot precede the event that triggers it. A commit or body edit is enforced only after a run for that change has published a result |
 
 `pending` narrows the window in which an old success describes stale evidence. It
@@ -238,7 +243,7 @@ Each result carries `kind` alongside the status `state`:
 | `advanced` | The evaluated head was superseded; nothing is written to the new head |
 | `publication-failed` | Status write failed; the verdict was not recorded |
 | `invalidation-failed` | The earlier result could not be replaced by `pending`; no verdict was published |
-| `history-unavailable` | The head's status history could not be read, so the capacity margin is unproven; an explicit failure replaces the old result |
+| `history-unavailable` | The head's status history could not be read, so the capacity margin is unproven; an explicit failure replaces the old result immediately, before any other target is processed |
 | `budget-exhausted` | The head has used its reserved status capacity; one failure is recorded there, no success is published and a new head is required |
 | `budget-saturated` | The head already holds 1,000 statuses for this context; nothing can be written, so an earlier success may remain the newest entry |
 
