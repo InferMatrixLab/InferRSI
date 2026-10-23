@@ -3,6 +3,7 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
+from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -562,7 +563,8 @@ def test_api_merge_during_evaluation_publishes_nothing_to_the_merged_head(api_fi
     state["before_request"] = merge
     results = check_prs(api, policy, BASE, False, [123])
     assert [r["kind"] for r in results] == ["closed"]
-    assert state["statuses"] == []
+    # The evaluation-time invalidation is the only write; no verdict reaches the merged head.
+    assert [s["state"] for s in state["statuses"]] == ["pending"]
     assert exit_code(results) == EXIT_COMPLIANT
 
 
@@ -587,7 +589,9 @@ def test_api_closed_target_keeps_historical_status_and_reopen_reevaluates(api_fi
     state["prs"][123]["state"] = "closed"
     result = check_pr(api, 123, policy, BASE, False)
     assert result["kind"] == "closed"
-    assert len(state["statuses"]) == 1  # The earlier verdict is not rewritten.
+    # A closed target is not invalidated: the earlier verdict stands as history, and nothing is
+    # written to a head that is no longer part of the sweep.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success"]
     state["prs"][123]["state"] = "open"
     state["prs"][123]["body"] = None
     assert check_pr(api, 123, policy, BASE, False)["state"] == "failure"
@@ -664,9 +668,10 @@ def test_api_old_green_cannot_survive_a_broken_publication_read(api_fixture, pol
     results = check_prs(api, policy, BASE, False, [123])
     head = state["prs"][123]["head"]["sha"]
     if mutation == "head":
-        # The old head keeps its historical green; the new head has no verdict until a rerun.
+        # The superseded head was invalidated before evaluation, so its green is gone; the new
+        # head carries no verdict at all and needs the rerun, rather than inheriting either one.
         assert results[0]["kind"] == "deferred"
-        assert latest_status(state)["state"] == "success"
+        assert latest_status(state)["state"] == "pending"
         assert all(s["sha"] != head for s in state["statuses"])
         assert exit_code(results) == EXIT_RERUN
         return
@@ -844,8 +849,9 @@ def test_api_survivor_closing_during_reassessment_publishes_nothing(api_fixture,
     results = check_prs(api, policy, BASE, False, [123, 124])
     kinds = {r["pull_request"]: r["kind"] for r in results}
     assert kinds == {123: "closed", 124: "closed"}
-    # Nothing is published to the old shared head, including no failure.
-    assert state["statuses"] == []
+    # Each target was invalidated before evaluation; no verdict and no failure is published to
+    # the old shared head after it left the sweep.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "pending"]
 
 
 def test_api_head_change_during_reassessment_publishes_nothing(api_fixture, policy):
@@ -897,3 +903,135 @@ def test_api_historical_policy_change_comment_is_inert(api_fixture, policy):
     assert result["state"] == "failure"
     assert result["kind"] == "noncompliant"
     assert latest_status(state)["state"] == "failure"
+
+
+def test_api_declaration_change_on_unchanged_head_invalidates_the_old_green(
+        api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # A body-only edit on the same head deletes the declaration. The published history shows the
+    # superseded green was replaced before the new evidence was read, not after.
+    state["prs"][123]["body"] = None
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "noncompliant"
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success", "pending", "failure"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_revoked_exception_is_reassessed_without_the_previous_approval(
+        api_fixture, policy):
+    api, state = api_fixture
+    value = declared([attribution("unknown", "unknown")])
+    value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+    state["prs"][123] = pr(value)
+    state["comments"][123] = [approval({KNOWLEDGE})]
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    state["comments"][123] = [approval({KNOWLEDGE}, decision="revoke")]
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "noncompliant"
+    assert "Exception requires explicit independent owner approval" in result["errors"][0]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_invalidation_failure_stops_the_success_path(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # Only status POSTs fail: evaluation metadata is fully readable.
+    original = api.request
+
+    def request(route, payload=None):
+        if payload is not None and route.startswith("statuses/"):
+            raise HTTPError(route, 503, "Unavailable", {}, None)
+        return original(route, payload)
+
+    api.request = request
+    results = check_prs(api, policy, BASE, False, [123])
+    assert [r["kind"] for r in results] == ["invalidation-failed"]
+    assert results[0]["state"] == "failure"
+    assert results[0]["rerun"] is True
+    assert exit_code(results) == EXIT_RERUN
+    # The old green was never replaced, so the failure is visible in the record, not the status.
+    assert latest_status(state)["state"] == "success"
+
+
+def test_api_invalidation_failure_never_publishes_a_later_success(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    calls = {"posts": 0}
+    original = api.request
+
+    def request(route, payload=None):
+        if payload is not None and route.startswith("statuses/"):
+            calls["posts"] += 1
+            raise HTTPError(route, 503, "Unavailable", {}, None)
+        return original(route, payload)
+
+    api.request = request
+    for _ in range(3):
+        result = check_pr(api, 123, policy, BASE, False)
+        assert result["kind"] == "invalidation-failed"
+        assert result["rerun"] is True
+    # Every attempt stopped at invalidation: no evaluation success ever reached the head.
+    assert calls["posts"] == 3
+    assert latest_status(state)["state"] == "success"
+
+
+def test_api_compliant_pr_without_a_previous_verdict_still_invalidates_first(api_fixture, policy):
+    api, state = api_fixture
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "compliant"
+    # The invalidation precedes the verdict so a crash between them cannot leave an old green.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success"]
+
+
+def test_api_dry_run_writes_no_status_at_all(api_fixture, policy):
+    api, state = api_fixture
+    result = check_pr(api, 123, policy, BASE, True)
+    assert result["kind"] == "compliant"
+    # Neither the invalidation nor the verdict is published in a reporting-only run.
+    assert state["statuses"] == []
+    assert all(method == "GET" for method, _ in state["requests"])
+
+
+def test_api_invalidation_precedes_every_evidence_read(api_fixture, policy):
+    api, state = api_fixture
+    check_pr(api, 123, policy, BASE, False)
+    routes = [route for _, route in state["requests"]]
+    posted = routes.index(f"statuses/{HEAD}")
+    # The old result is replaced before the evidence that could reject it is fetched.
+    for evidence in ("pulls/123/files", "git/ref/heads/main"):
+        assert routes.index(evidence) > posted
+    # The verdict is the only other write, and it comes last.
+    posts = [route for method, route in state["requests"] if method == "POST"]
+    assert posts == [f"statuses/{HEAD}", f"statuses/{HEAD}"]
+
+
+def test_api_unreadable_collection_is_not_a_shared_head_rejection(api_fixture, policy):
+    api, state = api_fixture
+    state["fail"] = lambda route: route == "pulls"
+    result = check_pr(api, 123, policy, BASE, False)
+    # An unavailable listing is not evidence of a peer sharing the head.
+    assert result["kind"] != "noncompliant"
+    assert "shared heads" not in json.dumps(result["errors"])
+    assert result["rerun"] is True
+    assert latest_status(state)["state"] != "success"
+
+
+def test_api_target_entering_the_sweep_mid_run_is_never_published_uninvalidated(
+        api_fixture, policy):
+    api, state = api_fixture
+    state["prs"][123]["state"] = "closed"
+
+    def reopen(route):
+        # The first scan sees the target closed, so it stays out of the sweep; by the publication
+        # scan it is open and addressable again at the same head.
+        if route == "pulls" and state["pulls_scans"] == 1:
+            state["prs"][123]["state"] = "open"
+
+    state["before_request"] = reopen
+    results = check_prs(api, policy, BASE, False, [123])
+    # The target was read outside the sweep and was never invalidated, so the run defers it
+    # instead of publishing a verdict that skipped the invalidation.
+    assert [r["kind"] for r in results] == ["deferred"]
+    assert results[0]["rerun"] is True
+    assert state["statuses"] == []

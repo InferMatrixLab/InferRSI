@@ -148,20 +148,53 @@ for work whose base advanced or whose head changed. One evaluation pass is
 followed by a publication pass that re-reads the target. If the head, base, body
 or approvals moved, or if head ownership changed because a peer closed, the checker
 reassesses once against the current metadata and the current open-PR collection
-before writing. A green is published only from a verified premise; when the
-open-PR collection cannot be read, an otherwise compliant target is recorded as
-`unverified` with a failed status instead of keeping its old success. If the target
-itself cannot be re-read, no status is written to the captured head because it may
-already be merged; the run reports that the old status could not be invalidated,
-which is a real limitation, not a fail-closed result.
+before writing. A green is published only from a verified premise.
+
+### Invalidation before evaluation
+
+Once a target is confirmed open against the policy branch with a valid head, the
+checker immediately publishes `pending` ("Admission evaluation in progress") to
+that head **before** it assesses changed files, declarations, exceptions or
+approvals. Confirming the target necessarily reads the PR body; what the
+invalidation precedes is the evaluation of that evidence. A verdict from an
+earlier run therefore cannot survive into a window where the current evidence
+could reject it. If that `pending` write fails, the target's success path
+stops: the result is `invalidation-failed`, no evaluation verdict is published,
+and the runner retries. Nothing is written over the failed invalidation, because
+that write would be the same operation that just failed.
+
+The old result is replaced rather than deleted, so the status history keeps both
+the superseded verdict and its replacement. A `pending` status is not a merge
+signal; callers must read the latest status of the current head, not any earlier
+entry.
+
+### Paths that cannot invalidate an old result
+
+Fail-closed invalidation is not universal. These paths are reported explicitly and
+must not be described as enforced:
+
+| Situation | Behavior and limitation |
+| --- | --- |
+| The target PR cannot be read at all | Its head may already be merged, so no write is attempted. The result is `unverified`, the run fails, and an earlier green remains `pending`-free until a run can read the target |
+| The `pending` write itself fails | Result is `invalidation-failed`; the earlier verdict still applies to the head and the run fails visibly |
+| The final verdict write fails | Result is `publication-failed`; the head keeps the `pending` placeholder, which does not satisfy a required check |
+| The PR is closed before publication | No verdict is written. If the target was still open at evaluation time it keeps the `pending` it received there, and the workflow reports success without a verdict for that head |
+| The head advances before publication | No verdict is written. The superseded head keeps its `pending`; the new head has no status until a run covers it, and the run exits `2` for that retry |
+| A merge attempt races the run | The check reads metadata, invalidates, evaluates and publishes without holding any lock. A merge authorized by the previous state can land between the last read and the status write |
+| GitHub has not yet dispatched the event | Enforcement cannot precede the event that triggers it. A commit or body edit is enforced only after a run for that change has published a result |
+
+`pending` narrows the window in which an old success describes stale evidence. It
+does not close the window between the last metadata read and the status write, and
+it cannot act when GitHub supplies no event. Repository protection plus a required
+check is what turns these states into an actual merge block.
 
 When the trusted base advances mid-sweep, the checker returns a retryable result
 promptly instead of re-evaluating against its own stale checkout. It exits `2`,
 and trusted `tools/run_knowledge_model_policy.sh` refetches `main` and runs the
 checker again from the current code and policy. The runner is the single retry
-owner with a bounded budget; after exhaustion the workflow run fails. Open PRs
-remain fail-closed in every case: stale work is never published as compliant, and
-an old green is never retained in place of a valid evaluation.
+owner with a bounded budget; after exhaustion the workflow run fails. See the
+limitations table above rather than reading this as unconditional fail-closed
+enforcement.
 
 Each result carries `kind` alongside the status `state`:
 
@@ -173,7 +206,9 @@ Each result carries `kind` alongside the status `state`:
 | `unverified` | Compliance could not be published without unverified lifecycle or ownership metadata |
 | `deferred` | Work could not be completed in this run; rerun required |
 | `closed` | Target left the sweep; no status was written |
+| `advanced` | The evaluated head was superseded; nothing is written to the new head |
 | `publication-failed` | Status write failed; the verdict was not recorded |
+| `invalidation-failed` | The earlier result could not be replaced by `pending`; no verdict was published |
 
 The final JSON summary counts each kind, lists the `noncompliant_pull_requests`, and
 states the sweep `execution` as `ok`, `failed` or `unfinished`. Exit codes: `0`

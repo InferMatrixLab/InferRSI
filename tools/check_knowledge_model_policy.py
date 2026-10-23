@@ -437,6 +437,21 @@ def addressable(pr, policy):
     return pr["state"] == "open" and pr["base"]["ref"] == policy["base_branch"]
 
 
+def invalidated(api, head, dry_run):
+    # A verdict from an earlier run must not survive an evaluation that has produced no evidence
+    # yet. Replacing it is itself a write, so it can fail; the caller then stops this target's
+    # success path and reports the uncertainty instead of evaluating onward.
+    if dry_run:
+        return None
+    try:
+        api.status(head, "pending", "Admission evaluation in progress")
+    except API_ERRORS as error:
+        return {"state": "failure", "kind": "invalidation-failed",
+                "description": "Earlier admission result could not be invalidated",
+                "errors": [evaluation_failure(error)["errors"][0]]}
+    return None
+
+
 def lifecycle_result(result, scan_error):
     # Invalidate an old success when the current declaration was not validly assessed. The
     # check still publishes a verdict; only an unknowable lifecycle is reported without a write.
@@ -483,11 +498,20 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                "ownership": None,
                                "result": closed_result("Not open against the policy branch")}
             continue
-        result, comments = read_pr_result(api, pr, policy, policy_sha, open_prs)
+        failure = invalidated(api, head, dry_run)
+        if failure is not None:
+            # Without a published invalidation an old success would still be the head's effective
+            # state, so this target gets no verdict and asks the runner for a fresh attempt.
+            records[number] = {"head": head, "snapshot": None, "comments": [],
+                               "ownership": None, "result": failure}
+            continue
+        # An unreadable collection must not be mistaken for a shared head under an explicit
+        # --pull-request target; the target itself is the only known peer in that case.
+        result, comments = read_pr_result(api, pr, policy, policy_sha, open_prs or [pr])
         records[number] = {"head": head, "snapshot": admission_snapshot(pr),
                            "comments": comments, "result": result,
-                           "ownership": head_owner(open_prs, number, head)
-                           if scan_error is None else None}
+                           "ownership": (None if scan_error is not None
+                                         else head_owner(open_prs or [pr], number, head))}
     # One publication pass. Ownership and metadata are read fresh here; a target that left the
     # sweep is dropped, and a changed premise is reassessed once before any write.
     scan_error = None
@@ -518,6 +542,22 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                  "errors": ["Head advanced before publication; rerun required"]}
             continue
         result = record["result"]
+        if record["snapshot"] is None and result["kind"] != "invalidation-failed":
+            # This target was outside the sweep when it was read. If it is now addressable at the
+            # same head it was never invalidated, so publishing from here would skip the
+            # invalidation contract; the runner re-evaluates it from the start instead.
+            published[number] = {"state": "failure", "kind": "deferred", "rerun": True,
+                                 "head": head,
+                                 "description": "Target entered the sweep during this run",
+                                 "errors": ["Target entered the sweep during this run; "
+                                            "rerun required"]}
+            continue
+        if result["kind"] == "invalidation-failed":
+            # Reaching this point already confirmed the same open target and head. The failure
+            # is reported as unfinished so the runner retries; nothing is written over the old
+            # result, because a write here would itself be the invalidation that just failed.
+            published[number] = {**result, "head": head, "rerun": True}
+            continue
         premise = admission_snapshot(live) != record["snapshot"]
         if record["comments"]:
             try:
