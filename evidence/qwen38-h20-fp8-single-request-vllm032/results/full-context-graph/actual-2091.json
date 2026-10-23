@@ -1,0 +1,207 @@
+{
+  "issue": 67,
+  "scope": "single-case engineering diagnostic, not formal acceptance",
+  "verdict": "INCONCLUSIVE",
+  "job": 2091,
+  "execution": "COMPLETED 0:0",
+  "allocated_gpu_seconds": 265,
+  "engine_tested": "2061bbcda4bb886fd1bb0468c5f1aa587aaa0300",
+  "raw_archive_sha256": "b95c6c7a8c8258ec0cb489614c56523519c612b5bcf6d621871b9e3e28e87bc7",
+  "requests_verified": 4,
+  "metrics": {
+    "buckets": {
+      "ttft_s": 3.529094479046762,
+      "tpot_s": 0.05229901888813372,
+      "latency_s": 110.58518614305649
+    },
+    "full_context": {
+      "ttft_s": 3.5279052620753646,
+      "tpot_s": 0.016347277947677857,
+      "latency_s": 36.990783220971934
+    }
+  },
+  "full_context_ratios": {
+    "buckets": {
+      "ttft_s": 0.9996630248981834,
+      "tpot_s": 0.31257331963806567,
+      "latency_s": 0.3345003477510947
+    }
+  },
+  "token_comparisons": {
+    "buckets": {
+      "matching_positions": 2048,
+      "total": 2048,
+      "first_mismatch": null
+    }
+  },
+  "cleanup": [
+    {
+      "phase": "cleanup",
+      "arm": "buckets",
+      "exit_code": 0,
+      "forced": false,
+      "owned_group_remaining": 0,
+      "cleanup_errors": [],
+      "cleanup_complete": true
+    },
+    {
+      "phase": "cleanup",
+      "arm": "full_context",
+      "exit_code": 0,
+      "forced": false,
+      "owned_group_remaining": 0,
+      "cleanup_errors": [],
+      "cleanup_complete": true
+    }
+  ],
+  "graph_check": {
+    "complete": true,
+    "scope": "fixed_capacity_eager_graph_integration_not_task_quality",
+    "capacity": 10240,
+    "predictions": 16,
+    "graph_replays": 15,
+    "history": "shared eager argmax chosen online",
+    "rows": [
+      {
+        "step": 0,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 1,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 2,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 3,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 4,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 5,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 6,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 7,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 8,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 9,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 10,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 11,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 12,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 13,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 14,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 15,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      }
+    ],
+    "state_exact": true,
+    "prewarm": {
+      "policy": "full_context",
+      "buckets": {
+        "10240": {
+          "capture_seconds": 5.89499322604388,
+          "resident_MiB": 853.5009765625
+        }
+      },
+      "started_unix": 1792729415.244322,
+      "total_seconds": 5.89499322604388,
+      "resident_MiB_total": 853.5009765625,
+      "completed_unix": 1792729421.139933
+    },
+    "loader": {
+      "loaded_parameters": 1251,
+      "excluded_tensors": {
+        "vision": 333,
+        "mtp": 22
+      },
+      "scope": "text_only",
+      "dtype": "fp8",
+      "activation_dtype": "bfloat16",
+      "weight_dtype": "float8_e4m3fn",
+      "scale_dtype": "float32",
+      "checkpoint_scale_dtype": "bfloat16",
+      "quantization": {
+        "activation_scheme": "dynamic",
+        "fmt": "e4m3",
+        "quant_method": "fp8",
+        "weight_block_size": [
+          128,
+          128
+        ]
+      },
+      "execution": "native_fp8",
+      "fp8_linear_modules": 400,
+      "dequantized": false,
+      "backend": "flashinfer_small_m_deepgemm_prefill",
+      "kernel_name": "fp8_blockscale_gemm_sm90+deep_gemm.fp8_gemm_nt"
+    }
+  },
+  "overlay_prepost_exact": true,
+  "readiness_used_gpu_seconds": 6740,
+  "readiness_remaining_gpu_seconds": 460
+}
