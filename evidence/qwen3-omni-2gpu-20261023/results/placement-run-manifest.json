@@ -1,0 +1,1433 @@
+{
+  "status": "INCONCLUSIVE",
+  "phase": "SCREENING",
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/112",
+  "source_sha": "557097940fb38a2579af104997a387749c2a47a1",
+  "source_url": "https://github.com/amy-why-3459/vllm-omni/tree/557097940fb38a2579af104997a387749c2a47a1",
+  "model_revision": "26291f793822fb6be9555850f06dfe95f2d7e695",
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "count": 2,
+    "pair": "new pair; not pooled with original baseline hardware pair"
+  },
+  "runtime": {
+    "transformers": "5.16.1",
+    "tokenizers": "0.23.1",
+    "torch": "2.13.0+cu130",
+    "vllm": "0.32.0"
+  },
+  "quality_scorer": {
+    "name": "native vLLM-Omni Seed-TTS WER",
+    "whisper_model": "openai/whisper-large-v3",
+    "revision": "06f233fe06e710322aca913c1bc4249a0d71fce1",
+    "files_sha256": {
+      "added_tokens.json": "3c51f66c4c21f9e126970078f11ae77a78c74aee8df606ee9daba86e467108e0",
+      "config.json": "ad0e8d1e46f4d01f7861a21509e5d0f977d6cc1f367a370603c92541d819807b",
+      "generation_config.json": "fbdfa70135de9b1d31553393f14e80aaeb1936ea36576b2ba864055943c09d23",
+      "merges.txt": "2df2990a395e35e8dfbc7511e08c12d56018d8d04691e0133e5d63b21e154dc6",
+      "model.safetensors": "a8e94b85976e5864ba3e9525c7e6c83b2a1eca42d4b797a0c7c24d778e40fd95",
+      "normalizer.json": "bf1c507dc8724ca9cf9903640dacfb69dae2f00edee4f21ceba106a7392f26dd",
+      "preprocessor_config.json": "7ccc62c6f2765af1f3b46c00c9b5894426835a05021c8b9c01eecb6dfb542711",
+      "special_tokens_map.json": "1c70773c078cb2ca96e0fcff113102f1d3e2b1504272c3bb63b035d4a6700d87",
+      "tokenizer.json": "6d8cbd7cd0d8d5815e478dac67b85a26bbe77c1f5e0c6d76d1ce2abc0e5f21ca",
+      "tokenizer_config.json": "844b642c73a91359722f47b35705f7174686df33d252695d8572cf9ac03a6389",
+      "vocab.json": "e2aa043ef015641d363d8288e7c241c85e36a5c761fb303598e0710233344387"
+    },
+    "transformers": "5.16.1",
+    "tokenizers": "0.23.1",
+    "jiwer": "4.0.0",
+    "precision": "float32 Whisper weights and 16 kHz float32 input",
+    "locale": "en",
+    "normalization": "seed-tts-eval punctuation stripping/lowercase",
+    "sim": false,
+    "utmos": "supplementary only"
+  },
+  "source_attribution": "../plan/source-attribution.md",
+  "candidate": "full-cuda-codec-on-thinker",
+  "runs": [
+    {
+      "file": "placement-screen-c1.json",
+      "sha256": "51cde54445a355ed99eb81227ce55e4da0ef5d9dbbcd154a320b2302cc1d4f34",
+      "original_sha256": "b4ce9c7a4e6049da63f1215a1af4e0035f6033283b7d06938983a8d1ec1249ce",
+      "phase": "performance",
+      "concurrency": 1,
+      "requests": 256,
+      "summary": {
+        "throughput_frames_s": 231989.0915337986,
+        "ttfa_p50_ms": 77.47700624167919,
+        "ttfa_p95_ms": 84.54525051638484,
+        "rtf_mean": 0.10691624439004702,
+        "completed": 256
+      }
+    },
+    {
+      "file": "placement-screen-c64.json",
+      "sha256": "908ccec39b3537f367f442945fb7dbe72285dac77a2708ba4b063a6c2e464c35",
+      "original_sha256": "93d9b4dae436642c918b8e86be7158d6e470897ed836c57aae849e69557b29f6",
+      "phase": "performance",
+      "concurrency": 64,
+      "requests": 256,
+      "summary": {
+        "throughput_frames_s": 3016080.9179865723,
+        "ttfa_p50_ms": 532.973378431052,
+        "ttfa_p95_ms": 1500.8595758117735,
+        "rtf_mean": 0.5455434298777296,
+        "completed": 256
+      }
+    },
+    {
+      "file": "placement-quality.json",
+      "sha256": "5735d8445df83a92faab1e515d6306767121da40aecfe427b7a0c6e231602be6",
+      "original_sha256": "7bcea489be3b628b54418bed2202da255728a53cbf8c04bfe4ac55ffc5e69dbe",
+      "phase": "quality",
+      "concurrency": 64,
+      "requests": 256,
+      "summary": {
+        "throughput_frames_s": 3591148.3758087503,
+        "ttfa_p50_ms": 282.9345688223839,
+        "ttfa_p95_ms": 691.9186105951667,
+        "rtf_mean": 0.4282034566163516,
+        "completed": 256
+      }
+    }
+  ],
+  "quality_screen": {
+    "baseline_file": "baseline-v3-quality.json",
+    "baseline_mean_wer": 0.038329584911616164,
+    "candidate_mean_wer": 0.04508891652159115,
+    "identity_matches": true,
+    "gate": "FAIL",
+    "scope": "Historical baseline WER screening only; not a formal paired result or campaign verdict",
+    "failed_requests": 0,
+    "no_pcm": 0,
+    "asr_failed": 0,
+    "utmos_mean": 3.333136098459363
+  },
+  "quality_audio": {
+    "availability": "256 original WAV payloads retained privately, not redistributed here",
+    "files": [
+      {
+        "file": "00000_common_voice_en_10119832-common_voice_en_10119840_en.wav",
+        "bytes": 102614,
+        "sha256": "64f7cabf9c1f42dbf14ab1696eecdb324bdf5847f5bab54c94d1f7d77dcafc0a"
+      },
+      {
+        "file": "00001_common_voice_en_10119832-common_voice_en_10119847_en.wav",
+        "bytes": 133334,
+        "sha256": "25bb20b8f794a416f3ce1be8dde5bfdd8d7607027a6903757bd93da10c319d60"
+      },
+      {
+        "file": "00002_common_voice_en_103675-common_voice_en_103676_en.wav",
+        "bytes": 210134,
+        "sha256": "84268c6f3dfbab6a41ca1c041192c02dce73278b4df1e53b9fa0986ce912450f"
+      },
+      {
+        "file": "00003_common_voice_en_103675-common_voice_en_103677_en.wav",
+        "bytes": 106454,
+        "sha256": "3b2c2cfcf099501c643aa0c4446dc97312906c372c9f7034ae7454d0a0d80c13"
+      },
+      {
+        "file": "00004_common_voice_en_10933823-common_voice_en_10933822_en.wav",
+        "bytes": 156374,
+        "sha256": "2c158fef6ce4503abf96ce30640eacdf2636e07276e6b3a73d13b4b82323d0e6"
+      },
+      {
+        "file": "00005_common_voice_en_10933823-common_voice_en_10933825_en.wav",
+        "bytes": 129494,
+        "sha256": "f091aca9459f7bd082f4787132adb2c130e495e29a04be82407bb5c6790200d2"
+      },
+      {
+        "file": "00006_common_voice_en_120405-common_voice_en_120402_en.wav",
+        "bytes": 237014,
+        "sha256": "7203d6ac0f4dad669979555ea21cc9a30a26b342fdbc4a98e632457e70ebfe3a"
+      },
+      {
+        "file": "00007_common_voice_en_120405-common_voice_en_120406_en.wav",
+        "bytes": 133334,
+        "sha256": "499dbfccd147f51c83028b0677f1d35f56b2e44557854996053124ef89ad8467"
+      },
+      {
+        "file": "00008_common_voice_en_1205005-common_voice_en_1205007_en.wav",
+        "bytes": 129494,
+        "sha256": "c9b8f8a17de2a56602a4c4b4c033ba72c6dd02b24d3b7e3992907ee04b4bafdd"
+      },
+      {
+        "file": "00009_common_voice_en_1205005-common_voice_en_1205008_en.wav",
+        "bytes": 110294,
+        "sha256": "4bfe590948c8b632b5ca3932ff6f7e5ba31b8f3c2f02f0cd167d0fead4c381cc"
+      },
+      {
+        "file": "00010_common_voice_en_123125-common_voice_en_123126_en.wav",
+        "bytes": 221654,
+        "sha256": "5bd6751a9aa44154f221b6dfa02b9dde9a13946405f59cc5f0bbb817215abbaa"
+      },
+      {
+        "file": "00011_common_voice_en_123125-common_voice_en_123127_en.wav",
+        "bytes": 225494,
+        "sha256": "3e9778191825cbf98c4f0e548b90bf934d85f37a96a20a88efa31c3bfc408706"
+      },
+      {
+        "file": "00012_common_voice_en_125386-common_voice_en_125388_en.wav",
+        "bytes": 217814,
+        "sha256": "3337a2b7408d215f434d9331f4b3ae63059ed706c6ea5d271c457bbcc47ea143"
+      },
+      {
+        "file": "00013_common_voice_en_125386-common_voice_en_125389_en.wav",
+        "bytes": 156374,
+        "sha256": "8684edbe9e00a11f5c7c66a548fc52628c636eedab88d3bbeb7d07b826fbda48"
+      },
+      {
+        "file": "00014_common_voice_en_137148-common_voice_en_137152_en.wav",
+        "bytes": 194774,
+        "sha256": "fd113e4ef04d99e95ae30bad63e645c95561538e92c89428053130c67cf8d2b1"
+      },
+      {
+        "file": "00015_common_voice_en_13900-common_voice_en_13901_en.wav",
+        "bytes": 156374,
+        "sha256": "fea401cab45b7f50f83c3a28a7e0f8a4662f4d9f3e485dd89a0be20766f05c99"
+      },
+      {
+        "file": "00016_common_voice_en_1416089-common_voice_en_1416090_en.wav",
+        "bytes": 164054,
+        "sha256": "649ea22768eac474c744c03664ecdc53d107eb5b256f814e5312de73e5f639e1"
+      },
+      {
+        "file": "00017_common_voice_en_1416089-common_voice_en_1416093_en.wav",
+        "bytes": 144854,
+        "sha256": "04e965fb520fdc75ca676eb832f557c4d29ba3fdf64830a02aa262161be0065e"
+      },
+      {
+        "file": "00018_common_voice_en_15265-common_voice_en_15266_en.wav",
+        "bytes": 137174,
+        "sha256": "d26f5bdd75d0ee94d97ae668c20366b25a64dfbdc1e24751cead3183d49d1fec"
+      },
+      {
+        "file": "00019_common_voice_en_15265-common_voice_en_15268_en.wav",
+        "bytes": 137174,
+        "sha256": "13a818593d3fd534c7dc5766bf4d49c767b022b0182c44fc7cdd620e54cb0262"
+      },
+      {
+        "file": "00020_common_voice_en_153872-common_voice_en_153873_en.wav",
+        "bytes": 125654,
+        "sha256": "9f1de1e605aaaf3bbecff0eaa2faf730a21200714cff82199f5c5d024d400cf4"
+      },
+      {
+        "file": "00021_common_voice_en_153872-common_voice_en_153874_en.wav",
+        "bytes": 240854,
+        "sha256": "5073aab450fbe362a69fc640f121a167526f729b4cd44fd30161a4ae96a3f514"
+      },
+      {
+        "file": "00022_common_voice_en_155313-common_voice_en_155315_en.wav",
+        "bytes": 229334,
+        "sha256": "6022e492562f2a7b549d606f0f427883c3cb048efb65cfa0c053fcefe9cc5ae5"
+      },
+      {
+        "file": "00023_common_voice_en_15734837-common_voice_en_15734838_en.wav",
+        "bytes": 156374,
+        "sha256": "bac6b4a1aae3340c7cb4351e2fbd1d4e1088c48b6c8394935e087d23a04f74d4"
+      },
+      {
+        "file": "00024_common_voice_en_15735839-common_voice_en_15735837_en.wav",
+        "bytes": 41174,
+        "sha256": "5cfe08e55deead0172dbd89b184d12289d43a09f7f0a1f9767273e3e4c1ddd25"
+      },
+      {
+        "file": "00025_common_voice_en_15903802-common_voice_en_15903807_en.wav",
+        "bytes": 167894,
+        "sha256": "b35fb5c82fb15a56d231783dd3d7e983f0bb53a98a582726414c96c65689a7cd"
+      },
+      {
+        "file": "00026_common_voice_en_15903802-common_voice_en_15903815_en.wav",
+        "bytes": 133334,
+        "sha256": "7b593d26ea130523146907697e62af3120661728f025f838eb3db4f2b91f1295"
+      },
+      {
+        "file": "00027_common_voice_en_16666041-common_voice_en_16666040_en.wav",
+        "bytes": 114134,
+        "sha256": "732ded8e1c96612f18926e69bbcaba51948920fb8ed5ab18df4b3d8443b5775b"
+      },
+      {
+        "file": "00028_common_voice_en_167249-common_voice_en_167246_en.wav",
+        "bytes": 129494,
+        "sha256": "c0919015a65d48e3b2e9bc4c701e3f966a918facb57a235c228a59f1f576f455"
+      },
+      {
+        "file": "00029_common_voice_en_167249-common_voice_en_167247_en.wav",
+        "bytes": 125654,
+        "sha256": "95b87fcbd09db890519d29533dc69170d7dcaba94ffc62370f01eff68055869a"
+      },
+      {
+        "file": "00030_common_voice_en_17147545-common_voice_en_17147546_en.wav",
+        "bytes": 237014,
+        "sha256": "d7aec9cd0c83f31321fc67291d2ae825841cd0e78eef2b3484baf5489b19e2f8"
+      },
+      {
+        "file": "00031_common_voice_en_17161-common_voice_en_17159_en.wav",
+        "bytes": 125654,
+        "sha256": "ff8f6e9cdf5ae98f951c099bb25cb587558da0f4001586d3ae52d89ddf3888e3"
+      },
+      {
+        "file": "00032_common_voice_en_17161-common_voice_en_17160_en.wav",
+        "bytes": 248534,
+        "sha256": "353a8e004483f67fee7452604a0ae17dbf6fa9fd0ecaa07f8bf9ff67234bea47"
+      },
+      {
+        "file": "00033_common_voice_en_17249419-common_voice_en_17249428_en.wav",
+        "bytes": 237014,
+        "sha256": "39a1aa1528c2993be91bce5de25841e1c01c60c9b6412284cd3690f844c62c44"
+      },
+      {
+        "file": "00034_common_voice_en_17255102-common_voice_en_17255101_en.wav",
+        "bytes": 164054,
+        "sha256": "3224b42785206dcd78552d494697ee66f602dc81239a6c0e715e5806d850f24d"
+      },
+      {
+        "file": "00035_common_voice_en_17256676-common_voice_en_17256678_en.wav",
+        "bytes": 240854,
+        "sha256": "f17c67c2116e91705a47b56f75b226d2f009ae6cd16ec645ea6848798721a1c8"
+      },
+      {
+        "file": "00036_common_voice_en_17259121-common_voice_en_17259122_en.wav",
+        "bytes": 94934,
+        "sha256": "9ecd15b641166355802fc4de2ccd547fb3fd176465958937d0dd794612b3d2cd"
+      },
+      {
+        "file": "00037_common_voice_en_17263752-common_voice_en_17263750_en.wav",
+        "bytes": 359894,
+        "sha256": "6fc2fef6f59684f48435c4f6f061fc1eb0de1adc0be286ccbbe761b2caf547c8"
+      },
+      {
+        "file": "00038_common_voice_en_17263752-common_voice_en_17263755_en.wav",
+        "bytes": 156374,
+        "sha256": "3404513838fc372d34da5f4693080b275dd3bb686db36a07aa8c031be3d532da"
+      },
+      {
+        "file": "00039_common_voice_en_17263780-common_voice_en_17263781_en.wav",
+        "bytes": 137174,
+        "sha256": "93a4dbf1218f460c98b98dfd4d97a5b410114234a7878e83e444ad26c9ca0602"
+      },
+      {
+        "file": "00040_common_voice_en_17263780-common_voice_en_17263782_en.wav",
+        "bytes": 248534,
+        "sha256": "a6327fbb12f8837fc4272205d3bad29f0f7b2fa2f2bc2ad23d35f6dc23548638"
+      },
+      {
+        "file": "00041_common_voice_en_17267923-common_voice_en_17267922_en.wav",
+        "bytes": 71894,
+        "sha256": "f21859b2f4349200e7a8def926f712e41f2ac2a2cd48e9d9721a82cc120e47f6"
+      },
+      {
+        "file": "00042_common_voice_en_17268075-common_voice_en_17268076_en.wav",
+        "bytes": 309974,
+        "sha256": "82c4ce32587dc8e5290dac03487321a84b9f5c2b83b8de150b2ce7dc8f6c78f3"
+      },
+      {
+        "file": "00043_common_voice_en_17271507-common_voice_en_17271509_en.wav",
+        "bytes": 133334,
+        "sha256": "b560b672b6ca54a7e2bebf9e5e9b90597682de887bfe913657284491aae09e38"
+      },
+      {
+        "file": "00044_common_voice_en_17271507-common_voice_en_17271510_en.wav",
+        "bytes": 175574,
+        "sha256": "9e128fc3a86f256f38e8082eebd78f8975aa3fbed6208be2406ea171c5af2bb0"
+      },
+      {
+        "file": "00045_common_voice_en_17274522-common_voice_en_17274523_en.wav",
+        "bytes": 167894,
+        "sha256": "7054ed569dc744563ca0da86d2bd15394f790972c80e19620fa9d9bfabc61499"
+      },
+      {
+        "file": "00046_common_voice_en_17274522-common_voice_en_17274525_en.wav",
+        "bytes": 94934,
+        "sha256": "26ed3183b832a19aa83619553c3b1f5305fbe74466dad6bd723cbd37fe8da892"
+      },
+      {
+        "file": "00047_common_voice_en_17274533-common_voice_en_17274531_en.wav",
+        "bytes": 221654,
+        "sha256": "136b974ad276537c0265ab12562c1be12c687d8216374c8bf03eed18e7f349af"
+      },
+      {
+        "file": "00048_common_voice_en_17275818-common_voice_en_17275816_en.wav",
+        "bytes": 148694,
+        "sha256": "f8c2076466674c7505bfb63f0bad716fca1ad2823926b8c5684cae56ef2e4910"
+      },
+      {
+        "file": "00049_common_voice_en_17275818-common_voice_en_17275817_en.wav",
+        "bytes": 125654,
+        "sha256": "86272ecc7e4a7cbc3b149e6649f7fca99567759381140247782b484dd9ddc9fb"
+      },
+      {
+        "file": "00050_common_voice_en_17277080-common_voice_en_17277082_en.wav",
+        "bytes": 121814,
+        "sha256": "174ba6bfcbd8815d2a670ac6bfbed89a7ec72b463a259c44e8320cbb49c1f1a3"
+      },
+      {
+        "file": "00051_common_voice_en_17277080-common_voice_en_17277083_en.wav",
+        "bytes": 164054,
+        "sha256": "3b3418adc04f093da8e47852c718f17f139a4ae276ff5d8b735f71d640cb94a7"
+      },
+      {
+        "file": "00052_common_voice_en_17278904-common_voice_en_17278905_en.wav",
+        "bytes": 148694,
+        "sha256": "752b8f8c4326eac4afa75c3c889c93fd5a97f4a52b50212f606ef51e2354e8c7"
+      },
+      {
+        "file": "00053_common_voice_en_17278904-common_voice_en_17278909_en.wav",
+        "bytes": 179414,
+        "sha256": "89aa0363f642065573e3a46181a71b71ff8258b94ef1d631ba411a4933582f1a"
+      },
+      {
+        "file": "00054_common_voice_en_17281385-common_voice_en_17281386_en.wav",
+        "bytes": 217814,
+        "sha256": "8e1aa6f9d6f7668809c2b5361df7a6446b29ee84132bec72471136dd4f8c72d8"
+      },
+      {
+        "file": "00055_common_voice_en_17281385-common_voice_en_17281393_en.wav",
+        "bytes": 179414,
+        "sha256": "927d8b240997678896b9d62169a5d214993d4c666c6635fa463ebb11a2bcf94d"
+      },
+      {
+        "file": "00056_common_voice_en_17288057-common_voice_en_17288056_en.wav",
+        "bytes": 56534,
+        "sha256": "36ba00ce44a5a3addb6ee6560679c8aa8c56504c95a844d5b2a4ca4940abb93b"
+      },
+      {
+        "file": "00057_common_voice_en_17288057-common_voice_en_17288059_en.wav",
+        "bytes": 75734,
+        "sha256": "9657ad5e8bd32784ac9802e7d8f26d40cf3f7fffc21c486c6497e91aa25067c1"
+      },
+      {
+        "file": "00058_common_voice_en_17324784-common_voice_en_17324785_en.wav",
+        "bytes": 156374,
+        "sha256": "2dfcb5d1c43b48e5dafffb49b392e68414ebb02d8ea100c983ca7d6daaf31ecf"
+      },
+      {
+        "file": "00059_common_voice_en_17324784-common_voice_en_17324786_en.wav",
+        "bytes": 229334,
+        "sha256": "ac0587bad9bd99dd6375042784ff2089eba8a28079b3dcf218da9ce5ec797f8f"
+      },
+      {
+        "file": "00060_common_voice_en_17347410-common_voice_en_17347409_en.wav",
+        "bytes": 156374,
+        "sha256": "fb81213beff037afe699edee5953058a89bf536ffae30d19e7874d6330e8472c"
+      },
+      {
+        "file": "00061_common_voice_en_17352169-common_voice_en_17352173_en.wav",
+        "bytes": 279254,
+        "sha256": "04900da4c43182847afa71b2d1d9a989d053dd2c1701001ca3fb072d419ec5c9"
+      },
+      {
+        "file": "00062_common_voice_en_173534-common_voice_en_173537_en.wav",
+        "bytes": 190934,
+        "sha256": "6eaf8347fbb34cfc3667e2c4981fb7d09b79d0d7914b1a67bde20f045800ee69"
+      },
+      {
+        "file": "00063_common_voice_en_173534-common_voice_en_173540_en.wav",
+        "bytes": 233174,
+        "sha256": "cd5a36a2fab857d29ef9609ea29421c15510a5ace2fb9e82ea20136f94d46b16"
+      },
+      {
+        "file": "00064_common_voice_en_17369337-common_voice_en_17369336_en.wav",
+        "bytes": 129494,
+        "sha256": "0be6911ff8efe8c4a46e3be2a2bdf862bfb492a320b1185bcfaa177b3df20027"
+      },
+      {
+        "file": "00065_common_voice_en_17369851-common_voice_en_17369849_en.wav",
+        "bytes": 45014,
+        "sha256": "41feccff3acb83f09214262f3cad10ad0f272522a59d4b34ef022dd71c5b8170"
+      },
+      {
+        "file": "00066_common_voice_en_17375252-common_voice_en_17375256_en.wav",
+        "bytes": 198614,
+        "sha256": "57a6d78575c152a9a62870981bbfd6e0a0a6a768352edd4d2bc3e7f4e9a191a3"
+      },
+      {
+        "file": "00067_common_voice_en_17380945-common_voice_en_17380947_en.wav",
+        "bytes": 183254,
+        "sha256": "7fe3eecbaf2e3b27fefd4f85eb43e5634f69adf34c8c491bec43082c6e758482"
+      },
+      {
+        "file": "00068_common_voice_en_17389076-common_voice_en_17389120_en.wav",
+        "bytes": 125654,
+        "sha256": "71328a8282bf54bfbfaf9cc3c16983ccc17642fa1827fd3540373d1764baa69f"
+      },
+      {
+        "file": "00069_common_voice_en_17389984-common_voice_en_17389987_en.wav",
+        "bytes": 267734,
+        "sha256": "b92c0602f166f26ea4a686e598b5473936f721019b41ac01bb66023f767a68c1"
+      },
+      {
+        "file": "00070_common_voice_en_17389984-common_voice_en_17389988_en.wav",
+        "bytes": 271574,
+        "sha256": "1057c4750d9fdf2ff108de597f78fdc974565466d2aa055f01194cc3a4c31262"
+      },
+      {
+        "file": "00071_common_voice_en_17401431-common_voice_en_17401433_en.wav",
+        "bytes": 160214,
+        "sha256": "3f4b60b8247923fb888a24015c531fc782f9fdba7146e3a81f70d51aa0b37634"
+      },
+      {
+        "file": "00072_common_voice_en_17406452-common_voice_en_17406455_en.wav",
+        "bytes": 194774,
+        "sha256": "2d5e5a63dc4df17aa8b636159abd63700cac93c65895b5f03ca35f4c087b34c9"
+      },
+      {
+        "file": "00073_common_voice_en_17406452-common_voice_en_17406466_en.wav",
+        "bytes": 190934,
+        "sha256": "fa43b6f7d5418ab0f6fd3f9563c5e5c87dfd900cf915ce25cbd08faf481e93c3"
+      },
+      {
+        "file": "00074_common_voice_en_17406732-common_voice_en_17406734_en.wav",
+        "bytes": 144854,
+        "sha256": "b1d498384f0497e405f8e1c1176fa4afc648dece45c18ae97d100467c44fe7da"
+      },
+      {
+        "file": "00075_common_voice_en_17406732-common_voice_en_17406735_en.wav",
+        "bytes": 179414,
+        "sha256": "72a8ae78a016231c659f2228a377c3f91b0969a51b808fc7371917e1a57e7380"
+      },
+      {
+        "file": "00076_common_voice_en_17429166-common_voice_en_17429168_en.wav",
+        "bytes": 48854,
+        "sha256": "d75a582e23d970e6ad4d3add0e1e8ec3cb2d74fa5805d9c11c1909073e6717cc"
+      },
+      {
+        "file": "00077_common_voice_en_17429166-common_voice_en_17429171_en.wav",
+        "bytes": 160214,
+        "sha256": "e54c3e2e62420d1644a21cc4d5281e25c8eb728f5977a6673a149d166de8b6f8"
+      },
+      {
+        "file": "00078_common_voice_en_17442686-common_voice_en_17442688_en.wav",
+        "bytes": 117974,
+        "sha256": "225ec755b47249d0846e4a7ca5e42dafdc4326b260f649a77d3e523fb870d3ee"
+      },
+      {
+        "file": "00079_common_voice_en_17444666-common_voice_en_17444667_en.wav",
+        "bytes": 275414,
+        "sha256": "529707b34a8e2166f409292047b73a0f5c932797c25844c78a51f51f4b05fc84"
+      },
+      {
+        "file": "00080_common_voice_en_17444666-common_voice_en_17444668_en.wav",
+        "bytes": 233174,
+        "sha256": "a6cea2435444b678caee32497e92e0c47e4510059035342abffa6a3d6793e518"
+      },
+      {
+        "file": "00081_common_voice_en_17451108-common_voice_en_17451109_en.wav",
+        "bytes": 171734,
+        "sha256": "ec8e0d2a41eb84fc3152e652cc0daec559e27da033adb7cf54e203c9d8badaaf"
+      },
+      {
+        "file": "00082_common_voice_en_17502-common_voice_en_17503_en.wav",
+        "bytes": 98774,
+        "sha256": "3e34b8c42b1d0986b8c875ba065cd6968fd75a7e247d0c47cc6bcfdb1dd478a3"
+      },
+      {
+        "file": "00083_common_voice_en_17519982-common_voice_en_17519985_en.wav",
+        "bytes": 202454,
+        "sha256": "b2acee90ad085275395750224d6d31d0830e7ac3f50a2911774d5f18bd5e471d"
+      },
+      {
+        "file": "00084_common_voice_en_17519982-common_voice_en_17519988_en.wav",
+        "bytes": 102614,
+        "sha256": "3dfa4741d13ff03e3a08a9b093b797e0836226e1c12dfa2eb973e059e948841f"
+      },
+      {
+        "file": "00085_common_voice_en_175348-common_voice_en_175349_en.wav",
+        "bytes": 133334,
+        "sha256": "a0c12c0fc5ad6257e03a3d0d4be0f42ab3a76a78580c22271b4a2f401512f72b"
+      },
+      {
+        "file": "00086_common_voice_en_175348-common_voice_en_175350_en.wav",
+        "bytes": 175574,
+        "sha256": "211897cf8e5cb937b824307beb23bd6f513b0e8c7e627e94032023f3e86109bf"
+      },
+      {
+        "file": "00087_common_voice_en_17578783-common_voice_en_17578780_en.wav",
+        "bytes": 117974,
+        "sha256": "2c259732ad820e7e3e679cbf58ec21d8ee5dededdf1ec31424efc008fbff5b7d"
+      },
+      {
+        "file": "00088_common_voice_en_17578783-common_voice_en_17578781_en.wav",
+        "bytes": 106454,
+        "sha256": "ccce187a4cb8b71ab88a323cd220ea282eb774a75ee35b28359065b3b8de2e92"
+      },
+      {
+        "file": "00089_common_voice_en_17662945-common_voice_en_17662954_en.wav",
+        "bytes": 144854,
+        "sha256": "2ce3582cc85e28e2c13e688acacc6c9fbd6b1cec1ada10924008a9f587851865"
+      },
+      {
+        "file": "00090_common_voice_en_17662945-common_voice_en_17662956_en.wav",
+        "bytes": 183254,
+        "sha256": "832800f52d7d828a3f2abde8bb93c837694bf161d8a14a654fbc7dcb8f7bb6dc"
+      },
+      {
+        "file": "00091_common_voice_en_17718576-common_voice_en_17718578_en.wav",
+        "bytes": 179414,
+        "sha256": "e02747dcaa0cb311183fbbf601d4d09f1008bbb18defedd524c608c1361a5acf"
+      },
+      {
+        "file": "00092_common_voice_en_17727889-common_voice_en_17727904_en.wav",
+        "bytes": 129494,
+        "sha256": "fbb267a171c6c9fad38e3bd2a66f54bfd9e53de1675c70753c1b5ff0bb3b8777"
+      },
+      {
+        "file": "00093_common_voice_en_17727889-common_voice_en_17727905_en.wav",
+        "bytes": 129494,
+        "sha256": "112231d47b23f7f87e473e5ac31a9fd0a347aea2be73a2e170bbfee45803e3ae"
+      },
+      {
+        "file": "00094_common_voice_en_17729945-common_voice_en_17729943_en.wav",
+        "bytes": 175574,
+        "sha256": "24142a3f34fefb58f0556ad5a2d1574310648045635f29ba3d1fcc12f5c34a9e"
+      },
+      {
+        "file": "00095_common_voice_en_17729945-common_voice_en_17729944_en.wav",
+        "bytes": 137174,
+        "sha256": "f11f70154245f7158f684676ff4012910865dee20b91dc6de9287b280d15f1e5"
+      },
+      {
+        "file": "00096_common_voice_en_17736608-common_voice_en_17736610_en.wav",
+        "bytes": 129494,
+        "sha256": "c174556faea1f25f5ee5625d3496001cf85bdcb313d7645ffd0848334a273ad8"
+      },
+      {
+        "file": "00097_common_voice_en_17738848-common_voice_en_17744571_en.wav",
+        "bytes": 175574,
+        "sha256": "30ffc02619a3e0cead7ecd3cfae9f2234c38deb786461851e58991db430af95f"
+      },
+      {
+        "file": "00098_common_voice_en_17738848-common_voice_en_19083939_en.wav",
+        "bytes": 190934,
+        "sha256": "f2c87a93333eb6a79fb30ba84d7d2bd82732e4d88e0db4dcd0b61ddd75d035c1"
+      },
+      {
+        "file": "00099_common_voice_en_17781154-common_voice_en_17781153_en.wav",
+        "bytes": 121814,
+        "sha256": "7051f9a9fefb07fc877cb313ae17b8e84a68f43f11466551b63bb84e4db52c90"
+      },
+      {
+        "file": "00100_common_voice_en_17784-common_voice_en_17785_en.wav",
+        "bytes": 137174,
+        "sha256": "41dc445c1f3d655b537300067defb3ddcb4d96930ff38a3e00187b471951f357"
+      },
+      {
+        "file": "00101_common_voice_en_17784-common_voice_en_17786_en.wav",
+        "bytes": 121814,
+        "sha256": "0303efda8bfeb25f50064b9c34df0f2bc254597b6ee3fa765185485f05bbcf6d"
+      },
+      {
+        "file": "00102_common_voice_en_177895-common_voice_en_177894_en.wav",
+        "bytes": 213974,
+        "sha256": "6cd836912d52ee45339749a515b00a9fb1d225c28b972c17a24bdf7b47d35a01"
+      },
+      {
+        "file": "00103_common_voice_en_177895-common_voice_en_177898_en.wav",
+        "bytes": 125654,
+        "sha256": "1a5dd8240a27b8aaacd9876fb8181a17a41e10dca62407342118841014bd4373"
+      },
+      {
+        "file": "00104_common_voice_en_17817002-common_voice_en_17817003_en.wav",
+        "bytes": 240854,
+        "sha256": "5a36b3ba53ec349a4a0875d2e1e0dfea732cc32f35bec4419ee16f5d6b53ee34"
+      },
+      {
+        "file": "00105_common_voice_en_17817002-common_voice_en_17817005_en.wav",
+        "bytes": 171734,
+        "sha256": "51f1d147d5baa1d980b17ad579872006b9450d7ca363aed9bd453f3c5284f132"
+      },
+      {
+        "file": "00106_common_voice_en_17830764-common_voice_en_17830762_en.wav",
+        "bytes": 117974,
+        "sha256": "2c5107e41436576c1fc9b8b2791b5149dfc4904454b2de8ee32db63fbf3f3611"
+      },
+      {
+        "file": "00107_common_voice_en_17830764-common_voice_en_17830783_en.wav",
+        "bytes": 167894,
+        "sha256": "1d7b8e66e97be3f027b6fc9a6ecdf6aae35ee38a4092df44e308ca37912c9f14"
+      },
+      {
+        "file": "00108_common_voice_en_17837104-common_voice_en_17837105_en.wav",
+        "bytes": 87254,
+        "sha256": "9e25545328537fc199cd01abee0fe10524bb60bc954e85de2b33c6359ad99f57"
+      },
+      {
+        "file": "00109_common_voice_en_17851231-common_voice_en_17851248_en.wav",
+        "bytes": 121814,
+        "sha256": "1a9ceacebb6fa4003c7b93a8761b29ea780d0e895e78c53ffbb09ea329170496"
+      },
+      {
+        "file": "00110_common_voice_en_17851231-common_voice_en_17851256_en.wav",
+        "bytes": 137174,
+        "sha256": "7ff791e8ba82db231ed1378cd754d81c64d23e99b91dcc7b5c895039732940a5"
+      },
+      {
+        "file": "00111_common_voice_en_17854896-common_voice_en_17854894_en.wav",
+        "bytes": 144854,
+        "sha256": "c6800eb100846a4d23c60cd6d0a805e8d5a7b707299994f24c7797591ad0482e"
+      },
+      {
+        "file": "00112_common_voice_en_17854896-common_voice_en_17854897_en.wav",
+        "bytes": 98774,
+        "sha256": "f444853051ce28edd83c7a75433456b4881dec89f3ed76dd193098ca0d112a82"
+      },
+      {
+        "file": "00113_common_voice_en_17861335-common_voice_en_17861337_en.wav",
+        "bytes": 141014,
+        "sha256": "e6de793ccf92b7b3445580bf99e435c6e427f4cb98679a32f99d06fc32873804"
+      },
+      {
+        "file": "00114_common_voice_en_17861489-common_voice_en_17861487_en.wav",
+        "bytes": 91094,
+        "sha256": "4564bf5f76384b2f5812e67530adc73cd18dc5166003f70d27b99da98b4f58da"
+      },
+      {
+        "file": "00115_common_voice_en_17874600-common_voice_en_17874601_en.wav",
+        "bytes": 298454,
+        "sha256": "30841dd84611fba647f07c2acf6f4141ecc141877bd09a78bebdc2155279d2cc"
+      },
+      {
+        "file": "00116_common_voice_en_17874600-common_voice_en_17874602_en.wav",
+        "bytes": 294614,
+        "sha256": "17c77793e1107cae4cea634abf1e56c395c22155d68ad7e85db1db0349b434e9"
+      },
+      {
+        "file": "00117_common_voice_en_17875915-common_voice_en_17875925_en.wav",
+        "bytes": 137174,
+        "sha256": "3dd23006ac0ee546131a697921969a3e1ad05ae5f62c415cb48199c8798baece"
+      },
+      {
+        "file": "00118_common_voice_en_17879420-common_voice_en_17879418_en.wav",
+        "bytes": 110294,
+        "sha256": "92f34775bca0ec9dab9ae7a0ee84050fdae826b1cc016577a20be22480430f80"
+      },
+      {
+        "file": "00119_common_voice_en_17879420-common_voice_en_17879438_en.wav",
+        "bytes": 110294,
+        "sha256": "ea956dfd5bb6ae632ad0a9ac1419a9375b54300f73f1cc4989846c0a8f2d3de1"
+      },
+      {
+        "file": "00120_common_voice_en_17880926-common_voice_en_17880932_en.wav",
+        "bytes": 110294,
+        "sha256": "f4347df0f0d326f12ae709b300dfeb58411a85cbe2e8e4d514ef57709a105331"
+      },
+      {
+        "file": "00121_common_voice_en_17889905-common_voice_en_17889907_en.wav",
+        "bytes": 183254,
+        "sha256": "3e89556ce5e7728be122ceaf30012351fd30dc5486c5e8aafe7398dee628762e"
+      },
+      {
+        "file": "00122_common_voice_en_17893247-common_voice_en_17893246_en.wav",
+        "bytes": 148694,
+        "sha256": "f8be9e26e7f58c9872918de2107f921c5f01db043ec54a612d82a73706442033"
+      },
+      {
+        "file": "00123_common_voice_en_17893247-common_voice_en_17893250_en.wav",
+        "bytes": 133334,
+        "sha256": "504551432ff7b846c9174788f2deac1b6d3e2333202bf93337a1674bd026f0bb"
+      },
+      {
+        "file": "00124_common_voice_en_17899910-common_voice_en_17899909_en.wav",
+        "bytes": 56534,
+        "sha256": "b5ffeff06c74186fbc9381a8f9c617c560dc62cb3e483191b1cf0366077c4f58"
+      },
+      {
+        "file": "00125_common_voice_en_17920116-common_voice_en_17920112_en.wav",
+        "bytes": 87254,
+        "sha256": "49c480eac3ded2de5683bb65f740fa88fa32908b0ea4cca8b4e88506c5dccb37"
+      },
+      {
+        "file": "00126_common_voice_en_17986345-common_voice_en_17986347_en.wav",
+        "bytes": 137174,
+        "sha256": "7624c77879216f4fe982e74af1d00894fb4cf327067d48796924dd417b0ef699"
+      },
+      {
+        "file": "00127_common_voice_en_18012457-common_voice_en_18012447_en.wav",
+        "bytes": 167894,
+        "sha256": "1848458fe6ebb4525c9a6cce5ca29bf8d3f02f53cc569e62cc4ff5b0476e9a9f"
+      },
+      {
+        "file": "00128_common_voice_en_18012457-common_voice_en_18012464_en.wav",
+        "bytes": 156374,
+        "sha256": "76894b940e815d4bdb84064d3fe031cc2b617ec3a36c2a620fbf21f58a911cd1"
+      },
+      {
+        "file": "00129_common_voice_en_18057869-common_voice_en_18057867_en.wav",
+        "bytes": 202454,
+        "sha256": "ab65ec282c49f803ca2facbdb7d0deefd6df3f83ba7dd54fdb915926b5fb4abf"
+      },
+      {
+        "file": "00130_common_voice_en_18070362-common_voice_en_18070351_en.wav",
+        "bytes": 102614,
+        "sha256": "4bef1de809db70d15bea963f7d88365d3708fcc428cd01e50f3c751e8d6ad43e"
+      },
+      {
+        "file": "00131_common_voice_en_18105426-common_voice_en_18105428_en.wav",
+        "bytes": 52694,
+        "sha256": "0ecce7703929d4bda9f2d7a6ad40036ec73ef41cb5e133a602ed9040d6d6d1ef"
+      },
+      {
+        "file": "00132_common_voice_en_18105426-common_voice_en_18105430_en.wav",
+        "bytes": 187094,
+        "sha256": "b45815ef8ada44fd25504536197c868ecc5788eb4ce18c2f781ddd57f7d82407"
+      },
+      {
+        "file": "00133_common_voice_en_18177486-common_voice_en_18177492_en.wav",
+        "bytes": 102614,
+        "sha256": "d7f1c0d4bd73aaefb04d88b1d28e15304d34d8c10d6e4826621cf71c55b06f63"
+      },
+      {
+        "file": "00134_common_voice_en_18177486-common_voice_en_18177499_en.wav",
+        "bytes": 144854,
+        "sha256": "afa7ed558848b097675943bf534af00b023eb7ad54076c87e01ddaf1415bd418"
+      },
+      {
+        "file": "00135_common_voice_en_18187914-common_voice_en_18188853_en.wav",
+        "bytes": 133334,
+        "sha256": "a8bcc5323675f38f0164023fba3ab5067c77278e94065d51f5a546162b18be78"
+      },
+      {
+        "file": "00136_common_voice_en_18200641-common_voice_en_18200765_en.wav",
+        "bytes": 229334,
+        "sha256": "39cbcce4d272e2f30bddd90e1e028d237a0d86319b45164e18ce8ee9e9df65e1"
+      },
+      {
+        "file": "00137_common_voice_en_18200641-common_voice_en_18200790_en.wav",
+        "bytes": 179414,
+        "sha256": "c52277bedd5f23e0a8140edc821254a37ca7c2c015f090b857154cb74877def0"
+      },
+      {
+        "file": "00138_common_voice_en_182275-common_voice_en_182276_en.wav",
+        "bytes": 106454,
+        "sha256": "f24a334f0fc68be6eff9cd0864d36ae2a70f298aeafa5857098965c95f785114"
+      },
+      {
+        "file": "00139_common_voice_en_18229682-common_voice_en_18229679_en.wav",
+        "bytes": 71894,
+        "sha256": "ecab989e13684684ec74ebd7bc7449ce634d9774c3e4544232fa4776e3121d18"
+      },
+      {
+        "file": "00140_common_voice_en_18229682-common_voice_en_18229695_en.wav",
+        "bytes": 102614,
+        "sha256": "4b2450b816e232148dbf9db900d2d88d60dc838e983a9031a0dc25189ca3c467"
+      },
+      {
+        "file": "00141_common_voice_en_18234333-common_voice_en_18234353_en.wav",
+        "bytes": 175574,
+        "sha256": "d5a24dfaa5eca4a148ddefe51807ff531e258d9e0950e4ff6947b4335a783ba2"
+      },
+      {
+        "file": "00142_common_voice_en_18240348-common_voice_en_18240305_en.wav",
+        "bytes": 133334,
+        "sha256": "8e956bb8a75b210cd5e9b56199e757a0577432d3a31baa8072a74767e8ce7339"
+      },
+      {
+        "file": "00143_common_voice_en_18313326-common_voice_en_18313324_en.wav",
+        "bytes": 141014,
+        "sha256": "2a707e1244a3c0cc76aa09c696e0a725dfd6ebf6741422a068ccd854043fb1bb"
+      },
+      {
+        "file": "00144_common_voice_en_18313326-common_voice_en_18313328_en.wav",
+        "bytes": 164054,
+        "sha256": "9b3e8cc53e895dc3b29473821a3b16ebe4bcc70e6d96b681ffe5431cec2fc583"
+      },
+      {
+        "file": "00145_common_voice_en_18336410-common_voice_en_18336411_en.wav",
+        "bytes": 133334,
+        "sha256": "aeeba8411416cbb35591c8bdd25adb5b316fdb316cb07151936f7ef099569bd3"
+      },
+      {
+        "file": "00146_common_voice_en_18336410-common_voice_en_18336421_en.wav",
+        "bytes": 87254,
+        "sha256": "b1fbc79114e32feac6ecbc705d9469d84c10cc6cbce6ad019fb035be0293e967"
+      },
+      {
+        "file": "00147_common_voice_en_18338543-common_voice_en_18338546_en.wav",
+        "bytes": 164054,
+        "sha256": "8966004bf4694cb22188a56c5ff98482c1e54e384d334e06039373607e373a64"
+      },
+      {
+        "file": "00148_common_voice_en_18436934-common_voice_en_18436935_en.wav",
+        "bytes": 198614,
+        "sha256": "947ca7d4e9b2ce556d269434e0640fd21739c790e2c36669c9177038e21ae3a5"
+      },
+      {
+        "file": "00149_common_voice_en_18466098-common_voice_en_18466096_en.wav",
+        "bytes": 52694,
+        "sha256": "71e5629207cc76af347b2e996f3492f8425179de99508870df8d1bc591ba1977"
+      },
+      {
+        "file": "00150_common_voice_en_18466098-common_voice_en_18466097_en.wav",
+        "bytes": 68054,
+        "sha256": "c1bf99315124d07eb6bc388809146c516650df539c85550dc4ed7d04114de897"
+      },
+      {
+        "file": "00151_common_voice_en_18485041-common_voice_en_18485042_en.wav",
+        "bytes": 121814,
+        "sha256": "d10e1170687bace7b47c9d27ed73029c28909fa9f1bf948f41be56d2b38780f9"
+      },
+      {
+        "file": "00152_common_voice_en_18500600-common_voice_en_18500603_en.wav",
+        "bytes": 133334,
+        "sha256": "42e9b66f197a8501dde162f7bd3c0843ae004f2fb36ddb7e191d829d8087f51e"
+      },
+      {
+        "file": "00153_common_voice_en_18522556-common_voice_en_18522557_en.wav",
+        "bytes": 152534,
+        "sha256": "6b907a203396c78007572643bb63ada0043613241cbf99cf2bb372027e3c134d"
+      },
+      {
+        "file": "00154_common_voice_en_18529345-common_voice_en_18529360_en.wav",
+        "bytes": 171734,
+        "sha256": "f66f3f497db47156ae2ff28efc7e4598235df591192413ea0feed8ffa5499b3b"
+      },
+      {
+        "file": "00155_common_voice_en_18529345-common_voice_en_18529361_en.wav",
+        "bytes": 248534,
+        "sha256": "222245707fbaa909da176a3e2081670aefa4ad3156a265463606e02522e72c28"
+      },
+      {
+        "file": "00156_common_voice_en_18533403-common_voice_en_18533404_en.wav",
+        "bytes": 179414,
+        "sha256": "6829653bb0e8f8e2223807a2c85ca1fd2b9381c778ad3189a16b1068e8596573"
+      },
+      {
+        "file": "00157_common_voice_en_18545637-common_voice_en_18545639_en.wav",
+        "bytes": 114134,
+        "sha256": "d5d72f2bbfa09c0b1d25150b0e652101ca259f75a0c824a21b9c9488c5d4f015"
+      },
+      {
+        "file": "00158_common_voice_en_18554437-common_voice_en_18554439_en.wav",
+        "bytes": 156374,
+        "sha256": "5632294f7e1fcb051031717128aef9cd0c3aafba9f97ff37bc529033f17febb8"
+      },
+      {
+        "file": "00159_common_voice_en_18557077-common_voice_en_18557074_en.wav",
+        "bytes": 137174,
+        "sha256": "542fa8cf6894e65937d105fe7a73ea330dc5dbcfa834211b19b8c1fa89c403fb"
+      },
+      {
+        "file": "00160_common_voice_en_18557077-common_voice_en_18557192_en.wav",
+        "bytes": 156374,
+        "sha256": "eb1d3ba54613cbf84b88709977c584dee82d1f151f89a6770c6b45d4abe8cc00"
+      },
+      {
+        "file": "00161_common_voice_en_18575865-common_voice_en_18575863_en.wav",
+        "bytes": 152534,
+        "sha256": "22e45fc629f6c59a22d068f42f2140ac69094164a18939ced4aeb6c7f2a165a1"
+      },
+      {
+        "file": "00162_common_voice_en_18575865-common_voice_en_18575864_en.wav",
+        "bytes": 160214,
+        "sha256": "b52f2eca7e21748ad5786eb3135d71ed4f11283ae9ff0d7863feb6e91b1abfa7"
+      },
+      {
+        "file": "00163_common_voice_en_18647546-common_voice_en_18647545_en.wav",
+        "bytes": 183254,
+        "sha256": "77b32bf9c0fc592fd2e74c7f3c1e408a425a2fbd2f38c617a924bbbe5f57f271"
+      },
+      {
+        "file": "00164_common_voice_en_18647546-common_voice_en_18647550_en.wav",
+        "bytes": 125654,
+        "sha256": "84f10722e2f0fbbb9a1c97bf6a62a1fee34d1060efc2328813ac7832b1c592d0"
+      },
+      {
+        "file": "00165_common_voice_en_18672480-common_voice_en_18672484_en.wav",
+        "bytes": 267734,
+        "sha256": "5531ed43f9c7be4122744f68478105456ad2c244e6aaf1c3dfda345515375474"
+      },
+      {
+        "file": "00166_common_voice_en_18681919-common_voice_en_18681920_en.wav",
+        "bytes": 294614,
+        "sha256": "b28076491a783e558df4778c19296868db496c1eb7831258c39c3aabc9c03d6f"
+      },
+      {
+        "file": "00167_common_voice_en_18693241-common_voice_en_18693240_en.wav",
+        "bytes": 171734,
+        "sha256": "f5dfb7824851b7a9db37165aabd9413638be2e78c9dc7885dff7250985bb051d"
+      },
+      {
+        "file": "00168_common_voice_en_18699078-common_voice_en_18699081_en.wav",
+        "bytes": 229334,
+        "sha256": "9c48800b578390c3b47dfa902c15107081d6bf82cdd2129d1cfd2303a8fea172"
+      },
+      {
+        "file": "00169_common_voice_en_18699078-common_voice_en_18699082_en.wav",
+        "bytes": 237014,
+        "sha256": "1d614e77b7d02b40214b56c1bd091e25806bbbe859dc0fb0805eacec060ee117"
+      },
+      {
+        "file": "00170_common_voice_en_18707936-common_voice_en_18707937_en.wav",
+        "bytes": 233174,
+        "sha256": "440d55ef1414a509ed89997b90e4f3c4c01c9cb4ceac5156e33b111942d28c2a"
+      },
+      {
+        "file": "00171_common_voice_en_18710640-common_voice_en_18710642_en.wav",
+        "bytes": 175574,
+        "sha256": "37e7f9cdacbc6ebfef6deab7db19a047cd33bdc2b4b683fb763352335c58acf3"
+      },
+      {
+        "file": "00172_common_voice_en_18735317-common_voice_en_18735316_en.wav",
+        "bytes": 213974,
+        "sha256": "03179ed0c0dd2f74c9bf38bbb8ede1fed58468e8ffe26afb4fb1181fbe0b22be"
+      },
+      {
+        "file": "00173_common_voice_en_18735317-common_voice_en_18735372_en.wav",
+        "bytes": 237014,
+        "sha256": "60e2409ba601979ade183ff290c527e2955fc9d887a5e57f90e6e028870280d8"
+      },
+      {
+        "file": "00174_common_voice_en_18746637-common_voice_en_18746638_en.wav",
+        "bytes": 179414,
+        "sha256": "ff8da1832c60c45d954984b8a5fafa124aa1bf9b93a343da8439edeba86cc6d7"
+      },
+      {
+        "file": "00175_common_voice_en_18746637-common_voice_en_18746639_en.wav",
+        "bytes": 194774,
+        "sha256": "f6c3f30ced7c5cc7786d3df41c86e15a1e53bee0432e3fec6f65cc3fd6a5216e"
+      },
+      {
+        "file": "00176_common_voice_en_18754308-common_voice_en_18754311_en.wav",
+        "bytes": 240854,
+        "sha256": "f97606a6f1b503d5d638bbf292f44888f533fda313963770d92c4f7cbf097bd9"
+      },
+      {
+        "file": "00177_common_voice_en_18754308-common_voice_en_18754312_en.wav",
+        "bytes": 160214,
+        "sha256": "b53f7dafb1e504dd28e642429f605a99bd3d115abd06479c15331b7f87efea10"
+      },
+      {
+        "file": "00178_common_voice_en_18757805-common_voice_en_18757804_en.wav",
+        "bytes": 129494,
+        "sha256": "c0a0a1a0c2900e8beb80a2b77aa72f6a668baf80e564c853d8de95051ad8910c"
+      },
+      {
+        "file": "00179_common_voice_en_18770703-common_voice_en_18770702_en.wav",
+        "bytes": 248534,
+        "sha256": "b34ac3d5f2394987184f6b4827dd71cfb72eddc4f1029de1d8a020c13fdd355b"
+      },
+      {
+        "file": "00180_common_voice_en_18770703-common_voice_en_18770704_en.wav",
+        "bytes": 252374,
+        "sha256": "72a48676a79e62c98b623be4b9a53f183cc032e68c67930a97ae2d6f753507ba"
+      },
+      {
+        "file": "00181_common_voice_en_18781918-common_voice_en_18781919_en.wav",
+        "bytes": 194774,
+        "sha256": "304d7c1030fbbb7c1ddba99e73cfba86776950df4208dd366aa602fc60319d73"
+      },
+      {
+        "file": "00182_common_voice_en_18786931-common_voice_en_18786930_en.wav",
+        "bytes": 233174,
+        "sha256": "4cce159d577e1abd16da09720d31ad6cc4fd761386a8d0b8090022de6b6b6fe4"
+      },
+      {
+        "file": "00183_common_voice_en_18786931-common_voice_en_18786946_en.wav",
+        "bytes": 286934,
+        "sha256": "bc5c8c0fbd7b4c212fc1b9451329375ceeba9d3c1e3ab945f540934aab660813"
+      },
+      {
+        "file": "00184_common_voice_en_188092-common_voice_en_188091_en.wav",
+        "bytes": 160214,
+        "sha256": "376bf38d317a5f0b5f36291a7a02adef50c9dedecc0c4ed97250e3190274ec27"
+      },
+      {
+        "file": "00185_common_voice_en_188092-common_voice_en_188093_en.wav",
+        "bytes": 187094,
+        "sha256": "89c569c8c6f95c7193fbf9cfea9fde632027247b2ce886d7e121bb63d30442cb"
+      },
+      {
+        "file": "00186_common_voice_en_18828571-common_voice_en_18828573_en.wav",
+        "bytes": 129494,
+        "sha256": "8d3ab29cc8309035eb4c2b882d048bbf767226a981a73204cc547abe48b91c46"
+      },
+      {
+        "file": "00187_common_voice_en_18829843-common_voice_en_18829841_en.wav",
+        "bytes": 213974,
+        "sha256": "d00294a29ee60a181c037b014dbc991f6134e37a0bc8dc5457117421da74200e"
+      },
+      {
+        "file": "00188_common_voice_en_18829843-common_voice_en_18829842_en.wav",
+        "bytes": 229334,
+        "sha256": "5a0190cd4ba379586ce20d86046b97108a825cf9afa89f2bee5ae5d289caf3db"
+      },
+      {
+        "file": "00189_common_voice_en_18852076-common_voice_en_18852077_en.wav",
+        "bytes": 171734,
+        "sha256": "02604875315a4ab2115ed9050c32b27f2a505138734c27c6311946ed71d6dc52"
+      },
+      {
+        "file": "00190_common_voice_en_18852076-common_voice_en_18852085_en.wav",
+        "bytes": 321494,
+        "sha256": "1d9eafe4e3b204d86d7c2bd146b5808a90995e2e3f729b3a327f8226d47bb97d"
+      },
+      {
+        "file": "00191_common_voice_en_18877786-common_voice_en_18877788_en.wav",
+        "bytes": 263894,
+        "sha256": "28801875fc026e9a3c4b269ef2c695e13b0fcf3053fab545eccb751775eeb8e7"
+      },
+      {
+        "file": "00192_common_voice_en_18889688-common_voice_en_18889686_en.wav",
+        "bytes": 167894,
+        "sha256": "904b4a06abec7110bcd3a3e9e10fd6170a237d257505f6da9e097abcc4f05dd5"
+      },
+      {
+        "file": "00193_common_voice_en_18889688-common_voice_en_18889687_en.wav",
+        "bytes": 229334,
+        "sha256": "04373d27d11fa23fe289edceb2327942002d321238f5a2ca042e0d8b1cfa8fb5"
+      },
+      {
+        "file": "00194_common_voice_en_18902273-common_voice_en_18902274_en.wav",
+        "bytes": 221654,
+        "sha256": "3743621d37a95f4d3c3cb08e4093d58f3604813a11b1bda90d356cb93ffe306d"
+      },
+      {
+        "file": "00195_common_voice_en_18902273-common_voice_en_18902275_en.wav",
+        "bytes": 244694,
+        "sha256": "6e455aecba5a776146af05b4948572f0ad8fab685e8cd58fc1847012b68506c9"
+      },
+      {
+        "file": "00196_common_voice_en_18944281-common_voice_en_18944280_en.wav",
+        "bytes": 175574,
+        "sha256": "2717e3a8a04d5e2e66e49be1e6380fb6218dced01d34bd6d19ff641304984ebd"
+      },
+      {
+        "file": "00197_common_voice_en_18962809-common_voice_en_18962813_en.wav",
+        "bytes": 313814,
+        "sha256": "a3ff485e242cce337190144d6ce037e0e2533fd7643372c5f885355141fc1e16"
+      },
+      {
+        "file": "00198_common_voice_en_18962809-common_voice_en_18962814_en.wav",
+        "bytes": 252374,
+        "sha256": "0e5397ecead5357e5cf9fc3e04fa27ef906b6c2dc7eab3907ed8d279fe6c5a3c"
+      },
+      {
+        "file": "00199_common_voice_en_18993020-common_voice_en_18993021_en.wav",
+        "bytes": 198614,
+        "sha256": "94c493a800433be0c054ca282b032b58b207e48be7e1b843676135f798c02385"
+      },
+      {
+        "file": "00200_common_voice_en_18993020-common_voice_en_18993067_en.wav",
+        "bytes": 152534,
+        "sha256": "b11bb6fbbcec815373d6193b5a0ada15e904365812cc26697a470678bba347c2"
+      },
+      {
+        "file": "00201_common_voice_en_18994068-common_voice_en_18994069_en.wav",
+        "bytes": 194774,
+        "sha256": "10405922c08405c0decada12ff722127e2cd7fd65e9b7b0abe072b445cc5933a"
+      },
+      {
+        "file": "00202_common_voice_en_18994734-common_voice_en_18994736_en.wav",
+        "bytes": 144854,
+        "sha256": "230d9b12b193f9ab837ba50a029298c1b96007a57b30ad74e7af63f6af507cb7"
+      },
+      {
+        "file": "00203_common_voice_en_18994734-common_voice_en_18994738_en.wav",
+        "bytes": 198614,
+        "sha256": "fa23fd3a4fe6d0ac8ab122e83a4559c4653789a59f577afdf9f1712c29afc49b"
+      },
+      {
+        "file": "00204_common_voice_en_18998723-common_voice_en_18998722_en.wav",
+        "bytes": 183254,
+        "sha256": "cf5598a9bf1fce5f99b6345ce9748cab13d8078172b247e555d9a4a42c7c9776"
+      },
+      {
+        "file": "00205_common_voice_en_18998723-common_voice_en_18998724_en.wav",
+        "bytes": 233174,
+        "sha256": "f8b8a2420c1fe85a632cd7b605caefd02c760c536210dd06cce599fdc8cea71a"
+      },
+      {
+        "file": "00206_common_voice_en_19002369-common_voice_en_19002367_en.wav",
+        "bytes": 225494,
+        "sha256": "3ee17ed6e20f139978d951d84a5d68665d1a51801fd4b8db98b38c21438cebaa"
+      },
+      {
+        "file": "00207_common_voice_en_19017623-common_voice_en_19017624_en.wav",
+        "bytes": 144854,
+        "sha256": "b1ef1939045def04e2965c7db4677dd45cb650ed8864451c21ea6614cab8cf26"
+      },
+      {
+        "file": "00208_common_voice_en_19022657-common_voice_en_19022662_en.wav",
+        "bytes": 121814,
+        "sha256": "e51c1adcf3b8e1393a8a3b19a167f12e93748ab995c05e71def3493f71edcf34"
+      },
+      {
+        "file": "00209_common_voice_en_19022657-common_voice_en_19022667_en.wav",
+        "bytes": 217814,
+        "sha256": "80d7acab69dc1bbf8c729408ec64d6a65b46da8b556a199497ad060c126a6e8b"
+      },
+      {
+        "file": "00210_common_voice_en_19043111-common_voice_en_19043109_en.wav",
+        "bytes": 263894,
+        "sha256": "d5800e64c0baecda0393143e9af966d6777e7f4f313fd31374b02089919d61b0"
+      },
+      {
+        "file": "00211_common_voice_en_19043111-common_voice_en_19043119_en.wav",
+        "bytes": 190934,
+        "sha256": "810998b4fccdc43ce93ab24115af73a7d520dc95ab7d1beb8798abe8b56712d6"
+      },
+      {
+        "file": "00212_common_voice_en_19049396-common_voice_en_19049393_en.wav",
+        "bytes": 198614,
+        "sha256": "c9959746589197d69cfd1350bb5dd2c820724d051e1888fb7052f2aa59185948"
+      },
+      {
+        "file": "00213_common_voice_en_19049396-common_voice_en_19049395_en.wav",
+        "bytes": 125654,
+        "sha256": "7e2199d579dd20e49df25ffce483f032618567b27c69f2990fe48a66b78c626a"
+      },
+      {
+        "file": "00214_common_voice_en_19083094-common_voice_en_19083091_en.wav",
+        "bytes": 202454,
+        "sha256": "01eea14bfe6dd21612cf4964b396f84bc89d0c1bbf2ee695add1edbe9e2b0a90"
+      },
+      {
+        "file": "00215_common_voice_en_19083094-common_voice_en_19083093_en.wav",
+        "bytes": 221654,
+        "sha256": "fb6b833cfc6e2b4423e3c245a028e06a099b1b31ecab8c926c3d46aa662f3d97"
+      },
+      {
+        "file": "00216_common_voice_en_19113286-common_voice_en_19113288_en.wav",
+        "bytes": 260054,
+        "sha256": "f0312559e8d8ae0b65b1a6e2e81be0f997d3cd56a5354271826e6932f671baa9"
+      },
+      {
+        "file": "00217_common_voice_en_19117097-common_voice_en_19117098_en.wav",
+        "bytes": 164054,
+        "sha256": "24e0b7bc9c2086bf9dbf370ca848d4032b6de311e5e46613e59518ed84a28278"
+      },
+      {
+        "file": "00218_common_voice_en_19124597-common_voice_en_19124596_en.wav",
+        "bytes": 129494,
+        "sha256": "e55a08c1211eced8ed33b8f36ec317626d5cc0e1109904d229666b249c2e100f"
+      },
+      {
+        "file": "00219_common_voice_en_19152197-common_voice_en_19152196_en.wav",
+        "bytes": 144854,
+        "sha256": "d385f5c397518eb28443b062d04aba219fa1e4ad868d91f9c3c004c50e731824"
+      },
+      {
+        "file": "00220_common_voice_en_19152197-common_voice_en_19152198_en.wav",
+        "bytes": 198614,
+        "sha256": "61c4364acad933dab0b477bf1e61d369a250b3fcf9ed9263dd777367982f6ad9"
+      },
+      {
+        "file": "00221_common_voice_en_19176854-common_voice_en_19176853_en.wav",
+        "bytes": 148694,
+        "sha256": "01b90aae7bc27b04a109b777552ec4978eeb2e216cef544d4796e1d08999abc8"
+      },
+      {
+        "file": "00222_common_voice_en_19176854-common_voice_en_19176856_en.wav",
+        "bytes": 190934,
+        "sha256": "fabbf833b82f88c4836687e4d87f1e19a33fcd324ec1d35a64930a96828c5d93"
+      },
+      {
+        "file": "00223_common_voice_en_19211875-common_voice_en_19211870_en.wav",
+        "bytes": 271574,
+        "sha256": "051911cf93ac095c1827efdf414bf51457fe4d8d207976ebf2143d6bd0681ac6"
+      },
+      {
+        "file": "00224_common_voice_en_19254683-common_voice_en_19254685_en.wav",
+        "bytes": 190934,
+        "sha256": "7fab4898b7fcbe46b48d869707cb59b6bae60a253cc3fbffc0c97aac7d19b4a8"
+      },
+      {
+        "file": "00225_common_voice_en_19254683-common_voice_en_19254687_en.wav",
+        "bytes": 117974,
+        "sha256": "e531456f846e3f1bcba20b2883779180767f2b138f6874c390f9e4a39d64f7fc"
+      },
+      {
+        "file": "00226_common_voice_en_19277026-common_voice_en_19277029_en.wav",
+        "bytes": 233174,
+        "sha256": "8fa0d5fe1da781cf95cd9b25aa565d3923bbec23a40096d044ebc2805e16ee9d"
+      },
+      {
+        "file": "00227_common_voice_en_19284142-common_voice_en_19284143_en.wav",
+        "bytes": 79574,
+        "sha256": "0fb104a3acc4bb7de01aaa9c3984a98945e41751021ee5d91534ea718065cf52"
+      },
+      {
+        "file": "00228_common_voice_en_19284142-common_voice_en_19284144_en.wav",
+        "bytes": 152534,
+        "sha256": "3efef5720efb65ecbf730ff2e13481ee2b2366ed935daad13251b05cfe28f66e"
+      },
+      {
+        "file": "00229_common_voice_en_19289713-common_voice_en_19289715_en.wav",
+        "bytes": 190934,
+        "sha256": "5e611a8da85e52b04e907c29f989b761e1a4b4c85a43525145e1be2a32b56838"
+      },
+      {
+        "file": "00230_common_voice_en_19294198-common_voice_en_19294199_en.wav",
+        "bytes": 156374,
+        "sha256": "19d895ed3d01dd29d751622314f34ab9675b3f56cffd2689e145d397cf302d3c"
+      },
+      {
+        "file": "00231_common_voice_en_19294198-common_voice_en_19294200_en.wav",
+        "bytes": 152534,
+        "sha256": "83193f1273b0e65308c71c326cc2ac0d3e23748a5e4cc6a483b7d7e72fcbf322"
+      },
+      {
+        "file": "00232_common_voice_en_19343495-common_voice_en_19343496_en.wav",
+        "bytes": 160214,
+        "sha256": "1275d5a317c0dc79f99cc2c02d1142650a72fe2d9974fc9af7105d1cc7e78e5f"
+      },
+      {
+        "file": "00233_common_voice_en_19343495-common_voice_en_19343497_en.wav",
+        "bytes": 133334,
+        "sha256": "2f386a4d72d867c7d9160db7ec2f56879a129a440de6b1b149c4df6329e9cc31"
+      },
+      {
+        "file": "00234_common_voice_en_19345360-common_voice_en_19345358_en.wav",
+        "bytes": 190934,
+        "sha256": "3b3ad5281385ad299513b40633d3a378a2f40e1064c5c51aef5ab19798c86ba1"
+      },
+      {
+        "file": "00235_common_voice_en_19345360-common_voice_en_19345359_en.wav",
+        "bytes": 190934,
+        "sha256": "bec97f77e176c5c9f2c220e2b3cdc29b19e7174f9d95b3d5748a86a93190368b"
+      },
+      {
+        "file": "00236_common_voice_en_19361636-common_voice_en_19361634_en.wav",
+        "bytes": 240854,
+        "sha256": "cc0a608494c58113a58a15068de422db45747816d4dcae125fe0136b325cf5ee"
+      },
+      {
+        "file": "00237_common_voice_en_19361636-common_voice_en_19361635_en.wav",
+        "bytes": 190934,
+        "sha256": "03af72530013537d55ba6199798258a36d97e5c58d6c246ad902989a693bf5f5"
+      },
+      {
+        "file": "00238_common_voice_en_19384720-common_voice_en_19384721_en.wav",
+        "bytes": 179414,
+        "sha256": "1f7de3439a65e51801ab369246bb8c55b81fb86b42b1c3ea68a567681fc79c08"
+      },
+      {
+        "file": "00239_common_voice_en_19397397-common_voice_en_19397399_en.wav",
+        "bytes": 279254,
+        "sha256": "4edf2f005a7d768aaef4bc6198c59fb561a81b01b458d77866f4db1c7959193a"
+      },
+      {
+        "file": "00240_common_voice_en_19397397-common_voice_en_19397407_en.wav",
+        "bytes": 194774,
+        "sha256": "08fc11cf6559f1c0d51f1df1d28f79f6c43adda225f85292dcace138587267a4"
+      },
+      {
+        "file": "00241_common_voice_en_19401124-common_voice_en_19401123_en.wav",
+        "bytes": 252374,
+        "sha256": "751a5af08470aeda2186fb6963a8b188f464afc3ebe634b6f648723f25aa9e2d"
+      },
+      {
+        "file": "00242_common_voice_en_19401124-common_voice_en_19401125_en.wav",
+        "bytes": 213974,
+        "sha256": "b62a508cd8b05e7b011df54fc1be45794594d45085b04a11088974705322461f"
+      },
+      {
+        "file": "00243_common_voice_en_19428391-common_voice_en_19428392_en.wav",
+        "bytes": 175574,
+        "sha256": "22e03b1ca08bf4ab79f63f30f6db4e37414f7c085134a99cd0ed6e62871cb92c"
+      },
+      {
+        "file": "00244_common_voice_en_19428391-common_voice_en_19428396_en.wav",
+        "bytes": 190934,
+        "sha256": "23cbe4d6a918ba8f8598a38bb74f243bf2c768cb4686fdb2353a016602f1df20"
+      },
+      {
+        "file": "00245_common_voice_en_19449066-common_voice_en_19449075_en.wav",
+        "bytes": 271574,
+        "sha256": "193edb3a213e9d22718de75077c997242eca34f37aaa36c086819e9c28ea4020"
+      },
+      {
+        "file": "00246_common_voice_en_19449066-common_voice_en_19449076_en.wav",
+        "bytes": 237014,
+        "sha256": "7c9594ee50581848796289f4b4455d2659e5017e14b21a60922add55c7ca6074"
+      },
+      {
+        "file": "00247_common_voice_en_19455206-common_voice_en_19455208_en.wav",
+        "bytes": 175574,
+        "sha256": "b6c5c3125c34bbe205a5916a610f1d18c0faf7fdcf17a0cb5606b50641eae46d"
+      },
+      {
+        "file": "00248_common_voice_en_19455206-common_voice_en_19455210_en.wav",
+        "bytes": 171734,
+        "sha256": "15de93143e5f65f9a4dff325bc50441ae08000a79a4c198168407550abb51f6b"
+      },
+      {
+        "file": "00249_common_voice_en_19481268-common_voice_en_19481267_en.wav",
+        "bytes": 194774,
+        "sha256": "d07636525012b90eaeca71c35e9b4d283f6585fd2b8ffef5cc42d2c5b2e806fa"
+      },
+      {
+        "file": "00250_common_voice_en_19481268-common_voice_en_19481270_en.wav",
+        "bytes": 175574,
+        "sha256": "a4253c41bd3bad17de38e16ad1825f40166da411c7190b48957620ab1ced7112"
+      },
+      {
+        "file": "00251_common_voice_en_19496235-common_voice_en_19496229_en.wav",
+        "bytes": 240854,
+        "sha256": "10f7affb822aa1f092d3737a6597cfd0226df9dba71395a7d9dfb2f12aabac5e"
+      },
+      {
+        "file": "00252_common_voice_en_19496235-common_voice_en_19496266_en.wav",
+        "bytes": 263894,
+        "sha256": "cc84ae867652ef776ececc6957e9450ce3bf41dd0133b05104b683fae542d27b"
+      },
+      {
+        "file": "00253_common_voice_en_19517720-common_voice_en_19517721_en.wav",
+        "bytes": 133334,
+        "sha256": "04e3323c7d7d5432485b74475aa0d47a721e55d5f92b275db00cf48a6d50770e"
+      },
+      {
+        "file": "00254_common_voice_en_19527999-common_voice_en_19528000_en.wav",
+        "bytes": 144854,
+        "sha256": "8badf5a673416e9bcb93cd10670b3a5bb2f52a9f491011ea9aeec56a5aeb5494"
+      },
+      {
+        "file": "00255_common_voice_en_19527999-common_voice_en_19528002_en.wav",
+        "bytes": 183254,
+        "sha256": "db6b7a11740549bf3e18d31f98e2d98af4dd45722e9bde6bc0ec3ddf6360c700"
+      }
+    ]
+  },
+  "deployment": {
+    "overlay": "full-cuda-codec-on-thinker.yaml",
+    "original_sha256": "29920565df2ae722afbea0403660fd14de46f2b70d16e434398f8e0b535402e4",
+    "retained_sha256": "1100c1a815aaa4153c239162352010dee9d7e5fd440bc4697ed2358f48254644",
+    "logical_devices": {
+      "thinker": 0,
+      "talker": 1,
+      "code2wav": 0
+    },
+    "mps": false,
+    "inheritance": "Existing H200 full-CUDA feature bundle with two-GPU placement override; resolve <OMNI_REPO> to source557 checkout."
+  },
+  "execution": {
+    "file": "placement-execution.json",
+    "original_sha256": "1702a96b8c2babcb3f1ab2480dac90ebf7880d61b8aaffd9db75d819a7117fb0",
+    "retained_sha256": "99d35cec0edf1f8f22c99d47ab53cc53b6e4a96c8217c3716660a9539c900f44"
+  },
+  "isolation": {
+    "resource_isolation_verified": true,
+    "evidence": "placement-gpu-observations.json",
+    "original_sha256": "73dbcf2e91d055b60ef7d5927f46ce24237c7f15d1936962b0b21d30fd612306",
+    "retained_sha256": "eda5fbbd72a82fdeeb938277bd80074c94d0175548d30bde36751b049ec6251a",
+    "samples": 818,
+    "foreign_observations": 0,
+    "monitor_errors": [],
+    "limitation": "Verified by periodic process ownership samples, not continuous hardware tracing; absence between polls is not proven.",
+    "redaction": "Physical indices map to logical0/1; process IDs replaced by stable synthetic tokens."
+  },
+  "runtime_log": {
+    "original_sha256": "c0ae36b22bcaa0bfc3a0612337e92ee2a68336150bd62fda8eb736b9d899d6c2",
+    "retained_file": "placement-runtime-excerpts.txt",
+    "retained_sha256": "2bc9832656c982dba21866e61cbaf30badb245a1185207351420188a6e5daab9",
+    "scope": "Startup/performance/quality matching lines; no profile was run and no formal measured-matrix JIT interval is claimed."
+  },
+  "limitations": [
+    "C1 then C64 screening only with native max(5,2*C) warmups; no complete conditioning matrix or repeated paired formal comparison.",
+    "Historical baseline quality comparison fails the no-regression WER screen; candidate is not eligible for promotion.",
+    "This is a placement change to the existing full CUDA bundle; the result does not isolate its approximate arithmetic mechanisms.",
+    "Historical baseline ran on a different GPU pair; these observations are not pooled into formal comparisons.",
+    "All requests and outliers retained; PCM frames/s units. No profile evidence exists for this placement run."
+  ],
+  "redaction": "Private model/audio paths, server and monitored process IDs, and physical GPU indices replaced; all raw audio request metrics and per-item WER content retained."
+}
