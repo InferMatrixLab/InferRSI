@@ -94,6 +94,11 @@
           "path": "results/mrv2-mps-run-manifest.json",
           "schema": "metadata-sha256",
           "sha256": "483eed3b420a6f652f951b2877061e6f11d12831db470008a52c586daadf50e9"
+        },
+        {
+          "path": "results/full-cuda-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "dffce64e2a36a2fa26a1e7cd212560c89f00cd339484885addd45c72662ee709"
         }
       ],
       "external": ["Original host logs, model weights and captured audio remain private; public results retain hashes and redaction boundaries."]
