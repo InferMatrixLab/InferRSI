@@ -1,6 +1,7 @@
 import argparse
 import hashlib
 import json
+import math
 import re
 import shutil
 import subprocess
@@ -15,6 +16,7 @@ from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 
 ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("baseline", "candidate")
+GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 CONTROLLERS = ("tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py")
@@ -60,6 +62,21 @@ def validate_input(value, shape, field="case") -> None:
         raise ValueError(f"Unsupported input type at {field}")
 
 
+def validate_audit_values(task: dict) -> None:
+    for role in ROLES:
+        if role not in task:
+            continue
+        report = task[role]
+        if "quality" in report and report["quality"] not in ("passed", "failed", "missing"):
+            raise ValueError(f"Unsupported quality at {role}.quality")
+        if "latencies_ms" in report:
+            groups = report["latencies_ms"]
+            if not groups or any(not group for group in groups) or any(
+                not math.isfinite(sample) or sample <= 0 for group in groups for sample in group
+            ):
+                raise ValueError(f"Expected nonempty groups of finite positive latencies at {role}")
+
+
 def validate(config: dict, tasks: list[dict]) -> None:
     if set(config) - {"mode", "skill", "skill_root", "cases", "schema", "grader",
                       "snapshots", "model", "limits"}:
@@ -94,6 +111,7 @@ def validate(config: dict, tasks: list[dict]) -> None:
         raise ValueError("cases must be nonempty with unique IDs")
     for task in tasks:
         validate_input(task, CASE_INPUT)
+        validate_audit_values(task)
         missing = {"id", "split", "request"} - task.keys()
         if missing:
             raise ValueError("Missing required case fields: " + ", ".join(sorted(missing)))
@@ -122,12 +140,12 @@ def snapshot(repo: Path, revision: str, skill_root: str, destination: Path, *,
              allow_empty: bool = False) -> Path:
     # Short temporary paths also accommodate deep libraries on Windows.
     kind = subprocess.check_output(
-        ["git", "--no-replace-objects", "cat-file", "-t", revision], cwd=repo, text=True,
+        [*GIT_READ, "cat-file", "-t", revision], cwd=repo, text=True,
     )
     if kind.strip() != "commit":
         raise ValueError("Snapshot revision must identify a Git commit")
     entries = subprocess.check_output(
-        ["git", "--no-replace-objects", "ls-tree", "-rz", revision, "--", skill_root], cwd=repo,
+        [*GIT_READ, "ls-tree", "-rz", revision, "--", skill_root], cwd=repo,
     ).split(b"\0")[:-1]
     if not entries:
         if allow_empty:
@@ -143,13 +161,15 @@ def snapshot(repo: Path, revision: str, skill_root: str, destination: Path, *,
             raise ValueError("Snapshot symlinks and submodules are not supported")
         members.append((safe_path(name.decode("utf-8")), digest))
     # Read raw Git blobs: archive/export attributes and checkout filters must not alter bytes.
-    data = subprocess.run(["git", "--no-replace-objects", "cat-file", "--batch"],
+    data = subprocess.run([*GIT_READ, "cat-file", "--batch"],
                           cwd=repo, check=True,
                           input=b"".join(digest + b"\n" for _, digest in members),
                           capture_output=True).stdout
     offset = 0
     for name, digest in members:
         end = data.index(b"\n", offset)
+        if data[offset:end] == digest + b" missing":
+            raise ValueError("Missing local snapshot blob: " + digest.decode("ascii"))
         actual, kind, size = data[offset:end].split()
         assert actual == digest and kind == b"blob"
         offset = end + 1
@@ -196,7 +216,7 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
     changes = [{"path": path, "baseline": old.get(path), "candidate": new.get(path)}
                for path in sorted(old.keys() | new.keys()) if old.get(path) != new.get(path)]
     source_changes = subprocess.check_output(
-        ["git", "--no-replace-objects", "diff", "--name-status", arms["baseline"]["git_revision"],
+        [*GIT_READ, "diff", "--name-status", arms["baseline"]["git_revision"],
          arms["candidate"]["git_revision"], "--"], cwd=repo, text=True,
     ).splitlines()
     files = {p.relative_to(output).as_posix(): sha256(p)

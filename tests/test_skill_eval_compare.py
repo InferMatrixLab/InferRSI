@@ -314,6 +314,86 @@ def test_repeat_identity_and_balanced_schedule():
 def test_supported_input_shape_accepts_existing_pilot_cases():
     for task in skill_eval_pilot.fixtures():
         compare.validate_input(task, compare.CASE_INPUT)
+        compare.validate_audit_values(task)
+
+
+@pytest.mark.parametrize("role", compare.ROLES)
+def test_invalid_audit_values_are_rejected_before_freezing(tmp_path, role):
+    config, repo = configuration(tmp_path, ids=("one",))
+    cases = tmp_path / "cases.json"
+    original = json.loads(cases.read_text())
+    invalid = [("quality", value, "Unsupported quality") for value in ("unknown", "PASSED", "")]
+    invalid += [("latencies_ms", value, "finite positive latencies") for value in (
+        [[-1]], [[0]], [[100, -1]], [[float("nan")]], [[float("inf")]],
+        [[float("-inf")]], [], [[]], [[100], []])]
+    for index, (key, value, error) in enumerate(invalid):
+        tasks = json.loads(json.dumps(original))
+        if role == "candidate":
+            tasks[0]["baseline"]["latencies_ms"] = [[100]]
+        tasks[0][role][key] = value
+        # Exercise external JSON parsing, including nonfinite numbers accepted by json.loads.
+        cases.write_text(json.dumps(tasks), encoding="utf-8")
+        output = tmp_path / f"invalid-{index}"
+        with pytest.raises(ValueError, match=error):
+            compare.prepare(config, repo, output)
+        assert not output.exists()
+    for quality in ("passed", "failed", "missing"):
+        task = json.loads(json.dumps(original[0]))
+        task[role]["quality"] = quality
+        compare.validate_audit_values(task)
+
+
+@pytest.mark.parametrize("missing_kind", ["commit", "tree", "blob", "diff_tree"])
+def test_missing_promisor_objects_fail_locally_without_lazy_fetch(tmp_path, missing_kind):
+    config, origin = configuration(tmp_path, ids=("one",))
+    raw = json.loads(config.read_text())
+    if missing_kind == "diff_tree":
+        folder = origin / "outside"
+        folder.mkdir()
+        (folder / "note.txt").write_text("Unselected source tree", encoding="utf-8")
+        git(origin, "add", "outside")
+        git(origin, "commit", "--quiet", "-m", "Fixture unselected tree")
+        raw["snapshots"]["candidate"]["git_revision"] = git(origin, "rev-parse", "HEAD")
+        write_json(config, raw)
+    before = raw["snapshots"]["baseline"]["git_revision"]
+    after = raw["snapshots"]["candidate"]["git_revision"]
+    missing = {"commit": before, "tree": before + ":library",
+               "blob": before + ":library/selected/resource.txt", "diff_tree": after + ":outside"}
+    digest = git(origin, "rev-parse", missing[missing_kind])
+    git(origin, "config", "uploadpack.allowFilter", "true")
+    git(origin, "config", "uploadpack.allowAnySHA1InWant", "true")
+    repo = tmp_path / "partial"
+    git(origin, "clone", "--quiet", "--no-hardlinks", "--no-checkout", str(origin), str(repo))
+    git(repo, "config", "extensions.partialClone", "origin")
+    git(repo, "config", "remote.origin.promisor", "true")
+    git(repo, "config", "remote.origin.partialclonefilter", "blob:none")
+    object_path = repo / ".git/objects" / digest[:2] / digest[2:]
+    assert object_path.is_file()
+    object_path.unlink()
+    trace = tmp_path / "offline-trace.jsonl"
+    environment = {**os.environ, "GIT_NO_LAZY_FETCH": "0", "GIT_TRACE2_EVENT": str(trace),
+                   "PYTHONPATH": os.pathsep.join((str(ROOT), str(ROOT / "src")))}
+    output = tmp_path / "run"
+    process = subprocess.run(
+        (sys.executable, "-m", "tools.skill_eval_compare", "prepare", "--config", str(config),
+         "--repo", str(repo), "--output", str(output)), cwd=ROOT, env=environment,
+        capture_output=True, text=True,
+    )
+    assert process.returncode != 0
+    assert not (output / "plan/freeze.json").exists()
+    assert not (output / "results/start.json").exists()
+    events = [json.loads(line) for line in trace.read_text(encoding="utf-8").splitlines()]
+    assert not any(event["event"] == "child_start" and "fetch" in event.get("argv", [])
+                   for event in events)
+    # The real local promisor can supply the object when lazy fetching is explicitly enabled.
+    control_trace = tmp_path / "fetch-control.jsonl"
+    control = subprocess.run(("git", "cat-file", "-p", digest), cwd=repo,
+                             env={**environment, "GIT_TRACE2_EVENT": str(control_trace)},
+                             capture_output=True)
+    assert control.returncode == 0
+    events = [json.loads(line) for line in control_trace.read_text(encoding="utf-8").splitlines()]
+    assert any(event["event"] == "child_start" and "fetch" in event.get("argv", [])
+               for event in events)
 
 
 def test_prepare_and_report_cli_are_model_free(tmp_path):

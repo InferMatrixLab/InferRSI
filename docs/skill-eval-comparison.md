@@ -47,7 +47,10 @@ Each historical library is materialized from raw Git blobs in a short temporary
 directory, then read and exported through `KnowledgeReader` and `export_bundle`.
 Checkout filters, Git export attributes and replacement refs cannot substitute
 different bytes. Snapshot inspection, raw blob reads and source diffs all use
-Git's [`--no-replace-objects`](https://git-scm.com/docs/git#Documentation/git.txt---no-replace-objects).
+Git's [`--no-replace-objects`](https://git-scm.com/docs/git#Documentation/git.txt---no-replace-objects)
+and [`--no-lazy-fetch`](https://git-scm.com/docs/git/2.46.0#Documentation/git.txt---no-lazy-fetch).
+The Git executable must support these options. Missing commits, trees or blobs
+fail locally; partial-clone promisor remotes are not contacted by preparation.
 The retained bundles include the full body, owner-local resources and declared
 references/dependencies. `reader.read(..., revision=...)` checks those bytes;
 it never retrieves a historical Git version.
@@ -79,6 +82,11 @@ pilot's gates, scope, regimes, verdict definitions and output-field semantics.
 Missing execution fields (`id`, `request`, `split`), unknown keys and incompatible
 nested types are rejected before any output is created; grader
 expectations/metadata never become additional task fields.
+Each report arm's quality value must be `passed`, `failed` or `missing`.
+Latency data must contain nonempty groups of finite, strictly positive samples.
+Unknown quality values, negative/zero/nonfinite samples and empty groups are
+rejected before freezing; they cannot produce a passing comparison from an
+invalid input such as a negative candidate latency and a reduction above 100%.
 Free-text requests and provenance remain caller-authored inputs to review.
 
 ## Execution boundary
