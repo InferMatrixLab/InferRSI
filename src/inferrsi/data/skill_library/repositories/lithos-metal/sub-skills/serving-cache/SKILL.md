@@ -42,8 +42,9 @@ Use placeholders for local paths and private prompt content in reports.
    pipelines can survive. Same-named differently packed weights cannot be
    shared blindly. Distinguish reuse of allocation from reuse of sequence state.
 6. Trace pending arrival → GPU lock → load/generation/stream → completion before
-   idle release. Unload waits for active GPU work, flushes optional disk copies
-   within a bound, then clears host snapshots and releases GPU allocations.
+   idle release. Unload waits for active GPU work, releases engines/GPU
+   allocations, attempts a bounded flush of optional disk copies, then clears
+   host snapshots.
    A stalled writer can finish later; release does not imply every entry was
    persisted. Reload can reuse code/pipelines and disk prefixes independently.
 7. Check HTTP contracts with mocks and tiny temporary cache fixtures first.
