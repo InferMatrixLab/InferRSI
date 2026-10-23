@@ -115,7 +115,12 @@ def test_weighted_presence_and_identity_ties_are_deterministic():
 
 def test_context_keeps_complete_core_prerequisites_provenance_and_exact_bytes():
     reader = KnowledgeReader()
-    result = reader.collect(ids=[AFD], context_bytes=65536)
+    bounded = reader.collect(ids=[AFD], context_bytes=65536)
+    assert bounded["items"] and not bounded["contexts"]
+    omission, = bounded["context_omissions"]
+    assert omission["reason"] == "context_limit"
+    assert omission["available_bytes"] == 65536 < omission["required_bytes"]
+    result = reader.collect(ids=[AFD], context_bytes=omission["required_bytes"])
     assert not result["context_omissions"]
     context = result["contexts"][0]
     item = result["items"][0]
@@ -233,6 +238,43 @@ def test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_referenc
     assert omission["required_bytes"] >= (
         len(bundle.content[core]) + len(bundle.content[license_path])
     )
+
+
+@pytest.mark.parametrize(("identity", "cue", "path"), [
+    (AFD, "P2pNccl", "data/skill_library/repositories/afd-plugin/"
+     "audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md"),
+    (H3, "orchid", "data/skill_library/repositories/h3-c/"
+     "audit-h3-runtime-residency/references/THIRD_PARTY_NOTICES.md"),
+])
+def test_retained_legal_resources_ignore_relevance_and_use_atomic_budget(identity, cue, path):
+    reader = KnowledgeReader()
+    bundle = reader.read(identity)
+    assert cue.casefold() not in (path + bundle.content[path].decode()).casefold()
+    result = reader.collect(ids=[identity], relevance=cue, context_bytes=100000)
+    assert not result["context_omissions"]
+    context = result["contexts"][0]
+    resource, = [item for item in context["resources"] if item["path"] == path]
+    assert resource["content"].encode() == bundle.content[path]
+    assert resource["sha256"] == hashlib.sha256(bundle.content[path]).hexdigest()
+    assert path not in {item["path"] for item in context["omissions"]}
+    assert context["content_bytes"] == sum(
+        len(item["content"].encode()) for item in context["resources"]
+    )
+    required_bytes = context["content_bytes"]
+    limited = reader.collect(ids=[identity], relevance=cue, context_bytes=required_bytes - 1)
+    assert not limited["contexts"] and limited["context_bytes"] == 0
+    assert limited["context_omissions"][0]["reason"] == "context_limit"
+    assert limited["context_omissions"][0]["required_bytes"] == required_bytes
+
+
+def test_missing_declared_notice_is_explicitly_unavailable():
+    reader = KnowledgeReader()
+    reader.records()[H3]["skill_metadata"]["sources"][0]["third_party_notices"] = (
+        "references/missing-notice.md"
+    )
+    result = reader.collect(ids=[H3], context_bytes=100000)
+    assert result["items"] and not result["contexts"]
+    assert result["context_omissions"][0]["reason"] == "index_unavailable"
 
 
 def test_optimized_request_preserves_identity_collisions(tmp_path):

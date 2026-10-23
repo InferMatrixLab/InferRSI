@@ -50,11 +50,23 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
 
     required = [core]
     metadata = record["skill_metadata"]
-    for relative in [*metadata.get("references", []), *metadata.get("provenance_readsets", [])]:
+    notices = [
+        source["third_party_notices"]
+        for source in metadata.get("sources", []) if "third_party_notices" in source
+    ]
+    for relative in [
+        *metadata.get("references", []), *metadata.get("provenance_readsets", []), *notices,
+    ]:
         path = posixpath.normpath(prefix + relative)
         if "\\" in relative or not path.startswith("data/skill_library/") or path not in content:
             raise SkillIndexError(f"Unavailable declared skill reference: {relative}")
         if path not in required:
+            required.append(path)
+    for path in sorted(content):
+        if path.startswith(prefix) and re.search(
+            r"(?:^|[-_])(?:LICENSE|NOTICES?)(?:\.[^.]+)?$",
+            posixpath.basename(path), re.IGNORECASE,
+        ) and path not in required:
             required.append(path)
     for resource in list(required):
         directory = posixpath.dirname(resource)
