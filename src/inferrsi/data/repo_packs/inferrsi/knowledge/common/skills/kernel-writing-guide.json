@@ -16,10 +16,7 @@
     "cuda",
     "ascendc",
     "performance",
-    "accelerator",
-    "akg",
-    "affine",
-    "tail-guards"
+    "accelerator"
   ],
   "origin": [
     "external"
@@ -27,15 +24,14 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/048ddf872d27cc75b786b2f86541b6c3dcf77f40/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
-      "commit": "048ddf872d27cc75b786b2f86541b6c3dcf77f40",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5303e5ad3ec5b9b18929a1358e6e6f03270b7b35/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
+      "commit": "5303e5ad3ec5b9b18929a1358e6e6f03270b7b35",
       "paths": [
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json",
-        "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "01fb1712d7eb988c5e412f02340d2e48b4f8564fcf4ab232dc5897869d0d50a0"
+      "content_sha256": "e238a3102b06af1086bb805f1c3f0f24aacaa03032760e0d95231bcf25878dd1"
     }
   ],
   "index_type": "packaged-skill",
@@ -44,10 +40,9 @@
   },
   "checkout_ref": "checkout:kernel-writing-guide",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "01fb1712d7eb988c5e412f02340d2e48b4f8564fcf4ab232dc5897869d0d50a0",
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "a16a3c72a82c25794b5493ff5037e7baec37a1469a823497f96be362ad6c28f0",
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",
-    "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "e238a3102b06af1086bb805f1c3f0f24aacaa03032760e0d95231bcf25878dd1",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "7e82c7b5bcbd695981eaf0ce3ea45fe37dd78c43a73204e1465af5379a205bfb",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
   },
   "skill_metadata": {
     "name": "kernel-writing-guide",
@@ -59,10 +54,7 @@
       "cuda",
       "ascendc",
       "performance",
-      "accelerator",
-      "akg",
-      "affine",
-      "tail-guards"
+      "accelerator"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -80,9 +72,7 @@
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
-    "provenance_readsets": [
-      "references/akg-affine-tail-guards.md"
-    ],
+    "provenance_readsets": [],
     "references": [],
     "consumption_mode": "packaged"
   },
