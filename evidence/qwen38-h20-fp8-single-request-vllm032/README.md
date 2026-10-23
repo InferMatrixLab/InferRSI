@@ -1,11 +1,47 @@
 # Qwen3.8 FP8 single-request campaign — diagnostic takeover
 
 Governing acceptance: https://github.com/InferMatrixLab/InferRSI/issues/67
-Status: **INCONCLUSIVE. The owner-approved 8K search protocol is now frozen; parity and task quality remain unqualified.**
+Status: **INCONCLUSIVE. The first complete paired search fails both frozen performance parity gates; task quality and retrieval remain unqualified.**
 
 Current activation: `plan/search-8k-v1/`, recorded before candidate job 2163.
 Completed standalone baseline: `results/formal-8k-baseline/`. Earlier historical
 entries below retain their original diagnostic scope and status.
+
+Current completed search evidence:
+
+- [Merged FP8 paired search](results/fp8-projections-search-v1/observation.md):
+  job 2163 completed in 2244 GPU-seconds; both TTFT and TPOT fail the frozen
+  performance gates. This cumulative candidate comparison does not isolate
+  projection-merge speedup. Warnings and parent statistical review are retained.
+  These parity failures do not revoke earlier verified engineering observations
+  under their own scopes; cumulative parity and incremental optimization are
+  separate questions.
+- [Decode profiler diagnosis](results/profile-merged-v1/observation.md): job 2169
+  completed in 91 GPU-seconds. Eight instrumented decode steps guide the separate
+  BF16 b/a fusion hypothesis; they are not formal TPOT or service gain evidence.
+- [FlashAttention prefill engineering screen](results/merged-flash-prefill-v1/observation.md):
+  job 2175 completed in 278 GPU-seconds. The single-case TTFT observation improved,
+  but the measured output sequences differ. This is ineligible for formal
+  statistics and establishes no quality-preserving gain.
+
+At the historical snapshot before candidate-quality job 2180, readiness spent is 7119 / 7200 GPU-seconds,
+with the earlier initial 147 GPU-seconds accounted separately. Baseline-phase
+completed use is 1221 GPU-seconds (failed job 2139: 7; completed job 2140: 1214).
+Baseline-quality job 2157 remains live at the latest 58m46s snapshot, with a
+9000-second reservation and no terminal receipt or score yet. Search spent is
+2613 / 28800 GPU-seconds (2244 + 91 + 278). The final 108000-GPU-second allocation
+is unused. No further GPU job was reserved at that snapshot. Candidate-quality job 2180
+is now running the original 232-item screen plus 10 retrieval cases under a
+2700-second cap: search use is 2613 spent plus 2700 reserved within 28800
+GPU-seconds, with no quality result claimed. Live reservations
+are not completed usage, and these totals do not qualify pending quality.
+
+The additive `results/search-observations-2163-2175-integrity.json` binds the
+published sanitized observations, reviews, results and KnowledgeStore receipts.
+Private raw traces, token streams, scheduler/device identifiers and operational
+logs remain unavailable in this checkout. Frozen formal rules and earlier
+receipts are unchanged; inventory validation checks published bytes only.
+
 
 This isolated checkout retains the 2026-10-22/23 Codex takeover diagnostics and
 prospective plan. Earlier readiness drafts and DSH evidence remain in their
