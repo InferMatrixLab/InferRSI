@@ -31,7 +31,7 @@ All links use the full source revision above. Blob IDs identify the retrieved fi
 | [afd_plugin/connectors/gpu/p2p.py:1–42, 145–205, 243–312, 620–698, 930–980](https://github.com/vllm-project/afd-plugin/blob/df8d6a0c403c3ca1b4ed9cf1687e7204908bebec/afd_plugin/connectors/gpu/p2p.py#L243-L312) | `a0be75ed8bacc6fde8734f46e5208676a5d5fa90` | Mapping consumer, distinct process groups, subgroup send/receive arguments and real `PyNcclCommunicator` calls; operator fake registrations are not runtime evidence |
 | [tests/unit/distributed/test_topology_partition.py:21–112](https://github.com/vllm-project/afd-plugin/blob/df8d6a0c403c3ca1b4ed9cf1687e7204908bebec/tests/unit/distributed/test_topology_partition.py#L21-L112) (file read in full) | `9fc955dde26f59972671d7349313412c71a520f6` | Literal uneven partitions, complete balanced membership, namespace agreement and preservation of divisible layouts; tests inspected, not run |
 
-The connector module describes both prefill and decode, whereas the README's support table labels this CUDA branch Decode. This intake preserves that source discrepancy and makes no prefill qualification claim.
+The README recommends Decode, while the connector module describes support for prefill and decode; neither is locally qualified.
 
 ## Ownership, applicability and follow-up
 
