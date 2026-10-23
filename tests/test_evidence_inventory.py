@@ -141,6 +141,43 @@ def test_external_archive_is_explicit_then_verified_when_available(bundle):
     assert validate_inventory(repo)["errors"]
 
 
+def test_metadata_manifest_checks_retained_bytes_not_external_payloads(bundle):
+    repo, root, inventory = bundle
+    path = root / "plan/freeze.json"
+    write_json(path, {
+        "model": {"revision": "source revision", "files": [{
+            "path": "<PRIVATE_MODEL_ROOT>/weights.bin", "sha256": "0" * 64,
+        }]},
+        "availability": "External payloads are not included",
+    })
+    inventory["bundles"]["synthetic"]["manifests"] = [{
+        "path": "plan/freeze.json", "schema": "metadata-sha256",
+        "sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
+    }]
+    write_json(repo / "tools/evidence_inventory.json", inventory)
+    before = path.read_bytes()
+    report = validate_inventory(repo)
+    assert report["errors"] == []
+    assert report["checked_hashes"] == 1
+    assert path.read_bytes() == before
+    assert "verdict" not in report
+    # Even a formatting-only change invalidates the recorded byte digest.
+    path.write_bytes(before + b"\n")
+    assert "SHA-256 mismatch" in str(validate_inventory(repo)["errors"])
+
+
+@pytest.mark.parametrize("value,digest", [([], "0" * 64), ({}, "bad"), ({}, None)])
+def test_metadata_manifest_rejects_invalid_structure_or_digest(bundle, value, digest):
+    repo, root, inventory = bundle
+    write_json(root / "plan/freeze.json", value)
+    entry = {"path": "plan/freeze.json", "schema": "metadata-sha256"}
+    if digest is not None:
+        entry["sha256"] = digest
+    inventory["bundles"]["synthetic"]["manifests"] = [entry]
+    write_json(repo / "tools/evidence_inventory.json", inventory)
+    assert validate_inventory(repo)["errors"]
+
+
 def test_checked_in_inventory():
     repo = Path(__file__).resolve().parents[1]
     result = validate_inventory(repo)
