@@ -119,6 +119,11 @@
           "path": "results/formal-pair1-quality-decomposition.json",
           "schema": "metadata-sha256",
           "sha256": "4dd13949594b4e357602f802130f41f09164c9198be1934911ff12db03399c9a"
+        },
+        {
+          "path": "results/formal-pair2-jit-diagnosis.json",
+          "schema": "metadata-sha256",
+          "sha256": "d7944a609639fdff4953191e7b5ff92704b12c38caeb88360a72a54e217a8cf2"
         }
       ],
       "external": ["Original host logs, model weights and captured audio remain private; public results retain hashes and redaction boundaries."]

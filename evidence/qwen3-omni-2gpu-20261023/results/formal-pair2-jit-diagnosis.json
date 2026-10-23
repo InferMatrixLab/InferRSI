@@ -1,0 +1,73 @@
+{
+  "status": "INCONCLUSIVE",
+  "observations": {
+    "conditioning_jit_count": 16,
+    "measured_jit_count": 2,
+    "measured_time": "16:42:39",
+    "worker": "Talker stage1",
+    "kernels": "fused_moe_kernel BM128 BN128 BK64 topk6/1",
+    "prior_conditioning_same_visible_details_time": "16:30:48",
+    "limitation": "Verbose logs truncate configs, specialization_data and key. Exact distinct specialization cannot be recovered from retained text; no assertion about which scalar/alignment class was missing.",
+    "each_measured_event_has_identical_visible_conditioning_match": true,
+    "conditioning_matches_scope": "Four same-time conditioning log entries; both measured entries exactly match a visible conditioning compile-details string. This does not identify complete specialization keys."
+  },
+  "source_findings": [
+    "fused_moe.py:297-345 is a plain @triton.jit kernel, with runtime N/K/EM/num_valid_tokens and strides plus constexpr tiling/routing flags. invoke_fused_moe_triton_kernel:820-909 derives launch dimensions/strides from actual tensors. No JIT warmup-provider registration found in this kernel file or triton_moe.py.",
+    "kernel_warmup.py:172-198 calls registry.warmup for explicitly registered providers, plus specialized model warmups. Logs show89 keys/5 kernels, not exhaustive full-model MoE dispatch coverage. BF16 router GEMM warmup at98 is router projection, not expert fused_moe_kernel.",
+    "jit_warmup.py:1050-1085 registers providers only under active registry and expands their declared keys. A plain Triton JIT kernel does not automatically enumerate runtime signature classes.",
+    "fused_moe.py:1427-1442 selects nearest tuned config based on runtime token count M. Equal request concurrency does not guarantee identical scheduled token counts, prefill/decode mixes, intermediate tensor strides or Triton scalar-specialization classes.",
+    "jit_monitor.py:144-151 truncates repr to120 chars; 201-229 applies that to config/specialization data and key. Therefore the two new events can have identical visible metadata despite distinct underlying keys."
+  ],
+  "candidate_improvement": "Implement an owner-backed compile-only warmup provider for BF16 Triton expert GEMMs using actual layer dimensions/strides/top-k and the same runtime config resolver. Enumerate reachable tiling configs and Triton scalar/alignment signature classes for both up/gate and down projections. First add complete stable specialization-key digest to diagnostic output to identify missing classes. Do not simply repeat the same concurrency warmup or assume router warmup covers expert GEMMs. This is a source-supported direction, not a validated implementation.",
+  "campaign_boundary": "No source/config/process changes. Preserve measured JIT rejection and whole-pair retry under frozen protocol.",
+  "source_hashes": {
+    "model_executor/layers/fused_moe/fused_moe.py": "21860340e4b409b01666e2ba0f0edae66b0f97b859756b174b573bab895cfaf7",
+    "model_executor/layers/fused_moe/experts/triton_moe.py": "ee6b83b108a0460e6308e35447434165d0778a053aa39f0c6c8ed7f36a3ddbab",
+    "model_executor/warmup/kernel_warmup.py": "5eb35e459feaa5656d5365abb3b442ae5fd896193b4053b5c7ac8764e91aa829",
+    "model_executor/warmup/jit_warmup.py": "a5fade0712c9032e8ed5f61454e39782fc69035be8a4ab8ec4fca4dfa25acfd0",
+    "utils/jit_monitor.py": "379595ceb64242274f575a874f7a6126f4ca8bd42c51067e7f7e5367420fd850"
+  },
+  "original_log_sha256": "90e6b2377cfcae238caab1591499a157ffd843732a68953a741343af714c7ee8",
+  "phase": "diagnosis",
+  "original_execution_sha256": "31e2bf563fb810c1ddeab33af7a90bccc7dda3ad989d0c7efa0fd7498937b3f9",
+  "attempt": "pair2-attempt1-baseline",
+  "raw_payload_availability": "Original execution and server log remain private; retained digests cover originals.",
+  "candidate_status": "UNTESTED",
+  "sources": [
+    {
+      "file": "vllm/model_executor/layers/fused_moe/fused_moe.py",
+      "revision": "5df63a7203cdb9328d824a27b682e77c7b9928be",
+      "url": "https://github.com/vllm-project/vllm/blob/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm/model_executor/layers/fused_moe/fused_moe.py",
+      "sha256": "21860340e4b409b01666e2ba0f0edae66b0f97b859756b174b573bab895cfaf7",
+      "installed_matches_public": true
+    },
+    {
+      "file": "vllm/model_executor/layers/fused_moe/experts/triton_moe.py",
+      "revision": "5df63a7203cdb9328d824a27b682e77c7b9928be",
+      "url": "https://github.com/vllm-project/vllm/blob/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm/model_executor/layers/fused_moe/experts/triton_moe.py",
+      "sha256": "ee6b83b108a0460e6308e35447434165d0778a053aa39f0c6c8ed7f36a3ddbab",
+      "installed_matches_public": true
+    },
+    {
+      "file": "vllm/model_executor/warmup/kernel_warmup.py",
+      "revision": "5df63a7203cdb9328d824a27b682e77c7b9928be",
+      "url": "https://github.com/vllm-project/vllm/blob/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm/model_executor/warmup/kernel_warmup.py",
+      "sha256": "5eb35e459feaa5656d5365abb3b442ae5fd896193b4053b5c7ac8764e91aa829",
+      "installed_matches_public": true
+    },
+    {
+      "file": "vllm/model_executor/warmup/jit_warmup.py",
+      "revision": "5df63a7203cdb9328d824a27b682e77c7b9928be",
+      "url": "https://github.com/vllm-project/vllm/blob/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm/model_executor/warmup/jit_warmup.py",
+      "sha256": "a5fade0712c9032e8ed5f61454e39782fc69035be8a4ab8ec4fca4dfa25acfd0",
+      "installed_matches_public": true
+    },
+    {
+      "file": "vllm/utils/jit_monitor.py",
+      "revision": "5df63a7203cdb9328d824a27b682e77c7b9928be",
+      "url": "https://github.com/vllm-project/vllm/blob/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm/utils/jit_monitor.py",
+      "sha256": "379595ceb64242274f575a874f7a6126f4ca8bd42c51067e7f7e5367420fd850",
+      "installed_matches_public": true
+    }
+  ]
+}
