@@ -16,6 +16,7 @@ OWNER = ROOT / "repositories/h3-c" / NAME
 IDENTITY = "inferrsi.common.skills.audit_h3_runtime_residency"
 COMMIT = "8974cc055ea9c02fcd14cc27dfda3e1027c05153"
 PREFIX = f"data/skill_library/repositories/h3-c/{NAME}/"
+CHECKOUT_PREFIX = f"repositories/h3-c/{NAME}/"
 INVENTORY = "references/minimax-h3-weight-inventory.json"
 INVENTORY_SHA256 = "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271"
 
@@ -46,10 +47,13 @@ def test_h3_checkout_and_package_reads_preserve_complete_owner_resources():
     resources = set(get_skill(ROOT, NAME)["resources"]) | {"SKILL.md"}
     for relative in resources:
         expected = (OWNER / relative).read_bytes()
-        assert reader.resource(NAME, relative, revision=local.revision) == expected
-        assert reader.resource(
-            IDENTITY, PREFIX + relative, revision=packaged.revision
-        ) == expected
+        assert local.content[CHECKOUT_PREFIX + relative] == expected
+        assert packaged.content[PREFIX + relative] == expected
+    expected = (OWNER / INVENTORY).read_bytes()
+    assert reader.resource(NAME, CHECKOUT_PREFIX + INVENTORY, revision=local.revision) == expected
+    assert reader.resource(
+        IDENTITY, PREFIX + INVENTORY, revision=packaged.revision
+    ) == expected
     assert local.metadata["state"] == "candidate"
     assert local.metadata["sources"][0]["commit"] == COMMIT
     assert local.metadata["sources"][0]["revision_precision"] == "full"

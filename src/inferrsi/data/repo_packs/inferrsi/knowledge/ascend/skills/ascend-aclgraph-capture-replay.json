@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a90df59bbdf3d21c7c625c439b964e56abaed06a/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
-      "commit": "a90df59bbdf3d21c7c625c439b964e56abaed06a",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5303e5ad3ec5b9b18929a1358e6e6f03270b7b35/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "commit": "5303e5ad3ec5b9b18929a1358e6e6f03270b7b35",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json",
@@ -41,7 +41,7 @@
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md": "718be35dc6d93a97e356ed645df899d43e2c37944f4dece8e167efef810fefea",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "e4c02d4ae85e473947e024c38aed121ca8e5cfbfe1091c5792ce58a349248187",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md": "6ffbfb68cc7e04923b4fbca2a73a7555b7c3b45a6f40819bb5f3213ef05cf88d",
-    "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
   },
   "skill_metadata": {
     "name": "ascend-aclgraph-capture-replay",
