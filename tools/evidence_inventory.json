@@ -84,6 +84,11 @@
           "path": "results/predictor-kv-run-manifest.json",
           "schema": "metadata-sha256",
           "sha256": "19714f8ee92bd29f7e85579b36372ba9201d2948613ebcccc92cdc07f4db6a09"
+        },
+        {
+          "path": "results/predictor-short-kv-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "df2c31bea535f337295b63e098bd66b48e31252ab96565d80a33b05f646b7ace"
         }
       ],
       "external": ["Original host logs, model weights and captured audio remain private; public results retain hashes and redaction boundaries."]
