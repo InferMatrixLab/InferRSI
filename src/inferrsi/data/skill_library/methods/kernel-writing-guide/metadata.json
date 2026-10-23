@@ -6,7 +6,10 @@
     "cuda",
     "ascendc",
     "performance",
-    "accelerator"
+    "accelerator",
+    "akg",
+    "affine",
+    "tail-guards"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -24,7 +27,9 @@
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
-  "provenance_readsets": [],
+  "provenance_readsets": [
+    "references/akg-affine-tail-guards.md"
+  ],
   "references": [],
   "consumption_mode": "packaged"
 }

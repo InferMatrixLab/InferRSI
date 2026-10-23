@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround and HCCL bandwidth  verification.\n",
+  "summary": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround, HCCL bandwidth verification and source-scoped communication-test selection, timing and correctness-check coverage.\n",
   "tags": [
     "ascend",
     "npu",
@@ -24,14 +24,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c66653a0e932c910328c11eef55f8d75b83901e/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
-      "commit": "3c66653a0e932c910328c11eef55f8d75b83901e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/0322910db9f2a30e5214f36dd63b45e664f7e491/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "0322910db9f2a30e5214f36dd63b45e664f7e491",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "4252cc6f984600393b277c45f8c3ef84f5dd0250c13d5b80a2e1b35d3531c520"
+      "content_sha256": "4ce9dcadd1ae3c7a8cc633336760d0a3c382f354f1b7028e3a10d28fa0d0c9fa"
     }
   ],
   "index_type": "packaged-skill",
@@ -40,13 +41,14 @@
   },
   "checkout_ref": "checkout:ascend-distributed-parallel",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "4252cc6f984600393b277c45f8c3ef84f5dd0250c13d5b80a2e1b35d3531c520",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "843c0a93bf3e61c107c432e05b23a7466ed07b7c061142fed1e6128ca22734cb",
-    "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "4ce9dcadd1ae3c7a8cc633336760d0a3c382f354f1b7028e3a10d28fa0d0c9fa",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "4c1d592d3456d99cc474cad2fd2a5c206492d81c4f519a3d18cc797d72deec47",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
+    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
   },
   "skill_metadata": {
     "name": "ascend-distributed-parallel",
-    "description": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround and HCCL bandwidth  verification.\n",
+    "description": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround, HCCL bandwidth verification and source-scoped communication-test selection, timing and correctness-check coverage.\n",
     "tags": [
       "ascend",
       "npu",
@@ -63,16 +65,33 @@
     "origin": [
       "external"
     ],
-    "sources": [],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/ascend-ai-coding/awesome-ascend-skills",
+        "commit": "75ec89ce9d401be8ac95980e1c3f42f8d4315057",
+        "paths": [
+          "README.md",
+          "skills/training/hccl-test/scripts/quick-verify.sh",
+          "skills/training/hccl-test/scripts/parse-hccl-result.py",
+          "skills/training/torch-npu-comm-test/scripts/comm-bench.py",
+          "skills/training/torch-npu-comm-test/references/supported-ops.md"
+        ],
+        "readset": "references/awesome-ascend-communication-tests.md"
+      }
+    ],
     "empirical_validation": "not_run",
     "applicability": {
       "scope": "See procedure prerequisites and counter-signals"
     },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Only the incremental awesome-ascend-skills communication-test slice is normalized; inherited strategy guidance and its source identities remain unchanged.",
+      "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains."
     ],
-    "provenance_readsets": [],
+    "provenance_readsets": [
+      "references/awesome-ascend-communication-tests.md"
+    ],
     "references": [],
     "consumption_mode": "packaged"
   },
@@ -89,7 +108,8 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Only the incremental awesome-ascend-skills communication-test slice is normalized; inherited strategy guidance and its source identities remain unchanged.",
+    "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains."
   ],
   "verification": {
     "locally_verified": false,

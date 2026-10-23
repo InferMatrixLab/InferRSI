@@ -1,14 +1,28 @@
 ---
 name: inference-benchmark-design
-description: 'How to design a benchmark for inference serving that produces trustworthy, actionable results. Covers workload regime selection, SLO-aware metrics, trace replay, multi-seed evaluation, inconclusive handling, and the common mistakes that invalidate benchmark results. Drawn from vllm-evolve and InferRSI''s evidence framework.
-
-  '
+description: 'Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.'
 ---
 
 # Inference Benchmark Design
 
 Status: candidate. Source-grounded from vllm-evolve @ 43cc82c and
 InferRSI evidence framework @ 4c8e1285.
+
+## Select the task and its evaluation contract
+
+Read [task-specific benchmark selection](references/task-benchmark-selection.md)
+when choosing quality evaluators, reference parity and a performance workload.
+It covers text, agent replay, TTS, three full-duplex task families, images and
+videos, with pinned provenance from InferRSI issue #60. Use the
+[command templates](references/benchmark-commands.md) for entry points and a
+bounded HTTP smoke. These references are candidate knowledge, not qualification
+of every model or backend.
+
+Freeze one primary objective, timing boundary, quality gates and sample/failure
+accounting before optimization. Recorded agent task scores and replay completion
+do not establish current task success; a VBench prompt workload does not compute
+VBench quality. Missing coverage stays INCONCLUSIVE. Numeric gates and required
+workload regimes are campaign choices, not repository-wide defaults.
 
 ## Core principle: goodput over throughput
 
@@ -25,19 +39,20 @@ A candidate that improves raw throughput by trading latency away cannot "win"
 under a goodput metric if it causes SLO violations.
 Source: vllm-evolve README @ 43cc82c.
 
-## Three required workload regimes
+## Workload regimes to select for the campaign
 
 A single benchmark run at one concurrency level does not characterize serving
-performance. Three regimes together answer different questions:
+performance. These source-derived regimes answer different questions; choose
+the required set from the deployment use case and freeze it before comparison:
 
 | Regime | Load level | What it answers |
 |--------|-----------|----------------|
-| Throughput | Saturating (>90% GPU utilization) | Max sustainable goodput at peak load |
-| Latency | Low (single-digit concurrency) | Responsiveness for latency-sensitive workloads |
+| Throughput | Saturating load, with observed bottleneck and queue state | Max sustainable goodput at peak load |
+| Latency | Low load | Responsiveness for latency-sensitive workloads |
 | Replay | Real or representative trace | Behavior under actual production burstiness |
 
 An optimization may improve one regime while degrading another. Report all
-three separately; do not aggregate into a single score without disclosing
+required regimes separately; do not aggregate into a single score without disclosing
 how the aggregation was done.
 
 For replay, standard trace sources (from vllm-evolve): BurstGPT, Azure,
@@ -45,7 +60,7 @@ ShareGPT, Mooncake. Use the trace that matches your actual deployment pattern.
 
 ## Verdict semantics
 
-Three verdicts only:
+The upstream vllm-evolve comparison labels are:
 
 | Verdict | Condition |
 |---------|----------|
@@ -53,7 +68,9 @@ Three verdicts only:
 | worse | Regression in any required regime |
 | inconclusive | Too noisy to distinguish (see below) |
 
-`high_variance_inconclusive` is a valid and important outcome. It means the
+These labels are not InferRSI's verdict enum. InferRSI uses PASS / FAIL /
+INCONCLUSIVE and the campaign's frozen gates. `high_variance_inconclusive`
+is a useful diagnostic reason: it means the
 measurement signal is not strong enough to support a claim in either direction.
 Do not report an inconclusive result as a win. Record it as INCONCLUSIVE and
 note the variance level.
@@ -61,14 +78,13 @@ Source: vllm-evolve README @ 43cc82c.
 
 ## Statistical requirements
 
-Minimum for a non-inconclusive verdict:
-- ≥3 independent seeds per regime (different random seeds for request generation
-  or model initialization).
-- Report median goodput across seeds, not mean (outlier-robust).
-- State the IQR or range alongside the median.
-- If `max - min > threshold × median`, classify as `high_variance_inconclusive`.
-  A reasonable default threshold is 0.05 (5% relative spread); tighten for
-  production decisions.
+Freeze repetition count, workload seeds and the decision rule in the campaign.
+The upstream guidance recommends multiple seeds and median goodput with IQR or
+range. State whether a repetition changes the workload seed or repeats identical
+inputs. If using `max - min > threshold × median` as a noise gate, choose the
+threshold in the acceptance plan; this skill defines no universal numeric bar.
+InferRSI's built-in median/range summaries are descriptive, not a significance
+test or automatic enforcement of that noise gate.
 
 The decision of which regimes must improve and which must not regress is the
 caller's policy, not the benchmark's. Encode it in a decision config file
@@ -149,7 +165,7 @@ evidence/<campaign-id>/
     regime-throughput/    # raw metrics, logs, per-seed records
     regime-latency/
     regime-replay/
-    verdict.json          # better / worse / inconclusive with reasons
+    verdict.json          # PASS / FAIL / INCONCLUSIVE with reasons
   patch/
     candidate.patch       # the exact change being evaluated
   validator/

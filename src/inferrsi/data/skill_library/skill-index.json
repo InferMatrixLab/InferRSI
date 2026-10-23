@@ -228,6 +228,10 @@
     "budget-speculative-verification": {
       "path": "repositories/deepinfer/budget-speculative-verification",
       "backend": "common"
+    },
+    "audit-h3-runtime-residency": {
+      "path": "repositories/h3-c/audit-h3-runtime-residency",
+      "backend": "common"
     }
   }
 }

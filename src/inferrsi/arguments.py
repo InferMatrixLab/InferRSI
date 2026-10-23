@@ -143,6 +143,27 @@ def parser() -> argparse.ArgumentParser:
     search.add_argument("--json", action="store_true")
     show = actions.add_parser("show")
     show.add_argument("id")
+    research = actions.add_parser(
+        "research", help="Union model/framework/task/modality/mechanism queries for preparation"
+    )
+    research.add_argument("model")
+    for dimension in ("framework", "task", "modality", "mechanism"):
+        research.add_argument(
+            f"--{dimension}", action="append", default=[],
+            help=f"Additional independent {dimension} query (repeatable)",
+        )
+    research.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
+    research.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
+    research.add_argument("--backend", choices=BACKENDS, help="Hard package-record filter")
+    research.add_argument("--scenario")
+    research.add_argument("--limit", type=int, default=10)
+    research.add_argument(
+        "--target-backend", help="Research target only; no runtime support implied"
+    )
+    research.add_argument("--target-device", help="Caller-declared research target")
+    research.add_argument(
+        "--target-memory-gib", type=float, help="Caller-declared unified/device GiB"
+    )
 
     collect = commands.add_parser(
         "collect",

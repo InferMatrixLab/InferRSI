@@ -136,6 +136,19 @@ x = tl.load(x_ptr + offsets, mask=mask)
 tl.store(out_ptr + offsets, result, mask=mask)
 ```
 
+### AKG Affine loop tails (source-derived)
+
+For AKG-MLIR static CUDA elementwise loops, use the
+[Affine tail-guard reference](references/akg-affine-tail-guards.md) to trace the
+effective target, option precedence and loop bounds before interpreting a
+non-divisible tile. The compiler can expand point-loop bounds and move the body
+under an `affine.if`; both input reads and output writes need the valid-index
+contract. The pinned fixture's FileCheck expectations describe IR structure,
+not executed CUDA correctness or a tuning gain. This addition preserves the
+handwritten load/store mask rule above and requires separate validation of
+later lowering, synchronization and numerics. CPU/NPU tail strategies are not
+qualified by the CUDA fixture.
+
 ## Workflow: verify before benchmark
 
 **Phase 1: Write the kernel with a reference function**
