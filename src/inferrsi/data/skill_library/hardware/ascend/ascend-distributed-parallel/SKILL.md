@@ -1,11 +1,23 @@
 ---
 name: ascend-distributed-parallel
-description: 'Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround and HCCL bandwidth  verification.
+description: 'Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround, HCCL bandwidth verification and source-scoped communication-test selection, timing and correctness-check coverage.
 
   '
 ---
 
 # Selecting and validating distributed parallelism
+
+## Communication-test evidence
+
+For an isolated communication question, use the
+[pinned communication-test acceptance procedure](references/awesome-ascend-communication-tests.md)
+before treating a tool's PASS or bandwidth field as evidence. It distinguishes
+native HCCL-test wrappers from PyTorch/HCCL call paths, maps tensor shape to
+payload, and checks the actual validator and timing boundary. Its source is
+awesome-ascend-skills `75ec89ce9d401be8ac95980e1c3f42f8d4315057`;
+underlying collective implementations and local backends were not validated.
+Keep the existing topology, strategy-activation and in-model attribution gates
+below: a completed isolated test does not establish a parallelism or service gain.
 
 ## Card-group topology rules (required prerequisite)
 
