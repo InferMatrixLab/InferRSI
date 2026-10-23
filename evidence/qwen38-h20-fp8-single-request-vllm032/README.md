@@ -1,7 +1,11 @@
 # Qwen3.8 FP8 single-request campaign — diagnostic takeover
 
 Governing acceptance: https://github.com/InferMatrixLab/InferRSI/issues/67
-Status: **INCONCLUSIVE. No activated acceptance freeze or parity claim.**
+Status: **INCONCLUSIVE. The owner-approved 8K search protocol is now frozen; parity and task quality remain unqualified.**
+
+Current activation: `plan/search-8k-v1/`, recorded before candidate job 2163.
+Completed standalone baseline: `results/formal-8k-baseline/`. Earlier historical
+entries below retain their original diagnostic scope and status.
 
 This isolated checkout retains the 2026-10-22/23 Codex takeover diagnostics and
 prospective plan. Earlier readiness drafts and DSH evidence remain in their
