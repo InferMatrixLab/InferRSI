@@ -12,6 +12,11 @@
 # Rows 1, 2, 3, 5, 6 and 7 are frozen once the first candidate search starts.
 # Row 4 (search_plan, search_state, search_plan_revisions) is versioned: append a
 # search_plan_revisions entry for every change and never rewrite history.
+# Retain the original plan snapshots and freeze.json before search. Preserve each
+# later revision and whole-file manifest, and link a manual comparison of every
+# frozen field against the originals from that revision's evidence field.
+# Revision hashes establish integrity, not unchanged-contract evidence; validator
+# hashes remain unchanged. See campaign-plan.md for the freeze procedure.
 #
 # Field names follow the earlier evidence/drama3-b300-scale150/plan/plan.json
 # vocabulary (goal, hardware, concurrency, requests_per_repetition, repetitions,
@@ -100,7 +105,9 @@ search_plan:
   - id: "<D-01>"
     plane: "<model|infra|harness>"
     target_stage: "<stage>"
-    stage_share_of_e2e: "<measured share>"
+    stage_share_of_e2e: "<nonoverlapping exposed-time share or unresolved; label overlapping durations separately>"
+    conditional_headroom: "<removable exposed critical-path time, assumptions, target/noise comparison, overlap, queueing, batching, capacity effects and uncertainty>"
+    diagnostic: "<if attribution is unresolved: discriminating observation, cost cap within row 6 and kill criterion; otherwise none>"
     hypothesis: "<one line>"
     mechanism: "<config|ownership/layout|fusion/operator|graph/launch|residency/memory|parallelism/communication|precision/approximation>"
     risk: "<lossless-exact|tolerance-gated|semantics-changing>"

@@ -16,5 +16,10 @@ criterion freeze at its first run. Editing a frozen row starts a new campaign ID
 with its own plan and acceptance issue.
 
 `freeze.json` records the hashes of `plan/campaign-plan.md`,
-`plan/campaign-plan.yaml` and the validator. Missing required evidence yields
-`INCONCLUSIVE`, never `PASS`.
+`plan/campaign-plan.yaml` and the validator. Retain the original snapshots and
+manifest before search, and preserve each later revision and its manifest.
+For each row-4 revision, manually compare every frozen field in both plan
+representations against the originals and link the record in the change log.
+Whole-file hashes establish revision integrity, not that frozen fields are
+unchanged; validator hashes must remain unchanged. Missing required evidence
+yields `INCONCLUSIVE`, never `PASS`.

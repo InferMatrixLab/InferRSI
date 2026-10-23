@@ -41,14 +41,25 @@ versioned search strategy and search state, and is expected to change.
 
 ```text
 D-01 | plane=<model|infra|harness> | stage=<stage>, <measured share> of E2E
+     | headroom=<conditional removable exposed time, assumptions, target/noise comparison and uncertainty>
+     | diagnostic=<if attribution is unresolved: observation, cost cap within row 6 and kill criterion; otherwise none>
      | hypothesis=<one line> | mechanism=<config|ownership/layout|fusion/operator|graph/launch|residency/memory|parallelism/communication|precision/approximation>
      | risk=<lossless-exact|tolerance-gated|semantics-changing> | cost=<static|microbench|profile run|scenario@c1|multi-regime|full cohort>
      | prior=<casebook entry or none> | kill=<what ends this direction> | status=<planned|running|kept|rejected|blocked> | evidence=<path>
 ```
 
-One variable per round and one plane per step. A direction whose target stage is
-not a dominant share of E2E time is rejected by Amdahl argument before
-implementation. A matching negative record raises the burden of justification and
+One variable per round and one plane per step. Justify conditional headroom
+against the campaign target and locally measured noise, following
+[performance-ceiling-analysis](../../../skills/performance-ceiling-analysis/SKILL.md)
+and its [bounds guidance](../../../skills/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md).
+Record conditionally removable exposed critical-path time, assumptions and
+uncertainty. A non-dominant stage is not by itself a reason for rejection:
+overlap, synchronization, capacity, queueing, batching and bottleneck migration can
+change its E2E impact. Overlapping kernel durations are not an additive E2E
+decomposition. If attribution is unresolved, allow a bounded diagnostic with a
+discriminating observation, explicit cost cap within row 6 and kill criterion.
+Stop at the cap; unresolved evidence remains `INCONCLUSIVE` and cannot justify
+promotion. A matching negative record raises the burden of justification and
 requires the changed condition to be stated. Untried directions stay listed. Each
 round names its parent revision, builds the candidate in an isolated directory or
 environment, and records the exact import path. An entry's hypothesis, mechanism
@@ -62,13 +73,23 @@ and kill criterion freeze at its first run; a later change is a new entry ID.
 
 Append history; never rewrite it. Rows 1, 2, 3, 5, 6 and 7 may not be edited after
 the first candidate search: a change to any of them starts a new campaign ID with
-its own plan and acceptance issue. Regenerate `freeze.json` after every plan
-revision, and confirm the frozen-row hashes are unchanged.
+its own plan and acceptance issue. Before search, retain the original plan
+snapshots and `freeze.json`, including the validator hashes. Preserve each later
+plan revision with its own whole-file hash manifest; never overwrite earlier
+snapshots or manifests. For every row-4 revision, manually compare every frozen
+field in both representations against the original snapshots and link the
+comparison record from the change log's evidence field. Any frozen-field change
+starts a new campaign; validator hashes must remain unchanged. Whole-file hashes
+identify revision integrity, not proof that the frozen comparison contract is
+unchanged. No row-level hashing is assumed.
 
 ## Fill-in checklist
 
 - [ ] every `<...>` placeholder is replaced or explicitly resolved as `<TBD>`
 - [ ] no frozen row was edited after the first candidate search
+- [ ] original snapshots and manifest are retained, and every row-4 revision
+      links a manual comparison of all frozen fields against those snapshots
 - [ ] `freeze.json` lists `plan/campaign-plan.md`, `plan/campaign-plan.yaml` and
-      the validator, with current hashes
+      the validator, with current hashes; earlier revisions and manifests remain
+      available and validator hashes are unchanged
 - [ ] the acceptance issue links this plan and names the same base revision

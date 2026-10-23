@@ -74,6 +74,8 @@ SEARCH_PLAN_FIELDS = (
     "plane",
     "target_stage",
     "stage_share_of_e2e",
+    "conditional_headroom",
+    "diagnostic",
     "hypothesis",
     "mechanism",
     "risk",

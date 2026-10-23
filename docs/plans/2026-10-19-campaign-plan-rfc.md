@@ -24,7 +24,7 @@ link, base revision, plan revision.
 | 1 | Model | Frozen | repository · exact revision · weight format and hash · tokenizer and template · modality and task · precision policy · supported modes · excluded modes · semantic reference · license |
 | 2 | Hardware | Frozen | backend · vendor and exact SKU · device count and IDs · visibility mechanism · per-device memory · interconnect and topology · host CPU, NUMA and RAM · OS, driver and firmware · runtime, compiler and container digest · qualification status · exclusivity record |
 | 3 | Optimization goal | Frozen | primary metric, unit and direction · target line per load level, relative to a locally measured baseline · quality gate with exact and tolerant rows · guard metrics (peak memory, failure rate, latency or RTF percentiles) · required validation levels |
-| 4 | Iteration search plan and state | **Mutable, versioned** | one entry per direction: ID · plane · target stage and its measured share of E2E · hypothesis · mechanism class · risk class · cost tier · prior art or negative record · kill criterion · status · evidence link. Search state: current incumbent revision and its evidence link · parent of the next candidate · isolation and import path used |
+| 4 | Iteration search plan and state | **Mutable, versioned** | one entry per direction: ID · plane · target stage and its measured exposed share of E2E · conditional headroom with assumptions, target/noise comparison and uncertainty · bounded diagnostic if attribution is unresolved · hypothesis · mechanism class · risk class · cost tier · prior art or negative record · kill criterion · status · evidence link. Search state: current incumbent revision and its evidence link · parent of the next candidate · isolation and import path used |
 | 5 | Test plan | Frozen | load-test concurrency set · requests per repetition and repetition count · dataset or corpus with hash, seeds and held-out split · benchmark command and timing boundary · warmup protocol · AB/BA pairing count · quality script and judge · statistical method and rollback line · validator path and hashes · held-out release point and use limit · abort and resume policy |
 | 6 | Budget and stop conditions | Frozen | candidate and round cap · device-hour cap · retry cap · per-round planned versus spent accounting · stop conditions · reserve held back for the formal acceptance regime |
 | 7 | Control and authority | Frozen | owner of the device, the validator and the freeze · who may revise which row · generator and evaluator separation and how it is enforced · held-out release authority |
@@ -36,14 +36,17 @@ Row 4 entry format:
 
 ```text
 D-01 | plane=model | stage=prompt encode, 23% of E2E | hypothesis=... | mechanism=ownership/layout
+     | headroom=<conditional removable exposed time, assumptions, target/noise comparison and uncertainty>
+     | diagnostic=<observation, cost cap within row 6 and kill criterion, or none>
      | risk=lossless-exact | cost=scenario@c1 | prior=casebook#qwen-ascend | kill=... | status=planned
 ```
 
-Mechanism classes are the resource layers of the
-[SearchSpace matrix](../searchspace-matrix.md): config, ownership/layout,
+Mechanism classes are tags: config, ownership/layout,
 fusion/operator, graph/launch, residency/memory, parallelism/communication,
-precision/approximation. Risk classes: lossless-exact, tolerance-gated,
-semantics-changing. Cost tiers, cheapest first: static/config, microbench,
+precision/approximation. Entries reference relevant [Reference Matrix](../reference-matrix.md)
+sources and [SearchSpace Matrix](../searchspace-matrix.md) resource × stage cells;
+they do not duplicate global coverage or validation status. Risk classes:
+lossless-exact, tolerance-gated, semantics-changing. Cost tiers, cheapest first: static/config, microbench,
 profile run, scenario at concurrency 1, multi-regime, full cohort.
 
 ## 2. Freeze semantics
@@ -54,7 +57,7 @@ profile run, scenario at concurrency 1, multi-regime, full cohort.
 | Row 4: change an entry's hypothesis, mechanism or kill criterion after its first run | No | Create a new entry ID instead; a stated kill criterion is immutable once that entry has run |
 | Row 4: promote an entry to `kept` | Yes | Re-run that entry's own required validation levels |
 | Row 4: advance the incumbent | Yes | Only once the promotion rule and the frozen test plan are satisfied; record the new incumbent revision and its evidence link |
-| Freeze manifest (`freeze.json`) | Yes, required | Re-hash after every revision; frozen-row hashes must be unchanged, otherwise the change was not row-4-only and the campaign restarts |
+| Freeze manifest (`freeze.json`) | Yes, required | Retain the original snapshots and manifest; preserve each revision and its whole-file manifest. Manually compare all frozen fields in both representations against the originals and link the record from the change log. Hashes identify revision integrity, not unchanged-contract evidence; validator hashes remain unchanged |
 | Rows 1, 2, 3, 5, 6 and 7 | No | New campaign ID, new table, new acceptance issue; previous evidence is retained and stays cited |
 | Row 5 after results exist | No | Thresholds, concurrency set, corpus and validators are never edited after the fact. A validator modified after freeze makes the campaign `INCONCLUSIVE` |
 | Row 6 budget | Bounded | Only the authorized owner, recorded as a new plan revision; the acceptance reserve is never spent on exploration |
@@ -85,11 +88,21 @@ pixel identity is not the tolerance gate. State the combination rule: which load
 levels must improve, and which must not regress beyond the rollback line.
 
 **Row 4 —** one variable per round and one plane per step per
-[AGENTS.md](../../AGENTS.md); a direction whose target stage is not a dominant E2E
-share is rejected by Amdahl argument before implementation; a matching negative
-record raises the burden of justification and requires the changed condition to
-be stated; untried directions stay listed. Each round names its parent revision,
-builds the candidate in an isolated directory or environment, and records the
+[AGENTS.md](../../AGENTS.md). Justify conditional headroom against the campaign
+target and locally measured noise using
+[performance-ceiling-analysis](../../skills/performance-ceiling-analysis/SKILL.md)
+and its [bounds guidance](../../skills/performance-ceiling-analysis/references/papers-20261015/knowledge/bounds-predictions-and-decisions.md).
+Record conditionally removable exposed critical-path time, assumptions and
+uncertainty, including overlap, synchronization, capacity, queueing, batching and
+bottleneck migration. A non-dominant stage is not by itself a rejection reason;
+overlapping kernel durations are not an additive E2E decomposition. When
+attribution is unresolved, name a discriminating diagnostic with a cost cap within
+row 6 and a kill criterion; stop at the cap and retain `INCONCLUSIVE` if unresolved,
+without promotion. Record these in each entry's `conditional_headroom` and
+`diagnostic` fields. A matching negative record raises the burden of justification
+and requires the changed condition to be stated; untried directions stay listed.
+Each round names its parent revision, builds the candidate in an isolated
+directory or environment, and records the
 exact import path, so a candidate can never be confused with the incumbent. An
 entry's hypothesis, mechanism and kill criterion freeze at its first run.
 
@@ -146,7 +159,7 @@ The Drama3 plan already carries most of the table: `goal`, `baseline_sha`,
 | `diagnostic_hypotheses` | Generalized into row 4 `search_plan[]` entries, with lifecycle and versioning |
 | `experiment_protocol` | Kept: one isolated variable per run, frozen source SHA, stop on numerical or state error |
 | `readme_example` | Kept as the publication boundary |
-| `freeze.json` | Kept as a hash manifest, scoped to the frozen rows plus the current search-plan revision |
+| `freeze.json` | Kept as a whole-file hash manifest for each preserved plan revision and the unchanged validator; original snapshots plus manual frozen-field comparisons establish contract preservation |
 
 Field names are kept; they are regrouped under the row each field serves, so a
 compatibility reader looks inside the row objects rather than at the top level.
