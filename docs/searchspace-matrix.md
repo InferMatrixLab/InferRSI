@@ -373,3 +373,9 @@ gains remain unverified. They do not add measured resource coverage:
 local host scheduling and source references to collectives do not establish new
 SSD, Network or OS-control coverage. Backend and production-service scope remain
 separate from the public release's inspected code paths.
+
+## Task-specific evaluation coverage (issue #60)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / Host / service boundary | Observe / Verify: select task quality and reference parity; freeze workload, timing, SLOs, units and failure accounting; distinguish agent replay from live task success | [inference-benchmark-design task reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md) and [commands](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md) | Cross-task measurement guidance, not new measured hardware coverage. A text HTTP smoke cannot validate TTS, duplex, image/video quality, repeated A/B or production capacity. No runtime adapter or automatic evaluator is added. |
