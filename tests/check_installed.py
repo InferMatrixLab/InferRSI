@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 102, "Knowledge is missing from the installation"
+assert len(records) == 103, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -27,7 +27,7 @@ assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 57, "Missing installed skill abstracts"
+assert len(skill_index) == 58, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -38,6 +38,27 @@ case_path = (
 assert case_path in indexed.content
 assert indexed.dependencies
 assert json.loads(indexed.content["record.json"])["skill_metadata"]["license"] == "UNKNOWN"
+h3_identity = "inferrsi.common.skills.audit_h3_runtime_residency"
+assert any(item["id"] == h3_identity for item in search_knowledge(
+    "MiniMax-H3", repo="inferrsi", limit=100
+))
+h3_bundle = KnowledgeReader().read(h3_identity)
+h3_prefix = "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/"
+h3_inventory = json.loads(h3_bundle.content[
+    h3_prefix + "references/minimax-h3-weight-inventory.json"
+])
+assert h3_inventory["selections"][0]["totals"]["logical_tensor_elements"] == 69_235_580_593
+h3_metadata = json.loads(h3_bundle.content[h3_prefix + "metadata.json"])
+assert h3_metadata["status"] == "candidate"
+assert h3_metadata["empirical_validation"] == "not_run"
+assert h3_metadata["sources"][0]["commit"] == "8974cc055ea9c02fcd14cc27dfda3e1027c05153"
+for relative in (
+    "SKILL.md", "LICENSE", "references/source-identity.json", "references/source-notes.md",
+    "references/phase-residency.md", "references/precision-and-streaming.md",
+    "references/validation.md", "references/THIRD_PARTY_NOTICES.md",
+    "references/minimax-h3-apple.md",
+):
+    assert h3_prefix + relative in h3_bundle.content
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
 assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
@@ -59,7 +80,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 57
+assert len(registry) == 58
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
@@ -128,5 +149,10 @@ output = io.StringIO()
 with contextlib.redirect_stdout(output):
     assert main(["skills", "show", "ascend-operator-profiling"]) == 0
 assert json.loads(output.getvalue())["name"] == "ascend-operator-profiling"
+output = io.StringIO()
+with contextlib.redirect_stdout(output):
+    assert main(["skills", "resource", "audit-h3-runtime-residency",
+                 "references/phase-residency.md"]) == 0
+assert Path(json.loads(output.getvalue())["path"]).is_file()
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
