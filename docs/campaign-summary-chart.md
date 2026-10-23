@@ -17,6 +17,13 @@ reproduces without installing a plotting package.
 | `chain` (default for a multi-step campaign) | Steps accumulate on each other over the course of the campaign | A line of running gain in multiples of the baseline, one marker per step, stage bands behind it |
 | `branch` | Trials each start from the same baseline and are independent | One signed gain axis; every trial shows its own gain, so a no-gain or loss row stays as visible as the best result |
 
+![Chain layout: ordered steps, one line of running gain, with stage bands and a dashed peer target](assets/campaign-summary-chain.png)
+
+![Branch layout: independent trials on one signed gain axis, with no-gain and loss rows marked](assets/campaign-summary-branch.png)
+
+Both images are drawn from the template example values, so they show the
+*shape* of each layout and are not the measurements of any engine.
+
 The `chain` layout is the published "gain over time" figure: the height of each
 segment is what that step added, and the label above each marker is the running
 multiple. A step that changed nothing appears as a flat segment rather than
