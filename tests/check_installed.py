@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 103, "Knowledge is missing from the installation"
+assert len(records) == 104, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -27,7 +27,7 @@ assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 58, "Missing installed skill abstracts"
+assert len(skill_index) == 59, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -60,6 +60,17 @@ for relative in (
 ):
     assert h3_prefix + relative in h3_bundle.content
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
+lithos = KnowledgeReader().read("inferrsi.common.skills.lithos_metal")
+lithos_owner = "data/skill_library/repositories/lithos-metal/"
+for relative in (
+    "LICENSE", "references/upstream-notice.md", "references/mlx-license.md",
+    "references/source-notes.md", "scripts/inspect_contract.py",
+    "sub-skills/compile-fusion/SKILL.md", "sub-skills/generation-state/SKILL.md",
+    "sub-skills/serving-cache/SKILL.md",
+):
+    assert lithos_owner + relative in lithos.content, relative
+assert json.loads(lithos.content["record.json"])["skill_metadata"]["status"] == "candidate"
+assert "monolith" not in sys.modules, "Skill reads must not import the source engine"
 assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
@@ -80,7 +91,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 58
+assert len(registry) == 59
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")

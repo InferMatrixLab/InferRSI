@@ -1,8 +1,8 @@
 # InferRSI skill library
 
-The English-only library contains **79 skill documents**: 58 registered skills
-and 21 engine and research-router skills. Complete procedures, metadata,
-references, cases and source notices ship with the package.
+The English-only library contains **83 skill documents**: 59 registered skills
+and 24 unregistered subskill, engine and research-router documents. Complete
+procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
 
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 58 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 59 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -53,12 +53,13 @@ loading and host placement remain with their existing owners.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 58-ID registry.
+the links and catalog records below, separately from the 59-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
 | Repository | Focus | Entry | Catalog |
 | --- | --- | --- | --- |
+| Lithos Metal source guide | Task compiler/fusion, GPU-resident generation/DSpark state and exact serving/cache ownership; candidate | [Skill](repositories/lithos-metal/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/lithos-metal.json) |
 | ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](repositories/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
 | stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
 | h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json) |

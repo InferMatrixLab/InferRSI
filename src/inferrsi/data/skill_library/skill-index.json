@@ -232,6 +232,10 @@
     "audit-h3-runtime-residency": {
       "path": "repositories/h3-c/audit-h3-runtime-residency",
       "backend": "common"
+    },
+    "lithos-metal": {
+      "path": "repositories/lithos-metal",
+      "backend": "common"
     }
   }
 }
