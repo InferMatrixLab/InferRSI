@@ -191,9 +191,9 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
 
 
 def test_hardware_filters_include_only_matching_and_shared_skills():
-    for backend, count in (("ascend", 56), ("cuda", 45), ("cpu", 43)):
+    for backend, count in (("ascend", 56), ("cuda", 46), ("cpu", 43)):
         records = search_knowledge(repo="inferrsi", backend=backend, limit=100)
         assert len(records) == count
         assert all(record["backend"] in (backend, "common") for record in records)
     assert not (PROJECT / "skills").exists()
-    assert len(list(ROOT.rglob("SKILL.md"))) == 79
+    assert len(list(ROOT.rglob("SKILL.md"))) == 80
