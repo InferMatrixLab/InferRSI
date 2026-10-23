@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "id": "vllm_omni.cuda.audio.qwen3_omni_mrv2_measurement_and_tuning",
+  "title": "Qwen3-Omni MRv2 existing optimizations and streaming measurement boundaries",
+  "repo": "vllm_omni",
+  "backend": "cuda",
+  "component": "audio",
+  "scenario": "audio.*",
+  "status": "imported",
+  "summary": "Separate existing Qwen3-Omni MRv2 mechanisms from hardware qualification; profile predictor and grouped codec work while preserving request-to-audio latency, PCM versus codec frame units, and complete speech quality.",
+  "tags": [
+    "Qwen3-Omni",
+    "MRv2",
+    "L20X",
+    "H200",
+    "streaming",
+    "TTFA",
+    "RTF",
+    "code2wav",
+    "short_kv",
+    "cuda_graph",
+    "two_gpu"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/deploy/qwen3_omni_moe.yaml#L1-L98",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml#L1-L50",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/deploy/qwen3_omni_moe_mrv2_h200.yaml#L1-L27",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/docs/design/qwen3_omni_mrv2_performance.md#L1-L24",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/model_executor/models/common/qwen3_code_predictor.py#L705-L727",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/model_executor/models/common/qwen3_code_predictor.py#L787-L814",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py#L40-L120",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py#L315-L325",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py#L516-L542",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/benchmarks/patch/patch.py#L2092-L2096",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/benchmarks/patch/patch.py#L2167-L2205",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/vllm_omni/benchmarks/metrics/metrics.py#L1182-L1203",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/docs/configuration/stage_configs.md#L753-L785",
+      "type": "source",
+      "commit": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+      "accessed_at": "2026-10-23"
+    },
+    {
+      "url": "https://github.com/vllm-project/vllm-omni/blob/d93e1a8e09d2a0d386c4a58424470d685ee7743c/docs/design/qwen3_omni_mrv2_performance.md#L1-L22",
+      "type": "source",
+      "commit": "d93e1a8e09d2a0d386c4a58424470d685ee7743c",
+      "author": "Sy03",
+      "accessed_at": "2026-10-23"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "CUDA GPUs supported by the selected runtime; two L20X GPUs remain unqualified by this source audit"
+    ],
+    "software": [
+      "vllm-project/vllm-omni source snapshot 88c9ccd7ceb39b0380ce1257198c5e34cbe2c029"
+    ],
+    "conditions": [
+      "Full Thinker -> Talker -> Code2Wav streaming responses, with effective connector and stage configuration recorded.",
+      "The base deployment places Thinker on GPU 0 and Talker plus Code2Wav on GPU 1; its header reports two H100 GPUs, not L20X validation.",
+      "The experimental H200 overlay places all stages on GPU 0. Its configuration and comments do not establish two-GPU performance."
+    ]
+  },
+  "recommendations": [
+    "Attribute sampled-token embedding handoff, Talker first-frame delivery, the codec chunk ramp, length-grouped multirow CUDA graphs, fused Snake, incremental predictor KV, short-KV attention, fused sampling and bounded cuDNN search to the existing upstream implementation. Enabling them on another SKU is an adaptation, not a new algorithm.",
+    "Use the MRv2 profile as an explicit control. It enables first-frame delivery, the chunk ramp and grouped codec graphs; the H200 overlay additionally opts into predictor KV, short-KV, fused sampling and cuDNN search. Change one mechanism per measured comparison.",
+    "If profiling attributes the bottleneck to predictor re-prefill, compare incremental KV and then short-KV separately; retain a control without fused sampling and cuDNN search. These options can change rounding and require full audio quality checks.",
+    "If profiling shows codec batch fragmentation, measure actual batch/window decode costs before tuning the fixed 32-frame-equivalent call-cost model. Configured graph batch sizes are constrained by batch times window length not exceeding the largest capture size; inspect actual captured shapes and group counts.",
+    "For colocated Talker and Code2Wav, compare MPS on/off under identical placement and memory budgets. Source guidance warns that throughput can improve while first-packet latency worsens; source inspection alone establishes neither effect on the target.",
+    "Define TTFA as first valid playable audio and retain the native audio_ttfp value separately if needed. The audited chat benchmark timestamps an audio-modality event before checking nonempty content; an empty event can precede the first audio bytes.",
+    "For the audited chat benchmark, audio RTF uses request start to last audio event divided by decoded audio duration. The reported mean is the arithmetic mean of request RTFs; it includes pre-audio Thinker work and is not a decoder-only ratio.",
+    "Native audio_frames counts PCM sample frames, while audio throughput is generated audio seconds per wall second. Label PCM frames/s and codec frames/s distinctly; derive codec rate only with explicit frame counts or validated sample-rate and codec-hop metadata."
+  ],
+  "validation_plan": [
+    "Freeze workload, model weights, revisions, precision, input modalities, stage placement, sampling, warmup and complete output policy before performance comparisons. Retain failed requests and effective concurrency.",
+    "Record TTFA p50/p95, per-request RTF and its mean, explicitly named throughput units, audio duration, completion/error counts and streaming gaps for matched low and high concurrency runs.",
+    "Use traces to attribute predictor, codec, queueing and interstage costs before selecting changes; retain whole-run admission and drain costs alongside any steady-state slice.",
+    "Compare complete audio/text agreement and speech quality using the project benchmark methodology; retain repetitions, output-length differences and sampled-audio artifacts. CPU/catalog checks do not qualify GPU behavior."
+  ],
+  "limitations": [
+    "Imported source guidance only: no local GPU run, measured gain, quality result or target attainment is claimed.",
+    "The source first-frame path requires CUDA, a local single-rank Talker, prefix caching disabled and a one-frame initial codec chunk. Other configurations retain the regular codec path.",
+    "Turn-mode measurements do not qualify duplex latency or interruption behavior.",
+    "The fixed call-cost calibration, H200 configuration and two-H100 deployment comments are not two-L20X evidence.",
+    "The benchmark timestamp and PCM frame observations apply to the pinned chat streaming implementation; other endpoints may use different timing and duration paths.",
+    "Source provenance revisions identify inspected implementation, not a baseline/candidate campaign or raw performance evidence."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
