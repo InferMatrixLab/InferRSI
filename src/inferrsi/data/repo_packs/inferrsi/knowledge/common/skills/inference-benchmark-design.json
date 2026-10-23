@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bbe85d53c4acbbabaa378b2971f130f7441311cb/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "bbe85d53c4acbbabaa378b2971f130f7441311cb",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2b2320ccbb0011697f1c49e62b22fe819f82eb53/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "2b2320ccbb0011697f1c49e62b22fe819f82eb53",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
