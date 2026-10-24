@@ -62,6 +62,97 @@ or duplicate case ID) fails the whole reader call explicitly, because
 identities cannot be trusted.
 Deterministic identity order is not a learned relevance ranking.
 
+## Optional packaged skill selection and context
+
+Two independent opt-ins extend the same `collect` operation:
+
+```python
+reader = KnowledgeReader()
+# Existing query and material semantics are unchanged.
+legacy = reader.collect("cpu.stat.local", material=True, limit=3)
+selected = reader.collect("cpu.stat.local", relevance="cgroupv2",
+                          context_bytes=65536, limit=3)
+```
+
+```bash
+inferrsi collect 'cpu.stat.local' --relevance cgroupv2 --context-bytes 65536 --json
+```
+
+`relevance` is a separate lexical cue, not a replacement for `query`. Discovery
+with this cue considers generated `index_type=packaged-skill` package entries
+only; they retain `kind=knowledge`. Existing filters and the whitespace-token
+AND substring query run first. Each distinct case-folded word (`\w+`) contributes
+4 for substring presence in the title, 3 in the description, 2 in
+tags/applicability and 1 in the complete core. Repetition within a field adds nothing. Candidates with
+positive overlap sort by decreasing score, then qualified identity, before
+`limit` and `max_bytes`. This is deterministic lexical matching, not a learned
+ranking or a task-quality guarantee. Explicit `ids` retain membership and caller
+order regardless of the cue; `selection.ranking_applied` is false for those calls.
+Ordinary collection of other authorities and records remains available without
+the relevance opt-in. `KnowledgeStore.collect` delegates these same options.
+
+`context_bytes` requests a separate context view for returned generated packaged
+skills. It requires an explicit positive integer budget, with no token estimate
+or default. It can be used without `relevance`; optional resources then match the
+existing query, or use path order for an empty query. The existing `material=True`
+still returns `record.json` for these owners, not `SKILL.md`.
+
+| Additional result | Meaning |
+| --- | --- |
+| `selection` | Method, cue, scope and whether discovery ranking was applied; only with `relevance` |
+| `contexts` | Selected owner views, each with `ref`, exact Bundle `revision`, resources, `content_bytes`, resource omissions, sources, attribution and limitations |
+| `context_omissions` | Owner context unavailable: `unsupported_context`, `index_unavailable` or `context_limit` |
+| `context_bytes`, `context_budget` | Used body bytes, requested ceiling and accounting method |
+
+Each context resource carries its complete UTF-8 `content`, canonical resource
+`path`, exact-byte `sha256`, `role` (`core` or `reference`) and
+`locator=whole-resource`. The parent view supplies its owning ref and revision;
+`resource` can read exactly those bytes. The full canonical `SKILL.md`, declared
+references, provenance readsets and owner licenses (when present) are mandatory.
+Licenses are retained along each required resource's skill/repository/framework
+directory ancestry inside the packaged library, including cross-skill prerequisites.
+Owner-local named license/notice files (including retained `*-LICENSE.md` and
+`THIRD_PARTY_NOTICES.md`) and explicit `skill_metadata.sources[].third_party_notices`
+paths are mandatory as well. Declared notice paths use the same boundary and
+existence checks as declared references. These resources never depend on a
+relevance match; their complete bytes count toward the mandatory set.
+If that set does not fit, the owner's entire context is omitted, with required
+and available bytes, and a later smaller context can still fit. The owning item
+can still be returned. Mandatory instructions are never truncated.
+
+Remaining owner-local Markdown/JSON/text/CSV resources are optional. Their
+filename contributes 2 per matching word and their complete text contributes 1;
+ties use resource path. An empty cue includes them in path order. Nonmatching,
+oversized, non-UTF-8 and non-context resources (including owner `metadata.json`
+and scripts) are reported under the context's
+`omissions`, not silently discarded. Selected files retain their prerequisites
+and limitations; links to further material must still be followed through the
+owning revision. The context view is not a standalone export or proof that all
+linked dependencies have been read.
+
+The context budget sums exact UTF-8 resource-body bytes across owners in selected
+item order, counting a shared resource again if returned for another owner.
+It excludes provenance, hashes, omissions and control metadata. The separate
+`max_bytes/material_bytes` contract still counts serialized existing item payloads;
+adding context does not change those item payloads. Use `--json` for full
+provenance/accounting. CLI text mode prints complete context bodies in delimited
+blocks plus resource/owner omission codes.
+
+The source-pinned generated projection is validated against the packaged
+registry, owner mapping and resource hashes on each optimized read. Missing or
+stale bindings produce `index_unavailable` (a discovery item omission or a
+context omission); no ordinary-mode fallback occurs. Refresh projections with
+the existing `tools/build_skill_index.py` after committing their inputs. No new
+registry, persistent cache, service or optional parser dependency is introduced.
+Bundle resources, complete library dependency closure and revision calculations
+remain unchanged. Collection never executes a skill or its scripts.
+
+Offline fixtures establish compatibility and bounded deterministic selection.
+Task outcomes, tokens and latency require a separately authorized comparison
+through [Skill Eval](skill-evaluation.md), with cases, versions and budgets frozen
+before agent execution. Selection scores and green software checks do not
+establish skill efficacy.
+
 ## Identity and resources
 
 `Bundle` contains normalized metadata, content bytes and dependency revisions.
