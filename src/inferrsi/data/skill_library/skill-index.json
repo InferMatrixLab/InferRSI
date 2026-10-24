@@ -236,6 +236,10 @@
     "audit-afd-p2p-exchanges": {
       "path": "repositories/afd-plugin/audit-afd-p2p-exchanges",
       "backend": "cuda"
+    },
+    "audit-recurrent-kv-finalization": {
+      "path": "repositories/vllm-rlt/audit-recurrent-kv-finalization",
+      "backend": "common"
     }
   }
 }
