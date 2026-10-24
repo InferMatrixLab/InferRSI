@@ -338,6 +338,13 @@ not add a Communication/Network capability; no SSD or OS control is introduced.
 
 ## vLLM-Omni incremental abort guidance
 
+Route general stage/model/output decisions through the
+[engine source and responsibility map](../src/inferrsi/data/skill_library/repositories/vllm-omni/SKILL.md#source-and-responsibility-map).
+For receipt, wait-only timeout or retained transfer resources, follow
+[abort validation](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md)
+and its [three completion boundaries](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md#keep-three-completion-boundaries-separate).
+The map keeps the engine and incremental abort source snapshots separate.
+
 | Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
 |---|---|---|---|
 | Accelerator / RAM / Host | Diagnose / Verify: abort submission, logical acknowledgment, partial AR output and separately queued transfer reclamation | [Abort acknowledgment reference](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md) under the existing validation skill | Source control-flow and queue ownership, not native device synchronization or measured release completion |

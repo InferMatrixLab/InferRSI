@@ -316,6 +316,14 @@ not an additional source or validated mechanism.
 
 ## vLLM-Omni incremental abort/cleanup readset
 
+The [source and responsibility map](../src/inferrsi/data/skill_library/repositories/vllm-omni/SKILL.md#source-and-responsibility-map)
+links the original engine guide (`52194f24fa42e14d1c5e096f4bea4dc7f95cffa1`,
+inspected 2026-10-14) and this incremental abort readset
+(`18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e`, inspected 2026-10-22).
+Follow the [validation route](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md)
+for actual caller, receipt and cleanup questions. Existing readsets and the
+three catalog records retain their own source attribution and validation limits.
+
 | Source / revision | Inspected scope | Reuse, extraction and limits |
 |---|---|---|
 | vllm-project/vllm-omni @ `18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e` (Apache-2.0) | Engine-base abort/ack APIs, correlated waiter/router, orchestrator companion and logical cleanup, stage-pool partial outputs and queued release; selected upstream test source and test bootstrap | Extend [existing omni-validation](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md) with [three bounded mechanisms and pinned readset](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md). Reuse the original `52194f24...` engine guide and catalog ownership; no new skill or parallel database. CODE / TEST-SOURCE only; actual device, connector, model, service and performance not_run. Full duplex/session behavior and native abort guarantees deferred. |

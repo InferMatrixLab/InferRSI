@@ -86,6 +86,12 @@ these imports and use generated abstracts rather than runtime repository packs.
 | vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts | [Skill](repositories/vllm-omni/SKILL.md) | [Records](../repo_packs/vllm_omni/knowledge/README.md) |
 | Research router | Constrained engine design and validation | [Skill](workflows/inference-engine-research/SKILL.md) | — |
 
+For vLLM-Omni, the
+[source and responsibility map](repositories/vllm-omni/SKILL.md#source-and-responsibility-map)
+routes broad stage/model/output decisions and the separate
+[abort validation](repositories/vllm-omni/sub-skills/omni-validation/SKILL.md)
+with their original inspection dates and source pins.
+
 See the [collection overview](workflows/inference-engine-research/references/overview.md),
 [import boundaries](workflows/inference-engine-research/references/import.md) and
 [Strata design-space analysis](repositories/strata/references/design-space-analysis.md).
