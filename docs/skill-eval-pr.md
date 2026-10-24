@@ -90,6 +90,10 @@ The execute job has read-only repository permissions, no publication token in
 its model step, and checkout uses `persist-credentials: false`. The privileged
 publisher is a separate fresh job. Model access must not also grant PR publishing.
 The existing client's controlled skill exposure is not OS read confinement.
+Plan artifacts contain files rather than empty directories. The adapter restores
+each comparison's empty results directory after download; the existing executor
+still rejects nonempty results, and the exclusive execution claim still rejects
+duplicate attempts.
 
 ## Duplicate prevention and interrupted execution
 

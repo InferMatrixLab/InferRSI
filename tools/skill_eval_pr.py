@@ -162,6 +162,8 @@ def execute(output, approval, *, client=None):
         handle.write(canonical(approval))
     for item in plan["comparisons"]:
         if "plan_sha256" in item:
+            # Artifact downloads omit empty directories required by the executor.
+            (output / item["skill"] / "results").mkdir(exist_ok=True)
             compare.execute(output / item["skill"], item["plan_sha256"], client=client)
 
 

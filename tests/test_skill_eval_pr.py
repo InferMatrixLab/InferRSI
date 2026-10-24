@@ -233,6 +233,33 @@ def test_concurrent_duplicate_calls_execute_only_one_paid_schedule(tmp_path):
 
 
 @pytest.mark.parametrize("mode", ["addition", "update"])
+def test_file_only_plan_artifact_round_trip_can_execute(tmp_path, mode):
+    repo, mapping, identity = setup(tmp_path, mode, ids=("one",))
+    prepared = tmp_path / "prepared"
+    plan = integration.prepare(repo, mapping, identity, prepared)
+    write_json(prepared / "approval.json", approval(plan))
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as archive:
+        for path in prepared.rglob("*"):
+            if path.is_file():
+                archive.write(path, path.relative_to(prepared).as_posix())
+    downloaded = tmp_path / "downloaded"
+    with zipfile.ZipFile(io.BytesIO(buffer.getvalue())) as archive:
+        assert all(not entry.is_dir() for entry in archive.infolist())
+        archive.extractall(downloaded)
+    assert not (downloaded / "selected/results").exists()
+    assert compare.load_plan(downloaded / "selected") == compare.load_plan(prepared / "selected")
+    client = FixedOutputClient(tmp_path)
+    integration.execute(downloaded, compare.read_json(downloaded / "approval.json"), client=client)
+    status = compare.read_json(downloaded / "selected/results/status.json")
+    assert status["execution_state"] == "completed" and status["recorded_trials"] == 2
+    assert len(client.calls) == 2
+    with pytest.raises(FileExistsError):
+        integration.execute(downloaded, approval(plan), client=client)
+    assert len(client.calls) == 2
+
+
+@pytest.mark.parametrize("mode", ["addition", "update"])
 def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs(tmp_path, mode):
     repo, mapping, identity = setup(tmp_path, mode, token_stop_new_trials=200)
     output = tmp_path / "execution"
