@@ -68,7 +68,7 @@ afd_prefix = "data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges
 for relative in ("SKILL.md", "metadata.json", "references/source-notes.md",
                  "references/afd-plugin-LICENSE.md"):
     assert afd_prefix + relative in afd_bundle.content
-# 校验真实安装包的 RLT 资源；不加载 upstream backend。
+# Check installed RLT resources without importing the upstream backend.
 rlt_identity = "inferrsi.common.skills.audit_recurrent_kv_finalization"
 rlt_bundle = KnowledgeReader().read(rlt_identity)
 rlt_prefix = "data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/"
