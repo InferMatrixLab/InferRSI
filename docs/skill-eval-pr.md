@@ -71,11 +71,12 @@ are rechecked in the execution job immediately before starting the existing
 comparison command. No shell evaluates user-provided inputs.
 
 The selected model is **`gpt-6.1-sol`, effort `xhigh`**, requested by the owner.
-The initial mapping schedules **2 task calls**: one absent/old and one new arm,
+Each selected comparison schedules **2 task calls**: one absent/old and one new arm,
 one case, one repeat. Limits are 180 seconds per trial, 600 seconds per comparison,
 and an observed-token stop threshold of 20,000. This stops new trials; it is not
 a provider token or monetary hard cap. One trial can cross the threshold, and
-unreported usage/cost remain unknown. Mapping more skills increases the total;
+unreported usage/cost remain unknown. Selecting both mapped owners schedules four
+calls. Mapping more skills increases the total;
 the exact total is shown in the plan and requires renewed authorization.
 
 ### Execution environment prerequisite
