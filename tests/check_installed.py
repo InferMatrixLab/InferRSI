@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 106, "Knowledge is missing from the installation"
+assert len(records) == 107, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -43,7 +43,7 @@ for record in mlx_records:
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 58, "Missing installed skill abstracts"
+assert len(skill_index) == 59, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -75,7 +75,30 @@ for relative in (
     "references/minimax-h3-apple.md",
 ):
     assert h3_prefix + relative in h3_bundle.content
+afd_identity = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"
+assert any(item["id"] == afd_identity for item in search_knowledge(
+    "AFD", repo="inferrsi", backend="cuda", limit=100
+))
+afd_bundle = KnowledgeReader().read(afd_identity)
+afd_prefix = "data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/"
+for relative in ("SKILL.md", "metadata.json", "references/source-notes.md",
+                 "references/afd-plugin-LICENSE.md"):
+    assert afd_prefix + relative in afd_bundle.content
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
+selection_reader = KnowledgeReader()
+selection = selection_reader.collect(
+    "cpu.stat.local", relevance="cgroupv2", context_bytes=65536, limit=1,
+)
+assert selection["items"][0]["id"] == "inferrsi.common.skills.cgroup_resource_controls"
+assert not selection["context_omissions"]
+selection_context = selection["contexts"][0]
+selection_core = selection_context["resources"][0]
+assert selection_core["path"].endswith("/cgroup-resource-controls/SKILL.md")
+assert selection_core["content"].encode() == selection_reader.resource(
+    selection_context["ref"], selection_core["path"], revision=selection_context["revision"],
+)
+assert selection["context_bytes"] <= 65536
+assert "yaml" not in sys.modules, "Packaged selection must not require the skills extra"
 assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
@@ -96,7 +119,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 58
+assert len(registry) == 59
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")

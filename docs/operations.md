@@ -117,6 +117,15 @@ upstream instructions.
 
 ### Collect — `collect` / `KnowledgeReader.collect`
 
+Optional `--relevance <CUE>` ranks generated packaged skills after the existing
+query and filters; `--context-bytes <N>` returns their complete core plus bounded
+whole reference resources in a separate view. They preserve default calls,
+explicit-ID membership/order, `material` and the serialized-item `max_bytes`
+budget. Context counts UTF-8 body bytes separately and reports unavailable or
+oversized context explicitly. See [selection and context](knowledge-operations.md#optional-packaged-skill-selection-and-context)
+for scoring, provenance and accounting. For example:
+`inferrsi collect 'cpu.stat.local' --relevance cgroupv2 --context-bytes 65536 --json`.
+
 - **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` selects an explicit skills root, `--store` opens an existing store read-only (the store records its reserved skills root and rejects a mismatched or missing `--skill-root`).
 - **Scope:** installed package records plus (with `--skill-root`) skills and cases from the explicitly selected root, plus (with `--store`) store candidates; bounded output.
 - **Output:** with `--json`, the complete **normalized** envelope — items carrying the bundle's normalized metadata, resources and dependencies, plus `no_match`, `omissions`, `collisions`, `material_bytes` and the recorded limitations; fields that exist only in a package record's original entrypoint document are not projected into the normalized metadata and are read via `--material` or `resource`. Without `--json`, the envelope's selection is projected line-wise: one tab-separated line per item (`ref`, `revision`, `kind`, `state`, recorded `applicability`; free-text fields are control-character-escaped so one item stays one line), `collision` lines for multi-authority IDs, `omitted` lines with reason codes, an explicit `no_match` line when nothing was selected (query, filters or limits; when items were skipped the `omitted` lines above it carry the per-item causes), and — with `--material` — the entrypoint content in delimited blocks. The text mode does not print `material_bytes` or the envelope limitations; use `--json` for the complete envelope. The recorded `state` and applicability are printed as recorded and no validation status is invented. Exit 0 covers a result envelope, including no-match and omissions.

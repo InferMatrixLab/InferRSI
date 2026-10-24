@@ -30,7 +30,7 @@ IDS = {
     ],
 )
 def test_sysctl_parser_static_text_only(text, expected):
-    # 仅测试显式静态文本解析，不模拟 sysctl 或硬件 PASS。
+    # Test explicit static text only; do not simulate sysctl or a hardware PASS.
     assert _parse_sysctl_info(text) == expected
 
 

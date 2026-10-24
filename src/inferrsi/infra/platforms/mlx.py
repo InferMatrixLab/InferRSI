@@ -2,7 +2,7 @@ import platform
 
 
 def _parse_sysctl_info(stdout: str) -> tuple[bool, str]:
-    # 解析固定 sysctl 文本；静态样例不代表真实硬件探测。
+    # Parse fixed sysctl text; static samples do not verify real hardware discovery.
     rows = [line.partition(":") for line in stdout.splitlines() if line.strip()]
     values = {name.strip(): value.strip() for name, _, value in rows}
     if len(rows) != 2 or set(values) != {"hw.optional.arm64", "machdep.cpu.brand_string"}:
