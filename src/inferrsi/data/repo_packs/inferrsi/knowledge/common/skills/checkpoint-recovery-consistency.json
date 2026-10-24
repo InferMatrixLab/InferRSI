@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2b2320ccbb0011697f1c49e62b22fe819f82eb53/src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
-      "commit": "2b2320ccbb0011697f1c49e62b22fe819f82eb53",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
+      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
       "paths": [
         "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
         "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json",
@@ -44,7 +44,7 @@
     "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json": "5c18a225cd3b88051c57cb29d3d9cca3dcf18826aff86cef1cec39f315a1fc1d",
     "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc",
     "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233",
-    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
   },
   "skill_metadata": {
     "name": "checkpoint-recovery-consistency",

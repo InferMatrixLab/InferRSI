@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2b2320ccbb0011697f1c49e62b22fe819f82eb53/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
-      "commit": "2b2320ccbb0011697f1c49e62b22fe819f82eb53",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
+      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json",
@@ -42,7 +42,7 @@
     "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md": "36ef88826a32ac3147b869001004ded17a8d5a491e25bfe105005ba39ea9d1eb",
     "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json": "90941490debf1ec9f02310fa033658ec294a8e968783d4bb9d004bcded0f73fe",
     "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md": "f452bf40132c9195d739f1c86b3aa18857138c7ed0f1861af5853d93b9955924",
-    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
   },
   "skill_metadata": {
     "name": "host-overhead-optimization",

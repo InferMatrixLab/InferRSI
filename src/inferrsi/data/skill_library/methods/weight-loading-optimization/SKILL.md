@@ -140,6 +140,10 @@ When weights/activations do not fit device memory:
 
 ## 6. Loading modes: mmap / mlock / direct I/O / lazy (llama.cpp pattern)
 
+For the division between loading, NUMA/thread placement and runtime-state diagnosis,
+use the [llama.cpp owner map](../../repositories/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope).
+Source pins and static-inspection dates stay with their respective owners.
+
 At the pinned revision (3e390af) loading is one unified flag,
 `--load-mode {auto|none|mmap|mlock|mmap+mlock|dio}` (default `auto` = mmap
 unless the device lacks `mmap_support`). The legacy standalone `--mlock` /

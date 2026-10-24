@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2b2320ccbb0011697f1c49e62b22fe819f82eb53/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "2b2320ccbb0011697f1c49e62b22fe819f82eb53",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json",
@@ -51,7 +51,7 @@
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/references/source-notes.md": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e",
-    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
   },
   "skill_metadata": {
     "name": "optimization-search-policy",
