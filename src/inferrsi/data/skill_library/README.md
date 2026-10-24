@@ -65,6 +65,18 @@ and server task/slot cancellation. Its pinned source contracts are untested nati
 existing owners. The [scope and source map](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope)
 links all three responsibilities and their separate source snapshots.
 
+## vLLM version and responsibility routing
+
+The existing [vLLM responsibility map](repositories/vllm/SKILL.md#choose-the-source-and-responsibility)
+separates the broad engine guide at `2521446ac8c92937b5a32b7dc2a84ef7fa8e99c5`
+(inspection 2026-10-14) from the focused
+[admission](repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md) and
+[KV lifetime](repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md) procedures at
+`7f730b4cea9a66520a9200265928ebe016b48a39` (supplier inspection 2026-10-15).
+Their original readsets, source notices and candidate/unverified states remain;
+this routing adds no semantic reread or compatible-stack result. Paper-era
+scheduling/placement proposals remain separate from both implementation pins.
+
 ## Engine knowledge
 
 Five repository entry skills, 15 focused sub-skills and one research router

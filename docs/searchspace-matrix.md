@@ -65,6 +65,17 @@ The primary compute and HBM resource. Most current work lives here.
 
 ---
 
+### vLLM version and responsibility routing
+
+For the vLLM admission/KV rows above, the
+[existing responsibility map](../src/inferrsi/data/skill_library/repositories/vllm/SKILL.md#choose-the-source-and-responsibility)
+separates broad engine/configuration/extension guidance at
+`2521446ac8c92937b5a32b7dc2a84ef7fa8e99c5` from focused scheduler branches
+and connector obligations at `7f730b4cea9a66520a9200265928ebe016b48a39`.
+Original inspection dates and candidate/unverified limits remain unchanged.
+Concrete caller/backend conformance needs its own evidence; this navigation
+adds no RAM/Host, SSD, Network, OS or runtime/performance qualification.
+
 ## 2 · RAM / Host Memory
 
 Host-side memory: CPU DRAM, pinned memory, page tables, PyTorch tensor lifecycle.
