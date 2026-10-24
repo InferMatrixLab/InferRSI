@@ -10,6 +10,27 @@ metadata:
 
 Use this graph for SGLang engine reasoning, bounded tuning, and implementation reviews. Before relying on it, compare the checkout with [provenance](references/repo-provenance.md). The original LLM routes retain that snapshot; the diffusion supplement has its own pinned source notes and validation limits. These are portable candidates, not claims that a GPU configuration has passed.
 
+## Choose among source pins
+
+Use the question and the retained source scope to select an entry. These pins
+are independent; their dates are carried evidence, not a new source inspection.
+
+| Question | Existing entry | Fixed evidence / original date | Limit |
+| --- | --- | --- | --- |
+| LLM admission, Radix/KV ownership, topology or controlled engine tuning | This engine graph; [runtime and memory](sub-skills/sglang-runtime-memory/SKILL.md) and [source map](references/source-map.md) | `16176278d0180f1a1a578e53e6eef432577876c2`; contribution records accessed 2026-10-14, with separate [snapshot provenance](references/repo-provenance.md) | LLM routes retain this snapshot; engine navigation is not a tested combination of all routes/backends |
+| Reusable LLM prefix KV across device, host and optional storage tiers | Separate catalog ID `sglang.cuda.llm.hierarchical_prefix_cache` ([canonical peer record](https://github.com/InferMatrixLab/InferRSI/blob/8233a2ba795a22af9b8f17c8793da0a936a38857/src/inferrsi/data/knowledge_packs/peer/sglang/cuda/llm/hierarchical-prefix-cache.json)) | `f7ad4345b86d147a1c3095a3cebabca9a33ebaa1`; HiCache documentation accessed 2026-10-15 | CUDA/LLM peer card; imported, locally_verified=false; prefix identity, sharing scope and transfer/recompute cost require matching evidence |
+| multimodal_gen stage state, component-use intervals or timeout/job finalization | [Diffusion lifetimes](audit-sglang-diffusion-lifetimes/SKILL.md) and its [source notes](audit-sglang-diffusion-lifetimes/references/source-notes.md) | `df13d5dce31abfeff0e701a62e8c39a136758e6c`; supplied archive inspected 2026-10-22 | Candidate, empirical validation not_run; bounded monolithic path, separate from LLM srt and SGLang-Omni |
+
+Read the HiCache peer separately through its stable ID, for example
+`inferrsi knowledge show sglang.cuda.llm.hierarchical_prefix_cache`.
+The record link identifies retained provenance, not an implicit dependency of a
+diffusion bundle.
+
+LLM prefix KV tiers do not define diffusion scheduler-instance, component or
+job-finalizer lifetimes. Common indexing and an engine entry do not qualify
+CUDA/NPU execution or cross-pin compatibility. Process transport/IPC alone
+does not establish Network capability.
+
 Choose one main route; compose a second when its boundary is involved:
 
 | Task | Read |
