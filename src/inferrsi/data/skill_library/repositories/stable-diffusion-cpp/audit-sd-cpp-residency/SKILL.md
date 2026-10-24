@@ -1,6 +1,6 @@
 ---
 name: audit-sd-cpp-residency
-description: Audit stable-diffusion.cpp image-generation memory pressure by separating model parameter storage, compute weight residency, retained runtime buffers and segment prefetch under the actual backend.
+description: Audit stable-diffusion.cpp image-generation memory pressure by separating catalog freshness and weight-byte delivery from model parameter storage, compute weight residency, retained runtime buffers and segment prefetch under the actual backend.
 ---
 
 # Audit diffusion weight and workspace residency
@@ -13,9 +13,12 @@ image quality or performance result has been established for this candidate.
 
 Use when this runtime fails to fit an image workload, repeatedly transfers
 weights, or appears to ignore a configured device-memory budget. The output is
-an ownership audit and the smallest discriminating check. Use the existing
-weight-loading method for startup I/O questions; this procedure addresses
-request-time weights and runtime buffers. It does not prescribe LLM KV policy,
+an ownership audit and the smallest discriminating check. Follow the
+[loader/storage boundaries](references/loader-storage-boundaries.md) when
+source refresh, short reads or host/mapped storage affect this audit. Keep
+generic startup-I/O optimization with the existing weight-loading method;
+the procedure below addresses request-time weights and runtime buffers.
+It does not prescribe LLM KV policy,
 training activation checkpointing, approximate denoising caches, or the separate
 video/audio paths.
 
