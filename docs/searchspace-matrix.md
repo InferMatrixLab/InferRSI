@@ -387,3 +387,13 @@ separate from the public release's inspected code paths.
 | Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
 | --- | --- | --- | --- |
 | Accelerator / Host / service boundary | Observe / Verify: select task quality and reference parity; freeze workload, timing, SLOs, units and failure accounting; distinguish agent replay from live task success | [inference-benchmark-design task reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md) and [commands](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md) | Cross-task measurement guidance, not new measured hardware coverage. A text HTTP smoke cannot validate TTS, duplex, image/video quality, repeated A/B or production capacity. No runtime adapter or automatic evaluator is added. |
+
+## Hopper kernel reasoning (source-derived)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator | Observe / Diagnose / Configure / Verify: TMA full/empty stage ownership and parity, WGMMA group completion and SS/RS layouts, register/SMEM/epilogue budgets, software persistent scheduling and FP8 scale/promotion contracts | [reason-hopper-kernels](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md), with [systematic source selection](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/sources.md) | Candidate mechanisms qualified by selected pinned code and versioned documentation; remaining source bodies unmined, Blackwell-only recipes excluded. No GPU compilation, accuracy, profiling or performance run. |
+
+This adds conditional Hopper guidance without new measured or green coverage.
+Registers, SMEM and HBM remain device resources; local CTA/cluster coordination
+and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.
