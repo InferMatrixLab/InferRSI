@@ -1,0 +1,14 @@
+{
+  "phase": "screening",
+  "plane": "infra",
+  "id": "full-cuda-2gpu",
+  "source": "https://github.com/vllm-project/vllm-omni/blob/d93e1a8e09d2a0d386c4a58424470d685ee7743c/vllm_omni/deploy/qwen3_omni_moe_mrv2_h200.yaml",
+  "adaptation": "Use existing complete CUDA optimization bundle, restoring original two-GPU stage placement and memory fractions; MPS disabled. Bundle includes predictor KV/short-KV, fused selection and cuDNN search. No individual-feature gain attribution from this combined screen.",
+  "hypothesis": "Residual sampling and convolution costs remain after KV-only screens; evaluate the complete existing upstream bundle before proposing new kernels.",
+  "source_sha": "557097940fb38a2579af104997a387749c2a47a1",
+  "source_delta": "JIT observability option forwarding only; benchmark and model algorithms match frozen f9 source.",
+  "private_overlay_sha256": "319341e6370272b1becae0f50e2441aafd05deb6ae3e41aad295a2936ab58b24",
+  "hardware": "Exactly two L20X GPUs on a newly isolated pair; earlier screens are not formal comparisons.",
+  "quality": "Native precision retained; rounding/sampling paths can differ, paired WER required before promotion.",
+  "gates": "protocol-v5 for future formal comparisons; no target or quality gate relaxation"
+}

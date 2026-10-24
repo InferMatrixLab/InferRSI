@@ -1,0 +1,32 @@
+{
+  "attempts": [
+    {
+      "attempt": "startup-01",
+      "status": "failed",
+      "reason": "missing --omni CLI flag; no inference executed"
+    },
+    {
+      "attempt": "startup-02",
+      "status": "completed",
+      "cleanup": "owned API process terminated; both reserved GPUs returned to zero memory"
+    },
+    {
+      "run": "baseline-smoke",
+      "requests": 4,
+      "verdict": "INCONCLUSIVE",
+      "reason": "default prompt allows task answering; old runtime dependency range; missing per-request audio metrics"
+    },
+    {
+      "run": "baseline-c64-screen",
+      "requests": 128,
+      "verdict": "INCONCLUSIVE",
+      "reason": "default prompt allows task answering; old runtime dependency range; missing per-request audio metrics"
+    }
+  ],
+  "prompt_probe": {
+    "row": 22,
+    "system_only": "model answered the puzzle instead of reading it",
+    "user_readback_wrapper": "model returned the supplied sentence, surrounded by quotes"
+  },
+  "candidate_search_started": false
+}

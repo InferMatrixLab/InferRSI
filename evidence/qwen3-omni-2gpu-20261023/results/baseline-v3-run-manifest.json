@@ -1,0 +1,240 @@
+{
+  "schema_version": 1,
+  "status": "INCONCLUSIVE",
+  "scope": "Baseline only; one performance matrix replicate and a separate quality run. No comparative gain or target attainment claimed.",
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/112",
+  "protocol": "../plan/protocol-v3.json",
+  "protocol_sha256": "16d7630cdc54ce4c556abe7a13269a3b73965ca2c975e7a91ac7985d340c719c",
+  "frozen_manifest": "../plan/frozen-files-v3.json",
+  "frozen_manifest_sha256": "efcd77e1e6deacf7db36e429771a5b4ef057b5380bf0c1e817cc0b981729c349",
+  "server_source_sha": "9449b3cafc1a98f1efa599d75d4a6a0508299437",
+  "benchmark_source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "inference_equivalent_upstream_sha": "88c9ccd7ceb39b0380ce1257198c5e34cbe2c029",
+  "revision_basis": "Server provenance supplied by campaign operator; source diff independently checked below. Benchmark instrumentation changes do not change inference implementation.",
+  "server_vs_engine_changed_paths": [
+    "tests/benchmarks/patch/test_patch.py",
+    "vllm_omni/benchmarks/patch/patch.py"
+  ],
+  "benchmark_vs_server_changed_paths": [
+    "tests/benchmarks/patch/test_benchmark_result.py",
+    "vllm_omni/benchmarks/patch/patch.py"
+  ],
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "count": 2,
+    "logical_devices": [
+      "0",
+      "1"
+    ],
+    "physical_mapping": "Host device indices redacted; both campaign-assigned GPUs used."
+  },
+  "deployment": {
+    "path": "vllm_omni/deploy/qwen3_omni_moe.yaml",
+    "source_sha": "9449b3cafc1a98f1efa599d75d4a6a0508299437",
+    "retained_file": "baseline-v3-deploy.yaml",
+    "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+    "stages": [
+      {
+        "stage": 0,
+        "role": "Thinker",
+        "logical_device": 0,
+        "model_runner": "v1"
+      },
+      {
+        "stage": 1,
+        "role": "Talker",
+        "logical_device": 1,
+        "model_runner": "v1"
+      },
+      {
+        "stage": 2,
+        "role": "Code2Wav",
+        "logical_device": 1,
+        "model_runner": "v1"
+      }
+    ],
+    "runtime_config_excerpts": "baseline-v3-runtime-config-excerpts.txt",
+    "runtime_excerpts_scope": "Startup-emitted LLM configuration lines only; not a complete resolved stage/connector snapshot. Model paths and process IDs replaced by placeholders."
+  },
+  "environment": {
+    "torch": "2.13.0+cu130",
+    "vllm": "0.32.0",
+    "transformers": "5.16.1",
+    "flashinfer-python": "0.7.0.post1",
+    "triton": "3.7.1",
+    "numpy": "2.2.6",
+    "soundfile": "0.14.0",
+    "openai-whisper": "20250625",
+    "jiwer": "4.0.0",
+    "zhon": "2.1.1",
+    "omni_source_override": "PYTHONPATH selects frozen worktree; installed vllm-omni distribution metadata is stale and not the executed revision",
+    "tokenizers": "0.23.1",
+    "vllm-omni_distribution_metadata_only": "0.31.0rc2.dev289+g04aa51e9f.d20261019",
+    "OMP_NUM_THREADS": "1",
+    "HF_HUB_OFFLINE": "1",
+    "CUDA_VISIBLE_DEVICES": "<ASSIGNED_GPU_0>,<ASSIGNED_GPU_1>",
+    "overlay": "task-local runtime overlay ahead of site-packages; shared installation unchanged",
+    "transformers_metadata_sha256": "a552b99768921327581cb0e1389718d39cb25f09d4f49b80aa9fc27a843d09e4",
+    "tokenizers_metadata_sha256": "67226b8d55c78feec1f100f38cd5b04ad7385af8484696b7fd332c1d8cec4345"
+  },
+  "workload": {
+    "dataset": "Seed-TTS Eval EN",
+    "selection": "first 256 rows, original order, no oversampling",
+    "meta_sha256": "7cd29f701743e6c7033edbca764ddc0b979de8c4f4907eff5e5454682114661f",
+    "selected_sha256": "4f6dea171994e984a9cd3db71dcb1fdddb590b26f87f82d21a457869d01e4024",
+    "user_prompt_wrapper": "benchmark_readback.py; target remains unwrapped for WER"
+  },
+  "runs": [
+    {
+      "file": "baseline-v3-c1.json",
+      "sha256": "9825079af5cb73b958a63ce89c58f33a82f23b853654750e06a755c280031947",
+      "original_sha256": "ea59b7941d5e8a8c3c0a21a4bfda52083edd849828629f05371204bfe371afb9",
+      "requests": 256,
+      "concurrency": 1,
+      "summary": {
+        "throughput_frames_s": 189392.83465332614,
+        "ttfa_p50_ms": 132.37368129193783,
+        "ttfa_p95_ms": 141.1693098489195,
+        "rtf_mean": 0.13085621821004254,
+        "completed": 256
+      },
+      "kind": "performance",
+      "replicate": 1
+    },
+    {
+      "file": "baseline-v3-c16.json",
+      "sha256": "b4d5524fbd41862460afbfd742ccbef508403767eb4c1764d51b283b00c0dd18",
+      "original_sha256": "1eed57d42a7d77db84e80320349846e47808eae936665a7eb33786832e044378",
+      "requests": 256,
+      "concurrency": 16,
+      "summary": {
+        "throughput_frames_s": 1289916.1159140428,
+        "ttfa_p50_ms": 357.04424418509007,
+        "ttfa_p95_ms": 514.5179531536996,
+        "rtf_mean": 0.3050066562989061,
+        "completed": 256
+      },
+      "kind": "performance",
+      "replicate": 1
+    },
+    {
+      "file": "baseline-v3-c2.json",
+      "sha256": "6521e5417bb4500e4431773d0098ae8ea3175bd0706f734f79dbae8757f66ab7",
+      "original_sha256": "7af386d1cdb7be54f3fdd0f1ede7c9206d7c9a04cb4132cb65b9f464b176dd43",
+      "requests": 256,
+      "concurrency": 2,
+      "summary": {
+        "throughput_frames_s": 317326.876497572,
+        "ttfa_p50_ms": 164.3283679150045,
+        "ttfa_p95_ms": 214.25213664770126,
+        "rtf_mean": 0.1571901283681076,
+        "completed": 256
+      },
+      "kind": "performance",
+      "replicate": 1
+    },
+    {
+      "file": "baseline-v3-c32.json",
+      "sha256": "53a3b9870273229ebf68dc9bce0d6da1e8f28fe5d6962aee3651ac6e365e161a",
+      "original_sha256": "8a02b009c9348026b1251a59209363c0d351acc5174d0997d07c43e04843c124",
+      "requests": 256,
+      "concurrency": 32,
+      "summary": {
+        "throughput_frames_s": 1760061.8389705934,
+        "ttfa_p50_ms": 525.772892870009,
+        "ttfa_p95_ms": 981.2761219218373,
+        "rtf_mean": 0.43232753284592784,
+        "completed": 256
+      },
+      "kind": "performance",
+      "replicate": 1
+    },
+    {
+      "file": "baseline-v3-c4.json",
+      "sha256": "334c89a42bbb9ed5d64448c05e8ad3d7cd5a3fb4208919c940d6f4471286a327",
+      "original_sha256": "fc09b5a296e744ca2dfb06d59c11f38088e9d66de1a9363fa1cba288348cdbce",
+      "requests": 256,
+      "concurrency": 4,
+      "summary": {
+        "throughput_frames_s": 524675.8310970769,
+        "ttfa_p50_ms": 201.6479871235788,
+        "ttfa_p95_ms": 299.39874284900725,
+        "rtf_mean": 0.1894055214197629,
+        "completed": 256
+      },
+      "kind": "performance",
+      "replicate": 1
+    },
+    {
+      "file": "baseline-v3-c64.json",
+      "sha256": "c694347f846b4c701491481cf63c370b9110938d72c942b365283b211e43ff96",
+      "original_sha256": "af57e246f738f499cfd335f6c844279a1cb2d146f758c0caa92aeba08e6c4611",
+      "requests": 256,
+      "concurrency": 64,
+      "summary": {
+        "throughput_frames_s": 2094731.3444602,
+        "ttfa_p50_ms": 735.0095687434077,
+        "ttfa_p95_ms": 1032.3985482100397,
+        "rtf_mean": 0.6912076665399766,
+        "completed": 256
+      },
+      "kind": "performance",
+      "replicate": 1
+    },
+    {
+      "file": "baseline-v3-c8.json",
+      "sha256": "aec3097149b5956ac6dd5bd7807df6db01c0649aeb93adf8d7df9019b2bd6478",
+      "original_sha256": "61751c7c5d2bf17c880f8598cfa6abd7b29d52e7a42cb78be85d05a73747642d",
+      "requests": 256,
+      "concurrency": 8,
+      "summary": {
+        "throughput_frames_s": 876231.1804718503,
+        "ttfa_p50_ms": 248.47428826615214,
+        "ttfa_p95_ms": 383.67122737690806,
+        "rtf_mean": 0.2252527055090789,
+        "completed": 256
+      },
+      "kind": "performance",
+      "replicate": 1
+    },
+    {
+      "file": "baseline-v3-quality.json",
+      "sha256": "94d37623360465b399b0af9893ac5622ebcfad7d00d8de9b8e037f06d0b2c78d",
+      "original_sha256": "57adc1168213279e0b60ca60665545c70f21a6674089e6dfc14d9d0fe35f7592",
+      "requests": 256,
+      "concurrency": 64,
+      "summary": {
+        "throughput_frames_s": 2151027.332228104,
+        "ttfa_p50_ms": 769.4723466411233,
+        "ttfa_p95_ms": 1139.2798039596528,
+        "rtf_mean": 0.6893169893737326,
+        "completed": 256
+      },
+      "kind": "quality",
+      "replicate": 1,
+      "wer_mean": 0.038329584911616164,
+      "scorer_manifest": "baseline-v3-quality-scorer.json"
+    }
+  ],
+  "quality_scorer_manifest": {
+    "file": "baseline-v3-quality-scorer.json",
+    "sha256": "7e035590c6c7fe24949791b55f824525188b70be0184f753a7b02cec69de3f97"
+  },
+  "redaction": {
+    "changes": [
+      "tokenizer_id replaced by <MODEL_PATH>",
+      "Quality audio root replaced by <BASELINE_QUALITY_AUDIO_DIR>",
+      "Host GPU indices represented by logical 0 and 1",
+      "Runtime log paths and process IDs replaced by placeholders"
+    ],
+    "preserved": "All raw audio request rows, generated text, errors, timings, sample counts, per-item WER references/transcripts and numeric aggregates preserved.",
+    "originals": "Private local raw JSON and audio originals retained; original JSON SHA-256 identifies integrity, not public availability."
+  },
+  "limitations": [
+    "Only the first baseline replicate is present; frozen repeated AB/BA comparison remains incomplete.",
+    "Performance is text readback through all three stages; speech-input and general conversational quality remain unqualified.",
+    "Quality timing includes a separate scoring-enabled workload and is not used as performance evidence.",
+    "Actual effective package versions are operator-reported and match selected overlay metadata; no post-hoc probe can prove historical process imports.",
+    "Private audio payloads are retained by operator, not redistributed here."
+  ]
+}

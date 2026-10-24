@@ -1,0 +1,33 @@
+{
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "command": [
+    "<LOCAL_PATH>",
+    "-m",
+    "vllm_omni.entrypoints.cli.main",
+    "serve",
+    "<LOCAL_PATH>",
+    "--omni",
+    "--served-model-name",
+    "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "28931",
+    "--stage-init-timeout",
+    "1200",
+    "--init-timeout",
+    "2400",
+    "--jit-monitor-verbose",
+    "--deploy-config",
+    "<LOCAL_PATH>"
+  ],
+  "start_time": 1792735241.261704,
+  "status": "INCONCLUSIVE",
+  "phase": "screening",
+  "execution_complete": true,
+  "stop_time": 1792737038.5055056,
+  "monitor_errors": [],
+  "resource_isolation_verified": true,
+  "server_exit_code": 0,
+  "source_unchanged": true
+}

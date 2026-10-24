@@ -150,6 +150,14 @@ records. Historical mappings point only to preserved snapshots, never current
 implementations. Do not invent hashes or update frozen manifests to silence a
 failure.
 
+For a retained metadata JSON object with nested provenance or external payload
+descriptions, declare `{"path": "plan/model-manifest.json", "schema":
+"metadata-sha256", "sha256": "<digest-of-retained-file-bytes>"}` in the inventory.
+This schema checks JSON object structure and the entire retained file's digest;
+it does not interpret nested hashes, follow referenced paths or establish payload
+availability. Describe missing external payloads in the bundle's `external` list.
+Use the existing payload-verifying schemas for files that must be checked.
+
 The JSON result separates structural/hash errors (nonzero exit) from unavailable
 external dependencies. Remote archives are not downloaded; if supplied at their
 declared inventory paths, their recorded size and digest are checked. A missing

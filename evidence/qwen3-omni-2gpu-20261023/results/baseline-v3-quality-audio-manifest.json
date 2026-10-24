@@ -1,0 +1,1541 @@
+{
+  "availability": "Retained privately; audio payloads are not included in this repository bundle.",
+  "files": [
+    {
+      "utterance_id": "common_voice_en_10119832-common_voice_en_10119840",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00000_common_voice_en_10119832-common_voice_en_10119840_en.wav",
+      "sha256": "87c467618216ceef6654321e475643c36ea33fe34e1acb7d6e226dddbd684c47",
+      "bytes": 117974
+    },
+    {
+      "utterance_id": "common_voice_en_10119832-common_voice_en_10119847",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00001_common_voice_en_10119832-common_voice_en_10119847_en.wav",
+      "sha256": "6516cb0653281b0bffd6e697f6aeff3e3e6922264b499be97178ea14ae846812",
+      "bytes": 160214
+    },
+    {
+      "utterance_id": "common_voice_en_103675-common_voice_en_103676",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00002_common_voice_en_103675-common_voice_en_103676_en.wav",
+      "sha256": "cf0548ccdb796afc5ffddc5d1d6a95b6eb712933d395ad4a044a9c0ecc8cd34b",
+      "bytes": 233174
+    },
+    {
+      "utterance_id": "common_voice_en_103675-common_voice_en_103677",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00003_common_voice_en_103675-common_voice_en_103677_en.wav",
+      "sha256": "3d90503d62c1457f41aad9f0387cb7cad7bab02af381e9bc3484bc077d22a83b",
+      "bytes": 121814
+    },
+    {
+      "utterance_id": "common_voice_en_10933823-common_voice_en_10933822",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00004_common_voice_en_10933823-common_voice_en_10933822_en.wav",
+      "sha256": "2eb6654f2d6accef2466e184b808b6a3ee29138e8fc153bcb7ceeb08d472625d",
+      "bytes": 160214
+    },
+    {
+      "utterance_id": "common_voice_en_10933823-common_voice_en_10933825",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00005_common_voice_en_10933823-common_voice_en_10933825_en.wav",
+      "sha256": "3b464310d991aa500971c12e4e8432571239e543f24396517b738588c032d6e5",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_120405-common_voice_en_120402",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00006_common_voice_en_120405-common_voice_en_120402_en.wav",
+      "sha256": "5b1acfde6a28f3b443e4f7bd3b52f80a29975c9efb6e437b5d3ff5f5fda6ee9b",
+      "bytes": 279254
+    },
+    {
+      "utterance_id": "common_voice_en_120405-common_voice_en_120406",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00007_common_voice_en_120405-common_voice_en_120406_en.wav",
+      "sha256": "1e976215132a74dfd993874b957dd4574c12290b0bc87b67c5632745aedc5f34",
+      "bytes": 141014
+    },
+    {
+      "utterance_id": "common_voice_en_1205005-common_voice_en_1205007",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00008_common_voice_en_1205005-common_voice_en_1205007_en.wav",
+      "sha256": "a7eeec9a5c0c4abebf47fc5797dc761d5ab796e2addeb12ac9501c5ba55288f2",
+      "bytes": 121814
+    },
+    {
+      "utterance_id": "common_voice_en_1205005-common_voice_en_1205008",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00009_common_voice_en_1205005-common_voice_en_1205008_en.wav",
+      "sha256": "3aae8c43684a8d58662bd1a53d7ba329e3721184e8efbc0e08308dc567a9c6e3",
+      "bytes": 133334
+    },
+    {
+      "utterance_id": "common_voice_en_123125-common_voice_en_123126",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00010_common_voice_en_123125-common_voice_en_123126_en.wav",
+      "sha256": "54c56fa48cff27fd1090244afbf6fa3f71eaffc1bc13e6c1e10de6d10eda9b36",
+      "bytes": 202454
+    },
+    {
+      "utterance_id": "common_voice_en_123125-common_voice_en_123127",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00011_common_voice_en_123125-common_voice_en_123127_en.wav",
+      "sha256": "af771bee9dcd4983ca3ba9b8522fddb323fa843ce3b78005b83b65b615500659",
+      "bytes": 183254
+    },
+    {
+      "utterance_id": "common_voice_en_125386-common_voice_en_125388",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00012_common_voice_en_125386-common_voice_en_125388_en.wav",
+      "sha256": "46ac73d23f86c25144b036081ddb15512908c3e1e0bda22b0fca130343189eb5",
+      "bytes": 202454
+    },
+    {
+      "utterance_id": "common_voice_en_125386-common_voice_en_125389",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00013_common_voice_en_125386-common_voice_en_125389_en.wav",
+      "sha256": "132ce9a73f6cf9a8b79f09847534731322758fd43d935753c08573381bcf31d1",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_137148-common_voice_en_137152",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00014_common_voice_en_137148-common_voice_en_137152_en.wav",
+      "sha256": "bb7473c9fe466b3336d21afdc74d4ea382e2b02b1c92530f690a1ab63c1614d8",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_13900-common_voice_en_13901",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00015_common_voice_en_13900-common_voice_en_13901_en.wav",
+      "sha256": "2b3741c47062681a3567c96bf7b342258d2801c635763229b1566faa27ad1493",
+      "bytes": 121814
+    },
+    {
+      "utterance_id": "common_voice_en_1416089-common_voice_en_1416090",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00016_common_voice_en_1416089-common_voice_en_1416090_en.wav",
+      "sha256": "8306f92b74883b80374c8892e0a71e15da8739c53e3edebe9901316cb1f74165",
+      "bytes": 187094
+    },
+    {
+      "utterance_id": "common_voice_en_1416089-common_voice_en_1416093",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00017_common_voice_en_1416089-common_voice_en_1416093_en.wav",
+      "sha256": "632dc265c703ae7ee665259009d4afd11c5124cdfa3503baa704142b8fe2aec0",
+      "bytes": 144854
+    },
+    {
+      "utterance_id": "common_voice_en_15265-common_voice_en_15266",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00018_common_voice_en_15265-common_voice_en_15266_en.wav",
+      "sha256": "6dfa888e6d7c8837658f4dc437cad2fe0fe5a254892c9d08b9a424bc9f1d1aa3",
+      "bytes": 125654
+    },
+    {
+      "utterance_id": "common_voice_en_15265-common_voice_en_15268",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00019_common_voice_en_15265-common_voice_en_15268_en.wav",
+      "sha256": "5be31c060b106731775f668b69e10f7a9b61a919f537c1728a053cbe485eba1a",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_153872-common_voice_en_153873",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00020_common_voice_en_153872-common_voice_en_153873_en.wav",
+      "sha256": "834f3f6a7ab487b48c4ef47df927b201bb90fe05b09dd5307dd98e485ee3c01e",
+      "bytes": 117974
+    },
+    {
+      "utterance_id": "common_voice_en_153872-common_voice_en_153874",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00021_common_voice_en_153872-common_voice_en_153874_en.wav",
+      "sha256": "48cb686e9073efcd1df79eb35225a39b00886c711bd234b5739716094b012284",
+      "bytes": 225494
+    },
+    {
+      "utterance_id": "common_voice_en_155313-common_voice_en_155315",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00022_common_voice_en_155313-common_voice_en_155315_en.wav",
+      "sha256": "6c4cb142e8b40498e45c124b04ba229aa4e69d476bb58d9b4cd8205515b01c04",
+      "bytes": 260054
+    },
+    {
+      "utterance_id": "common_voice_en_15734837-common_voice_en_15734838",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00023_common_voice_en_15734837-common_voice_en_15734838_en.wav",
+      "sha256": "8c22b47dea0795165c157cdeb02c01f947f35745bcb1599123c78d9dfbda7be4",
+      "bytes": 102614
+    },
+    {
+      "utterance_id": "common_voice_en_15735839-common_voice_en_15735837",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00024_common_voice_en_15735839-common_voice_en_15735837_en.wav",
+      "sha256": "d7f7eb9baef8c361a965d257e6b78e1e53f8e241b41e7fc31aec3c80b4bc5b20",
+      "bytes": 45014
+    },
+    {
+      "utterance_id": "common_voice_en_15903802-common_voice_en_15903807",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00025_common_voice_en_15903802-common_voice_en_15903807_en.wav",
+      "sha256": "f8ffde5ce7fd44d3dadc8f36648daab9d73b35cf048ed0876705b99cb5c9cb38",
+      "bytes": 210134
+    },
+    {
+      "utterance_id": "common_voice_en_15903802-common_voice_en_15903815",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00026_common_voice_en_15903802-common_voice_en_15903815_en.wav",
+      "sha256": "89567fbb9853fa3d0176819b5a9015b8081f4e6bb0cdaeb8b73704c1c34baeef",
+      "bytes": 152534
+    },
+    {
+      "utterance_id": "common_voice_en_16666041-common_voice_en_16666040",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00027_common_voice_en_16666041-common_voice_en_16666040_en.wav",
+      "sha256": "f5cec0db071593426f3092351040e7fd33147822599e33ef2ba5c80dc585d8d8",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_167249-common_voice_en_167246",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00028_common_voice_en_167249-common_voice_en_167246_en.wav",
+      "sha256": "912bc620d6ffb853dc0f1f0ed6f3c24550a59923a8ef2efdcd9f6f9083d8e568",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_167249-common_voice_en_167247",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00029_common_voice_en_167249-common_voice_en_167247_en.wav",
+      "sha256": "e05b77bb7e530646e4303d23cdc8f30d75f8773607afdc9064ef517d92d9eb98",
+      "bytes": 110294
+    },
+    {
+      "utterance_id": "common_voice_en_17147545-common_voice_en_17147546",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00030_common_voice_en_17147545-common_voice_en_17147546_en.wav",
+      "sha256": "e6a76b11aeb740ef093654e63b1d32aa7863fa7e6030000f79a83b5dc20edf6d",
+      "bytes": 225494
+    },
+    {
+      "utterance_id": "common_voice_en_17161-common_voice_en_17159",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00031_common_voice_en_17161-common_voice_en_17159_en.wav",
+      "sha256": "0cd63bf5c8d48a9940c24429b8f19b53a074af045b7acd2e834e2d61e63db46e",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_17161-common_voice_en_17160",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00032_common_voice_en_17161-common_voice_en_17160_en.wav",
+      "sha256": "697374d59adbc400ea2dfd3282362e40e3c6134161c2c834bc89e0c3f3e478f2",
+      "bytes": 187094
+    },
+    {
+      "utterance_id": "common_voice_en_17249419-common_voice_en_17249428",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00033_common_voice_en_17249419-common_voice_en_17249428_en.wav",
+      "sha256": "1e1056c51f0937d0b3701dc82d6a8cd2476e9eac7ec9f9a808617cb14dddbb14",
+      "bytes": 210134
+    },
+    {
+      "utterance_id": "common_voice_en_17255102-common_voice_en_17255101",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00034_common_voice_en_17255102-common_voice_en_17255101_en.wav",
+      "sha256": "93e80d6de2c890f3c5109fa2b37ee30944fbb39523df81b6c3da65ff2308a00a",
+      "bytes": 141014
+    },
+    {
+      "utterance_id": "common_voice_en_17256676-common_voice_en_17256678",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00035_common_voice_en_17256676-common_voice_en_17256678_en.wav",
+      "sha256": "4febd515708ca86728e14959ac69982fac59e0672e4dfa4048fa2022ef7012f2",
+      "bytes": 329174
+    },
+    {
+      "utterance_id": "common_voice_en_17259121-common_voice_en_17259122",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00036_common_voice_en_17259121-common_voice_en_17259122_en.wav",
+      "sha256": "47911b9eba609cab9528ddab4519c0417c0af50c74851a0ae252df9d4a45577d",
+      "bytes": 91094
+    },
+    {
+      "utterance_id": "common_voice_en_17263752-common_voice_en_17263750",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00037_common_voice_en_17263752-common_voice_en_17263750_en.wav",
+      "sha256": "7714a0a5304849baccc608170e64812e1293334a3284b47014819a4462da59e3",
+      "bytes": 275414
+    },
+    {
+      "utterance_id": "common_voice_en_17263752-common_voice_en_17263755",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00038_common_voice_en_17263752-common_voice_en_17263755_en.wav",
+      "sha256": "fb3a12b1d14b55e055c7ff2ecc526f6398e70ca00cf1d7b69f5b942eab2cc716",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_17263780-common_voice_en_17263781",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00039_common_voice_en_17263780-common_voice_en_17263781_en.wav",
+      "sha256": "15863ffd04426d5f76fb67a80dbf76eb74dd31a6da956851740a54640e0c3636",
+      "bytes": 117974
+    },
+    {
+      "utterance_id": "common_voice_en_17263780-common_voice_en_17263782",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00040_common_voice_en_17263780-common_voice_en_17263782_en.wav",
+      "sha256": "ae899937d36e39bad4149422f7f062798bd8bfb4114b252a12fbd07f4e6918b6",
+      "bytes": 198614
+    },
+    {
+      "utterance_id": "common_voice_en_17267923-common_voice_en_17267922",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00041_common_voice_en_17267923-common_voice_en_17267922_en.wav",
+      "sha256": "748139daf4260cded50d085840ffa75f72cf6418cc3b1a1badde6922980a3f31",
+      "bytes": 64214
+    },
+    {
+      "utterance_id": "common_voice_en_17268075-common_voice_en_17268076",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00042_common_voice_en_17268075-common_voice_en_17268076_en.wav",
+      "sha256": "fb905db26842fc144d3b5bb17b62a3c5619064d12f6e4acea33d33bd58eeb01f",
+      "bytes": 382934
+    },
+    {
+      "utterance_id": "common_voice_en_17271507-common_voice_en_17271509",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00043_common_voice_en_17271507-common_voice_en_17271509_en.wav",
+      "sha256": "74203962d58a443935161780f852a6ea2690200cc5456f2872912afdcbb6f519",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_17271507-common_voice_en_17271510",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00044_common_voice_en_17271507-common_voice_en_17271510_en.wav",
+      "sha256": "5576738f6a5df5188d359bbcb45aca2b25f69a4ce5bc5018db00bf26b8f58c47",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_17274522-common_voice_en_17274523",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00045_common_voice_en_17274522-common_voice_en_17274523_en.wav",
+      "sha256": "707656d67f01adea5d92f8bde6b533ae431740b312cfe4ad0c6f7070c805d124",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_17274522-common_voice_en_17274525",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00046_common_voice_en_17274522-common_voice_en_17274525_en.wav",
+      "sha256": "229be23493c69500e21f445e0bc81fd065967c7b8e58a37af9cce88f510aeb41",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_17274533-common_voice_en_17274531",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00047_common_voice_en_17274533-common_voice_en_17274531_en.wav",
+      "sha256": "33bae728a7696eb55e493ce4b673e29e876cac14faa4c69b234ee92e5bec8ca1",
+      "bytes": 198614
+    },
+    {
+      "utterance_id": "common_voice_en_17275818-common_voice_en_17275816",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00048_common_voice_en_17275818-common_voice_en_17275816_en.wav",
+      "sha256": "4651b42a4e6f4997416920daa5c788e48b7aa8c48d1630242dada2a202f5e832",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_17275818-common_voice_en_17275817",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00049_common_voice_en_17275818-common_voice_en_17275817_en.wav",
+      "sha256": "b1010d163aa1374f99d59c5c0475e28ebe87d78e500e6c7be7719f46a151f32e",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_17277080-common_voice_en_17277082",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00050_common_voice_en_17277080-common_voice_en_17277082_en.wav",
+      "sha256": "b180879a4586ca08699dc314bda31221b8d25f676411f3e723e05a73840103c3",
+      "bytes": 121814
+    },
+    {
+      "utterance_id": "common_voice_en_17277080-common_voice_en_17277083",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00051_common_voice_en_17277080-common_voice_en_17277083_en.wav",
+      "sha256": "e67210b79b958ca2e96c6e051ae947400fb8daf1e9fbbe8671a18055d9007f8f",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_17278904-common_voice_en_17278905",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00052_common_voice_en_17278904-common_voice_en_17278905_en.wav",
+      "sha256": "edaa9a4cb6f6470071c1725ad454dcad81acb0cc75b5651b559841330e8cd1b8",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_17278904-common_voice_en_17278909",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00053_common_voice_en_17278904-common_voice_en_17278909_en.wav",
+      "sha256": "f6971c18e12b753dcc06679eeaa5f15ac65031e503251727668973b6a7c210b3",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_17281385-common_voice_en_17281386",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00054_common_voice_en_17281385-common_voice_en_17281386_en.wav",
+      "sha256": "b1c7e10b61d6331f718c3d3fbd869d9e6c83961bcdb26ae5a106fcec0ec41687",
+      "bytes": 210134
+    },
+    {
+      "utterance_id": "common_voice_en_17281385-common_voice_en_17281393",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00055_common_voice_en_17281385-common_voice_en_17281393_en.wav",
+      "sha256": "e7de631625ee5b587c058031897cdae9c6118212600b37581a0d55dd56be96e7",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_17288057-common_voice_en_17288056",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00056_common_voice_en_17288057-common_voice_en_17288056_en.wav",
+      "sha256": "28567cd2023cab40ec489c18eb4076b1e369bc81d21457623363b9fdc79b0eb3",
+      "bytes": 64214
+    },
+    {
+      "utterance_id": "common_voice_en_17288057-common_voice_en_17288059",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00057_common_voice_en_17288057-common_voice_en_17288059_en.wav",
+      "sha256": "6fabc06ba3eb2a3c0afcef6fa28464bd2a5f5f6ff4c9a3a30c555f47269411e0",
+      "bytes": 60374
+    },
+    {
+      "utterance_id": "common_voice_en_17324784-common_voice_en_17324785",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00058_common_voice_en_17324784-common_voice_en_17324785_en.wav",
+      "sha256": "8d95ad444a53394a25532e26c819c15f70cf0470df4a80da9474b352d4902f93",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_17324784-common_voice_en_17324786",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00059_common_voice_en_17324784-common_voice_en_17324786_en.wav",
+      "sha256": "e6810ac720fb263e70ee39fda5dbe293ac5bfe6b2b6e8a6103a7223f3eb36c60",
+      "bytes": 256214
+    },
+    {
+      "utterance_id": "common_voice_en_17347410-common_voice_en_17347409",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00060_common_voice_en_17347410-common_voice_en_17347409_en.wav",
+      "sha256": "5f21782c7ed97435ef59f4aa72b1e9a6a31cecfad95122ee32311fd5f864769b",
+      "bytes": 190934
+    },
+    {
+      "utterance_id": "common_voice_en_17352169-common_voice_en_17352173",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00061_common_voice_en_17352169-common_voice_en_17352173_en.wav",
+      "sha256": "64ed29c88fd2072d324b5064f7a94354574a14a9227f115783781a20837b7123",
+      "bytes": 210134
+    },
+    {
+      "utterance_id": "common_voice_en_173534-common_voice_en_173537",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00062_common_voice_en_173534-common_voice_en_173537_en.wav",
+      "sha256": "0e0bc59b1e6566a4805f2c8194035a137162757128f5a11e9b0af7cd94d19c7e",
+      "bytes": 221654
+    },
+    {
+      "utterance_id": "common_voice_en_173534-common_voice_en_173540",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00063_common_voice_en_173534-common_voice_en_173540_en.wav",
+      "sha256": "938f64fd8d69a4a4d8134dbe721781ba27e70cb3c27e2f5d238b64e6a08b97ba",
+      "bytes": 179414
+    },
+    {
+      "utterance_id": "common_voice_en_17369337-common_voice_en_17369336",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00064_common_voice_en_17369337-common_voice_en_17369336_en.wav",
+      "sha256": "b9981871f36c527d02cf1e0cbcf038acf7becf14e3b0bd554cc0954c2edb9879",
+      "bytes": 148694
+    },
+    {
+      "utterance_id": "common_voice_en_17369851-common_voice_en_17369849",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00065_common_voice_en_17369851-common_voice_en_17369849_en.wav",
+      "sha256": "72169451d25c65d1c619e6079d8c6ede08c46fbb5bec0d1ac77acdae25a99274",
+      "bytes": 60374
+    },
+    {
+      "utterance_id": "common_voice_en_17375252-common_voice_en_17375256",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00066_common_voice_en_17375252-common_voice_en_17375256_en.wav",
+      "sha256": "4494d3b5d70e4be5855ee0ad56b61a5b05ee45fd0dbf4570d29aabaa5402a0d9",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_17380945-common_voice_en_17380947",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00067_common_voice_en_17380945-common_voice_en_17380947_en.wav",
+      "sha256": "a45d6d855062e41a44b1b1467e54b3aba57bbae43000eb548b4defb00ef8b0f3",
+      "bytes": 183254
+    },
+    {
+      "utterance_id": "common_voice_en_17389076-common_voice_en_17389120",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00068_common_voice_en_17389076-common_voice_en_17389120_en.wav",
+      "sha256": "86eaceafe639295ad7ee32ae55a939c231366c9717b790e6d741d157d27c75c1",
+      "bytes": 125654
+    },
+    {
+      "utterance_id": "common_voice_en_17389984-common_voice_en_17389987",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00069_common_voice_en_17389984-common_voice_en_17389987_en.wav",
+      "sha256": "b5428ef14dea5b76c6fbfd706664e51d4d2e66954acda56d670ae676b090f121",
+      "bytes": 237014
+    },
+    {
+      "utterance_id": "common_voice_en_17389984-common_voice_en_17389988",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00070_common_voice_en_17389984-common_voice_en_17389988_en.wav",
+      "sha256": "9cfd85fbfc0f200b38f3303b59ce6bab33895e7d54060a7113ba3ef00ea4c140",
+      "bytes": 202454
+    },
+    {
+      "utterance_id": "common_voice_en_17401431-common_voice_en_17401433",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00071_common_voice_en_17401431-common_voice_en_17401433_en.wav",
+      "sha256": "31dc9bb81f5d2c0aef8a34f3448ea77205f509c0e621a3e991497961ccbbeacd",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_17406452-common_voice_en_17406455",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00072_common_voice_en_17406452-common_voice_en_17406455_en.wav",
+      "sha256": "e4e9bee601e6573942703cd11b48c949cc87a9a5838feecb00fac99f0a150ba3",
+      "bytes": 248534
+    },
+    {
+      "utterance_id": "common_voice_en_17406452-common_voice_en_17406466",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00073_common_voice_en_17406452-common_voice_en_17406466_en.wav",
+      "sha256": "0c873af22a654a8980daa0cb18fa30d7cef0d17bce157f16be36c59470e1979a",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_17406732-common_voice_en_17406734",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00074_common_voice_en_17406732-common_voice_en_17406734_en.wav",
+      "sha256": "dfe7c3c0e6d1917b814ad18d9ee97279d2992042908910da8eb422d971f9ee8c",
+      "bytes": 175574
+    },
+    {
+      "utterance_id": "common_voice_en_17406732-common_voice_en_17406735",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00075_common_voice_en_17406732-common_voice_en_17406735_en.wav",
+      "sha256": "3477305dc17b44d5a98f777c5b1fee87d9cd44b4c31ba9a72d054b67838d8a23",
+      "bytes": 198614
+    },
+    {
+      "utterance_id": "common_voice_en_17429166-common_voice_en_17429168",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00076_common_voice_en_17429166-common_voice_en_17429168_en.wav",
+      "sha256": "6adbef75a512ee44505a315044039bd31289aa5a619d5475f0c38592c3f6cf54",
+      "bytes": 52694
+    },
+    {
+      "utterance_id": "common_voice_en_17429166-common_voice_en_17429171",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00077_common_voice_en_17429166-common_voice_en_17429171_en.wav",
+      "sha256": "b4a966fd6a797755062dc6d2f5e1f84164e2fa876b2947c5f8a36b0ba352d5b6",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_17442686-common_voice_en_17442688",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00078_common_voice_en_17442686-common_voice_en_17442688_en.wav",
+      "sha256": "bdbe9cd662a9ada56f95526fee3736e0677ee5e906dc99323f02b76c70c1c444",
+      "bytes": 133334
+    },
+    {
+      "utterance_id": "common_voice_en_17444666-common_voice_en_17444667",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00079_common_voice_en_17444666-common_voice_en_17444667_en.wav",
+      "sha256": "e1bf9ff91a6d7049af43b5aec9e6c05b641c9ce2b59263d62e5511b2c318ef33",
+      "bytes": 286934
+    },
+    {
+      "utterance_id": "common_voice_en_17444666-common_voice_en_17444668",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00080_common_voice_en_17444666-common_voice_en_17444668_en.wav",
+      "sha256": "940332c5f7537df6ab1f61b2992f16065bbc686f84232b5b9531e9eb6e4ca209",
+      "bytes": 248534
+    },
+    {
+      "utterance_id": "common_voice_en_17451108-common_voice_en_17451109",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00081_common_voice_en_17451108-common_voice_en_17451109_en.wav",
+      "sha256": "21eeb06acb5d47e29effdfe19e94cedcfc4054b54f4167db0f5d97aedbbad512",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_17502-common_voice_en_17503",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00082_common_voice_en_17502-common_voice_en_17503_en.wav",
+      "sha256": "3b4604096801bcb48eb8cb27b7041339d1690c854ff3b981322b91e75fbfef1d",
+      "bytes": 98774
+    },
+    {
+      "utterance_id": "common_voice_en_17519982-common_voice_en_17519985",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00083_common_voice_en_17519982-common_voice_en_17519985_en.wav",
+      "sha256": "5eedf63243b0c19f0fb5aa12f768d4ca0603610e4ba2f5e136cae0333137bf4e",
+      "bytes": 183254
+    },
+    {
+      "utterance_id": "common_voice_en_17519982-common_voice_en_17519988",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00084_common_voice_en_17519982-common_voice_en_17519988_en.wav",
+      "sha256": "f0de3b381b605bf591b1ccf554d7466f3c32d1880b50ce6784202995501eb2cf",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_175348-common_voice_en_175349",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00085_common_voice_en_175348-common_voice_en_175349_en.wav",
+      "sha256": "39bf71c1a184daed14f79bbba75c4f44ac372890bfbb046228095d72d383aeeb",
+      "bytes": 152534
+    },
+    {
+      "utterance_id": "common_voice_en_175348-common_voice_en_175350",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00086_common_voice_en_175348-common_voice_en_175350_en.wav",
+      "sha256": "d2346a7cf15341bfedd3b444f86d44353d9fb212c42f1c7daaca1f7f1b7ac3b8",
+      "bytes": 190934
+    },
+    {
+      "utterance_id": "common_voice_en_17578783-common_voice_en_17578780",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00087_common_voice_en_17578783-common_voice_en_17578780_en.wav",
+      "sha256": "4964b7c8f36e9d67ff9ed7892df99228ff9accb480fee087fa301bd02296cbc3",
+      "bytes": 106454
+    },
+    {
+      "utterance_id": "common_voice_en_17578783-common_voice_en_17578781",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00088_common_voice_en_17578783-common_voice_en_17578781_en.wav",
+      "sha256": "c7483418b77aed345badc86c02975b812e89ddc4650ddbdc0c3d56e21f878648",
+      "bytes": 102614
+    },
+    {
+      "utterance_id": "common_voice_en_17662945-common_voice_en_17662954",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00089_common_voice_en_17662945-common_voice_en_17662954_en.wav",
+      "sha256": "3f07cd17611eef5dd54ccbdefe6195ef03a3b7fea593ad42481f6e06e8608018",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_17662945-common_voice_en_17662956",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00090_common_voice_en_17662945-common_voice_en_17662956_en.wav",
+      "sha256": "3fc88d41898fb8dd26688e5e0d4fac03f09a9e9cd6f7c3084f5095ca657ab500",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_17718576-common_voice_en_17718578",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00091_common_voice_en_17718576-common_voice_en_17718578_en.wav",
+      "sha256": "ac23cf658aa46c2d451db9c71c605d86833e8523e67d4a7a3117ca9278f0cbc4",
+      "bytes": 160214
+    },
+    {
+      "utterance_id": "common_voice_en_17727889-common_voice_en_17727904",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00092_common_voice_en_17727889-common_voice_en_17727904_en.wav",
+      "sha256": "e4afc52178390eecbd942c58e6852ae83647252eba54b245f323e6d4ece1eaf0",
+      "bytes": 152534
+    },
+    {
+      "utterance_id": "common_voice_en_17727889-common_voice_en_17727905",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00093_common_voice_en_17727889-common_voice_en_17727905_en.wav",
+      "sha256": "7ea68592273d53b9f3e4726bcd0831330ea3df69ab02ce6fbfd2471099fd870f",
+      "bytes": 160214
+    },
+    {
+      "utterance_id": "common_voice_en_17729945-common_voice_en_17729943",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00094_common_voice_en_17729945-common_voice_en_17729943_en.wav",
+      "sha256": "b616c8f759df0398316eeaab1e162888a64bb2187a34db6f531c53b927a94885",
+      "bytes": 141014
+    },
+    {
+      "utterance_id": "common_voice_en_17729945-common_voice_en_17729944",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00095_common_voice_en_17729945-common_voice_en_17729944_en.wav",
+      "sha256": "f84640a87a41d42b8509f1c63b00ad9367fd3838d013e5333f96b4d772ea5fe5",
+      "bytes": 141014
+    },
+    {
+      "utterance_id": "common_voice_en_17736608-common_voice_en_17736610",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00096_common_voice_en_17736608-common_voice_en_17736610_en.wav",
+      "sha256": "a3f758be160b35ca28dcd6bc5961b37f778a86f544f62a9f3c5de7817b8e1df7",
+      "bytes": 133334
+    },
+    {
+      "utterance_id": "common_voice_en_17738848-common_voice_en_17744571",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00097_common_voice_en_17738848-common_voice_en_17744571_en.wav",
+      "sha256": "cdabbb1564d966a1de665257790138a5ccafa5c4ec059384e93faa1f2702e581",
+      "bytes": 233174
+    },
+    {
+      "utterance_id": "common_voice_en_17738848-common_voice_en_19083939",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00098_common_voice_en_17738848-common_voice_en_19083939_en.wav",
+      "sha256": "2797882cfce801e386d02a3a303d809cdbf0ab04efaf3151ea9f5abfd074c157",
+      "bytes": 240854
+    },
+    {
+      "utterance_id": "common_voice_en_17781154-common_voice_en_17781153",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00099_common_voice_en_17781154-common_voice_en_17781153_en.wav",
+      "sha256": "9ef8e36d337b3ffaa063c415af88fce0122665e90693a5899a99e4bb9a1a4265",
+      "bytes": 98774
+    },
+    {
+      "utterance_id": "common_voice_en_17784-common_voice_en_17785",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00100_common_voice_en_17784-common_voice_en_17785_en.wav",
+      "sha256": "3fdddd90e9811fac6c45b6bb84130cd76093cab4c22b38acb3c9a208f0907f55",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_17784-common_voice_en_17786",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00101_common_voice_en_17784-common_voice_en_17786_en.wav",
+      "sha256": "30f4f4c4ae9372705112284d6ec4d35811fc549da4e34da1e34ce954cf71f6d0",
+      "bytes": 110294
+    },
+    {
+      "utterance_id": "common_voice_en_177895-common_voice_en_177894",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00102_common_voice_en_177895-common_voice_en_177894_en.wav",
+      "sha256": "dceeecc335be93cfe1c790f91bb3af8253a927c2855777105523c2d367a38fe6",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_177895-common_voice_en_177898",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00103_common_voice_en_177895-common_voice_en_177898_en.wav",
+      "sha256": "257a3a4d9b795846f3fc9f7c66a9d5b098a7a0d1b5654293fa65aee450a5e009",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_17817002-common_voice_en_17817003",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00104_common_voice_en_17817002-common_voice_en_17817003_en.wav",
+      "sha256": "e94d49d141d62637053b7ad710d62fe5136c9924c413a377ffdfc976217d8f85",
+      "bytes": 217814
+    },
+    {
+      "utterance_id": "common_voice_en_17817002-common_voice_en_17817005",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00105_common_voice_en_17817002-common_voice_en_17817005_en.wav",
+      "sha256": "9d80d0f6a855492d66a8d677d95be3f169497ad2764310afa624f5d17c079a4b",
+      "bytes": 187094
+    },
+    {
+      "utterance_id": "common_voice_en_17830764-common_voice_en_17830762",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00106_common_voice_en_17830764-common_voice_en_17830762_en.wav",
+      "sha256": "56611dfaf694b406272de4854a78715de19c256cf0f4d3b925a5e10f8e1ecba2",
+      "bytes": 102614
+    },
+    {
+      "utterance_id": "common_voice_en_17830764-common_voice_en_17830783",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00107_common_voice_en_17830764-common_voice_en_17830783_en.wav",
+      "sha256": "b932e7f219b0a542dc7a570c180d88d390befa289bf96ec93e55d309aa2ba301",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_17837104-common_voice_en_17837105",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00108_common_voice_en_17837104-common_voice_en_17837105_en.wav",
+      "sha256": "8fa151bff32df6428ba01f04413e753dde669ca239ec281a5bdc04f24fc88e77",
+      "bytes": 71894
+    },
+    {
+      "utterance_id": "common_voice_en_17851231-common_voice_en_17851248",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00109_common_voice_en_17851231-common_voice_en_17851248_en.wav",
+      "sha256": "f73f2490e999a1436acd1799dd8ef3e243e92564cb29b508842f7435c4b5e61b",
+      "bytes": 117974
+    },
+    {
+      "utterance_id": "common_voice_en_17851231-common_voice_en_17851256",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00110_common_voice_en_17851231-common_voice_en_17851256_en.wav",
+      "sha256": "b57be3d1e4a17bba6a0a558ee2079042fb80581ac97426d7d1fe2fa7acc94891",
+      "bytes": 117974
+    },
+    {
+      "utterance_id": "common_voice_en_17854896-common_voice_en_17854894",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00111_common_voice_en_17854896-common_voice_en_17854894_en.wav",
+      "sha256": "35c5c5fb5804d3610d83b45723f6a833fece2a4cd3295541223a768bd5475563",
+      "bytes": 110294
+    },
+    {
+      "utterance_id": "common_voice_en_17854896-common_voice_en_17854897",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00112_common_voice_en_17854896-common_voice_en_17854897_en.wav",
+      "sha256": "ceb5bf8082340641769335979c5b23030679a89292887c4a0944833df21ba18a",
+      "bytes": 94934
+    },
+    {
+      "utterance_id": "common_voice_en_17861335-common_voice_en_17861337",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00113_common_voice_en_17861335-common_voice_en_17861337_en.wav",
+      "sha256": "758a5405b362a8d623083960626ffb1e95fe1ae183e4ad0d695963f6a04b4d12",
+      "bytes": 121814
+    },
+    {
+      "utterance_id": "common_voice_en_17861489-common_voice_en_17861487",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00114_common_voice_en_17861489-common_voice_en_17861487_en.wav",
+      "sha256": "e195e8b4303831f6d8e7726d677000582d40d14c2287f0bd54b3920447a8a9db",
+      "bytes": 94934
+    },
+    {
+      "utterance_id": "common_voice_en_17874600-common_voice_en_17874601",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00115_common_voice_en_17874600-common_voice_en_17874601_en.wav",
+      "sha256": "103919a7108fc71395860db0eb1542f16db187b23b558e40a75ce480a43b442a",
+      "bytes": 233174
+    },
+    {
+      "utterance_id": "common_voice_en_17874600-common_voice_en_17874602",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00116_common_voice_en_17874600-common_voice_en_17874602_en.wav",
+      "sha256": "21847b34276de1502c0eb851c9a15bd57725903416a318b10cea4f44e825e840",
+      "bytes": 237014
+    },
+    {
+      "utterance_id": "common_voice_en_17875915-common_voice_en_17875925",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00117_common_voice_en_17875915-common_voice_en_17875925_en.wav",
+      "sha256": "a762c1941ecd4bc6f1d76feefe407fe7323fce8cab7393609ad7ada8c37564f5",
+      "bytes": 148694
+    },
+    {
+      "utterance_id": "common_voice_en_17879420-common_voice_en_17879418",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00118_common_voice_en_17879420-common_voice_en_17879418_en.wav",
+      "sha256": "dc3ff8b2fa972d2c74e2d66a10cf0bc06fe2d45a9755f78015cefb08326cfc61",
+      "bytes": 87254
+    },
+    {
+      "utterance_id": "common_voice_en_17879420-common_voice_en_17879438",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00119_common_voice_en_17879420-common_voice_en_17879438_en.wav",
+      "sha256": "4eac1bf3b56461a58626b44b969341623be0503f65015b84abbe27b739c934fb",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_17880926-common_voice_en_17880932",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00120_common_voice_en_17880926-common_voice_en_17880932_en.wav",
+      "sha256": "667a4dbc7187ead22ac16c02d2ad83040d1803338b3f422e1374e131767520b9",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_17889905-common_voice_en_17889907",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00121_common_voice_en_17889905-common_voice_en_17889907_en.wav",
+      "sha256": "12e2925e0e86e68bacf288cc46c51179d4ff28771d4ccd4af9b212b5ed289578",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_17893247-common_voice_en_17893246",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00122_common_voice_en_17893247-common_voice_en_17893246_en.wav",
+      "sha256": "58cce53e192d5ad121132ce02965c7bd9ef56a06dd67ed6c9c5b8c90d5b23cd2",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_17893247-common_voice_en_17893250",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00123_common_voice_en_17893247-common_voice_en_17893250_en.wav",
+      "sha256": "8118c3998005b34098139971f4b9f68df74990705e57fab83f5e993106bf47ee",
+      "bytes": 117974
+    },
+    {
+      "utterance_id": "common_voice_en_17899910-common_voice_en_17899909",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00124_common_voice_en_17899910-common_voice_en_17899909_en.wav",
+      "sha256": "6375d112336771d0b424cc5e9ce143cae0e36c738c417bbee12661ed7688c0bd",
+      "bytes": 60374
+    },
+    {
+      "utterance_id": "common_voice_en_17920116-common_voice_en_17920112",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00125_common_voice_en_17920116-common_voice_en_17920112_en.wav",
+      "sha256": "ebc9692f02a2a3f3c2e1c6c0abfb94fb747e25a65fd7fb02590e9abf912319d2",
+      "bytes": 83414
+    },
+    {
+      "utterance_id": "common_voice_en_17986345-common_voice_en_17986347",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00126_common_voice_en_17986345-common_voice_en_17986347_en.wav",
+      "sha256": "507916054fc9e30923cc0963f77b6a09cbc91286c2218cffa678e097be40cc5b",
+      "bytes": 121814
+    },
+    {
+      "utterance_id": "common_voice_en_18012457-common_voice_en_18012447",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00127_common_voice_en_18012457-common_voice_en_18012447_en.wav",
+      "sha256": "cf8efc10bb03a1dac3e925386a7d3a610ed2996bfc68522cbc3dcb08386ba73e",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_18012457-common_voice_en_18012464",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00128_common_voice_en_18012457-common_voice_en_18012464_en.wav",
+      "sha256": "ce9aefe5f3c17d924decc40a2ec1660004da13aab9751a8a9631a10117666fa8",
+      "bytes": 175574
+    },
+    {
+      "utterance_id": "common_voice_en_18057869-common_voice_en_18057867",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00129_common_voice_en_18057869-common_voice_en_18057867_en.wav",
+      "sha256": "8063c7e5e4b1c0fdc80610f957326cb00bbb5ed63c14c4a393dfe905f7f10c85",
+      "bytes": 198614
+    },
+    {
+      "utterance_id": "common_voice_en_18070362-common_voice_en_18070351",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00130_common_voice_en_18070362-common_voice_en_18070351_en.wav",
+      "sha256": "2500901ed3344d85dff0d174c28c39ab973a3aa21c96a0f5c0c158a161371667",
+      "bytes": 110294
+    },
+    {
+      "utterance_id": "common_voice_en_18105426-common_voice_en_18105428",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00131_common_voice_en_18105426-common_voice_en_18105428_en.wav",
+      "sha256": "f9541121fd604809509c65f29850b3a48695d76f2624ec3ed75d852fb2c70d23",
+      "bytes": 48854
+    },
+    {
+      "utterance_id": "common_voice_en_18105426-common_voice_en_18105430",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00132_common_voice_en_18105426-common_voice_en_18105430_en.wav",
+      "sha256": "6459c30cf52582da35331bbc6559b841ac204c0a0c021647d93d915622c50aed",
+      "bytes": 179414
+    },
+    {
+      "utterance_id": "common_voice_en_18177486-common_voice_en_18177492",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00133_common_voice_en_18177486-common_voice_en_18177492_en.wav",
+      "sha256": "0fda57235d41e655ada73ddffddb2fe9d6692727aae291e0b75ba8623c99077c",
+      "bytes": 102614
+    },
+    {
+      "utterance_id": "common_voice_en_18177486-common_voice_en_18177499",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00134_common_voice_en_18177486-common_voice_en_18177499_en.wav",
+      "sha256": "3585010ade5fb0b2f37cb042494044dba2ff48c06a15b7634ad7f62ba78ec5b9",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_18187914-common_voice_en_18188853",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00135_common_voice_en_18187914-common_voice_en_18188853_en.wav",
+      "sha256": "ef4d4219c6059ea3c898476bd1f1f43bf74637ea79cc44fcd408c00bfeb3bdbe",
+      "bytes": 133334
+    },
+    {
+      "utterance_id": "common_voice_en_18200641-common_voice_en_18200765",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00136_common_voice_en_18200641-common_voice_en_18200765_en.wav",
+      "sha256": "a51efe03ab8450869116eb5e8e399d9c602238fe4e00efbd629112b1f44dc45f",
+      "bytes": 248534
+    },
+    {
+      "utterance_id": "common_voice_en_18200641-common_voice_en_18200790",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00137_common_voice_en_18200641-common_voice_en_18200790_en.wav",
+      "sha256": "fa92923bae0c2396cae9c7e64d193ac7b39409cd64c044b236aadd708f49f960",
+      "bytes": 175574
+    },
+    {
+      "utterance_id": "common_voice_en_182275-common_voice_en_182276",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00138_common_voice_en_182275-common_voice_en_182276_en.wav",
+      "sha256": "7d78c0334ee22a4c24a8c963c4a8f4f24b8ec94ad4a147385cc4019b2f3bf8db",
+      "bytes": 110294
+    },
+    {
+      "utterance_id": "common_voice_en_18229682-common_voice_en_18229679",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00139_common_voice_en_18229682-common_voice_en_18229679_en.wav",
+      "sha256": "c6c517fab0ec44ddcc9d4e761480491314fb249741fc92bfb84de2621f62d393",
+      "bytes": 68054
+    },
+    {
+      "utterance_id": "common_voice_en_18229682-common_voice_en_18229695",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00140_common_voice_en_18229682-common_voice_en_18229695_en.wav",
+      "sha256": "c83e25286427b3f7a1c4b2e7f034c70b1004c4b33b3495a36064d5b9532c9ee8",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_18234333-common_voice_en_18234353",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00141_common_voice_en_18234333-common_voice_en_18234353_en.wav",
+      "sha256": "54b3d0eb6fa8dc174c257ad6b9d9c27f1396123477a9aef47fb53cd9082b6ef6",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_18240348-common_voice_en_18240305",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00142_common_voice_en_18240348-common_voice_en_18240305_en.wav",
+      "sha256": "81e1196b4c54628b175f34cc65f304386ecec5cd5259f590ac9c0dd5c09c9e2c",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_18313326-common_voice_en_18313324",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00143_common_voice_en_18313326-common_voice_en_18313324_en.wav",
+      "sha256": "3a367d75ea8cdb73f5ab5e1fa11971fb5cbc3c2e09a71d06044f270be58e288f",
+      "bytes": 217814
+    },
+    {
+      "utterance_id": "common_voice_en_18313326-common_voice_en_18313328",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00144_common_voice_en_18313326-common_voice_en_18313328_en.wav",
+      "sha256": "0cff9051decea477f4059c54b030c7c711f214c1340231241d7f53607a535684",
+      "bytes": 133334
+    },
+    {
+      "utterance_id": "common_voice_en_18336410-common_voice_en_18336411",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00145_common_voice_en_18336410-common_voice_en_18336411_en.wav",
+      "sha256": "d94c0be6b3bbff865dc851fae0dd9d6b2116bb3767d8d3eb249514fbc2f900c5",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_18336410-common_voice_en_18336421",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00146_common_voice_en_18336410-common_voice_en_18336421_en.wav",
+      "sha256": "be775d70da76d5bc2bf98730187d0bd9f7c9fa553a93d4e4776acd228059338d",
+      "bytes": 87254
+    },
+    {
+      "utterance_id": "common_voice_en_18338543-common_voice_en_18338546",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00147_common_voice_en_18338543-common_voice_en_18338546_en.wav",
+      "sha256": "a1712fcd90452e243af2cd3bf16b8eed8e7eda1746e26d1c10186ca915103ac8",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_18436934-common_voice_en_18436935",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00148_common_voice_en_18436934-common_voice_en_18436935_en.wav",
+      "sha256": "278ba7859abb12a5644f3ec77feb1a80309e437484456fa08a28ebe2faac0e93",
+      "bytes": 210134
+    },
+    {
+      "utterance_id": "common_voice_en_18466098-common_voice_en_18466096",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00149_common_voice_en_18466098-common_voice_en_18466096_en.wav",
+      "sha256": "80f7764b31534948be3da13bff192a6debf50e6d7351b5da7d6f066868759b11",
+      "bytes": 56534
+    },
+    {
+      "utterance_id": "common_voice_en_18466098-common_voice_en_18466097",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00150_common_voice_en_18466098-common_voice_en_18466097_en.wav",
+      "sha256": "4ff99be0abca81c320159dbc4bacb243745705285a90702108ffe9a1f9595634",
+      "bytes": 41174
+    },
+    {
+      "utterance_id": "common_voice_en_18485041-common_voice_en_18485042",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00151_common_voice_en_18485041-common_voice_en_18485042_en.wav",
+      "sha256": "e7ca691b2dff43c2892a057f09e6590ee7af15bb2200a78cc61d05dd2670f61c",
+      "bytes": 98774
+    },
+    {
+      "utterance_id": "common_voice_en_18500600-common_voice_en_18500603",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00152_common_voice_en_18500600-common_voice_en_18500603_en.wav",
+      "sha256": "7c13434c3cc3c87dccd313a0194acd9d443bfdd067c1b1a6eb697987220a74a4",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_18522556-common_voice_en_18522557",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00153_common_voice_en_18522556-common_voice_en_18522557_en.wav",
+      "sha256": "24cb47b34a26f74144af78752df1169b2c368f2bd697576f38b7445ebb89e448",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_18529345-common_voice_en_18529360",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00154_common_voice_en_18529345-common_voice_en_18529360_en.wav",
+      "sha256": "bc07c324e04a959049d563bc8b1a137627156de5154647b0d43ddbd477031773",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_18529345-common_voice_en_18529361",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00155_common_voice_en_18529345-common_voice_en_18529361_en.wav",
+      "sha256": "f7fb63c63dc8e476e1e2af5148c10023e16dfc5239d7b4d98383e519c401b81c",
+      "bytes": 290774
+    },
+    {
+      "utterance_id": "common_voice_en_18533403-common_voice_en_18533404",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00156_common_voice_en_18533403-common_voice_en_18533404_en.wav",
+      "sha256": "8e6b7634646aafcdd887d470053eedc125d6c2cbb81797924e39c260f536c458",
+      "bytes": 198614
+    },
+    {
+      "utterance_id": "common_voice_en_18545637-common_voice_en_18545639",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00157_common_voice_en_18545637-common_voice_en_18545639_en.wav",
+      "sha256": "e8bf60d4159949c13ae2bf8b6dd308694e1408d213a87861d459c2eaad3fd7d1",
+      "bytes": 144854
+    },
+    {
+      "utterance_id": "common_voice_en_18554437-common_voice_en_18554439",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00158_common_voice_en_18554437-common_voice_en_18554439_en.wav",
+      "sha256": "79a57b556ea4c834fecdf9cd1bd4b5ff1c392af6488848b4dd2648c0481a6b0e",
+      "bytes": 179414
+    },
+    {
+      "utterance_id": "common_voice_en_18557077-common_voice_en_18557074",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00159_common_voice_en_18557077-common_voice_en_18557074_en.wav",
+      "sha256": "47a39364a778b28a8a5f6478d1aa3fd2cd33877759998196d6034b16a869faf6",
+      "bytes": 121814
+    },
+    {
+      "utterance_id": "common_voice_en_18557077-common_voice_en_18557192",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00160_common_voice_en_18557077-common_voice_en_18557192_en.wav",
+      "sha256": "195e4bd70cdb098a77d05cf8509a974f7b1ca53702d9e1c5caac1c4924663c67",
+      "bytes": 152534
+    },
+    {
+      "utterance_id": "common_voice_en_18575865-common_voice_en_18575863",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00161_common_voice_en_18575865-common_voice_en_18575863_en.wav",
+      "sha256": "712e5404af9387128c4d57ae5d2a75f69b48f00063baacb5120b25ad0f08f9f0",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_18575865-common_voice_en_18575864",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00162_common_voice_en_18575865-common_voice_en_18575864_en.wav",
+      "sha256": "133a203d50ae01c346a7c88b70caf8d754e203996e02712678665b4246664d0d",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_18647546-common_voice_en_18647545",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00163_common_voice_en_18647546-common_voice_en_18647545_en.wav",
+      "sha256": "6cebc31d1353e76ceabaf815b134206486d07ca11d916b9145c2fb4535bbcb8f",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_18647546-common_voice_en_18647550",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00164_common_voice_en_18647546-common_voice_en_18647550_en.wav",
+      "sha256": "5db48efe95b2dc4a0d20bc4ef80302da160d615764f20f607f5759c4cbac1339",
+      "bytes": 152534
+    },
+    {
+      "utterance_id": "common_voice_en_18672480-common_voice_en_18672484",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00165_common_voice_en_18672480-common_voice_en_18672484_en.wav",
+      "sha256": "c97ab779b01d409daf77ef8d51d0c8b475f57d92af0ceab4207e71214bb7a8fe",
+      "bytes": 333014
+    },
+    {
+      "utterance_id": "common_voice_en_18681919-common_voice_en_18681920",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00166_common_voice_en_18681919-common_voice_en_18681920_en.wav",
+      "sha256": "adbd3fdefe7a7425c51571cb0a0096233fc4fa24721f8a4fbf18d7c7326423da",
+      "bytes": 260054
+    },
+    {
+      "utterance_id": "common_voice_en_18693241-common_voice_en_18693240",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00167_common_voice_en_18693241-common_voice_en_18693240_en.wav",
+      "sha256": "21ab2a2e6bda3e601fcf46af39b530626f4532cd7578294c7580d6affbb8b628",
+      "bytes": 225494
+    },
+    {
+      "utterance_id": "common_voice_en_18699078-common_voice_en_18699081",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00168_common_voice_en_18699078-common_voice_en_18699081_en.wav",
+      "sha256": "75c4ba740aa71886ff9729e629e339cb5e598ec369d7df5e1bb2f6d4d95c1231",
+      "bytes": 206294
+    },
+    {
+      "utterance_id": "common_voice_en_18699078-common_voice_en_18699082",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00169_common_voice_en_18699078-common_voice_en_18699082_en.wav",
+      "sha256": "3a1c7420cac52b21ec01e4512afdcc2b3e5183f5b35121803827eed56e864816",
+      "bytes": 206294
+    },
+    {
+      "utterance_id": "common_voice_en_18707936-common_voice_en_18707937",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00170_common_voice_en_18707936-common_voice_en_18707937_en.wav",
+      "sha256": "2d32a211dbdf32430e607c856147f3a5f91211823d6b68f274a2602287973487",
+      "bytes": 202454
+    },
+    {
+      "utterance_id": "common_voice_en_18710640-common_voice_en_18710642",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00171_common_voice_en_18710640-common_voice_en_18710642_en.wav",
+      "sha256": "be324c4ab25c1cfbf590a11897525020fffb5bc514a7e6e900badee20b3ee489",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_18735317-common_voice_en_18735316",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00172_common_voice_en_18735317-common_voice_en_18735316_en.wav",
+      "sha256": "42260cd4b9880644df7aa8b10ebb266dc75cc1014561ef2b4a51d93a4c3388ef",
+      "bytes": 229334
+    },
+    {
+      "utterance_id": "common_voice_en_18735317-common_voice_en_18735372",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00173_common_voice_en_18735317-common_voice_en_18735372_en.wav",
+      "sha256": "5309d8a709621bf2eff9967d8f4ad2565d181e549431d098952f7c19f2e0e5b9",
+      "bytes": 229334
+    },
+    {
+      "utterance_id": "common_voice_en_18746637-common_voice_en_18746638",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00174_common_voice_en_18746637-common_voice_en_18746638_en.wav",
+      "sha256": "c26ef741719e6ff8cad922e30ad9e9b3e0e0c8d9ea2a731063b4eacf7f86cec0",
+      "bytes": 187094
+    },
+    {
+      "utterance_id": "common_voice_en_18746637-common_voice_en_18746639",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00175_common_voice_en_18746637-common_voice_en_18746639_en.wav",
+      "sha256": "e8d820416b8788aba95a7dbd12806b711b463c0c89823de204b2bb3d6c065bc2",
+      "bytes": 179414
+    },
+    {
+      "utterance_id": "common_voice_en_18754308-common_voice_en_18754311",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00176_common_voice_en_18754308-common_voice_en_18754311_en.wav",
+      "sha256": "73fb5951936adaf4a25e2b4d8a28e806673d938b89fa3e05a738f9909e297b5c",
+      "bytes": 190934
+    },
+    {
+      "utterance_id": "common_voice_en_18754308-common_voice_en_18754312",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00177_common_voice_en_18754308-common_voice_en_18754312_en.wav",
+      "sha256": "5ea9103b3fd3906ed19ca2cc82a54f1ff0ccc7b530e8772f5db4c8f17826a533",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_18757805-common_voice_en_18757804",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00178_common_voice_en_18757805-common_voice_en_18757804_en.wav",
+      "sha256": "3caec9187a0b02f3f9a8b6c309ad4e1558d896b64a9b0765142afc182a41c797",
+      "bytes": 141014
+    },
+    {
+      "utterance_id": "common_voice_en_18770703-common_voice_en_18770702",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00179_common_voice_en_18770703-common_voice_en_18770702_en.wav",
+      "sha256": "d7b079a3eb1a20a525f6caa5ea275a9a6746d6eb572e57e3c9c6aba988987178",
+      "bytes": 237014
+    },
+    {
+      "utterance_id": "common_voice_en_18770703-common_voice_en_18770704",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00180_common_voice_en_18770703-common_voice_en_18770704_en.wav",
+      "sha256": "801f3137c422c5eae0c501c3455e6d44dadf947c57a753d7ee68cce2f5f77a08",
+      "bytes": 248534
+    },
+    {
+      "utterance_id": "common_voice_en_18781918-common_voice_en_18781919",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00181_common_voice_en_18781918-common_voice_en_18781919_en.wav",
+      "sha256": "ff81bf272410076e9fc1b56620bb976869441ec0c54ca1bf86d955c5e0c79c64",
+      "bytes": 252374
+    },
+    {
+      "utterance_id": "common_voice_en_18786931-common_voice_en_18786930",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00182_common_voice_en_18786931-common_voice_en_18786930_en.wav",
+      "sha256": "8dc23f669ce5e615ad8ba4a0e51bed0a7105952956dda8d62399b4766e712efc",
+      "bytes": 244694
+    },
+    {
+      "utterance_id": "common_voice_en_18786931-common_voice_en_18786946",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00183_common_voice_en_18786931-common_voice_en_18786946_en.wav",
+      "sha256": "b1bfeb11fafb47605ffa5cf99146b57b531673895189632553aef6d40fa1e2d1",
+      "bytes": 313814
+    },
+    {
+      "utterance_id": "common_voice_en_188092-common_voice_en_188091",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00184_common_voice_en_188092-common_voice_en_188091_en.wav",
+      "sha256": "ee4cbd21a979ced019d598c76c74782267daec61b154092a5bccf3a146b9650f",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_188092-common_voice_en_188093",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00185_common_voice_en_188092-common_voice_en_188093_en.wav",
+      "sha256": "362f31b1fd8259131af1d9777245f7bfbf099a28d16248a43d41e6e2ddb09e14",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_18828571-common_voice_en_18828573",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00186_common_voice_en_18828571-common_voice_en_18828573_en.wav",
+      "sha256": "573e62c89f0a558bbc8fe41dd93efb070c82dd639508979d368bb04a82bbbf1b",
+      "bytes": 144854
+    },
+    {
+      "utterance_id": "common_voice_en_18829843-common_voice_en_18829841",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00187_common_voice_en_18829843-common_voice_en_18829841_en.wav",
+      "sha256": "bb44d5797beef73120ea7a8fa7f0295d43f1e8567735090107955716f39670e1",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_18829843-common_voice_en_18829842",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00188_common_voice_en_18829843-common_voice_en_18829842_en.wav",
+      "sha256": "b8483d36a55c0ebe7fe8d9c17a608e83bc8fd57813ebaf29139976fb42388fa3",
+      "bytes": 221654
+    },
+    {
+      "utterance_id": "common_voice_en_18852076-common_voice_en_18852077",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00189_common_voice_en_18852076-common_voice_en_18852077_en.wav",
+      "sha256": "76e042b5fee01d75f930b9e339217ef4bd45017edc2d7d29ccba8b7865e5505b",
+      "bytes": 248534
+    },
+    {
+      "utterance_id": "common_voice_en_18852076-common_voice_en_18852085",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00190_common_voice_en_18852076-common_voice_en_18852085_en.wav",
+      "sha256": "9c8b1d733dcbb8557cb58f90882cf4d7ad0f4acf800a9cb9c62e1fdf792eb4c7",
+      "bytes": 240854
+    },
+    {
+      "utterance_id": "common_voice_en_18877786-common_voice_en_18877788",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00191_common_voice_en_18877786-common_voice_en_18877788_en.wav",
+      "sha256": "8f8c932214dbd2e06e7bdd12cfb281b7779c84fed44966c5e9ad52a5875c38d2",
+      "bytes": 252374
+    },
+    {
+      "utterance_id": "common_voice_en_18889688-common_voice_en_18889686",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00192_common_voice_en_18889688-common_voice_en_18889686_en.wav",
+      "sha256": "cc14f1eda429eb9874dd76a5e5e95fd1fe0a3437f855e77ec4d634b1845352b4",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_18889688-common_voice_en_18889687",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00193_common_voice_en_18889688-common_voice_en_18889687_en.wav",
+      "sha256": "168edaa676cd309ba8f50407730d383393d4b40aa07300b13f16beec2114b104",
+      "bytes": 198614
+    },
+    {
+      "utterance_id": "common_voice_en_18902273-common_voice_en_18902274",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00194_common_voice_en_18902273-common_voice_en_18902274_en.wav",
+      "sha256": "c1970c028a96c6669990bd0d91c3676cb7546779705a3db05113e36d4139ea9c",
+      "bytes": 225494
+    },
+    {
+      "utterance_id": "common_voice_en_18902273-common_voice_en_18902275",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00195_common_voice_en_18902273-common_voice_en_18902275_en.wav",
+      "sha256": "9c75193abcc3159e7a2992d9d2ec4e7eb0a2e046865c534814d60dc67eb96970",
+      "bytes": 233174
+    },
+    {
+      "utterance_id": "common_voice_en_18944281-common_voice_en_18944280",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00196_common_voice_en_18944281-common_voice_en_18944280_en.wav",
+      "sha256": "40b85d3b1c7260ba2e005381cbb1062a09c8ae30f3b60373d614a45ef8e720cd",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_18962809-common_voice_en_18962813",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00197_common_voice_en_18962809-common_voice_en_18962813_en.wav",
+      "sha256": "ca6679606f8cc18bc90eff4046077fc22d5d08d139bd23c875083717849f8c0e",
+      "bytes": 290774
+    },
+    {
+      "utterance_id": "common_voice_en_18962809-common_voice_en_18962814",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00198_common_voice_en_18962809-common_voice_en_18962814_en.wav",
+      "sha256": "56bf6bccaa61bc2af303a534bc6d6da47a7dab872a8b939d4bcfd6f574693eb9",
+      "bytes": 125654
+    },
+    {
+      "utterance_id": "common_voice_en_18993020-common_voice_en_18993021",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00199_common_voice_en_18993020-common_voice_en_18993021_en.wav",
+      "sha256": "3aa2a32299b89f8bfe1fe470e7f85606bc8550b1598c3c6e6e836bef77ff084b",
+      "bytes": 210134
+    },
+    {
+      "utterance_id": "common_voice_en_18993020-common_voice_en_18993067",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00200_common_voice_en_18993020-common_voice_en_18993067_en.wav",
+      "sha256": "3320e339005a2fe9cf1220d7c6b09c04be00c9ea954f298e2c6aee00bfcabe28",
+      "bytes": 179414
+    },
+    {
+      "utterance_id": "common_voice_en_18994068-common_voice_en_18994069",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00201_common_voice_en_18994068-common_voice_en_18994069_en.wav",
+      "sha256": "d45bc20d5f6551791caebf135b9dc6e43d6c5515a319372ae7c095ce4f0c326a",
+      "bytes": 187094
+    },
+    {
+      "utterance_id": "common_voice_en_18994734-common_voice_en_18994736",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00202_common_voice_en_18994734-common_voice_en_18994736_en.wav",
+      "sha256": "7202050f342c762ff8d6494b32aae9e0342b844d990c092e0be15ba215254ee5",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_18994734-common_voice_en_18994738",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00203_common_voice_en_18994734-common_voice_en_18994738_en.wav",
+      "sha256": "6ccb5242c2c5f2af5c0c690455748f779e8943a3291c1d515d18675ab838f509",
+      "bytes": 175574
+    },
+    {
+      "utterance_id": "common_voice_en_18998723-common_voice_en_18998722",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00204_common_voice_en_18998723-common_voice_en_18998722_en.wav",
+      "sha256": "41e1e547780121182da730698b71271c59ce4415a5ab3fd6d2301c2652ff147e",
+      "bytes": 210134
+    },
+    {
+      "utterance_id": "common_voice_en_18998723-common_voice_en_18998724",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00205_common_voice_en_18998723-common_voice_en_18998724_en.wav",
+      "sha256": "53f17406f7de8997011bb4124b7edc97d107f91c22829fac458d2cba079ae21d",
+      "bytes": 252374
+    },
+    {
+      "utterance_id": "common_voice_en_19002369-common_voice_en_19002367",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00206_common_voice_en_19002369-common_voice_en_19002367_en.wav",
+      "sha256": "cece1f8ec5bae4c606355e92b387b03ca84bf92c103a246f70bf655e18634b78",
+      "bytes": 298454
+    },
+    {
+      "utterance_id": "common_voice_en_19017623-common_voice_en_19017624",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00207_common_voice_en_19017623-common_voice_en_19017624_en.wav",
+      "sha256": "2303e2a03c6462955cfb3be27e11feb8537df5846c4ab4f396bedc7565f9e843",
+      "bytes": 141014
+    },
+    {
+      "utterance_id": "common_voice_en_19022657-common_voice_en_19022662",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00208_common_voice_en_19022657-common_voice_en_19022662_en.wav",
+      "sha256": "d224fdd856d6e9e52fb4c9c34bf9c7dd02cdea78246cc15e8d33ef2299233d16",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_19022657-common_voice_en_19022667",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00209_common_voice_en_19022657-common_voice_en_19022667_en.wav",
+      "sha256": "4a8c0fbc81b375e1cae7e44a6f12d7e6112430243e78cd1e880e068ea939c85f",
+      "bytes": 260054
+    },
+    {
+      "utterance_id": "common_voice_en_19043111-common_voice_en_19043109",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00210_common_voice_en_19043111-common_voice_en_19043109_en.wav",
+      "sha256": "c7f788d0929f90cb28ee5fc87584bfcd07bc84e218b5b1ba90dce474d228794c",
+      "bytes": 275414
+    },
+    {
+      "utterance_id": "common_voice_en_19043111-common_voice_en_19043119",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00211_common_voice_en_19043111-common_voice_en_19043119_en.wav",
+      "sha256": "2c5640e000d3cab9f767bc64478cf2de6faf95fcf2f0eb0a92238a1f8ed9a400",
+      "bytes": 148694
+    },
+    {
+      "utterance_id": "common_voice_en_19049396-common_voice_en_19049393",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00212_common_voice_en_19049396-common_voice_en_19049393_en.wav",
+      "sha256": "ecfc4f996482c0a6d5fdd5034a5e4857abc6ec1fc71a20f245fe4216dd767ee9",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_19049396-common_voice_en_19049395",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00213_common_voice_en_19049396-common_voice_en_19049395_en.wav",
+      "sha256": "7e756e84395976e7948aa237745dc87c583741519d2c7ba01494407dbf3bd3e3",
+      "bytes": 133334
+    },
+    {
+      "utterance_id": "common_voice_en_19083094-common_voice_en_19083091",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00214_common_voice_en_19083094-common_voice_en_19083091_en.wav",
+      "sha256": "d3fc9724306c6f1bf59ff6762ee80e7626186de2c4f3bc10b107258e230d5f0a",
+      "bytes": 175574
+    },
+    {
+      "utterance_id": "common_voice_en_19083094-common_voice_en_19083093",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00215_common_voice_en_19083094-common_voice_en_19083093_en.wav",
+      "sha256": "412ac80bb438ccae8d785a2cd5698041b36a67e33956360eb95adb61c91f1faf",
+      "bytes": 256214
+    },
+    {
+      "utterance_id": "common_voice_en_19113286-common_voice_en_19113288",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00216_common_voice_en_19113286-common_voice_en_19113288_en.wav",
+      "sha256": "c5fd989f293e2692cc301b267f45cb76599a2ec4f257e4d73947445f6fdc2117",
+      "bytes": 267734
+    },
+    {
+      "utterance_id": "common_voice_en_19117097-common_voice_en_19117098",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00217_common_voice_en_19117097-common_voice_en_19117098_en.wav",
+      "sha256": "e97237679ddcead6606fc264ea37bb45f1b743c9f82bf0ac5b327a1b94511ac8",
+      "bytes": 164054
+    },
+    {
+      "utterance_id": "common_voice_en_19124597-common_voice_en_19124596",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00218_common_voice_en_19124597-common_voice_en_19124596_en.wav",
+      "sha256": "a8d96c142f4d54edc3370da1a2724e55c68cf6ac257ea4b201e6ffee788cafd1",
+      "bytes": 129494
+    },
+    {
+      "utterance_id": "common_voice_en_19152197-common_voice_en_19152196",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00219_common_voice_en_19152197-common_voice_en_19152196_en.wav",
+      "sha256": "b7939622ed347220b849d6a38cae014d91f0e129e8d8d3f4a0abbcfde2694982",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_19152197-common_voice_en_19152198",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00220_common_voice_en_19152197-common_voice_en_19152198_en.wav",
+      "sha256": "a3c85bbbc9601607d073bbe36c4b9974c22e31e20fe4aa83b8800060139643e0",
+      "bytes": 256214
+    },
+    {
+      "utterance_id": "common_voice_en_19176854-common_voice_en_19176853",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00221_common_voice_en_19176854-common_voice_en_19176853_en.wav",
+      "sha256": "0c1466c679dad0be68336c1a74d26383f4e9f6aa315ea7388458122ee7c2f6b4",
+      "bytes": 160214
+    },
+    {
+      "utterance_id": "common_voice_en_19176854-common_voice_en_19176856",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00222_common_voice_en_19176854-common_voice_en_19176856_en.wav",
+      "sha256": "c90caae210705df8b92a9c51efb8b1684675eff4f2a18ce36a4d5a4bd46a47f7",
+      "bytes": 233174
+    },
+    {
+      "utterance_id": "common_voice_en_19211875-common_voice_en_19211870",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00223_common_voice_en_19211875-common_voice_en_19211870_en.wav",
+      "sha256": "cb87b1cc1ad33f0664f0e94758a43577db6e35405c88e0fff9730af5215e39d6",
+      "bytes": 229334
+    },
+    {
+      "utterance_id": "common_voice_en_19254683-common_voice_en_19254685",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00224_common_voice_en_19254683-common_voice_en_19254685_en.wav",
+      "sha256": "0b6d3d671c268efd5a7118ce40ca8f4efd8101901110589d62dccaed223c15b3",
+      "bytes": 187094
+    },
+    {
+      "utterance_id": "common_voice_en_19254683-common_voice_en_19254687",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00225_common_voice_en_19254683-common_voice_en_19254687_en.wav",
+      "sha256": "1f79d41c443d6abb2ffd5a219b941e654d6653f864a5e5c5a504975d124f5066",
+      "bytes": 233174
+    },
+    {
+      "utterance_id": "common_voice_en_19277026-common_voice_en_19277029",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00226_common_voice_en_19277026-common_voice_en_19277029_en.wav",
+      "sha256": "3f30c63469bf9990d4096af1597e895369764379accbc4c7f7c9021e86db5c36",
+      "bytes": 225494
+    },
+    {
+      "utterance_id": "common_voice_en_19284142-common_voice_en_19284143",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00227_common_voice_en_19284142-common_voice_en_19284143_en.wav",
+      "sha256": "a595cfce4d10d16bbd6653e09b5f0dcb7d636438835193b9cf2a2f567c797ccd",
+      "bytes": 114134
+    },
+    {
+      "utterance_id": "common_voice_en_19284142-common_voice_en_19284144",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00228_common_voice_en_19284142-common_voice_en_19284144_en.wav",
+      "sha256": "06ac50d1c2b9a5af532e74ce1bd12cc8ca8ec6ae289789149efb0e5dea7d16fd",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_19289713-common_voice_en_19289715",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00229_common_voice_en_19289713-common_voice_en_19289715_en.wav",
+      "sha256": "57ffa5001e8e5aee1262014c414cb988b1b7c16addf1b09037025e853f294bf9",
+      "bytes": 213974
+    },
+    {
+      "utterance_id": "common_voice_en_19294198-common_voice_en_19294199",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00230_common_voice_en_19294198-common_voice_en_19294199_en.wav",
+      "sha256": "2c42dbf4dc8266b7ccb044aa850d6f21963dbd270563d78933efa8c30f3c11a9",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_19294198-common_voice_en_19294200",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00231_common_voice_en_19294198-common_voice_en_19294200_en.wav",
+      "sha256": "fc0346acbbfe01f8d05d694ea88e78e060d428e33de3dde712731594f4423eff",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_19343495-common_voice_en_19343496",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00232_common_voice_en_19343495-common_voice_en_19343496_en.wav",
+      "sha256": "d3105ac9e489a7cdde5d7953019bea9a6affadb694d73d639a46974fafa8bdfa",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_19343495-common_voice_en_19343497",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00233_common_voice_en_19343495-common_voice_en_19343497_en.wav",
+      "sha256": "9a12bb875374fedb6ba88638549bd00cb1b65e29316860ffeb81d6fbc72bde9b",
+      "bytes": 152534
+    },
+    {
+      "utterance_id": "common_voice_en_19345360-common_voice_en_19345358",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00234_common_voice_en_19345360-common_voice_en_19345358_en.wav",
+      "sha256": "f4d319891761d515a165b447b92b8c7fa04a3701325c6aa78704b19bd95574b8",
+      "bytes": 156374
+    },
+    {
+      "utterance_id": "common_voice_en_19345360-common_voice_en_19345359",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00235_common_voice_en_19345360-common_voice_en_19345359_en.wav",
+      "sha256": "272e531f8ca9382bf7fda9109af7be1169b08e898ffdb9e675159fa44b8032ab",
+      "bytes": 213974
+    },
+    {
+      "utterance_id": "common_voice_en_19361636-common_voice_en_19361634",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00236_common_voice_en_19361636-common_voice_en_19361634_en.wav",
+      "sha256": "76195685faba1eb7e98cedca9178fcc498e609352210b2239591eaa1e75187ae",
+      "bytes": 283094
+    },
+    {
+      "utterance_id": "common_voice_en_19361636-common_voice_en_19361635",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00237_common_voice_en_19361636-common_voice_en_19361635_en.wav",
+      "sha256": "894ad6a20005586c189f1da54854d7ff75dcec6fce0faa14f9799023f744f311",
+      "bytes": 202454
+    },
+    {
+      "utterance_id": "common_voice_en_19384720-common_voice_en_19384721",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00238_common_voice_en_19384720-common_voice_en_19384721_en.wav",
+      "sha256": "769f9e00c877bbade5cac2348d352f827ca0c7ee045b03b5dd96b16cb3d635bd",
+      "bytes": 167894
+    },
+    {
+      "utterance_id": "common_voice_en_19397397-common_voice_en_19397399",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00239_common_voice_en_19397397-common_voice_en_19397399_en.wav",
+      "sha256": "24e7367e9ad436e2f230ba39e932e9c84d8b57f2d680de520d530b1dd89f9e2f",
+      "bytes": 206294
+    },
+    {
+      "utterance_id": "common_voice_en_19397397-common_voice_en_19397407",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00240_common_voice_en_19397397-common_voice_en_19397407_en.wav",
+      "sha256": "704a2a8c3ebc5c4e0df95d49f87e6a3282aa1577d684b2068c9cbf860fc719e8",
+      "bytes": 179414
+    },
+    {
+      "utterance_id": "common_voice_en_19401124-common_voice_en_19401123",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00241_common_voice_en_19401124-common_voice_en_19401123_en.wav",
+      "sha256": "ce7c0412554203cb9b58dce645939067c7355450d55b606d6da0bc49bb069fea",
+      "bytes": 279254
+    },
+    {
+      "utterance_id": "common_voice_en_19401124-common_voice_en_19401125",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00242_common_voice_en_19401124-common_voice_en_19401125_en.wav",
+      "sha256": "4f08ddfd6bfd172eb489179116eb5aca1638076a15001877f27e6f6914805be2",
+      "bytes": 194774
+    },
+    {
+      "utterance_id": "common_voice_en_19428391-common_voice_en_19428392",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00243_common_voice_en_19428391-common_voice_en_19428392_en.wav",
+      "sha256": "9c154a1fb77fdff0a61e8073188f6bc646499ded0a829e0919161eb7fc0acd04",
+      "bytes": 248534
+    },
+    {
+      "utterance_id": "common_voice_en_19428391-common_voice_en_19428396",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00244_common_voice_en_19428391-common_voice_en_19428396_en.wav",
+      "sha256": "050ce0099d83bde03a40613fea9763350bfc2cc69effc99581b86c3fda880a9b",
+      "bytes": 187094
+    },
+    {
+      "utterance_id": "common_voice_en_19449066-common_voice_en_19449075",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00245_common_voice_en_19449066-common_voice_en_19449075_en.wav",
+      "sha256": "1150af90dd80f42acb3833315e6037f06563dad360008a353cb4ab5bcebc4570",
+      "bytes": 279254
+    },
+    {
+      "utterance_id": "common_voice_en_19449066-common_voice_en_19449076",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00246_common_voice_en_19449066-common_voice_en_19449076_en.wav",
+      "sha256": "a9c13c9deff1935741d0a5fd396b70358ac0eee50935bbfe6f429c53b3c69359",
+      "bytes": 248534
+    },
+    {
+      "utterance_id": "common_voice_en_19455206-common_voice_en_19455208",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00247_common_voice_en_19455206-common_voice_en_19455208_en.wav",
+      "sha256": "5a31a06c800745765ff602ecb593915089dd4860feaf53c51d71afbd280f446c",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_19455206-common_voice_en_19455210",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00248_common_voice_en_19455206-common_voice_en_19455210_en.wav",
+      "sha256": "7aea03e9deaf7fde184ff9cedf070b1fece7495f1011bda9f9733ea19ef7790d",
+      "bytes": 202454
+    },
+    {
+      "utterance_id": "common_voice_en_19481268-common_voice_en_19481267",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00249_common_voice_en_19481268-common_voice_en_19481267_en.wav",
+      "sha256": "5f4db61b4924604f71f2ab80bec24fb4dc865a68e1e18921aa065369147474e5",
+      "bytes": 202454
+    },
+    {
+      "utterance_id": "common_voice_en_19481268-common_voice_en_19481270",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00250_common_voice_en_19481268-common_voice_en_19481270_en.wav",
+      "sha256": "cc5d23fb5a33857035313dfe6eaa528d0a976cd59e77ddc39e7869d4f3db9a78",
+      "bytes": 171734
+    },
+    {
+      "utterance_id": "common_voice_en_19496235-common_voice_en_19496229",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00251_common_voice_en_19496235-common_voice_en_19496229_en.wav",
+      "sha256": "c42c60a61c11eac3fbfe3761a958dba666f3ff92115331d15648fa27958dad50",
+      "bytes": 252374
+    },
+    {
+      "utterance_id": "common_voice_en_19496235-common_voice_en_19496266",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00252_common_voice_en_19496235-common_voice_en_19496266_en.wav",
+      "sha256": "8fe8d7c3ff38c894e234cc2765395d5b3fe0fbb8fd249a104fac5af0c410d8cf",
+      "bytes": 271574
+    },
+    {
+      "utterance_id": "common_voice_en_19517720-common_voice_en_19517721",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00253_common_voice_en_19517720-common_voice_en_19517721_en.wav",
+      "sha256": "8ebe5bdf10b0a63108a4b6f1c41e8b5d0b6ea894f7a9c6a9e309ccf826fba427",
+      "bytes": 137174
+    },
+    {
+      "utterance_id": "common_voice_en_19527999-common_voice_en_19528000",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00254_common_voice_en_19527999-common_voice_en_19528000_en.wav",
+      "sha256": "8d4e4feedb8caf475cdef0f890bd071f4ff66a0884278fd37c26b14c28f24694",
+      "bytes": 144854
+    },
+    {
+      "utterance_id": "common_voice_en_19527999-common_voice_en_19528002",
+      "audio_path": "<BASELINE_QUALITY_AUDIO_DIR>/00255_common_voice_en_19527999-common_voice_en_19528002_en.wav",
+      "sha256": "7add56d1cff02ca69eb735a2a1a87e0573d33daa0037f1ab202d4c3ee1c1b250",
+      "bytes": 167894
+    }
+  ]
+}

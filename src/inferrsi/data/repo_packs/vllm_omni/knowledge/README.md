@@ -88,6 +88,7 @@ tests check that every packaged record is listed.
 | common | [vLLM-Omni diffusion step state and output/transport validation](common/diffusion/step-state-and-output-validation.json) |
 | common | [Upstream review gates for optional acceleration and evidence ownership](common/diffusion/upstream-review-gates.json) |
 | common | [vLLM-Omni stage ownership and constrained execution search](common/omni/stage-ownership-and-search.json) |
+| cuda | [Qwen3-Omni MRv2 existing optimizations and streaming measurement boundaries](cuda/audio/qwen3-omni-mrv2-measurement-and-tuning.json) |
 | cuda | [Audio concurrency scaling: mixed prefill, state ownership and codec overlap](cuda/audio/concurrency-scaling-state-and-overlap.json) |
 | cuda | [MiniMax-H3 exact AdaLN schedule cache: capacity benefit can exceed latency benefit](cuda/diffusion/minimax-h3-adaln-schedule-cache.json) |
 | cuda | [MiniMax-H3 online CUDA MXFP8 is an opt-in approximate deployment lane](cuda/diffusion/minimax-h3-cuda-mxfp8.json) |

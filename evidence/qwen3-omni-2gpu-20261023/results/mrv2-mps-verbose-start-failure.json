@@ -1,0 +1,11 @@
+{
+  "status": "startup_failed",
+  "original_log_sha256": "ff20db5dbbef4258f44212bf46ce4b0471b7885326e89347d90ded8ab5d147d0",
+  "exception_lines": [
+    "ValueError: Pipeline 'qwen3_omni_moe' has explicit engine argument(s) with no structured config owner: jit_monitor_verbose"
+  ],
+  "cause": "Explicit jit_monitor_verbose lacked a structured stage config owner in the executed source.",
+  "fix_reference": "https://github.com/vllm-project/vllm-omni/pull/9281",
+  "timing": "Fix was applied after this screening server stopped; it is not part of these measurements.",
+  "scope": "Concise exception evidence only; original private traceback retained separately."
+}

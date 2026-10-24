@@ -1,0 +1,249 @@
+{
+  "stage0": {
+    "kernel_time_sum_ms": 396.2252019999986,
+    "top_kernels": [
+      {
+        "name": "fused_moe_kernel",
+        "total_ms": 190.03276699999813,
+        "calls": 6624
+      },
+      {
+        "name": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAttnFwdSm90<flash::CollectiveMainloopFwdSm90<2, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, 128, cutlass::bfloat16_t, float, cutlass::arch::Sm90, true, false, false, true, true, false, false, false, true, true, true, true, false, cutlass::bfloat16_t, 1>, flash::CollectiveEpilogueFwd<cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cutlass::bfloat16_t, cutlass::arch::Sm90, 128, true, true, true, false, 1>, flash::VarlenDynamicPersistentTileScheduler<64, 128, 128, 128, true, true, true, true, false, true> > > >(flash::enable_sm90_or_later<flash::FlashAttnFwdSm90<flash::CollectiveMainloopFwdSm90<2, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, 128, cutlass::bfloat16_t, float, cutlass::arch::Sm90, true, false, false, true, true, false, false, false, true, true, true, true, false, cutlass::bfloat16_t, 1>, flash::CollectiveEpilogueFwd<cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cutlass::bfloat16_t, cutlass::arch::Sm90, 128, true, true, true, false, 1>, flash::VarlenDynamicPersistentTileScheduler<64, 128, 128, 128, true, true, true, true, false, true> > >::Params)",
+        "total_ms": 30.613452999999883,
+        "calls": 3072
+      },
+      {
+        "name": "nvjet_sm90_tst_64x8_64x16_4x1_v_bz_TNT",
+        "total_ms": 24.022604000000236,
+        "calls": 3072
+      },
+      {
+        "name": "nvjet_sm90_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+        "total_ms": 22.12362500000002,
+        "calls": 3072
+      },
+      {
+        "name": "nvjet_sm90_tst_64x8_64x16_2x1_v_bz_TNT",
+        "total_ms": 15.519610999999893,
+        "calls": 3072
+      },
+      {
+        "name": "void vllm::moe::topkGating<8, 128, 4, 16, 32, int, __nv_bfloat16, (vllm::moe::ScoringFunc)0>(__nv_bfloat16 const*, bool const*, float*, int, int*, int*, int, int, int, bool, float const*, double, bool const*)",
+        "total_ms": 12.17417799999999,
+        "calls": 3312
+      },
+      {
+        "name": "nvjet_sm90_tst_384x8_64x4_2x1_v_bz_TNT",
+        "total_ms": 10.245297,
+        "calls": 69
+      },
+      {
+        "name": "void cutlass::device_kernel<flash::FlashAttnFwdCombine<cute::tuple<cute::C<8>, cute::C<128> >, 5, 256, 1, false, true, cutlass::bfloat16_t, float, cutlass::arch::Sm90> >(flash::FlashAttnFwdCombine<cute::tuple<cute::C<8>, cute::C<128> >, 5, 256, 1, false, true, cutlass::bfloat16_t, float, cutlass::arch::Sm90>::Params)",
+        "total_ms": 8.226129000000054,
+        "calls": 3072
+      },
+      {
+        "name": "triton_red_fused_2",
+        "total_ms": 7.824272000000014,
+        "calls": 3312
+      },
+      {
+        "name": "void vllm::reshape_and_cache_flash_kernel<__nv_bfloat16, __nv_bfloat16, (vllm::Fp8KVCacheDataType)0>(__nv_bfloat16 const*, __nv_bfloat16 const*, __nv_bfloat16*, __nv_bfloat16*, long const*, long, long, long, long, long, int, int, int, float const*, float const*, int)",
+        "total_ms": 6.983890999999922,
+        "calls": 3312
+      },
+      {
+        "name": "triton_red_fused_fused_add_rms_norm_moe_forward_0",
+        "total_ms": 6.882296999999987,
+        "calls": 3312
+      },
+      {
+        "name": "void vllm::act_and_mul_kernel<c10::BFloat16, __nv_bfloat162, &(c10::BFloat16 vllm::silu_kernel<c10::BFloat16>(c10::BFloat16 const&, float)), &(__nv_bfloat162 vllm::packed_silu_kernel<__nv_bfloat162>(__nv_bfloat162 const&, float)), true, true, false, false>(c10::BFloat16*, c10::BFloat16 const*, int, float, float, float)",
+        "total_ms": 6.760981000000133,
+        "calls": 3312
+      },
+      {
+        "name": "triton_red_fused_fused_add_rms_norm_1",
+        "total_ms": 6.680344999999926,
+        "calls": 3036
+      },
+      {
+        "name": "void vllm::moe::moe_sum_vec_kernel<c10::BFloat16, int, 8, false>(c10::BFloat16*, c10::BFloat16 const*, long, int, long, long, int const*, int const*, long, long)",
+        "total_ms": 6.506851999999928,
+        "calls": 3312
+      },
+      {
+        "name": "triton_poi_fused_clone_index_rms_norm_split_split_with_sizes_view_3",
+        "total_ms": 5.645208000000083,
+        "calls": 3243
+      }
+    ]
+  },
+  "stage1": {
+    "kernel_time_sum_ms": 1212.0524919999991,
+    "top_kernels": [
+      {
+        "name": "void pytorch_flash::flash_fwd_kernel<Flash_fwd_kernel_traits<128, 128, 64, 4, false, false, cutlass::bfloat16_t, Flash_kernel_traits<128, 128, 64, 4, cutlass::bfloat16_t> >, false, true, false, false, false, true, false, false>(pytorch_flash::Flash_fwd_params)",
+        "total_ms": 93.46170700000066,
+        "calls": 12975
+      },
+      {
+        "name": "fused_moe_kernel",
+        "total_ms": 63.94729800000015,
+        "calls": 7000
+      },
+      {
+        "name": "nvjet_sm90_tst_8x64_64x16_2x1_v_bz_TNN",
+        "total_ms": 58.78752199999976,
+        "calls": 6800
+      },
+      {
+        "name": "nvjet_sm90_tst_64x24_64x16_4x1_v_bz_TNT",
+        "total_ms": 48.06793400000029,
+        "calls": 8250
+      },
+      {
+        "name": "void at::native::sbtopk::gatherTopK<c10::BFloat16, unsigned int, 2, false>(at::cuda::detail::TensorInfo<c10::BFloat16 const, unsigned int>, unsigned int, unsigned int, bool, unsigned int, unsigned int, at::cuda::detail::TensorInfo<c10::BFloat16, unsigned int>, unsigned int, at::cuda::detail::TensorInfo<long, unsigned int>, unsigned int, c10::BFloat16*)",
+        "total_ms": 43.01757199999984,
+        "calls": 1770
+      },
+      {
+        "name": "void (anonymous namespace)::softmax_warp_forward<float, float, float, 11, false, false, 32>(float*, float const*, int, int, int, bool const*, int, bool)",
+        "total_ms": 35.1039050000006,
+        "calls": 2595
+      },
+      {
+        "name": "void cutlass::device_kernel<flash::enable_sm90_or_later<flash::FlashAttnFwdSm90<flash::CollectiveMainloopFwdSm90<2, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, 128, cutlass::bfloat16_t, float, cutlass::arch::Sm90, true, false, false, true, true, false, false, false, true, true, true, true, false, cutlass::bfloat16_t, 1>, flash::CollectiveEpilogueFwd<cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cutlass::bfloat16_t, cutlass::arch::Sm90, 128, true, true, true, false, 1>, flash::VarlenDynamicPersistentTileScheduler<64, 128, 128, 128, true, true, true, true, false, true> > > >(flash::enable_sm90_or_later<flash::FlashAttnFwdSm90<flash::CollectiveMainloopFwdSm90<2, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, 128, cutlass::bfloat16_t, float, cutlass::arch::Sm90, true, false, false, true, true, false, false, false, true, true, true, true, false, cutlass::bfloat16_t, 1>, flash::CollectiveEpilogueFwd<cute::tuple<cute::C<64>, cute::C<128>, cute::C<128> >, cute::tuple<cute::C<1>, cute::C<1>, cute::C<1> >, cutlass::bfloat16_t, cutlass::arch::Sm90, 128, true, true, true, false, 1>, flash::VarlenDynamicPersistentTileScheduler<64, 128, 128, 128, true, true, true, true, false, true> > >::Params)",
+        "total_ms": 30.666545999999983,
+        "calls": 3400
+      },
+      {
+        "name": "nvjet_sm90_tst_64x24_64x16_4x1_v_bz_splitK_TNT",
+        "total_ms": 29.96241199999988,
+        "calls": 4125
+      },
+      {
+        "name": "nvjet_sm90_tst_64x40_64x16_4x1_v_bz_TNT",
+        "total_ms": 29.83615900000027,
+        "calls": 4725
+      },
+      {
+        "name": "nvjet_sm90_tst_64x8_64x16_4x1_v_bz_TNT",
+        "total_ms": 29.48130599999978,
+        "calls": 6170
+      },
+      {
+        "name": "void cublasLt::splitKreduce_kernel<32, 16, int, float, __nv_bfloat16, float, __nv_bfloat16, false, float, __nv_bfloat16, __nv_bfloat16, true, false, false, false>(cublasLt::cublasSplitKParams<float>, float const*, __nv_bfloat16 const*, float*, __nv_bfloat16*, float const*, float const*, __nv_bfloat16 const*, float const*, __nv_bfloat16*, void*, long, float*, int*, float*, float*, float const*, float const*, float const*, float const*, float const*)",
+        "total_ms": 28.970099999999814,
+        "calls": 12975
+      },
+      {
+        "name": "void at::native::radixSortKVInPlace<2, -1, 64, 32, c10::BFloat16, long, unsigned int>(at::cuda::detail::TensorInfo<c10::BFloat16, unsigned int>, unsigned int, unsigned int, unsigned int, at::cuda::detail::TensorInfo<long, unsigned int>, unsigned int, bool)",
+        "total_ms": 27.830588000000063,
+        "calls": 1770
+      },
+      {
+        "name": "nvjet_sm90_tst_64x40_64x16_1x2_h_bz_TNT",
+        "total_ms": 27.416055000000206,
+        "calls": 4125
+      },
+      {
+        "name": "nvjet_sm90_tst_64x8_64x16_4x2_h_bz_TNT",
+        "total_ms": 27.201544999999943,
+        "calls": 4725
+      },
+      {
+        "name": "nvjet_sm90_tst_64x8_64x16_4x1_v_bz_splitK_TNT",
+        "total_ms": 26.45502499999979,
+        "calls": 4125
+      }
+    ]
+  },
+  "stage2": {
+    "kernel_time_sum_ms": 181.03352900000004,
+    "top_kernels": [
+      {
+        "name": "void implicit_convolve_sgemm<__nv_bfloat16, __nv_bfloat16, 128, 6, 7, 3, 3, 5, 1, false, false, false>(int, int, int, __nv_bfloat16 const*, int, __nv_bfloat16*, __nv_bfloat16 const*, kernel_conv_params, unsigned long long, int, float, float, int, __nv_bfloat16 const*, __nv_bfloat16 const*, bool, bool, int, int)",
+        "total_ms": 39.064839,
+        "calls": 48
+      },
+      {
+        "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > >(at::TensorIteratorBase&, at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > >(at::TensorIteratorBase&, at::native::BinaryFunctor<c10::BFloat16, c10::BFloat16, c10::BFloat16, at::native::binary_internal::MulFunctor<float> > const&)::{lambda(int)#1})",
+        "total_ms": 24.110966000000023,
+        "calls": 2337
+      },
+      {
+        "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<c10::BFloat16> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<c10::BFloat16> const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::CUDAFunctor_add<c10::BFloat16> >(at::TensorIteratorBase&, at::native::CUDAFunctor_add<c10::BFloat16> const&)::{lambda(int)#1})",
+        "total_ms": 17.072078999999988,
+        "calls": 950
+      },
+      {
+        "name": "void cudnn::engines_precompiled::nchwToNhwcKernel<__nv_bfloat16, __nv_bfloat16, float, false, true, (cudnnKernelDataType_t)0>(cudnn::engines_precompiled::nchw2nhwc_params_t<float>, __nv_bfloat16 const*, __nv_bfloat16*)",
+        "total_ms": 11.710552999999997,
+        "calls": 648
+      },
+      {
+        "name": "void at::native::vectorized_elementwise_kernel<8, at::native::exp_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul> >(int, at::native::exp_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>)",
+        "total_ms": 11.355332000000008,
+        "calls": 1064
+      },
+      {
+        "name": "void at::native::elementwise_kernel<128, 4, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1}>(int, at::native::gpu_kernel_impl_nocast<at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1}>(at::TensorIteratorBase&, at::native::direct_copy_kernel_cuda(at::TensorIteratorBase&)::{lambda()#3}::operator()() const::{lambda()#12}::operator()() const::{lambda(c10::BFloat16)#1} const&)::{lambda(int)#1})",
+        "total_ms": 11.012822000000014,
+        "calls": 493
+      },
+      {
+        "name": "void at::native::vectorized_elementwise_kernel<8, at::native::sin_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul> >(int, at::native::sin_kernel_cuda(at::TensorIteratorBase&)::{lambda()#2}::operator()() const::{lambda()#4}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>)",
+        "total_ms": 5.486169000000006,
+        "calls": 532
+      },
+      {
+        "name": "void cutlass::Kernel2<cutlass_75_tensorop_bf16_s1688gemm_bf16_64x64_nn_align1>(cutlass_75_tensorop_bf16_s1688gemm_bf16_64x64_nn_align1::Params)",
+        "total_ms": 4.958652999999999,
+        "calls": 15
+      },
+      {
+        "name": "void cudnn::engines_precompiled::nhwcToNchwKernel<__nv_bfloat16, __nv_bfloat16, float, true, false, (cudnnKernelDataType_t)0>(cudnn::engines_precompiled::nhwc2nchw_params_t<float>, __nv_bfloat16 const*, __nv_bfloat16*)",
+        "total_ms": 4.699605999999999,
+        "calls": 335
+      },
+      {
+        "name": "void at::native::vectorized_elementwise_kernel<8, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul> >(int, at::native::CUDAFunctor_add<c10::BFloat16>, std::array<char*, 3ul>)",
+        "total_ms": 4.405277000000005,
+        "calls": 1064
+      },
+      {
+        "name": "void cutlass::Kernel2<cutlass_75_tensorop_bf16_s1688gemm_bf16_128x128_nn_align1>(cutlass_75_tensorop_bf16_s1688gemm_bf16_128x128_nn_align1::Params)",
+        "total_ms": 4.401436999999999,
+        "calls": 69
+      },
+      {
+        "name": "void at::native::vectorized_elementwise_kernel<8, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul> >(int, at::native::FillFunctor<c10::BFloat16>, std::array<char*, 1ul>)",
+        "total_ms": 3.4524130000000124,
+        "calls": 600
+      },
+      {
+        "name": "void at::native::vectorized_elementwise_kernel<8, at::native::reciprocal_kernel_cuda(at::TensorIteratorBase&)::{lambda()#1}::operator()() const::{lambda()#6}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul> >(int, at::native::reciprocal_kernel_cuda(at::TensorIteratorBase&)::{lambda()#1}::operator()() const::{lambda()#6}::operator()() const::{lambda(c10::BFloat16)#1}, std::array<char*, 2ul>)",
+        "total_ms": 3.1852460000000002,
+        "calls": 532
+      },
+      {
+        "name": "memcpy32_post",
+        "total_ms": 3.1206070000000015,
+        "calls": 141
+      },
+      {
+        "name": "void cutlass__5x_cudnn::Kernel<cutlass_tensorop_bf16_s16816fprop_optimized_bf16_128x128_32x5_nhwc_align8>(cutlass_tensorop_bf16_s16816fprop_optimized_bf16_128x128_32x5_nhwc_align8::Params)",
+        "total_ms": 2.850341,
+        "calls": 67
+      }
+    ]
+  },
+  "scope": {
+    "requests": 8,
+    "concurrency": 4,
+    "profiler_enabled": true,
+    "not_for_latency_comparison": true,
+    "interpretation": "kernel duration sums can overlap; do not treat as critical-path wall times"
+  }
+}

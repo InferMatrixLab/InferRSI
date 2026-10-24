@@ -1,0 +1,33 @@
+{
+  "source_sha": "557097940fb38a2579af104997a387749c2a47a1",
+  "command": [
+    "<PYTHON>",
+    "-m",
+    "vllm_omni.entrypoints.cli.main",
+    "serve",
+    "<MODEL_PATH>",
+    "--omni",
+    "--served-model-name",
+    "Qwen/Qwen3-Omni-30B-A3B-Instruct",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "28931",
+    "--stage-init-timeout",
+    "1200",
+    "--init-timeout",
+    "2400",
+    "--jit-monitor-verbose",
+    "--deploy-config",
+    "<DEPLOY_CONFIG>"
+  ],
+  "start_time": 1792733038.1656837,
+  "status": "INCONCLUSIVE",
+  "phase": "screening",
+  "execution_complete": true,
+  "stop_time": 1792733897.8702257,
+  "monitor_errors": [],
+  "resource_isolation_verified": true,
+  "server_exit_code": 0,
+  "source_unchanged": true
+}

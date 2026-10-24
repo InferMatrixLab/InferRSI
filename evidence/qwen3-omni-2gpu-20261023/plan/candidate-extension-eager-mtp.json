@@ -1,0 +1,16 @@
+{
+  "id": "qwen3-eager-mtp-capability",
+  "phase": "screening",
+  "plane": "harness",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "production_commit": "f71f82c3e41d6940f3456f8e71c9b501449cfb28",
+  "hypothesis": "Qwen3 codec embedding and vocabulary capabilities were not recognized by shared fused eager-MTP staging; expose them with fallback guards to reuse existing gather/scatter kernels and cached graph replay. Full-CUDA trace showed absent pre/post kernels and fallback validity-operation counts. Profiler observations do not establish E2E gain.",
+  "control": "MRv2 base, two-GPU original placement, MPS off; no incremental predictor KV/short-KV/fused sampling/cuDNN search enabled. Do not attribute differences from V1 solely to adapter.",
+  "private_overlay_sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac",
+  "sources": [
+    "https://github.com/vllm-project/vllm-omni/commit/e84014dffb972c62ca35d83437d6248425fbad18",
+    "https://github.com/vllm-project/vllm-omni/commit/2176457b3d8d621e53bdbfd22a42997c8814704f"
+  ],
+  "validation": "63 CPU tests and independent source review completed; actual CUDA parity and full model quality/performance pending. Existing kernels and sampler unchanged.",
+  "gates": "Unchanged protocol-v5 targets and quality gate; screens remain separate from formal paired trials."
+}
