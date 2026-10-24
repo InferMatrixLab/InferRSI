@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "scope": "Single MRv2 codec-cuDNN quality pilot only; no performance or promotion claim",
+  "criterion": "Candidate aggregate WER <= baseline; all256 rows complete with matching pinned provenance; UTMOS descriptive only",
+  "arms": {
+    "baseline": {
+      "wer": 0.06829261169794258,
+      "utmos_mean": 3.3325191205367446,
+      "utmos_evaluated": 256,
+      "utmos_failed": 0,
+      "quality_sha256": "72a58062abf01fba4032ae2270370f0b72d3731f459c4ba6433f8647f9670018",
+      "execution_sha256": "57299a0ec0b5c4fd0eb8a715ca9e483827099024b8fa0f082bdec5d6d60fdb1b"
+    },
+    "candidate": {
+      "wer": 0.04428580954890698,
+      "utmos_mean": 3.3351738592609763,
+      "utmos_evaluated": 256,
+      "utmos_failed": 0,
+      "quality_sha256": "24f5892a6d4c992e4cfe5e1f0919b113a3d09cddb3425777f8200e9e4584dae1",
+      "execution_sha256": "a7661064ebc6f9adb2ef79453444f147d0c83bb997dc97ddf20dbba519d459b0"
+    }
+  },
+  "wer_delta": -0.024006802149035604,
+  "pins_sha256": "be7a1866aa76595a094f1ced408c90bee9d5e81a9fb9a98cce04c8df82744099"
+}

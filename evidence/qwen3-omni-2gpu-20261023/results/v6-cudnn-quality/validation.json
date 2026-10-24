@@ -1,0 +1,16 @@
+{
+  "status": "CHECKS_COMPLETE",
+  "raw_metric_rows_exact_counts": [
+    256,
+    256
+  ],
+  "audio_hash_counts": [
+    256,
+    256
+  ],
+  "both_arms_execution_isolation_source_cleanup_verified": true,
+  "retained_hashes_valid": true,
+  "known_private_path_pid_uuid_scan_hits": [],
+  "public_executable_payloads": 0,
+  "scope": "Targeted automated checks and independent privacy/source review completed; not campaign acceptance"
+}

@@ -1,0 +1,2 @@
+base_config: <PATH_2>
+cuda_mps: false

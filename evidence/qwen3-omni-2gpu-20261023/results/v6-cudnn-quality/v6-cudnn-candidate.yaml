@@ -1,0 +1,5 @@
+base_config: <PATH_3>
+connectors:
+  connector_of_shared_memory:
+    extra:
+      codec_cudnn_benchmark: true

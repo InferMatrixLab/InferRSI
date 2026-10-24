@@ -1,0 +1,68 @@
+{
+  "scope": "Single isolated cuDNN quality pilot; no performance acceptance or promotion",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "configs": {
+    "baseline": "<PATH_1>",
+    "candidate": "<PATH_2>"
+  },
+  "config_chains": {
+    "baseline": [
+      {
+        "file": "<PATH_1>",
+        "sha256": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c"
+      },
+      {
+        "file": "<PATH_3>",
+        "sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac"
+      },
+      {
+        "file": "<PATH_4>",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      },
+      {
+        "file": "<PATH_5>",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ],
+    "candidate": [
+      {
+        "file": "<PATH_2>",
+        "sha256": "68a45a77cdca6feb872ecec88aa7ff0e374ec38677fc7bfd9409019390661b65"
+      },
+      {
+        "file": "<PATH_3>",
+        "sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac"
+      },
+      {
+        "file": "<PATH_4>",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      },
+      {
+        "file": "<PATH_5>",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ]
+  },
+  "validator": "<PATH_6>",
+  "gate": "Same existing no-WER-regression criterion; UTMOS descriptive only",
+  "files": {
+    "<PATH_7>": "1155821231da0b8fd440ab806a2e64467e96e082ed4a851842323e093d470171",
+    "<PATH_5>": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+    "<PATH_8>": "2503f2f2a94dd7c4125579ba9e6e8ae41026b78a969ff8e6f809d54b7db5e6b3",
+    "<PATH_9>": "cb5c56c7ad45700a7892a95c0e6349768febc27ec6b232f9b9359e7f2a8c6634",
+    "<PATH_6>": "819ed3c7f517abe9d5b9af924893bfb6c15cf6c2a64b103fa8107dc056a26043",
+    "<PATH_10>": "0f6ca742e569ad61533b33fcaa048cc719166d922edd0fd06536e3d75e86deb3",
+    "<PATH_1>": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c",
+    "<PATH_3>": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac",
+    "<PATH_4>": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a",
+    "<PATH_2>": "68a45a77cdca6feb872ecec88aa7ff0e374ec38677fc7bfd9409019390661b65",
+    "<PATH_11>": "c83739b07377783a1cf29a9ba02702e0ddc986740836a9de13631be5208d3a3b",
+    "<PATH_12>": "cc745091678fa82f6c424d491f7118ca77336cce12bfcbeef515946a0fecbd7c",
+    "<PATH_13>": "4c86fd2bfd86fee8ea09aaea09cfbf7c434b9f0fa8b26ab42c52f94930d5c95c",
+    "<PATH_14>": "95f1ecd56efe6cc7fc9aaf307b36fb0091fc03330739a86f984dbc54ff682353",
+    "<PATH_15>": "5e24179ebf447e83e8a90f58584a48d9a5177e37b48f2c16947e4b9746b3ef3b",
+    "<PATH_16>": "37d3f7a558a73388d15a6aabf978444c7cfd4841db2a637f9524ac0eb0ef7d61",
+    "<PATH_17>": "95402eaad4fbf65f5554dbe559d89db127ed207499e2601313f40ae2f136ea3a",
+    "<PATH_18>": "e2317ec3f341d5ac8401287f6c097190274ed6f67174b9069622c20ca6eccf09"
+  }
+}

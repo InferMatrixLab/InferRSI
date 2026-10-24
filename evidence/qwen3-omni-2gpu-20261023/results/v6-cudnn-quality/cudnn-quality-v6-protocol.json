@@ -1,0 +1,21 @@
+{
+  "status": "PREREGISTERED_UNTESTED",
+  "scope": "Single isolated cuDNN quality pilot; no performance acceptance or promotion",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "order": [
+    "baseline",
+    "candidate"
+  ],
+  "retries": 0,
+  "config_contrast": "same MRv2 adapter base; shared connector codec_cudnn_benchmark false -> true only",
+  "requests_per_arm": 256,
+  "concurrency": 64,
+  "native_warmup_requests": 128,
+  "gate": "Candidate native aggregate WER <= baseline; both256 complete, ordered IDs equal; existing v3 validator unchanged",
+  "utmos": "descriptive only",
+  "isolation": "existing two-GPU ownership monitor, fresh service processes, owned cleanup retained",
+  "seed_boundary": "Inherited native sampling boundary unchanged; no claim full per-request stochastic determinism",
+  "activation_limit": "Source and requested configuration verified; no runtime algorithm identity assertion",
+  "production_scope": "Code2Wav constructor reads shared extra flag; forward scopes cuDNN benchmark=True and limit10 only CUDA eager outside capture, restoring globals. Captured graphs replay selected kernels. Both first-frame decoder and codec receive connector extra.",
+  "component_evidence": "Fresh-process component pair motivates quality gate; long-window speedup and non-bitwise PCM are not service gains."
+}

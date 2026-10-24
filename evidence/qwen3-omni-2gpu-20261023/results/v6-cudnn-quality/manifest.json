@@ -1,0 +1,232 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Completed cuDNN quality pilot and unexecuted source research; overall INCONCLUSIVE, no promotion",
+  "artifacts": [
+    {
+      "file": "v6-cudnn-quality-pilot01-comparison.json",
+      "original_sha256": "672c0317d3f4286fe0e8b155063b2ac3a7fd7d73b16ee78178410bf9179b3900",
+      "retained_sha256": "672c0317d3f4286fe0e8b155063b2ac3a7fd7d73b16ee78178410bf9179b3900",
+      "bytes": 1065,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "cudnn-quality-v6-pins.json",
+      "original_sha256": "be7a1866aa76595a094f1ced408c90bee9d5e81a9fb9a98cce04c8df82744099",
+      "retained_sha256": "3ea45c0c2e0f4e2317d876ca3c59d4ae3ffad14abdf6a0e33588b2dfd66aac94",
+      "bytes": 2987,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "cudnn-quality-v6-protocol.json",
+      "original_sha256": "4c86fd2bfd86fee8ea09aaea09cfbf7c434b9f0fa8b26ab42c52f94930d5c95c",
+      "retained_sha256": "4c86fd2bfd86fee8ea09aaea09cfbf7c434b9f0fa8b26ab42c52f94930d5c95c",
+      "bytes": 1345,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-control.yaml",
+      "original_sha256": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c",
+      "retained_sha256": "cc920a9519092ded0ef35a3efde3641c537f40d4376427d024e6fbf8050c83d6",
+      "bytes": 110,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-candidate.yaml",
+      "original_sha256": "68a45a77cdca6feb872ecec88aa7ff0e374ec38677fc7bfd9409019390661b65",
+      "retained_sha256": "41b1645d518d239e35f78da21a238578418abdda54d284542cdefcca5fa4e0c7",
+      "bytes": 109,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "spec-depth-forward-count-bound-v6.json",
+      "original_sha256": "b184a880d2c38de597d72b4d1ae38697ccb18a63fe1bcc73d2815bb14950511c",
+      "retained_sha256": "b184a880d2c38de597d72b4d1ae38697ccb18a63fe1bcc73d2815bb14950511c",
+      "bytes": 3162,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "norm-fusion-source-audit-v6.md",
+      "original_sha256": "c964526b59dc893babc57d2752a59122ace7e8419eaf00eea3d7e5838bda1e23",
+      "retained_sha256": "c964526b59dc893babc57d2752a59122ace7e8419eaf00eea3d7e5838bda1e23",
+      "bytes": 5262,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "predictor-generated-copy-audit-v6.md",
+      "original_sha256": "99541d00c8f5a6a8cfdf4370929d7953f4623144936109365c5dc6747904edef",
+      "retained_sha256": "a351e6a3da40623b8b574ef092367f72a9bd35503fdd0b48c044da4755a0986f",
+      "bytes": 4591,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "predictor-generated-copy-source-hashes-v6.json",
+      "original_sha256": "3f88ab7d485c6dfa602025e18e080b6c534abef22bd9c506d20ae7541a62294c",
+      "retained_sha256": "3f88ab7d485c6dfa602025e18e080b6c534abef22bd9c506d20ae7541a62294c",
+      "bytes": 675,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "seed-contract-audit-v6.md",
+      "original_sha256": "128ef2d46fa597377839ed1a53f8c3470a4f115f8240c1b14ac4005f5d8e3168",
+      "retained_sha256": "128ef2d46fa597377839ed1a53f8c3470a4f115f8240c1b14ac4005f5d8e3168",
+      "bytes": 4751,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "mtp-batch-observer-design-v6.md",
+      "original_sha256": "8d6c9299610874a7315a109513861cec08f6f7aafe0e557b4d04c7bfb1d2557f",
+      "retained_sha256": "a258f4915205234d39a5d05d6f666e4f7f2f9fb6cd3194de6ec4efa46fa9494e",
+      "bytes": 5385,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-baseline/execution.json",
+      "original_sha256": "57299a0ec0b5c4fd0eb8a715ca9e483827099024b8fa0f082bdec5d6d60fdb1b",
+      "retained_sha256": "183188430c1c27d824c0b4656a633b7830fc4ac15333fe7006be23c99ead3a3d",
+      "bytes": 55223,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-baseline/quality.json",
+      "original_sha256": "72a58062abf01fba4032ae2270370f0b72d3731f459c4ba6433f8647f9670018",
+      "retained_sha256": "c84e164ddf1c7e5a587003532b00dbaa8c05cb7c914549fcb7f9a344666a8a82",
+      "bytes": 321443,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-baseline/gpu-process-observations.json",
+      "original_sha256": "333f6050ebaaac0f3010710bdcd87d1be979c985f004bda2212cc4f2cfa0f9c7",
+      "retained_sha256": "5d4241936a8a210af1a909de615b3dc9dbbf4a95aae0b0cf9f5c267cdd10c9c8",
+      "bytes": 190402,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-baseline/server.log.gz",
+      "original_sha256": "abefd5aede03f1be3efcf88354fb02098f89b08ff93dfeb35cb9fd8e860a51ee",
+      "retained_sha256": "e35a255a84d31cff5fc24654b7cfa969ab51b7fd45ba2418ae27a7eb33509ed9",
+      "bytes": 28586,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-baseline/quality.log.gz",
+      "original_sha256": "bf771809874d7f1f9175b1ba774dedd195849f4e822ec6e70c10827df42eff73",
+      "retained_sha256": "fe842ab2b1b7d452443cd27e6594c4fc3eec65b7eb83763ec57c43aa248b7fe3",
+      "bytes": 4944,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-candidate/execution.json",
+      "original_sha256": "a7661064ebc6f9adb2ef79453444f147d0c83bb997dc97ddf20dbba519d459b0",
+      "retained_sha256": "cd0d05c58c954ba8c157c0525601442eaf49114a4eed33f397910996f70d3b8b",
+      "bytes": 55222,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-candidate/quality.json",
+      "original_sha256": "24f5892a6d4c992e4cfe5e1f0919b113a3d09cddb3425777f8200e9e4584dae1",
+      "retained_sha256": "d78c6de92e861bd5b339b4343b0397b1f9e91caafd5c6228cae5c55f97a7a388",
+      "bytes": 320909,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-candidate/gpu-process-observations.json",
+      "original_sha256": "6fc244e43ba3abbaa8b2f37ab5e677d53a0d297b1d8f64e4d49f6458d9adbe75",
+      "retained_sha256": "e562c60697dac9e53829f584069ee22451d7f92f35490fad1411b6b7c34c4bf2",
+      "bytes": 231983,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-candidate/server.log.gz",
+      "original_sha256": "61ebc5c30859253b891a2f37e0eca89accc27b93d63c1f2f197988cddc662f3b",
+      "retained_sha256": "74009f6feae1fbdebc7d7183bb7d2fd9842bab9fefa025d0f06c827ec603f5a9",
+      "bytes": 29342,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-candidate/quality.log.gz",
+      "original_sha256": "660c00e84f09038c17dcce3310954a881be9f5417c4d8dde7c8be0b1770ff3a4",
+      "retained_sha256": "855ad4e4a5d3e5af0e3d179302cf57e26da514849038e692b14d19d3a0f768c6",
+      "bytes": 4918,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "baseline-audio-hashes.json",
+      "retained_sha256": "141f57ff5fa99797ce714baffe025f191e7dcaf4ddda9ef7c7d18f5e2c74a19d",
+      "audio_files": 256
+    },
+    {
+      "file": "candidate-audio-hashes.json",
+      "retained_sha256": "7bcdfbaba79ad1c6a6a5872fc3bc9326ba1c409abd7d39b8aff11d131c9cda5d",
+      "audio_files": 256
+    },
+    {
+      "file": "run-cudnn-quality-v6.py",
+      "original_sha256": "c83739b07377783a1cf29a9ba02702e0ddc986740836a9de13631be5208d3a3b",
+      "availability": "private hash-only",
+      "reason": "Private harness/source provenance; no executable payload published"
+    },
+    {
+      "file": "compare-cudnn-quality-v6.py",
+      "original_sha256": "cc745091678fa82f6c424d491f7118ca77336cce12bfcbeef515946a0fecbd7c",
+      "availability": "private hash-only",
+      "reason": "Private harness/source provenance; no executable payload published"
+    },
+    {
+      "file": "prepare-cudnn-quality-v6.py",
+      "original_sha256": "95f1ecd56efe6cc7fc9aaf307b36fb0091fc03330739a86f984dbc54ff682353",
+      "availability": "private hash-only",
+      "reason": "Private harness/source provenance; no executable payload published"
+    },
+    {
+      "file": "test-cudnn-quality-ownership-v6.py",
+      "original_sha256": "e2317ec3f341d5ac8401287f6c097190274ed6f67174b9069622c20ca6eccf09",
+      "availability": "private hash-only",
+      "reason": "Private harness/source provenance; no executable payload published"
+    },
+    {
+      "file": "configs/v6-cudnn-control.yaml",
+      "original_sha256": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c",
+      "retained_sha256": "62214ca38bc92c78c95cd74c568692f630ad12d4f93c02893bf328e00190c98a"
+    },
+    {
+      "file": "configs/adapter-mrv2.yaml",
+      "original_sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac",
+      "retained_sha256": "ea6da38249477a3ee6f147b09075101546f720e9b8dd01b9bdd22b405409856d"
+    },
+    {
+      "file": "configs/qwen3_omni_moe_mrv2.yaml",
+      "original_sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a",
+      "retained_sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+    },
+    {
+      "file": "configs/qwen3_omni_moe.yaml",
+      "original_sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+      "retained_sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+    },
+    {
+      "file": "configs/v6-cudnn-candidate.yaml",
+      "original_sha256": "68a45a77cdca6feb872ecec88aa7ff0e374ec38677fc7bfd9409019390661b65",
+      "retained_sha256": "73c29a6342f4322ce7e0b8b8ad2472e212763ad0ff298ce2d0d1733113183293"
+    },
+    {
+      "file": "README.md",
+      "retained_sha256": "c3949809f9823232d99a909d4b1c6966e8094bfa24ed89a9e1ad476a670b37fd"
+    },
+    {
+      "file": "validation.json",
+      "retained_sha256": "5ac40acbd6bc339d9014ae0bbbce23546e808a76e84d06c91a7ee9d18696ebf9"
+    }
+  ],
+  "raw_rows_validation": [
+    {
+      "file": "v6-cudnn-quality-pilot01-baseline/quality.json",
+      "count": 256,
+      "exact_rows_equal": true
+    },
+    {
+      "file": "v6-cudnn-quality-pilot01-candidate/quality.json",
+      "count": 256,
+      "exact_rows_equal": true
+    }
+  ]
+}
