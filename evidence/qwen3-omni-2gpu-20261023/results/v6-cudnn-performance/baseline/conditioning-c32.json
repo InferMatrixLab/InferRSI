@@ -1,0 +1,2567 @@
+{
+  "scope": "Retained raw baseline rows; rejected pilot, no qualified comparison",
+  "phase": "conditioning",
+  "concurrency": 32,
+  "audio_request_metrics": [
+    {
+      "request_index": 0,
+      "success": true,
+      "start_time": 6798371.779026523,
+      "latency": 2.0663000205531716,
+      "audio_ttfp": 0.21814227756112814,
+      "audio_rtf": 1.0044999680994349,
+      "audio_duration": 2.056875,
+      "audio_frames": 49365
+    },
+    {
+      "request_index": 1,
+      "success": true,
+      "start_time": 6798371.779233518,
+      "latency": 2.3304942632094026,
+      "audio_ttfp": 1.6860380927100778,
+      "audio_rtf": 0.8156785376743215,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 2,
+      "success": true,
+      "start_time": 6798371.779312078,
+      "latency": 2.9586008889600635,
+      "audio_ttfp": 0.33291400223970413,
+      "audio_rtf": 0.5896911672923876,
+      "audio_duration": 5.016875,
+      "audio_frames": 120405
+    },
+    {
+      "request_index": 3,
+      "success": true,
+      "start_time": 6798371.77937325,
+      "latency": 2.3305002730339766,
+      "audio_ttfp": 0.21786106564104557,
+      "audio_rtf": 0.9278928371550502,
+      "audio_duration": 2.456875,
+      "audio_frames": 58965
+    },
+    {
+      "request_index": 4,
+      "success": true,
+      "start_time": 6798371.779427544,
+      "latency": 2.33110773563385,
+      "audio_ttfp": 0.3328455714508891,
+      "audio_rtf": 0.8159409953373784,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 5,
+      "success": true,
+      "start_time": 6798371.77948355,
+      "latency": 2.2986038476228714,
+      "audio_ttfp": 0.21707708202302456,
+      "audio_rtf": 0.9585836926260152,
+      "audio_duration": 2.376875,
+      "audio_frames": 57045
+    },
+    {
+      "request_index": 6,
+      "success": true,
+      "start_time": 6798371.77958598,
+      "latency": 3.5078538078814745,
+      "audio_ttfp": 0.3327793311327696,
+      "audio_rtf": 0.48336126259999335,
+      "audio_duration": 7.256875,
+      "audio_frames": 174165
+    },
+    {
+      "request_index": 7,
+      "success": true,
+      "start_time": 6798371.779644082,
+      "latency": 2.3637971207499504,
+      "audio_ttfp": 0.32812339439988136,
+      "audio_rtf": 0.7632487883000033,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 8,
+      "success": true,
+      "start_time": 6798371.77969788,
+      "latency": 2.331268424168229,
+      "audio_ttfp": 0.3280065665021539,
+      "audio_rtf": 0.8159960442235084,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 9,
+      "success": true,
+      "start_time": 6798371.779751768,
+      "latency": 2.0769681725651026,
+      "audio_ttfp": 1.6856877440586686,
+      "audio_rtf": 1.0097052651819434,
+      "audio_duration": 2.056875,
+      "audio_frames": 49365
+    },
+    {
+      "request_index": 10,
+      "success": true,
+      "start_time": 6798371.779800742,
+      "latency": 2.8038256727159023,
+      "audio_ttfp": 1.69121681060642,
+      "audio_rtf": 0.6633805141142249,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 11,
+      "success": true,
+      "start_time": 6798371.779851517,
+      "latency": 3.097933049313724,
+      "audio_ttfp": 0.3323018979281187,
+      "audio_rtf": 0.5634897735526847,
+      "audio_duration": 5.496875,
+      "audio_frames": 131925
+    },
+    {
+      "request_index": 12,
+      "success": true,
+      "start_time": 6798371.77990054,
+      "latency": 3.145153496414423,
+      "audio_ttfp": 1.6906952084973454,
+      "audio_rtf": 0.5557416206749087,
+      "audio_duration": 5.656875,
+      "audio_frames": 135765
+    },
+    {
+      "request_index": 13,
+      "success": true,
+      "start_time": 6798371.779950284,
+      "latency": 2.4208610970526934,
+      "audio_ttfp": 0.32766181603074074,
+      "audio_rtf": 0.6619064066985024,
+      "audio_duration": 3.656875,
+      "audio_frames": 87765
+    },
+    {
+      "request_index": 14,
+      "success": true,
+      "start_time": 6798371.779996869,
+      "latency": 2.4400890693068504,
+      "audio_ttfp": 1.690746320411563,
+      "audio_rtf": 0.6669412915716006,
+      "audio_duration": 3.656875,
+      "audio_frames": 87765
+    },
+    {
+      "request_index": 15,
+      "success": true,
+      "start_time": 6798371.780042666,
+      "latency": 2.363963012583554,
+      "audio_ttfp": 1.6908732932060957,
+      "audio_rtf": 0.8048938437075431,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 16,
+      "success": true,
+      "start_time": 6798371.780090976,
+      "latency": 2.5288549223914742,
+      "audio_ttfp": 1.6905550183728337,
+      "audio_rtf": 0.6485027366384278,
+      "audio_duration": 3.896875,
+      "audio_frames": 93525
+    },
+    {
+      "request_index": 17,
+      "success": true,
+      "start_time": 6798371.780179731,
+      "latency": 2.3287741923704743,
+      "audio_ttfp": 0.33183166943490505,
+      "audio_rtf": 0.8898759556608152,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 18,
+      "success": true,
+      "start_time": 6798371.780241326,
+      "latency": 2.296996481716633,
+      "audio_ttfp": 0.09148806426674128,
+      "audio_rtf": 0.9575021202677713,
+      "audio_duration": 2.376875,
+      "audio_frames": 57045
+    },
+    {
+      "request_index": 19,
+      "success": true,
+      "start_time": 6798371.780298307,
+      "latency": 2.377572967670858,
+      "audio_ttfp": 1.6905323872342706,
+      "audio_rtf": 0.7483607430334239,
+      "audio_duration": 3.176875,
+      "audio_frames": 76245
+    },
+    {
+      "request_index": 20,
+      "success": true,
+      "start_time": 6798371.780348676,
+      "latency": 2.2974532851949334,
+      "audio_ttfp": 1.6851690476760268,
+      "audio_rtf": 1.0306080832157398,
+      "audio_duration": 2.216875,
+      "audio_frames": 53205
+    },
+    {
+      "request_index": 21,
+      "success": true,
+      "start_time": 6798371.780397716,
+      "latency": 2.4635973619297147,
+      "audio_ttfp": 1.6900652423501015,
+      "audio_rtf": 0.6451146859222413,
+      "audio_duration": 3.816875,
+      "audio_frames": 91605
+    },
+    {
+      "request_index": 22,
+      "success": true,
+      "start_time": 6798371.780450258,
+      "latency": 3.0897915372624993,
+      "audio_ttfp": 1.6903378441929817,
+      "audio_rtf": 0.58773684347162,
+      "audio_duration": 5.256875,
+      "audio_frames": 126165
+    },
+    {
+      "request_index": 23,
+      "success": true,
+      "start_time": 6798371.7810941,
+      "latency": 2.8410021904855967,
+      "audio_ttfp": 0.33123061433434486,
+      "audio_rtf": 0.647782335515603,
+      "audio_duration": 4.376875,
+      "audio_frames": 105045
+    },
+    {
+      "request_index": 24,
+      "success": true,
+      "start_time": 6798371.78170341,
+      "latency": 1.9926090175285935,
+      "audio_ttfp": 1.6803810484707355,
+      "audio_rtf": 1.9594630738233745,
+      "audio_duration": 1.016875,
+      "audio_frames": 24405
+    },
+    {
+      "request_index": 25,
+      "success": true,
+      "start_time": 6798371.782272459,
+      "latency": 2.800344755873084,
+      "audio_ttfp": 1.688421482220292,
+      "audio_rtf": 0.6632165019558468,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 26,
+      "success": true,
+      "start_time": 6798371.782419458,
+      "latency": 2.327665467746556,
+      "audio_ttfp": 1.6879630219191313,
+      "audio_rtf": 0.8147286980190206,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 27,
+      "success": true,
+      "start_time": 6798371.782479645,
+      "latency": 2.3277928959578276,
+      "audio_ttfp": 0.3296187389642,
+      "audio_rtf": 0.8382477374353737,
+      "audio_duration": 2.776875,
+      "audio_frames": 66645
+    },
+    {
+      "request_index": 28,
+      "success": true,
+      "start_time": 6798371.782530678,
+      "latency": 2.328592663630843,
+      "audio_ttfp": 1.6830422291532159,
+      "audio_rtf": 0.8898128728921243,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 29,
+      "success": true,
+      "start_time": 6798371.782585326,
+      "latency": 2.3282086346298456,
+      "audio_ttfp": 1.6882884092628956,
+      "audio_rtf": 0.8149247534216115,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 30,
+      "success": true,
+      "start_time": 6798371.782641086,
+      "latency": 2.888693324290216,
+      "audio_ttfp": 1.6883192071691155,
+      "audio_rtf": 0.6367010988304316,
+      "audio_duration": 4.536875,
+      "audio_frames": 108885
+    },
+    {
+      "request_index": 31,
+      "success": true,
+      "start_time": 6798371.78269386,
+      "latency": 2.361095423810184,
+      "audio_ttfp": 1.6826845798641443,
+      "audio_rtf": 0.7826027611854384,
+      "audio_duration": 3.016875,
+      "audio_frames": 72405
+    },
+    {
+      "request_index": 32,
+      "success": true,
+      "start_time": 6798373.774898483,
+      "latency": 2.092890108935535,
+      "audio_ttfp": 0.1210804209113121,
+      "audio_rtf": 0.38067400591016964,
+      "audio_duration": 5.496875,
+      "audio_frames": 131925
+    },
+    {
+      "request_index": 33,
+      "success": true,
+      "start_time": 6798373.845517634,
+      "latency": 2.0499894255772233,
+      "audio_ttfp": 0.10776441544294357,
+      "audio_rtf": 0.3784151147142804,
+      "audio_duration": 5.416875,
+      "audio_frames": 130005
+    },
+    {
+      "request_index": 34,
+      "success": true,
+      "start_time": 6798373.856868333,
+      "latency": 1.3965788260102272,
+      "audio_ttfp": 0.16311987210065126,
+      "audio_rtf": 0.3429077027336583,
+      "audio_duration": 4.056875,
+      "audio_frames": 97365
+    },
+    {
+      "request_index": 35,
+      "success": true,
+      "start_time": 6798374.077640949,
+      "latency": 1.7647053971886635,
+      "audio_ttfp": 0.09819323103874922,
+      "audio_rtf": 0.4511577789555957,
+      "audio_duration": 3.896875,
+      "audio_frames": 93525
+    },
+    {
+      "request_index": 36,
+      "success": true,
+      "start_time": 6798374.078277431,
+      "latency": 0.9122740784659982,
+      "audio_ttfp": 0.20377155393362045,
+      "audio_rtf": 0.44344252355190733,
+      "audio_duration": 2.056875,
+      "audio_frames": 49365
+    },
+    {
+      "request_index": 37,
+      "success": true,
+      "start_time": 6798374.078377943,
+      "latency": 2.147846863605082,
+      "audio_ttfp": 0.2572548082098365,
+      "audio_rtf": 0.38504627277855646,
+      "audio_duration": 5.576875,
+      "audio_frames": 133845
+    },
+    {
+      "request_index": 38,
+      "success": true,
+      "start_time": 6798374.109366888,
+      "latency": 1.267732479609549,
+      "audio_ttfp": 0.2948380447924137,
+      "audio_rtf": 0.3798786981272371,
+      "audio_duration": 3.336875,
+      "audio_frames": 80085
+    },
+    {
+      "request_index": 39,
+      "success": true,
+      "start_time": 6798374.111214338,
+      "latency": 1.1428502965718508,
+      "audio_ttfp": 0.2931256564334035,
+      "audio_rtf": 0.41153258785535,
+      "audio_duration": 2.776875,
+      "audio_frames": 66645
+    },
+    {
+      "request_index": 40,
+      "success": true,
+      "start_time": 6798374.111346644,
+      "latency": 2.034852591343224,
+      "audio_ttfp": 0.1706261495128274,
+      "audio_rtf": 0.3930458810023463,
+      "audio_duration": 5.176875,
+      "audio_frames": 124245
+    },
+    {
+      "request_index": 41,
+      "success": true,
+      "start_time": 6798374.111416611,
+      "latency": 0.8141043335199356,
+      "audio_ttfp": 0.1694445088505745,
+      "audio_rtf": 0.5162172636672046,
+      "audio_duration": 1.576875,
+      "audio_frames": 37845
+    },
+    {
+      "request_index": 42,
+      "success": true,
+      "start_time": 6798374.111475404,
+      "latency": 2.546545358374715,
+      "audio_ttfp": 0.22405681665986776,
+      "audio_rtf": 0.35089378262580534,
+      "audio_duration": 7.256875,
+      "audio_frames": 174165
+    },
+    {
+      "request_index": 43,
+      "success": true,
+      "start_time": 6798374.111540425,
+      "latency": 1.1413984335958958,
+      "audio_ttfp": 0.1706171492114663,
+      "audio_rtf": 0.3886076317084142,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 44,
+      "success": true,
+      "start_time": 6798374.111597565,
+      "latency": 1.1925940234214067,
+      "audio_ttfp": 0.1705031143501401,
+      "audio_rtf": 0.3753329264983966,
+      "audio_duration": 3.176875,
+      "audio_frames": 76245
+    },
+    {
+      "request_index": 45,
+      "success": true,
+      "start_time": 6798374.111651203,
+      "latency": 1.0663410034030676,
+      "audio_ttfp": 0.29263127129524946,
+      "audio_rtf": 0.4074652300462935,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 46,
+      "success": true,
+      "start_time": 6798374.111702636,
+      "latency": 1.0512889297679067,
+      "audio_ttfp": 0.2952366145327687,
+      "audio_rtf": 0.4143783705638059,
+      "audio_duration": 2.536875,
+      "audio_frames": 60885
+    },
+    {
+      "request_index": 47,
+      "success": true,
+      "start_time": 6798374.144106685,
+      "latency": 1.7809635195881128,
+      "audio_ttfp": 0.26254974119365215,
+      "audio_rtf": 0.42973014861367803,
+      "audio_duration": 4.136875,
+      "audio_frames": 99285
+    },
+    {
+      "request_index": 48,
+      "success": true,
+      "start_time": 6798374.144228384,
+      "latency": 1.8646843098104,
+      "audio_ttfp": 0.262867352925241,
+      "audio_rtf": 0.42544305218163175,
+      "audio_duration": 4.376875,
+      "audio_frames": 105045
+    },
+    {
+      "request_index": 49,
+      "success": true,
+      "start_time": 6798374.144304449,
+      "latency": 1.1094712736085057,
+      "audio_ttfp": 0.2624552259221673,
+      "audio_rtf": 0.3995042588564289,
+      "audio_duration": 2.776875,
+      "audio_frames": 66645
+    },
+    {
+      "request_index": 50,
+      "success": true,
+      "start_time": 6798374.15800954,
+      "latency": 1.1471266523003578,
+      "audio_ttfp": 0.2463883813470602,
+      "audio_rtf": 0.3703781412059195,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 51,
+      "success": true,
+      "start_time": 6798374.201097481,
+      "latency": 1.1766109308227897,
+      "audio_ttfp": 0.2770919091999531,
+      "audio_rtf": 0.3612018459659006,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 52,
+      "success": true,
+      "start_time": 6798374.220255069,
+      "latency": 1.5297586061060429,
+      "audio_ttfp": 0.2586758118122816,
+      "audio_rtf": 0.42734076754729816,
+      "audio_duration": 3.576875,
+      "audio_frames": 85845
+    },
+    {
+      "request_index": 53,
+      "success": true,
+      "start_time": 6798374.244136919,
+      "latency": 1.0629096077755094,
+      "audio_ttfp": 0.23473369516432285,
+      "audio_rtf": 0.34318455322960434,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 54,
+      "success": true,
+      "start_time": 6798374.309238844,
+      "latency": 1.7142592826858163,
+      "audio_ttfp": 0.20854196324944496,
+      "audio_rtf": 0.38112132692383843,
+      "audio_duration": 4.456875,
+      "audio_frames": 106965
+    },
+    {
+      "request_index": 55,
+      "success": true,
+      "start_time": 6798374.582919141,
+      "latency": 1.4862381545826793,
+      "audio_ttfp": 0.10537660587579012,
+      "audio_rtf": 0.4138093907141965,
+      "audio_duration": 3.576875,
+      "audio_frames": 85845
+    },
+    {
+      "request_index": 56,
+      "success": true,
+      "start_time": 6798374.583869916,
+      "latency": 0.5466409018263221,
+      "audio_ttfp": 0.15459490939974785,
+      "audio_rtf": 0.45547199356891477,
+      "audio_duration": 1.176875,
+      "audio_frames": 28245
+    },
+    {
+      "request_index": 57,
+      "success": true,
+      "start_time": 6798374.62224939,
+      "latency": 0.5411896416917443,
+      "audio_ttfp": 0.1163220964372158,
+      "audio_rtf": 0.40476954515540975,
+      "audio_duration": 1.336875,
+      "audio_frames": 32085
+    },
+    {
+      "request_index": 58,
+      "success": true,
+      "start_time": 6798374.671914178,
+      "latency": 1.3078299900516868,
+      "audio_ttfp": 0.12121609784662724,
+      "audio_rtf": 0.4334771271346641,
+      "audio_duration": 3.016875,
+      "audio_frames": 72405
+    },
+    {
+      "request_index": 59,
+      "success": true,
+      "start_time": 6798374.738116267,
+      "latency": 1.8910224540159106,
+      "audio_ttfp": 0.12198677379637957,
+      "audio_rtf": 0.37098610697166823,
+      "audio_duration": 5.096875,
+      "audio_frames": 122325
+    },
+    {
+      "request_index": 60,
+      "success": true,
+      "start_time": 6798374.870800847,
+      "latency": 1.198520790785551,
+      "audio_ttfp": 0.0989325251430273,
+      "audio_rtf": 0.5196298502740406,
+      "audio_duration": 2.296875,
+      "audio_frames": 55125
+    },
+    {
+      "request_index": 61,
+      "success": true,
+      "start_time": 6798374.877921848,
+      "latency": 1.7497126776725054,
+      "audio_ttfp": 0.16290719993412495,
+      "audio_rtf": 0.3984635282750983,
+      "audio_duration": 4.376875,
+      "audio_frames": 105045
+    },
+    {
+      "request_index": 62,
+      "success": true,
+      "start_time": 6798374.925262892,
+      "latency": 1.7653976269066334,
+      "audio_ttfp": 0.19558228366076946,
+      "audio_rtf": 0.38235839534486854,
+      "audio_duration": 4.616875,
+      "audio_frames": 110805
+    },
+    {
+      "request_index": 63,
+      "success": true,
+      "start_time": 6798374.925844014,
+      "latency": 1.646725189872086,
+      "audio_ttfp": 0.1948858480900526,
+      "audio_rtf": 0.3973614894419859,
+      "audio_duration": 4.136875,
+      "audio_frames": 99285
+    },
+    {
+      "request_index": 64,
+      "success": true,
+      "start_time": 6798374.990719498,
+      "latency": 1.416468889452517,
+      "audio_ttfp": 0.14235891588032246,
+      "audio_rtf": 0.4348803907089512,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 65,
+      "success": true,
+      "start_time": 6798375.130677094,
+      "latency": 0.9617648106068373,
+      "audio_ttfp": 0.12382656149566174,
+      "audio_rtf": 0.6787413127316111,
+      "audio_duration": 1.416875,
+      "audio_frames": 34005
+    },
+    {
+      "request_index": 66,
+      "success": true,
+      "start_time": 6798375.163233314,
+      "latency": 1.4660554379224777,
+      "audio_ttfp": 0.17099924199283123,
+      "audio_rtf": 0.4084670669170562,
+      "audio_duration": 3.576875,
+      "audio_frames": 85845
+    },
+    {
+      "request_index": 67,
+      "success": true,
+      "start_time": 6798375.163762722,
+      "latency": 1.3109960807487369,
+      "audio_ttfp": 0.17119957227259874,
+      "audio_rtf": 0.4345213092581095,
+      "audio_duration": 3.016875,
+      "audio_frames": 72405
+    },
+    {
+      "request_index": 68,
+      "success": true,
+      "start_time": 6798375.178123057,
+      "latency": 1.3939824616536498,
+      "audio_ttfp": 0.15677210688591003,
+      "audio_rtf": 0.4079203506874083,
+      "audio_duration": 3.416875,
+      "audio_frames": 82005
+    },
+    {
+      "request_index": 69,
+      "success": true,
+      "start_time": 6798375.253211641,
+      "latency": 1.6226610988378525,
+      "audio_ttfp": 0.4116570698097348,
+      "audio_rtf": 0.375141487121582,
+      "audio_duration": 4.296875,
+      "audio_frames": 103125
+    },
+    {
+      "request_index": 70,
+      "success": true,
+      "start_time": 6798375.254183702,
+      "latency": 1.9038600949570537,
+      "audio_ttfp": 0.410558863542974,
+      "audio_rtf": 0.3677356292426291,
+      "audio_duration": 5.176875,
+      "audio_frames": 124245
+    },
+    {
+      "request_index": 71,
+      "success": true,
+      "start_time": 6798375.254299369,
+      "latency": 1.4368123896420002,
+      "audio_ttfp": 0.409428583458066,
+      "audio_rtf": 0.3754137658206183,
+      "audio_duration": 3.816875,
+      "audio_frames": 91605
+    },
+    {
+      "request_index": 72,
+      "success": true,
+      "start_time": 6798375.254368336,
+      "latency": 1.6212994810193777,
+      "audio_ttfp": 0.41045096796005964,
+      "audio_rtf": 0.37538639437068594,
+      "audio_duration": 4.296875,
+      "audio_frames": 103125
+    },
+    {
+      "request_index": 73,
+      "success": true,
+      "start_time": 6798375.28786667,
+      "latency": 1.4689933257177472,
+      "audio_ttfp": 0.44208266120404005,
+      "audio_rtf": 0.3687671540706352,
+      "audio_duration": 3.976875,
+      "audio_frames": 95445
+    },
+    {
+      "request_index": 74,
+      "success": true,
+      "start_time": 6798375.304723986,
+      "latency": 1.4337977729737759,
+      "audio_ttfp": 0.42516750656068325,
+      "audio_rtf": 0.3754139683417218,
+      "audio_duration": 3.816875,
+      "audio_frames": 91605
+    },
+    {
+      "request_index": 75,
+      "success": true,
+      "start_time": 6798375.305448734,
+      "latency": 1.712635570205748,
+      "audio_ttfp": 0.42438070196658373,
+      "audio_rtf": 0.35260421089830896,
+      "audio_duration": 4.856875,
+      "audio_frames": 116565
+    },
+    {
+      "request_index": 76,
+      "success": true,
+      "start_time": 6798375.307167972,
+      "latency": 0.7626750953495502,
+      "audio_ttfp": 0.42153835762292147,
+      "audio_rtf": 0.8139407459778178,
+      "audio_duration": 0.936875,
+      "audio_frames": 22485
+    },
+    {
+      "request_index": 77,
+      "success": true,
+      "start_time": 6798375.377322334,
+      "latency": 1.1264667389914393,
+      "audio_ttfp": 0.4025460882112384,
+      "audio_rtf": 0.3942733470393698,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 78,
+      "success": true,
+      "start_time": 6798375.377832107,
+      "latency": 0.9390068305656314,
+      "audio_ttfp": 0.4016763214021921,
+      "audio_rtf": 0.4749410068766437,
+      "audio_duration": 1.976875,
+      "audio_frames": 47445
+    },
+    {
+      "request_index": 79,
+      "success": true,
+      "start_time": 6798375.750399129,
+      "latency": 2.1804883303120732,
+      "audio_ttfp": 0.12166141718626022,
+      "audio_rtf": 0.3412500483889469,
+      "audio_duration": 6.376875,
+      "audio_frames": 153045
+    },
+    {
+      "request_index": 80,
+      "success": true,
+      "start_time": 6798375.842539436,
+      "latency": 2.1482527991756797,
+      "audio_ttfp": 0.11144484486430883,
+      "audio_rtf": 0.33628870392154153,
+      "audio_duration": 6.376875,
+      "audio_frames": 153045
+    },
+    {
+      "request_index": 81,
+      "success": true,
+      "start_time": 6798375.867966434,
+      "latency": 1.4430661797523499,
+      "audio_ttfp": 0.14822876546531916,
+      "audio_rtf": 0.3941731006951235,
+      "audio_duration": 3.656875,
+      "audio_frames": 87765
+    },
+    {
+      "request_index": 82,
+      "success": true,
+      "start_time": 6798375.895858053,
+      "latency": 0.9792768741026521,
+      "audio_ttfp": 0.16200837027281523,
+      "audio_rtf": 0.43985621716427004,
+      "audio_duration": 2.216875,
+      "audio_frames": 53205
+    },
+    {
+      "request_index": 83,
+      "success": true,
+      "start_time": 6798375.925370182,
+      "latency": 1.6797118159011006,
+      "audio_ttfp": 0.1328448038548231,
+      "audio_rtf": 0.3638065206644676,
+      "audio_duration": 4.616875,
+      "audio_frames": 110805
+    },
+    {
+      "request_index": 84,
+      "success": true,
+      "start_time": 6798375.979930402,
+      "latency": 0.896960511803627,
+      "audio_ttfp": 0.1288460912182927,
+      "audio_rtf": 0.4359968534105638,
+      "audio_duration": 2.056875,
+      "audio_frames": 49365
+    },
+    {
+      "request_index": 85,
+      "success": true,
+      "start_time": 6798376.009220844,
+      "latency": 1.321914386935532,
+      "audio_ttfp": 0.15047141257673502,
+      "audio_rtf": 0.36915457219525943,
+      "audio_duration": 3.576875,
+      "audio_frames": 85845
+    },
+    {
+      "request_index": 86,
+      "success": true,
+      "start_time": 6798376.02379904,
+      "latency": 1.5010456079617143,
+      "audio_ttfp": 0.13596858642995358,
+      "audio_rtf": 0.3623369559454295,
+      "audio_duration": 4.136875,
+      "audio_frames": 99285
+    },
+    {
+      "request_index": 87,
+      "success": true,
+      "start_time": 6798376.069507514,
+      "latency": 0.806792700663209,
+      "audio_ttfp": 0.12956507690250874,
+      "audio_rtf": 0.4439720853850486,
+      "audio_duration": 1.816875,
+      "audio_frames": 43605
+    },
+    {
+      "request_index": 88,
+      "success": true,
+      "start_time": 6798376.069626668,
+      "latency": 0.8069254737347364,
+      "audio_ttfp": 0.11195292416960001,
+      "audio_rtf": 0.4253401110160488,
+      "audio_duration": 1.896875,
+      "audio_frames": 45525
+    },
+    {
+      "request_index": 89,
+      "success": true,
+      "start_time": 6798376.070184548,
+      "latency": 1.1792933363467455,
+      "audio_ttfp": 0.12933192122727633,
+      "audio_rtf": 0.3807611452221991,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 90,
+      "success": true,
+      "start_time": 6798376.092577461,
+      "latency": 1.8372901687398553,
+      "audio_ttfp": 0.15090504009276628,
+      "audio_rtf": 0.33387056530165765,
+      "audio_duration": 5.496875,
+      "audio_frames": 131925
+    },
+    {
+      "request_index": 91,
+      "success": true,
+      "start_time": 6798376.146544694,
+      "latency": 1.0370087483897805,
+      "audio_ttfp": 0.1559328744187951,
+      "audio_rtf": 0.3962504289330746,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 92,
+      "success": true,
+      "start_time": 6798376.226395346,
+      "latency": 0.9321218710392714,
+      "audio_ttfp": 0.12412637006491423,
+      "audio_rtf": 0.3416009309849221,
+      "audio_duration": 2.456875,
+      "audio_frames": 58965
+    },
+    {
+      "request_index": 93,
+      "success": true,
+      "start_time": 6798376.317004125,
+      "latency": 1.0146909281611443,
+      "audio_ttfp": 0.12249474693089724,
+      "audio_rtf": 0.34542911977152996,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 94,
+      "success": true,
+      "start_time": 6798376.407544834,
+      "latency": 1.099103569984436,
+      "audio_ttfp": 0.10413223784416914,
+      "audio_rtf": 0.36428313010075286,
+      "audio_duration": 3.016875,
+      "audio_frames": 72405
+    },
+    {
+      "request_index": 95,
+      "success": true,
+      "start_time": 6798376.475057232,
+      "latency": 1.1293307049199939,
+      "audio_ttfp": 0.11029455810785294,
+      "audio_rtf": 0.38450112410569903,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 96,
+      "success": true,
+      "start_time": 6798376.503939219,
+      "latency": 1.1013966798782349,
+      "audio_ttfp": 0.12588324025273323,
+      "audio_rtf": 0.38548676731862375,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 97,
+      "success": true,
+      "start_time": 6798376.572396401,
+      "latency": 1.3749028174206614,
+      "audio_ttfp": 0.1333687463775277,
+      "audio_rtf": 0.35255482771345015,
+      "audio_duration": 3.896875,
+      "audio_frames": 93525
+    },
+    {
+      "request_index": 98,
+      "success": true,
+      "start_time": 6798376.572838905,
+      "latency": 1.2824399266391993,
+      "audio_ttfp": 0.13257562648504972,
+      "audio_rtf": 0.33532504180810135,
+      "audio_duration": 3.816875,
+      "audio_frames": 91605
+    },
+    {
+      "request_index": 99,
+      "success": true,
+      "start_time": 6798376.62811564,
+      "latency": 0.8777677519246936,
+      "audio_ttfp": 0.14436369482427835,
+      "audio_rtf": 0.3944290412759526,
+      "audio_duration": 2.216875,
+      "audio_frames": 53205
+    },
+    {
+      "request_index": 100,
+      "success": true,
+      "start_time": 6798376.629424382,
+      "latency": 1.0796167803928256,
+      "audio_ttfp": 0.14312716480344534,
+      "audio_rtf": 0.38875692697787323,
+      "audio_duration": 2.776875,
+      "audio_frames": 66645
+    },
+    {
+      "request_index": 101,
+      "success": true,
+      "start_time": 6798376.629542877,
+      "latency": 0.9098794274032116,
+      "audio_ttfp": 0.1422216584905982,
+      "audio_rtf": 0.3821565780143126,
+      "audio_duration": 2.376875,
+      "audio_frames": 57045
+    },
+    {
+      "request_index": 102,
+      "success": true,
+      "start_time": 6798376.658420243,
+      "latency": 1.6404164796695113,
+      "audio_ttfp": 0.13713110983371735,
+      "audio_rtf": 0.3492382376969693,
+      "audio_duration": 4.696875,
+      "audio_frames": 112725
+    },
+    {
+      "request_index": 103,
+      "success": true,
+      "start_time": 6798376.690896458,
+      "latency": 1.1020481381565332,
+      "audio_ttfp": 0.1870764996856451,
+      "audio_rtf": 0.3857211931297905,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 104,
+      "success": true,
+      "start_time": 6798376.69148864,
+      "latency": 1.2995045883581042,
+      "audio_ttfp": 0.1867958027869463,
+      "audio_rtf": 0.347147687589231,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 105,
+      "success": true,
+      "start_time": 6798376.738820488,
+      "latency": 1.2859309883788228,
+      "audio_ttfp": 0.16367001738399267,
+      "audio_rtf": 0.3232541329995952,
+      "audio_duration": 3.976875,
+      "audio_frames": 95445
+    },
+    {
+      "request_index": 106,
+      "success": true,
+      "start_time": 6798376.75700709,
+      "latency": 1.036842880770564,
+      "audio_ttfp": 0.14511012751609087,
+      "audio_rtf": 0.3628996047846365,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 107,
+      "success": true,
+      "start_time": 6798376.875513196,
+      "latency": 1.1148746879771352,
+      "audio_ttfp": 0.21997783333063126,
+      "audio_rtf": 0.3508974782083299,
+      "audio_duration": 3.176875,
+      "audio_frames": 76245
+    },
+    {
+      "request_index": 108,
+      "success": true,
+      "start_time": 6798376.87699122,
+      "latency": 0.9172860085964203,
+      "audio_ttfp": 0.17096674162894487,
+      "audio_rtf": 0.3615553819155217,
+      "audio_duration": 2.536875,
+      "audio_frames": 60885
+    },
+    {
+      "request_index": 109,
+      "success": true,
+      "start_time": 6798376.877106941,
+      "latency": 0.9884565798565745,
+      "audio_ttfp": 0.21830748487263918,
+      "audio_rtf": 0.34595115933004134,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 110,
+      "success": true,
+      "start_time": 6798376.877174929,
+      "latency": 1.0535438917577267,
+      "audio_ttfp": 0.21837744489312172,
+      "audio_rtf": 0.3586669676251603,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 111,
+      "success": true,
+      "start_time": 6798376.877235177,
+      "latency": 0.8169064084067941,
+      "audio_ttfp": 0.1714806854724884,
+      "audio_rtf": 0.36749523400857076,
+      "audio_duration": 2.216875,
+      "audio_frames": 53205
+    },
+    {
+      "request_index": 112,
+      "success": true,
+      "start_time": 6798376.87731415,
+      "latency": 0.8162591326981783,
+      "audio_ttfp": 0.17133344803005457,
+      "audio_rtf": 0.3664341041293654,
+      "audio_duration": 2.216875,
+      "audio_frames": 53205
+    },
+    {
+      "request_index": 113,
+      "success": true,
+      "start_time": 6798377.018406829,
+      "latency": 0.9978639828041196,
+      "audio_ttfp": 0.10293352697044611,
+      "audio_rtf": 0.3063503656385499,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 114,
+      "success": true,
+      "start_time": 6798377.158325692,
+      "latency": 0.6975164394825697,
+      "audio_ttfp": 0.1156644569709897,
+      "audio_rtf": 0.4422915180287945,
+      "audio_duration": 1.576875,
+      "audio_frames": 37845
+    },
+    {
+      "request_index": 115,
+      "success": true,
+      "start_time": 6798377.158958861,
+      "latency": 2.2388562206178904,
+      "audio_ttfp": 0.18312589079141617,
+      "audio_rtf": 0.3227285129850604,
+      "audio_duration": 6.936875,
+      "audio_frames": 166485
+    },
+    {
+      "request_index": 116,
+      "success": true,
+      "start_time": 6798377.18370724,
+      "latency": 1.855788025073707,
+      "audio_ttfp": 0.1580154588446021,
+      "audio_rtf": 0.3269679201477707,
+      "audio_duration": 5.656875,
+      "audio_frames": 135765
+    },
+    {
+      "request_index": 117,
+      "success": true,
+      "start_time": 6798377.249841159,
+      "latency": 1.1731090089306235,
+      "audio_ttfp": 0.10825142078101635,
+      "audio_rtf": 0.36015070901908064,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 118,
+      "success": true,
+      "start_time": 6798377.311211714,
+      "latency": 0.8884773245081306,
+      "audio_ttfp": 0.11841940507292747,
+      "audio_rtf": 0.37226891701013953,
+      "audio_duration": 2.376875,
+      "audio_frames": 57045
+    },
+    {
+      "request_index": 119,
+      "success": true,
+      "start_time": 6798377.331333338,
+      "latency": 0.9793477645143867,
+      "audio_ttfp": 0.13846372347325087,
+      "audio_rtf": 0.3742132852833112,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 120,
+      "success": true,
+      "start_time": 6798377.331813206,
+      "latency": 0.7772153867408633,
+      "audio_ttfp": 0.16178271640092134,
+      "audio_rtf": 0.3777623307882418,
+      "audio_duration": 2.056875,
+      "audio_frames": 49365
+    },
+    {
+      "request_index": 121,
+      "success": true,
+      "start_time": 6798377.506258076,
+      "latency": 1.2392203146591783,
+      "audio_ttfp": 0.1265433020889759,
+      "audio_rtf": 0.4001113931779063,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 122,
+      "success": true,
+      "start_time": 6798377.506882576,
+      "latency": 1.0700031211599708,
+      "audio_ttfp": 0.12598592229187489,
+      "audio_rtf": 0.3852924063295334,
+      "audio_duration": 2.776875,
+      "audio_frames": 66645
+    },
+    {
+      "request_index": 123,
+      "success": true,
+      "start_time": 6798377.525029929,
+      "latency": 0.9473533537238836,
+      "audio_ttfp": 0.12566871102899313,
+      "audio_rtf": 0.44326573723622603,
+      "audio_duration": 2.136875,
+      "audio_frames": 51285
+    },
+    {
+      "request_index": 124,
+      "success": true,
+      "start_time": 6798377.539564227,
+      "latency": 0.7587913125753403,
+      "audio_ttfp": 0.11063122097402811,
+      "audio_rtf": 0.4579076931999117,
+      "audio_duration": 1.656875,
+      "audio_frames": 39765
+    },
+    {
+      "request_index": 125,
+      "success": true,
+      "start_time": 6798377.604650335,
+      "latency": 0.7464116839691997,
+      "audio_ttfp": 0.11821391806006432,
+      "audio_rtf": 0.4296822416434918,
+      "audio_duration": 1.736875,
+      "audio_frames": 41685
+    },
+    {
+      "request_index": 126,
+      "success": true,
+      "start_time": 6798377.605455602,
+      "latency": 1.0629625441506505,
+      "audio_ttfp": 0.11733684130012989,
+      "audio_rtf": 0.47698507501872656,
+      "audio_duration": 2.216875,
+      "audio_frames": 53205
+    },
+    {
+      "request_index": 127,
+      "success": true,
+      "start_time": 6798377.605560505,
+      "latency": 1.5445045735687017,
+      "audio_ttfp": 0.1300261439755559,
+      "audio_rtf": 0.3874832090109226,
+      "audio_duration": 3.976875,
+      "audio_frames": 95445
+    },
+    {
+      "request_index": 128,
+      "success": true,
+      "start_time": 6798377.693998066,
+      "latency": 1.6025465494021773,
+      "audio_ttfp": 0.11874604132026434,
+      "audio_rtf": 0.37940330013833756,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 129,
+      "success": true,
+      "start_time": 6798377.694385284,
+      "latency": 1.8766410993412137,
+      "audio_ttfp": 0.18689134251326323,
+      "audio_rtf": 0.4064562883673363,
+      "audio_duration": 4.616875,
+      "audio_frames": 110805
+    },
+    {
+      "request_index": 130,
+      "success": true,
+      "start_time": 6798377.709181133,
+      "latency": 1.1114011844620109,
+      "audio_ttfp": 0.17172063793987036,
+      "audio_rtf": 0.4344610282708233,
+      "audio_duration": 2.456875,
+      "audio_frames": 58965
+    },
+    {
+      "request_index": 131,
+      "success": true,
+      "start_time": 6798377.793319804,
+      "latency": 0.6781397229060531,
+      "audio_ttfp": 0.12164473626762629,
+      "audio_rtf": 0.507202191350615,
+      "audio_duration": 1.336875,
+      "audio_frames": 32085
+    },
+    {
+      "request_index": 132,
+      "success": true,
+      "start_time": 6798377.794395694,
+      "latency": 1.3906130203977227,
+      "audio_ttfp": 0.14985198248177767,
+      "audio_rtf": 0.3717800716648813,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 133,
+      "success": true,
+      "start_time": 6798377.794505591,
+      "latency": 0.8742792876437306,
+      "audio_ttfp": 0.14963987283408642,
+      "audio_rtf": 0.46084159239512884,
+      "audio_duration": 1.896875,
+      "audio_frames": 45525
+    },
+    {
+      "request_index": 134,
+      "success": true,
+      "start_time": 6798377.855523676,
+      "latency": 1.1835447903722525,
+      "audio_ttfp": 0.12094062566757202,
+      "audio_rtf": 0.38214323198278066,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 135,
+      "success": true,
+      "start_time": 6798377.85618552,
+      "latency": 1.1830915501341224,
+      "audio_ttfp": 0.1854934962466359,
+      "audio_rtf": 0.40281101677564385,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 136,
+      "success": true,
+      "start_time": 6798377.865703248,
+      "latency": 1.704152362421155,
+      "audio_ttfp": 0.17631737235933542,
+      "audio_rtf": 0.41107175766764353,
+      "audio_duration": 4.136875,
+      "audio_frames": 99285
+    },
+    {
+      "request_index": 137,
+      "success": true,
+      "start_time": 6798377.930289582,
+      "latency": 1.5952356941998005,
+      "audio_ttfp": 0.18503571674227715,
+      "audio_rtf": 0.384281375316681,
+      "audio_duration": 4.136875,
+      "audio_frames": 99285
+    },
+    {
+      "request_index": 138,
+      "success": true,
+      "start_time": 6798377.931005857,
+      "latency": 0.9586535822600126,
+      "audio_ttfp": 0.18422116432338953,
+      "audio_rtf": 0.4161901932184388,
+      "audio_duration": 2.296875,
+      "audio_frames": 55125
+    },
+    {
+      "request_index": 139,
+      "success": true,
+      "start_time": 6798377.931100362,
+      "latency": 0.736622778698802,
+      "audio_ttfp": 0.18293390609323978,
+      "audio_rtf": 0.5198395884557605,
+      "audio_duration": 1.416875,
+      "audio_frames": 34005
+    },
+    {
+      "request_index": 140,
+      "success": true,
+      "start_time": 6798377.947471134,
+      "latency": 1.0912747969850898,
+      "audio_ttfp": 0.1679187286645174,
+      "audio_rtf": 0.3819488398070618,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 141,
+      "success": true,
+      "start_time": 6798377.990655248,
+      "latency": 1.2770299147814512,
+      "audio_ttfp": 0.17442166153341532,
+      "audio_rtf": 0.39206452594794416,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 142,
+      "success": true,
+      "start_time": 6798377.991091888,
+      "latency": 1.0926676159724593,
+      "audio_ttfp": 0.17390561662614346,
+      "audio_rtf": 0.41751583158642464,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 143,
+      "success": true,
+      "start_time": 6798377.991176747,
+      "latency": 1.178356965072453,
+      "audio_ttfp": 0.17320513166487217,
+      "audio_rtf": 0.40119995168230077,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 144,
+      "success": true,
+      "start_time": 6798378.016439087,
+      "latency": 1.2229636888951063,
+      "audio_ttfp": 0.20364435855299234,
+      "audio_rtf": 0.4053389634655355,
+      "audio_duration": 3.016875,
+      "audio_frames": 72405
+    },
+    {
+      "request_index": 145,
+      "success": true,
+      "start_time": 6798378.024922909,
+      "latency": 1.144073998555541,
+      "audio_ttfp": 0.19549208600074053,
+      "audio_rtf": 0.40042691993859425,
+      "audio_duration": 2.856875,
+      "audio_frames": 68565
+    },
+    {
+      "request_index": 146,
+      "success": true,
+      "start_time": 6798378.109520489,
+      "latency": 0.6803839178755879,
+      "audio_ttfp": 0.13783717434853315,
+      "audio_rtf": 0.3916716749353261,
+      "audio_duration": 1.736875,
+      "audio_frames": 41685
+    },
+    {
+      "request_index": 147,
+      "success": true,
+      "start_time": 6798378.199983237,
+      "latency": 1.1615560026839375,
+      "audio_ttfp": 0.11959232669323683,
+      "audio_rtf": 0.35661150050973095,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 148,
+      "success": true,
+      "start_time": 6798378.299005468,
+      "latency": 1.398204566910863,
+      "audio_ttfp": 0.11842828150838614,
+      "audio_rtf": 0.34428735145562384,
+      "audio_duration": 4.056875,
+      "audio_frames": 97365
+    },
+    {
+      "request_index": 149,
+      "success": true,
+      "start_time": 6798378.299143812,
+      "latency": 0.6225229315459728,
+      "audio_ttfp": 0.19885144010186195,
+      "audio_rtf": 0.4656070147568291,
+      "audio_duration": 1.336875,
+      "audio_frames": 32085
+    },
+    {
+      "request_index": 150,
+      "success": true,
+      "start_time": 6798378.31094529,
+      "latency": 0.5792296947911382,
+      "audio_ttfp": 0.18712950590997934,
+      "audio_rtf": 0.5694590788277366,
+      "audio_duration": 1.016875,
+      "audio_frames": 24405
+    },
+    {
+      "request_index": 151,
+      "success": true,
+      "start_time": 6798378.351444844,
+      "latency": 0.7994985291734338,
+      "audio_ttfp": 0.14669260382652283,
+      "audio_rtf": 0.38856942216808843,
+      "audio_duration": 2.056875,
+      "audio_frames": 49365
+    },
+    {
+      "request_index": 152,
+      "success": true,
+      "start_time": 6798378.423150185,
+      "latency": 1.1837551528587937,
+      "audio_ttfp": 0.11289457883685827,
+      "audio_rtf": 0.36342712035222147,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 153,
+      "success": true,
+      "start_time": 6798378.471738492,
+      "latency": 1.0987033937126398,
+      "audio_ttfp": 0.14449016004800797,
+      "audio_rtf": 0.3641468130309858,
+      "audio_duration": 3.016875,
+      "audio_frames": 72405
+    },
+    {
+      "request_index": 154,
+      "success": true,
+      "start_time": 6798378.47291504,
+      "latency": 1.0070922346785665,
+      "audio_ttfp": 0.143422388471663,
+      "audio_rtf": 0.3733987120322253,
+      "audio_duration": 2.696875,
+      "audio_frames": 64725
+    },
+    {
+      "request_index": 155,
+      "success": true,
+      "start_time": 6798378.57708924,
+      "latency": 1.4718254739418626,
+      "audio_ttfp": 0.1126811308786273,
+      "audio_rtf": 0.3133401294509649,
+      "audio_duration": 4.696875,
+      "audio_frames": 112725
+    },
+    {
+      "request_index": 156,
+      "success": true,
+      "start_time": 6798378.668018887,
+      "latency": 1.4494727235287428,
+      "audio_ttfp": 0.12988059874624014,
+      "audio_rtf": 0.37143616697361875,
+      "audio_duration": 3.896875,
+      "audio_frames": 93525
+    },
+    {
+      "request_index": 157,
+      "success": true,
+      "start_time": 6798378.669063969,
+      "latency": 0.9772500852122903,
+      "audio_ttfp": 0.12894299067556858,
+      "audio_rtf": 0.43982704458083444,
+      "audio_duration": 2.216875,
+      "audio_frames": 53205
+    },
+    {
+      "request_index": 158,
+      "success": true,
+      "start_time": 6798378.669176798,
+      "latency": 1.4479272970929742,
+      "audio_ttfp": 0.15188732277601957,
+      "audio_rtf": 0.41396480569677546,
+      "audio_duration": 3.496875,
+      "audio_frames": 83925
+    },
+    {
+      "request_index": 159,
+      "success": true,
+      "start_time": 6798378.745740006,
+      "latency": 0.9002473736181855,
+      "audio_ttfp": 0.13183180708438158,
+      "audio_rtf": 0.4212292929461352,
+      "audio_duration": 2.136875,
+      "audio_frames": 51285
+    },
+    {
+      "request_index": 160,
+      "success": true,
+      "start_time": 6798378.79015935,
+      "latency": 1.0131561551243067,
+      "audio_ttfp": 0.13727534748613834,
+      "audio_rtf": 0.38712975202723965,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 161,
+      "success": true,
+      "start_time": 6798378.820911087,
+      "latency": 1.1093312129378319,
+      "audio_ttfp": 0.15682463347911835,
+      "audio_rtf": 0.37769036493191793,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 162,
+      "success": true,
+      "start_time": 6798378.889858057,
+      "latency": 1.3445668881759048,
+      "audio_ttfp": 0.16664521023631096,
+      "audio_rtf": 0.34463648879250813,
+      "audio_duration": 3.896875,
+      "audio_frames": 93525
+    },
+    {
+      "request_index": 163,
+      "success": true,
+      "start_time": 6798378.890303133,
+      "latency": 1.252501117065549,
+      "audio_ttfp": 0.16730694472789764,
+      "audio_rtf": 0.38453267554453524,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 164,
+      "success": true,
+      "start_time": 6798378.922019873,
+      "latency": 1.0520166847854853,
+      "audio_ttfp": 0.16605037730187178,
+      "audio_rtf": 0.4019751895689754,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 165,
+      "success": true,
+      "start_time": 6798379.039611875,
+      "latency": 2.059358605183661,
+      "audio_ttfp": 0.15994353406131268,
+      "audio_rtf": 0.36910207639236986,
+      "audio_duration": 5.576875,
+      "audio_frames": 133845
+    },
+    {
+      "request_index": 166,
+      "success": true,
+      "start_time": 6798379.039736793,
+      "latency": 1.9374545216560364,
+      "audio_ttfp": 0.15989652927964926,
+      "audio_rtf": 0.3685312419367976,
+      "audio_duration": 5.256875,
+      "audio_frames": 126165
+    },
+    {
+      "request_index": 167,
+      "success": true,
+      "start_time": 6798379.0398109,
+      "latency": 1.5648876978084445,
+      "audio_ttfp": 0.15912784077227116,
+      "audio_rtf": 0.4009388077708369,
+      "audio_duration": 3.896875,
+      "audio_frames": 93525
+    },
+    {
+      "request_index": 168,
+      "success": true,
+      "start_time": 6798379.039872241,
+      "latency": 1.7796433242037892,
+      "audio_ttfp": 0.12157035898417234,
+      "audio_rtf": 0.33343537711806787,
+      "audio_duration": 5.336875,
+      "audio_frames": 128085
+    },
+    {
+      "request_index": 169,
+      "success": true,
+      "start_time": 6798379.083929094,
+      "latency": 1.9682168308645487,
+      "audio_ttfp": 0.14862565882503986,
+      "audio_rtf": 0.36332707538782993,
+      "audio_duration": 5.416875,
+      "audio_frames": 130005
+    },
+    {
+      "request_index": 170,
+      "success": true,
+      "start_time": 6798379.150445805,
+      "latency": 1.7081460878252983,
+      "audio_ttfp": 0.15403348580002785,
+      "audio_rtf": 0.37648385735250467,
+      "audio_duration": 4.536875,
+      "audio_frames": 108885
+    },
+    {
+      "request_index": 171,
+      "success": true,
+      "start_time": 6798379.151391844,
+      "latency": 1.4681989094242454,
+      "audio_ttfp": 0.23204843141138554,
+      "audio_rtf": 0.3925334589300716,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 172,
+      "success": true,
+      "start_time": 6798379.169183238,
+      "latency": 1.4048375086858869,
+      "audio_ttfp": 0.2153079379349947,
+      "audio_rtf": 0.4009998145648898,
+      "audio_duration": 3.496875,
+      "audio_frames": 83925
+    },
+    {
+      "request_index": 173,
+      "success": true,
+      "start_time": 6798379.169763796,
+      "latency": 1.7374037615954876,
+      "audio_ttfp": 0.21464926842600107,
+      "audio_rtf": 0.3698854391287742,
+      "audio_duration": 4.696875,
+      "audio_frames": 112725
+    },
+    {
+      "request_index": 174,
+      "success": true,
+      "start_time": 6798379.185288695,
+      "latency": 1.318677132949233,
+      "audio_ttfp": 0.19927106238901615,
+      "audio_rtf": 0.42577289789163264,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 175,
+      "success": true,
+      "start_time": 6798379.239582216,
+      "latency": 1.6021324656903744,
+      "audio_ttfp": 0.19137298688292503,
+      "audio_rtf": 0.3791755762951134,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 176,
+      "success": true,
+      "start_time": 6798379.268083854,
+      "latency": 1.6137815080583096,
+      "audio_ttfp": 0.16322097275406122,
+      "audio_rtf": 0.3527964754603451,
+      "audio_duration": 4.456875,
+      "audio_frames": 106965
+    },
+    {
+      "request_index": 177,
+      "success": true,
+      "start_time": 6798379.296687938,
+      "latency": 1.2067868625745177,
+      "audio_ttfp": 0.16350050643086433,
+      "audio_rtf": 0.4108766569916708,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 178,
+      "success": true,
+      "start_time": 6798379.361714516,
+      "latency": 1.099182004109025,
+      "audio_ttfp": 0.1711126258596778,
+      "audio_rtf": 0.4200089310927809,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 179,
+      "success": true,
+      "start_time": 6798379.397986767,
+      "latency": 1.4844073094427586,
+      "audio_ttfp": 0.15947590582072735,
+      "audio_rtf": 0.35766967610121314,
+      "audio_duration": 4.136875,
+      "audio_frames": 99285
+    },
+    {
+      "request_index": 180,
+      "success": true,
+      "start_time": 6798379.480326899,
+      "latency": 1.7231340920552611,
+      "audio_ttfp": 0.12779079470783472,
+      "audio_rtf": 0.34901719143729015,
+      "audio_duration": 4.936875,
+      "audio_frames": 118485
+    },
+    {
+      "request_index": 181,
+      "success": true,
+      "start_time": 6798379.525974719,
+      "latency": 1.3815156482160091,
+      "audio_ttfp": 0.13565764483064413,
+      "audio_rtf": 0.33994816453701876,
+      "audio_duration": 4.056875,
+      "audio_frames": 97365
+    },
+    {
+      "request_index": 182,
+      "success": true,
+      "start_time": 6798379.57015324,
+      "latency": 1.7540085408836603,
+      "audio_ttfp": 0.15491642616689205,
+      "audio_rtf": 0.3336289476135117,
+      "audio_duration": 5.256875,
+      "audio_frames": 126165
+    },
+    {
+      "request_index": 183,
+      "success": true,
+      "start_time": 6798379.571179146,
+      "latency": 1.7347284508869052,
+      "audio_ttfp": 0.15395820513367653,
+      "audio_rtf": 0.3457495224524869,
+      "audio_duration": 5.016875,
+      "audio_frames": 120405
+    },
+    {
+      "request_index": 184,
+      "success": true,
+      "start_time": 6798379.57129884,
+      "latency": 1.1624519303441048,
+      "audio_ttfp": 0.1375651592388749,
+      "audio_rtf": 0.34832724316509994,
+      "audio_duration": 3.336875,
+      "audio_frames": 80085
+    },
+    {
+      "request_index": 185,
+      "success": true,
+      "start_time": 6798379.607216022,
+      "latency": 1.2749877786263824,
+      "audio_ttfp": 0.1658770563080907,
+      "audio_rtf": 0.33344718903200665,
+      "audio_duration": 3.816875,
+      "audio_frames": 91605
+    },
+    {
+      "request_index": 186,
+      "success": true,
+      "start_time": 6798379.646185307,
+      "latency": 1.0200492283329368,
+      "audio_ttfp": 0.21856379322707653,
+      "audio_rtf": 0.3472907320822419,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 187,
+      "success": true,
+      "start_time": 6798379.64651223,
+      "latency": 1.3558427207171917,
+      "audio_ttfp": 0.21887465100735426,
+      "audio_rtf": 0.3404901757117395,
+      "audio_duration": 3.976875,
+      "audio_frames": 95445
+    },
+    {
+      "request_index": 188,
+      "success": true,
+      "start_time": 6798379.697372454,
+      "latency": 1.6093668388202786,
+      "audio_ttfp": 0.16809184849262238,
+      "audio_rtf": 0.3426279642148884,
+      "audio_duration": 4.696875,
+      "audio_frames": 112725
+    },
+    {
+      "request_index": 189,
+      "success": true,
+      "start_time": 6798379.803626747,
+      "latency": 1.400115524418652,
+      "audio_ttfp": 0.12797476816922426,
+      "audio_rtf": 0.33164617749201875,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 190,
+      "success": true,
+      "start_time": 6798379.930449654,
+      "latency": 1.250081050209701,
+      "audio_ttfp": 0.11920841876417398,
+      "audio_rtf": 0.3564882973563575,
+      "audio_duration": 3.496875,
+      "audio_frames": 83925
+    },
+    {
+      "request_index": 191,
+      "success": true,
+      "start_time": 6798379.974251994,
+      "latency": 1.6159253474324942,
+      "audio_ttfp": 0.10509496834129095,
+      "audio_rtf": 0.34998584494823787,
+      "audio_duration": 4.616875,
+      "audio_frames": 110805
+    },
+    {
+      "request_index": 192,
+      "success": true,
+      "start_time": 6798380.049224283,
+      "latency": 1.003453223966062,
+      "audio_ttfp": 0.12259697448462248,
+      "audio_rtf": 0.34161676629144194,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 193,
+      "success": true,
+      "start_time": 6798380.117344704,
+      "latency": 1.6831538081169128,
+      "audio_ttfp": 0.1402430422604084,
+      "audio_rtf": 0.3251047350927696,
+      "audio_duration": 5.176875,
+      "audio_frames": 124245
+    },
+    {
+      "request_index": 194,
+      "success": true,
+      "start_time": 6798380.117700328,
+      "latency": 1.6223497902974486,
+      "audio_ttfp": 0.13997867330908775,
+      "audio_rtf": 0.35137869241161146,
+      "audio_duration": 4.616875,
+      "audio_frames": 110805
+    },
+    {
+      "request_index": 195,
+      "success": true,
+      "start_time": 6798380.143079011,
+      "latency": 1.536455349996686,
+      "audio_ttfp": 0.1435992233455181,
+      "audio_rtf": 0.35590231288563123,
+      "audio_duration": 4.296875,
+      "audio_frames": 103125
+    },
+    {
+      "request_index": 196,
+      "success": true,
+      "start_time": 6798380.234897214,
+      "latency": 1.5056933611631393,
+      "audio_ttfp": 0.10858862940222025,
+      "audio_rtf": 0.3485678575255654,
+      "audio_duration": 4.296875,
+      "audio_frames": 103125
+    },
+    {
+      "request_index": 197,
+      "success": true,
+      "start_time": 6798380.461080011,
+      "latency": 1.937352854758501,
+      "audio_ttfp": 0.12136400770395994,
+      "audio_rtf": 0.32847704303662617,
+      "audio_duration": 5.896875,
+      "audio_frames": 141525
+    },
+    {
+      "request_index": 198,
+      "success": true,
+      "start_time": 6798380.503687343,
+      "latency": 1.2374296942725778,
+      "audio_ttfp": 0.13345359079539776,
+      "audio_rtf": 0.4213108711862696,
+      "audio_duration": 2.936875,
+      "audio_frames": 70485
+    },
+    {
+      "request_index": 199,
+      "success": true,
+      "start_time": 6798380.504337433,
+      "latency": 1.3377197170630097,
+      "audio_ttfp": 0.13315158430486917,
+      "audio_rtf": 0.37389026875681713,
+      "audio_duration": 3.576875,
+      "audio_frames": 85845
+    },
+    {
+      "request_index": 200,
+      "success": true,
+      "start_time": 6798380.574162765,
+      "latency": 1.3480986952781677,
+      "audio_ttfp": 0.11041147354990244,
+      "audio_rtf": 0.4039533370709817,
+      "audio_duration": 3.336875,
+      "audio_frames": 80085
+    },
+    {
+      "request_index": 201,
+      "success": true,
+      "start_time": 6798380.604991012,
+      "latency": 1.4548177998512983,
+      "audio_ttfp": 0.15032204799354076,
+      "audio_rtf": 0.3804164294312663,
+      "audio_duration": 3.816875,
+      "audio_frames": 91605
+    },
+    {
+      "request_index": 202,
+      "success": true,
+      "start_time": 6798380.619759369,
+      "latency": 1.1977492971345782,
+      "audio_ttfp": 0.1358820116147399,
+      "audio_rtf": 0.39698042551231894,
+      "audio_duration": 3.016875,
+      "audio_frames": 72405
+    },
+    {
+      "request_index": 203,
+      "success": true,
+      "start_time": 6798380.666392943,
+      "latency": 1.4354245429858565,
+      "audio_ttfp": 0.12082748487591743,
+      "audio_rtf": 0.3823051202016085,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 204,
+      "success": true,
+      "start_time": 6798380.73409404,
+      "latency": 1.4274530205875635,
+      "audio_ttfp": 0.11852276604622602,
+      "audio_rtf": 0.38140989537222325,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 205,
+      "success": true,
+      "start_time": 6798380.819680838,
+      "latency": 1.6008163942024112,
+      "audio_ttfp": 0.11510908789932728,
+      "audio_rtf": 0.3515815234605535,
+      "audio_duration": 4.456875,
+      "audio_frames": 106965
+    },
+    {
+      "request_index": 206,
+      "success": true,
+      "start_time": 6798380.841935221,
+      "latency": 1.8232727581635118,
+      "audio_ttfp": 0.1740999948233366,
+      "audio_rtf": 0.3816731269253839,
+      "audio_duration": 4.776875,
+      "audio_frames": 114645
+    },
+    {
+      "request_index": 207,
+      "success": true,
+      "start_time": 6798380.858880673,
+      "latency": 1.3975959671661258,
+      "audio_ttfp": 0.15724103059619665,
+      "audio_rtf": 0.373683683916884,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 208,
+      "success": true,
+      "start_time": 6798380.882086974,
+      "latency": 1.219000168144703,
+      "audio_ttfp": 0.195565365254879,
+      "audio_rtf": 0.45197297634420913,
+      "audio_duration": 2.696875,
+      "audio_frames": 64725
+    },
+    {
+      "request_index": 209,
+      "success": true,
+      "start_time": 6798380.882659236,
+      "latency": 1.691082937642932,
+      "audio_ttfp": 0.24649175815284252,
+      "audio_rtf": 0.3727217308662699,
+      "audio_duration": 4.536875,
+      "audio_frames": 108885
+    },
+    {
+      "request_index": 210,
+      "success": true,
+      "start_time": 6798380.882751078,
+      "latency": 1.989027889445424,
+      "audio_ttfp": 0.24633262399584055,
+      "audio_rtf": 0.3671390267616189,
+      "audio_duration": 5.416875,
+      "audio_frames": 130005
+    },
+    {
+      "request_index": 211,
+      "success": true,
+      "start_time": 6798380.907375623,
+      "latency": 1.437828328460455,
+      "audio_ttfp": 0.1700738864019513,
+      "audio_rtf": 0.36114941865004363,
+      "audio_duration": 3.976875,
+      "audio_frames": 95445
+    },
+    {
+      "request_index": 212,
+      "success": true,
+      "start_time": 6798380.907806111,
+      "latency": 1.9930627020075917,
+      "audio_ttfp": 0.1697757113724947,
+      "audio_rtf": 0.3567761404557331,
+      "audio_duration": 5.576875,
+      "audio_frames": 133845
+    },
+    {
+      "request_index": 213,
+      "success": true,
+      "start_time": 6798380.977511029,
+      "latency": 1.2881356021389365,
+      "audio_ttfp": 0.1509228739887476,
+      "audio_rtf": 0.36003760304793436,
+      "audio_duration": 3.576875,
+      "audio_frames": 85845
+    },
+    {
+      "request_index": 214,
+      "success": true,
+      "start_time": 6798381.00250931,
+      "latency": 1.218736075796187,
+      "audio_ttfp": 0.15403411723673344,
+      "audio_rtf": 0.36519120964894114,
+      "audio_duration": 3.336875,
+      "audio_frames": 80085
+    },
+    {
+      "request_index": 215,
+      "success": true,
+      "start_time": 6798381.052360946,
+      "latency": 1.5844756523147225,
+      "audio_ttfp": 0.17810622230172157,
+      "audio_rtf": 0.32734520709325715,
+      "audio_duration": 4.456875,
+      "audio_frames": 106965
+    },
+    {
+      "request_index": 216,
+      "success": true,
+      "start_time": 6798381.052803051,
+      "latency": 1.8477820754051208,
+      "audio_ttfp": 0.17757907696068287,
+      "audio_rtf": 0.346203891765263,
+      "audio_duration": 5.336875,
+      "audio_frames": 128085
+    },
+    {
+      "request_index": 217,
+      "success": true,
+      "start_time": 6798381.099239688,
+      "latency": 1.2691124798730016,
+      "audio_ttfp": 0.15233401395380497,
+      "audio_rtf": 0.33921872389159047,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 218,
+      "success": true,
+      "start_time": 6798381.180791744,
+      "latency": 0.9215496508404613,
+      "audio_ttfp": 0.13760259468108416,
+      "audio_rtf": 0.3725865010965328,
+      "audio_duration": 2.456875,
+      "audio_frames": 58965
+    },
+    {
+      "request_index": 219,
+      "success": true,
+      "start_time": 6798381.203633654,
+      "latency": 1.0826350403949618,
+      "audio_ttfp": 0.17820495087653399,
+      "audio_rtf": 0.33237163804584446,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 220,
+      "success": true,
+      "start_time": 6798381.20393959,
+      "latency": 1.3780543329194188,
+      "audio_ttfp": 0.17820348124951124,
+      "audio_rtf": 0.3330436443018218,
+      "audio_duration": 4.136875,
+      "audio_frames": 99285
+    },
+    {
+      "request_index": 221,
+      "success": true,
+      "start_time": 6798381.30627737,
+      "latency": 1.039720619097352,
+      "audio_ttfp": 0.14989846758544445,
+      "audio_rtf": 0.31150257259210995,
+      "audio_duration": 3.336875,
+      "audio_frames": 80085
+    },
+    {
+      "request_index": 222,
+      "success": true,
+      "start_time": 6798381.307256,
+      "latency": 1.4802846340462565,
+      "audio_ttfp": 0.14924883749336004,
+      "audio_rtf": 0.3098588828233841,
+      "audio_duration": 4.776875,
+      "audio_frames": 114645
+    },
+    {
+      "request_index": 223,
+      "success": true,
+      "start_time": 6798381.324493451,
+      "latency": 1.4509503170847893,
+      "audio_ttfp": 0.16829769033938646,
+      "audio_rtf": 0.31424817502200075,
+      "audio_duration": 4.616875,
+      "audio_frames": 110805
+    },
+    {
+      "request_index": 224,
+      "success": true,
+      "start_time": 6798381.590516911,
+      "latency": 1.2804793501272798,
+      "audio_ttfp": 0.1176647711545229,
+      "audio_rtf": 0.3418753713962525,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 225,
+      "success": true,
+      "start_time": 6798381.679828206,
+      "latency": 0.9846053821966052,
+      "audio_ttfp": 0.12110879085958004,
+      "audio_rtf": 0.37621569172249,
+      "audio_duration": 2.616875,
+      "audio_frames": 62805
+    },
+    {
+      "request_index": 226,
+      "success": true,
+      "start_time": 6798381.74046168,
+      "latency": 1.4047293411567807,
+      "audio_ttfp": 0.14840204920619726,
+      "audio_rtf": 0.33302758448350445,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 227,
+      "success": true,
+      "start_time": 6798381.741272614,
+      "latency": 0.678870833478868,
+      "audio_ttfp": 0.10517639480531216,
+      "audio_rtf": 0.3907999559330743,
+      "audio_duration": 1.736875,
+      "audio_frames": 41685
+    },
+    {
+      "request_index": 228,
+      "success": true,
+      "start_time": 6798381.74138358,
+      "latency": 1.249582989141345,
+      "audio_ttfp": 0.1475582467392087,
+      "audio_rtf": 0.35698523283857014,
+      "audio_duration": 3.496875,
+      "audio_frames": 83925
+    },
+    {
+      "request_index": 229,
+      "success": true,
+      "start_time": 6798381.800648916,
+      "latency": 1.3718539010733366,
+      "audio_ttfp": 0.11626093462109566,
+      "audio_rtf": 0.32525124201973193,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 230,
+      "success": true,
+      "start_time": 6798381.817659585,
+      "latency": 1.0544134750962257,
+      "audio_ttfp": 0.17550003062933683,
+      "audio_rtf": 0.3796628069936652,
+      "audio_duration": 2.776875,
+      "audio_frames": 66645
+    },
+    {
+      "request_index": 231,
+      "success": true,
+      "start_time": 6798381.842417881,
+      "latency": 1.0886810710653663,
+      "audio_ttfp": 0.15096722729504108,
+      "audio_rtf": 0.35149809901577195,
+      "audio_duration": 3.096875,
+      "audio_frames": 74325
+    },
+    {
+      "request_index": 232,
+      "success": true,
+      "start_time": 6798381.922488506,
+      "latency": 1.0898778634145856,
+      "audio_ttfp": 0.1286494228988886,
+      "audio_rtf": 0.33458971349274763,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 233,
+      "success": true,
+      "start_time": 6798382.06008135,
+      "latency": 1.2478730930015445,
+      "audio_ttfp": 0.10918984841555357,
+      "audio_rtf": 0.36516338559550693,
+      "audio_duration": 3.416875,
+      "audio_frames": 82005
+    },
+    {
+      "request_index": 234,
+      "success": true,
+      "start_time": 6798382.101673672,
+      "latency": 1.3649795893579721,
+      "audio_ttfp": 0.09960042871534824,
+      "audio_rtf": 0.3348606838189735,
+      "audio_duration": 4.056875,
+      "audio_frames": 97365
+    },
+    {
+      "request_index": 235,
+      "success": true,
+      "start_time": 6798382.102200979,
+      "latency": 1.390159877948463,
+      "audio_ttfp": 0.19038058258593082,
+      "audio_rtf": 0.3971417129732222,
+      "audio_duration": 3.496875,
+      "audio_frames": 83925
+    },
+    {
+      "request_index": 236,
+      "success": true,
+      "start_time": 6798382.102597216,
+      "latency": 1.5586657682433724,
+      "audio_ttfp": 0.19034150522202253,
+      "audio_rtf": 0.34353821127190376,
+      "audio_duration": 4.536875,
+      "audio_frames": 108885
+    },
+    {
+      "request_index": 237,
+      "success": true,
+      "start_time": 6798382.161739716,
+      "latency": 1.519896611571312,
+      "audio_ttfp": 0.1425713561475277,
+      "audio_rtf": 0.3349933710156073,
+      "audio_duration": 4.536875,
+      "audio_frames": 108885
+    },
+    {
+      "request_index": 238,
+      "success": true,
+      "start_time": 6798382.221566915,
+      "latency": 1.2449788311496377,
+      "audio_ttfp": 0.13933150470256805,
+      "audio_rtf": 0.35451160359318706,
+      "audio_duration": 3.496875,
+      "audio_frames": 83925
+    },
+    {
+      "request_index": 239,
+      "success": true,
+      "start_time": 6798382.256637547,
+      "latency": 1.5456348732113838,
+      "audio_ttfp": 0.19876303616911173,
+      "audio_rtf": 0.2810948461954942,
+      "audio_duration": 5.496875,
+      "audio_frames": 131925
+    },
+    {
+      "request_index": 240,
+      "success": true,
+      "start_time": 6798382.265788701,
+      "latency": 1.2003730703145266,
+      "audio_ttfp": 0.1627176245674491,
+      "audio_rtf": 0.37780806126145194,
+      "audio_duration": 3.176875,
+      "audio_frames": 76245
+    },
+    {
+      "request_index": 241,
+      "success": true,
+      "start_time": 6798382.286456787,
+      "latency": 1.4845243133604527,
+      "audio_ttfp": 0.14240416791290045,
+      "audio_rtf": 0.2661200597002195,
+      "audio_duration": 5.576875,
+      "audio_frames": 133845
+    },
+    {
+      "request_index": 242,
+      "success": true,
+      "start_time": 6798382.345545835,
+      "latency": 1.2927913572639227,
+      "audio_ttfp": 0.14599432796239853,
+      "audio_rtf": 0.3065038802041749,
+      "audio_duration": 4.216875,
+      "audio_frames": 101205
+    },
+    {
+      "request_index": 243,
+      "success": true,
+      "start_time": 6798382.346125808,
+      "latency": 1.1636229930445552,
+      "audio_ttfp": 0.14511822629719973,
+      "audio_rtf": 0.357243966870975,
+      "audio_duration": 3.256875,
+      "audio_frames": 78165
+    },
+    {
+      "request_index": 244,
+      "success": true,
+      "start_time": 6798382.368499191,
+      "latency": 1.208475572988391,
+      "audio_ttfp": 0.17515373323112726,
+      "audio_rtf": 0.32330258252688887,
+      "audio_duration": 3.736875,
+      "audio_frames": 89685
+    },
+    {
+      "request_index": 245,
+      "success": true,
+      "start_time": 6798382.398585758,
+      "latency": 1.4351118607446551,
+      "audio_ttfp": 0.14498766046017408,
+      "audio_rtf": 0.2570045958930142,
+      "audio_duration": 5.576875,
+      "audio_frames": 133845
+    },
+    {
+      "request_index": 246,
+      "success": true,
+      "start_time": 6798382.420347586,
+      "latency": 1.4138454645872116,
+      "audio_ttfp": 0.19669000897556543,
+      "audio_rtf": 0.26097733321535943,
+      "audio_duration": 5.416875,
+      "audio_frames": 130005
+    },
+    {
+      "request_index": 247,
+      "success": true,
+      "start_time": 6798382.420705218,
+      "latency": 1.1007261294871569,
+      "audio_ttfp": 0.19598986767232418,
+      "audio_rtf": 0.3298278604247727,
+      "audio_duration": 3.336875,
+      "audio_frames": 80085
+    },
+    {
+      "request_index": 248,
+      "success": true,
+      "start_time": 6798382.574081836,
+      "latency": 1.0431072963401675,
+      "audio_ttfp": 0.12192267552018166,
+      "audio_rtf": 0.31255858375196,
+      "audio_duration": 3.336875,
+      "audio_frames": 80085
+    },
+    {
+      "request_index": 249,
+      "success": true,
+      "start_time": 6798382.582138382,
+      "latency": 1.1324418168514967,
+      "audio_ttfp": 0.17305974755436182,
+      "audio_rtf": 0.2790583778265132,
+      "audio_duration": 4.056875,
+      "audio_frames": 97365
+    },
+    {
+      "request_index": 250,
+      "success": true,
+      "start_time": 6798382.636991297,
+      "latency": 1.024426388554275,
+      "audio_ttfp": 0.184118015691638,
+      "audio_rtf": 0.29252992505149394,
+      "audio_duration": 3.496875,
+      "audio_frames": 83925
+    },
+    {
+      "request_index": 251,
+      "success": true,
+      "start_time": 6798382.664648135,
+      "latency": 1.2033171402290463,
+      "audio_ttfp": 0.15683866664767265,
+      "audio_rtf": 0.22543777307814605,
+      "audio_duration": 5.336875,
+      "audio_frames": 128085
+    },
+    {
+      "request_index": 252,
+      "success": true,
+      "start_time": 6798382.665444382,
+      "latency": 1.226628890261054,
+      "audio_ttfp": 0.18318043649196625,
+      "audio_rtf": 0.21988400346319276,
+      "audio_duration": 5.576875,
+      "audio_frames": 133845
+    },
+    {
+      "request_index": 253,
+      "success": true,
+      "start_time": 6798382.775755809,
+      "latency": 0.7574914125725627,
+      "audio_ttfp": 0.11587303224951029,
+      "audio_rtf": 0.2808485419283322,
+      "audio_duration": 2.696875,
+      "audio_frames": 64725
+    },
+    {
+      "request_index": 254,
+      "success": true,
+      "start_time": 6798382.787697015,
+      "latency": 0.7668977258726954,
+      "audio_ttfp": 0.15978046879172325,
+      "audio_rtf": 0.2761408763776458,
+      "audio_duration": 2.776875,
+      "audio_frames": 66645
+    },
+    {
+      "request_index": 255,
+      "success": true,
+      "start_time": 6798382.871283097,
+      "latency": 0.930838979780674,
+      "audio_ttfp": 0.11421928089112043,
+      "audio_rtf": 0.2162573794885115,
+      "audio_duration": 4.296875,
+      "audio_frames": 103125
+    }
+  ]
+}

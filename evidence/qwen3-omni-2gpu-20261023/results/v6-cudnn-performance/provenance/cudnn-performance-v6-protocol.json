@@ -1,0 +1,102 @@
+{
+  "scope": "One isolated sequential AB performance pilot only; no retries or three-pair promotion",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "arms": [
+    "baseline",
+    "candidate"
+  ],
+  "contrast": "Only codec_cudnn_benchmark false -> true; same MRv2 fullpipeline config and source",
+  "per_arm_sequence": [
+    {
+      "phase": "conditioning",
+      "concurrency": 1,
+      "requests": 256
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 2,
+      "requests": 256
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 4,
+      "requests": 256
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 8,
+      "requests": 256
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 16,
+      "requests": 256
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 32,
+      "requests": 256
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 64,
+      "requests": 256
+    },
+    {
+      "phase": "measured",
+      "concurrency": 1,
+      "requests": 256
+    },
+    {
+      "phase": "measured",
+      "concurrency": 2,
+      "requests": 256
+    },
+    {
+      "phase": "measured",
+      "concurrency": 4,
+      "requests": 256
+    },
+    {
+      "phase": "measured",
+      "concurrency": 8,
+      "requests": 256
+    },
+    {
+      "phase": "measured",
+      "concurrency": 16,
+      "requests": 256
+    },
+    {
+      "phase": "measured",
+      "concurrency": 32,
+      "requests": 256
+    },
+    {
+      "phase": "measured",
+      "concurrency": 64,
+      "requests": 256
+    }
+  ],
+  "native_warmup": "Unchanged benchmark-v4.sh: readiness plus max(5,2*C) warmups before each256 rows, including measured trials. JIT gate conservatively covers whole invocation, including native warmups.",
+  "data": "Same frozen first256 EN seed-tts-text, no shuffle/oversample,seed0; all raw per-request metrics retained",
+  "metrics": [
+    "Throughput frames/s",
+    "TTFA p50",
+    "TTFA p95",
+    "RTF mean"
+  ],
+  "measured_gate": "Any verbose during-inference JIT line within measured invocation -> INCONCLUSIVE; still retain all7 measured trials if no fatal error. Any foreignGPU/processmonitor/error/incomplete rows/source drift/cleanup failure -> INCONCLUSIVE. No rerun or selective exclusion.",
+  "jit": "Existing verbose gate only; no new private JIT bootstrap or specialization instrumentation",
+  "quality_reference": {
+    "file": "<PATH_1>",
+    "sha256": "672c0317d3f4286fe0e8b155063b2ac3a7fd7d73b16ee78178410bf9179b3900",
+    "status": "PASS",
+    "limitation": "Separate completed one-pair quality pilot; not same-process quality remeasurement, not MRv2-vs-V1 acceptance or three-pair promotion"
+  },
+  "ownership": "Frozen independent copy reviewed capture PID+birth two-check class. Leader absent no new adoption; reuse raises. Candidates admitted only after fresh live nonzombie leader postscan check. Existing known identities cleanup only.",
+  "execution": "Prepared only, no GPU/server started. Explicit --launch-approved required. Output directories new; no overwrite. Baseline then candidate; fatal arm failure stops pair with retained evidence.",
+  "isolation": "Compute + graphics queried on physical2/3 at preflight/every1sec/postflight. Only fresh matching birth identity of registered server members owned; no launcher descendants, parents or MPS exceptions.",
+  "actual_concurrency": "Independent raw interval sweep verifies peak==configured C at all14 invocations per arm; halfopen intervals and finite positive durations. Frozen validator unchanged.",
+  "pair_provenance": "Frozen original pins bytes/hash checked before/after everyarm and final. Each execution originalpinshash/source/configchain validated, overlay and campaign identical acrossarms."
+}
