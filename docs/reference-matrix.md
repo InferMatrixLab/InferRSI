@@ -186,6 +186,18 @@ SSD/OS systems columns.
 | **A1 / Agent Skills** @ `69ef37e9424c0a7ea9dd2293b559e43ec8176379` | reference; Dot A-approved minimal consumption | Specification frontmatter/body/progressive disclosure and client guide catalog/activation/resource sections directly verified 2026-10-15; format guidance, not an execution permission grant | `src/inferrsi/skill_catalog.py`, existing CLI/arguments; metadata projection + explicit selection + resource resolution; no installer/router/client configuration |
 | **CR6 / Stas Bekman ML Engineering Open Book** @ `ee7517e0f562ff0e7d56c3e88c619d0c0c496ba7` (CC BY-SA 4.0 declared by source skill) | expert methodology | `skills/ml-engineering/SKILL.md` scoped principles, `skills/evaluate-cluster/SKILL.md` first 100 lines, targeted performance README MFU/HFU/NUMA/GC sections; scripts identified only, excluded storage/input/recovery lanes not mined | `training-resource-budget` + explicitly attributed/share-alike `references/stas-decision-notes.md`; Accelerator/RAM/Network/OS diagnosis and proposed verification, no local results |
 
+### Foundational mechanism decisions
+
+The [six-case guide](../src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-mechanism-decisions.md)
+consolidates existing vLLM admission/KV ledgers at `7f730b4cea9a66520a9200265928ebe016b48a39`,
+Orca OSDI22/FastServe v3, the LMCache MP historical prefix `c3b875a`,
+the Qwen B300 H6/H7 rejection record at `d51c941dc57807c1e16ea698cd9291f414110c45`,
+Alpa v3 and AFD eager dense-FFN at `df8d6a0c403c3ca1b4ed9cf1687e7204908bebec`.
+This adds decision navigation under `optimization-search-policy`, not new primary
+inspection, a duplicate domain procedure or a selector. Original readsets,
+inspection dates, historical-observation scope and candidate/not_run states remain
+with the linked owners. No new hardware/resource qualification follows.
+
 ### Reviewed paper methodology and cases
 
 The following paper versions supplement, rather than replace or certify, the

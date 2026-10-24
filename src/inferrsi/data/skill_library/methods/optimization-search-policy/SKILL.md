@@ -21,6 +21,14 @@ An optimization agent without a search policy tends to:
 
 This skill addresses all four.
 
+## Foundational mechanism decisions
+
+Use the [six bounded decision cases](references/foundational-mechanism-decisions.md)
+to distinguish scheduling, caching/reuse and parallelism/pipelining after locating
+a bottleneck. They route to existing domain owners and retain prerequisites,
+counter-signals, smallest next checks and rollback boundaries. The cases are
+candidate guidance, not an automatic method selector or new validation results.
+
 ## Phase-locked optimization round
 
 An effective optimization round has locked phases that cannot be reordered.

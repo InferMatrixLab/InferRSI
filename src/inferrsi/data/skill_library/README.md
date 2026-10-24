@@ -55,6 +55,13 @@ The historical short pin resolves to [`bc8115ed7fdc7e500320b5de70742ef049b4c1a2`
 
 The [Reference Matrix](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/reference-matrix.md) retains the older `bc8115ed` Dockerfile/thread-env shipping-default scope under [os-process-placement](hardware/host/os-process-placement/SKILL.md). ACLGraph capture/replay supplies no new OS-control evidence; see the [OS/System row](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/searchspace-matrix.md#5--os--system).
 
+## Foundational mechanism decisions
+
+The [optimization-search-policy decision guide](methods/optimization-search-policy/references/foundational-mechanism-decisions.md)
+compares six scheduling, caching/reuse and parallelism/pipelining situations using
+existing owner evidence. It preserves source versions and historical negatives;
+retrieval checks do not establish automatic method selection or measured gains.
+
 ## Focused llama.cpp runtime audit
 
 The registered [audit-llama-runtime-state](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md)
