@@ -393,3 +393,12 @@ separate from the public release's inspected code paths.
 | Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
 | --- | --- | --- | --- |
 | Accelerator / Host / service boundary | Observe / Verify: select task quality and reference parity; freeze workload, timing, SLOs, units and failure accounting; distinguish agent replay from live task success | [inference-benchmark-design task reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md) and [commands](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md) | Cross-task measurement guidance, not new measured hardware coverage. A text HTTP smoke cannot validate TTS, duplex, image/video quality, repeated A/B or production capacity. No runtime adapter or automatic evaluator is added. |
+
+## SGLang scope selection
+
+Use the [versioned entry comparison](../src/inferrsi/data/skill_library/repositories/sglang/SKILL.md#choose-among-source-pins)
+to distinguish LLM engine/Radix ownership, the separate CUDA HiCache peer's
+prefix-KV host/storage policy, and multimodal_gen diffusion stage/instance,
+component-use and timeout/job-finalizer lifetimes. This adds routing only.
+Common indexing is not CUDA/NPU qualification; process transport/IPC is not new
+Network coverage. Existing resource cells and maturity boundaries remain unchanged.

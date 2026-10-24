@@ -153,3 +153,11 @@ For host-memory/transfer questions, read the separate CUDA dependency record
 [version and responsibility comparison](frameworks/diffusers/diffusers-invocation-state/SKILL.md#offload-or-invocation-state)
 keeps its earlier documentation pin/access date separate from the invocation
 candidate; neither supplies a combined-stack or backend qualification.
+
+## SGLang versioned guidance
+
+The [SGLang entry comparison](repositories/sglang/SKILL.md#choose-among-source-pins)
+separates the LLM engine graph, CUDA HiCache peer card and multimodal_gen diffusion
+candidate. Read external HiCache material by its stable catalog ID; the versioned
+routes retain their original dates and validation limits. Shared navigation does
+not establish cross-pin/backend compatibility or new Network coverage.
