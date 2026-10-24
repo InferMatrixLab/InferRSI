@@ -192,6 +192,8 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
                 max_bytes=args.max_bytes,
                 material=args.material,
+                relevance=args.relevance,
+                context_bytes=args.context_bytes,
             )
             if args.json:
                 _print(result)
@@ -218,6 +220,19 @@ def main(argv: list[str] | None = None) -> int:
                         print(f"--- begin content {item['ref']} @ {item['revision']} ---")
                         print(item["content"], end="" if item["content"].endswith("\n") else "\n")
                         print(f"--- end content {item['ref']} ---")
+                for context in result.get("contexts", []):
+                    for resource in context["resources"]:
+                        print(
+                            f"--- begin context {context['ref']} @ {context['revision']} "
+                            f"{resource['path']} ---"
+                        )
+                        print(resource["content"], end="" if resource["content"].endswith("\n")
+                              else "\n")
+                        print(f"--- end context {resource['path']} ---")
+                    for omission in context["omissions"]:
+                        print(f"{omission['path']}\tcontext_omitted\t{omission['reason']}")
+                for omission in result.get("context_omissions", []):
+                    print(f"{omission['ref']}\tcontext_omitted\t{omission['reason']}")
                 for omission in result["omissions"]:
                     detail = f"\t{_tsv(omission['detail'])}" if "detail" in omission else ""
                     print(f"{_tsv(omission['id'])}\tomitted\t{omission['reason']}{detail}")

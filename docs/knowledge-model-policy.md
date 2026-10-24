@@ -148,20 +148,97 @@ for work whose base advanced or whose head changed. One evaluation pass is
 followed by a publication pass that re-reads the target. If the head, base, body
 or approvals moved, or if head ownership changed because a peer closed, the checker
 reassesses once against the current metadata and the current open-PR collection
-before writing. A green is published only from a verified premise; when the
-open-PR collection cannot be read, an otherwise compliant target is recorded as
-`unverified` with a failed status instead of keeping its old success. If the target
-itself cannot be re-read, no status is written to the captured head because it may
-already be merged; the run reports that the old status could not be invalidated,
-which is a real limitation, not a fail-closed result.
+before writing. A green is published only from a verified premise.
+
+### Invalidation before evaluation
+
+Once a target is confirmed open against the policy branch with a valid head, the
+checker immediately publishes `pending` ("Admission evaluation in progress") to
+that head **before** it assesses changed files, declarations, exceptions or
+approvals. Confirming the target necessarily reads the PR body; what the
+invalidation precedes is the evaluation of that evidence. A verdict from an
+earlier run therefore cannot survive into a window where the current evidence
+could reject it. If that `pending` write fails, the target's success path
+stops: the result is `invalidation-failed`, no evaluation verdict is published,
+and the runner retries. Nothing is written over the failed invalidation, because
+that write would be the same operation that just failed.
+
+The old result is replaced rather than deleted, so the status history keeps both
+the superseded verdict and its replacement. A `pending` status is not a merge
+signal; callers must read the latest status of the current head, not any earlier
+entry.
+
+### Status capacity on a long-lived head
+
+GitHub keeps at most 1,000 statuses for one SHA and
+[context](https://docs.github.com/en/rest/commits/statuses#create-a-commit-status).
+A write past that bound is rejected with a validation error rather than
+discarded, and the context name is compared case-insensitively. Because every
+run writes an invalidation and a verdict, an unchanged head would eventually
+stop accepting writes.
+
+The checker therefore reads this context's history for the head before writing,
+counting case-insensitively, and keeps a reserve of 8 statuses. At or below 990
+recorded statuses it evaluates normally; 991 to 999 use the reserve handling
+below; 1,000 is saturated. At 991 or above it publishes one `budget-exhausted`
+failure instead of evaluating, so the newest entry is a failure rather than an
+earlier success, and reports that a new head is required.
+That verdict is terminal: a later sweep recognises it as its own and writes
+nothing, so repeated sweeps do not consume the reserve. If that one write
+fails, the run reports `publication-failed`; the next sweep attempts the same
+single write once more.
+
+A head can also carry statuses from other contexts, so the read is bounded by
+both 50 pages and a deadline. The deadline belongs to the sweep, not to one
+head: targets are processed serially under one workflow timeout, so a fresh
+budget per head would let a long sweep run out of time before a later target's
+failure is published. Each history request is also capped by the time remaining,
+and 15 seconds are held back so that publication still fits. Exhausting either
+bound is reported as `history-unavailable`, which publishes the failure
+immediately, so a long scan cannot consume the workflow's deadline before
+anything replaces an earlier success.
+
+At or above the cap nothing can be written at all. The run reports
+`budget-saturated` without attempting a write. An earlier `success` may still be
+the head's newest entry and can therefore still satisfy the required context:
+this head is blocked from receiving new statuses, not necessarily blocked from
+merging, and this checker cannot replace that entry. A new head is the only
+recovery, and the result is not retried. If the history cannot be read, the
+result is `history-unavailable`: the failure is published immediately rather than
+in the publication pass, so a sweep that is cut off before reaching this target
+still replaces the old verdict. If that write fails, the result is
+`publication-failed` and the run retries.
+
+### Paths that cannot invalidate an old result
+
+Fail-closed invalidation is not universal. These paths are reported explicitly and
+must not be described as enforced:
+
+| Situation | Behavior and limitation |
+| --- | --- |
+| The target PR cannot be read at all | Its head may already be merged, so no write is attempted. The result is `unverified`, the run fails, and an earlier green remains `pending`-free until a run can read the target |
+| The `pending` write itself fails | Result is `invalidation-failed`; the earlier verdict still applies to the head and the run fails visibly |
+| The final verdict write fails | Result is `publication-failed`; the head keeps the `pending` placeholder, which does not satisfy a required check |
+| The PR is closed before publication | No verdict is written. If the target was still open at evaluation time it keeps the `pending` it received there, and the workflow reports success without a verdict for that head |
+| The head advances before publication | No verdict is written. The superseded head keeps its `pending`; the new head has no status until a run covers it, and the run exits `2` for that retry |
+| A merge attempt races the run | The check reads metadata, invalidates, evaluates and publishes without holding any lock. A merge authorized by the previous state can land between the last read and the status write |
+| The head has used its reserved status capacity | Result is `budget-exhausted`: one failure is recorded there and no success is published. The entry is recognised on later sweeps, so nothing further is appended and the state is not retried. Only a new head resumes evaluation |
+| The head is already at the 1,000-status cap | Result is `budget-saturated`: no write is possible, so an earlier `success` may still be the head's newest entry and this checker cannot replace it. The head is blocked from new statuses, not necessarily from merging; only a new head resumes evaluation |
+| The status history cannot be read | The failure is published immediately rather than in the publication pass, so a sweep cut off before reaching this target still replaces the old verdict. If that write also fails, the head keeps the earlier verdict and the result is `publication-failed`, which retries |
+| GitHub has not yet dispatched the event | Enforcement cannot precede the event that triggers it. A commit or body edit is enforced only after a run for that change has published a result |
+
+`pending` narrows the window in which an old success describes stale evidence. It
+does not close the window between the last metadata read and the status write, and
+it cannot act when GitHub supplies no event. Repository protection plus a required
+check is what turns these states into an actual merge block.
 
 When the trusted base advances mid-sweep, the checker returns a retryable result
 promptly instead of re-evaluating against its own stale checkout. It exits `2`,
 and trusted `tools/run_knowledge_model_policy.sh` refetches `main` and runs the
 checker again from the current code and policy. The runner is the single retry
-owner with a bounded budget; after exhaustion the workflow run fails. Open PRs
-remain fail-closed in every case: stale work is never published as compliant, and
-an old green is never retained in place of a valid evaluation.
+owner with a bounded budget; after exhaustion the workflow run fails. See the
+limitations table above rather than reading this as unconditional fail-closed
+enforcement.
 
 Each result carries `kind` alongside the status `state`:
 
@@ -173,7 +250,12 @@ Each result carries `kind` alongside the status `state`:
 | `unverified` | Compliance could not be published without unverified lifecycle or ownership metadata |
 | `deferred` | Work could not be completed in this run; rerun required |
 | `closed` | Target left the sweep; no status was written |
+| `advanced` | The evaluated head was superseded; nothing is written to the new head |
 | `publication-failed` | Status write failed; the verdict was not recorded |
+| `invalidation-failed` | The earlier result could not be replaced by `pending`; no verdict was published |
+| `history-unavailable` | The head's status history could not be read, so the capacity margin is unproven; an explicit failure replaces the old result immediately, before any other target is processed |
+| `budget-exhausted` | The head has used its reserved status capacity; one failure is recorded there, no success is published and a new head is required |
+| `budget-saturated` | The head already holds 1,000 statuses for this context; nothing can be written, so an earlier success may remain the newest entry |
 
 The final JSON summary counts each kind, lists the `noncompliant_pull_requests`, and
 states the sweep `execution` as `ok`, `failed` or `unfinished`. Exit codes: `0`
