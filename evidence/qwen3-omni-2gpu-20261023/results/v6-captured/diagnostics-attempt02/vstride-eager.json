@@ -1,0 +1,326 @@
+{
+  "status": "DIAGNOSTIC_ONLY",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "script_sha256": "106ca4b0f2782d02baece734ea283f80455ecff3da6d2436ffa3347a3f751e0e",
+  "input_sha256": "7dc1656c930bd8c02befca3e92731490da6c239c39ea4350200d7b792a2b4dc9",
+  "config_sha256": "eab5093d47807aaf894119506b238b2b1cee70d08456e894fee9a012d88f2e0d",
+  "compiled": false,
+  "timing_eligible": true,
+  "timing_performed": false,
+  "batches": [
+    {
+      "batch": 1,
+      "strict_bitwise_parity": true,
+      "finite": true,
+      "depths": [
+        {
+          "depth": 1,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 11.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 2,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 3,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.875,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 4,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 5,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 6,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.25,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 7,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 8,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 9,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 10,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 11,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 12,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 13,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 5.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 14,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 1.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 15,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        }
+      ]
+    },
+    {
+      "batch": 64,
+      "strict_bitwise_parity": true,
+      "finite": true,
+      "depths": [
+        {
+          "depth": 1,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 11.5625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 2,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 3,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 4,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 5,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 6,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 7,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.875,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 8,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 9,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 10,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 11,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.5625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 12,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 13,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 5.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 14,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 0.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 15,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        }
+      ]
+    }
+  ]
+}

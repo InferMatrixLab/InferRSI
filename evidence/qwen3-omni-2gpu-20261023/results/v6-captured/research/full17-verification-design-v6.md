@@ -1,0 +1,11 @@
+# Full17 multi-position verification diagnostic
+
+Script: diagnose-full17-verification-v6.py. GPU execution has NOT been performed. CPU-only actual predictor loading/interface smoke completed in full17-cpu-load-smoke-v6.json with empty CUDA_VISIBLE_DEVICES; this is not arithmetic parity qualification.
+
+For B1/B64, compare fifteen full17 forwards with progressive teacher-filled inputs against one full17 forward with complete fixed draft/teacher history. Each extracts position s and calls the same lm_head[s−1] separately, s=1..15. Known history embeddings fill slots2..15; slot16 retains its initial value because final residual output is never input to the tested heads. Both paths retain identical17 shape and absolute positions. No KV or prefix path participates in the GPU parity experiment. Optional --compile uses epilogue_fusion=False on the full predictor body only; heads remain the same independent calls.
+
+Two future-slot initializations are tested: zero_future and fixed_random_future. Common wrapper forward at source4645 explicitly zeros proj_buf before residual iteration; this does not certify every alternative MRv2 entry point. Random initialization is an additional adversarial causal-isolation check, not a statement that native buffers are random. Synthetic hidden/CB0 embeddings/history are labelled; --inputs can supply captured fixed64-row hidden and layer0_embed plus optional history. Per-case/step reports retain nonfinite counts, null undefined numeric summaries, maxabs/RMS/top1 margins, argmax mismatch and bitwise equality.
+
+Source clean/HEAD before and after, script checksum, checkpoint config hash, per-weight hashes and aggregate digest, input tensor hashes and deterministic seeds are retained. Process owns no server or child workers; normal process exit releases its predictor allocation. The inherited CPU loader smoke also checks its cached interface, but that is not part of this GPU full17 parity experiment.
+
+No graph timing was added to this parity revision. A later separate graph timing helper can compare15 full17+15heads with1 full17+15heads and retain20 samples, excluding history assembly/reset/draft/accept/sampling. Keeping that instrumentation separate avoids confusing arithmetic parity with latency or speculative service gain.

@@ -1,0 +1,75 @@
+{
+  "status": "DIAGNOSTICS_EXECUTION_COMPLETE",
+  "pins_sha256": "54face79270e9d7bcd5a7b455c50f7081889bb370333e7e397844af5542ee078",
+  "error_present": false,
+  "monitor_errors_count": 0,
+  "cleanup_errors_count": 0,
+  "steps": [
+    {
+      "label": "full17-eager",
+      "status": "EXECUTION_COMPLETE",
+      "returncode": 0,
+      "result_status": "DIAGNOSTIC_ONLY",
+      "result_sha256": "387e51315bcfddd63e00b550973a1d52667a1395268c5b9d0d2ff50507e663bf",
+      "monitor_error_count": 0,
+      "cleanup_error_count": 0,
+      "observation_count": 51,
+      "postflight_empty": true
+    },
+    {
+      "label": "full17-compiled",
+      "status": "EXECUTION_COMPLETE",
+      "returncode": 0,
+      "result_status": "DIAGNOSTIC_ONLY",
+      "result_sha256": "8c0708a17a942fa1642da8b73b96692da32c065d3eff88fc02616efa6c31336a",
+      "monitor_error_count": 0,
+      "cleanup_error_count": 0,
+      "observation_count": 53,
+      "postflight_empty": true
+    },
+    {
+      "label": "multi-depth",
+      "status": "EXECUTION_COMPLETE",
+      "returncode": 0,
+      "result_status": "DIAGNOSTIC_ONLY",
+      "result_sha256": "9178ba1c8fc13389bb67345af3df84d43227d1909a11ff3d295980a24a107923",
+      "monitor_error_count": 0,
+      "cleanup_error_count": 0,
+      "observation_count": 47,
+      "postflight_empty": true
+    },
+    {
+      "label": "spec-sampler64",
+      "status": "EXECUTION_COMPLETE",
+      "returncode": 0,
+      "result_status": "DIAGNOSTIC_COMPLETE",
+      "result_sha256": "908290fb04c1854b2cba5d974aaddb077cf48e6c13a8c4145ff11452b7357b16",
+      "monitor_error_count": 0,
+      "cleanup_error_count": 0,
+      "observation_count": 38,
+      "postflight_empty": true
+    },
+    {
+      "label": "vstride-eager",
+      "status": "EXECUTION_COMPLETE",
+      "returncode": 0,
+      "result_status": "DIAGNOSTIC_ONLY",
+      "result_sha256": "2d38bc3070af1437dde1dd9260d4d1ff9a7a3775dbe5074a5f804b1556119a3c",
+      "monitor_error_count": 0,
+      "cleanup_error_count": 0,
+      "observation_count": 47,
+      "postflight_empty": true
+    },
+    {
+      "label": "vstride-compiled",
+      "status": "EXECUTION_COMPLETE",
+      "returncode": 0,
+      "result_status": "DIAGNOSTIC_ONLY",
+      "result_sha256": "96deac7ebd9d530c6e5178f43de0c52d3d299390cf815a58450162827e3fb990",
+      "monitor_error_count": 0,
+      "cleanup_error_count": 0,
+      "observation_count": 50,
+      "postflight_empty": true
+    }
+  ]
+}

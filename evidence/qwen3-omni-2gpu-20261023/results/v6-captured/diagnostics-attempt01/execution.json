@@ -1,0 +1,22 @@
+{
+  "status": "INCONCLUSIVE",
+  "pins_sha256": "9a1f874e4b9042cd02c614a5158f35d8c91c285df3791c24d8a836a4047b67d1",
+  "error_present": true,
+  "monitor_errors_count": 0,
+  "cleanup_errors_count": 0,
+  "steps": [
+    {
+      "label": "full17-eager",
+      "status": "INCONCLUSIVE",
+      "returncode": 0,
+      "result_status": "DIAGNOSTIC_ONLY",
+      "result_sha256": "387e51315bcfddd63e00b550973a1d52667a1395268c5b9d0d2ff50507e663bf",
+      "monitor_error_count": 0,
+      "cleanup_error_count": 0,
+      "observation_count": 53,
+      "postflight_empty": true
+    }
+  ],
+  "failure_classification": "RUNNER_VALIDATION_ERROR_RAW86_VS_PACKED71",
+  "parity_status": "FULL17_EAGER_FINITE_BITWISE_PASS"
+}

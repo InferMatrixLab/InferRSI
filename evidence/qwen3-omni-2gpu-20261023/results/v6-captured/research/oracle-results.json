@@ -1,0 +1,15 @@
+{
+  "status": "PASS",
+  "total_cases": 802,
+  "script_sha256": "81bf4bcf7d8d4ba256dd6cc0f63666854c015bd496779d2e42be2b993529484b",
+  "counts": {
+    "fixed_proposal_cases": 640,
+    "tail_1_cases": 128,
+    "conditional_p_equals_q_cases": 160,
+    "tail_2_cases": 128,
+    "tail_3_cases": 64,
+    "tail_4_cases": 0,
+    "tail_5_cases": 0,
+    "explicit_disjoint_cases": 2
+  }
+}

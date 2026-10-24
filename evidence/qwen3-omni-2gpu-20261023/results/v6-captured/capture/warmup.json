@@ -1,0 +1,16 @@
+{
+  "scope": "Capture diagnostic only; NOT performance acceptance",
+  "audio_request_metrics": [
+    {
+      "request_index": 0,
+      "success": true,
+      "start_time": 6796120.690231938,
+      "latency": 1.265194371342659,
+      "audio_ttfp": 0.3199296211823821,
+      "audio_rtf": 0.7280921932817921,
+      "audio_duration": 1.736875,
+      "audio_frames": 41685
+    }
+  ],
+  "identity_strings": "omitted; numeric values unchanged"
+}
