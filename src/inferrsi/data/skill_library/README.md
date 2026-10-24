@@ -144,3 +144,11 @@ separates pipeline-wrapper fields, reused component identities, scheduler progre
 and cooperative interruption. The candidate is scoped to FluxPipeline and
 FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
 and performance remain unverified; the existing offload card keeps its own pin.
+
+## SGLang versioned guidance
+
+The [SGLang entry comparison](repositories/sglang/SKILL.md#choose-among-source-pins)
+separates the LLM engine graph, CUDA HiCache peer card and multimodal_gen diffusion
+candidate. Read external HiCache material by its stable catalog ID; the versioned
+routes retain their original dates and validation limits. Shared navigation does
+not establish cross-pin/backend compatibility or new Network coverage.
