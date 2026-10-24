@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
-      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1d98d9e985035d70665c194c73c67ea686d7107c/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
+      "commit": "1d98d9e985035d70665c194c73c67ea686d7107c",
       "paths": [
         "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json",
