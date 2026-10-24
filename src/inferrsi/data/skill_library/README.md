@@ -148,6 +148,12 @@ and cooperative interruption. The candidate is scoped to FluxPipeline and
 FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
 and performance remain unverified; the existing offload card keeps its own pin.
 
+For host-memory/transfer questions, read the separate CUDA dependency record
+`diffusers.cuda.diffusion.group_offload_transfer_overlap`. The
+[version and responsibility comparison](frameworks/diffusers/diffusers-invocation-state/SKILL.md#offload-or-invocation-state)
+keeps its earlier documentation pin/access date separate from the invocation
+candidate; neither supplies a combined-stack or backend qualification.
+
 ## SGLang versioned guidance
 
 The [SGLang entry comparison](repositories/sglang/SKILL.md#choose-among-source-pins)
