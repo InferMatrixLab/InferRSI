@@ -2,7 +2,7 @@
 
 Acceptance: [#112](https://github.com/InferMatrixLab/InferRSI/issues/112).
 
-Status: **INCONCLUSIVE**. The first baseline performance matrix and separate quality run are complete. Candidate search and repeated paired validation are in progress; no comparative gain or target attainment is claimed.
+Status: **INCONCLUSIVE**. Protocol-v5 execution has ended: the first pair was execution-eligible but failed the quality and RTF targets; both attempts of the second pair had measured-interval JIT in the baseline. The frozen retry limit stopped the campaign before pair three. No qualified optimization or target attainment is claimed.
 
 The frozen protocol records the full Thinker → Talker → Code2Wav pipeline, metric definitions, source provenance and quality gates. The hardware scope is exactly two L20X GPUs. Audio-input quality needs separate qualification; text readback alone does not establish conversational quality.
 
@@ -37,3 +37,5 @@ The [eager-MTP capability adapter screen](results/adapter-run-manifest.json) use
 The [prefix re-prefill/cuDNN trial](results/prefix-run-manifest.json) completed with C1/C64 mean RTF0.108235/0.555771 and WER0.0486058. It fails the historical-baseline WER screen and remains **INCONCLUSIVE** for promotion. Execution, periodic ownership, all raw requests and audio hashes are retained; the private startup stack is a point-in-time diagnostic. This combined trial does not isolate either mechanism.
 
 The [formal selection preregistration](plan/formal-selection-v5.json) selects MRv2-base adapter versus V1 on the same source for fresh protocol-v5 paired measurements. Screening evidence does not satisfy acceptance; all three pairs require the frozen performance and quality gates.
+
+The [complete formal-v5 record](results/formal-v5/run-manifest.json) retains every attempted arm and the six unattempted slots. First-pair baseline/candidate WER was 0.037269/0.058449; candidate C1/C64 mean RTF was 0.109138/0.586494. Pair-two attempts each observed two baseline JIT events. There is no three-pair aggregate. Further optimization must use a separately declared experiment; these frozen results remain unchanged.

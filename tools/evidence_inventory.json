@@ -48,6 +48,7 @@
     "qwen3-omni-2gpu-20261023": {
       "kind": "campaign",
       "manifests": [
+      {"path": "results/formal-v5/run-manifest.json", "schema": "metadata-sha256", "sha256": "8fc9f242c8648b0b67699724c0b2e1bea9799c92cc521608ca84e092f0bfe6d4"},
         {
           "path": "plan/frozen-files-v3.json",
           "schema": "bundle-sha256"

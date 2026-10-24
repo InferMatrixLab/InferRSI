@@ -1,0 +1,148 @@
+{
+  "status": "INCONCLUSIVE",
+  "protocol": "protocol-v5.json",
+  "pairs": [
+    {
+      "pair": 1,
+      "order": [
+        "baseline",
+        "candidate"
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "arms": {
+            "baseline": {
+              "directory": "v5-pair1-attempt1-baseline",
+              "exit_code": 0,
+              "eligible": true,
+              "effective_peak_concurrency": {
+                "1": 1,
+                "2": 2,
+                "4": 4,
+                "8": 8,
+                "16": 16,
+                "32": 32,
+                "64": 64
+              },
+              "errors": [],
+              "observed_measured_jit_count": 0
+            },
+            "candidate": {
+              "directory": "v5-pair1-attempt1-candidate",
+              "exit_code": 0,
+              "eligible": true,
+              "effective_peak_concurrency": {
+                "1": 1,
+                "2": 2,
+                "4": 4,
+                "8": 8,
+                "16": 16,
+                "32": 32,
+                "64": 64
+              },
+              "errors": [],
+              "observed_measured_jit_count": 0
+            }
+          }
+        }
+      ],
+      "selected_attempt": 1
+    },
+    {
+      "pair": 2,
+      "order": [
+        "candidate",
+        "baseline"
+      ],
+      "attempts": [
+        {
+          "attempt": 1,
+          "arms": {
+            "candidate": {
+              "directory": "v5-pair2-attempt1-candidate",
+              "exit_code": 0,
+              "eligible": true,
+              "effective_peak_concurrency": {
+                "1": 1,
+                "2": 2,
+                "4": 4,
+                "8": 8,
+                "16": 16,
+                "32": 32,
+                "64": 64
+              },
+              "errors": [],
+              "observed_measured_jit_count": 0
+            },
+            "baseline": {
+              "directory": "v5-pair2-attempt1-baseline",
+              "exit_code": 0,
+              "eligible": false,
+              "effective_peak_concurrency": {
+                "1": 1,
+                "2": 2,
+                "4": 4,
+                "8": 8,
+                "16": 16,
+                "32": 32,
+                "64": 64
+              },
+              "errors": [],
+              "observed_measured_jit_count": 2
+            }
+          }
+        },
+        {
+          "attempt": 2,
+          "arms": {
+            "candidate": {
+              "directory": "v5-pair2-attempt2-candidate",
+              "exit_code": 0,
+              "eligible": true,
+              "effective_peak_concurrency": {
+                "1": 1,
+                "2": 2,
+                "4": 4,
+                "8": 8,
+                "16": 16,
+                "32": 32,
+                "64": 64
+              },
+              "errors": [],
+              "observed_measured_jit_count": 0
+            },
+            "baseline": {
+              "directory": "v5-pair2-attempt2-baseline",
+              "exit_code": 0,
+              "eligible": false,
+              "effective_peak_concurrency": {
+                "1": 1,
+                "2": 2,
+                "4": 4,
+                "8": 8,
+                "16": 16,
+                "32": 32,
+                "64": 64
+              },
+              "errors": [],
+              "observed_measured_jit_count": 2
+            }
+          }
+        }
+      ],
+      "selected_attempt": null
+    }
+  ],
+  "selection_rule": "Use the first pair with complete conditioning/raw measurement gates and zero observed JIT events in both measured matrices. Retain every attempt and reason. Do not remove requests or select fastest runs. If neither attempt qualifies, report INCONCLUSIVE; do not claim promotion.",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "campaign_file_sha256": {
+    "<PATH_1>": "decbb41a63b9497555759e1f3a1423c6e7d5e9ac6d3e49a91347f506cb245893",
+    "<PATH_2>": "e42571085b0dd45763eb925dd2f554e10dff165bbf77bade6a8c87000a62f929",
+    "<PATH_3>": "e5a94ce79aa347c217e7d283c18cef6f26a176fb7b478e7b4b61d7e7416a8b24",
+    "<PATH_4>": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+    "<PATH_5>": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac",
+    "<PATH_6>": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+  },
+  "inconclusive_reason": "No qualifying attempt for paired repetition"
+}
