@@ -21,15 +21,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/427c51fc2f23f24d7eccabfedc2497fc6529c973/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
-      "commit": "427c51fc2f23f24d7eccabfedc2497fc6529c973",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64bf757b8edbf59f877013f359c1235024f9230a/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "commit": "64bf757b8edbf59f877013f359c1235024f9230a",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "718be35dc6d93a97e356ed645df899d43e2c37944f4dece8e167efef810fefea"
+      "content_sha256": "d494fc7e539cbb7388189bd7b3f04bb5c4983fdd7a82484348aad1cee7f741f2"
     }
   ],
   "index_type": "packaged-skill",
@@ -38,10 +38,10 @@
   },
   "checkout_ref": "checkout:ascend-aclgraph-capture-replay",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md": "718be35dc6d93a97e356ed645df899d43e2c37944f4dece8e167efef810fefea",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md": "d494fc7e539cbb7388189bd7b3f04bb5c4983fdd7a82484348aad1cee7f741f2",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "e4c02d4ae85e473947e024c38aed121ca8e5cfbfe1091c5792ce58a349248187",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md": "6ffbfb68cc7e04923b4fbca2a73a7555b7c3b45a6f40819bb5f3213ef05cf88d",
-    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
   },
   "skill_metadata": {
     "name": "ascend-aclgraph-capture-replay",

@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **79 skill documents**: 58 registered skills
+The English-only library contains **80 skill documents**: 59 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 58 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 59 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -42,6 +42,19 @@ An explicit `inferrsi skills --root <path>` selects a custom flat tree or a
 categorized library with `skill-index.json`. Backend scope does not certify
 device compatibility; readers do not execute helpers or promote candidates.
 
+## vLLM-Ascend version and responsibility routing
+
+Choose by the question and the retained source version. These existing candidates have adjacent graph-startup topics and different primary responsibilities; neither entry replaces or validates the other.
+
+| Existing owner | Retained source version | Use for | Existing evidence inventory | Original semantic inspection date |
+| --- | --- | --- | --- | --- |
+| [ascend-model-adaptation](hardware/ascend/ascend-model-adaptation/SKILL.md) | Historical `bc8115ed` documentation pin | Checkpoint onboarding, FP8 loading, KV-head replication and multimodal validation order | The entry cites `.agents/skills/vllm-ascend-model-adapter/references/` lessons, including `fp8-on-npu-lessons.md` and `multimodal-ep-aclgraph-lessons.md`; no bundled owner readset | Not individually recorded in the retained entry; the commit date is not an inspection date |
+| [ascend-aclgraph-capture-replay](hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md) | `8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf` runtime pin | Wrapper dispatch, caller-owned stable inputs, replay/update ordering and capture-resource diagnosis | Existing [source notes](hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md): wrapper, graph-mode guide and selected test cases | 2026-10-15 supplier inspection, carried unchanged; local consolidation does not repeat it |
+
+The historical short pin resolves to [`bc8115ed7fdc7e500320b5de70742ef049b4c1a2`](https://github.com/vllm-project/vllm-ascend/commit/bc8115ed7fdc7e500320b5de70742ef049b4c1a2). That resolves Git identity only; it does not add a semantic reread or an inspection date. Both entries keep their candidate / empirical validation not_run state and separate compatibility limits.
+
+The [Reference Matrix](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/reference-matrix.md) retains the older `bc8115ed` Dockerfile/thread-env shipping-default scope under [os-process-placement](hardware/host/os-process-placement/SKILL.md). ACLGraph capture/replay supplies no new OS-control evidence; see the [OS/System row](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/searchspace-matrix.md#5--os--system).
+
 ## Focused llama.cpp runtime audit
 
 The registered [audit-llama-runtime-state](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md)
@@ -56,7 +69,7 @@ links all three responsibilities and their separate source snapshots.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 58-ID registry.
+the links and catalog records below, separately from the 59-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -65,6 +78,7 @@ these imports and use generated abstracts rather than runtime repository packs.
 | ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](repositories/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
 | stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
 | h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json) |
+| AFD plugin P2pNccl audit | CUDA eager dense-FFN rank namespaces and per-stage/per-peer payload ownership; source-derived candidate | [Skill](repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md) | `inferrsi.cuda.skills.audit_afd_p2p_exchanges` |
 | Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](repositories/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
 | vLLM | Token scheduling, KV ownership and parallel execution | [Skill](repositories/vllm/SKILL.md) | [Records](../repo_packs/vllm/knowledge/README.md) |
 | SGLang | Radix/HiCache, prefill/decode, extensions and a separately pinned [diffusion lifetime candidate](repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | [Skill](repositories/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |

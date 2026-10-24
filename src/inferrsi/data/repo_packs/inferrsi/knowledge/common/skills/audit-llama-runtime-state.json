@@ -23,15 +23,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/427c51fc2f23f24d7eccabfedc2497fc6529c973/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
-      "commit": "427c51fc2f23f24d7eccabfedc2497fc6529c973",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64bf757b8edbf59f877013f359c1235024f9230a/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
+      "commit": "64bf757b8edbf59f877013f359c1235024f9230a",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json",
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013"
+      "content_sha256": "a7bc715ab5c740e8e6296adf9d891f4ff7c68cdba2db0aeccd1f70f86f820eb1"
     }
   ],
   "index_type": "packaged-skill",
@@ -40,10 +40,10 @@
   },
   "checkout_ref": "checkout:audit-llama-runtime-state",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013",
+    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "a7bc715ab5c740e8e6296adf9d891f4ff7c68cdba2db0aeccd1f70f86f820eb1",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "c354138008eb577b93d2a3cf93f6ae56369439d0d70d799c47a63d8cb4ff8b75",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190",
-    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
   },
   "skill_metadata": {
     "name": "audit-llama-runtime-state",

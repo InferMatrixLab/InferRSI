@@ -232,6 +232,10 @@
     "audit-h3-runtime-residency": {
       "path": "repositories/h3-c/audit-h3-runtime-residency",
       "backend": "common"
+    },
+    "audit-afd-p2p-exchanges": {
+      "path": "repositories/afd-plugin/audit-afd-p2p-exchanges",
+      "backend": "cuda"
     }
   }
 }
