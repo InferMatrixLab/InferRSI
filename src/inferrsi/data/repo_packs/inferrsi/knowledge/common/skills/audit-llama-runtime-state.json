@@ -23,15 +23,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e2817a7ec76e10f6ab5f30cdf4e7d2e9c5a2d2f6/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
-      "commit": "e2817a7ec76e10f6ab5f30cdf4e7d2e9c5a2d2f6",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
+      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json",
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "a7bc715ab5c740e8e6296adf9d891f4ff7c68cdba2db0aeccd1f70f86f820eb1"
+      "content_sha256": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013"
     }
   ],
   "index_type": "packaged-skill",
@@ -40,7 +40,7 @@
   },
   "checkout_ref": "checkout:audit-llama-runtime-state",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "a7bc715ab5c740e8e6296adf9d891f4ff7c68cdba2db0aeccd1f70f86f820eb1",
+    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "c354138008eb577b93d2a3cf93f6ae56369439d0d70d799c47a63d8cb4ff8b75",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190",
     "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"

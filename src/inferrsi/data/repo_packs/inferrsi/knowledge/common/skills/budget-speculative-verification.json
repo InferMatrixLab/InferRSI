@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e2817a7ec76e10f6ab5f30cdf4e7d2e9c5a2d2f6/src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
-      "commit": "e2817a7ec76e10f6ab5f30cdf4e7d2e9c5a2d2f6",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
+      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json",
