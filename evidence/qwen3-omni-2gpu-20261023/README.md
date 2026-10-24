@@ -10,6 +10,8 @@ The frozen protocol records the full Thinker → Talker → Code2Wav pipeline, m
 
 The [v6 follow-up record](results/v6-followup/README.md) retains the isolated V1 Predictor-KV quality failure (paired mean WER 0.028905 → 0.048576), all 512 request rows, and the separate full-pipeline profile. KV does not advance to performance acceptance. Profile C64 includes four JIT events; cross-stage kernel unions are diagnostic and cannot establish recoverable service latency. The overall result remains **INCONCLUSIVE**.
 
+The [completed component diagnostics](results/v6-components/README.md) retain a fresh-process cuDNN pair, full17 causal verification and executable rational sampling oracles. Long-window codec replay was 1.23–1.42× faster in this one component pair, with non-bitwise PCM differences; this motivates an isolated quality pilot and is not a service gain. Full17 eager/compiled logits matched bitwise on synthetic inputs with real weights; real-request speculative acceptance remains unverified.
+
 See [the actual baseline run manifest](results/baseline-v3-run-manifest.json) for source revisions, deployment, runtime, workload, raw results and limitations. Each performance point contains 256 requests after five warmups. Throughput counts 24 kHz PCM sample frames, not codec tokens.
 
 | Concurrency | Throughput (frames/s) | TTFA p50 (ms) | TTFA p95 (ms) | RTF mean |

@@ -1,0 +1,18 @@
+{
+  "status": "REVIEW_READY_NOT_PUBLISHED",
+  "numerical_json_preservation_checked": [
+    "full17-realweight-eager-v6.json",
+    "full17-realweight-compiled-v6.json",
+    "spec-depth-math-prototype-v6-results.json",
+    "spec-depth-zero-support-v6-results.json",
+    "codec-cudnn-pair-v6-pilot01/comparison.json",
+    "codec-cudnn-pair-v6-pilot01/launcher.json",
+    "codec-cudnn-pair-v6-pilot01/default/results.json",
+    "codec-cudnn-pair-v6-pilot01/benchmark/results.json"
+  ],
+  "known_private_path_pid_uuid_scan_hits": [],
+  "tensor_hash_count": 20,
+  "public_executable_payloads": 2,
+  "scope": "Targeted checks; independent review required",
+  "portable_cpu_sources_original_bytes_verified": true
+}

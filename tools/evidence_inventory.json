@@ -49,6 +49,7 @@
       "kind": "campaign",
       "manifests": [
       {"path": "results/v6-followup/profile-private-trace-manifest.json", "schema": "metadata-sha256", "sha256": "8deb2f2e8d94a0d777731ec0beec35a6f4e38301300916a1271904915851b791"},
+      {"path": "results/v6-components/manifest.json", "schema": "metadata-sha256", "sha256": "125a322cc23c21ecd7620bacd240ed59526e87ab681baa2b0e21b5b7e06a23de"},
       {"path": "results/v6-followup/manifest.json", "schema": "metadata-sha256", "sha256": "80415e1d45d7f61769ce935e8bc508d58a70644bed50efba6a5369a6462fe4d9"},
       {"path": "results/formal-v5/run-manifest.json", "schema": "metadata-sha256", "sha256": "8fc9f242c8648b0b67699724c0b2e1bea9799c92cc521608ca84e092f0bfe6d4"},
         {
