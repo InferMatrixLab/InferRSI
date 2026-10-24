@@ -364,6 +364,12 @@ does not certify backend compatibility.
 | RAM / Host | Observe / Diagnose / Configure / Verify: wrapper versus reused component identity, per-invocation scheduler schedule/index ownership | [diffusers-invocation-state](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md) | Configuration means selecting the existing invocation/scheduler owner; no new manager. Real caller admission and runtime overlap are unverified. |
 | Accelerator | Observe / Diagnose / Verify: post-step callback, next-iteration interrupt observation and normal output/cleanup tail | [invocation ownership path](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md) | Cooperative loop skipping does not revoke submitted kernels; model/device/quality, exception cleanup and performance remain unrun. |
 
+For group/leaf offload staging and host/device transfer tradeoffs, select the
+separate CUDA dependency [offload record](../src/inferrsi/data/knowledge_packs/dependency/diffusers/cuda/diffusion/group-offload-transfer-overlap.json).
+The [two-pin invocation/offload boundary](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md#offload-or-invocation-state)
+adds routing only: the common invocation candidate does not qualify that CUDA
+recipe, an NPU path or a combined stack. Existing coverage/maturity stays unchanged.
+
 No measured or green coverage is credited. This adds no SSD, Network or OS
 capability and does not retest the existing offload mechanism. `common` indexes
 framework guidance without certifying backend compatibility.

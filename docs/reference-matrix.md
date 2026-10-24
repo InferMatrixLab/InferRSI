@@ -340,6 +340,12 @@ The existing Diffusers offload card retains its earlier source pin. This bounded
 invocation readset does not establish caller serialization, general thread safety
 or exception cleanup. The generated abstract adds discovery, not corroboration.
 
+For entry selection, use the [two-pin responsibility comparison](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md#offload-or-invocation-state).
+The offload dependency record retains its 2026-10-15 documentation access; the
+invocation source map retains its 2026-10-22 archive read. These dates are not
+refreshed by navigation checks, and normal-tail hooks do not establish offload
+compatibility or exceptional/asynchronous cleanup.
+
 ## DeepInfer source extraction
 
 | Source / revision | Inspected scope | Reuse, extraction and limits |
