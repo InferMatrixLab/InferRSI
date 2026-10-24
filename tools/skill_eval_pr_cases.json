@@ -14,6 +14,12 @@
       "entrypoint": "methods/inference-benchmark-design/SKILL.md",
       "paths": ["src/inferrsi/data/skill_library/methods/inference-benchmark-design"],
       "cases": "../docs/examples/skill-comparison/cases.json"
+    },
+    {
+      "skill": "audit-fixed-workload-claim",
+      "entrypoint": "methods/audit-fixed-workload-claim/SKILL.md",
+      "paths": ["src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim"],
+      "cases": "../docs/examples/skill-comparison/cases.json"
     }
   ]
 }

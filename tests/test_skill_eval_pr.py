@@ -44,6 +44,54 @@ def test_plan_selects_addition_update_resources_without_execution(tmp_path, mode
     assert integration.execution_id(plan) == integration.execution_id(second)
 
 
+@pytest.mark.parametrize("skill,mode", [
+    ("audit-fixed-workload-claim", "addition"),
+    ("inference-benchmark-design", "update"),
+])
+def test_maintained_mapping_selects_real_acceptance_paths(tmp_path, skill, mode):
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    git(repo, "init", "--quiet")
+    (repo / "seed.txt").write_text("Before acceptance change", encoding="utf-8")
+    mapping = compare.read_json(integration.MAPPING)
+    owner = next(item for item in mapping["skills"] if item["skill"] == skill)
+    path = repo / mapping["skill_root"] / owner["entrypoint"]
+    index = repo / mapping["skill_root"] / "skill-index.json"
+    registration = {"schema_version": 1, "skills": {
+        skill: {"path": path.parent.relative_to(index.parent).as_posix(), "backend": "common"}}}
+    body = f"---\nname: {skill}\ndescription: Fixed-workload audit fixture\n---\n"
+    if mode == "update":
+        path.parent.mkdir(parents=True)
+        path.write_text(body + "Old audit guidance\n", encoding="utf-8")
+        write_json(index, registration)
+        git(repo, "add", mapping["skill_root"])
+    git(repo, "add", "seed.txt")
+    git(repo, "commit", "--quiet", "-m", "Fixture acceptance baseline")
+    before = git(repo, "rev-parse", "HEAD")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(body + "Audit every request and retain late outliers\n", encoding="utf-8")
+    write_json(index, registration)
+    git(repo, "add", mapping["skill_root"])
+    git(repo, "commit", "--quiet", "-m", "Fixture acceptance candidate")
+    head = git(repo, "rev-parse", "HEAD")
+    plan = integration.prepare(repo, integration.MAPPING,
+        {"repository": "example/fixture", "pr": 7, "base": before,
+         "head": head, "version": head}, tmp_path / "planned")
+    assert len(plan["comparisons"]) == 1 and plan["estimated_calls"] == 2
+    selected = plan["comparisons"][0]
+    assert selected["skill"] == skill and selected["mode"] == mode
+    assert selected["cases"] == [{"id": "audit-threshold", "split": "holdout"}]
+    assert selected["exam"]["grader"] == sha256(ROOT / "tools/skill_eval_verifier.py")
+    assert {"status": "A" if mode == "addition" else "M",
+        "path": path.relative_to(repo).as_posix(), "coverage": "covered"} in plan["coverage"]
+    assert [change for change in plan["coverage"] if change["coverage"] != "covered"] == (
+        [{"status": "A", "path": index.relative_to(repo).as_posix(), "coverage": "uncovered"}]
+        if mode == "addition" else [])
+    assert plan["model"] == {"name": "gpt-6.1-sol", "effort": "xhigh"}
+    assert integration.budget(plan)["comparisons"] == 1
+    assert not (tmp_path / "planned/execution-claim.json").exists()
+
+
 def test_deleted_and_unmapped_skill_changes_are_visible_not_passed(tmp_path):
     repo, mapping, identity = setup(tmp_path)
     git(repo, "rm", "library/selected/resource.txt")

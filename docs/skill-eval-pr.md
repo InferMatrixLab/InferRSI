@@ -26,8 +26,12 @@ Unmapped paths remain `uncovered`. Deletions and unsupported snapshot modes are
 explicitly `unsupported`; they cannot count as passes. Rename detection is off:
 a rename is a deletion plus an addition and retains the deletion gap.
 
-The initial mapping covers only `inference-benchmark-design` and the existing
-`audit-threshold` holdout case. Library navigation/index changes are uncovered;
+The initial mapping associates `inference-benchmark-design` and the prospective
+`audit-fixed-workload-claim` addition with the existing `audit-threshold` holdout
+case. The latter reserves the path for the bounded fixed-workload audit skill
+proposed for real addition acceptance; it does not add that skill or authorize
+execution. Until a PR adds that path, it selects no comparison. Library
+navigation/index changes are uncovered;
 coverage of one skill is not library-wide qualification. Changes to the mapping,
 cases, workflow or comparison implementation also trigger planning.
 
