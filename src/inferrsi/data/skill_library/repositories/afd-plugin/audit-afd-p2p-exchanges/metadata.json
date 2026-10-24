@@ -1,0 +1,60 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "Apache-2.0",
+  "tags": [
+    "afd-plugin",
+    "cuda",
+    "p2p",
+    "rank-mapping",
+    "hidden-states",
+    "ownership"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/vllm-project/afd-plugin",
+      "commit": "df8d6a0c403c3ca1b4ed9cf1687e7204908bebec",
+      "paths": [
+        "README.md",
+        "LICENSE",
+        "afd_plugin/config.py",
+        "afd_plugin/distributed/topology.py",
+        "afd_plugin/connectors/factory.py",
+        "afd_plugin/connectors/metadata.py",
+        "afd_plugin/connectors/gpu/p2p.py",
+        "afd_plugin/v1/worker/attention_metadata.py",
+        "afd_plugin/v1/worker/attention_model_runner_v2.py",
+        "afd_plugin/v1/worker/ffn_worker.py",
+        "afd_plugin/v1/worker/ffn_model_runner.py",
+        "afd_plugin/model_executor/models/deepseek_v2.py",
+        "afd_plugin/model_executor/models/forward_context.py",
+        "tests/unit/distributed/test_topology_partition.py"
+      ],
+      "readset": "references/source-notes.md"
+    }
+  ],
+  "applicability": {
+    "scope": "Source-based CUDA P2pNccl rank/payload audit; selected eager dense-FFN path with compute_gate_on_attention=false. Repository identity afd_plugin; runtime/backend compatibility unverified."
+  },
+  "limitations": [
+    "Source-derived candidate; native exchange, model quality, backend compatibility, performance and agent efficacy not_run.",
+    "Selected Python readset is Apache-2.0; the retained MIT notice concerns excluded NPU async CAM implementation and adapted bindings.",
+    "No qualification of graph/DBO, remote-expert MoE, multi-host transport, complete token-count projection or underlying communicator completion semantics."
+  ],
+  "provenance_readsets": [
+    "references/source-notes.md"
+  ],
+  "references": [
+    "../../vllm/audit-vllm-kv-lifetimes/SKILL.md",
+    "../../../methods/inference-benchmark-design/SKILL.md",
+    "../../../methods/dense-performance-evidence/SKILL.md"
+  ],
+  "consumption_mode": "packaged"
+}

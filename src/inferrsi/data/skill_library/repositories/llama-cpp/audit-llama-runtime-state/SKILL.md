@@ -15,6 +15,18 @@ Do not use for weight loading, NUMA/affinity tuning, quantization quality, model
 
 Source: ggml-org/llama.cpp `707616feb5f379e99ff7442680a55b4a1704c7c9`, MIT. Read the bundled [source notes](references/source-notes.md). **CODE** identifies an inspected implementation or public contract; **TEST-SOURCE** identifies assertions inspected but not run. The diagnostic procedure and proposed runtime checks are **HYPOTHESIS** until applied to a concrete case. The older loading/host source `3e390af18de1131dda27913c00511725b4274c8a` is not this runtime snapshot.
 
+## Choose the scope
+
+Select the owner by the state or configuration you need to explain. Loading and host placement retain their own source-scoped procedures.
+
+| Question | Existing owner and readset | Fixed source snapshot | Carried static inspection |
+| --- | --- | --- | --- |
+| Loading modes, mapping/locking and lazy tensors | [weight-loading-optimization §6](../../../methods/weight-loading-optimization/SKILL.md); [loading readset](../../../methods/weight-loading-optimization/references/llama-loading-readset.md) | `3e390af18de1131dda27913c00511725b4274c8a` | 2026-10-22 |
+| NUMA modes and generation/batch thread placement | [os-process-placement](../../../hardware/host/os-process-placement/SKILL.md); [NUMA/thread readset](../../../hardware/host/os-process-placement/references/llama-numa-thread-readset.md) | `3e390af18de1131dda27913c00511725b4274c8a` | 2026-10-22 |
+| Decode progress, graph/input reuse and task/slot cancellation | [This runtime audit](#diagnostic-procedure); [runtime source notes](references/source-notes.md) | `707616feb5f379e99ff7442680a55b4a1704c7c9` | 2026-10-21 |
+
+The dates are carried source inspections, not native results. Apply each owner's prerequisites and readset at its own pinned revision. These snapshots do not establish an intervening version range or cross-backend compatibility.
+
 ## Required inputs
 
 Obtain source/build revision, model architecture/revision, memory type (KV, recurrent or hybrid), backend/device, offload/parallel mode, effective context parameters, logical batch and ubatch sizes, sequence IDs/positions/output flags, and the observed return/status or symptom. For graph cases also obtain graph reuse settings and actual dispatch evidence. For server cases correlate HTTP/reader lifetime, task ID, slot ID, request mode, prompt/cache policy, and queue/slot logs.

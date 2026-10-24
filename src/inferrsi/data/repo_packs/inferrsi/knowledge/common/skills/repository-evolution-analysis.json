@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/6475bae239c6feec0c96957850a2a5c704998d4f/src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
-      "commit": "6475bae239c6feec0c96957850a2a5c704998d4f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
+      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
       "paths": [
         "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json",
@@ -41,7 +41,7 @@
     "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md": "7e20d3390f2501263e5e298e026c47cac16c234f2397833131e15ae5d34c0b97",
     "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json": "bbde3cec2545a2613653ec521053f972235742fb53b630badcffd9a61fa5f19f",
     "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/references/capability-presence-audit.md": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5",
-    "src/inferrsi/data/skill_library/skill-index.json": "ec159efb600a6b02317af4556fb3c28ea299f4258f645f77be831d17891c1e82"
+    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
   },
   "skill_metadata": {
     "name": "repository-evolution-analysis",
