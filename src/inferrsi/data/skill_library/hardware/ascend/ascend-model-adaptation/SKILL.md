@@ -11,6 +11,12 @@ Status: candidate. Source-grounded from vllm-ascend @ bc8115ed,
 `.agents/skills/vllm-ascend-model-adapter/references/`. Unverified locally
 (no NPU). Verify against your CANN version and checkpoint format.
 
+## Choose the versioned owner
+
+This entry retains the historical model-adapter documentation pin `bc8115ed`. Use it for checkpoint onboarding, FP8 loading, KV-head replication and multimodal validation order. For the separately pinned runtime capture/replay contract, follow [ascend-aclgraph-capture-replay](../ascend-aclgraph-capture-replay/SKILL.md). Its wrapper evidence does not revalidate this entry or establish a compatible installed stack.
+
+The [version and responsibility table](../../../README.md#vllm-ascend-version-and-responsibility-routing) preserves each source scope, existing evidence inventory and original inspection-date boundary.
+
 ## Debug order for a new checkpoint
 
 Always follow this sequence. Each step gates the next.
