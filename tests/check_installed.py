@@ -93,6 +93,20 @@ for relative in (
 ):
     assert hopper_prefix + relative in hopper_bundle.content
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
+selection_reader = KnowledgeReader()
+selection = selection_reader.collect(
+    "cpu.stat.local", relevance="cgroupv2", context_bytes=65536, limit=1,
+)
+assert selection["items"][0]["id"] == "inferrsi.common.skills.cgroup_resource_controls"
+assert not selection["context_omissions"]
+selection_context = selection["contexts"][0]
+selection_core = selection_context["resources"][0]
+assert selection_core["path"].endswith("/cgroup-resource-controls/SKILL.md")
+assert selection_core["content"].encode() == selection_reader.resource(
+    selection_context["ref"], selection_core["path"], revision=selection_context["revision"],
+)
+assert selection["context_bytes"] <= 65536
+assert "yaml" not in sys.modules, "Packaged selection must not require the skills extra"
 assert files("inferrsi").joinpath("data", "knowledge_packs", "README.md").is_file()
 for tier, count in (("dependency", 6), ("peer", 5)):
     imported = search_knowledge(tier=tier, limit=100)
