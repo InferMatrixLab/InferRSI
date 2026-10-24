@@ -1,0 +1,57 @@
+{
+  "status": "READ_ONLY_CPU_SOURCE_AUDIT",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "hashes": {
+    "ENGINE_SOURCE/vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py": "5e24179ebf447e83e8a90f58584a48d9a5177e37b48f2c16947e4b9746b3ef3b",
+    "ENGINE_SOURCE/vllm_omni/model_executor/stage_input_processors/qwen3_omni.py": "f6e077a30999cfc87b8cb4af334d58c2dff205c52f934608aa912c1dabc60832",
+    "OVERLAY_SOURCE/transformers/models/qwen3_omni_moe/modeling_qwen3_omni_moe.py": "cf7279ec616bcc18a476998a34f3c85480ba3387429ee212ac63b5621baaeb3b",
+    "OVERLAY_SOURCE/transformers/models/qwen3_omni_moe/configuration_qwen3_omni_moe.py": "9da9c3daff49a5a0712669d9100788ee46d7cc32729667d30d2208c8d07fa143",
+    "ENGINE_SOURCE/vllm_omni/deploy/qwen3_omni_moe.yaml": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+  },
+  "finding": "Persistent codec KV/conv state across moving-left-boundary windows changes the baseline context semantics; cannot label it a bitwise-equivalent cache optimization. Code2Wav layers are constructed once, but forward recomputes their activations on each independent window.",
+  "evidence": [
+    {
+      "file": "ENGINE_SOURCE/vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py",
+      "lines": "360-379",
+      "fact": "forward embeds all supplied codes then invokes pre_transformer(inputs_embeds=hidden), without past_key_values/explicit position_ids; only last_hidden_state consumed. No cross-call returned cache retained."
+    },
+    {
+      "file": "OVERLAY_SOURCE/transformers/models/qwen3_omni_moe/modeling_qwen3_omni_moe.py",
+      "lines": "3558-3619",
+      "fact": "Transformer supports optional past_key_values/use_cache; positions start at past_seen_tokens or zero; causal/sliding masks constructed per call. Each independent baseline window resets position origin and cannot attend missing history."
+    },
+    {
+      "file": "OVERLAY_SOURCE/transformers/models/qwen3_omni_moe/configuration_qwen3_omni_moe.py",
+      "lines": "535-563",
+      "fact": "Codec config has8 layers/sliding_window72; layer_types property makes all8 sliding attention. Checkpoint confirms8/72."
+    },
+    {
+      "file": "ENGINE_SOURCE/vllm_omni/model_executor/stage_input_processors/qwen3_omni.py",
+      "lines": "862-899,911-931",
+      "fact": "ramp explicitly stateless; chunk carries new frames plus min(previous available,25) left context. Non-ramp initial chunk special case shares origin for early chunks then steady window shifts."
+    },
+    {
+      "file": "OVERLAY_SOURCE/transformers/models/qwen3_omni_moe/modeling_qwen3_omni_moe.py",
+      "lines": "3289-3309",
+      "fact": "Conv1d pads left zeros and length-derived extra right padding every call; ConvTranspose1d trims both edges and returns contiguous output."
+    },
+    {
+      "file": "ENGINE_SOURCE/vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py",
+      "lines": "529-543",
+      "fact": "Streaming crop infers tail from decoded window and refills previous chunk tail with re-decoded left context. Persistent decoder must reproduce this output boundary contract, not concatenate append-only new samples blindly."
+    }
+  ],
+  "cases": {
+    "steady_25_plus25": "Input window length50 < attention72, so all earlier positions in that window are potentially visible. Next chunk shifts left boundary25. Retaining older KV makes up to72 prior positions visible, exceeding baseline missing context. Merely evicting KV to25 does not repair deeper-layer K/V: overlapping tokens carry activations computed using an older left prefix that baseline resets. Position origin changes too; RoPE relative-position invariance alone does not prove finite-precision equality or repair hidden states.",
+    "same_origin_ramp": "While cumulative prefix still shares left origin, causal Transformer prefix states can mathematically be reused with matching position IDs and exact input prefix. This is only a candidate: incremental vs full tensor shapes may change BF16 arithmetic, padding/masks/backend and cache defaults must match. Conv state requires layer-level receptive field and boundary handling; delayed right-edge samples/crop must be maintained. At first boundary shift invalidate all context-dependent states and rebuild baseline window.",
+    "padding": "Bucket-padding zeros are not valid generated code history; state ownership must track logical length and request identity, not padded width or batch slot. No cache sharing across requests, segment restart, abort or reused slot."
+  },
+  "minimal_testable_plan": [
+    "Start transformer-only private probe, real frozen codec weights, no engine patch. Fixed prefix windows with same left origin: recompute whole windows versus incremental cache, compare everylayer K/V+hidden and final pretransformer outputs with exact equality report and numeric error, no arbitrary speech PASS.",
+    "Mandatory counterexample phase: baseline independent windows [0:50] then[25:75]; compare naive persistent72, naive evicted25 and reset/recomputed reference. Record earliest differing layer/positions; never discard the boundary case or call changed-context output an optimization-equivalent result.",
+    "If attempting safe same-origin cache, keep explicit window_start/absolute_end/logical_length/request-generation epoch. Permit reuse only if same origin and exact prior code prefix; invalidate upon left boundary movement, segment reset or ownership mismatch. Initially recompute convolution stack fully to avoid mixing transformer and conv semantics.",
+    "Then independently audit conv receptive fields and precise emitted sample intervals; baseline whole-window crop is oracle, including first frame, ramp, steady, partial finish and right-tail refill. Compare native eager PCM lengths/values, nonfinite/range, then graphs/storage-lifetime. Actual quality test required for any nonidentical output.",
+    "CPU-only tiny causal two-layer counterexample can demonstrate that retained higher-layer KV remains contaminated after eviction; real GPU parity/quality experiment requires parent authorization. No GPU executed for this audit."
+  ],
+  "priority": "Safe lower-risk first experiment is same-origin transformer-only cache with reset on window shift; expected opportunity limited to ramp. Steady-state persistent cache is a new streaming codec behavior requiring explicit quality evaluation, not an equivalent removal of duplicate work."
+}

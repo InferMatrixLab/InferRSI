@@ -1,0 +1,80 @@
+{
+  "status": "INCONCLUSIVE",
+  "artifacts": [
+    {
+      "file": "reports/cudnn-quality-variation-v6.json",
+      "original_sha256": "01674855c2d05992bf6f00a14f46ecff0a51e23c6836cd7bad8244b95cb3e03d",
+      "original_bytes": 53965,
+      "retained_sha256": "01674855c2d05992bf6f00a14f46ecff0a51e23c6836cd7bad8244b95cb3e03d",
+      "retained_bytes": 53965,
+      "representation": "sanitized private review payload"
+    },
+    {
+      "file": "reports/rvq-position-aware-paper-ledger-v6.json",
+      "original_sha256": "042674fe0b0fbf6085b1357b3c5da8a1560c23c06daaba5594e43a8fd75dfa93",
+      "original_bytes": 5077,
+      "retained_sha256": "e9022ae7345bc6ad6c096c28c4c32b0e2cd20de6abc584cca3616d52e4f70668",
+      "retained_bytes": 5084,
+      "representation": "sanitized private review payload"
+    },
+    {
+      "file": "reports/rvq-logit-bias-folding-hypothesis-v6.json",
+      "original_sha256": "da1223111a9b4aed65a72638acddcfa3f065923080d08e0f01b291825c2ae752",
+      "original_bytes": 3935,
+      "retained_sha256": "3c357ce732407edd83f0ffcdbfac75230d620a6de5583216ad2f8ddfaf867ed2",
+      "retained_bytes": 3909,
+      "representation": "sanitized private review payload"
+    },
+    {
+      "file": "reports/codec-state-cache-semantics-v6.json",
+      "original_sha256": "1123eef11f89aab3d253d9d3470c3b4170858d2295fb292bcc30fea6dab37a70",
+      "original_bytes": 6787,
+      "retained_sha256": "364a881e48f3cfa36e037b0003539f4d85d3260652943bbc34a68158edecc26a",
+      "retained_bytes": 6456,
+      "representation": "sanitized private review payload"
+    },
+    {
+      "file": "sources/audit-cudnn-quality-variation-v6.py",
+      "original_sha256": "184eaa6cf4d639798bcef01a191057b9c088ffb2c4a674959f6f9c8ebb0cfe7a",
+      "original_bytes": 4871,
+      "retained_sha256": "0206692f1ad3d061f85a3a883d102861bdd640e2e0c8c3ef6f183365c256c4c2",
+      "retained_bytes": 4845,
+      "representation": "sanitized private review payload"
+    },
+    {
+      "file": "provenance/source-hashes.json",
+      "retained_sha256": "66de550e7416612918216681867514db54ee20cd45b27fd5f24ee89500420051",
+      "retained_bytes": 1728,
+      "representation": "new derived multi-source index",
+      "derived_from": [
+        {
+          "artifact": "cudnn-quality-variation-v6-private.json",
+          "original_sha256": "01674855c2d05992bf6f00a14f46ecff0a51e23c6836cd7bad8244b95cb3e03d"
+        },
+        {
+          "artifact": "rvq-position-aware-paper-ledger-v6-private.json",
+          "original_sha256": "042674fe0b0fbf6085b1357b3c5da8a1560c23c06daaba5594e43a8fd75dfa93"
+        },
+        {
+          "artifact": "rvq-logit-bias-folding-hypothesis-v6-private.json",
+          "original_sha256": "da1223111a9b4aed65a72638acddcfa3f065923080d08e0f01b291825c2ae752"
+        },
+        {
+          "artifact": "codec-state-cache-semantics-v6-private.json",
+          "original_sha256": "1123eef11f89aab3d253d9d3470c3b4170858d2295fb292bcc30fea6dab37a70"
+        }
+      ]
+    },
+    {
+      "file": "README.md",
+      "retained_sha256": "65a1a8d0aae896103e5970525f71202b86d4118073d8a388aa08c8b987a8bbcd",
+      "retained_bytes": 1869,
+      "representation": "new repository README based on reviewed notes"
+    }
+  ],
+  "exporter_sha256": "04ceabfda851f39dd9377c754b799ea2633d3c3400253c06962eece44f8a386b",
+  "privacy": "No raw text/audio/hidden/code payloads; anonymous row indices only",
+  "source_labels": "ENGINE_SOURCE/OVERLAY_SOURCE are logical, not executable paths",
+  "superseded_manifest_sha256": "ecabd81d761a00abc1585e71137c0671c1d9599c7fac3a65c664854418ca12bb",
+  "reviewed_private_manifest_sha256": "1ca179e163ccc5bd8722c9a126fcc8c6911af8c784d8d50bf84c25fb21244007"
+}

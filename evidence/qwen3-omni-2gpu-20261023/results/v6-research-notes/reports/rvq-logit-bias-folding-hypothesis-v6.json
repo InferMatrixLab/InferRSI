@@ -1,0 +1,48 @@
+{
+  "status": "LOCAL_HYPOTHESIS_ONLY_NO_TRAINING_GPU_OR_ENGINE_CHANGE",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "file": "ENGINE_SOURCE/vllm_omni/model_executor/models/common/qwen3_code_predictor.py",
+  "file_sha256": "01ea34b4cd0bebea24ecb13785e8688b0c8d9c150332e74da7199cd4e2a16fa1",
+  "source_findings": {
+    "head": "Lines759-761:15 nn.Linear(1024,2048,bias=False) heads for16code groups. Each head2,097,152 weights;15heads31,457,280 weights=60MiB BF16.",
+    "normalization": "Base forward lines499-523 applies final RMSNorm then casts to input dtype; head consumes returned state (line1325). Local proposal offset must be added AFTER this final norm to admit linear folding. W*Norm(h+b) cannot be folded into Wh+constant.",
+    "projection": "Lines764-768 optional small_to_mtp_projection is input projection; Omni wrapper disables projection. It is not an intervening postnorm nonlinear transform."
+  },
+  "hypothesis": "For postnorm hidden h and frozen future head W_d, real arithmetic gives W_d(h+b_j)=W_d h+c_dj where c_dj=W_d b_j. Precompute c once for each valid future-head/lookahead pair. Runtime still evaluates W_d h and then adds fixed logit bias before native top-k/top-p filtering.",
+  "dimensions": {
+    "learned_biases": [
+      3,
+      1024
+    ],
+    "learned_parameters": 3072,
+    "learned_BF16_bytes": 6144,
+    "dense_logit_bias_cache": [
+      15,
+      3,
+      2048
+    ],
+    "dense_BF16_bytes": 184320,
+    "dense_FP32_bytes": 368640,
+    "valid_pairs_in_current_sampler": "For current verified residual depth k>=1 and future d=k+j<=15:14+13+12=39 pairs; initial coarse-seed semantics could change indexing and must be separately specified.",
+    "valid_logit_bias_cache": [
+      39,
+      2048
+    ],
+    "valid_BF16_bytes": 159744,
+    "valid_FP32_bytes": 319488
+  },
+  "compute_caveat": [
+    "Does NOT remove any future-head W*h GEMM, target verification forward, acceptance correction or history synchronization. Precomputation removes only a naive extra runtime W*b computation.",
+    "Direct W(h+b) already uses just ONE head GEMM. Compared with that implementation, folded form exchanges a1024-element hidden addition for a2048-element logit addition and extra cache traffic; speedup is not implied and it may be slower. If unshifted same-head logits already exist, reuse may help, but must prove same hidden/head provenance."
+  ],
+  "numerical_contract": [
+    "BF16 round(h+b) before GEMM differs from round(Wh+precomputed Wb); FP32 precompute/cast choices also alter q. Never claim bitwise equivalence from distributivity.",
+    "Keep verifier p unchanged and use the ACTUAL folded implementation q after native stored top_k50/top_p.8 filtering and explicit FP64 normalization for proposal sampling, acceptance p/q and positive residual. Do not sample folded q while accepting against unfurled q.",
+    "Offset must never enter verifier stream. Changed proposal distribution alone is compatible with rejection sampling mathematics; finite-precision residual/ties/zero-support remain independently tested, not covered by algebra alone."
+  ],
+  "heldout_requirements": [
+    "Freeze fresh training/validation/calibration/evaluation splits before learning b or choosing folded-vs-direct runtime, dtype, tree topology or budget. Do not use existing256benchmark or64capturedrows for such choices.",
+    "Fit biases using intended postnorm hidden representation. Test actual runtime folded q on independent held-out free-running states; direct-bias training can be a different finite-precision objective. If tuning quantization-aware/folded objective, declare it and retain untouched held-out set.",
+    "First compare target-logit invariance, actual proposal distribution, acceptance/residual oracle and speech quality. Only then measure head cost and fullpipeline C1/C64 with frozen recipe. No acceptance-rate or speed claim is made now."
+  ]
+}

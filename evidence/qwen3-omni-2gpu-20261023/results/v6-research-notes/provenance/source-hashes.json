@@ -1,0 +1,37 @@
+{
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "sources": [
+    {
+      "logical_source": "ENGINE_SOURCE/vllm_omni/benchmarks/data_modules/seed_tts_eval.py",
+      "sha256": "3a98760ff30d521db0774e15f751a37194f70ff4c6af4a338fa3e1ea54b97681"
+    },
+    {
+      "logical_source": "ENGINE_SOURCE/vllm_omni/model_executor/models/common/qwen3_code_predictor.py",
+      "sha256": "01ea34b4cd0bebea24ecb13785e8688b0c8d9c150332e74da7199cd4e2a16fa1"
+    },
+    {
+      "logical_source": "ENGINE_SOURCE/vllm_omni/model_executor/models/qwen3_omni/qwen3_omni_code2wav.py",
+      "sha256": "5e24179ebf447e83e8a90f58584a48d9a5177e37b48f2c16947e4b9746b3ef3b"
+    },
+    {
+      "logical_source": "ENGINE_SOURCE/vllm_omni/model_executor/stage_input_processors/qwen3_omni.py",
+      "sha256": "f6e077a30999cfc87b8cb4af334d58c2dff205c52f934608aa912c1dabc60832"
+    },
+    {
+      "logical_source": "OVERLAY_SOURCE/transformers/models/qwen3_omni_moe/modeling_qwen3_omni_moe.py",
+      "sha256": "cf7279ec616bcc18a476998a34f3c85480ba3387429ee212ac63b5621baaeb3b"
+    },
+    {
+      "logical_source": "OVERLAY_SOURCE/transformers/models/qwen3_omni_moe/configuration_qwen3_omni_moe.py",
+      "sha256": "9da9c3daff49a5a0712669d9100788ee46d7cc32729667d30d2208c8d07fa143"
+    },
+    {
+      "logical_source": "ENGINE_SOURCE/vllm_omni/deploy/qwen3_omni_moe.yaml",
+      "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+    },
+    {
+      "logical_source": "https://raw.githubusercontent.com/argmaxinc/argmax-oss-swift/9f99b5cb6a907730543823ad271b82532782a899/Sources/TTSKit/Qwen3TTS/Qwen3MultiCodeDecoder.swift",
+      "sha256": "1fe2c476193325e8b6f53c75d73170421f26cf72126b30a89948945500be4076"
+    }
+  ]
+}
