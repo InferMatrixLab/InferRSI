@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/672b4b5dbdf35eed1a5a2250e95814c51133fb90/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "672b4b5dbdf35eed1a5a2250e95814c51133fb90",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2770fd94ecee89574d1adf0568e78a19387bb48e/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "2770fd94ecee89574d1adf0568e78a19387bb48e",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
@@ -35,7 +35,7 @@
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "5ef3c454c846ac55e7fb3baa3c059c70bcfd3d0a156c894c85df1cbc968e5859"
+      "content_sha256": "94197ceea1301d4138e9d712ef409f027ea71139fd357a5c8b6c077534063213"
     }
   ],
   "index_type": "packaged-skill",
@@ -44,7 +44,7 @@
   },
   "checkout_ref": "checkout:weight-loading-optimization",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "5ef3c454c846ac55e7fb3baa3c059c70bcfd3d0a156c894c85df1cbc968e5859",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "94197ceea1301d4138e9d712ef409f027ea71139fd357a5c8b6c077534063213",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "71cd6227a8d8c2ecbd9a9853162b096df7cd940a7818137ac123b660dd57e718",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",

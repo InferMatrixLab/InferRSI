@@ -100,7 +100,15 @@ MiniCPM's SGLang baseline returns a complete waveform, so its TTFA equals end-to
 
 ## 🚀 Quickstart
 
-Requires **Python 3.10+**. From this checkout:
+Requires **Python 3.10+**. Licensed under [Apache-2.0](LICENSE).
+
+**v0.1.0 is a planned Developer Preview (pre-release).** The `v0.1.0` tag is not published yet, this preview is not on PyPI, and there is no API stability promise. After the v0.1.0 tag is published, install that pre-release with:
+
+```bash
+pip install "git+https://github.com/InferMatrixLab/InferRSI.git@v0.1.0"
+```
+
+From this checkout:
 
 ```bash
 python -m venv .venv
