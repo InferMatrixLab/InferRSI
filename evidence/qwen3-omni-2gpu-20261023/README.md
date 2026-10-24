@@ -4,6 +4,8 @@ Acceptance: [#112](https://github.com/InferMatrixLab/InferRSI/issues/112).
 
 Status: **INCONCLUSIVE**. Protocol-v5 execution has ended: the first pair was execution-eligible but failed the quality and RTF targets; both attempts of the second pair had measured-interval JIT in the baseline. The frozen retry limit stopped the campaign before pair three. No qualified optimization or target attainment is claimed.
 
+The separate [v6 diagnostic record](results/iteration-v6/README.md) isolates adapter quality and retains real-weight predictor/codec diagnostics, native MoE tile screening, and conditional hardware bounds. One adapter-only quality pilot had baseline/candidate WER 0.041917/0.040875; this does not qualify the MRv2 bundle against V1 or complete repeated quality/performance acceptance. Predictor component timing is uncompiled and uses synthetic inputs; the conditional bounds omit positive service costs. These findings guide further search and do not change the frozen v5 verdict.
+
 The frozen protocol records the full Thinker → Talker → Code2Wav pipeline, metric definitions, source provenance and quality gates. The hardware scope is exactly two L20X GPUs. Audio-input quality needs separate qualification; text readback alone does not establish conversational quality.
 
 See [the actual baseline run manifest](results/baseline-v3-run-manifest.json) for source revisions, deployment, runtime, workload, raw results and limitations. Each performance point contains 256 requests after five warmups. Throughput counts 24 kHz PCM sample frames, not codec tokens.

@@ -1,0 +1,16 @@
+{
+  "status": "REVIEW_READY_NOT_PUBLISHED",
+  "all_retained_hashes_valid": true,
+  "absent_inputs": 0,
+  "raw_rows_exact_counts": [
+    256,
+    256
+  ],
+  "audio_hash_counts": [
+    256,
+    256
+  ],
+  "known_private_path_pid_uuid_scan_hits": [],
+  "scope": "Targeted scan plus independent full-bundle review completed; total_files includes this validation record",
+  "total_files": 36
+}

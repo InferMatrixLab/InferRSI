@@ -1,0 +1,45 @@
+{
+  "scope": "Exact mean decomposition of first eligible pair; counterfactual holds observed TTFA/durations fixed, not hardware bound",
+  "rows": [
+    {
+      "arm": "baseline",
+      "concurrency": 1,
+      "rtf": 0.11766485218943501,
+      "first_audio_rtf_contribution": 0.03971738212447259,
+      "remaining_audio_rtf_contribution": 0.07794747006496242,
+      "target": 0.06,
+      "remaining_budget_if_ttfa_fixed": 0.02028261787552741,
+      "required_remaining_time_speedup_if_ttfa_fixed": 3.843067524287002
+    },
+    {
+      "arm": "baseline",
+      "concurrency": 64,
+      "rtf": 0.7001357529957709,
+      "first_audio_rtf_contribution": 0.23682448888484137,
+      "remaining_audio_rtf_contribution": 0.46331126411092954,
+      "target": 0.3,
+      "remaining_budget_if_ttfa_fixed": 0.06317551111515862,
+      "required_remaining_time_speedup_if_ttfa_fixed": 7.333716117727784
+    },
+    {
+      "arm": "candidate",
+      "concurrency": 1,
+      "rtf": 0.10913818739995922,
+      "first_audio_rtf_contribution": 0.025441580884599777,
+      "remaining_audio_rtf_contribution": 0.08369660651535944,
+      "target": 0.06,
+      "remaining_budget_if_ttfa_fixed": 0.034558419115400224,
+      "required_remaining_time_speedup_if_ttfa_fixed": 2.4218875937545947
+    },
+    {
+      "arm": "candidate",
+      "concurrency": 64,
+      "rtf": 0.5864943472950613,
+      "first_audio_rtf_contribution": 0.09558606844632289,
+      "remaining_audio_rtf_contribution": 0.49090827884873844,
+      "target": 0.3,
+      "remaining_budget_if_ttfa_fixed": 0.2044139315536771,
+      "required_remaining_time_speedup_if_ttfa_fixed": 2.4015402233963234
+    }
+  ]
+}
