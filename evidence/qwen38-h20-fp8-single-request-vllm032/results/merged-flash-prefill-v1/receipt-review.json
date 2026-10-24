@@ -1,0 +1,38 @@
+{
+  "job_id": 2175,
+  "scheduler_state": "COMPLETED",
+  "scheduler_exit": "0:0",
+  "duration_seconds": 278,
+  "allocated_gpu_seconds": 278,
+  "archive_sha256": "a64663a8b0867d41150dd53dcb34fa5f303c02bd0791aa2074d4866c1f274f4e",
+  "component_files_verified": 16,
+  "source_files_verified": 60,
+  "pre_post_model_runtime_equal": true,
+  "pre_post_overlay_equal": true,
+  "postflight_status_all_zero": true,
+  "audit_exit": 0,
+  "fresh_audit_equals_original": true,
+  "fresh_audit_sha256": "c672817356064e27f95b513b7e991572f7b407da1eae42d0c7d8880fc6107184",
+  "operators_complete": true,
+  "operator_lengths": [
+    129,
+    8192
+  ],
+  "synthetic_graph_replays_exact": 6,
+  "synthetic_boundary_decode_steps_exact": 2,
+  "graph_complete": true,
+  "graph_predictions_exact": 16,
+  "graph_replays": 15,
+  "graph_final_state_exact": true,
+  "capacity": 10240,
+  "native_rounding_observation": {
+    "max_abs": 0.015625,
+    "nrmse": 0.002592581557109952,
+    "acceptance_tolerance": null
+  },
+  "measurement_token_ids_equal": false,
+  "scope": "single-case engineering comparison only; not formal statistics or quality acceptance",
+  "verdict": "INCONCLUSIVE",
+  "warnings": {},
+  "attention_mode_evidence": "Launch options plus bound constructor; no attention counter."
+}

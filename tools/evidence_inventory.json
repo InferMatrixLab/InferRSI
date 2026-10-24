@@ -2,6 +2,15 @@
   "version": 1,
   "bundles": {
     "_template": {"kind": "template", "manifests": []},
+    "qwen38-h20-fp8-single-request-vllm032": {
+      "kind": "campaign", "manifests": [
+        {"path": "plan/retrieval-integrity.json", "schema": "bundle-sha256"},
+        {"path": "plan/search-8k-v1-integrity.json", "schema": "bundle-sha256"},
+        {"path": "results/search-observations-2163-2175-integrity.json", "schema": "bundle-sha256"},
+        {"path": "results/diagnostics/sandbox-offline-prefetch-integrity.json", "schema": "bundle-sha256"}
+      ],
+      "external": ["Owner-approved 8K search protocol activated prospectively in Issue67; campaign remains INCONCLUSIVE. Private source wrappers, operational logs, model outputs and runtime identities remain in controlled task storage."]
+    },
     "drama3-b300-scale150": {
       "kind": "campaign",
       "manifests": [{"path": "plan/freeze.json", "schema": "bundle-sha256"}],

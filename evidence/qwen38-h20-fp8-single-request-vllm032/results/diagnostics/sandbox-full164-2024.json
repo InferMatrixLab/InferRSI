@@ -1,0 +1,247 @@
+{
+  "job": 2024,
+  "scheduler_state": "FAILED",
+  "scheduler_exit": "2:0",
+  "allocated_seconds": 228,
+  "allocated_cpus": 4,
+  "allocated_gpus": 0,
+  "allocation_released": true,
+  "source_manifest_sha256": "943c3f46efac0255255a690f1302a30534bd1dcc5b22ead3915b963aeb48599d",
+  "source_sha256": {
+    "runtime.py": "997cbfed8398e8ad62d1beb4f6b4bc6e61a0f4572b9156cfd0c6f3fb52b03233",
+    "bounds_driver.py": "bfeeb6ea794c0ebf24e72a0127458ff74951253471daee080b3a3b1d82a062ba",
+    "synthetic_probe.py": "236920f27573447b9f3833afb72739033c965e22a9e406b09f28da815529ca64",
+    "contract.py": "080788af20e7132e7602570ec6eba620439e000a934cc6c15adcac19e31c0c12",
+    "inner.py": "dd69193feb2b824b5bdc4d037ec63ede64c9fe809faaf78f974542b23935a19f",
+    "executor.py": "05e59d9928f06c47c235bc5e878c97d9c49260631ae020fd1b6baf851ea2d5b3",
+    "data_binding.py": "3527f2fe807c1399df245d5a17b84bef0bdd16f21edcc7cf69b00ac895b3b902",
+    "data-lock.json": "b5949144fd33dafd78a1ed89d23ba1e8ce1bc41775b2765d5fe5991930aae74f",
+    "exercise.py": "ad0bb37a1898afee20acf1e828e62f32828cc5841cab43f884353d01738e0f8f",
+    "test_binding.py": "415bf4636f9b717ed22a589fe6a08d88370aca6998f23ac5fb66251797f7d9e6",
+    "policy.json": "0445dc9a7c281911da4701d4e6ecdd59f083a306aca6509fbb1817cd220af46a",
+    "run-executor.sbatch": "078961e8190a9903b07e70af96f469f2429884fe9a882fdcdb559e90771b4391"
+  },
+  "summary": {
+    "capacity": {
+      "all_failure_details_sha256": "95db8433152b97d1f65475431c6611104c232993d97c6f6131d57562c3b63736",
+      "all_failure_details_with_empty_solutions_bytes": 7491894,
+      "dataset_bytes": 7714666,
+      "metadata_slack_bytes": 4096,
+      "official_json_dump_defaults_preserved": true,
+      "reference_or_model_code_executed": false,
+      "result_upper_bound_bytes": 410149174,
+      "samples_file_byte_cap": 67108864,
+      "solution_serialization_bound_bytes": 402653184,
+      "task_count": 164
+    },
+    "checks": {
+      "all_164_base_and_plus_pass": false,
+      "batch_timeout_rejected_without_score": true,
+      "cache_and_worst_result_fit_work": true,
+      "full_failure_result_capacity": true,
+      "full_reference_execution_completed": true,
+      "not_qualified": true,
+      "observed_actual_resource_limits": true,
+      "old_output_rejected": true,
+      "preexisting_cache_rejected_without_score": true,
+      "runtime_stable": true,
+      "runtime_stable_after_controls": true,
+      "wrong_export_rejected_without_score": true,
+      "wrong_policy_rejected_without_score": true
+    },
+    "formal_worst_case_wall_qualified": false,
+    "model_generated_code_executed": false,
+    "negative_controls": [
+      {
+        "cleanup_complete": true,
+        "name": "wrong_policy",
+        "passed": true,
+        "timed_out": false
+      },
+      {
+        "cleanup_complete": true,
+        "name": "wrong_export",
+        "passed": true,
+        "timed_out": false
+      },
+      {
+        "cleanup_complete": true,
+        "name": "preexisting_cache",
+        "passed": true,
+        "timed_out": false
+      },
+      {
+        "cleanup_complete": true,
+        "name": "batch_timeout",
+        "passed": true,
+        "timed_out": true
+      }
+    ],
+    "observations": {
+      "cache_file_bytes": 254640043,
+      "coordinator_maxrss_kib": 981092,
+      "evaluator_seconds": 42.97722281899769,
+      "groundtruth_seconds": 16.893428092007525,
+      "groundtruth_wrapper_preserves_arguments_return_and_exceptions": true,
+      "limits": {
+        "AS": [
+          4294967296,
+          4294967296
+        ],
+        "CPU": [
+          3600,
+          3600
+        ],
+        "FSIZE": [
+          536870912,
+          536870912
+        ],
+        "NOFILE": [
+          64,
+          64
+        ],
+        "NPROC": [
+          16,
+          16
+        ]
+      },
+      "result_bytes": 133005,
+      "scope": "full164-canonical-resource-pilot",
+      "work_allocated_bytes": 254775296,
+      "work_capacity_bytes": 1073741824,
+      "work_file_bytes": 254773048
+    },
+    "observed_identity": {
+      "driver_sha256": "05e59d9928f06c47c235bc5e878c97d9c49260631ae020fd1b6baf851ea2d5b3",
+      "evaluator_revision": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+      "executor_sha256": "dd69193feb2b824b5bdc4d037ec63ede64c9fe809faaf78f974542b23935a19f",
+      "policy_sha256": "0445dc9a7c281911da4701d4e6ecdd59f083a306aca6509fbb1817cd220af46a",
+      "runtime_digest": "sha256:31f36d9c5586cf386a53af8f5666b7750035a79974a6a072d305d35b581c401d",
+      "runtime_kind": "readonly-bind-set-v1",
+      "sandbox_binary_sha256": "04683adbb7f45376ba56d6936a02203535ff9451b1592299ac4ba69838c33627",
+      "schema_version": 1
+    },
+    "passed": false,
+    "qualified": false,
+    "result_sha256": "3bf8b13d46c1d86838f539e3bf647e61270f40bac4404cd5642e6218c629eb35",
+    "scope": "full164-canonical-resource-pilot",
+    "task_count": 164,
+    "trusted_canonical_reference_evaluation_completed": true,
+    "verdict": "INCONCLUSIVE"
+  },
+  "rootfs_digest": "sha256:31f36d9c5586cf386a53af8f5666b7750035a79974a6a072d305d35b581c401d",
+  "readonly_entry_count": 25250,
+  "package_count": 97,
+  "source_checks": 43,
+  "postflight_passed": 12,
+  "reports": [
+    {
+      "passed": true,
+      "timed_out": false,
+      "elapsed_seconds": 60.6377278220607,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": 0,
+      "cleanup_complete": true,
+      "outputs_stable": true,
+      "forced_cleanup": false,
+      "stdout_sha256": "3bf8b13d46c1d86838f539e3bf647e61270f40bac4404cd5642e6218c629eb35",
+      "stderr_sha256": "0dc781b884cef691b73829177940ce201a42ab6a0817bfe5c3ecbe0950c9b8de",
+      "status_sha256": "dde7e55a7c6d8ec02e53a0194c11daa54c1ed134f51618c0bb642dee7e42bbd0",
+      "name": "normal",
+      "error_type": null,
+      "cleanup_error_count": 0
+    },
+    {
+      "passed": false,
+      "timed_out": false,
+      "elapsed_seconds": 0.11344008694868535,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": 1,
+      "cleanup_complete": true,
+      "outputs_stable": true,
+      "forced_cleanup": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "4d17beda34bf061f7c4d83041eb0bdc54b1e64243da26f4d6c463ef30b32f9cd",
+      "status_sha256": "c143d06430b565576381c64b8bb77d8e90552e418a7b469be174db42b98b75eb",
+      "name": "wrong_policy",
+      "error_type": null,
+      "cleanup_error_count": 0
+    },
+    {
+      "passed": false,
+      "timed_out": false,
+      "elapsed_seconds": 0.11361091304570436,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": 1,
+      "cleanup_complete": true,
+      "outputs_stable": true,
+      "forced_cleanup": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "b1b0834d12bfe4f75633538da13b75fcd2a1020741ae3efce06f15ff307dfbc1",
+      "status_sha256": "9377c512526ba8f5a85845dd802034f2970d940497c288d8ff0d53da95ce0fab",
+      "name": "wrong_export",
+      "error_type": null,
+      "cleanup_error_count": 0
+    },
+    {
+      "passed": false,
+      "timed_out": false,
+      "elapsed_seconds": 0.4139071360696107,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": 1,
+      "cleanup_complete": true,
+      "outputs_stable": true,
+      "forced_cleanup": false,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "971817148d9c53035c0ebe1800abda4ee908d4788478b4821c39131f8f43204c",
+      "status_sha256": "c02d42893d072911da33f9229137a498c3678540e79a45f081361e2b405ad2df",
+      "name": "preexisting_cache",
+      "error_type": null,
+      "cleanup_error_count": 0
+    },
+    {
+      "passed": false,
+      "timed_out": true,
+      "elapsed_seconds": null,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": -9,
+      "cleanup_complete": true,
+      "outputs_stable": true,
+      "forced_cleanup": true,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "3df969ed24948f490ec11adea8475939c24c5964ef12f5834eac38c4ba3cebd4",
+      "status_sha256": "6f2af397fc133a115ce4408c5e3c5df9c53f9156bf8ebee92a17840cd23bc7e6",
+      "name": "batch_timeout",
+      "error_type": "TimeoutExpired",
+      "cleanup_error_count": 0
+    }
+  ],
+  "raw_archive_sha256": "aba42283c40e80efa38af27a354b9fa17cd484f6fc9c57c5ae92f8281c97adcf",
+  "raw_archive_bytes": 50892800,
+  "results_bytes": 133005,
+  "results_sha256": "3bf8b13d46c1d86838f539e3bf647e61270f40bac4404cd5642e6218c629eb35",
+  "input_sha256": {
+    "human-export.json": "f23d638093b3508638959e6859e2f64b9adfb561dad4a8d153931f38056fead9",
+    "humaneval-solutions.jsonl": "d28e69e4fd94358cf28c94678d8e62dfcba779284c4496274bc4c3fbcbd7b1d3",
+    "humaneval-subset.jsonl": "42526ec0e7d5f3ee0b06d6ced98f8c8bae3d76519151bfb3d36f79010645bd7f"
+  },
+  "base_pass_count": 164,
+  "plus_pass_count": 163,
+  "all_reference_pass_control": "FAIL",
+  "failed_status_metadata": [
+    {
+      "task_id": "HumanEval/32",
+      "base_status": "pass",
+      "plus_status": "fail",
+      "plus_failed_inputs": 7
+    }
+  ],
+  "e2e_effect": null,
+  "qualified_generated_code_executor": false,
+  "verdict": "INCONCLUSIVE",
+  "scope": "full164_canonical_resource_pilot",
+  "readiness_gpu_seconds_used": 2388,
+  "readiness_gpu_seconds_cap": 7200,
+  "initial_gpu_seconds_separate": 147,
+  "raw_available_in_repository": false
+}
