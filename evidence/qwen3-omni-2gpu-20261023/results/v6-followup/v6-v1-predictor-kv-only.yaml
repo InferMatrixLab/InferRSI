@@ -1,0 +1,12 @@
+# UNTESTED isolated V1 incremental predictor KV candidate.
+# All stage placement, sampling, chunking, scheduler and memory settings inherited.
+base_config: <PATH_3>
+cuda_mps: false
+connectors:
+  connector_of_shared_memory:
+    extra:
+      code_predictor_kv_cache: true
+      code_predictor_short_kv: false
+      code_predictor_prefix_graphs: false
+      code_predictor_fused_sampling: false
+      codec_cudnn_benchmark: false

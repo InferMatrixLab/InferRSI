@@ -1,0 +1,23 @@
+base_config: <PATH_21>
+stages:
+- stage_id: 0
+  profiler_config:
+    profiler: torch
+    torch_profiler_dir: <PATH_35>
+    torch_profiler_record_shapes: true
+    torch_profiler_with_stack: false
+    torch_profiler_with_flops: false
+- stage_id: 1
+  profiler_config:
+    profiler: torch
+    torch_profiler_dir: <PATH_36>
+    torch_profiler_record_shapes: true
+    torch_profiler_with_stack: false
+    torch_profiler_with_flops: false
+- stage_id: 2
+  profiler_config:
+    profiler: torch
+    torch_profiler_dir: <PATH_37>
+    torch_profiler_record_shapes: true
+    torch_profiler_with_stack: false
+    torch_profiler_with_flops: false

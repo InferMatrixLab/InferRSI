@@ -1,0 +1,21 @@
+{
+  "scope": "New profile executor pins; original quality pins untouched; requires separate root launch approval",
+  "allowed_diff_files": [
+    "tests/worker_v2/test_qwen3_omni_eager_mtp.py",
+    "tests/worker_v2/test_qwen3_omni_eager_mtp_cuda.py",
+    "vllm_omni/model_executor/models/qwen3_omni/qwen3_omni.py",
+    "vllm_omni/worker_v2/model_states/eager_mtp.py"
+  ],
+  "files": {
+    "<PATH_29>": "0222b97ea45be58d54571be8946c959ac08fa128fc88a635bd2566c7058d0e37",
+    "<PATH_5>": "1155821231da0b8fd440ab806a2e64467e96e082ed4a851842323e093d470171",
+    "<PATH_21>": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac",
+    "<PATH_30>": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a",
+    "<PATH_3>": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+    "<PATH_6>": "2503f2f2a94dd7c4125579ba9e6e8ae41026b78a969ff8e6f809d54b7db5e6b3",
+    "<PATH_7>": "cb5c56c7ad45700a7892a95c0e6349768febc27ec6b232f9b9359e7f2a8c6634",
+    "<PATH_4>": "819ed3c7f517abe9d5b9af924893bfb6c15cf6c2a64b103fa8107dc056a26043",
+    "<PATH_31>": "77b16ae0e8ba40523aab5ecc255485352053bd3364b2f32c00d3536fca48454e",
+    "<PATH_32>": "1477727eb0b64863ae288d5eb06a130505dd03c1d7adc2adf38c61160421cf86"
+  }
+}

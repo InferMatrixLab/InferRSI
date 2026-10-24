@@ -1,0 +1,228 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "completed v6 followup; KV quality FAIL; overall INCONCLUSIVE; review only; no promotion",
+  "artifacts": [
+    {
+      "file": "v6-v1-kv-quality-pilot01-comparison.json",
+      "original_sha256": "b2dec7f6b2d1d7c61fe093a488faed84a56db382cb5e9ff83e43d047c81fd06e",
+      "retained_sha256": "b2dec7f6b2d1d7c61fe093a488faed84a56db382cb5e9ff83e43d047c81fd06e",
+      "bytes": 1064,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v1-kv-quality-v6-pins.json",
+      "original_sha256": "0e5f345a68755e43202855ba07d5bb40cca5ed8e1258952a9dabc1ec13c48731",
+      "retained_sha256": "f52e51e1f6a1c24d19113eecbb2d9f813b5b37d9d26f62091450cd3030f7a332",
+      "bytes": 1823,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-predictor-kv-only.yaml",
+      "original_sha256": "999d13cf8e1b7b514371e483250b0224b3bb04dfd8ba62e7ee70cfb5262e69b5",
+      "retained_sha256": "f6ca8c164968b29c51f9a7467e69a0a553045d24dc0bc117f9fe2fe68baf4bc0",
+      "bytes": 427,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "run-v1-kv-quality-v6.py",
+      "original_sha256": "adfdb84ce11595e553ef4b5c8beaee0dbb8b68da3a24b4f1e3de483630d6fba2",
+      "availability": "private hash-only",
+      "payload_omitted_reason": "Executable includes physical GPU selector constants; original source retained privately with original SHA256. No public script payload."
+    },
+    {
+      "file": "prepare-v1-kv-quality-v6.py",
+      "original_sha256": "b8a36aff9a8ca0defe262e110751a281454b4237e72467c6791ee6fcb485a1de",
+      "retained_sha256": "5f600c34b1e92f6534658b879feded554370f3a66f8ea6620110ff02c7ce8628",
+      "bytes": 2778,
+      "representation": "sanitized review snapshot; scripts may require path/device substitution"
+    },
+    {
+      "file": "profile-v6-summary.json",
+      "original_sha256": "7fe5c8fadf6360d34a663c1fd428b3ea1f6101b3bbaed25c0780eeab20211c6e",
+      "retained_sha256": "7c5cfcdaabc1ac6238541cf579c3d9e42f10d3a449cfd66e45dc3f86730bee6b",
+      "bytes": 124954,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "profile-cross-stage-union-v6.json",
+      "original_sha256": "f8eda727efce00259f263d38e0cc2a01c7bb27c158bb583b9492d3e401d43745",
+      "retained_sha256": "f8eda727efce00259f263d38e0cc2a01c7bb27c158bb583b9492d3e401d43745",
+      "bytes": 4777,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "profile-cross-stage-union-v6.py",
+      "original_sha256": "dc4c94b49c818364d579f20aad4eee65357b11e01950d5a24157d65996afd4aa",
+      "retained_sha256": "dc4c94b49c818364d579f20aad4eee65357b11e01950d5a24157d65996afd4aa",
+      "bytes": 4203,
+      "representation": "sanitized review snapshot; scripts may require path/device substitution"
+    },
+    {
+      "file": "profile-window-source-audit-v6.md",
+      "original_sha256": "f883ac09b686e6d3f2608e6f2711f0ffa219bc5232425d168b3befc0b99cb024",
+      "retained_sha256": "f883ac09b686e6d3f2608e6f2711f0ffa219bc5232425d168b3befc0b99cb024",
+      "bytes": 4028,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "profile-findings-v6.md",
+      "original_sha256": "522322054deeb4cb57f30b1c312e4c8eb8549fb847b78c93f2aae26976343eec",
+      "retained_sha256": "522322054deeb4cb57f30b1c312e4c8eb8549fb847b78c93f2aae26976343eec",
+      "bytes": 3238,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "seed-boundary-audit-v6.md",
+      "original_sha256": "df0020d9f809af61873e7085b2586aa5731f6a0fe2c9f2a7bee0debd9b62be7c",
+      "retained_sha256": "df0020d9f809af61873e7085b2586aa5731f6a0fe2c9f2a7bee0debd9b62be7c",
+      "bytes": 3555,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "profile-v6-pins.json",
+      "original_sha256": "7a9ffd4465417b3036beeea7b9c804baead58303b834b520efa02f8e6ef21fd4",
+      "retained_sha256": "0684f03c1486c63c9e5eaddd3c199292fe46ad7e2cce5972a18ea90b095d158b",
+      "bytes": 1234,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "run-profile-v6.py",
+      "original_sha256": "1477727eb0b64863ae288d5eb06a130505dd03c1d7adc2adf38c61160421cf86",
+      "availability": "private hash-only",
+      "payload_omitted_reason": "Executable includes physical GPU selector constants; original source retained privately with original SHA256. No public script payload."
+    },
+    {
+      "file": "v6-adapter-profile-pilot01/execution.json",
+      "original_sha256": "b59040522d4df9e81ba7e9186bcf435b9dc6e6cbf57311880547238add46e7a0",
+      "retained_sha256": "9d98c90214e42267157f3f10b9e6f95ea0c9436d92762dce468bd21f48671b60",
+      "bytes": 66330,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-adapter-profile-pilot01/profile-deploy.yaml",
+      "original_sha256": "aee981c3c9f2b6a627fcae26626590783bbc0d9a7ec2673d32d813a4e4f3cb17",
+      "retained_sha256": "026b5d14b30883652ea5a095e67629a717806b7c837f6c680b3c83a562199bba",
+      "bytes": 631,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-baseline/execution.json",
+      "original_sha256": "6b03955ab6f3a9e4b4b6c8b3565cbe960376d380264ae32e4b8df744c2206b1f",
+      "retained_sha256": "7c4ea4fb442520f9776914f62fbd9a4f92ab58aeb28645e049b1292c141f9352",
+      "bytes": 40375,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-baseline/quality.json",
+      "original_sha256": "773580d91cb5eaac5f886bbcba20edc1dcf596a6fdd1cb327fde742a783cd1ad",
+      "retained_sha256": "1bc6846f935fdfc9d48a2552e545a01ea9d3c074f2881aa40b08b41429105b84",
+      "bytes": 320894,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-baseline/gpu-process-observations.json",
+      "original_sha256": "8321c3a47435b920a0580cdebcd22533ab32ea182cfbfdc31773542efb629814",
+      "retained_sha256": "25f6390e00bc9a06191f02d3491febe7980f1115b3d8efac8ac999ee869c71d8",
+      "bytes": 166344,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-baseline/server.log.gz",
+      "original_sha256": "4b401e786a9475413bbd57f7efc1ce794d2becd6066f8ef5ce624d1a97a12700",
+      "retained_sha256": "83252951e7724f75199533b78145860efc734bd1195fb97a02b75e19c5b5eb64",
+      "bytes": 26227,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-baseline/quality.log.gz",
+      "original_sha256": "e5dd93c4a3776eb1e66d74eebd13f5639aee9d8e1e02a3196dfe89535cb6631e",
+      "retained_sha256": "8567dfd4784fd669fb3c8b125b4d1c8370a3bdaecfc880310de95a794ac5cc39",
+      "bytes": 4941,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-candidate/execution.json",
+      "original_sha256": "faa8ce292eb0d1b1958f66e01f0d5d04f613dd4d192be5eee9a7e16fe3129600",
+      "retained_sha256": "2dcef00a20a58e877d42cdd806d8f719e8ba00d564a1270cc8a8657a372d4948",
+      "bytes": 40387,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-candidate/quality.json",
+      "original_sha256": "abfb45208fa747f84595bc71b355a0a73342885576a00ea73c17e29b06ed6fba",
+      "retained_sha256": "80491900f02d324e227f0dc60832b0762d95311f578257aa7ba784992873bf64",
+      "bytes": 321026,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-candidate/gpu-process-observations.json",
+      "original_sha256": "18fef8eadfdf1961ee0b77757f22ee79bdf1242718ec5916539c67162c6fddde",
+      "retained_sha256": "c30f1eb6dc2018766556553d415bf5cfcaf7c26434d5474649cc25996f1a4835",
+      "bytes": 168382,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-candidate/server.log.gz",
+      "original_sha256": "25f94a0eda50e908d7c4704d85da38488db4a72d1fc7d20adc10707e63f27901",
+      "retained_sha256": "0be4eaec41744c9f31af4282a40cd5d8caab444d63d339c463b970da79e00075",
+      "bytes": 26565,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-candidate/quality.log.gz",
+      "original_sha256": "c65932f408a1cd22d50fb517de4433813b73887e1e8a9ee723f1a1f4e943cb5c",
+      "retained_sha256": "d1b15ef58354661ca28a81a64af212c627bc7920139bbf03ec935f66e45aa9dc",
+      "bytes": 4805,
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "baseline-audio-hashes.json",
+      "retained_sha256": "b9a65303517e6a29879d1fcbc27a5e96a4a0664feef2e5b20928a233ca4f6f31",
+      "audio_files": 256
+    },
+    {
+      "file": "candidate-audio-hashes.json",
+      "retained_sha256": "fd41effc40119711697eed56166e9a778795d49e3a81827fc2cc4a4b1330c66d",
+      "audio_files": 256
+    },
+    {
+      "file": "profile-private-trace-manifest.json",
+      "retained_sha256": "8deb2f2e8d94a0d777731ec0beec35a6f4e38301300916a1271904915851b791"
+    },
+    {
+      "file": "configs/v6-v1-predictor-kv-control.yaml",
+      "original_sha256": "de7ae358e1aa021191a7a584e30d43707b06a236b933ea6792d0ba999fc362b9",
+      "retained_sha256": "40a22121d366ac6f3fec1544dcfd3414b95cfb91f20fa4c56f10241ec753c689"
+    },
+    {
+      "file": "configs/qwen3_omni_moe.yaml",
+      "original_sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+      "retained_sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+    },
+    {
+      "file": "configs/v6-v1-predictor-kv-only.yaml",
+      "original_sha256": "999d13cf8e1b7b514371e483250b0224b3bb04dfd8ba62e7ee70cfb5262e69b5",
+      "retained_sha256": "35828f854aa8b0390d037b800901700639a0f3b02ee47b3b86152b576f602458"
+    },
+    {
+      "file": "README.md",
+      "retained_sha256": "25fca6bf769b9d7cdaf841366fbcd9c65239a0043a7abdf3f418576ab8d24ed2"
+    },
+    {
+      "file": "validation.json",
+      "retained_sha256": "e4cf7d60883d8be5bc61babda3d31d769e208680016bdd2013b949f83f716153"
+    }
+  ],
+  "raw_rows_validation": [
+    {
+      "file": "v6-v1-kv-quality-pilot01-baseline/quality.json",
+      "count": 256,
+      "exact_rows_equal": true
+    },
+    {
+      "file": "v6-v1-kv-quality-pilot01-candidate/quality.json",
+      "count": 256,
+      "exact_rows_equal": true
+    }
+  ]
+}
