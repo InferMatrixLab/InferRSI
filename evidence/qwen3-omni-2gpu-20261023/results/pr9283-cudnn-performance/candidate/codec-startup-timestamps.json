@@ -1,0 +1,35 @@
+{
+  "scope": "Codec source log timestamps only; not isolated autotuning duration or startup causal estimate",
+  "events": [
+    {
+      "local_timestamp_as_logged": "10-25 15:26:21",
+      "event_class": "codec_log",
+      "line_sha256": "53acdcb21737cbd8f64ed6b6d3fa8fff19600a7c31aeab09c0560095796b80ec"
+    },
+    {
+      "local_timestamp_as_logged": "10-25 15:26:21",
+      "event_class": "codec_log",
+      "line_sha256": "596daac6c69e5421d1062544e899dc361d5517c45510aa6fc6f73517f4560427"
+    },
+    {
+      "local_timestamp_as_logged": "10-25 15:29:11",
+      "event_class": "Capturing",
+      "line_sha256": "934fc1736a8a42095e859e4d5490485d71d664436c5b6089bb27776121f7e34f"
+    },
+    {
+      "local_timestamp_as_logged": "10-25 15:30:11",
+      "event_class": "codec_log",
+      "line_sha256": "3a971a5f4b9d682593c0a15954f2ad117c82fcde6f20e2c6aa602a7e6da4a8ed"
+    },
+    {
+      "local_timestamp_as_logged": "10-25 15:30:11",
+      "event_class": "codec_log",
+      "line_sha256": "c21cac17ede56bfb9cb4da69eb44e15cceddb15b54dedd72145736c92d3a6434"
+    },
+    {
+      "local_timestamp_as_logged": "10-25 15:32:19",
+      "event_class": "codec_log",
+      "line_sha256": "012cbfc1be49f192044df703104564629d21fb10ebe763047eff0278d6f86453"
+    }
+  ]
+}

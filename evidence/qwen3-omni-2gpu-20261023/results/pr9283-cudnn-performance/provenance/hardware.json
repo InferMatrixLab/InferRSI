@@ -1,0 +1,7 @@
+{
+  "device_count": 2,
+  "reported_name": "NVIDIA L20X",
+  "reported_memory_MiB_per_device": 143771,
+  "driver_version": "570.133.20",
+  "source": "read-only nvidia-smi snapshot; identity/physical indices removed; not theoretical roof"
+}
