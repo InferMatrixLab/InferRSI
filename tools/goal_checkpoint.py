@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import Literal
 
 from inferrsi.infra.artifacts import digest, sha256
-from tools.skill_eval_compare import ROLES, read_report
+from tools.skill_eval_compare import CONTROLLERS, ROLES, ROOT, read_report
 
 Action = Literal[
     "repair_evidence", "prepare_new_plan", "stop_budget", "wait_dependency",
@@ -216,6 +216,10 @@ def build_checkpoint(goal_path: Path, comparison_dir: Path) -> dict:
     artifact_names = {"plan/freeze.json", "results/start.json", "results/status.json",
                       "results/status.receipt.json"}
     try:
+        # Failed reads still need the identities of the actual damaged inputs.
+        for folder in ("plan", "validator", "results"):
+            artifact_names.update(p.relative_to(comparison_dir).as_posix()
+                                  for p in (comparison_dir / folder).rglob("*") if p.is_file())
         report = read_report(comparison_dir)
         sources["comparison"].update(plan_sha256=report["plan_sha256"],
                                      report_sha256=digest(report))
@@ -264,6 +268,14 @@ def build_checkpoint(goal_path: Path, comparison_dir: Path) -> dict:
             actual = None
             problems.append("unreadable_artifact:" + name)
         sources["comparison"]["artifacts"][name] = actual
+    sources["controllers"] = {}
+    for name in CONTROLLERS:
+        try:
+            actual = sha256(ROOT / name)
+        except OSError:
+            actual = None
+            problems.append("unreadable_controller:" + name)
+        sources["controllers"][name] = actual
 
     checkpoint = {"schema_version": 1, "id": goal["id"], "title": goal["title"],
                   "acceptance_owner": goal["acceptance_owner"], "criteria": criteria,

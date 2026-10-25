@@ -196,6 +196,30 @@ def test_changed_plan_settings_require_fresh_authorization(tmp_path, comparison_
     assert result["recommendation"]["action"] == "request_authorization"
 
 
+@pytest.mark.parametrize("artifact", ["plan/tasks.json", "validator/verify.py",
+                                     "results/one-candidate-1/result.json"])
+def test_distinct_damaged_inputs_keep_distinct_checkpoint_identities(
+    tmp_path, comparison_templates, artifact,
+):
+    path, goal, run = setup_goal(tmp_path, comparison_templates[1])
+    target = run / artifact
+    target.write_text("{first damaged input", encoding="utf-8")
+    if artifact.endswith("result.json"):
+        write_json(target.parent / "receipt.json", {"result_sha256": sha256(target)})
+    first = checkpoint.build_checkpoint(path, run)
+    target.write_text("{second damaged input", encoding="utf-8")
+    if artifact.endswith("result.json"):
+        write_json(target.parent / "receipt.json", {"result_sha256": sha256(target)})
+    second = checkpoint.build_checkpoint(path, run)
+    assert first["recommendation"]["action"] == second["recommendation"]["action"] == (
+        "repair_evidence")
+    assert first["input_sha256"] != second["input_sha256"]
+    actual = second["sources"]["comparison"]["artifacts"][artifact]
+    assert actual == sha256(target)
+    assert second["sources"]["controllers"] == {
+        name: sha256(compare.ROOT / name) for name in compare.CONTROLLERS}
+
+
 def test_interruption_never_becomes_a_fresh_or_accepted_attempt(tmp_path, comparison_templates):
     path, goal, run = setup_goal(tmp_path, comparison_templates[0])
     authorize(path, goal)

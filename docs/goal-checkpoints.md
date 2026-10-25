@@ -179,6 +179,9 @@ model/settings, remaining criteria, usage, reason codes and evidence digests.
 The agent can recover those facts from the view without earlier chat history.
 A changed requirement, missing receipt or interrupted attempt instead produces
 `repair_evidence`, even if an acceptance pointer remains present.
+Input identity includes the actual plan/validator/results files and comparison
+controller bytes even when report reading fails early, so different damaged
+inputs remain distinguishable rather than collapsing into one error identity.
 
 An authentic client failure/timeout with valid receipts instead remains a
 recorded stopped attempt and recommends `prepare_new_plan`. A completed trial's
