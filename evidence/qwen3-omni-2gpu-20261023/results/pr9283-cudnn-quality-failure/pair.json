@@ -1,0 +1,18 @@
+{
+  "status": "INCONCLUSIVE",
+  "pins_sha256": "6e7d5d0a6fe469c423fe0309279b5d438764e5c5523e008439d6ce26bcb70c3b",
+  "failure_classification": "CANDIDATE_WORK_INTERVAL_KNOWN_SCORER_ZOMBIE",
+  "acceptance_comparison": "NOT_RUN; descriptive means do not override execution gate",
+  "arms": [
+    {
+      "arm": "baseline",
+      "returncode": 0,
+      "execution_sha256": "9b59ae5e195bc293ddf1cd4f8ae34dddabfb9c43e9701deea48f5d57034d86b8"
+    },
+    {
+      "arm": "candidate",
+      "returncode": 1,
+      "execution_sha256": "c4c7a45f44575d45d7ba1caeaebf4e3bcfc77753c5fd4d50045e70b92e784d32"
+    }
+  ]
+}

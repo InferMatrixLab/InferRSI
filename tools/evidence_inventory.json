@@ -135,6 +135,11 @@
           "sha256": "d7944a609639fdff4953191e7b5ff92704b12c38caeb88360a72a54e217a8cf2"
         },
         {
+          "path": "results/pr9283-cudnn-quality-failure/manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "a28a638b7ed115813a0022e8557076ad97720ce649d0b672ba9d43bcd457c361"
+        },
+        {
           "path": "results/pr9283-cudnn-performance/manifest.json",
           "schema": "metadata-sha256",
           "sha256": "1dd7b6a6688c115dc437c0130719020e6b79152a7c7315c6e61818e71dc3e0ee"

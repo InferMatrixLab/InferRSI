@@ -1,0 +1,16 @@
+{
+  "status": "INCONCLUSIVE",
+  "means_descriptive_only": {
+    "baseline": {
+      "wer_mean": 0.06230120367812657,
+      "utmos_mean": 3.3360218349844217
+    },
+    "candidate": {
+      "wer_mean": 0.052020089225306425,
+      "utmos_mean": 3.3316068444401026
+    }
+  },
+  "wer_candidate_minus_baseline": -0.010281114452820143,
+  "quality_gate": "NOT_PASSED: work interval failed, no acceptance comparison PASS",
+  "data_availability": "Both256item quality files exist; this does not establish completed qualified execution"
+}
