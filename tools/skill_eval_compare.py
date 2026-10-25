@@ -472,7 +472,7 @@ def retained_trial(output: Path, entry: dict) -> dict:
         raise ValueError("Result identity disagrees with frozen schedule")
     # Select report fields; raw commands and private workspace paths stay in local artifacts.
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
-                "verdict", "checks", "elapsed_seconds", "observations")}
+                "verdict", "checks", "elapsed_seconds", "observations", "inputs_unchanged")}
     selected["observations"] = {"usage": record["observations"]["usage"]}
     error = record.get("evaluation_error")
     if data is None:

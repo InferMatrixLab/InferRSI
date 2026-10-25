@@ -219,6 +219,55 @@ def test_stopped_attempt_does_not_retry(tmp_path, comparison_templates, reason):
     assert result["recommendation"]["action"] == expected
 
 
+@pytest.mark.parametrize("mode", ["nonzero", "timeout", "missing_output", "invalid_json",
+                                  "invalid_utf8", "markdown_fence", "invalid_trace"])
+def test_real_client_failures_preserve_evidence_and_choose_the_actual_next_step(
+    tmp_path, comparison_templates, mode,
+):
+    path, goal, run = setup_goal(tmp_path, comparison_templates[0])
+    client = FixedOutputClient(tmp_path, {("one", "candidate"): mode})
+    report = compare.execute(run, goal["plan_sha256"], client=client)
+    before = files(run)
+    result = checkpoint.build_checkpoint(path, run)
+    assert not result["problems"]
+    expected = "prepare_new_plan" if mode in ("nonzero", "timeout") else "wait_acceptance"
+    assert result["recommendation"]["action"] == expected
+    assert result["comparison"]["counts"] == report["counts"]
+    assert result["comparison"]["counts"]["inconclusive"] == 1
+    assert files(run) == before
+    assert len(client.calls) == 2
+
+
+def test_execution_failure_cannot_hide_damaged_retained_evidence(tmp_path, comparison_templates):
+    path, goal, run = setup_goal(tmp_path, comparison_templates[0])
+    client = FixedOutputClient(tmp_path, {("one", "candidate"): "nonzero"})
+    compare.execute(run, goal["plan_sha256"], client=client)
+    assert checkpoint.build_checkpoint(path, run)["recommendation"]["action"] == "prepare_new_plan"
+    (run / "results/one-candidate-1/execution.json").write_text("{}", encoding="utf-8")
+    result = checkpoint.build_checkpoint(path, run)
+    assert result["recommendation"]["action"] == "repair_evidence"
+    assert any("retained_trial_integrity_mismatch" in reason for reason in result["problems"])
+
+
+def test_retained_input_change_flag_cannot_be_hidden_by_another_error(
+    tmp_path, comparison_templates,
+):
+    path, goal, run = setup_goal(tmp_path, comparison_templates[1])
+    result_path = run / "results/one-candidate-1/result.json"
+    record = json.loads(result_path.read_bytes())
+    record.update(inputs_unchanged=False, evaluation_error="agent_trace_error")
+    write_json(result_path, record)
+    write_json(result_path.parent / "receipt.json", {"result_sha256": sha256(result_path)})
+    accepted_report = compare.read_report(run)
+    trial = accepted_report["pairs"][0]["candidate"]
+    assert trial["evaluation_error"] == "agent_trace_error"
+    assert trial["inputs_unchanged"] is False
+    accept(path, goal, run)
+    result = checkpoint.build_checkpoint(path, run)
+    assert result["recommendation"]["action"] == "repair_evidence"
+    assert any("inputs_changed" in reason for reason in result["problems"])
+
+
 def test_dependency_is_named_and_completion_does_not_hide_it(tmp_path, comparison_templates):
     path, goal, run = setup_goal(tmp_path, comparison_templates[1])
     accept(path, goal, run)

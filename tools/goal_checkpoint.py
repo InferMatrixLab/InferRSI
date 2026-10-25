@@ -96,6 +96,25 @@ def criterion_sha256(goal: dict, criterion: dict) -> str:
                    "criterion": {k: criterion[k] for k in ("id", "description", "evidence")}})
 
 
+def _trial_problem(trial: dict) -> str | None:
+    error = trial.get("evaluation_error")
+    if trial.get("inputs_unchanged") is False:
+        return "inputs_changed"
+    if error in ("interrupted_attempt", "inputs_changed") or (error and error.startswith(
+        ("missing_retained_", "invalid_retained_", "retained_")
+    )):
+        return error
+    if trial["missing"]:
+        return None
+    expected = trial["evidence_sha256"]
+    if expected is None or trial["output_sha256"] != trial["retained_output_sha256"] or any(
+        trial["retained_evidence_sha256"].get(name) != value for name, value in expected.items()
+    ):
+        # A recorded execution error must not hide independently damaged evidence.
+        return "retained_trial_integrity_mismatch"
+    return None
+
+
 def recommend(checkpoint: dict) -> Recommendation:
     def decision(action: Action, *reasons: str) -> Recommendation:
         return Recommendation(action, reasons, tuple(checkpoint["sources"]),
@@ -206,8 +225,11 @@ def build_checkpoint(goal_path: Path, comparison_dir: Path) -> dict:
         trials.extend(report["discovery"])
         for trial in trials:
             artifact_names.update(trial["evidence"].values())
-        problems.extend("trial:" + t["task_id"] + ":" + t["condition"] + ":"
-                        + t["evaluation_error"] for t in trials if t.get("evaluation_error"))
+        for trial in trials:
+            problem = _trial_problem(trial)
+            if problem is not None:
+                problems.append("trial:" + trial["task_id"] + ":" + trial["condition"]
+                                + ":" + problem)
         status = report["status"]
         state = status["execution_state"]
         if state == "unverified":

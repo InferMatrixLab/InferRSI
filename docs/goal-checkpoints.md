@@ -179,3 +179,10 @@ model/settings, remaining criteria, usage, reason codes and evidence digests.
 The agent can recover those facts from the view without earlier chat history.
 A changed requirement, missing receipt or interrupted attempt instead produces
 `repair_evidence`, even if an acceptance pointer remains present.
+
+An authentic client failure/timeout with valid receipts instead remains a
+recorded stopped attempt and recommends `prepare_new_plan`. A completed trial's
+evaluation failure remains its existing `INCONCLUSIVE` outcome and waits for
+owner acceptance; it is not evidence corruption. Changed inputs or damaged
+retained artifacts still block acceptance, including when the same trial also
+records an execution failure. No recommendation edits the retained failure.
