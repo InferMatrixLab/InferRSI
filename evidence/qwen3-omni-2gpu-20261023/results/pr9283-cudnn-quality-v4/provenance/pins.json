@@ -1,0 +1,35 @@
+{
+  "source_sha": "a83eb6ed38fde8c6964a0315420f52e69706d31c",
+  "pins_sha256": "bbc9ba3e48cb14f3f6d38ea5dc5613ef44c74bac3f1167befbc844b320b3291b",
+  "config_chains": {
+    "baseline": [
+      {
+        "source_file": "gpu67-pr9283-cudnn-control.yaml",
+        "sha256": "c95a58038fa63b6ba1f0bf02f7d46b6a0cf4fb293d4345598da863110fc87f8e"
+      },
+      {
+        "source_file": "qwen3_omni_moe_mrv2.yaml",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      },
+      {
+        "source_file": "qwen3_omni_moe.yaml",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ],
+    "candidate": [
+      {
+        "source_file": "qwen3_omni_moe_mrv2_cudnn.yaml",
+        "sha256": "489a748f36fd9b68dc10cf8da79e9296d8e60ba9540006a44b2d072d0fd15119"
+      },
+      {
+        "source_file": "qwen3_omni_moe_mrv2.yaml",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      },
+      {
+        "source_file": "qwen3_omni_moe.yaml",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ]
+  },
+  "validator_sha256": "819ed3c7f517abe9d5b9af924893bfb6c15cf6c2a64b103fa8107dc056a26043"
+}

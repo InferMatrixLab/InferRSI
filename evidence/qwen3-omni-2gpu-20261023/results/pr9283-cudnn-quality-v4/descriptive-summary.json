@@ -1,0 +1,16 @@
+{
+  "status": "INCONCLUSIVE",
+  "means_descriptive_only": {
+    "baseline": {
+      "wer_mean": 0.05030372124811463,
+      "utmos_mean": 3.334216554649174
+    },
+    "candidate": {
+      "wer_mean": 0.03796659519799516,
+      "utmos_mean": 3.331941317766905
+    }
+  },
+  "wer_candidate_minus_baseline": -0.012337126050119468,
+  "quality_gate": "PASS_SINGLE_PAIR_ONLY",
+  "data_availability": "Both256item quality files complete with livehold/source/isolation verification; not repeated evidence or overall promotion"
+}

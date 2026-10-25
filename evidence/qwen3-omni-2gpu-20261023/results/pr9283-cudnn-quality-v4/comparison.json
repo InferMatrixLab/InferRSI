@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "scope": "Single-pair quality only",
+  "criterion": "Candidate aggregate WER <= baseline; UTMOS descriptive only",
+  "arms": {
+    "baseline": {
+      "wer": 0.05030372124811463,
+      "utmos_mean": 3.334216554649174,
+      "utmos_evaluated": 256,
+      "utmos_failed": 0,
+      "quality_sha256": "6745213c05fb8391e61441a95ff1a76253ff0f73215d780c9e904af9a36c0bdc",
+      "execution_sha256": "37bbb69207dd1b127a2e3a9b5fa8e381c9e50d8a95c4a53668b9e0a1ca563fd9"
+    },
+    "candidate": {
+      "wer": 0.03796659519799516,
+      "utmos_mean": 3.331941317766905,
+      "utmos_evaluated": 256,
+      "utmos_failed": 0,
+      "quality_sha256": "92e5289c5146809f4938154f98ae7f046642bc5f351afdc6d4023d62a6efd77d",
+      "execution_sha256": "023ff33bf866007728f8fc86e4faad413364f7455c5ac8967c8a4da1b3013567"
+    }
+  },
+  "wer_delta": -0.012337126050119468,
+  "pins_sha256": "bbc9ba3e48cb14f3f6d38ea5dc5613ef44c74bac3f1167befbc844b320b3291b"
+}
