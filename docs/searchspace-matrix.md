@@ -313,6 +313,16 @@ English procedures. They do not qualify every backend listed by their upstream
 projects. Main-only contribution, dependency and peer material remains at its
 original owners rather than duplicated under local skills.
 
+## PyTorch compiler and checkpoint scope selection
+
+Use the [existing-owner scope map](../src/inferrsi/data/skill_library/README.md#pytorch-compiler-and-checkpoint-scope-routing)
+to distinguish CUDA compiler guards/capture/output lifetime from the DCP
+Accelerator staging-pause, RAM/Host snapshot and SSD/Storage save entries.
+The shared diagnostic questions are actual mutation/liveness and named timing
+boundaries; graph replay is not staging/upload completion, and DCP completion
+does not establish replay eligibility. Existing source-derived maturity and
+resource coverage remain unchanged; no combined protocol is introduced.
+
 ## Issue #27: Drama3 NPU readiness (guidance only, no new coverage)
 
 The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) is a scoped task

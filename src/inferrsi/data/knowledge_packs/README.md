@@ -15,6 +15,12 @@ Cache-DiT, for example, can also be a direct dependency of vLLM-Omni. Its entry
 is classified as a peer technique for this initial extraction; reclassify an
 entry when the learning use case changes instead of duplicating its claims.
 
+For `pytorch/pytorch`, the [compiler/checkpoint scope map](../skill_library/README.md#pytorch-compiler-and-checkpoint-scope-routing)
+relates the [compiler dependency card](dependency/pytorch/cuda/compiler/cudagraph-shapes-and-lifetimes.json)
+to the existing [DCP async-save owner](../skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md),
+keeping its fixed implementation and live recipe separate from compiler
+documentation, with each owner's completion and version boundaries intact.
+
 ## Storage and compatibility
 
 ```text
