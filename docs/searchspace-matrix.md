@@ -313,6 +313,16 @@ English procedures. They do not qualify every backend listed by their upstream
 projects. Main-only contribution, dependency and peer material remains at its
 original owners rather than duplicated under local skills.
 
+## TensorRT-LLM shared assumptions
+
+Use the [methodology and disaggregation map](../src/inferrsi/data/skill_library/README.md#tensorrt-llm-source-and-responsibility-routing)
+for the TensorRT-LLM Accelerator, RAM/Host, SSD/Storage, Communication/Network
+and OS/System entries. Its evidence row fixes the comparison contract; the five
+resource rows assess host exposure, startup/request units, transport/layout and
+queue costs, kernel correctness and placement controls against the existing
+peer card. The retained methodology and PD pins are separate source scopes;
+this adds no measured/green cell, new runtime mechanism or compatible-stack claim.
+
 ## Issue #27: Drama3 NPU readiness (guidance only, no new coverage)
 
 The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) is a scoped task

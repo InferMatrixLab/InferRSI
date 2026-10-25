@@ -15,6 +15,12 @@ Cache-DiT, for example, can also be a direct dependency of vLLM-Omni. Its entry
 is classified as a peer technique for this initial extraction; reclassify an
 entry when the learning use case changes instead of duplicating its claims.
 
+For TensorRT-LLM, the [methodology and disaggregation map](../skill_library/README.md#tensorrt-llm-source-and-responsibility-routing)
+routes the existing mixed-source performance methods alongside the
+[PD/KV-transfer card](peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json).
+It assesses shared measurement controls and separate startup, host and network
+costs while retaining the card's source revision and transfer-hypothesis limits.
+
 ## Storage and compatibility
 
 ```text
