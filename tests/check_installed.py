@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 108, "Knowledge is missing from the installation"
+assert len(records) == 109, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
