@@ -20,6 +20,13 @@ existing resource directory.
 
 ## Read registered skills
 
+When local optimization stalls, start with the existing
+[optimization search policy](methods/optimization-search-policy/SKILL.md) and its
+[whole-system decision cards](methods/optimization-search-policy/references/foundational-mechanism-decisions.md).
+They distinguish scheduling, caching/reuse and parallelism/pipelining using
+measured resource constraints, six reusable cases and explicit abstention when
+evidence is missing. These source-derived candidates do not establish speedups.
+
 [`skill-index.json`](skill-index.json) maps 60 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 

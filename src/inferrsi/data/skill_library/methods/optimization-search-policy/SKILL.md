@@ -1,6 +1,6 @@
 ---
 name: optimization-search-policy
-description: 'Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.
+description: 'Policy for how an optimization agent should select, order, and stop optimization experiments. Use when optimization stalls: re-derive the whole-system bottleneck and critical path from first principles before choosing scheduling, caching/reuse, or parallelism/pipelining. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.
 
   '
 ---
@@ -20,6 +20,23 @@ An optimization agent without a search policy tends to:
 - Commit to a direction before checking prior art
 
 This skill addresses all four.
+
+## When local optimization stalls
+
+If repeated variants cannot improve the frozen objective, local headroom is
+exhausted, or the bottleneck moves, return to Phase 1 using the
+[foundational mechanism decisions](references/foundational-mechanism-decisions.md).
+Reconstruct useful work, dependencies, state ownership and constrained resources
+across the whole request path, including queueing, host work and communication.
+Distinguish scheduling, work/data reuse and parallel overlap; also consider
+algorithm, precision, fusion and layout changes within the authorized contract.
+
+Return a bounded hypothesis with prerequisites, counter-indications, invariants,
+metrics and rollback. **Abstain from recommending an intervention when the
+bottleneck or correctness prerequisites are unknown:** request the smallest
+discriminating measurement. Stop for exhausted budget or missing authorization;
+a plateau is not permission to broaden execution. These are agent instructions,
+not an automatic stall detector or runtime scheduler.
 
 ## Phase-locked optimization round
 
@@ -169,6 +186,10 @@ Stop local tuning and switch strategy when any of the following is true:
    novel generation has been tried and recorded as failed. This is a signal to
    escalate the abstraction level (e.g., change parallelism strategy rather
    than tuning an individual op).
+
+For these strategy changes, use the three decision cards above before proposing
+another variant. A measurement problem calls for better evidence; a capacity
+limit or changed critical path calls for a different mechanism.
 
 ## Budget allocation and final-artifact integrity
 

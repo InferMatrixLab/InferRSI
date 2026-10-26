@@ -10,6 +10,17 @@ the source-inspection or maturity claims below.
 Top-level rows are hardware resource layers.  
 Second-level optimization targets (Kernel, Operator, KV Cache, Attention, Runtime, Distributed, Serving, VAE/Codec) live **inside** the row that owns their bottleneck.
 
+When optimization stalls, use the existing search policy's
+[foundational decision cards](../src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-mechanism-decisions.md).
+Scheduling, caching/reuse and parallelism/pipelining are intervention axes across
+these resource rows, not replacement layers. The six cases distinguish queueing
+and admission, HBM allocation/reuse, host-device transfer and topology-dependent
+phase placement. Network applies only to actual inter-node traffic; CUDA copy
+overlap does not establish another backend's support. Existing RAM/SSD tiering
+guidance remains with `kv-tier-management`. Source scope is in the Reference
+Matrix; all new cases are locally unverified and missing diagnosis calls for
+measurement, not an inferred recommendation or a new hardware coverage claim.
+
 **Maturity key:** 🟢 covered (candidate skill + source evidence — candidate intelligence with source support, **not proven gains**) · 🟡 partial (source read, no dedicated skill) · 🔴 gap (no source, no skill)
 
 Per decision D05 (2026-10-15): approval, extraction, coverage, and empirical

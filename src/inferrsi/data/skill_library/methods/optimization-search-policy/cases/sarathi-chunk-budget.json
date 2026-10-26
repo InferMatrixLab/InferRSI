@@ -1,0 +1,33 @@
+{
+  "id": "case.sarathi-chunk-budget",
+  "kind": "case",
+  "origin": [
+    "external"
+  ],
+  "state": "candidate",
+  "content": "sarathi-chunk-budget.md",
+  "sources": [
+    {
+      "type": "paper",
+      "id": "Sarathi-Serve",
+      "version": "OSDI 2024 proceedings",
+      "url": "https://www.usenix.org/system/files/osdi24-agrawal.pdf",
+      "sections": [
+        "4.1-4.3",
+        "5.3",
+        "5.4, Figure 14 and Table 4"
+      ]
+    }
+  ],
+  "empirical_validation": "not_run",
+  "applicability": [
+    "Autoregressive serving with measured prefill/decode interference",
+    "Scheduling and pipeline balance on the accelerator"
+  ],
+  "limitations": [
+    "No local campaign baseline/candidate evidence; imported evidence remains locally unverified.",
+    "Author-reported chunk overhead and component ablation; not a local experiment",
+    "Token budget and results do not transfer unchanged across workloads"
+  ],
+  "attribution": "Amey Agrawal et al., Sarathi-Serve, OSDI 2024, pp. 117-134."
+}

@@ -1,0 +1,34 @@
+{
+  "id": "case.distserve-phase-placement",
+  "kind": "case",
+  "origin": [
+    "external"
+  ],
+  "state": "candidate",
+  "content": "distserve-phase-placement.md",
+  "sources": [
+    {
+      "type": "paper",
+      "id": "DistServe",
+      "version": "OSDI 2024 proceedings",
+      "url": "https://www.usenix.org/system/files/osdi24-zhong-yinmin.pdf",
+      "sections": [
+        "3-4",
+        "6.1",
+        "6.3-6.4"
+      ]
+    }
+  ],
+  "empirical_validation": "not_run",
+  "applicability": [
+    "Phase interference with feasible KV handoff and measured topology",
+    "Equal-resource inference parallelism and pipelining comparisons"
+  ],
+  "limitations": [
+    "No local campaign baseline/candidate evidence; imported evidence remains locally unverified.",
+    "Figure 11 is a simulated ablation, separate from real-system evaluation",
+    "Transfer-bound reversal is hypothetical, not an observed local regression",
+    "AFD hidden-state exchanges and training parallelism have different contracts"
+  ],
+  "attribution": "Yinmin Zhong et al., DistServe, OSDI 2024, pp. 193-210."
+}

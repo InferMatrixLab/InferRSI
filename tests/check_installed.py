@@ -53,6 +53,22 @@ case_path = (
 )
 assert case_path in indexed.content
 assert indexed.dependencies
+foundational = KnowledgeReader().read("inferrsi.common.skills.optimization_search_policy")
+foundational_prefix = "data/skill_library/methods/optimization-search-policy/"
+for relative in (
+    "references/foundational-mechanism-decisions.md", "references/foundational-sources.md",
+    "cases/sarathi-chunk-budget.md", "cases/sarathi-chunk-budget.json",
+    "cases/paged-kv-allocation.md", "cases/paged-kv-allocation.json",
+    "cases/prefix-reuse-locality.md", "cases/prefix-reuse-locality.json",
+    "cases/distserve-phase-placement.md", "cases/distserve-phase-placement.json",
+    "cases/cuda-copy-overlap.md", "cases/cuda-copy-overlap.json",
+):
+    assert foundational_prefix + relative in foundational.content
+foundational_record = json.loads(foundational.content["record.json"])
+assert not foundational_record["verification"]["locally_verified"]
+assert foundational_record["skill_metadata"]["empirical_validation"] == "not_run"
+assert case_path in foundational.content
+assert "yaml" not in sys.modules, "Foundational package reads must not require the skills extra"
 assert json.loads(indexed.content["record.json"])["skill_metadata"]["license"] == "UNKNOWN"
 h3_identity = "inferrsi.common.skills.audit_h3_runtime_residency"
 assert any(item["id"] == h3_identity for item in search_knowledge(

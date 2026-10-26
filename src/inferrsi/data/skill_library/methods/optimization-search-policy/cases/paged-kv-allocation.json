@@ -1,0 +1,31 @@
+{
+  "id": "case.paged-kv-allocation",
+  "kind": "case",
+  "origin": [
+    "external"
+  ],
+  "state": "candidate",
+  "content": "paged-kv-allocation.md",
+  "sources": [
+    {
+      "type": "paper",
+      "id": "2309.06180",
+      "version": "v1",
+      "url": "https://arxiv.org/html/2309.06180v1",
+      "sections": [
+        "4.1-4.5",
+        "7.1-7.3"
+      ]
+    }
+  ],
+  "empirical_validation": "not_run",
+  "applicability": [
+    "Dynamic KV allocation or duplication constraining HBM capacity and admission"
+  ],
+  "limitations": [
+    "No local campaign baseline/candidate evidence; imported evidence remains locally unverified.",
+    "Paging, prefix reuse and tiering are separate interventions",
+    "Reported block-size and kernel counter-results are workload-specific"
+  ],
+  "attribution": "Woosuk Kwon et al., Efficient Memory Management for Large Language Model Serving with PagedAttention, arXiv:2309.06180v1."
+}

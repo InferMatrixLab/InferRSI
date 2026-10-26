@@ -1,0 +1,33 @@
+{
+  "id": "case.cuda-copy-overlap",
+  "kind": "case",
+  "origin": [
+    "external"
+  ],
+  "state": "candidate",
+  "content": "cuda-copy-overlap.md",
+  "sources": [
+    {
+      "type": "document",
+      "version": "11.8.0",
+      "url": "https://docs.nvidia.com/cuda/archive/11.8.0/cuda-c-best-practices-guide/index.html",
+      "sections": [
+        "9.1",
+        "9.1.1",
+        "9.1.2"
+      ]
+    }
+  ],
+  "empirical_validation": "not_run",
+  "applicability": [
+    "CUDA host-device copy/compute overlap with independent chunks",
+    "Pinned-memory, device-capability and stream-ordering prerequisites"
+  ],
+  "limitations": [
+    "No local campaign baseline/candidate evidence; imported evidence remains locally unverified.",
+    "Documentation-derived mechanism, not measured performance evidence",
+    "No Ascend or other backend portability claim",
+    "Tiny-chunk and contention regressions are hypothetical counterexamples"
+  ],
+  "attribution": "NVIDIA Corporation, CUDA C Best Practices Guide, archived release 11.8.0."
+}

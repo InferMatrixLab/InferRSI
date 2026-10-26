@@ -1,0 +1,45 @@
+{
+  "id": "case.prefix-reuse-locality",
+  "kind": "case",
+  "origin": [
+    "external"
+  ],
+  "state": "candidate",
+  "content": "prefix-reuse-locality.md",
+  "sources": [
+    {
+      "type": "paper",
+      "id": "2312.07104",
+      "version": "v2",
+      "url": "https://arxiv.org/html/2312.07104v2",
+      "sections": [
+        "3",
+        "6.3",
+        "A.4"
+      ]
+    },
+    {
+      "type": "document",
+      "version": "v0.10.2",
+      "url": "https://docs.vllm.ai/en/v0.10.2/design/prefix_caching.html",
+      "sections": [
+        "Hash identity",
+        "Cache Isolation for Security",
+        "Data Structure",
+        "Operations"
+      ]
+    }
+  ],
+  "empirical_validation": "not_run",
+  "applicability": [
+    "Exact prefix reuse with complete identity and authorized trust boundaries",
+    "Cache-aware scheduling with per-class fairness checks"
+  ],
+  "limitations": [
+    "No local campaign baseline/candidate evidence; imported evidence remains locally unverified.",
+    "Hot-replica unfairness is hypothetical, not an observed source regression",
+    "vLLM V1 identity documentation does not describe the SGLang implementation",
+    "Approximate or semantic caching requires separate quality evaluation"
+  ],
+  "attribution": "Lianmin Zheng et al., SGLang, arXiv:2312.07104v2; vLLM contributors, Automatic Prefix Caching documentation v0.10.2."
+}

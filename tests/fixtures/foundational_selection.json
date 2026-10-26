@@ -1,0 +1,40 @@
+[
+  {
+    "name": "stalled-whole-system-search",
+    "cue": "optimization stalls whole-system bottleneck critical path first principles",
+    "expected": "inferrsi.common.skills.optimization_search_policy",
+    "excluded": []
+  },
+  {
+    "name": "admission-pressure-before-preemption",
+    "cue": "vllm admission pressure KV allocation",
+    "expected": "inferrsi.common.skills.diagnose_vllm_admission_pressure",
+    "excluded": ["inferrsi.common.skills.choose_parallel_training_plan"]
+  },
+  {
+    "name": "tiering-owner",
+    "cue": "LMCache L1 L2 prefetch eviction",
+    "expected": "inferrsi.common.skills.kv_tier_management",
+    "excluded": ["inferrsi.common.skills.choose_parallel_training_plan"]
+  },
+  {
+    "name": "exchange-ownership",
+    "cue": "AFD P2pNccl rank mapping hidden states",
+    "backend": "cuda",
+    "expected": "inferrsi.cuda.skills.audit_afd_p2p_exchanges",
+    "excluded": ["inferrsi.common.skills.choose_parallel_training_plan"]
+  },
+  {
+    "name": "unsupported-backend-abstains",
+    "cue": "P2pNccl",
+    "backend": "ascend",
+    "expected": null,
+    "excluded": ["inferrsi.cuda.skills.audit_afd_p2p_exchanges"]
+  },
+  {
+    "name": "unrelated-request-abstains",
+    "cue": "floristry orchid",
+    "expected": null,
+    "excluded": []
+  }
+]

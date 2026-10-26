@@ -3,7 +3,14 @@
     "optimization",
     "search",
     "policy",
-    "experiment-design"
+    "experiment-design",
+    "whole-system",
+    "bottleneck",
+    "critical-path",
+    "scheduling",
+    "caching",
+    "parallelism",
+    "pipelining"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -12,14 +19,86 @@
   "origin": [
     "external"
   ],
-  "sources": [],
+  "sources": [
+    {
+      "type": "paper",
+      "id": "Sarathi-Serve",
+      "version": "OSDI 2024 proceedings",
+      "url": "https://www.usenix.org/system/files/osdi24-agrawal.pdf",
+      "sections": [
+        "4.1-4.3",
+        "5.3",
+        "5.4, Figure 14 and Table 4"
+      ],
+      "readset": "references/foundational-sources.md"
+    },
+    {
+      "type": "paper",
+      "id": "2309.06180",
+      "version": "v1",
+      "url": "https://arxiv.org/html/2309.06180v1",
+      "sections": [
+        "4.1-4.5",
+        "7.1-7.3"
+      ],
+      "readset": "references/foundational-sources.md"
+    },
+    {
+      "type": "paper",
+      "id": "2312.07104",
+      "version": "v2",
+      "url": "https://arxiv.org/html/2312.07104v2",
+      "sections": [
+        "3",
+        "6.3",
+        "A.4"
+      ],
+      "readset": "references/foundational-sources.md"
+    },
+    {
+      "type": "document",
+      "version": "v0.10.2",
+      "url": "https://docs.vllm.ai/en/v0.10.2/design/prefix_caching.html",
+      "sections": [
+        "Hash identity",
+        "Cache Isolation for Security",
+        "Data Structure",
+        "Operations"
+      ],
+      "readset": "references/foundational-sources.md"
+    },
+    {
+      "type": "paper",
+      "id": "DistServe",
+      "version": "OSDI 2024 proceedings",
+      "url": "https://www.usenix.org/system/files/osdi24-zhong-yinmin.pdf",
+      "sections": [
+        "3-4",
+        "6.1",
+        "6.3-6.4"
+      ],
+      "readset": "references/foundational-sources.md"
+    },
+    {
+      "type": "document",
+      "version": "11.8.0",
+      "url": "https://docs.nvidia.com/cuda/archive/11.8.0/cuda-c-best-practices-guide/index.html",
+      "sections": [
+        "9.1",
+        "9.1.1",
+        "9.1.2"
+      ],
+      "readset": "references/foundational-sources.md"
+    }
+  ],
   "empirical_validation": "not_run",
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "Foundational cases guide diagnosis after a plateau; no automatic stall detector, agent efficacy evaluation or engine speedup is established."
   ],
   "provenance_readsets": [
     "references/papers-20261015/INTEGRATION_NOTES.md",
@@ -27,7 +106,8 @@
     "references/papers-20261015/MECHANISMS.md",
     "references/papers-20261015/NEXT_GATE_LEADS.md",
     "references/papers-20261015/references/source-notes.md",
-    "references/papers-20261015/updates/optimization-search-policy.md"
+    "references/papers-20261015/updates/optimization-search-policy.md",
+    "references/foundational-sources.md"
   ],
   "references": [
     "../inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
@@ -35,7 +115,30 @@
     "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
     "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
     "../inference-optimization-casebook/cases/drama3-rejected-directions.md",
-    "../inference-optimization-casebook/cases/drama3-rejected-directions.json"
+    "../inference-optimization-casebook/cases/drama3-rejected-directions.json",
+    "references/foundational-mechanism-decisions.md",
+    "cases/sarathi-chunk-budget.md",
+    "cases/sarathi-chunk-budget.json",
+    "cases/paged-kv-allocation.md",
+    "cases/paged-kv-allocation.json",
+    "cases/prefix-reuse-locality.md",
+    "cases/prefix-reuse-locality.json",
+    "cases/distserve-phase-placement.md",
+    "cases/distserve-phase-placement.json",
+    "cases/cuda-copy-overlap.md",
+    "cases/cuda-copy-overlap.json",
+    "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
+    "../inference-optimization-casebook/cases/admission-drain-occupancy.json",
+    "../assess-serving-preemption/SKILL.md",
+    "../assess-serving-preemption/references/source-notes.md",
+    "../performance-ceiling-analysis/SKILL.md",
+    "../choose-parallel-training-plan/SKILL.md",
+    "../inference-benchmark-design/SKILL.md",
+    "../dense-performance-evidence/SKILL.md",
+    "../../repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+    "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+    "../../repositories/lmcache/kv-tier-management/SKILL.md",
+    "../../repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md"
   ],
   "consumption_mode": "packaged"
 }

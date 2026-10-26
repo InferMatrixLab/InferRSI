@@ -151,6 +151,25 @@ the supplied local directory. Its six-paper extraction and standalone candidates
 are not imported or counted here. Existing DeepSpeed configuration evidence and
 Mooncake transport discovery are not substitutes for those paper readsets.
 
+Issue #131 independently adds the scoped sources below; it does not restore that
+archive or claim coverage of its uninspected ZeRO-Infinity, FlexGen or Mooncake
+papers. The existing [search-policy owner](../src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md)
+retains the [readset, attribution and notices](../src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-sources.md).
+
+| Source edition | Added case / inspected scope | Evidence limit |
+| --- | --- | --- |
+| Sarathi-Serve, OSDI 2024 | `case.sarathi-chunk-budget`; §§4.1–4.3, 5.3–5.4 | Chunking overhead and component ablation; no local replication |
+| PagedAttention, 2309.06180v1 | `case.paged-kv-allocation`; §§4.1–4.5, 7.1–7.3 | Allocation efficiency versus kernel/block/transfer overhead |
+| SGLang, 2312.07104v2; vLLM prefix design v0.10.2 | `case.prefix-reuse-locality`; §3, §6.3, A.4; identity/isolation/operations | Separate source versions; hot-replica counterexample is hypothetical |
+| DistServe, OSDI 2024 | `case.distserve-phase-placement`; §§3–4, 6.1, 6.3–6.4 | Real system and simulated ablation distinguished |
+| CUDA Best Practices 11.8.0 | `case.cuda-copy-overlap`; §§9.1–9.1.2 | Documented CUDA prerequisites; no native or other-backend validation |
+
+The sixth decision case reuses `case.admission-drain-occupancy` unchanged, retaining
+its original INCONCLUSIVE campaign. Orca and Alpa remain with their existing
+owners; Alpa supplies training applicability only. All new cases are candidates,
+empirical validation not_run; CPU fixtures establish packaging and deterministic
+retrieval contracts, not optimization efficacy.
+
 ### Negative findings (scoped to inspected paths and revisions)
 
 - **Disk-level storage I/O mechanics** (mmap/pinned staging buffers,
