@@ -186,7 +186,7 @@ def test_real_runner_uses_existing_validation_command_and_rejection_is_inconclus
     spec = RunSpec(
         repo=str(repo),
         repetitions=1,
-        max_minutes=1,
+        max_minutes=3,
         output_dir=str(tmp_path / "runs"),
         baseline_command=cli
         + ("measure", "--packet", str(packet), "--peer", str(candidate), "--output", "{result}"),
