@@ -8,7 +8,22 @@ DSH/openJiuwen integration and a measured usability comparison remain separate.
 ## Install from the GitHub preview
 
 Give Codex the [preview installation page](https://github.com/zengchuang-hw/OmniRSI/tree/codex/inferrsi-plugin-preview)
-and ask it to install InferRSI. A client with the plugin commands can run:
+and ask it to install InferRSI. On Windows, use the following PowerShell route
+to fetch only the generated branch and enable long paths for this Git operation:
+
+```powershell
+$pluginInstallDir = Join-Path $env:LOCALAPPDATA "InferRSI/codex-plugin-preview"
+git -c core.longpaths=true clone --depth 1 --single-branch --branch codex/inferrsi-plugin-preview https://github.com/zengchuang-hw/OmniRSI $pluginInstallDir
+codex plugin marketplace add $pluginInstallDir
+codex plugin add inferrsi@inferrsi-preview
+codex plugin list --marketplace inferrsi-preview --json
+```
+
+Choose a fresh directory, or inspect an existing installation before reusing it.
+This does not change global Git configuration. Direct Git marketplace registration
+on the tested Windows client first checked out the repository's default branch
+and hit the platform's path-length limit; the explicit single-branch clone avoids
+that unrelated checkout. Other clients may use the native Git-source route:
 
 ```text
 codex plugin marketplace add https://github.com/zengchuang-hw/OmniRSI --ref codex/inferrsi-plugin-preview
@@ -121,9 +136,12 @@ codex plugin marketplace remove inferrsi-local
 ```
 
 For the GitHub preview, substitute `inferrsi@inferrsi-preview` and
-`inferrsi-preview` respectively. Git-backed sources can be refreshed with
-`codex plugin marketplace upgrade inferrsi-preview`; reinstall and verify the
-selected bundle, especially when a preview is rebuilt with the same version.
+`inferrsi-preview` respectively. With the Windows clone route, update only that
+clone using `git -C <install-directory> -c core.longpaths=true pull --ff-only`,
+then reinstall and verify the plugin. A source registered directly as Git can
+instead be refreshed with `codex plugin marketplace upgrade inferrsi-preview`.
+Refresh/reinstall the selected bundle, especially when a preview is rebuilt with
+the same version.
 
 Removal does not delete target repositories or experiment evidence. The plugin
 registers no MCP server, hooks, daemon or scheduled task.
