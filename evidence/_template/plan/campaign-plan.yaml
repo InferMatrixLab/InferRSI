@@ -1,0 +1,180 @@
+# Campaign Plan template, machine-readable mirror of campaign-plan.md.
+#
+# Copy with the rest of evidence/_template/ into evidence/<campaign-id>/plan/ and
+# replace every <...> placeholder before the first candidate search. Keep every
+# value a string: a plan states intent, and a numeric gate belongs to the frozen
+# validator, never to this file.
+#
+# Row 1 model            | row 2 hardware        | row 3 goal
+# Row 4 search_plan      | row 5 test_plan       | row 6 budget
+# Row 7 control          | plus search_state and search_plan_revisions
+#
+# Rows 1, 2, 3, 5, 6 and 7 are frozen once the first candidate search starts.
+# Row 4 (search_plan, search_state, search_plan_revisions) is versioned: append a
+# search_plan_revisions entry for every change and never rewrite history.
+# Retain the original plan snapshots and freeze.json before search. Preserve each
+# later revision and whole-file manifest, and link a manual comparison of every
+# frozen field against the originals from that revision's evidence field.
+# Revision hashes establish integrity, not unchanged-contract evidence; validator
+# hashes remain unchanged. See campaign-plan.md for the freeze procedure.
+#
+# Field names follow the earlier evidence/drama3-b300-scale150/plan/plan.json
+# vocabulary (goal, hardware, concurrency, requests_per_repetition, repetitions,
+# quality, controls, experiment_protocol, readme_example, diagnostic_hypotheses),
+# regrouped under the row each field serves.
+
+campaign:
+  id: "<campaign-id>"
+  owner: "<accountable-owner>"
+  goal_acceptance_owner: "<goal-acceptance-owner>"
+  acceptance_issue: "<issue-url>"
+  base_revision: "<40-hex-revision>"
+  plan_revision: "<n>"
+  plan_date: "<YYYY-MM-DD>"
+
+# row 1: frozen
+model:
+  repository: "<org/model>"
+  revision: "<40-hex-revision>"
+  weight_format: "<safetensors or other>"
+  weight_hash: "<sha256 or declined with reason>"
+  tokenizer: "<tokenizer identity and revision>"
+  template: "<chat or prompt template, or none>"
+  modality: "<modality>"
+  task: "<task>"
+  precision: "<artifact precision policy>"
+  supported_modes: ["<mode>"]
+  excluded_modes: ["<mode and expected error>"]
+  semantic_reference: "<framework and pinned revision>"
+  performance_baseline: "<identity that will be measured locally>"
+  license: "<license>"
+
+# row 2: frozen
+hardware:
+  backend: "<cuda|ascend|other>"
+  vendor: "<vendor>"
+  sku: "<exact SKU>"
+  device_count: "<n>"
+  device_ids: ["<device id>"]
+  visibility: "<visibility mechanism>"
+  per_device_memory: "<memory>"
+  interconnect: "<interconnect>"
+  topology: "<topology>"
+  host_cpu: "<host CPU>"
+  host_numa: "<NUMA layout>"
+  host_ram: "<host memory>"
+  os: "<operating system>"
+  driver: "<driver version>"
+  firmware: "<firmware version>"
+  runtime: "<runtime and version>"
+  compiler: "<compiler and version>"
+  container_digest: "<sha256>"
+  precision: "<runtime precision policy>"
+  qualification_status: "<validated|unsupported|unverified>"
+  qualification_evidence: "<path>"
+  exclusivity_record: "<allocation owner and pre/post device snapshot>"
+
+# row 3: frozen
+goal: "<primary statement: primary metric, unit, direction and target line>"
+goal_detail:
+  primary_metric: "<metric>"
+  unit: "<unit>"
+  direction: "<minimize|maximize>"
+  target_line:
+    "<load level>": "<absolute or relative target>"
+  combination_rule: "<which levels must improve, which must not regress>"
+  quality:
+    coverage: "<what is checked, what is retained>"
+    exact_rows: ["<exact check>"]
+    tolerant_rows: [{metric: "<metric>", threshold: "<value>"}]
+    sample_identity: "<recorded separately from the tolerance gate>"
+    aggregation: "<how repetitions are combined>"
+  guard_metrics: ["<peak memory|failure rate|percentile latency>"]
+  required_levels: ["<ladder and level names>"]
+  user_confirmed: "<who confirmed the goal and when>"
+
+# row 4: mutable and versioned
+search_state:
+  incumbent_revision: "<revision or TBD>"
+  incumbent_evidence: "<path>"
+  next_candidate_parent: "<revision>"
+  isolation: "<separate directory or environment>"
+  import_path: "<exact path the candidate uses>"
+
+search_plan:
+  - id: "<D-01>"
+    plane: "<model|infra|harness>"
+    target_stage: "<stage>"
+    stage_share_of_e2e: "<nonoverlapping exposed-time share or unresolved; label overlapping durations separately>"
+    conditional_headroom: "<removable exposed critical-path time, assumptions, target/noise comparison, overlap, queueing, batching, capacity effects and uncertainty>"
+    diagnostic: "<if attribution is unresolved: discriminating observation, cost cap within row 6 and kill criterion; otherwise none>"
+    hypothesis: "<one line>"
+    mechanism: "<config|ownership/layout|fusion/operator|graph/launch|residency/memory|parallelism/communication|precision/approximation>"
+    risk: "<lossless-exact|tolerance-gated|semantics-changing>"
+    cost: "<static|microbench|profile run|scenario@c1|multi-regime|full cohort>"
+    prior_art: "<casebook entry or none>"
+    kill_criterion: "<what ends this direction>"
+    status: "<planned|running|kept|rejected|blocked>"
+    evidence: "<path>"
+
+# Append-only. A frozen row may never be edited after the first candidate search.
+search_plan_revisions:
+  - revision: "<n>"
+    date: "<YYYY-MM-DD>"
+    entry: "<D-xx>"
+    change: "<added|edited|blocked|promoted>"
+    from: "<previous statement or none>"
+    to: "<new statement>"
+    reason: "<why, and the evidence or negative result that motivated it>"
+    evidence: "<path>"
+
+# row 5: frozen
+test_plan:
+  concurrency: ["<load level>"]
+  requests_per_repetition: "<n>"
+  repetitions: "<n>"
+  dataset: "<corpus, prompt set or trace>"
+  dataset_hash: "<sha256>"
+  seeds: ["<seed>"]
+  held_out_split: "<visible to the implementer or hidden>"
+  held_out_release: "<release point and use limit>"
+  benchmark_command: "<command>"
+  timing_boundary: "<client_full_response|server_inference|offline_pipeline_with_sync>"
+  excluded_from_timing: ["<parsing|file writes|queueing>"]
+  controls:
+    warmup: "<warmup protocol, excluded from measurement>"
+    sampling: "<sampling or generation controls>"
+    connection: "<connection and retry policy>"
+    environment: "<environment variables that affect the result>"
+  ab_ba_pairs: "<n>"
+  quality_script: "<path>"
+  quality_judge: "<judge, reference assets and numeric gate>"
+  statistics:
+    baseline_sample_size: "<samples per dominant stage>"
+    rollback_line: "max(<percentage>, 2 sigma)"
+    below_two_sigma: "not measured"
+  validator: "<path>"
+  validator_hashes: "<sha256>"
+  abort_resume_policy: "<on crash, timeout, OOM or lost device>"
+
+# row 6: frozen
+budget:
+  candidate_cap: "<n>"
+  round_cap: "<n>"
+  device_hour_cap: "<n>"
+  retry_cap: "<n>"
+  spend_accounting: "<planned versus spent, per round>"
+  acceptance_reserve: "<reserve sized from measured restart and warmup cost>"
+  stop_conditions: ["<target met|two rounds below noise|budget exhausted|direction list exhausted|evidence insufficient>"]
+
+# row 7: frozen
+control:
+  device_owner: "<accountable owner>"
+  validator_owner: "<accountable owner>"
+  freeze_owner: "<accountable owner>"
+  revision_rights: "<who may revise which row>"
+  evaluator_separation: "<separate account, container, read-only mount or manual import>"
+  held_out_authority: "<who releases the held-out split>"
+
+experiment_protocol: "<one isolated variable per run; frozen source revision; stop on numerical or state error; promote only complete evidence>"
+readme_example: "<publication boundary: what may be claimed, and when>"

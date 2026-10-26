@@ -14,7 +14,7 @@ REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang",
 KNOWLEDGE_SCOPES = {
     "contribution": (*REPO_TYPES, "vllm_ascend", "inferrsi"),
     "dependency": (
-        "flashinfer", "flashattention", "pytorch", "triton", "diffusers", "transformers"
+        "flashinfer", "flashattention", "pytorch", "triton", "diffusers", "transformers", "mlx"
     ),
     "peer": (
         "sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit", "qwen3_tts_engine", "deepinfer"
@@ -23,7 +23,7 @@ KNOWLEDGE_SCOPES = {
 KNOWLEDGE_REPOS = tuple(
     dict.fromkeys(repo for repos in KNOWLEDGE_SCOPES.values() for repo in repos)
 )
-BACKENDS = ("cpu", "cuda", "rocm", "ascend")
+BACKENDS = ("cpu", "cuda", "rocm", "ascend", "mlx")
 SCENARIO_ALIASES = {
     "diffusion.t2i": "diffusion.image_generation",
     "diffusion.t2v": "diffusion.video_generation",
