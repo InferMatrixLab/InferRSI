@@ -35,7 +35,8 @@
     "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
     "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
     "../inference-optimization-casebook/cases/drama3-rejected-directions.md",
-    "../inference-optimization-casebook/cases/drama3-rejected-directions.json"
+    "../inference-optimization-casebook/cases/drama3-rejected-directions.json",
+    "../../workflows/rsi-evidence/references/loopx-goal-governance/README.md"
   ],
   "consumption_mode": "packaged"
 }

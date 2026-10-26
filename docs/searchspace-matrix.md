@@ -396,3 +396,16 @@ prefix-KV host/storage policy, and multimodal_gen diffusion stage/instance,
 component-use and timeout/job-finalizer lifetimes. This adds routing only.
 Common indexing is not CUDA/NPU qualification; process transport/IPC is not new
 Network coverage. Existing resource cells and maturity boundaries remain unchanged.
+
+## LoopX Goal governance (cross-cutting workflow)
+
+| Scope / stage | Named decision mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Cross-cutting Observe / Diagnose / Verify | Current Todo authority versus Markdown/index/audit projections; missing active Goal state, complete terminal evidence and ordered capability/workspace/inbox/repair decisions | [rsi-evidence Goal governance](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/README.md) | Pinned LoopX source/doc/test assertions, `f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9`; source-derived candidate, runtime and agent evaluation `not_run` |
+| Cross-cutting Diagnose / Verify, consumed by experiment selection | Local accounting effect/request identity, index CAS, commit repair versus replay lookup, exact Goal instance and external-effect crash-window limits | Same owner; [optimization-search-policy](../src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md#goal-admission-and-accounting-source-knowledge) links it | Local receipt idempotency does not prove external exactly-once or a supplier-side hard cost cap; a decision/receipt is not a campaign verdict |
+
+This adds workflow knowledge, with no new green or measured resource cell.
+Agent coordination/accounting is not Accelerator, Communication/Network or
+OS-control qualification; local journal files do not establish SSD performance.
+The existing five resource rows and all prior source/evidence boundaries remain
+unchanged.

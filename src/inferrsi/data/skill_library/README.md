@@ -42,6 +42,13 @@ An explicit `inferrsi skills --root <path>` selects a custom flat tree or a
 categorized library with `skill-index.json`. Backend scope does not certify
 device compatibility; readers do not execute helpers or promote candidates.
 
+For Goal-state authority, ordered next-action decisions and local quota receipt
+recovery, start with the existing [RSI evidence owner](workflows/rsi-evidence/SKILL.md#goal-authority-and-accounting-decisions)
+and its [LoopX source reference](workflows/rsi-evidence/references/loopx-goal-governance/README.md).
+The [search-policy route](methods/optimization-search-policy/SKILL.md#goal-admission-and-accounting-source-knowledge)
+reuses that owner. These are source-derived candidate additions, with runtime
+and agent efficacy unmeasured; no new skill or registry ID is added.
+
 ## vLLM-Ascend version and responsibility routing
 
 Choose by the question and the retained source version. These existing candidates have adjacent graph-startup topics and different primary responsibilities; neither entry replaces or validates the other.

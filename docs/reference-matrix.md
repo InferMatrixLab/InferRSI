@@ -367,3 +367,15 @@ readset. Original contribution access (2026-10-14), HiCache access (2026-10-15)
 and diffusion archive inspection (2026-10-22) remain separate. This navigation
 adds no upstream reinspection, common dependency tuple or validation result;
 source maps, notices and imported/candidate states stay with their owners.
+
+## LoopX Goal governance source knowledge
+
+| Source / revision | Inspected scope | Reuse, extraction and limits |
+| --- | --- | --- |
+| [loopx-project/loopx](https://github.com/loopx-project/loopx/tree/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9) @ `f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9` (Apache-2.0; original NOTICE and historical MIT text retained) | Direct bounded source inspection, 2026-10-26: TypeScript run/spend owners, Python adapters and health guidance, selected canonical Todo provider/read seams, direct local accounting transaction/admission dependencies, retired Todo-event guard/document, and named tests; exact bytes and inspected sections in [source ledger](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/source-ledger.json) | mined — [existing rsi-evidence owner](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/README.md) gains authority/projection distinctions, ordered next-action and local receipt-recovery mechanisms with counterexamples; optimization-search-policy links that owner. Source-derived candidate; empirical `not_run`, agent efficacy not evaluated. No LoopX installation/execution, external exactly-once, provider hard cost cap, new runtime or hardware/network coverage is established. |
+
+The current readset does not replace RFC #137's historical
+`a6f28057b49fe03bb234fa6ce1bac5d61df0c58f` reference or implement its checkpoint
+proposal. Provider storage internals, distributed leases, UI and the complete
+controller remain outside this extraction. Reading test assertions and packaging
+resources do not reproduce runtime behavior or promote the candidate.
