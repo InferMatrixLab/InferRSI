@@ -310,7 +310,7 @@ rejection neither greens nor fails another PR's status.
 The workflow handles PR open/reopen/close/commits/body-or-base edits on any target
 branch (a PR against another base can share a main PR's head), approval-comment
 creation/edit/deletion, every main push and manual dispatch. Main pushes refresh
-all open main-target PRs. All triggers share one serialized status writer and each
+all open main-target PRs. All eligible triggers share one serialized status writer and each
 run refreshes every open main-target PR, so replacing a pending job cannot lose another
 PR's refresh or let an older run overwrite a newer result. It checks out `main`,
 executes only trusted code, installs no PR
@@ -321,8 +321,14 @@ approvals are reread before publication; changes fail closed and need a fresh ru
 PR edits and status publication are not atomic: integrators still check the
 current head and latest run.
 
-The shared concurrency group belongs to the declaration job. Ordinary Issue
-comments skip that job and do not displace queued PR/base refreshes.
+The shared concurrency group belongs to the declaration job. Ordinary non-PR Issue
+comments skip that job. A newly created, nonempty PR comment without the
+`knowledge-policy-approval` marker also skips the job; every PR comment edit or
+deletion remains eligible, including removal of an approval marker. Missing event
+fields or an empty body are handled conservatively. The same eligibility expression
+controls both the job condition and its concurrency group: skipped events use a
+unique no-op group, never the status writer group. They therefore cannot replace
+a pending legitimate refresh, regardless of GitHub's condition/queue evaluation order.
 
 File pagination must exactly match `changed_files`; more than the GitHub files
 API's 3,000-file limit fails visibly. Exception/policy approvals require complete
@@ -347,7 +353,7 @@ restore exhausted status capacity, or guarantee that historical red checks clear
 
 ### Trigger-PR conclusion versus global sweep health
 
-Every workflow event still refreshes **all open policy-branch PRs** through the
+Every eligible workflow event still refreshes **all open policy-branch PRs** through the
 single serialized writer. This is necessary because concurrency may replace a
 pending event. The runner still makes up to three attempts when global work is
 unfinished; a green triggering PR never stops those retries early. The triggering
