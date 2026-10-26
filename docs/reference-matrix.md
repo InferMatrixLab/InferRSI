@@ -94,6 +94,16 @@ in (evidence/claim discipline, benchmark hygiene, RunSpec) — not an external
 mining source. The local sibling clone at `codex/skill-eval-bootstrap`
 (82218b4) is a **different fork lineage**; see §2.
 
+### PyTorch compiler and asynchronous-save responsibilities
+
+The [compiler/checkpoint scope map](../src/inferrsi/data/skill_library/README.md#pytorch-compiler-and-checkpoint-scope-routing)
+links the `f15b476814ebc5eade36fb40512e379ebf79dd60` technical-document dependency
+card with the separately inspected `7d239835e773c91689eb298692097f4a3340491f`
+DCP implementation readset and its independently retrieved live recipe.
+It preserves document versus implementation evidence, source/recipe dates and
+attribution, and different mutation, completion and measurement boundaries.
+The two sources do not establish a tested combined runtime stack.
+
 ### Reviewed systems-paper mechanisms
 
 `mined` below means pack-mediated extraction into the linked candidate artifacts.
