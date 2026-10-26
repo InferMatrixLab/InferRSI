@@ -44,8 +44,20 @@ including limitations from failed attempts.
 Illustrative target workflow; no measured results. [Watch the MP4](docs/assets/inferrsi-loop.mp4).
 
 Knowledge retrieval is read-only; candidate storage is optional and separately
-authorized. Automatic search and automatic knowledge promotion remain planned. Missing
-or incomplete evidence stays `INCONCLUSIVE`.
+authorized. Automatic model-backed search and automatic knowledge promotion remain
+planned. Missing or incomplete evidence stays `INCONCLUSIVE`.
+
+The **offline harness-improvement MVP** adds a separate Skill Eval path for supplied
+declarative candidates. Its fixed-output experiments validate the controller;
+real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/harness-improvement.md)
+
+```mermaid
+flowchart LR
+    H["Frozen H0 + INV / DOM edits"] --> P["Matched Skill Eval probes"]
+    P --> C["Quality / token selection + rerun"]
+    C --> G["Freeze + one held-out gate"]
+    G --> A["Candidate or H0; no promotion"]
+```
 
 ## Choose your starting path
 
@@ -149,6 +161,13 @@ not implemented. Process-cleanup behavior still needs platform-specific validati
 See the [source audit and proposed remedies](docs/reviews/source-audit-ac70272.md)
 for the 34 review points, qualifications and suggested acceptance checks.
 
+Alongside the engine loop, the [offline improvement controller](docs/harness-improvement.md)
+composes the existing Skill Eval comparator and independent verifier. Its selection
+policy lives in `harness/improvement.py`; the tool adapter freezes snapshots and
+carries the total budget across probes, rerun and holdout. The engine diagrams above
+continue to describe the engine path; this additional lane does not provide engine
+performance evidence or an autonomous model-backed optimizer.
+
 <details>
 <summary><strong>See the implemented modules</strong></summary>
 
@@ -175,6 +194,7 @@ for the 34 review points, qualifications and suggested acceptance checks.
 | [Quickstart](docs/quickstart.md) | Installation, real A/B experiments, and reports |
 | [Operation guide](docs/operations.md) | Every CLI/Python operation: entry point, effect class, boundary and example |
 | [Bounded skill evaluation](docs/skill-evaluation.md) | Real-client skill/task comparisons, independent outcomes and evidence limits |
+| [Offline harness improvement](docs/harness-improvement.md) | One INV/DOM step, quality/cost selection, held-out gate and reproducible controller experiments |
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |

@@ -67,6 +67,32 @@ Local executor commands are noninteractive and receive EOF on standard input.
 Supply their inputs through command arguments or files rather than the caller's
 input stream.
 
+### Offline harness-improvement lane
+
+The [single-step offline controller](harness-improvement.md) adds a bounded policy
+above the existing Skill Eval comparator. Supplied declarative INV/DOM edits are
+materialized as immutable Git snapshots. Development grades select a successor;
+it must run again before freezing for one independent held-out accept/reject gate.
+The controller accounts for the entire loop; candidate execution cost is reported
+separately. It reuses `run_trial` and the local executor, including their inherited
+absolute deadline, rather than creating another execution backend.
+
+```mermaid
+flowchart LR
+    I["Frozen tasks, edits, policy and total budget"] --> C["Offline improvement controller"]
+    C --> S["Existing Skill Eval comparator / run_trial"]
+    S --> V["Independent grader + verified receipts"]
+    V --> C
+    C --> H["Freeze final candidate → one holdout gate"]
+    C --> X["Development-only experience; no Store write"]
+```
+
+The feedback arrow represents development evidence only. Holdout cannot select a
+different candidate or cause another edit. Real-client execution, autonomous
+proposal generation, external sandbox enforcement and Store/CAS reuse are outside
+this MVP. [PR skill evaluation](skill-eval-pr.md) is another existing consumer of
+the comparator; the engine AB/BA path retains its independent acceptance contract.
+
 ## Directory map
 
 ![Implemented modules mapped to directories](assets/modular-directory-map-en.svg)
@@ -80,6 +106,8 @@ src/inferrsi/
   knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
   knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
   harness/
+    improvement.py          Offline quality-first selection and usage accounting
+    skill_evaluation.py     Skill trial/client interface and independent grading
     runner.py               One AB/BA loop; execute/snapshot adapter hooks
     evaluation.py           Performance/quality/source-integrity adjudication
     reporting.py            HTML evidence report

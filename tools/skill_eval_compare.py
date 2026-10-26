@@ -384,7 +384,8 @@ def receipt_error(raw_record: bytes, receipt_path: Path, label: str) -> str | No
     return None
 
 
-def execute(output: Path, authorization: str, *, client=None) -> dict:
+def execute(output: Path, authorization: str, *, client=None,
+            campaign_deadline: float | None = None) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
@@ -398,6 +399,8 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
                {"started_at": time.time(), "client_runtime": runtime})
     tasks = {task["id"]: task for task in read_json(output / "plan/tasks.json")}
     deadline = time.monotonic() + plan["limits"]["campaign_seconds"]
+    if campaign_deadline is not None:
+        deadline = min(deadline, campaign_deadline)
     tokens, completed, stop_reason = 0, 0, None
     for entry in plan["schedule"]:
         if time.monotonic() >= deadline or tokens >= plan["limits"]["token_stop_new_trials"]:
@@ -473,7 +476,11 @@ def retained_trial(output: Path, entry: dict) -> dict:
     # Select report fields; raw commands and private workspace paths stay in local artifacts.
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
                 "verdict", "checks", "elapsed_seconds", "observations", "inputs_unchanged")}
-    selected["observations"] = {"usage": record["observations"]["usage"]}
+    selected["observations"] = {
+        "usage": record["observations"]["usage"],
+        "tool_calls": len(record["observations"]["commands"])
+        if isinstance(record["observations"].get("commands"), list) else None,
+    }
     error = record.get("evaluation_error")
     if data is None:
         error = error or "missing_retained_output"
