@@ -30,7 +30,7 @@ def inspect_environment(
         "import json,sys,importlib.metadata as m\n"
         "names=['torch','vllm','vllm-omni','vllm-afd-plugin','vllm-rlt','torch-npu',"
         "'nvidia-nccl-cu12','nvidia-nccl-cu13','nvidia-cuda-runtime-cu12',"
-        "'nvidia-cuda-runtime-cu13']\n"
+        "'nvidia-cuda-runtime-cu13','mlx']\n"
         "packages={}\n"
         "for name in names:\n"
         "    try:\n"

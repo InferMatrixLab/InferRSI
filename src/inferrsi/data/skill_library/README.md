@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **80 skill documents**: 59 registered skills
+The English-only library contains **81 skill documents**: 60 registered skills
 and 21 engine and research-router skills. Complete procedures, metadata,
 references, cases and source notices ship with the package.
 
@@ -8,7 +8,7 @@ references, cases and source notices ship with the package.
 
 | Directory | Content |
 | --- | --- |
-| [Hardware](hardware/) | Ascend (13 registered skills), CUDA (2) and host resource guidance (5) |
+| [Hardware](hardware/) | Ascend (13 registered skills), CUDA (3) and host resource guidance (5) |
 | [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 59 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 60 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -65,6 +65,30 @@ and server task/slot cancellation. Its pinned source contracts are untested nati
 existing owners. The [scope and source map](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope)
 links all three responsibilities and their separate source snapshots.
 
+## PyTorch compiler and checkpoint scope routing
+
+Choose by the affected responsibility within `pytorch/pytorch`. The compiler
+dependency card and DCP procedure retain different source snapshots and
+completion contracts; their shared repository name does not make a tested stack.
+
+| Need | Existing entry | Retained evidence | Completion / applicability boundary |
+| --- | --- | --- | --- |
+| Inductor guards, capture shapes, replay addresses or live outputs | [Compiler dependency card](../knowledge_packs/dependency/pytorch/cuda/compiler/cudagraph-shapes-and-lifetimes.json) | Technical documents at `f15b476814ebc5eade36fb40512e379ebf79dd60`, accessed 2026-10-15; upstream-reported, imported/unverified | Compile/recompile guards, graph recording/replay and output lifetime are independent constraints; this is CUDA/compiler guidance |
+| Training-visible save pauses, snapshot buffers and cleanup | [DCP async-save procedure](frameworks/pytorch/dcp-async-save-performance/SKILL.md) and [source ledger](frameworks/pytorch/dcp-async-save-performance/references/sources.md) | Implementation at `7d239835e773c91689eb298692097f4a3340491f`, inspected 2026-10-15; candidate / empirical validation `not_run` | Preserve caller capture, staging, upload, cached-buffer reuse and caller-owned cleanup boundaries; writer completion is separate from backend durability and distributed recovery |
+| Tutorial examples and API/version differences | [DCP documentation/implementation reconciliation](frameworks/pytorch/dcp-async-save-performance/references/sources.md#documentation-matched-against-implementation) | Live async recipe retrieved 2026-10-15, with its own retained HTML hash and page metadata | The recipe's 2.4+ / 2.9+ labels do not identify the inspected main commit or establish a matching wheel; source notices and recipe attribution remain in the ledger |
+
+Known mutation and storage lifetimes are a shared diagnostic prerequisite,
+with different checks: the compiler card calls for retaining outputs across
+later calls and exercising input mutation; DCP locates the next mutation of checkpointed state
+and follows its [completion/lifetime contract](frameworks/pytorch/dcp-async-save-performance/SKILL.md#completion-and-lifetime-contract).
+Neither owner's completion event establishes the other's safe reuse or eligibility.
+
+Keep timing boundaries separate too: compiler checks distinguish cold cost,
+recompilation, capture and steady-state replay; DCP measures
+[caller, staging, upload and step time](frameworks/pytorch/dcp-async-save-performance/SKILL.md#evidence-to-request-in-a-separately-authorized-measurement),
+including first-use versus reused buffers. These are owner-specific checks,
+not a combined compiler/checkpoint calling protocol or compatibility result.
+
 ## TensorRT-LLM source and responsibility routing
 
 TensorRT-LLM's retained methodology row covers **skill documents**, not an
@@ -94,7 +118,7 @@ guidance; it establishes no cross-pin implementation compatibility.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 59-ID registry.
+the links and catalog records below, separately from the 60-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -110,6 +134,12 @@ these imports and use generated abstracts rather than runtime repository packs.
 | SGLang-Omni | Stage pipelines, streaming and transport | [Skill](repositories/sglang-omni/SKILL.md) | [Records](../repo_packs/sglang_omni/knowledge/README.md) |
 | vLLM-Omni | Model/deploy separation, AR/diffusion and output contracts | [Skill](repositories/vllm-omni/SKILL.md) | [Records](../repo_packs/vllm_omni/knowledge/README.md) |
 | Research router | Constrained engine design and validation | [Skill](workflows/inference-engine-research/SKILL.md) | — |
+
+For vLLM-Omni, the
+[source and responsibility map](repositories/vllm-omni/SKILL.md#source-and-responsibility-map)
+routes broad stage/model/output decisions and the separate
+[abort validation](repositories/vllm-omni/sub-skills/omni-validation/SKILL.md)
+with their original inspection dates and source pins.
 
 See the [collection overview](workflows/inference-engine-research/references/overview.md),
 [import boundaries](workflows/inference-engine-research/references/import.md) and
@@ -180,3 +210,14 @@ separates the LLM engine graph, CUDA HiCache peer card and multimodal_gen diffus
 candidate. Read external HiCache material by its stable catalog ID; the versioned
 routes retain their original dates and validation limits. Shared navigation does
 not establish cross-pin/backend compatibility or new Network coverage.
+
+## Hopper kernel reasoning
+
+The CUDA-owned [reason-hopper-kernels](hardware/cuda/reason-hopper-kernels/SKILL.md)
+candidate distills the pinned KDA → KernelWiki lineage into TMA/mbarrier/WGMMA
+lifetime reasoning, register/pipeline/layout/software-scheduling tradeoffs and
+selected FP8 GEMM contracts. Its [coverage inventory](hardware/cuda/reason-hopper-kernels/references/source-inventory.json)
+separates mined mechanisms, unmined source headers and Blackwell-only recipes;
+[source/license qualifications](hardware/cuda/reason-hopper-kernels/references/sources.md)
+retain contradictions and distribution discrepancies. GPU execution and efficacy
+remain not_run.

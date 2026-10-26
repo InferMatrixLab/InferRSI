@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/05fae2814158a9b59416b3f1e99371d0d171ff84/src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
-      "commit": "05fae2814158a9b59416b3f1e99371d0d171ff84",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
+      "commit": "5506c6b88d441860f1467146ede263ca41514713",
       "paths": [
         "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json",
@@ -39,7 +39,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md": "9cd37f21fe0d862069e4798edca8a04d59f8b840e55d521901594a63dddd9ba3",
     "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json": "3132b700334856ab8e1eec4396bcb57627e987adf28cb86d5dc7974820ee9968",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
     "name": "skill-evolution-playbook",

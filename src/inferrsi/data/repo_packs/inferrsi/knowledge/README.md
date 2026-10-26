@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 59 registered skills in `data/skill_library/`.
+Generated abstracts for all 60 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [05fae2814158a9b59416b3f1e99371d0d171ff84](https://github.com/InferMatrixLab/InferRSI/tree/05fae2814158a9b59416b3f1e99371d0d171ff84/src/inferrsi/data/skill_library).
+Source snapshot: [5506c6b88d441860f1467146ede263ca41514713](https://github.com/InferMatrixLab/InferRSI/tree/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 05fae2814158a9b59416b3f1e99371d0d171ff84 --check
+python tools/build_skill_index.py --source-revision 5506c6b88d441860f1467146ede263ca41514713 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -87,6 +87,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
 | [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | common | candidate |
 | [plan-activation-residency](common/skills/plan-activation-residency.json) | common | candidate |
+| [reason-hopper-kernels](cuda/skills/reason-hopper-kernels.json) | cuda | candidate |
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | unspecified |
 | [skill-evolution-playbook](common/skills/skill-evolution-playbook.json) | common | candidate |
