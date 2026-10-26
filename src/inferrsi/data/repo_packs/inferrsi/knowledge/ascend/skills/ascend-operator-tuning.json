@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d100791ac4e02406b685d8bc0030de51130a3a06/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
+      "commit": "d100791ac4e02406b685d8bc0030de51130a3a06",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json",
@@ -42,7 +42,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "ab7dedfa873b8572db277e43536e6ce04c68ac987aee189ffd5861e4e9bb2d6d",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "1b9722330262d8918d686af166f83af96dc15b771d8acc94f8b983ee92b19897"
   },
   "skill_metadata": {
     "name": "ascend-operator-tuning",

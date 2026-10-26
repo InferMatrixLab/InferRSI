@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 60 registered skills in `data/skill_library/`.
+Generated abstracts for all 61 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [933c3e31f2b6f4f7957216ac641bf5dbb63ba002](https://github.com/InferMatrixLab/InferRSI/tree/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library).
+Source snapshot: [d100791ac4e02406b685d8bc0030de51130a3a06](https://github.com/InferMatrixLab/InferRSI/tree/d100791ac4e02406b685d8bc0030de51130a3a06/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 933c3e31f2b6f4f7957216ac641bf5dbb63ba002 --check
+python tools/build_skill_index.py --source-revision d100791ac4e02406b685d8bc0030de51130a3a06 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -50,6 +50,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
 | [audit-afd-p2p-exchanges](cuda/skills/audit-afd-p2p-exchanges.json) | cuda | candidate |
+| [audit-fixed-workload-claim](common/skills/audit-fixed-workload-claim.json) | common | candidate |
 | [audit-h3-runtime-residency](common/skills/audit-h3-runtime-residency.json) | common | candidate |
 | [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
 | [audit-sd-cpp-residency](common/skills/audit-sd-cpp-residency.json) | common | candidate |

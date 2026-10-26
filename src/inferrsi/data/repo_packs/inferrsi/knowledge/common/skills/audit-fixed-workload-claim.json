@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.audit_fixed_workload_claim",
+  "title": "audit-fixed-workload-claim",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit a performance claim from supplied fixed-workload reports and an explicit measurement contract. Check aggregation, retained observations, comparability and quality evidence without launching new benchmarks.",
+  "tags": [
+    "performance",
+    "audit",
+    "measurement"
+  ],
+  "origin": [
+    "internal"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d100791ac4e02406b685d8bc0030de51130a3a06/src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
+      "commit": "d100791ac4e02406b685d8bc0030de51130a3a06",
+      "paths": [
+        "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "8486f253b43bbcbf17e77e1669a6cf9ac56fdacda46de8246f68619004044dee"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/audit-fixed-workload-claim/SKILL.md"
+  },
+  "checkout_ref": "checkout:audit-fixed-workload-claim",
+  "source_files": {
+    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md": "8486f253b43bbcbf17e77e1669a6cf9ac56fdacda46de8246f68619004044dee",
+    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json": "81edd75fa16939807548d0944e9203cfd7c0cb17e63463872d96ca2c1273d1d8",
+    "src/inferrsi/data/skill_library/skill-index.json": "1b9722330262d8918d686af166f83af96dc15b771d8acc94f8b983ee92b19897"
+  },
+  "skill_metadata": {
+    "name": "audit-fixed-workload-claim",
+    "description": "Audit a performance claim from supplied fixed-workload reports and an explicit measurement contract. Check aggregation, retained observations, comparability and quality evidence without launching new benchmarks.",
+    "status": "candidate",
+    "origin": [
+      "internal"
+    ],
+    "tags": [
+      "performance",
+      "audit",
+      "measurement"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Guidance for supplied reports; no local efficacy validation or measured performance gain is established."
+    ]
+  },
+  "applicability": {},
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Guidance for supplied reports; no local efficacy validation or measured performance gain is established."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
