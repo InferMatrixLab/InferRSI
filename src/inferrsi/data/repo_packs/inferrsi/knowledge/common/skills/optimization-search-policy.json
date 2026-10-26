@@ -21,12 +21,11 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e2d3a597038ae5a3dca35858b72276545eafdad1/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "e2d3a597038ae5a3dca35858b72276545eafdad1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "5506c6b88d441860f1467146ede263ca41514713",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json",
-        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-mechanism-decisions.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/MECHANISMS.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md",
@@ -35,7 +34,7 @@
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "cd0171fc1b4c2ae1802c8e71ff4a0c5d6364eb970edbea3a7f827137f9220669"
+      "content_sha256": "882e7850b9b49ad692a2d11618701afe0f4e83727ea78df114be2029923c725a"
     }
   ],
   "index_type": "packaged-skill",
@@ -44,16 +43,15 @@
   },
   "checkout_ref": "checkout:optimization-search-policy",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "cd0171fc1b4c2ae1802c8e71ff4a0c5d6364eb970edbea3a7f827137f9220669",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "e5250f8526a527147113025caabaacef5c2d3fb3298d031c8d9a1c745abaa560",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-mechanism-decisions.md": "57b6b30a5d47859e02ff1c97f29ff3f62d633ac35013c48370ace90d12ab625e",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "882e7850b9b49ad692a2d11618701afe0f4e83727ea78df114be2029923c725a",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "113c761ae488055da7e59c77df2db4247a545fdaf558188f01bde4b0960123c6",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/MECHANISMS.md": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/references/source-notes.md": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
     "name": "optimization-search-policy",
@@ -86,8 +84,7 @@
       "references/papers-20261015/MECHANISMS.md",
       "references/papers-20261015/NEXT_GATE_LEADS.md",
       "references/papers-20261015/references/source-notes.md",
-      "references/papers-20261015/updates/optimization-search-policy.md",
-      "references/foundational-mechanism-decisions.md"
+      "references/papers-20261015/updates/optimization-search-policy.md"
     ],
     "references": [
       "../inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
@@ -95,19 +92,7 @@
       "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
       "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
       "../inference-optimization-casebook/cases/drama3-rejected-directions.md",
-      "../inference-optimization-casebook/cases/drama3-rejected-directions.json",
-      "../performance-ceiling-analysis/SKILL.md",
-      "../assess-serving-preemption/SKILL.md",
-      "../assess-serving-preemption/references/source-notes.md",
-      "../../repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
-      "../../repositories/vllm/diagnose-vllm-admission-pressure/references/source-notes.md",
-      "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
-      "../../repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md",
-      "../../repositories/lmcache/kv-tier-management/SKILL.md",
-      "../choose-parallel-training-plan/SKILL.md",
-      "../choose-parallel-training-plan/references/source-notes.md",
-      "../../repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
-      "../../repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md"
+      "../inference-optimization-casebook/cases/drama3-rejected-directions.json"
     ],
     "consumption_mode": "packaged"
   },

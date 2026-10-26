@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e2d3a597038ae5a3dca35858b72276545eafdad1/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "e2d3a597038ae5a3dca35858b72276545eafdad1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "5506c6b88d441860f1467146ede263ca41514713",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
@@ -55,7 +55,7 @@
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "a2df4056af372fbbb2fbe90db01acc926fad78775844fa91cff8bc2f3286ff58",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "fdcadb4488e29ca45edf21a350ed28ed4f6c6a9fb4772a61d90ca8f62ce5bb04",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "6aa0dd8ae9a8b45d770593f236ce39a6c2e06a8e67ad7176b47d484686028f63",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
     "name": "inference-optimization-casebook",

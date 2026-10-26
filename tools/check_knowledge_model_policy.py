@@ -31,11 +31,13 @@ STATUS_RESERVE = 8
 # recorded by this text and leaves it in place instead of spending another reserved slot.
 BUDGET_DESCRIPTION = "Status history is nearly full; push a new head"
 # A head can carry statuses from other contexts, so the page count alone does not bound the scan.
-# The deadline is set once per sweep, not per head: targets are processed serially under one
-# workflow timeout, so a fresh budget for each read would let a long sweep die before a later
-# target's failure is published. The reserve keeps time free for that publication.
+# Each target gets its own share of the time still left in the sweep, capped by a per-target
+# ceiling: one absolute deadline shared by every target let the earlier targets consume the whole
+# window, after which each later target failed closed on every retry. The sweep deadline remains
+# as the outer bound, and the reserve keeps time free for publication after the last read.
 HISTORY_PAGES = 50
-HISTORY_SECONDS = 60
+TARGET_SECONDS = 30
+SWEEP_SECONDS = 120
 HISTORY_RESERVE = 15
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
@@ -54,6 +56,9 @@ RERUN_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publica
                "invalidation-failed", "history-unavailable"}
 # A lifecycle kind forbids publication: the captured head is no longer the current target.
 NO_PUBLISH = {"closed", "advanced"}
+# Kinds that settle a target for this attempt. A later attempt trusts one only after re-checking
+# that the target is still open against the policy branch at the same head.
+COMPLETED_KINDS = {"compliant", "noncompliant", "closed", "budget-exhausted", "budget-saturated"}
 
 
 def summarize(results):
@@ -330,12 +335,15 @@ class GitHub:
         # GitHub treats the context name case-insensitively, so counting only the exact spelling
         # would miss equivalent entries and could spend the last free slots on a pending and a
         # success. The list is newest first, which makes entry 0 the head's effective status.
+        #
+        # The deadline is already one target's share of the sweep, so this method only stops when
+        # that share is spent; the publication reserve is withheld by the caller.
         key = CONTEXT.casefold()
         found = []
         page = 1
         while True:
             remaining = deadline - time.monotonic()
-            if page > HISTORY_PAGES or remaining <= HISTORY_RESERVE:
+            if page > HISTORY_PAGES or remaining <= 0:
                 raise ValueError("Status history scan exceeded its budget")
             query = urlencode({"per_page": 100, "page": page})
             items, links = self.request(f"commits/{head}/statuses?{query}",
@@ -561,6 +569,17 @@ def invalidated(api, head, dry_run, deadline):
     return None, True
 
 
+def target_deadline(deadline, remaining_targets):
+    # One absolute budget for the whole sweep starved every target after the earlier ones had
+    # spent it, and a retry replayed the same prefix. Each target instead gets an equal share of
+    # the time left, capped so one slow head cannot hold the sweep: a target that finishes early
+    # returns its unused time to the later ones. Inside the publication reserve the share is
+    # negative, which makes the read fail closed immediately.
+    now = time.monotonic()
+    share = (deadline - HISTORY_RESERVE - now) / max(remaining_targets, 1)
+    return now + min(TARGET_SECONDS, share)
+
+
 def lifecycle_result(result, scan_error):
     # Invalidate an old success when the current declaration was not validly assessed. The
     # check still publishes a verdict; only an unknowable lifecycle is reported without a write.
@@ -573,10 +592,63 @@ def lifecycle_result(result, scan_error):
     return {**result, "rerun": False}
 
 
-def check_prs(api, policy, policy_sha, dry_run, numbers=None):
-    # One deadline for the whole sweep: history reads share it, so a long scan on an early target
-    # cannot leave a later target without time to publish its own failure.
-    deadline = time.monotonic() + HISTORY_SECONDS
+def plan_file(path, policy_sha):
+    # The plan is scoped to one trusted base and one runner invocation. A different base means the
+    # loaded policy and checker are different code, so earlier verdicts may not describe it.
+    if path is None or not path.exists():
+        return {"policy_sha": policy_sha, "completed": {}}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+    except (OSError, ValueError, TypeError):
+        return {"policy_sha": policy_sha, "completed": {}}
+    if not isinstance(value, dict) or value.get("policy_sha") != policy_sha:
+        return {"policy_sha": policy_sha, "completed": {}}
+    if not isinstance(value.get("completed"), dict):
+        return {"policy_sha": policy_sha, "completed": {}}
+    return value
+
+
+def write_plan(path, plan):
+    if path is None:
+        return
+    path.write_text(json.dumps(plan, ensure_ascii=True, sort_keys=True), encoding="utf-8")
+
+
+def still_current(api, number, entry, policy, open_prs, scan_error):
+    # Premise revalidation for work another attempt already published. The verdict depended on
+    # evidence outside the PR snapshot, so a carried entry must prove all of it still holds: the
+    # metadata snapshot, the approvals that were read, and head ownership across the open PRs. A
+    # stored premise that is missing cannot be revalidated, so it falls back to full evaluation.
+    if "comments" not in entry or "ownership" not in entry:
+        return False
+    if scan_error is not None:
+        # Without the open-PR collection the target alone looks like a unique owner, which is the
+        # same assumption `lifecycle_result` refuses for a fresh verdict.
+        return False
+    try:
+        live = api.get(f"pulls/{number}")
+        snapshot = admission_snapshot(live)
+    except API_ERRORS:
+        return False
+    if snapshot != tuple(entry.get("snapshot") or ()) or not addressable(live, policy):
+        return False
+    if head_owner(open_prs or [live], number, live["head"]["sha"]) != entry["ownership"]:
+        # A peer appearing or leaving changes eligibility without changing this PR.
+        return False
+    if entry["comments"]:
+        try:
+            if api.pages(f"issues/{number}/comments") != entry["comments"]:
+                # An approval added, edited or revoked changes the verdict it produced.
+                return False
+        except API_ERRORS:
+            return False
+    return True
+
+
+def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None):
+    # The sweep deadline bounds the whole evaluation pass and keeps publication time free; each
+    # target's read is bounded separately by its share of what remains.
+    deadline = time.monotonic() + SWEEP_SECONDS
     scan_error = None
     try:
         open_prs = api.pages("pulls?state=open")
@@ -590,10 +662,27 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                      "kind": "unverified", "description": "Lifecycle metadata unavailable",
                      "errors": [evaluation_failure(scan_error)["errors"][0]]}]
         numbers = [pr["number"] for pr in open_prs if addressable(pr, policy)]
+    # Work another attempt already settled is not repeated: re-running it would spend the same
+    # bounded time and, in a later attempt's exhausted tail, replace a published verdict with a
+    # failure. A carried target is trusted only after its own premise is re-confirmed here.
+    completed = {} if plan is None else plan["completed"]
+    carried = {}
+    pending = list(numbers)
+    for number in list(numbers):
+        entry = completed.get(str(number))
+        if not isinstance(entry, dict):
+            continue
+        head = entry.get("head")
+        if isinstance(head, str) and SHA.fullmatch(head):
+            if not still_current(api, number, entry, policy, open_prs, scan_error):
+                continue
+            carried[number] = entry
+            pending.remove(number)
+    numbers = pending
     # One evaluation pass. Stale work is returned as deferred so the outer runner, which can
     # refetch trusted main, owns retries; this checker never repairs its own loaded policy.
     records = {}
-    for number in numbers:
+    for index, number in enumerate(numbers):
         try:
             pr = api.get(f"pulls/{number}")
         except API_ERRORS as error:
@@ -610,7 +699,8 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                "ownership": None, "publish": False,
                                "result": closed_result("Not open against the policy branch")}
             continue
-        failure, publish = invalidated(api, head, dry_run, deadline)
+        failure, publish = invalidated(api, head, dry_run,
+                                      target_deadline(deadline, len(numbers) - index))
         if failure is not None:
             # Without a published invalidation an old success would still be the head's effective
             # state, so this target gets no verdict and asks the runner for a fresh attempt.
@@ -695,11 +785,16 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
         ownership = None if scan_error is not None else head_owner(open_prs, number, head)
         if premise or ownership != record["ownership"]:
             # Reassess against current metadata and the current open-PR collection: a closed
-            # peer can end head sharing, and a moved body or approval changes the verdict.
-            result, _ = read_pr_result(api, live, policy, policy_sha,
-                                       open_prs if open_prs else [live])
+            # peer can end head sharing, and a moved body or approval changes the verdict. The
+            # premises recorded afterwards must be the ones this reassessment used, or the plan
+            # would pair a new verdict with evidence that no longer produced it.
+            result, comments = read_pr_result(api, live, policy, policy_sha,
+                                              open_prs if open_prs else [live])
+            record["comments"] = comments
+            record["snapshot"] = admission_snapshot(live)
             ownership = (None if scan_error is not None
                          else head_owner(open_prs, number, head))
+            record["ownership"] = ownership
         if result["kind"] in NO_PUBLISH:
             # The reassessment observed that this head is no longer the target.
             published[number] = {**result, "head": head,
@@ -723,6 +818,30 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                      evaluation_failure(error)["errors"][0]]}
         published[number] = {**result, "head": head,
                              "rerun": result["kind"] in RERUN_KINDS}
+    # Carried verdicts are reported as they were published by the earlier attempt. Nothing is
+    # rewritten for them here: their head was re-confirmed as current at the start of this run.
+    for number, entry in carried.items():
+        if number not in published:
+            published[number] = {**entry["result"], "head": entry["head"], "rerun": False}
+    if plan is not None:
+        # The next attempt inherits only what this one settled, together with the premise the
+        # verdict was assessed against: the head alone would let an edited declaration or a moved
+        # base be carried as if it had been evaluated.
+        plan["completed"] = {str(number): entry for number, entry in carried.items()}
+        for number, item in published.items():
+            settled = plan["completed"].get(str(number), {})
+            record = records.get(number)
+            head_value = record["head"] if record else settled.get("head")
+            snapshot_value = record["snapshot"] if record else settled.get("snapshot")
+            comments_value = record["comments"] if record else settled.get("comments")
+            ownership_value = record["ownership"] if record else settled.get("ownership")
+            if (item["kind"] in COMPLETED_KINDS and snapshot_value is not None
+                    and comments_value is not None):
+                plan["completed"][str(number)] = {
+                    "head": head_value, "snapshot": snapshot_value,
+                    "comments": comments_value, "ownership": ownership_value,
+                    "result": {key: item[key] for key in
+                               ("state", "kind", "description", "errors")}}
     results = []
     for number in sorted(published):
         item = published[number]
@@ -754,6 +873,7 @@ def main(argv=None):
     parser.add_argument("--policy-sha", required=True)
     parser.add_argument("--pull-request", type=int)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--plan", type=Path)
     args = parser.parse_args(argv)
     if not SHA.fullmatch(args.policy_sha):
         raise ValueError("Expected the trusted policy checkout SHA")
@@ -772,7 +892,9 @@ def main(argv=None):
         event = json.loads(Path(args.event_path).read_text(encoding="utf-8"))
         # Every trigger shares one writer, so a superseded queued event still covers all open PRs.
         numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
-    results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers)
+    plan = plan_file(args.plan, args.policy_sha)
+    results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan)
+    write_plan(args.plan, plan)
     for result in results:
         print(json.dumps(result, ensure_ascii=True))
     print(json.dumps(summarize(results), ensure_ascii=True))
