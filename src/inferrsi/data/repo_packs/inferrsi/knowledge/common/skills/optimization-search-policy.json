@@ -8,12 +8,19 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.\n",
+  "summary": "Policy for how an optimization agent should select, order, and stop optimization experiments. Use when optimization stalls: re-derive the whole-system bottleneck and critical path from first principles before choosing scheduling, caching/reuse, or parallelism/pipelining. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.\n",
   "tags": [
     "optimization",
     "search",
     "policy",
-    "experiment-design"
+    "experiment-design",
+    "whole-system",
+    "bottleneck",
+    "critical-path",
+    "scheduling",
+    "caching",
+    "parallelism",
+    "pipelining"
   ],
   "origin": [
     "external"
@@ -21,11 +28,23 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d0338d71010088a9382a03f10b087a4f5330c7d3/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "d0338d71010088a9382a03f10b087a4f5330c7d3",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/cuda-copy-overlap.json",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/cuda-copy-overlap.md",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/distserve-phase-placement.json",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/distserve-phase-placement.md",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/paged-kv-allocation.json",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/paged-kv-allocation.md",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/prefix-reuse-locality.json",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/prefix-reuse-locality.md",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-mechanism-decisions.md",
+        "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-sources.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/MECHANISMS.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md",
@@ -34,7 +53,7 @@
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "882e7850b9b49ad692a2d11618701afe0f4e83727ea78df114be2029923c725a"
+      "content_sha256": "e1a18eda78e392acb0bc9d6f38e1b8fc651ce31901426352230407f51c4f040c"
     }
   ],
   "index_type": "packaged-skill",
@@ -43,8 +62,20 @@
   },
   "checkout_ref": "checkout:optimization-search-policy",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "882e7850b9b49ad692a2d11618701afe0f4e83727ea78df114be2029923c725a",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "113c761ae488055da7e59c77df2db4247a545fdaf558188f01bde4b0960123c6",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "e1a18eda78e392acb0bc9d6f38e1b8fc651ce31901426352230407f51c4f040c",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/cuda-copy-overlap.json": "ec472906895b7e197402447e706c6e92f620503f33861b017aff1567bab9e4a7",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/cuda-copy-overlap.md": "9a6d9bba0b42748960625b6d4b1d96de281d73be4f16ed4c9068c30616810549",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/distserve-phase-placement.json": "5afb296e26bfb43be54c4ca1eb53f214add6e83e0c45d86ca9c9c8010c045379",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/distserve-phase-placement.md": "21f69e2415f757b7e7e699744722d8e979bfd924286e3e941db0be2099e0351a",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/paged-kv-allocation.json": "e4579d78dee6c2fcfc33799e832ea1a23c513268dfc9a53054ee4447ccda8bb6",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/paged-kv-allocation.md": "1c2ab146f9c55f74c5ff8aee803c04830961b3a1e99c45c2a842d62806479d9f",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/prefix-reuse-locality.json": "9d027427bc8ab5c3c3fac1c64be863200128a2d8fd29642492820bae6d57ff15",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/prefix-reuse-locality.md": "bba1812d51bc46427ce9e7933e1d25de07308bd7827e44426e0138019a9a5c2e",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json": "7745caa598884af720679b8d095c1980227fd4f0ecdb1ae901dbd200b02710c3",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.md": "e012ff1e07835e19691140717e0bad5022535b5802b23dbf8f15c8cc5d7e87f4",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "99a57a232b3a89cb9d8f3315b30c2b675a1bb9ec7696e2468e57341edbe6192c",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-mechanism-decisions.md": "e9b0f39c47d07c93c381c83ded449a3e908c1897f306c21424dbfa3575b8c7d0",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/foundational-sources.md": "3a76af59b18872f8e5c5b5a81ecaa45d06b9ff21b4a028f3c96102cf60d17c6f",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/MECHANISMS.md": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053",
@@ -55,12 +86,19 @@
   },
   "skill_metadata": {
     "name": "optimization-search-policy",
-    "description": "Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.\n",
+    "description": "Policy for how an optimization agent should select, order, and stop optimization experiments. Use when optimization stalls: re-derive the whole-system bottleneck and critical path from first principles before choosing scheduling, caching/reuse, or parallelism/pipelining. Covers candidate generation, exploration vs exploitation, diversity, negative experiment memory, budget allocation, and stopping criteria. Drawn from vllm-evolve (phase-locked optimization round), TRT-LLM casebook (prior-art matching), and SkillOpt (bounded edit + gate). Use when deciding what to try next and when to stop.\n",
     "tags": [
       "optimization",
       "search",
       "policy",
-      "experiment-design"
+      "experiment-design",
+      "whole-system",
+      "bottleneck",
+      "critical-path",
+      "scheduling",
+      "caching",
+      "parallelism",
+      "pipelining"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -69,14 +107,86 @@
     "origin": [
       "external"
     ],
-    "sources": [],
+    "sources": [
+      {
+        "type": "paper",
+        "id": "Sarathi-Serve",
+        "version": "OSDI 2024 proceedings",
+        "url": "https://www.usenix.org/system/files/osdi24-agrawal.pdf",
+        "sections": [
+          "4.1-4.3",
+          "5.3",
+          "5.4, Figure 14 and Table 4"
+        ],
+        "readset": "references/foundational-sources.md"
+      },
+      {
+        "type": "paper",
+        "id": "2309.06180",
+        "version": "v1",
+        "url": "https://arxiv.org/html/2309.06180v1",
+        "sections": [
+          "4.1-4.5",
+          "7.1-7.3"
+        ],
+        "readset": "references/foundational-sources.md"
+      },
+      {
+        "type": "paper",
+        "id": "2312.07104",
+        "version": "v2",
+        "url": "https://arxiv.org/html/2312.07104v2",
+        "sections": [
+          "3",
+          "6.3",
+          "A.4"
+        ],
+        "readset": "references/foundational-sources.md"
+      },
+      {
+        "type": "document",
+        "version": "v0.10.2",
+        "url": "https://docs.vllm.ai/en/v0.10.2/design/prefix_caching.html",
+        "sections": [
+          "Hash identity",
+          "Cache Isolation for Security",
+          "Data Structure",
+          "Operations"
+        ],
+        "readset": "references/foundational-sources.md"
+      },
+      {
+        "type": "paper",
+        "id": "DistServe",
+        "version": "OSDI 2024 proceedings",
+        "url": "https://www.usenix.org/system/files/osdi24-zhong-yinmin.pdf",
+        "sections": [
+          "3-4",
+          "6.1",
+          "6.3-6.4"
+        ],
+        "readset": "references/foundational-sources.md"
+      },
+      {
+        "type": "document",
+        "version": "11.8.0",
+        "url": "https://docs.nvidia.com/cuda/archive/11.8.0/cuda-c-best-practices-guide/index.html",
+        "sections": [
+          "9.1",
+          "9.1.1",
+          "9.1.2"
+        ],
+        "readset": "references/foundational-sources.md"
+      }
+    ],
     "empirical_validation": "not_run",
     "applicability": {
       "scope": "See procedure prerequisites and counter-signals"
     },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Foundational cases guide diagnosis after a plateau; no automatic stall detector, agent efficacy evaluation or engine speedup is established."
     ],
     "provenance_readsets": [
       "references/papers-20261015/INTEGRATION_NOTES.md",
@@ -84,7 +194,8 @@
       "references/papers-20261015/MECHANISMS.md",
       "references/papers-20261015/NEXT_GATE_LEADS.md",
       "references/papers-20261015/references/source-notes.md",
-      "references/papers-20261015/updates/optimization-search-policy.md"
+      "references/papers-20261015/updates/optimization-search-policy.md",
+      "references/foundational-sources.md"
     ],
     "references": [
       "../inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
@@ -92,7 +203,30 @@
       "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
       "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
       "../inference-optimization-casebook/cases/drama3-rejected-directions.md",
-      "../inference-optimization-casebook/cases/drama3-rejected-directions.json"
+      "../inference-optimization-casebook/cases/drama3-rejected-directions.json",
+      "references/foundational-mechanism-decisions.md",
+      "cases/sarathi-chunk-budget.md",
+      "cases/sarathi-chunk-budget.json",
+      "cases/paged-kv-allocation.md",
+      "cases/paged-kv-allocation.json",
+      "cases/prefix-reuse-locality.md",
+      "cases/prefix-reuse-locality.json",
+      "cases/distserve-phase-placement.md",
+      "cases/distserve-phase-placement.json",
+      "cases/cuda-copy-overlap.md",
+      "cases/cuda-copy-overlap.json",
+      "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
+      "../inference-optimization-casebook/cases/admission-drain-occupancy.json",
+      "../assess-serving-preemption/SKILL.md",
+      "../assess-serving-preemption/references/source-notes.md",
+      "../performance-ceiling-analysis/SKILL.md",
+      "../choose-parallel-training-plan/SKILL.md",
+      "../inference-benchmark-design/SKILL.md",
+      "../dense-performance-evidence/SKILL.md",
+      "../../repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+      "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "../../repositories/lmcache/kv-tier-management/SKILL.md",
+      "../../repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md"
     ],
     "consumption_mode": "packaged"
   },
@@ -109,7 +243,8 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "Foundational cases guide diagnosis after a plateau; no automatic stall detector, agent efficacy evaluation or engine speedup is established."
   ],
   "verification": {
     "locally_verified": false,
