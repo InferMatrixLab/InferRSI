@@ -24,6 +24,27 @@ For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
 benchmark/quality command contract; set the acceptance threshold from your plan.
 
+## MLX discovery and source knowledge
+
+On a prepared target checkout, MLX discovery reads Apple Silicon chip facts with
+macOS sysctl and reports the requested Python's MLX distribution version without
+importing or installing it:
+
+```bash
+inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
+inferrsi knowledge search --tier dependency --repo-type mlx --backend mlx --json
+```
+
+Use the existing repo type appropriate to your checkout. There is no MLX engine
+repo type or built-in launcher. On non-macOS hosts and non-Apple-Silicon Macs,
+discovery is unavailable with a reason; doctor exits 1. Apple Silicon uses
+unified memory, so --device-ids is rejected. Optional --device-model matches the
+reported chip case-insensitively. Chip discovery and package metadata do not
+certify MLX/Metal, a model, or performance; compatibility remains unverified.
+
+The three source cards reuse the existing MLX evaluation/stream/lifetime owner.
+Its common catalog ID and the separate MLX-LM procedure remain unchanged.
+
 ## Discover knowledge and skills
 
 Read-only discovery and export — the [operation guide](operations.md) maps every
