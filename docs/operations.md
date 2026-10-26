@@ -29,6 +29,7 @@ Effect classes used below:
 | Evaluate selected skill revisions | [Bounded skill-evaluation driver](skill-evaluation.md) | Experiment-executing | Explicitly authorized real Codex calls, independent task verdicts and private evidence; separate from numeric engine-performance scoring |
 | Compare skill additions or updates | [Configured skill comparison](skill-eval-comparison.md), `python -m tools.skill_eval_compare` | Read-only preparation / experiment-executing / report-generating | Fixed Git snapshots and one shared exam; explicit plan authorization for execution; JSON + Markdown regeneration makes no model calls |
 | Recover goal progress and the next proposal | [Offline goal checkpoints](goal-checkpoints.md), `python -m tools.goal_checkpoint` | Read-only | Explicit scope/criteria, pinned owner decisions and existing comparison receipts; a disposable view, never execution or acceptance authority |
+| Summarize campaign gains | `tools/campaign_summary_chart.py`; `report`/`run` figure | Figure-generating | Renders recorded values into one gain figure plus a matching table; validates the specification and computes nothing new |
 
 The `collect`, `read` and `resource` commands share the reader's rules; they
 are distinct from `knowledge search`, whose package catalog filters
@@ -167,3 +168,14 @@ compatibility.
 Operation success, recorded execution state and the experiment verdict are
 distinct conclusions; a completed run does not upgrade imported knowledge or
 unvalidated candidates.
+
+## Campaign summary figure
+
+### Summarize a campaign figure — `tools/campaign_summary_chart.py`
+
+- **Inputs:** one JSON specification (chain of accumulating steps, or a set of independent trials); an output path.
+- **Scope:** recorded values only. The renderer computes gains, validates the specification and writes a figure; it measures nothing.
+- **Output:** an SVG figure, plus a Markdown table with the same values when `--markdown` is given. `report` and `run` also write `summary-chart.svg` into the run directory and inline it in the HTML report.
+- **Side effects:** writes the requested files; nothing is executed and no network or GPU is touched.
+- **Failure behavior:** exit code 2 with the offending field name when the specification is incomplete, ambiguous or inconsistent; a report without a paired measurement states why it has no figure.
+- **Example:** [campaign summary chart](campaign-summary-chart.md)

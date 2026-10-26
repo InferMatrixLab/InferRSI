@@ -48,6 +48,7 @@ def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadli
                     argv,
                     cwd=cwd,
                     env=environment,
+                    stdin=subprocess.DEVNULL,
                     stdout=stdout,
                     stderr=stderr,
                     shell=False,
