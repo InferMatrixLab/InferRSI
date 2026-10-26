@@ -63,6 +63,10 @@ resources or an existing server. The local executor can run directly on a
 prepared remote machine; SSH dispatch, distributed leases, automatic planning,
 patch generation and Hub publication remain future work.
 
+Local executor commands are noninteractive and receive EOF on standard input.
+Supply their inputs through command arguments or files rather than the caller's
+input stream.
+
 ## Directory map
 
 ![Implemented modules mapped to directories](assets/modular-directory-map-en.svg)

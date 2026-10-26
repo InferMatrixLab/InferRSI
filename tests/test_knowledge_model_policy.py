@@ -17,8 +17,11 @@ from tools.check_knowledge_model_policy import (
     EXIT_NONCOMPLIANT,
     EXIT_RERUN,
     HISTORY_PAGES,
+    HISTORY_RESERVE,
     STATUS_LIMIT,
     STATUS_RESERVE,
+    SWEEP_SECONDS,
+    TARGET_SECONDS,
     GitHub,
     approved,
     assemble_file_pages,
@@ -32,9 +35,11 @@ from tools.check_knowledge_model_policy import (
     json_block,
     matching,
     model_errors,
+    plan_file,
     refresh_event,
     snapshot,
     summarize,
+    target_deadline,
     within_budget,
 )
 
@@ -335,6 +340,11 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     # The runner refetches trusted main and reruns only for the stale-base exit code.
     assert "git fetch --quiet origin main" in runner
     assert "--policy-sha" in runner and 'status" -ne 2' in runner
+    # Each attempt shares one plan file, so a retry inherits the targets an earlier attempt
+    # settled instead of re-publishing them and starving the tail.
+    assert '--plan "$plan"' in runner
+    # Three attempts, each bounded by the sweep plus one target's ceiling, still fit the job.
+    assert 3 * (SWEEP_SECONDS + TARGET_SECONDS) < 10 * 60
     assert "pull_request.head" not in json.dumps(value)
     assert "knowledge-model-policy" not in (
         ROOT / ".github/workflows/ci-ready.yml"
@@ -1251,34 +1261,272 @@ def test_api_slow_history_scan_stops_before_the_workflow_deadline(api_fixture, p
     seed_history(state, 400, context="other-ci")
     # A page cap does not bound elapsed time, so slow successful responses must trip the time
     # budget on their own.
-    monkeypatch.setattr("tools.check_knowledge_model_policy.HISTORY_SECONDS", 0)
+    monkeypatch.setattr("tools.check_knowledge_model_policy.TARGET_SECONDS", 0)
     result = check_pr(api, 123, policy, BASE, False)
     assert result["kind"] == "history-unavailable"
     assert latest_status(state)["state"] == "failure"
 
 
-def test_api_history_deadline_is_shared_across_the_sweep(api_fixture, policy, monkeypatch):
+def test_target_deadline_gives_each_target_an_equal_share(monkeypatch):
+    clock = {"now": 1000.0}
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+    deadline = clock["now"] + SWEEP_SECONDS
+    # The reserve is withheld once for publication, and the rest is split between the targets
+    # still to be evaluated rather than being available to whichever target runs first.
+    share = (SWEEP_SECONDS - HISTORY_RESERVE) / 4
+    assert share < TARGET_SECONDS
+    assert target_deadline(deadline, 4) == clock["now"] + share
+    # Fewer remaining targets get a larger share, but never more than the per-target ceiling.
+    assert target_deadline(deadline, 2) == clock["now"] + TARGET_SECONDS
+    assert target_deadline(deadline, 1) == clock["now"] + TARGET_SECONDS
+    # A spent sweep leaves no share, so the read fails closed rather than extending the run.
+    clock["now"] = deadline - HISTORY_RESERVE
+    assert target_deadline(deadline, 1) <= clock["now"]
+
+
+def test_api_a_slow_target_cannot_starve_the_next(api_fixture, policy, monkeypatch):
     api, state = api_fixture
     other = "c" * 40
-    state["prs"][124] = {**pr(), "number": 124, "head": {"sha": other}}
+    state["prs"][124] = {**pr({**declared(), "head_sha": other}), "number": 124,
+                         "head": {"sha": other}}
+    # A multi-page read is needed for the target to outlive its own share: the check happens
+    # before each page, not after the whole scan.
+    seed_history(state, 400, context="other-ci")
     clock = {"now": 1000.0}
-    # A slow but successful read on the first target consumes nearly the whole budget; the second
-    # target then has no time left, so it must report the failure instead of starting a new scan.
     monkeypatch.setattr("tools.check_knowledge_model_policy.time",
                         SimpleNamespace(monotonic=lambda: clock["now"]))
 
     def slow(route):
-        if route.endswith("/statuses") or "/statuses?" in route:
-            clock["now"] += 55
+        # The read never completes within this target's own share, but the sweep itself still has
+        # time left, so the next target must be evaluated instead of inheriting a dead deadline.
+        if route.endswith("/statuses"):
+            clock["now"] += 20
 
     state["before_request"] = slow
     results = check_prs(api, policy, BASE, False, [123, 124])
-    assert [r["kind"] for r in results] == ["compliant", "history-unavailable"]
-    assert results[1]["rerun"] is True
-    assert [r["state"] for r in results] == ["success", "failure"]
-    # The second target's failure is published, so its earlier state cannot survive the sweep.
+    assert [r["kind"] for r in results] == ["history-unavailable", "compliant"]
+    assert results[0]["rerun"] is True
+    assert [r["state"] for r in results] == ["failure", "success"]
+    # The slow target still fails closed: its earlier state cannot survive the sweep.
     assert next(s for s in reversed(state["statuses"])
-                if s["sha"] == other)["state"] == "failure"
+                if s["sha"] == HEAD)["state"] == "failure"
+    assert next(s for s in reversed(state["statuses"])
+                if s["sha"] == other)["state"] == "success"
+
+
+def test_api_every_target_is_evaluated_past_the_former_shared_window(api_fixture, policy,
+                                                                   monkeypatch):
+    api, state = api_fixture
+    numbers = list(range(200, 218))
+    for number in numbers:
+        head = f"{number:040x}"
+        state["prs"][number] = {**pr({**declared(), "head_sha": head}), "number": number,
+                                "head": {"sha": head}}
+    clock = {"now": 1000.0}
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+
+    def ordinary(route):
+        # Four seconds of ordinary metadata work per target: well over the 45 seconds the former
+        # single deadline left for the whole sweep once its 15-second reserve was removed.
+        if route.endswith("/files"):
+            clock["now"] += 4
+
+    state["before_request"] = ordinary
+    results = check_prs(api, policy, BASE, False, numbers)
+    assert len(results) == len(numbers)
+    assert [r["kind"] for r in results] == ["compliant"] * len(numbers)
+    assert clock["now"] - 1000.0 > SWEEP_SECONDS / 2
+    for number in numbers:
+        assert next(s for s in reversed(state["statuses"])
+                    if s["sha"] == f"{number:040x}")["state"] == "success"
+
+
+def test_api_retries_keep_completed_targets_instead_of_rewriting_them(api_fixture, policy,
+                                                                     monkeypatch):
+    api, state = api_fixture
+    numbers = list(range(200, 218))
+    for number in numbers:
+        head = f"{number:040x}"
+        state["prs"][number] = {**pr({**declared(), "head_sha": head}), "number": number,
+                                "head": {"sha": head}}
+    clock = {"now": 1000.0}
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+
+    def ordinary(route):
+        # Eight seconds of ordinary metadata work per target: one sweep can reach about 14 of the
+        # 18 targets before its effective window closes, so the tail needs another attempt.
+        if route.endswith("/files"):
+            clock["now"] += 8
+
+    state["before_request"] = ordinary
+    plan = {"policy_sha": BASE, "completed": {}}
+    attempts, posts = [], []
+    for _ in range(3):
+        state["requests"].clear()
+        results = check_prs(api, policy, BASE, False, numbers, plan)
+        attempts.append(results)
+        posts.append([route for method, route in state["requests"] if method == "POST"])
+        if exit_code(results) != EXIT_RERUN:
+            break
+        # The local runner loop restarts the clock for each attempt.
+        clock["now"] = 1000.0
+
+    # The first sweep starves its own tail; the second finishes exactly the work the first left.
+    assert len(attempts) == 2
+    assert [r["kind"] for r in attempts[0]].count("history-unavailable") > 0
+    # A later attempt spends its budget on the unfinished targets only; the earlier verdicts are
+    # reported from the plan and are never re-invalidated or rewritten.
+    assert not any(kind == "history-unavailable" for kind in
+                   [r["kind"] for r in attempts[1]])
+    for number in numbers:
+        assert next(s for s in reversed(state["statuses"])
+                    if s["sha"] == f"{number:040x}")["state"] == "success"
+    completed_first = [r["pull_request"] for r in attempts[0] if r["kind"] == "compliant"]
+    assert completed_first
+    # Those targets are neither re-invalidated nor rewritten by the second attempt.
+    assert not any(route.endswith(f"{number:040x}")
+                   for number in completed_first for route in posts[1])
+    # Every target is still reported once per attempt, including the carried ones.
+    assert [r["pull_request"] for r in attempts[1]] == numbers
+
+
+def test_api_a_carried_target_with_changed_premises_is_evaluated_again(api_fixture, policy):
+    api, state = api_fixture
+    first = check_pr(api, 123, policy, BASE, False)
+    assert first["kind"] == "compliant"
+    plan = {"policy_sha": BASE, "completed": {}}
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["compliant"]
+    # An edited declaration keeps the same head but invalidates the carried verdict.
+    state["prs"][123]["body"] = block(declared([attribution("unknown", "unknown")]))
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_a_revoked_approval_is_not_carried_as_a_settled_success(api_fixture, policy):
+    api, state = api_fixture
+    value = declared([attribution("unknown", "unknown")])
+    value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+    state["prs"][123] = pr(value)
+    state["comments"][123] = [approval({KNOWLEDGE})]
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # Unchanged premises are carried rather than re-evaluated.
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # The PR snapshot is untouched, but the approval that produced the verdict is revoked.
+    state["comments"][123] = [approval({KNOWLEDGE}, decision="revoke")]
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert results[0]["rerun"] is False
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_a_new_shared_head_peer_invalidates_a_carried_success(api_fixture, policy):
+    api, state = api_fixture
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # A peer on another base can share this head without ever entering the target list, so
+    # ownership has to be re-derived from the open-PR collection rather than from the target.
+    state["prs"][900] = {**pr(), "number": 900, "head": {"sha": HEAD},
+                         "base": {"sha": BASE, "ref": "release"}}
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert "shared heads are ineligible" in results[0]["errors"][0]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_a_reassessed_verdict_carries_the_premises_it_actually_used(api_fixture, policy):
+    api, state = api_fixture
+    value = declared([attribution("unknown", "unknown")])
+    value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+    state["prs"][123] = pr(value)
+    plan = {"policy_sha": BASE, "completed": {}}
+    # Ordinary discussion but no valid approval at evaluation time, so evaluation refuses. The
+    # approval then appears before the publication pass, which revalidates the comments it read,
+    # reassesses once, and publishes success from the new approval.
+    discussion = {"id": 1, "user": {"login": "commenter"}, "body": "Discussing the change"}
+    state["comments"][123] = [discussion]
+    reads = {"comments": 0}
+    original = api.pages
+
+    def pending_approval(route):
+        if route == "issues/123/comments":
+            reads["comments"] += 1
+            if reads["comments"] > 1:
+                return [discussion, approval({KNOWLEDGE})]
+        return original(route)
+
+    api.pages = pending_approval
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    api.pages = original
+    assert [r["kind"] for r in results] == ["compliant"]
+    # The stored premise is the approval the reassessment actually used, not the empty list the
+    # earlier evaluation read.
+    assert plan["completed"]["123"]["comments"] == [discussion, approval({KNOWLEDGE})]
+    # The approval is removed again. The stored premise must be the one the reassessment used,
+    # so reverting to "no approval" is a change and the settled success cannot be carried.
+    state["comments"][123] = []
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_an_unreadable_collection_never_carries_a_settled_success(api_fixture, policy):
+    api, state = api_fixture
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # The open-PR listing is unreadable, so the target alone cannot prove unique ownership: the
+    # carry must be refused rather than treated as an unshared head.
+    state["fail"] = lambda route: route == "pulls"
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert results[0]["kind"] == "unverified"
+    assert results[0]["rerun"] is True
+    assert exit_code(results) == EXIT_RERUN
+
+
+def test_api_carry_revalidation_tolerates_an_unreadable_target(api_fixture, policy):
+    api, state = api_fixture
+    state["prs"][124] = {**pr({**declared(), "head_sha": "c" * 40}), "number": 124,
+                         "head": {"sha": "c" * 40}}
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert len(check_prs(api, policy, BASE, False, None, plan)) == 2
+    # One carried target cannot be read during revalidation. That is a fallback, not an
+    # invocation-level error, and the other targets must still be evaluated.
+    original = api.get
+
+    def unreadable(route):
+        if route == "pulls/123":
+            raise HTTPError(route, 503, "Unavailable", {}, None)
+        return original(route)
+
+    api.get = unreadable
+    results = check_prs(api, policy, BASE, False, None, plan)
+    assert len(results) == 2
+    assert {r["pull_request"] for r in results} == {123, 124}
+
+
+def test_plan_is_discarded_when_the_trusted_base_changes(tmp_path):
+    path = tmp_path / "plan.json"
+    path.write_text(json.dumps({"policy_sha": "a" * 40,
+                                "completed": {"123": {"head": "b" * 40}}}), encoding="utf-8")
+    # A different trusted base means different loaded code and policy, so no verdict carries over.
+    assert plan_file(path, "c" * 40) == {"policy_sha": "c" * 40, "completed": {}}
+    assert plan_file(path, "a" * 40)["completed"] == {"123": {"head": "b" * 40}}
+    # A corrupt or unreadable plan is treated the same way, never as completed work.
+    path.write_text("not json", encoding="utf-8")
+    assert plan_file(path, "a" * 40) == {"policy_sha": "a" * 40, "completed": {}}
+
+
+def test_runner_keeps_one_plan_across_attempts():
+    runner = (ROOT / "tools/run_knowledge_model_policy.sh").read_text(encoding="utf-8")
+    # The runner owns the retry loop and passes one plan file to every attempt.
+    assert '--plan "$plan"' in runner
+    assert "rm -f \"$plan\"" in runner
 
 
 def test_api_other_contexts_do_not_consume_the_budget(api_fixture, policy):

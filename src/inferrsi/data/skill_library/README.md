@@ -65,6 +65,30 @@ and server task/slot cancellation. Its pinned source contracts are untested nati
 existing owners. The [scope and source map](repositories/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope)
 links all three responsibilities and their separate source snapshots.
 
+## PyTorch compiler and checkpoint scope routing
+
+Choose by the affected responsibility within `pytorch/pytorch`. The compiler
+dependency card and DCP procedure retain different source snapshots and
+completion contracts; their shared repository name does not make a tested stack.
+
+| Need | Existing entry | Retained evidence | Completion / applicability boundary |
+| --- | --- | --- | --- |
+| Inductor guards, capture shapes, replay addresses or live outputs | [Compiler dependency card](../knowledge_packs/dependency/pytorch/cuda/compiler/cudagraph-shapes-and-lifetimes.json) | Technical documents at `f15b476814ebc5eade36fb40512e379ebf79dd60`, accessed 2026-10-15; upstream-reported, imported/unverified | Compile/recompile guards, graph recording/replay and output lifetime are independent constraints; this is CUDA/compiler guidance |
+| Training-visible save pauses, snapshot buffers and cleanup | [DCP async-save procedure](frameworks/pytorch/dcp-async-save-performance/SKILL.md) and [source ledger](frameworks/pytorch/dcp-async-save-performance/references/sources.md) | Implementation at `7d239835e773c91689eb298692097f4a3340491f`, inspected 2026-10-15; candidate / empirical validation `not_run` | Preserve caller capture, staging, upload, cached-buffer reuse and caller-owned cleanup boundaries; writer completion is separate from backend durability and distributed recovery |
+| Tutorial examples and API/version differences | [DCP documentation/implementation reconciliation](frameworks/pytorch/dcp-async-save-performance/references/sources.md#documentation-matched-against-implementation) | Live async recipe retrieved 2026-10-15, with its own retained HTML hash and page metadata | The recipe's 2.4+ / 2.9+ labels do not identify the inspected main commit or establish a matching wheel; source notices and recipe attribution remain in the ledger |
+
+Known mutation and storage lifetimes are a shared diagnostic prerequisite,
+with different checks: the compiler card calls for retaining outputs across
+later calls and exercising input mutation; DCP locates the next mutation of checkpointed state
+and follows its [completion/lifetime contract](frameworks/pytorch/dcp-async-save-performance/SKILL.md#completion-and-lifetime-contract).
+Neither owner's completion event establishes the other's safe reuse or eligibility.
+
+Keep timing boundaries separate too: compiler checks distinguish cold cost,
+recompilation, capture and steady-state replay; DCP measures
+[caller, staging, upload and step time](frameworks/pytorch/dcp-async-save-performance/SKILL.md#evidence-to-request-in-a-separately-authorized-measurement),
+including first-use versus reused buffers. These are owner-specific checks,
+not a combined compiler/checkpoint calling protocol or compatibility result.
+
 ## Engine knowledge
 
 Five repository entry skills, 15 focused sub-skills and one research router
@@ -147,3 +171,11 @@ separates pipeline-wrapper fields, reused component identities, scheduler progre
 and cooperative interruption. The candidate is scoped to FluxPipeline and
 FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
 and performance remain unverified; the existing offload card keeps its own pin.
+
+## SGLang versioned guidance
+
+The [SGLang entry comparison](repositories/sglang/SKILL.md#choose-among-source-pins)
+separates the LLM engine graph, CUDA HiCache peer card and multimodal_gen diffusion
+candidate. Read external HiCache material by its stable catalog ID; the versioned
+routes retain their original dates and validation limits. Shared navigation does
+not establish cross-pin/backend compatibility or new Network coverage.

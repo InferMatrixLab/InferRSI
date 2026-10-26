@@ -3,7 +3,7 @@
     "id": "audit-threshold",
     "split": "holdout",
     "mode": "audit",
-    "request": "Audit the fixed input report using its contract.",
+    "request": "Audit the fixed input report using its contract. Compute the median of per-trial request means, including every request in each trial, and the percentage reduction relative to the baseline aggregate.",
     "contract": {"min_reduction_pct": 20},
     "evidence_scope": "http_fixed_workload",
     "baseline": {

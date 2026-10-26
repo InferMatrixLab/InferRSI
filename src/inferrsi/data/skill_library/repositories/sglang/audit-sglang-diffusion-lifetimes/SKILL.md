@@ -19,6 +19,15 @@ SGLang `df13d5dce31abfeff0e701a62e8c39a136758e6c` (Apache-2.0); the older LLM
 and HiCache pins are independent. CODE and TEST-SOURCE describe inspected source;
 all proposed runtime checks and benefits remain HYPOTHESIS until tested.
 
+## Select the matching SGLang entry
+
+Use the [three-pin responsibility comparison](../SKILL.md#choose-among-source-pins)
+for LLM engine or HiCache questions. The CUDA HiCache peer's stable catalog ID is
+`sglang.cuda.llm.hierarchical_prefix_cache`; read it separately at its own pin.
+Its prefix-KV host/storage policy does not establish this diffusion path's stage,
+scheduler-instance, component-use, timeout or finalizer contracts. The engine
+entry does not make these pins a tested compatible stack.
+
 ## Required inputs
 
 Record source/build revision, native versus Diffusers backend, actual pipeline

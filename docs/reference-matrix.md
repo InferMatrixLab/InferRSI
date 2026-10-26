@@ -94,6 +94,16 @@ in (evidence/claim discipline, benchmark hygiene, RunSpec) — not an external
 mining source. The local sibling clone at `codex/skill-eval-bootstrap`
 (82218b4) is a **different fork lineage**; see §2.
 
+### PyTorch compiler and asynchronous-save responsibilities
+
+The [compiler/checkpoint scope map](../src/inferrsi/data/skill_library/README.md#pytorch-compiler-and-checkpoint-scope-routing)
+links the `f15b476814ebc5eade36fb40512e379ebf79dd60` technical-document dependency
+card with the separately inspected `7d239835e773c91689eb298692097f4a3340491f`
+DCP implementation readset and its independently retrieved live recipe.
+It preserves document versus implementation evidence, source/recipe dates and
+attribution, and different mutation, completion and measurement boundaries.
+The two sources do not establish a tested combined runtime stack.
+
 ### Reviewed systems-paper mechanisms
 
 `mined` below means pack-mediated extraction into the linked candidate artifacts.
@@ -358,3 +368,12 @@ the candidate mechanisms.
 | Source / revision | Inspected scope | Reuse, extraction and limits |
 | --- | --- | --- |
 | [Issue #60 report](https://github.com/InferMatrixLab/InferRSI/issues/60#issuecomment-6310920198), 2026-10-21; eight Git source inventories in the [owner metadata](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json) | Task/quality/workload separation across text, agentic coding, work agents, TTS, full-duplex interaction and image/video; selected pinned AIPerf/realtime/FDB/video sources rechecked and the current InferRSI metric contract inspected | Extend [inference-benchmark-design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md) with [task selection](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md) and [command templates](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md). Candidate guidance; source review and bounded smoke do not qualify all tasks or establish a performance gain. Replay scores, reference parity and task quality retain separate meanings. |
+
+## SGLang versioned entry selection
+
+The [three-pin responsibility comparison](../src/inferrsi/data/skill_library/repositories/sglang/SKILL.md#choose-among-source-pins)
+links the existing LLM engine snapshot, CUDA HiCache peer and bounded diffusion
+readset. Original contribution access (2026-10-14), HiCache access (2026-10-15)
+and diffusion archive inspection (2026-10-22) remain separate. This navigation
+adds no upstream reinspection, common dependency tuple or validation result;
+source maps, notices and imported/candidate states stay with their owners.
