@@ -137,7 +137,7 @@ codex plugin marketplace remove inferrsi-local
 
 For the GitHub preview, substitute `inferrsi@inferrsi-preview` and
 `inferrsi-preview` respectively. With the Windows clone route, update only that
-clone using `git -C <install-directory> -c core.longpaths=true pull --ff-only`,
+clone using `git -C "<install-directory>" -c core.longpaths=true pull --ff-only`,
 then reinstall and verify the plugin. A source registered directly as Git can
 instead be refreshed with `codex plugin marketplace upgrade inferrsi-preview`.
 Refresh/reinstall the selected bundle, especially when a preview is rebuilt with
