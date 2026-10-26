@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b115b6e22542d04b577f900ec4467aede325eef5/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
-      "commit": "b115b6e22542d04b577f900ec4467aede325eef5",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
+      "commit": "5506c6b88d441860f1467146ede263ca41514713",
       "paths": [
         "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json",
@@ -57,7 +57,7 @@
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/sources.md": "6d248f58af8b350fc66c22898988d6f451ac60d03bcd805cd6e84df5e55174ac",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
     "name": "training-resource-budget",

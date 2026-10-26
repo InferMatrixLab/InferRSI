@@ -87,7 +87,7 @@ Host-side memory: CPU DRAM, pinned memory, page tables, PyTorch tensor lifecycle
 | **Observe / Diagnose / Verify** | Native diffusion parameter storage, compute staging and retained runtime buffers across conditioning/denoise/VAE phases | [audit-sd-cpp-residency](../src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | Device fit does not establish sufficient host RAM; initial host preparation may precede async transfer; track host/device peaks separately | stable-diffusion.cpp @ b13a48219d5cdf408edcb93da6cd69b612ed03d3; [validation](../src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md) | 🟢 (source-derived ownership audit; host peaks unmeasured) |
 | **Observe / Profile** | Host overhead in nsys: GPU idle ratio (>0.30 aggregate/>0.15 generation), host-prep exposed ratio (M3b>0.05), NVTX breakdown, inter-kernel gaps; cgroup memory pressure (PSI) and event counters | `host-overhead-profiling`, `cgroup-resource-controls` (pressure/events observation) | GPU idle + host-prep verdict metrics; NVTX root-cause breakdown; regression comparison across two traces | TRT-LLM perf-host-analysis @ f33e0e5f; kernel cgroup-v2 docs (pack-mediated) | 🟢 |
 | **Diagnose** | YES/NO bottleneck verdict; multi-rank straggler detection; NVTX-to-source function mapping | `host-overhead-profiling` | M3b>0.05 AND M3c>0.50 together confirm host-prep bottleneck | TRT-LLM perf-host-analysis @ f33e0e5f | 🟢 |
-| **Configure** | Pinned memory for fast H2D (>1MB tensors where transfer is measured bottleneck), async H2D via non_blocking=True + stream + explicit synchronize(), Python GIL avoidance (ProcessPoolExecutor, Python 3.13 free-threading PEP 703), NUMA-aware allocation (numactl); memory limits and protection (memory.high/low/max) | `host-memory-management`, `kv-tier-management` (L1 tier sizing, multi-L1 composition), `cgroup-resource-controls` (memory controls) | All APIs verified from PyTorch docs, Python docs, numactl manpage | PyTorch docs, Python docs, PEP 703, numactl manpage; LMCache @ c3b875a; kernel cgroup-v2 docs (pack-mediated) | 🟢 |
+| **Configure** | Pinned memory for fast H2D (>1MB tensors where transfer is measured bottleneck), async H2D via non_blocking=True + stream + explicit synchronize(), Python GIL avoidance (ProcessPoolExecutor, Python 3.13 free-threading PEP 703), NUMA-aware allocation (numactl); memory limits and protection (memory.high/low/max); versioned Ascend native CPU descriptor-pool ownership | `host-memory-management`, `kv-tier-management` (L1 tier sizing, multi-L1 composition), `cgroup-resource-controls` (memory controls) | Historical guide: APIs attributed to PyTorch/Python docs and numactl (not revalidated here); Ascend source case: successful head end-event query gates normal reuse, tracked wait does not recycle | PyTorch docs, Python docs, PEP 703, numactl manpage; LMCache @ c3b875a; kernel cgroup-v2 docs (pack-mediated); vllm-ascend @ 8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf ([native case](../src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md)) | 🟢 (Ascend extension: source-derived candidate; native not run) |
 | **Optimize** | line_profiler loop targeting `_prepare_tp_inputs`; NVTX regression triage to alternative targets (`_fetch_new_requests` +643%, `broadcast_requests`, `_update_requests` +75%); runtime KV tier management (store/retain/prefetch/evict policies, concurrency-vs-RAM admission dial) | `host-overhead-optimization`, `kv-tier-management` | Iterative profile→identify→optimize→verify loop; RAM-release lever ranking | TRT-LLM perf-host-optimization @ f33e0e5f; LMCache MP mode @ c3b875a | 🟢 |
 | **Verify** | Memory-event verification: matched baseline/outcome windows, PSI + event deltas, configuration provenance, rollback contract | `dense-performance-evidence` (evidence levels apply), `cgroup-resource-controls` (verification contract) | Application outcomes + sibling pressure tracked together; raw counter deltas retained | kernel cgroup-v2 docs (pack-mediated, wave 6) | 🟢 (proposed procedure, unvalidated) |
 | **Observe / Profile** | Per-host checkpoint snapshot/pinned-memory residency, copy and staging-worker pressure | `dcp-async-save-performance` | Sum local-rank state plus cache and input/offload overhead; no global-rank-to-single-host RAM assumption | PyTorch DCP @ 7d239835e773 | 🟢 (source-supported estimate/measurement plan) |
@@ -324,6 +324,16 @@ English procedures. They do not qualify every backend listed by their upstream
 projects. Main-only contribution, dependency and peer material remains at its
 original owners rather than duplicated under local skills.
 
+## PyTorch compiler and checkpoint scope selection
+
+Use the [existing-owner scope map](../src/inferrsi/data/skill_library/README.md#pytorch-compiler-and-checkpoint-scope-routing)
+to distinguish CUDA compiler guards/capture/output lifetime from the DCP
+Accelerator staging-pause, RAM/Host snapshot and SSD/Storage save entries.
+The shared diagnostic questions are actual mutation/liveness and named timing
+boundaries; graph replay is not staging/upload completion, and DCP completion
+does not establish replay eligibility. Existing source-derived maturity and
+resource coverage remain unchanged; no combined protocol is introduced.
+
 ## Issue #27: Drama3 NPU readiness (guidance only, no new coverage)
 
 The [Drama3 NPU readiness supplement](drama3-npu-readiness.md) is a scoped task
@@ -348,6 +358,13 @@ not add a Communication/Network capability; no SSD or OS control is introduced.
 `common` indexing categorizes framework guidance and certifies no backend.
 
 ## vLLM-Omni incremental abort guidance
+
+Route general stage/model/output decisions through the
+[engine source and responsibility map](../src/inferrsi/data/skill_library/repositories/vllm-omni/SKILL.md#source-and-responsibility-map).
+For receipt, wait-only timeout or retained transfer resources, follow
+[abort validation](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/SKILL.md)
+and its [three completion boundaries](../src/inferrsi/data/skill_library/repositories/vllm-omni/sub-skills/omni-validation/references/abort-acknowledgment.md#keep-three-completion-boundaries-separate).
+The map keeps the engine and incremental abort source snapshots separate.
 
 | Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
 |---|---|---|---|
@@ -407,3 +424,13 @@ prefix-KV host/storage policy, and multimodal_gen diffusion stage/instance,
 component-use and timeout/job-finalizer lifetimes. This adds routing only.
 Common indexing is not CUDA/NPU qualification; process transport/IPC is not new
 Network coverage. Existing resource cells and maturity boundaries remain unchanged.
+
+## Hopper kernel reasoning (source-derived)
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator | Observe / Diagnose / Configure / Verify: TMA full/empty stage ownership and parity, WGMMA group completion and SS/RS layouts, register/SMEM/epilogue budgets, software persistent scheduling and FP8 scale/promotion contracts | [reason-hopper-kernels](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md), with [systematic source selection](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/sources.md) | Candidate mechanisms qualified by selected pinned code and versioned documentation; remaining source bodies unmined, Blackwell-only recipes excluded. No GPU compilation, accuracy, profiling or performance run. |
+
+This adds conditional Hopper guidance without new measured or green coverage.
+Registers, SMEM and HBM remain device resources; local CTA/cluster coordination
+and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.

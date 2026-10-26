@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 104, "Knowledge is missing from the installation"
+assert len(records) == 108, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -26,8 +26,24 @@ assert (
 assert repository_pack("vllm_rlt")["id"] == "vllm_rlt"
 assert search_knowledge(repo="vllm_omni", backend="ascend")
 assert all(not item["verification"]["locally_verified"] for item in records)
+mlx_ids = {
+    "mlx.mlx.execution.evaluation_completion",
+    "mlx.mlx.execution.cross_stream_dependency",
+    "mlx.mlx.execution.post_detachment_buffer_lifetime",
+}
+mlx_records = search_knowledge(repo="mlx", tier="dependency", backend="mlx", limit=100)
+assert {record["id"] for record in mlx_records} == mlx_ids
+assert all(record["backend"] == "mlx" for record in mlx_records)
+mlx_document = "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+mlx_reader = KnowledgeReader()
+for record in mlx_records:
+    bundle = mlx_reader.read("package:" + record["id"])
+    assert mlx_reader.resource(
+        "package:" + record["id"], mlx_document, revision=bundle.revision
+    ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
+assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 59, "Missing installed skill abstracts"
+assert len(skill_index) == 60, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -68,6 +84,30 @@ afd_prefix = "data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges
 for relative in ("SKILL.md", "metadata.json", "references/source-notes.md",
                  "references/afd-plugin-LICENSE.md"):
     assert afd_prefix + relative in afd_bundle.content
+hopper_identity = "inferrsi.cuda.skills.reason_hopper_kernels"
+assert any(item["id"] == hopper_identity for item in search_knowledge(
+    "WGMMA", repo="inferrsi", backend="cuda", limit=100
+))
+hopper_bundle = KnowledgeReader().read(hopper_identity)
+hopper_prefix = "data/skill_library/hardware/cuda/reason-hopper-kernels/"
+hopper_metadata = json.loads(hopper_bundle.content[hopper_prefix + "metadata.json"])
+assert hopper_metadata["status"] == "candidate"
+assert hopper_metadata["empirical_validation"] == "not_run"
+hopper_inventory = json.loads(hopper_bundle.content[
+    hopper_prefix + "references/source-inventory.json"
+])
+assert hopper_inventory["coverage"]["synthesis_pages"] == 48
+assert hopper_inventory["coverage"]["sm90_source_headers"] == 171
+assert hopper_inventory["repositories"][0]["kernelwiki_gitlink"]["commit"] == (
+    hopper_inventory["repositories"][1]["commit"]
+)
+for relative in (
+    "SKILL.md", "references/sources.md", "references/synchronization.md",
+    "references/resources-and-scheduling.md", "references/fp8.md", "references/notices.md",
+    "references/licenses/kernelwiki-kda-mit.md", "references/licenses/deepgemm-mit.md",
+    "references/licenses/cutlass-bsd.md",
+):
+    assert hopper_prefix + relative in hopper_bundle.content
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
 selection_reader = KnowledgeReader()
 selection = selection_reader.collect(
@@ -103,7 +143,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 59
+assert len(registry) == 60
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
@@ -147,7 +187,7 @@ helper = strata.joinpath("scripts", "summarize_trials.py")
 assert helper.is_file()
 with as_file(helper) as path:
     compile(path.read_text(encoding="utf-8"), str(path), "exec")
-inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers"}
+inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(
     "Qwen-Image-2.1", repo="vllm_omni", backend="ascend", scenario="diffusion.image_generation"
