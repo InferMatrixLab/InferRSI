@@ -132,8 +132,8 @@ Distinguish two operations when recovering:
 
 - **Repeat the same commit:** a matching receipt must have the same effect,
   request digest and Goal instance. Its artifacts are checked and missing
-  artifacts may be repaired; the result is `repaired` or `replayed`. Different
-  existing bytes are conflicts. A truncated final index row is repaired only
+  artifacts may be repaired; the result is `repaired` or `replayed`. Conflicting
+  existing JSON content or different Markdown text is rejected. A truncated final index row is repaired only
   when it is the expected row prefix after the receipt's verified prior bytes.
 - **Replay lookup (`operation="replay"`):** inspect existing spend-index rows,
   resolve effect identity, and check Goal and valid agent identity. It does not
