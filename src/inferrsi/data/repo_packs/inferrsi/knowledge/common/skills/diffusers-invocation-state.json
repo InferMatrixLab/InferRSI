@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e607c33b755f20717d8b9554a9f331145e710a54/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
-      "commit": "e607c33b755f20717d8b9554a9f331145e710a54",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "commit": "5506c6b88d441860f1467146ede263ca41514713",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json",
@@ -32,7 +32,7 @@
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "7581b56336d07213a87d01477793ae1a8acf0b7cf876fce36c9a761ee32c1ff4"
+      "content_sha256": "e106650ca07dc42a98dea679c681e02f440411d25a131e081093404254154958"
     }
   ],
   "index_type": "packaged-skill",
@@ -41,12 +41,12 @@
   },
   "checkout_ref": "checkout:diffusers-invocation-state",
   "source_files": {
-    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "7581b56336d07213a87d01477793ae1a8acf0b7cf876fce36c9a761ee32c1ff4",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "e106650ca07dc42a98dea679c681e02f440411d25a131e081093404254154958",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "a50b84089c98d81aad9feb8d00321ab2ccae360c9a4aa3b4b348b6f429e1fea2",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
     "name": "diffusers-invocation-state",

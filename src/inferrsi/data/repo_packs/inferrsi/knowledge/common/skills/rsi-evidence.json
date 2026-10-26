@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e607c33b755f20717d8b9554a9f331145e710a54/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
-      "commit": "e607c33b755f20717d8b9554a9f331145e710a54",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+      "commit": "5506c6b88d441860f1467146ede263ca41514713",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md"
@@ -31,7 +31,7 @@
   },
   "checkout_ref": "checkout:rsi-evidence",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f",
+    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "a55610874b658b86a39a1a049efb4e4eab0140f6579ed74dd7718a4ca8cedaca"
   },
   "skill_metadata": {

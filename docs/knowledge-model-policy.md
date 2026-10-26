@@ -189,14 +189,41 @@ fails, the run reports `publication-failed`; the next sweep attempts the same
 single write once more.
 
 A head can also carry statuses from other contexts, so the read is bounded by
-both 50 pages and a deadline. The deadline belongs to the sweep, not to one
-head: targets are processed serially under one workflow timeout, so a fresh
-budget per head would let a long sweep run out of time before a later target's
-failure is published. Each history request is also capped by the time remaining,
-and 15 seconds are held back so that publication still fits. Exhausting either
-bound is reported as `history-unavailable`, which publishes the failure
-immediately, so a long scan cannot consume the workflow's deadline before
-anything replaces an earlier success.
+both 50 pages and time. Time is split rather than shared as one absolute
+deadline. Each target receives an equal part of what is left in the sweep,
+capped at 30 seconds, so a target that finishes early returns its unused time
+to the later ones. The sweep itself is bounded by 120 seconds per attempt, and
+one 15-second reserve is withheld from the sweep so publication still fits after
+the last read. Each history request is additionally capped by the share still
+remaining. Exhausting the page bound or the target's share is reported as
+`history-unavailable`, which publishes the failure immediately and lets the
+remaining targets continue.
+
+The former design gave every target one absolute 60-second deadline: targets are
+processed serially, so the first ones spent it and each later target then failed
+closed, and a whole-sweep retry replayed the same prefix.
+
+Retries now carry progress. Each attempt writes the targets it settled to a plan
+file, and the next attempt inherits them instead of re-invalidating and
+re-publishing the same verdicts, so an exhausted tail cannot replace a verdict an
+earlier attempt already published. A carried target is trusted only after one
+cheap re-read shows it is still open against the policy branch at the same head,
+base, state and declaration. Any change to those falls back to full evaluation,
+and the plan is discarded outright when the trusted base differs, because a
+different base means different loaded code and policy.
+
+Carrying is limited to settled verdicts: `compliant`, `noncompliant` and the two
+capacity states. Work reported as rerunnable - unreadable evidence, a failed
+write, an advanced or entered target - is never inherited, so a genuine failure
+is retried and stays visible rather than being optimistically cached.
+
+The premise stored with a verdict must be the one that produced it. A target
+reassessed during the publication pass is therefore stored with the snapshot,
+approval comments and ownership that reassessment used, not with the earlier
+evaluation's evidence; otherwise a changed-then-reverted approval would make the
+stored premise match again and the stale success would be reused. If the open-PR
+collection cannot be read, no target is carried, because a target read alone
+cannot prove it does not share its head.
 
 At or above the cap nothing can be written at all. The run reports
 `budget-saturated` without attempting a write. An earlier `success` may still be
@@ -232,6 +259,22 @@ does not close the window between the last metadata read and the status write, a
 it cannot act when GitHub supplies no event. Repository protection plus a required
 check is what turns these states into an actual merge block.
 
+```mermaid
+flowchart LR
+    subgraph before["Before"]
+        A1["One 60 s deadline"] --> A2["Earlier targets spend it"]
+        A2 --> A3["Later targets: history-unavailable"]
+        A3 --> A4["Retry replays the same prefix"]
+        A4 --> A2
+    end
+    subgraph after["After"]
+        B1["120 s sweep bound"] --> B2["Share = remaining / targets left, max 30 s"]
+        B2 --> B3["Early target returns its unused share"]
+        B3 --> B4["Settled targets written to the plan"]
+        B4 --> B5["Retry re-checks the premise, then evaluates only what is left"]
+    end
+```
+
 When the trusted base advances mid-sweep, the checker returns a retryable result
 promptly instead of re-evaluating against its own stale checkout. It exits `2`,
 and trusted `tools/run_knowledge_model_policy.sh` refetches `main` and runs the
@@ -253,7 +296,7 @@ Each result carries `kind` alongside the status `state`:
 | `advanced` | The evaluated head was superseded; nothing is written to the new head |
 | `publication-failed` | Status write failed; the verdict was not recorded |
 | `invalidation-failed` | The earlier result could not be replaced by `pending`; no verdict was published |
-| `history-unavailable` | The head's status history could not be read, so the capacity margin is unproven; an explicit failure replaces the old result immediately, before any other target is processed |
+| `history-unavailable` | The head's status history could not be read within its share of the sweep, so the capacity margin is unproven; an explicit failure replaces the old result immediately, before any other target is processed |
 | `budget-exhausted` | The head has used its reserved status capacity; one failure is recorded there, no success is published and a new head is required |
 | `budget-saturated` | The head already holds 1,000 statuses for this context; nothing can be written, so an earlier success may remain the newest entry |
 
