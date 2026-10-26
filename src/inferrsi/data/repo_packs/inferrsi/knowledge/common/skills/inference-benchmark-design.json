@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/6d1d4d0340ce5e8b649430a5a474575535f57cad/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "6d1d4d0340ce5e8b649430a5a474575535f57cad",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
@@ -39,7 +39,7 @@
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "19ebc1f567aadf49f7a534a18fdb629c72c0e4ce043d360983136491cb72bfab"
+      "content_sha256": "59b5656e7d989b3cee8d6f95cd43be03053b1fb11c3a82bb49ab3d402f7aacee"
     }
   ],
   "index_type": "packaged-skill",
@@ -48,7 +48,7 @@
   },
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "19ebc1f567aadf49f7a534a18fdb629c72c0e4ce043d360983136491cb72bfab",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "59b5656e7d989b3cee8d6f95cd43be03053b1fb11c3a82bb49ab3d402f7aacee",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "d5d375d5b8ad4bdc80346f8fee44de37fe0bd88bb93902768f23f5cd30b632d8",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
