@@ -3,6 +3,7 @@
 import platform
 
 from .cuda import inspect_devices as inspect_cuda
+from .mlx import inspect_devices as inspect_mlx
 
 
 def tool_facts(probe: dict) -> dict:
@@ -38,6 +39,7 @@ PLATFORM_PROBES = {
     "cuda": inspect_cuda,
     "rocm": inspect_rocm,
     "ascend": inspect_ascend,
+    "mlx": inspect_mlx,
 }
 
 

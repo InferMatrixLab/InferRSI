@@ -7,7 +7,9 @@
     "h2d",
     "gil",
     "numa",
-    "inference"
+    "inference",
+    "ascend",
+    "descriptor-pool"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -16,16 +18,40 @@
   "origin": [
     "external"
   ],
-  "sources": [],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/vllm-project/vllm-ascend",
+      "commit": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf",
+      "paths": [
+        "LICENSE",
+        "requirements.txt",
+        "vllm_ascend/distributed/kv_transfer/__init__.py",
+        "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/npu.py",
+        "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/cpu_npu.py",
+        "csrc/torch_binding.cpp",
+        "tests/ut/kv_offload/test_native_cpu_offload.py"
+      ],
+      "readset": "references/vllm-ascend-native-offload-readset.json"
+    }
+  ],
   "empirical_validation": "not_run",
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified."
   ],
-  "provenance_readsets": [],
-  "references": [],
+  "provenance_readsets": [
+    "references/vllm-ascend-native-offload.md",
+    "references/vllm-ascend-native-offload-readset.json"
+  ],
+  "references": [
+    "references/vllm-ascend-native-offload.md",
+    "references/vllm-ascend-native-offload-readset.json",
+    "references/vllm-ascend-LICENSE.md"
+  ],
   "consumption_mode": "packaged"
 }

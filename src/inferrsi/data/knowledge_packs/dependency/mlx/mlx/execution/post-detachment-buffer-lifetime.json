@@ -1,0 +1,101 @@
+{
+  "schema_version": 1,
+  "tier": "dependency",
+  "repo": "mlx",
+  "backend": "mlx",
+  "component": "execution",
+  "status": "imported",
+  "license": "MIT",
+  "attribution": "Copyright © 2023 Apple Inc. Source observations are paraphrased; no implementation code is copied.",
+  "skill_documents": {
+    "original": "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+  },
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  },
+  "id": "mlx.mlx.execution.post_detachment_buffer_lifetime",
+  "scenario": "execution.buffer_lifetime",
+  "title": "MLX buffers: graph detachment does not end in-flight storage ownership",
+  "summary": "Non-tracer graph references can detach after scheduling while backend-specific captures or temporaries retain buffers needed by queued work.",
+  "tags": [
+    "mlx",
+    "buffer-lifetime",
+    "detachment",
+    "donation"
+  ],
+  "sources": [
+    {
+      "type": "source_code",
+      "url": "https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/array.cpp#L114-L127",
+      "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+      "accessed_at": "2026-10-21",
+      "rechecked_at": "2026-10-23",
+      "content_sha256": "1b00e14138d085ae990c2db3f97a8bf28315ea46218d7ee7f9bcade22977a643"
+    },
+    {
+      "type": "source_code",
+      "url": "https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/transforms.cpp#L306-L315",
+      "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+      "accessed_at": "2026-10-21",
+      "rechecked_at": "2026-10-23",
+      "content_sha256": "f37ce2b416a38e75fe26ed1762f1bb99bb0e0475d925051a5abb5040bd8e56da"
+    },
+    {
+      "type": "source_code",
+      "url": "https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/backend/cpu/eval.cpp#L24-L51",
+      "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+      "accessed_at": "2026-10-21",
+      "rechecked_at": "2026-10-23",
+      "content_sha256": "c672eb013f28f7ad41d2eca12fc3fca115d714ca2536d0b034aebb18c683718d"
+    },
+    {
+      "type": "source_code",
+      "url": "https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/backend/metal/eval.cpp#L29-L68",
+      "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+      "accessed_at": "2026-10-21",
+      "rechecked_at": "2026-10-23",
+      "content_sha256": "b03bd6c3aabda6f246a5d15ae21dc7e856d18f5af0d488c25e02e484718dce50"
+    },
+    {
+      "type": "source_code",
+      "url": "https://github.com/ml-explore/mlx/blob/bff10220c742907f0c68e55ff174aaea56f74e3d/mlx/backend/cuda/eval.cpp#L43-L78",
+      "commit": "bff10220c742907f0c68e55ff174aaea56f74e3d",
+      "accessed_at": "2026-10-21",
+      "rechecked_at": "2026-10-23",
+      "content_sha256": "b29e659d510fba268b0617bdc6ab899d76ff24d83561bc70611ee1f43585fafb"
+    }
+  ],
+  "applicability": {
+    "software": [
+      "ml-explore/mlx at bff10220c742907f0c68e55ff174aaea56f74e3d; later revisions require reinspection"
+    ],
+    "conditions": [
+      "Actual backend, streams, shapes/dtypes and evaluation boundary are recorded.",
+      "CPU, Metal and CUDA source paths are distinguished; discovery or catalog placement is not runtime qualification."
+    ]
+  },
+  "claims": [
+    {
+      "kind": "source_observation",
+      "description": "array::detach clears primitive, input and sibling graph references. eval_impl marks arrays evaluated and detaches non-tracers after primitive dispatch."
+    },
+    {
+      "kind": "source_observation",
+      "description": "The CPU dispatch captures buffers and temporaries; Metal commit/completion callbacks capture buffers; CUDA retains non-donated inputs and siblings as encoder temporaries. Donation and tracer handling are explicit and backend-specific."
+    }
+  ],
+  "downstream_impact": [
+    "An InferRSI transfer hypothesis for a matching MLX workload; no implicit vLLM, MLX-LM or other engine compatibility is claimed."
+  ],
+  "recommendations": [
+    "Trace the selected backend retention owner and actual completion before interpreting dropped graph/Python references as storage reclamation."
+  ],
+  "validation_plan": [
+    "On a separately authorized matching backend, retain checked outputs while releasing graph references, then distinguish in-flight retention from post-completion allocator caching."
+  ],
+  "limitations": [
+    "This card establishes retention obligations, not allocator eviction, a universal reclamation threshold, zero-copy or memory savings.",
+    "Backend mechanisms are not interchangeable. No native lifetime, memory, model or service validation was run."
+  ]
+}
