@@ -5,6 +5,9 @@ generates JSON and Markdown reports. It reuses the existing reader,
 `CodexClient`, `run_trial`, verifier and error handling. The original
 [pilot](skill-evaluation.md) remains available with its original interfaces.
 
+The [PR integration](skill-eval-pr.md) adds automatic planning, explicit operator
+authorization and retained-result publication around these interfaces.
+
 ```mermaid
 flowchart LR
     A["New: small JSON config"] --> B["New: fixed Git snapshots"]

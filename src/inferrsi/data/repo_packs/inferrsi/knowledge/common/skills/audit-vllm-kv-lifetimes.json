@@ -21,15 +21,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/487593c8fd548433e8bebf8700114cfbbf04e6ca/src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
-      "commit": "487593c8fd548433e8bebf8700114cfbbf04e6ca",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json",
         "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "4c3f27459df239f9f4fc971c559d4c9ddfbfebd70507a8a93be8eae59a30b69d"
+      "content_sha256": "313733a65cc48442b18dda1c4665139a689963a90e1032a2235bc6f40e3a8e06"
     }
   ],
   "index_type": "packaged-skill",
@@ -38,7 +38,7 @@
   },
   "checkout_ref": "checkout:audit-vllm-kv-lifetimes",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md": "4c3f27459df239f9f4fc971c559d4c9ddfbfebd70507a8a93be8eae59a30b69d",
+    "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md": "313733a65cc48442b18dda1c4665139a689963a90e1032a2235bc6f40e3a8e06",
     "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json": "d061abfaf80db3d1b5b34644e38281f9d623d1f49d1e17ef872ebd1a705d4b6c",
     "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md": "3665b034594fc8cc767c408002f4e16f8803369242405027c7f37ce6c9ecebe9",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
