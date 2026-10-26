@@ -21,6 +21,12 @@ to the existing [DCP async-save owner](../skill_library/frameworks/pytorch/dcp-a
 keeping its fixed implementation and live recipe separate from compiler
 documentation, with each owner's completion and version boundaries intact.
 
+For TensorRT-LLM, the [methodology and disaggregation map](../skill_library/README.md#tensorrt-llm-source-and-responsibility-routing)
+routes the existing mixed-source performance methods alongside the
+[PD/KV-transfer card](peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json).
+It assesses shared measurement controls and separate startup, host and network
+costs while retaining the card's source revision and transfer-hypothesis limits.
+
 ## Storage and compatibility
 
 ```text

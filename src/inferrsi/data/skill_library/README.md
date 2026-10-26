@@ -96,6 +96,31 @@ recompilation, capture and steady-state replay; DCP measures
 including first-use versus reused buffers. These are owner-specific checks,
 not a combined compiler/checkpoint calling protocol or compatibility result.
 
+## TensorRT-LLM source and responsibility routing
+
+TensorRT-LLM's retained methodology row covers **skill documents**, not an
+engine-runtime audit. It records prefix `f33e0e5fd`; procedures keep
+`f33e0e5f`, while the [ceiling sidecar](methods/performance-ceiling-analysis/metadata.json)
+retains the longer **prefix** `f33e0e5fd55b`. An original inspection date for
+that methodology extraction is not individually recorded. These are partial
+source identities, not a verified common runtime version.
+
+The separate [PD/KV-transfer peer card](../knowledge_packs/peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json)
+records `c9b18eefa731dc59b0091bdfff6d890aa9d1e98e`, accessed 2026-10-15.
+Its upstream-reported technique remains imported/unverified. The methods below
+remain candidate / empirical validation `not_run`, with their other sources
+and source notices retained. This cross-reading assesses when to combine the
+guidance; it establishes no cross-pin implementation compatibility.
+
+| Decision / resource | Existing entry | Shared prerequisite or accounting judgment | Keep separate |
+| --- | --- | --- | --- |
+| Evidence and measurement | [Evidence levels](methods/dense-performance-evidence/SKILL.md#claim-evidence-matching), [headroom inputs](methods/performance-ceiling-analysis/SKILL.md#evidence-to-inspect-first) and [case reuse](methods/inference-optimization-casebook/SKILL.md#adapt-do-not-copy) | Apply the peer card's fixed input/output-length and arrival distributions, same total device budget and SLO workload; report TTFT, TPOT, tail latency, goodput and total GPU/network resources | Analytical/component evidence and a precedent do not establish service gain; re-derive model/hardware-specific values |
+| Accelerator | [Kernel verification](methods/kernel-writing-guide/SKILL.md#workflow-verify-before-benchmark) | A kernel change still needs reference parity over target shapes/dtypes and critical-path profiling | Kernel correctness does not establish reduced prefill/decode interference or end-to-end PD benefit |
+| RAM / Host | [Serving-trace prerequisites](hardware/cuda/host-overhead-profiling/SKILL.md#prerequisites) and [confirmed host bottleneck](hardware/host/host-overhead-optimization/SKILL.md#confirming-the-bottleneck) | Establish exposed host work from serving traces before attributing a PD regression to CPU preparation | A line profiler locates CPU time; it does not establish that CPU is limiting or measure the KV interconnect |
+| SSD / Storage | [Startup accounting](methods/weight-loading-optimization/SKILL.md#2-account-startup-fixed-overhead-separately) | Loading/warmup is once per process; request KV delivery needs its own per-request bytes and timing | Do not combine those denominators; disk-loading mechanics retain their separately attributed sources |
+| Communication / Network | [Disaggregation peer card](../knowledge_packs/peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json) | Consider PD with measured prefill/decode interference, compatible KV layouts and qualified NVIDIA GPU transport; include transfer, layout-conversion and queue costs, and verify backpressure, cancellation and failed-worker recovery | Host/device loading overlap and local H2D do not establish this interconnect path; diffusion-stage splitting does not inherit the autoregressive PD cost model |
+| OS / System | [Placement discipline](hardware/host/os-process-placement/SKILL.md#1-cpu-affinity-check-then-pin-then-keep-constant) | Record and control affinity, environment and device contention across matched pool comparisons | Placement methodology controls an experiment; it does not implement PD routing or OS-priority scheduling |
+
 ## Engine knowledge
 
 Five repository entry skills, 15 focused sub-skills and one research router
@@ -184,6 +209,12 @@ separates pipeline-wrapper fields, reused component identities, scheduler progre
 and cooperative interruption. The candidate is scoped to FluxPipeline and
 FlowMatchEulerDiscreteScheduler at its source pin. Runtime/model/backend behavior
 and performance remain unverified; the existing offload card keeps its own pin.
+
+For host-memory/transfer questions, read the separate CUDA dependency record
+`diffusers.cuda.diffusion.group_offload_transfer_overlap`. The
+[version and responsibility comparison](frameworks/diffusers/diffusers-invocation-state/SKILL.md#offload-or-invocation-state)
+keeps its earlier documentation pin/access date separate from the invocation
+candidate; neither supplies a combined-stack or backend qualification.
 
 ## SGLang versioned guidance
 

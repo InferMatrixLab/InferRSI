@@ -329,9 +329,22 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     assert value["permissions"] == {"contents": "read", "pull-requests": "read",
                                     "issues": "read", "statuses": "write"}
     assert "concurrency" not in value
-    assert value["jobs"]["declarations"]["concurrency"] == {
-        "group": "knowledge-policy-status-writer", "cancel-in-progress": False,
-    }
+    job = value["jobs"]["declarations"]
+    eligibility = (
+        "github.event_name != 'issue_comment' || !github.event.issue || "
+        "!github.event.comment || !github.event.action || "
+        "(github.event.issue.pull_request && (github.event.action != 'created' || "
+        "!github.event.comment.body || "
+        "contains(github.event.comment.body, 'knowledge-policy-approval')))"
+    )
+    assert " ".join(job["if"].split()) == "${{ " + eligibility + " }}"
+    group = (
+        "${{ (" + eligibility + ") && 'knowledge-policy-status-writer' || "
+        "format('knowledge-policy-skipped-{0}-{1}', github.run_id, github.run_attempt) }}"
+    )
+    assert " ".join(job["concurrency"]["group"].split()) == group
+    assert job["concurrency"]["cancel-in-progress"] is False
+    assert set(job["concurrency"]) == {"group", "cancel-in-progress"}
     steps = value["jobs"]["declarations"]["steps"]
     assert steps[0]["with"] == {"ref": "main", "persist-credentials": False}
     assert all("pip install" not in step.get("run", "") for step in steps)
@@ -1535,3 +1548,4 @@ def test_api_other_contexts_do_not_consume_the_budget(api_fixture, policy):
     seed_history(state, 400, context="other-ci")
     assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
     assert latest_status(state)["state"] == "success"
+
