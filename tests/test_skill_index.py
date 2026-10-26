@@ -52,8 +52,10 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
 
 def test_generated_index_matches_current_sources_without_historical_git_objects():
     records = search_knowledge(repo="inferrsi", limit=100)
-    revisions = {record["sources"][0]["commit"] for record in records}
-    assert len(revisions) == 1
+    revisions = {
+        record["skill_metadata"]["name"]: record["sources"][0]["commit"]
+        for record in records
+    }
     # CI uses shallow checkouts. Compare the whole generated projection and its
     # text hashes without requiring the old source commit in the local object DB.
     source_files = {
@@ -62,7 +64,7 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
         ).hexdigest()
         for relative in source_inputs(ROOT)
     }
-    generated = render_index(ROOT, revisions.pop(), source_files)
+    generated = render_index(ROOT, revisions, source_files)
     destination = PROJECT / DESTINATION
     actual = {
         path.relative_to(destination).as_posix(): path.read_text(encoding="utf-8")
@@ -146,6 +148,82 @@ def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path,
     (root / "metadata.json").write_text('{"status": "candidate"}', encoding="utf-8")
     with pytest.raises(ValueError, match="input paths differ"):
         build_index(tmp_path, "HEAD")
+
+
+def test_selected_generation_preserves_unrelated_bytes_and_checks_selected_drift(
+    tmp_path, monkeypatch,
+):
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(tmp_path), *args], check=True, capture_output=True,
+        ).stdout.decode().strip()
+
+    def commit(message):
+        git("add", LIBRARY.as_posix())
+        git("-c", "user.name=Index fixture", "-c", "user.email=index@example.invalid",
+            "commit", "-s", "-m", message)
+        return git("rev-parse", "HEAD")
+
+    git("init")
+    library = tmp_path / LIBRARY
+    for name in ("selected", "unrelated"):
+        owner = library / "methods" / name
+        owner.mkdir(parents=True)
+        (owner / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: fixture\n---\nOriginal body\n",
+            encoding="utf-8",
+        )
+    (library / "skill-index.json").write_text(json.dumps({
+        "schema_version": 1,
+        "skills": {name: {"path": f"methods/{name}", "backend": "common"}
+                   for name in ("selected", "unrelated")},
+    }), encoding="utf-8")
+    original = commit("Create two skill sources")
+    monkeypatch.setattr(index_builder, "PROJECT", tmp_path)
+    assert index_builder.main(["--source-revision", original]) == 0
+    destination = tmp_path / DESTINATION
+    unrelated = destination / "common/skills/unrelated.json"
+    original_bytes = unrelated.read_bytes()
+
+    source = library / "methods/selected/SKILL.md"
+    source.write_text(source.read_text(encoding="utf-8") + "New guidance\n", encoding="utf-8")
+    candidate = commit("Change only selected guidance")
+    args = ["--source-revision", candidate, "--skill", "selected"]
+    assert index_builder.main([*args, "--check"]) == 1
+    assert index_builder.main(args) == 0
+    assert unrelated.read_bytes() == original_bytes
+    selected = destination / "common/skills/selected.json"
+    assert json.loads(selected.read_text())["sources"][0]["commit"] == candidate
+    assert json.loads(original_bytes)["sources"][0]["commit"] == original
+    assert index_builder.main([*args, "--check"]) == 0
+
+    selected.write_text("{}", encoding="utf-8")
+    assert index_builder.main([*args, "--check"]) == 1
+    assert selected.read_text() == "{}"  # Check is read-only.
+    for invalid in ("missing", ""):
+        with pytest.raises(SystemExit) as error:
+            index_builder.main(["--source-revision", candidate, "--skill", invalid])
+        assert error.value.code == 2
+    assert unrelated.read_bytes() == original_bytes
+    assert index_builder.main(args) == 0
+    # Omitting --skill retains the existing full-regeneration contract.
+    assert index_builder.main(["--source-revision", candidate]) == 0
+    assert json.loads(unrelated.read_text())["sources"][0]["commit"] == candidate
+
+    registry = library / "skill-index.json"
+    entries = json.loads(registry.read_text(encoding="utf-8"))
+    entries["skills"]["selected"]["backend"] = "cuda"
+    registry.write_text(json.dumps(entries), encoding="utf-8")
+    moved = commit("Move selected skill to CUDA")
+    args = ["--source-revision", moved, "--skill", "selected"]
+    assert index_builder.main([*args, "--check"]) == 1
+    with pytest.raises(ValueError, match="Remove obsolete generated files explicitly"):
+        index_builder.main(args)
+    # Selective generation must not hide the old projection after a backend move.
+    selected.unlink()
+    assert index_builder.main(args) == 0
+    assert (destination / "cuda/skills/selected.json").is_file()
+    assert index_builder.main([*args, "--check"]) == 0
 
 
 def test_package_index_and_checkout_skill_have_distinct_read_boundaries():

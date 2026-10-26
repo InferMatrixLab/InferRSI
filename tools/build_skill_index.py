@@ -82,13 +82,16 @@ def source_inputs(root: Path) -> set[str]:
     }
 
 
-def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dict[str, str]:
+def render_index(
+    root: Path, revision: str | dict[str, str], source_files: dict[str, str]
+) -> dict[str, str]:
     """Render the projection without requiring historical Git objects."""
     outputs = {}
     links = []
     entries = _registry(root)
     for selected in skill_records(root):
         name = selected["name"]
+        source_revision = revision[name] if isinstance(revision, dict) else revision
         metadata = skill_metadata(root, name)
         backend = entries[name]["backend"]
         directory = f"{LIBRARY.as_posix()}/{entries[name]['path']}"
@@ -115,8 +118,8 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
             "origin": metadata.get("origin", ["unknown"]),
             "sources": [{
                 "type": "git",
-                "url": f"{REPOSITORY}/blob/{revision}/{entry}",
-                "commit": revision,
+                "url": f"{REPOSITORY}/blob/{source_revision}/{entry}",
+                "commit": source_revision,
                 "paths": paths,
                 "content_sha256": hashes[entry],
             }],
@@ -162,7 +165,8 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         "These are knowledge abstracts (`--kind knowledge`), with namespaced package",
         "IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA",
         "procedures use their corresponding backend; shared methods use `common`.", "",
-        f"Source snapshot: [{revision}]({REPOSITORY}/tree/{revision}/{LIBRARY.as_posix()}).", "",
+        "Each record retains its own source snapshot in `sources`; unchanged skills",
+        "can keep their existing provenance when another skill is updated.", "",
         "```bash",
         "inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50",
         "inferrsi collect --repo-type inferrsi --kind knowledge --limit 50 --material",
@@ -173,9 +177,14 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         "`source_files` hashes identify the canonical Git bytes, not a validation result.", "",
         "```bash",
         "python tools/build_skill_index.py --source-revision <committed-source-revision>",
-        f"python tools/build_skill_index.py --source-revision {revision} --check",
+        "# Update or check one skill without repinning unrelated records:",
+        "python tools/build_skill_index.py --source-revision <committed-source-revision> "
+        "--skill <skill-name>",
+        "python tools/build_skill_index.py --source-revision <committed-source-revision> "
+        "--skill <skill-name> --check",
         "```", "",
         "`--check` detects missing, stale and unexpected generated records without writing.",
+        "With `--skill`, only that record and the shared navigation are updated/checked.",
         "References and cases ship with their owning skill, not as duplicate knowledge abstracts.",
         "",
         "| Skill | Backend | Original declared status |", "| --- | --- | --- |", *links, "",
@@ -186,6 +195,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-revision", required=True)
+    parser.add_argument("--skill", help="Update/check only this registered skill and navigation")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args(argv)
     outputs = build_index(PROJECT, args.source_revision)
@@ -195,6 +205,13 @@ def main(argv: list[str] | None = None) -> int:
         for path in destination.rglob("*") if path.is_file()
     }
     stale = existing - outputs.keys()
+    if args.skill is not None:
+        entry = _registry(PROJECT / LIBRARY).get(args.skill)
+        if entry is None:
+            parser.error(f"Unknown registered skill: {args.skill}")
+        selected = f"{entry['backend']}/skills/{args.skill}.json"
+        outputs = {path: outputs[path] for path in (selected, "README.md")}
+        stale = {path for path in stale if path.endswith(f"/skills/{args.skill}.json")}
     changed = [
         path for path, content in outputs.items()
         if not (destination / path).is_file()
