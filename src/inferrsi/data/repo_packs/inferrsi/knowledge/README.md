@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [fc0fda555bb7552f0aac43b2e8831240693a2367](https://github.com/InferMatrixLab/InferRSI/tree/fc0fda555bb7552f0aac43b2e8831240693a2367/src/inferrsi/data/skill_library).
+Source snapshot: [5506c6b88d441860f1467146ede263ca41514713](https://github.com/InferMatrixLab/InferRSI/tree/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision fc0fda555bb7552f0aac43b2e8831240693a2367 --check
+python tools/build_skill_index.py --source-revision 5506c6b88d441860f1467146ede263ca41514713 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -52,7 +52,6 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [audit-afd-p2p-exchanges](cuda/skills/audit-afd-p2p-exchanges.json) | cuda | candidate |
 | [audit-h3-runtime-residency](common/skills/audit-h3-runtime-residency.json) | common | candidate |
 | [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
-| [audit-recurrent-kv-finalization](common/skills/audit-recurrent-kv-finalization.json) | common | candidate |
 | [audit-sd-cpp-residency](common/skills/audit-sd-cpp-residency.json) | common | candidate |
 | [audit-sglang-diffusion-lifetimes](common/skills/audit-sglang-diffusion-lifetimes.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |
@@ -88,6 +87,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
 | [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | common | candidate |
 | [plan-activation-residency](common/skills/plan-activation-residency.json) | common | candidate |
+| [reason-hopper-kernels](cuda/skills/reason-hopper-kernels.json) | cuda | candidate |
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | unspecified |
 | [skill-evolution-playbook](common/skills/skill-evolution-playbook.json) | common | candidate |
