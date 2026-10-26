@@ -90,6 +90,24 @@ The decision of which regimes must improve and which must not regress is the
 caller's policy, not the benchmark's. Encode it in a decision config file
 (`decision.yaml` in vllm-evolve) so it is explicit, versioned, and auditable.
 
+## Audit a supplied fixed-workload report
+
+Preserve the request-to-trial grouping and every observation covered by the
+contract. Late requests and outliers remain included unless the frozen protocol
+explicitly excludes them; retain exclusion and failure counts. Apply aggregation
+in the declared order: a median of per-trial request means uses every included
+request to calculate each trial mean, then takes the median across trials. A
+pooled request median is a different statistic, especially with unequal trial
+sizes. If the report omits an aggregation rule that changes the verdict, expose
+that ambiguity rather than choosing one after seeing the result.
+
+For a lower-is-better metric with a positive baseline, calculate percentage
+reduction as `100 * (baseline - candidate) / baseline` and compare it with the
+declared threshold before rounding. Check workload equivalence, output quality
+and completion evidence separately from this arithmetic. Report the computed
+threshold result and any missing evidence under the frozen contract's verdict
+semantics; an attractive aggregate alone does not establish an accepted gain.
+
 ## What must be pinned before comparing two runs
 
 Every valid A/B comparison requires these to be identical:
