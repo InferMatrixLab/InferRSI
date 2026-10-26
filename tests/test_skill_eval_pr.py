@@ -283,14 +283,35 @@ def test_concurrent_duplicate_calls_execute_only_one_paid_schedule(tmp_path):
 @pytest.mark.parametrize("mode", ["addition", "update"])
 def test_file_only_plan_artifact_round_trip_can_execute(tmp_path, mode):
     repo, mapping, identity = setup(tmp_path, mode, ids=("one",))
+    hidden_resources = {
+        ".audit-rules": "Retain every request\n",
+        ".audit/threshold.txt": "Reject a fixed-workload claim above the threshold\n",
+    }
+    for name, content in hidden_resources.items():
+        resource = repo / "library/selected" / name
+        resource.parent.mkdir(parents=True, exist_ok=True)
+        resource.write_text(content, encoding="utf-8")
+    git(repo, "add", "library/selected")
+    git(repo, "commit", "--quiet", "-m", "Fixture hidden skill resources")
+    identity["head"] = git(repo, "rev-parse", "HEAD")
     prepared = tmp_path / "prepared"
     plan = integration.prepare(repo, mapping, identity, prepared)
+    for name, content in hidden_resources.items():
+        frozen_resource = prepared / "selected/plan/bundles/candidate/selected" / name
+        assert frozen_resource.read_text(encoding="utf-8") == content
     write_json(prepared / "approval.json", approval(plan))
+    workflow = yaml.safe_load((ROOT / integration.WORKFLOW).read_text(encoding="utf-8"))
+    upload = next(step["with"] for step in workflow["jobs"]["plan"]["steps"]
+                  if step.get("uses") == "actions/upload-artifact@v4")
+    assert upload["path"] == prepared.name
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as archive:
         for path in prepared.rglob("*"):
-            if path.is_file():
-                archive.write(path, path.relative_to(prepared).as_posix())
+            relative = path.relative_to(prepared)
+            # Match upload-artifact's documented dotfile and dot-directory filtering.
+            hidden = any(part.startswith(".") for part in relative.parts)
+            if path.is_file() and (upload.get("include-hidden-files", False) or not hidden):
+                archive.write(path, relative.as_posix())
     downloaded = tmp_path / "downloaded"
     with zipfile.ZipFile(io.BytesIO(buffer.getvalue())) as archive:
         assert all(not entry.is_dir() for entry in archive.infolist())

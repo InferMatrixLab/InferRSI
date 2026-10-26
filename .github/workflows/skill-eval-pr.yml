@@ -83,6 +83,7 @@ jobs:
         with:
           name: skill-eval-plan
           path: prepared
+          include-hidden-files: true
           retention-days: 30
 
   execute:
