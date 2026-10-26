@@ -344,6 +344,39 @@ Status POSTs are never retried by the transport. The existing outer sweep retry
 plan remains unchanged; this diagnostic improvement does not repair permissions,
 restore exhausted status capacity, or guarantee that historical red checks clear.
 
+
+### Trigger-PR conclusion versus global sweep health
+
+Every workflow event still refreshes **all open policy-branch PRs** through the
+single serialized writer. This is necessary because concurrency may replace a
+pending event. The runner still makes up to three attempts when global work is
+unfinished; a green triggering PR never stops those retries early. The triggering
+PR is evaluated first without dropping any peer from the sweep.
+
+Only after the final attempt does a PR or PR-comment job use that triggering PR's
+own verified result for its job conclusion. A peer PR's history/publication error
+therefore does not turn a verified compliant trigger PR red. A noncompliant
+trigger PR, unavailable evidence, status-publication failure, capacity failure,
+advanced head, or missing target still fails its own job. A freshly checked
+closed/non-policy-branch target is explicitly **not applicable**, not an admission
+or acceptance PASS. It is added to the sweep even when absent from the open list.
+Push-to-main and manual workflow-dispatch jobs continue to report global execution
+health. Explicit CLI `--pull-request` and dry-run behavior is unchanged.
+
+The runner deletes the report before each attempt. The checker atomically writes
+a report bound to repository, event digest/type, policy SHA and attempt identifier;
+the final consumer rejects missing, malformed, duplicate, stale or mismatched
+reports. It never falls back to an earlier attempt's success. Failed collection
+reads additionally produce synthetic target `0` in reporting sweeps (included in
+result counts), which blocks projection even if an individual result is green.
+
+All target results and global health remain in structured logs. The final scope,
+target kind, policy SHA and global summary are also written to the job summary;
+an incomplete/failed sweep emits a warning even when the trigger PR job passes.
+This isolates unrelated job conclusions without clearing any peer's failing
+commit status or hiding repository-wide failures. No admission rules, publishing
+permissions, status-history limits, or acceptance requirements are weakened.
+
 The bootstrap PR cannot exercise a target-branch workflow that has not landed:
 independently review and accept it before merging, then validate report-only on
 real PRs. Local/PR CI success does not close #50 or authorize required enforcement.

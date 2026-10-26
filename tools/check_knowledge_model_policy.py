@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -319,6 +320,18 @@ class GitHubHTTPError(OSError):
             category = "unknown"
         self.category = category
         detail = {"http_status": self.code, "category": category}
+        if self.code == 422:
+            # Recognize only the explicit status-capacity response, never infer it from
+            # HTTP 422, an arbitrary validation message, or the locally counted history.
+            capacity_message = "this sha and context has reached the maximum number of statuses."
+            errors = body.get("errors", []) if isinstance(body, dict) else []
+            capacity = isinstance(errors, list) and any(
+                isinstance(item, dict) and item.get("resource") == "Status"
+                and item.get("code") == "custom"
+                and isinstance(item.get("message"), str)
+                and item["message"].strip().lower() == capacity_message
+                for item in errors)
+            detail["reason"] = "status-capacity" if capacity else "unknown"
         # Only numeric rate metadata and a bounded request ID are safe to retain. Response
         # messages/errors may echo user content, tokens or URLs, so they are never logged.
         for name in ("X-RateLimit-Remaining", "X-RateLimit-Reset", "Retry-After"):
@@ -705,7 +718,7 @@ def still_current(api, number, entry, policy, open_prs, scan_error):
     return True
 
 
-def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None):
+def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger=None, report_scope=False):
     # The sweep deadline bounds the whole evaluation pass and keeps publication time free; each
     # target's read is bounded separately by its share of what remains.
     deadline = time.monotonic() + SWEEP_SECONDS
@@ -722,6 +735,9 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None):
                      "kind": "unverified", "description": "Lifecycle metadata unavailable",
                      "errors": [evaluation_failure(scan_error)["errors"][0]]}]
         numbers = [pr["number"] for pr in open_prs if addressable(pr, policy)]
+        # A close/base-change event must receive a fresh explicit N/A result as well.
+        if trigger is not None:
+            numbers = [trigger, *(number for number in numbers if number != trigger)]
     # Work another attempt already settled is not repeated: re-running it would spend the same
     # bounded time and, in a later attempt's exhausted tail, replace a published verdict with a
     # failure. A carried target is trusted only after its own premise is re-confirmed here.
@@ -910,6 +926,11 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None):
                         "rerun": item["rerun"], "state": item["state"],
                         "kind": item["kind"], "description": item["description"],
                         "errors": item["errors"]})
+    if report_scope and scan_error is not None:
+        results.append({"pull_request": 0, "head_sha": "", "policy_sha": policy_sha,
+                        "dry_run": dry_run, "rerun": True, "state": "failure",
+                        "kind": "unverified", "description": "Lifecycle metadata unavailable",
+                        "errors": [evaluation_failure(scan_error)["errors"][0]]})
     return results
 
 
@@ -925,6 +946,97 @@ def refresh_event(event, event_name):
     raise ValueError("Unsupported policy event; merge queue requires an explicit integration")
 
 
+
+def report_binding(repository, event_name, event_path, policy_sha, report_id):
+    """Bind a report to trusted runner inputs, not declaration text or an older attempt."""
+    if not report_id or not repository:
+        raise ValueError("Missing report binding")
+    raw = Path(event_path).read_bytes()
+    event = json.loads(raw, object_pairs_hook=unique_object)
+    refresh_event(event, event_name)
+    trigger = None
+    if event_name == "pull_request_target":
+        trigger = event["number"]
+        if event["pull_request"]["number"] != trigger:
+            raise ValueError("Inconsistent trigger")
+    elif event_name == "issue_comment" and "pull_request" in event["issue"]:
+        trigger = event["issue"]["number"]
+    if trigger is not None and (type(trigger) is not int or trigger <= 0):
+        raise ValueError("Invalid trigger")
+    return {"repository": repository, "event_name": event_name,
+            "event_digest": hashlib.sha256(raw).hexdigest(), "trigger": trigger,
+            "policy_sha": policy_sha, "report_id": report_id}
+
+
+def write_report(path, binding, results):
+    if path is None:
+        return
+    report = {"schema_version": 1, "binding": binding, "results": results,
+              "sweep_exit": exit_code(results), "summary": summarize(results)}
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(json.dumps(report, ensure_ascii=True, sort_keys=True), encoding="utf-8")
+    temporary.replace(path)
+
+
+def report_exit(path, binding, sweep_exit):
+    """Project ONLY the final completed attempt; global health remains visible."""
+    report = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+    if (type(report.get("schema_version")) is not int or report["schema_version"] != 1
+            or report.get("binding") != binding):
+        raise ValueError("Stale or mismatched admission report")
+    results = report["results"]
+    if not isinstance(results, list):
+        raise ValueError("Invalid admission results")
+    seen = set()
+    for result in results:
+        number = result["pull_request"]
+        if type(number) is not int or number < 0 or number in seen:
+            raise ValueError("Invalid or duplicate admission target")
+        seen.add(number)
+        if (result["policy_sha"] != binding["policy_sha"]
+                or result["dry_run"] is not False
+                or type(result["rerun"]) is not bool
+                or result["kind"] not in KINDS
+                or result["state"] not in {"success", "failure"}
+                or not isinstance(result["errors"], list)
+                or not isinstance(result["description"], str)
+                or not isinstance(result["head_sha"], str)
+                or (result["head_sha"] and not SHA.fullmatch(result["head_sha"]))):
+            raise ValueError("Invalid admission result")
+    if (type(sweep_exit) is not int or sweep_exit not in {0, 1, 2}
+            or type(report["sweep_exit"]) is not int
+            or report["sweep_exit"] != sweep_exit or exit_code(results) != sweep_exit
+            or report["summary"] != summarize(results)):
+        raise ValueError("Inconsistent admission report")
+    trigger = binding["trigger"]
+    own = [result for result in results if result["pull_request"] == trigger]
+    if trigger is None:
+        conclusion = int(sweep_exit != 0)
+    else:
+        conclusion = 1
+        if 0 not in seen and len(own) == 1:
+            result = own[0]
+            if (result["kind"] in {"compliant", "closed"}
+                    and result["state"] == "success" and not result["rerun"]
+                    and not result["errors"] and SHA.fullmatch(result["head_sha"])):
+                conclusion = 0
+    summary = {"scope": "trigger-pr" if trigger is not None else "global-sweep",
+               "trigger": trigger, "job_exit": conclusion,
+               "target_kind": own[0]["kind"] if own else None,
+               "target_applicability": ("not-applicable" if own and own[0]["kind"] == "closed"
+                                        else "see-target-result"),
+               "global_summary": report["summary"], "policy_sha": binding["policy_sha"]}
+    print(json.dumps(summary, ensure_ascii=True))
+    if sweep_exit:
+        print("::warning::Global admission sweep remains incomplete or failed; "
+              "see structured results. Trigger-PR conclusion does not clear other PRs.")
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with Path(summary_path).open("a", encoding="utf-8") as stream:
+            stream.write("### Admission result (final attempt)\n\n```json\n"
+                         + json.dumps(summary, indent=2, ensure_ascii=True) + "\n```\n")
+    return conclusion
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Check declared knowledge authorship")
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY"), required=False)
@@ -934,9 +1046,22 @@ def main(argv=None):
     parser.add_argument("--pull-request", type=int)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--plan", type=Path)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--report-id")
+    parser.add_argument("--report-exit", type=int)
     args = parser.parse_args(argv)
     if not SHA.fullmatch(args.policy_sha):
         raise ValueError("Expected the trusted policy checkout SHA")
+    binding = None
+    if args.report is not None:
+        binding = report_binding(args.repository, os.environ["GITHUB_EVENT_NAME"],
+                                 args.event_path, args.policy_sha, args.report_id)
+        if args.pull_request is not None or args.dry_run:
+            raise ValueError("Scoped reporting requires the full publishing sweep")
+    if args.report_exit is not None:
+        if binding is None:
+            raise ValueError("Missing final report")
+        return report_exit(args.report, binding, args.report_exit)
     token = os.environ.get("GITHUB_TOKEN")
     if not args.dry_run and not token:
         raise ValueError("GITHUB_TOKEN is required to publish policy statuses")
@@ -953,11 +1078,14 @@ def main(argv=None):
         # Every trigger shares one writer, so a superseded queued event still covers all open PRs.
         numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
     plan = plan_file(args.plan, args.policy_sha)
-    results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan)
+    results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan,
+                        trigger=binding["trigger"] if binding else None,
+                        report_scope=binding is not None)
     write_plan(args.plan, plan)
     for result in results:
         print(json.dumps(result, ensure_ascii=True))
     print(json.dumps(summarize(results), ensure_ascii=True))
+    write_report(args.report, binding, results)
     return exit_code(results)
 
 

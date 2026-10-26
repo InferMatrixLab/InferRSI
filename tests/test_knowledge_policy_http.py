@@ -36,6 +36,33 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertNotIn("example.invalid", str(error))
         self.assertIn('"x-ratelimit-remaining": 0', str(error))
 
+    def test_explicit_status_capacity_reason_is_recognized(self):
+        body = {"message": "Validation Failed", "errors": [{"resource": "Status",
+                "code": "custom", "message":
+                "This SHA and context has reached the maximum number of statuses."}]}
+        original = HTTPError("https://example.invalid", 422, "", {},
+                             io.BytesIO(json.dumps(body).encode()))
+        error = policy.GitHubHTTPError(original)
+        self.assertEqual(error.category, "validation")
+        self.assertIn('"reason": "status-capacity"', str(error))
+        self.assertNotIn("This SHA", str(error))
+
+    def test_unknown_validation_is_redacted_and_not_inferred_as_capacity(self):
+        capacity = "This SHA and context has reached the maximum number of statuses."
+        for item in ({"resource": "Status", "code": "custom", "message": "FAKE_SECRET"},
+                     {"resource": "Status", "code": "custom",
+                      "message": capacity + " FAKE_SECRET"},
+                     {"resource": "Other", "code": "custom", "message": capacity},
+                     "FAKE_SECRET", None):
+            with self.subTest(item=item):
+                body = {"message": "FAKE_SECRET", "errors": [item]}
+                original = HTTPError("https://example.invalid", 422, "", {},
+                                     io.BytesIO(json.dumps(body).encode()))
+                error = policy.GitHubHTTPError(original)
+                self.assertIn('"reason": "unknown"', str(error))
+                self.assertNotIn("status-capacity", str(error))
+                self.assertNotIn("FAKE_SECRET", str(error))
+
     def test_body_read_is_bounded_and_invalid_json_is_safe(self):
         body = io.BytesIO(b"x" * 20000)
         error = HTTPError("https://example.invalid", 403, "", {}, body)
