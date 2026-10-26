@@ -331,6 +331,19 @@ never become compliant/non-applicable results. Current rules have no merge queue
 `merge_group` is explicitly unsupported. Validate a trusted integration before
 enabling a queue with this required check.
 
+HTTP diagnostics retain only the response status, a conservative category,
+numeric rate-limit timing/remaining headers, and a bounded GitHub request ID.
+Raw response messages, error arrays, request URLs and credentials are not logged.
+A 403 alone is not proof of rate limiting; a 422 is a validation error, not proof
+that the status-history cap was reached. Read requests may retry once when an
+explicit rate-limit delay fits inside their remaining retry budget (at most 60
+seconds). The wait is deducted before passing the remaining timeout to the retry.
+The urllib timeout applies to socket operations, not a strict total wall-clock
+deadline for reading the response.
+Status POSTs are never retried by the transport. The existing outer sweep retry
+plan remains unchanged; this diagnostic improvement does not repair permissions,
+restore exhausted status capacity, or guarantee that historical red checks clear.
+
 The bootstrap PR cannot exercise a target-branch workflow that has not landed:
 independently review and accept it before merging, then validate report-only on
 real PRs. Local/PR CI success does not close #50 or authorize required enforcement.
@@ -345,3 +358,4 @@ python tools/check_knowledge_model_policy.py --repository <owner/repo> --pull-re
 publishing statuses. It does not show the main workflow is operational. Production
 uses runtime-injected `GITHUB_TOKEN`; never pass tokens as CLI arguments. The
 existing ready lane runs unit tests on Python 3.10 and 3.11 in its full suite.
+
