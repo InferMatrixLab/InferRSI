@@ -282,11 +282,11 @@ def recover_attempts(output: Path, schedule: list[dict]) -> list[dict]:
 
 def observed_tokens(usage: dict | None) -> int:
     # Count observed token fields only; report completeness separately in status and summary.
-    if usage is None:
+    if not isinstance(usage, dict):
         return 0
     return sum(
         value for key, value in usage.items()
-        if key in ("input_tokens", "output_tokens") and value is not None
+        if key in ("input_tokens", "output_tokens") and type(value) is int and value >= 0
     )
 
 

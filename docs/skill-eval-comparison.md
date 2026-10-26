@@ -8,6 +8,12 @@ generates JSON and Markdown reports. It reuses the existing reader,
 The [PR integration](skill-eval-pr.md) adds automatic planning, explicit operator
 authorization and retained-result publication around these interfaces.
 
+The [bounded offline improvement controller](harness-improvement.md) also reuses
+these interfaces for INV/DOM probes, successor reruns and held-out acceptance,
+with a shared outer execution budget. Summaries include cached-input tokens,
+total tokens (input + output, without double-counting cache) and completed
+command-execution counts; absent telemetry remains unknown.
+
 ```mermaid
 flowchart LR
     A["New: small JSON config"] --> B["New: fixed Git snapshots"]

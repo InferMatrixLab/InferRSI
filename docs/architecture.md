@@ -83,6 +83,8 @@ src/inferrsi/
     runner.py               One AB/BA loop; execute/snapshot adapter hooks
     evaluation.py           Performance/quality/source-integrity adjudication
     reporting.py            HTML evidence report
+    skill_evaluation.py     Skill trials, usage summaries and shared trial budget
+    improvement.py          Offline quality/cost selection policy; no model execution
     scenarios/
       external.py           External benchmark/validator commands; metric-reader hook
       media.py              Warmup seeds, first-response retention, sample/artifact groups
@@ -115,6 +117,23 @@ src/inferrsi/
 examples/                   Current Qwen runner, image validator and v4 adapter
 tests/fixtures/legacy/      Frozen historical validation dependencies for regressions
 ```
+
+### Bounded skill improvement
+
+[`tools/skill_eval_improve.py`](../tools/skill_eval_improve.py) composes the existing
+Skill Eval comparison tool for caller-prepared H0/INV/DOM snapshots. It freezes
+the supported audit inputs and policy, shares one outer budget across probes,
+mandatory rerun and one-shot holdout, and revalidates retained evidence when
+reporting. The Harness policy module owns quality gates and cost selection;
+the existing comparison runner and Infra executor still own trials and cleanup.
+See the [implemented flow and offline limits](harness-improvement.md).
+
+This is a separate optional skill-evaluation path. It neither replaces engine
+AB/BA adjudication nor automatically writes/promotes knowledge. The initial
+executor accepts only explicitly supplied trusted offline fixtures; automatic
+model edits, external sandbox qualification and cross-task reuse remain future
+work. Shared total-token and command-count summaries also serve the original
+pilot, configured comparison and PR integration consumers.
 
 ## Where to extend
 

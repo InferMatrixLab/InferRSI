@@ -1,4 +1,5 @@
 import json
+import math
 import sys
 import time
 from dataclasses import dataclass
@@ -89,7 +90,8 @@ def trace_metrics(path: Path) -> dict:
             item = event["item"]
             if item["type"] == "command_execution":
                 commands.append(item)
-    return {"usage": usage, "commands": commands, "errors": errors, "completed_turns": completed}
+    return {"usage": usage, "commands": commands, "command_count": len(commands),
+            "errors": errors, "completed_turns": completed}
 
 
 def valid_checks(checks) -> bool:
@@ -115,7 +117,6 @@ def summarize(trials: list[dict]) -> dict:
     groups = {}
     for condition in sorted({t["condition"] for t in trials}):
         selected = [t for t in trials if t["condition"] == condition]
-        usage = [t["observations"]["usage"] for t in selected]
         groups[condition] = {
             "trials": len(selected),
             "verdicts": {
@@ -126,10 +127,7 @@ def summarize(trials: list[dict]) -> dict:
             "elapsed_seconds": sum(t["elapsed_seconds"] for t in selected)
             if all(t["elapsed_seconds"] is not None for t in selected)
             else None,
-            "input_tokens": sum(u["input_tokens"] for u in usage)
-            if all(u and u.get("input_tokens") is not None for u in usage) else None,
-            "output_tokens": sum(u["output_tokens"] for u in usage)
-            if all(u and u.get("output_tokens") is not None for u in usage) else None,
+            **usage_totals(selected),
             "cost": None,
         }
     paired = []
@@ -150,6 +148,66 @@ def summarize(trials: list[dict]) -> dict:
                 }
             )
     return {"conditions": groups, "pairs": paired, "promotion": "not_evaluated"}
+
+
+def usage_totals(trials: list[dict]) -> dict:
+    """Aggregate complete measurements only; cached tokens are part of input."""
+    result = {}
+    usage = [t["observations"].get("usage") for t in trials]
+    for metric in ("input_tokens", "output_tokens", "cached_input_tokens"):
+        values = [u.get(metric) if isinstance(u, dict) else None for u in usage]
+        result[metric] = sum(values) if values and all(
+            type(value) is int and value >= 0 for value in values
+        ) else None
+    result["total_tokens"] = (
+        result["input_tokens"] + result["output_tokens"]
+        if result["input_tokens"] is not None and result["output_tokens"] is not None else None
+    )
+    commands = [t["observations"].get("command_count") for t in trials]
+    result["command_calls"] = sum(commands) if commands and all(
+        type(value) is int and value >= 0 for value in commands
+    ) else None
+    return result
+
+
+@dataclass
+class TrialBudget:
+    """Shared outer-loop call/deadline limits and observed-token admission stop.
+
+    Tokens stop new trials, not an in-flight provider request. Unknown usage
+    stops admission too. The caller owns this object, never the candidate.
+    """
+
+    max_calls: int
+    deadline: float
+    token_stop: int
+    calls: int = 0
+    tokens: int = 0
+    usage_complete: bool = True
+
+    def __post_init__(self):
+        if any(type(n) is not int or n <= 0 for n in (self.max_calls, self.token_stop)):
+            raise ValueError("Call and token limits must be positive integers")
+        if not math.isfinite(self.deadline):
+            raise ValueError("Deadline must be finite")
+
+    def stop_reason(self) -> str | None:
+        if not self.usage_complete:
+            return "unknown_usage"
+        if time.monotonic() >= self.deadline:
+            return "time_budget"
+        if self.calls >= self.max_calls:
+            return "call_budget"
+        if self.tokens >= self.token_stop:
+            return "token_budget"
+        return None
+
+    def record(self, trial: dict) -> None:
+        self.calls += 1
+        tokens = usage_totals([trial])["total_tokens"]
+        self.usage_complete &= tokens is not None
+        if tokens is not None:
+            self.tokens += tokens
 
 
 def export_bundle(reader: KnowledgeReader, reference: str, destination: Path) -> dict:

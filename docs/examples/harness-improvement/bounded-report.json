@@ -1,0 +1,131 @@
+{
+  "plan_sha256": "81e4d4e425ea4eb58ea6dd7f145e4fc17df3bc37197cd7d3e1e430cfd6e82031",
+  "selection": {
+    "selected": "INV",
+    "reason": "quality_then_cost",
+    "assessments": {
+      "INV": {
+        "eligible": true,
+        "reason": null,
+        "success_rate": 1.0,
+        "baseline_success_rate": 1.0,
+        "total_tokens": 360,
+        "baseline_total_tokens": 720,
+        "regressions": 0
+      },
+      "DOM": {
+        "eligible": false,
+        "reason": "quality_floor",
+        "success_rate": 0.5,
+        "baseline_success_rate": 1.0,
+        "total_tokens": 240,
+        "baseline_total_tokens": 720,
+        "regressions": 3
+      }
+    },
+    "pareto": [
+      "INV"
+    ],
+    "scores": {
+      "INV": 0.0
+    },
+    "plan_sha256": "81e4d4e425ea4eb58ea6dd7f145e4fc17df3bc37197cd7d3e1e430cfd6e82031"
+  },
+  "retained_selection_consistent": true,
+  "rerun": {
+    "eligible": true,
+    "reason": null,
+    "success_rate": 1.0,
+    "baseline_success_rate": 1.0,
+    "total_tokens": 360,
+    "baseline_total_tokens": 720,
+    "regressions": 0
+  },
+  "holdout": {
+    "eligible": true,
+    "reason": null,
+    "success_rate": 1.0,
+    "baseline_success_rate": 1.0,
+    "total_tokens": 360,
+    "baseline_total_tokens": 720,
+    "regressions": 0
+  },
+  "accepted": true,
+  "effective_candidate": "INV",
+  "phase_usage": {
+    "probe-INV": {
+      "calls": 12,
+      "input_tokens": 960,
+      "output_tokens": 120,
+      "cached_input_tokens": 240,
+      "total_tokens": 1080,
+      "command_calls": 24,
+      "elapsed_seconds": 0.20449978415854275
+    },
+    "probe-DOM": {
+      "calls": 12,
+      "input_tokens": 840,
+      "output_tokens": 120,
+      "cached_input_tokens": 240,
+      "total_tokens": 960,
+      "command_calls": 24,
+      "elapsed_seconds": 0.1887140409089625
+    },
+    "rerun-INV": {
+      "calls": 12,
+      "input_tokens": 960,
+      "output_tokens": 120,
+      "cached_input_tokens": 240,
+      "total_tokens": 1080,
+      "command_calls": 24,
+      "elapsed_seconds": 0.1887151626870036
+    },
+    "holdout-INV": {
+      "calls": 12,
+      "input_tokens": 960,
+      "output_tokens": 120,
+      "cached_input_tokens": 240,
+      "total_tokens": 1080,
+      "command_calls": 24,
+      "elapsed_seconds": 0.18848644592799246
+    }
+  },
+  "observed_execution": {
+    "calls": 48,
+    "input_tokens": 3720,
+    "output_tokens": 480,
+    "cached_input_tokens": 960,
+    "total_tokens": 4200,
+    "command_calls": 96,
+    "elapsed_seconds": 2.1600983038078994,
+    "cost": null
+  },
+  "budget": {
+    "calls": 48,
+    "observed_tokens": 4200,
+    "usage_complete": true,
+    "stop_reason": "call_budget"
+  },
+  "proposal_cost": null,
+  "proposal_cost_note": "Caller-prepared snapshots; authoring cost is unknown and excluded.",
+  "selected_execution": {
+    "trials": 6,
+    "verdicts": {
+      "PASS": 6,
+      "FAIL": 0,
+      "INCONCLUSIVE": 0
+    },
+    "evaluation_errors": 0,
+    "elapsed_seconds": 0.09431080287322402,
+    "input_tokens": 300,
+    "output_tokens": 60,
+    "cached_input_tokens": 120,
+    "total_tokens": 360,
+    "command_calls": 12,
+    "cost": null,
+    "expected_trials": 6,
+    "missing_trials": 0
+  },
+  "promotion": "not_evaluated",
+  "claim": "Offline control-flow evidence only. Fixture tokens are scripted, not billed. No measured model efficacy, end-to-end savings, sandbox isolation or engine speedup."
+}

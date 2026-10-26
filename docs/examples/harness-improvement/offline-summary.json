@@ -1,0 +1,65 @@
+{
+  "kind": "offline_fixture_control",
+  "rows": [
+    {
+      "condition": "H0",
+      "preparation_seconds": 0.05566692119464278,
+      "execution_seconds": 0.5605955601204187,
+      "calls": 12,
+      "scripted_total_tokens": 1440,
+      "scripted_command_calls": 24,
+      "holdout_candidate_trials": 6,
+      "holdout_candidate_verdicts": {
+        "PASS": 6,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0
+      },
+      "holdout_regressions": 0,
+      "effective_candidate": "H0",
+      "plan_sha256": "bd0d7c0062dfe8bf244b46cb8b7423e4db65d08c651f5207a9dbf07f446f79ad",
+      "report_sha256": "9c1c68988dc512a3bc95b0004de5ba7d0bc3f9dfd689ca46675592a1a8f00fb2"
+    },
+    {
+      "condition": "repeated-H0",
+      "preparation_seconds": 0.04197078011929989,
+      "execution_seconds": 1.9998727978672832,
+      "calls": 48,
+      "scripted_total_tokens": 5760,
+      "scripted_command_calls": 96,
+      "holdout_candidate_trials": 24,
+      "holdout_candidate_verdicts": {
+        "PASS": 24,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0
+      },
+      "holdout_regressions": 0,
+      "effective_candidate": "H0",
+      "plan_sha256": "6ebec22ce01f12d61ec07c00711f3c190206b0830d92345adbdceb4a42789f21",
+      "report_sha256": "ba0866d1d2f145117eb122a1c844c2ecc5ee0eb6e3b79e3231e3263a8a2f0c2a"
+    },
+    {
+      "condition": "bounded",
+      "preparation_seconds": 0.1715290721040219,
+      "execution_seconds": 2.1994067209307104,
+      "calls": 48,
+      "scripted_total_tokens": 4200,
+      "scripted_command_calls": 96,
+      "holdout_candidate_trials": 6,
+      "holdout_candidate_verdicts": {
+        "PASS": 6,
+        "FAIL": 0,
+        "INCONCLUSIVE": 0
+      },
+      "holdout_regressions": 0,
+      "effective_candidate": "INV",
+      "plan_sha256": "81e4d4e425ea4eb58ea6dd7f145e4fc17df3bc37197cd7d3e1e430cfd6e82031",
+      "report_sha256": "b0e3d7f1d17708a737687b6aca07838f42a45919071343e9e74634812b3bb04b"
+    }
+  ],
+  "scope": "Actual subprocess calls and pipeline wall time; scripted answers and tokens. H0 is a paired H0/H0 control, repeated-H0 has the bounded loop's 48-call budget. No best-of-N answer selection. Different repeat counts are not efficacy estimates.",
+  "model_calls": 0,
+  "monetary_cost": null,
+  "proposal_authoring_cost": null,
+  "efficacy_verdict": "INCONCLUSIVE",
+  "engine_performance_verdict": "INCONCLUSIVE"
+}

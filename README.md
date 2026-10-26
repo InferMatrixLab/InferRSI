@@ -47,6 +47,22 @@ Knowledge retrieval is read-only; candidate storage is optional and separately
 authorized. Automatic search and automatic knowledge promotion remain planned. Missing
 or incomplete evidence stays `INCONCLUSIVE`.
 
+An optional [offline harness-improvement path](docs/harness-improvement.md)
+now checks caller-prepared skill edits using the existing Skill Eval runner:
+
+```mermaid
+flowchart LR
+    A["H0 + INV / DOM skill snapshots"] --> B["Matched development probes"]
+    B --> C["Quality-first, cost-aware choice or H0"]
+    C --> D["Mandatory rerun"]
+    D -->|"eligible candidate"| E["One-shot holdout gate"]
+    E --> F["Bounded candidate or retain H0"]
+    D -->|"H0 / invalid evidence"| F
+```
+
+This path is verified with fixed-output fixtures. Real-model automatic editing,
+cross-task reuse and measured model savings remain unverified.
+
 ## Choose your starting path
 
 | You want to… | Start at |
@@ -136,6 +152,11 @@ Ready to measure your own model? [Connect your benchmark and quality checks →]
 **One experiment loop. Independent model, repository and hardware adapters.**
 The implemented [Harness × Model × Infra boundary](docs/architecture.md) keeps new
 campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
+
+The [bounded skill policy](docs/harness-improvement.md#implemented-architecture)
+sits above Skill Eval, reuses its comparison runner and independent verifier,
+and records development experience separately from executor-facing skills.
+Engine performance claims continue through the engine AB/BA lane.
 
 ![InferRSI system architecture: inputs, experiment loop and evidence](docs/assets/system-architecture-en.svg)
 

@@ -9,7 +9,14 @@ import tempfile
 import time
 from pathlib import Path
 
-from inferrsi.harness.skill_evaluation import CodexClient, export_bundle, run_trial, summarize
+from inferrsi.harness.skill_evaluation import (
+    CodexClient,
+    TrialBudget,
+    export_bundle,
+    run_trial,
+    summarize,
+    usage_totals,
+)
 from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
@@ -384,7 +391,8 @@ def receipt_error(raw_record: bytes, receipt_path: Path, label: str) -> str | No
     return None
 
 
-def execute(output: Path, authorization: str, *, client=None) -> dict:
+def execute(output: Path, authorization: str, *, client=None,
+            budget: TrialBudget | None = None) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
@@ -398,8 +406,12 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
                {"started_at": time.time(), "client_runtime": runtime})
     tasks = {task["id"]: task for task in read_json(output / "plan/tasks.json")}
     deadline = time.monotonic() + plan["limits"]["campaign_seconds"]
+    if budget is not None:
+        deadline = min(deadline, budget.deadline)
     tokens, completed, stop_reason = 0, 0, None
     for entry in plan["schedule"]:
+        if budget is not None and (stop_reason := budget.stop_reason()):
+            break
         if time.monotonic() >= deadline or tokens >= plan["limits"]["token_stop_new_trials"]:
             stop_reason = "time_budget" if time.monotonic() >= deadline else "token_budget"
             break
@@ -425,6 +437,8 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
             atomic_write_json(directory / "receipt.json",
                               {"result_sha256": sha256(directory / "result.json")})
         tokens += observed_tokens(result["observations"]["usage"])
+        if budget is not None:
+            budget.record(result)
         completed += 1
         if result["execution_state"] != "completed":
             stop_reason = "client_" + result["execution_state"]
@@ -473,7 +487,10 @@ def retained_trial(output: Path, entry: dict) -> dict:
     # Select report fields; raw commands and private workspace paths stay in local artifacts.
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
                 "verdict", "checks", "elapsed_seconds", "observations", "inputs_unchanged")}
-    selected["observations"] = {"usage": record["observations"]["usage"]}
+    selected["observations"] = {
+        "usage": record["observations"]["usage"],
+        "command_count": record["observations"].get("command_count"),
+    }
     error = record.get("evaluation_error")
     if data is None:
         error = error or "missing_retained_output"
@@ -512,11 +529,9 @@ def condition_summary(trials: list[dict]) -> dict:
                                          "elapsed_seconds": None, "cost": None})
         group["expected_trials"] = len(selected)
         group["missing_trials"] = sum(t["missing"] for t in selected)
-        for metric in ("input_tokens", "output_tokens"):
-            usage = [t["observations"]["usage"] for t in selected]
-            group[metric] = sum(u[metric] for u in usage) if all(
-                u is not None and u.get(metric) is not None for u in usage
-            ) and usage else None
+        group.update(usage_totals(selected))
+        if any(t["missing"] or t["elapsed_seconds"] is None for t in selected):
+            group["elapsed_seconds"] = None
     return groups
 
 
