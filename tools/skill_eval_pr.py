@@ -198,7 +198,8 @@ def import_results(data, output):
             allowed.update(prefix + trial + "/" + p for p in files)
     with zipfile.ZipFile(io.BytesIO(data)) as zipped:
         members = zipped.infolist()
-        names = [m.filename for m in members]
+        # Validate archive spelling before ZipInfo's platform-dependent normalization.
+        names = [m.orig_filename for m in members]
         if (len(names) != len(set(names)) or set(names) - allowed
                 or sum(m.file_size for m in members) > MAX_ARCHIVE):
             raise ValueError("Unexpected, duplicate or oversized result archive entries")

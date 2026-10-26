@@ -368,7 +368,12 @@ def test_untrusted_archive_paths_and_scripts_are_rejected(tmp_path, name):
     integration.prepare(repo, mapping, identity, output)
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w") as archive:
-        archive.writestr(name, "Untrusted content must never execute")
+        member = zipfile.ZipInfo(name)
+        # Preserve unsafe archive spelling even when the host normalizes ZipInfo filenames.
+        member.filename = name
+        archive.writestr(member, "Untrusted content must never execute")
+    with zipfile.ZipFile(io.BytesIO(buffer.getvalue())) as archive:
+        assert archive.infolist()[0].orig_filename == name
     with pytest.raises(ValueError):
         integration.import_results(buffer.getvalue(), output)
     assert list((output / "selected/results").iterdir()) == []
