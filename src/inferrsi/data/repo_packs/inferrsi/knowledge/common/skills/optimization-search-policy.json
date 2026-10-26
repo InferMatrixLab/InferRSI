@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/05fae2814158a9b59416b3f1e99371d0d171ff84/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "05fae2814158a9b59416b3f1e99371d0d171ff84",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/6e0ee22070dc5fda5831cd2dde535c4357f7a18f/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "6e0ee22070dc5fda5831cd2dde535c4357f7a18f",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json",
@@ -34,7 +34,7 @@
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "882e7850b9b49ad692a2d11618701afe0f4e83727ea78df114be2029923c725a"
+      "content_sha256": "dd275a0576e827353963aae7f0b09494d60d0b9a4a2884fe575c85249fa3131b"
     }
   ],
   "index_type": "packaged-skill",
@@ -43,8 +43,8 @@
   },
   "checkout_ref": "checkout:optimization-search-policy",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "882e7850b9b49ad692a2d11618701afe0f4e83727ea78df114be2029923c725a",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "113c761ae488055da7e59c77df2db4247a545fdaf558188f01bde4b0960123c6",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "dd275a0576e827353963aae7f0b09494d60d0b9a4a2884fe575c85249fa3131b",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "4b71ed903971c28e87575f8983dd56217c1edb51513b8f5ed98d0b1fbc3c6500",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/MECHANISMS.md": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053",
@@ -92,7 +92,8 @@
       "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
       "../inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json",
       "../inference-optimization-casebook/cases/drama3-rejected-directions.md",
-      "../inference-optimization-casebook/cases/drama3-rejected-directions.json"
+      "../inference-optimization-casebook/cases/drama3-rejected-directions.json",
+      "../../workflows/rsi-evidence/references/loopx-goal-governance/README.md"
     ],
     "consumption_mode": "packaged"
   },
