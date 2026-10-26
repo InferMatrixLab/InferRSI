@@ -26,9 +26,11 @@ Effect classes used below:
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
+| Adapt existing Flare delivery evidence | [Offline qualification adapter](flare-qualification.md), `python -m inferrsi.model.validators.flare` | Read-only | Existing raw packets and a separate receipt; one HTTP delivery metric, no model/server/device execution |
 | Evaluate selected skill revisions | [Bounded skill-evaluation driver](skill-evaluation.md) | Experiment-executing | Explicitly authorized real Codex calls, independent task verdicts and private evidence; separate from numeric engine-performance scoring |
 | Compare skill additions or updates | [Configured skill comparison](skill-eval-comparison.md), `python -m tools.skill_eval_compare` | Read-only preparation / experiment-executing / report-generating | Fixed Git snapshots and one shared exam; explicit plan authorization for execution; JSON + Markdown regeneration makes no model calls |
 | Plan and report skill PR evaluations | [Skill PR integration](skill-eval-pr.md), `python -m tools.skill_eval_pr` | Read-only planning / authorized experiment-executing / PR-publishing | Trusted mapping, exact operator approval, consumed execution identity and credential-separated publication from retained evidence; no automatic paid trials |
+| Recover goal progress and the next proposal | [Offline goal checkpoints](goal-checkpoints.md), `python -m tools.goal_checkpoint` | Read-only | Explicit scope/criteria, pinned owner decisions and existing comparison receipts; a disposable view, never execution or acceptance authority |
 | Summarize campaign gains | `tools/campaign_summary_chart.py`; `report`/`run` figure | Figure-generating | Renders recorded values into one gain figure plus a matching table; validates the specification and computes nothing new |
 
 The `collect`, `read` and `resource` commands share the reader's rules; they
@@ -36,6 +38,25 @@ are distinct from `knowledge search`, whose package catalog filters
 (tier/repo/backend/scenario) intentionally exclude checkout and store items.
 
 ## Discovery and reading
+
+### Discover MLX hardware — doctor --backend mlx
+
+- **Inputs:** a prepared Git checkout and its existing repo type, target Python,
+  optional case-insensitive --device-model chip match. Discrete --device-ids are
+  unsupported for this unified-memory discovery probe.
+- **Effect:** read-only. On macOS, the existing bounded command runner queries
+  sysctl hw.optional.arm64 machdep.cpu.brand_string. Non-macOS hosts are rejected
+  without a sysctl call. Target-Python metadata includes mlx version/null without
+  importing MLX.
+- **Output:** actual probe facts and chip identity when available; explicit
+  unavailable or device_model_mismatch reasons otherwise. doctor exits 1 for
+  unavailable/mismatched discovery. compatibility stays unverified even when
+  the chip is available or the MLX package is installed.
+- **Boundary:** no engine adapter, package installation, model execution or
+  Metal/performance qualification. The dependency/mlx source cards are separate
+  imported guidance; common skill discovery records are not counted as MLX
+  backend records.
+- **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
 
 ### Search packaged records — `knowledge search` / `knowledge show`
 

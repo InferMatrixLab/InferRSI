@@ -73,6 +73,7 @@ class PythonInspectionTests(unittest.TestCase):
             "nvidia-nccl-cu13",
             "nvidia-cuda-runtime-cu12",
             "nvidia-cuda-runtime-cu13",
+            "mlx",
         )
         self.assertEqual(set(environment["packages"]), set(names))
         for name in names:

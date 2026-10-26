@@ -472,7 +472,7 @@ def retained_trial(output: Path, entry: dict) -> dict:
         raise ValueError("Result identity disagrees with frozen schedule")
     # Select report fields; raw commands and private workspace paths stay in local artifacts.
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
-                "verdict", "checks", "elapsed_seconds", "observations")}
+                "verdict", "checks", "elapsed_seconds", "observations", "inputs_unchanged")}
     selected["observations"] = {"usage": record["observations"]["usage"]}
     error = record.get("evaluation_error")
     if data is None:
@@ -520,7 +520,7 @@ def condition_summary(trials: list[dict]) -> dict:
     return groups
 
 
-def report(output: Path) -> dict:
+def read_report(output: Path) -> dict:
     plan = load_plan(output)
     trials = [retained_trial(output, entry) for entry in plan["schedule"]]
     index = {(t["task_id"], t["repeat"], t["condition"]): t for t in trials}
@@ -569,6 +569,11 @@ def report(output: Path) -> dict:
         "claim": "Pipeline results only; fixed-output offline clients do not establish "
         "skill efficacy. Discovery is separate. Unknown usage and cost remain unknown.",
     }
+    return result
+
+
+def report(output: Path) -> dict:
+    result = read_report(output)
     write_json(output / "report.json", result)
     (output / "report.md").write_text(markdown(result), encoding="utf-8")
     return result
