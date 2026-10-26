@@ -310,7 +310,7 @@ rejection neither greens nor fails another PR's status.
 The workflow handles PR open/reopen/close/commits/body-or-base edits on any target
 branch (a PR against another base can share a main PR's head), approval-comment
 creation/edit/deletion, every main push and manual dispatch. Main pushes refresh
-all open main-target PRs. All triggers share one serialized status writer and each
+all open main-target PRs. All eligible triggers share one serialized status writer and each
 run refreshes every open main-target PR, so replacing a pending job cannot lose another
 PR's refresh or let an older run overwrite a newer result. It checks out `main`,
 executes only trusted code, installs no PR
@@ -321,8 +321,14 @@ approvals are reread before publication; changes fail closed and need a fresh ru
 PR edits and status publication are not atomic: integrators still check the
 current head and latest run.
 
-The shared concurrency group belongs to the declaration job. Ordinary Issue
-comments skip that job and do not displace queued PR/base refreshes.
+The shared concurrency group belongs to the declaration job. Ordinary non-PR Issue
+comments skip that job. A newly created, nonempty PR comment without the
+`knowledge-policy-approval` marker also skips the job; every PR comment edit or
+deletion remains eligible, including removal of an approval marker. Missing event
+fields or an empty body are handled conservatively. The same eligibility expression
+controls both the job condition and its concurrency group: skipped events use a
+unique no-op group, never the status writer group. They therefore cannot replace
+a pending legitimate refresh, regardless of GitHub's condition/queue evaluation order.
 
 File pagination must exactly match `changed_files`; more than the GitHub files
 API's 3,000-file limit fails visibly. Exception/policy approvals require complete
@@ -330,6 +336,56 @@ commit attribution within the PR commits API's 250-commit limit. API failures
 never become compliant/non-applicable results. Current rules have no merge queue;
 `merge_group` is explicitly unsupported. Validate a trusted integration before
 enabling a queue with this required check.
+
+HTTP diagnostics retain only the response status, a conservative category,
+numeric rate-limit timing/remaining headers, and a bounded GitHub request ID.
+Raw response messages, error arrays, request URLs and credentials are not logged.
+A 403 alone is not proof of rate limiting; a 422 is a validation error, not proof
+that the status-history cap was reached. Read requests may retry once when an
+explicit rate-limit delay fits inside their remaining retry budget (at most 60
+seconds). The wait is deducted before passing the remaining timeout to the retry.
+The urllib timeout applies to socket operations, not a strict total wall-clock
+deadline for reading the response.
+Status POSTs are never retried by the transport. The existing outer sweep retry
+plan remains unchanged; this diagnostic improvement does not repair permissions,
+restore exhausted status capacity, or guarantee that historical red checks clear.
+
+
+### Trigger-PR conclusion versus global sweep health
+
+Every eligible workflow event still refreshes **all open policy-branch PRs** through the
+single serialized writer. This is necessary because concurrency may replace a
+pending event. The runner still makes up to three attempts when global work is
+unfinished; a green triggering PR never stops those retries early. The triggering
+PR is evaluated first without dropping any peer from the sweep.
+
+Only after the final attempt does a PR or PR-comment job use that triggering PR's
+own verified result for its job conclusion. A `pull_request_target` result must
+match the immutable event head; rerunning an old event cannot turn its historical
+head green using a newer head's compliance. Missing/malformed event heads and
+advanced heads fail closed with an explicit stale-event reason. PR comments lack
+a head snapshot and retain current-head semantics. A peer PR's history/publication error
+therefore does not turn a verified compliant trigger PR red. A noncompliant
+trigger PR, unavailable evidence, status-publication failure, capacity failure,
+advanced head, or missing target still fails its own job. A freshly checked
+closed/non-policy-branch target is explicitly **not applicable**, not an admission
+or acceptance PASS. It is added to the sweep even when absent from the open list.
+Push-to-main and manual workflow-dispatch jobs continue to report global execution
+health. Explicit CLI `--pull-request` and dry-run behavior is unchanged.
+
+The runner deletes the report before each attempt. The checker atomically writes
+a report bound to repository, event digest/type, policy SHA and attempt identifier;
+the final consumer rejects missing, malformed, duplicate, stale or mismatched
+reports. It never falls back to an earlier attempt's success. Failed collection
+reads additionally produce synthetic target `0` in reporting sweeps (included in
+result counts), which blocks projection even if an individual result is green.
+
+All target results and global health remain in structured logs. The final scope,
+target kind, policy SHA and global summary are also written to the job summary;
+an incomplete/failed sweep emits a warning even when the trigger PR job passes.
+This isolates unrelated job conclusions without clearing any peer's failing
+commit status or hiding repository-wide failures. No admission rules, publishing
+permissions, status-history limits, or acceptance requirements are weakened.
 
 The bootstrap PR cannot exercise a target-branch workflow that has not landed:
 independently review and accept it before merging, then validate report-only on
@@ -345,3 +401,4 @@ python tools/check_knowledge_model_policy.py --repository <owner/repo> --pull-re
 publishing statuses. It does not show the main workflow is operational. Production
 uses runtime-injected `GITHUB_TOKEN`; never pass tokens as CLI arguments. The
 existing ready lane runs unit tests on Python 3.10 and 3.11 in its full suite.
+
