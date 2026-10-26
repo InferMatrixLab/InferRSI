@@ -1,4 +1,5 @@
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -31,11 +32,13 @@ STATUS_RESERVE = 8
 # recorded by this text and leaves it in place instead of spending another reserved slot.
 BUDGET_DESCRIPTION = "Status history is nearly full; push a new head"
 # A head can carry statuses from other contexts, so the page count alone does not bound the scan.
-# The deadline is set once per sweep, not per head: targets are processed serially under one
-# workflow timeout, so a fresh budget for each read would let a long sweep die before a later
-# target's failure is published. The reserve keeps time free for that publication.
+# Each target gets its own share of the time still left in the sweep, capped by a per-target
+# ceiling: one absolute deadline shared by every target let the earlier targets consume the whole
+# window, after which each later target failed closed on every retry. The sweep deadline remains
+# as the outer bound, and the reserve keeps time free for publication after the last read.
 HISTORY_PAGES = 50
-HISTORY_SECONDS = 60
+TARGET_SECONDS = 30
+SWEEP_SECONDS = 120
 HISTORY_RESERVE = 15
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
@@ -54,6 +57,9 @@ RERUN_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publica
                "invalidation-failed", "history-unavailable"}
 # A lifecycle kind forbids publication: the captured head is no longer the current target.
 NO_PUBLISH = {"closed", "advanced"}
+# Kinds that settle a target for this attempt. A later attempt trusts one only after re-checking
+# that the target is still open against the policy branch at the same head.
+COMPLETED_KINDS = {"compliant", "noncompliant", "closed", "budget-exhausted", "budget-saturated"}
 
 
 def summarize(results):
@@ -280,6 +286,64 @@ def assess(pr, paths, policy, comments=(), contributors=()):
     }
 
 
+class GitHubHTTPError(OSError):
+    """An allowlisted diagnostic, never a raw response body or credential-bearing URL."""
+
+    def __init__(self, error):
+        self.code = error.code
+        headers = error.headers or {}
+        self.delay = None
+        retry_after = headers.get("Retry-After", "")
+        remaining = headers.get("X-RateLimit-Remaining", "")
+        reset = headers.get("X-RateLimit-Reset", "")
+        if re.fullmatch(r"[0-9]{1,10}", retry_after):
+            self.delay = max(1, int(retry_after))
+        elif remaining == "0" and re.fullmatch(r"[0-9]{1,10}", reset):
+            self.delay = max(1, int(reset) - int(time.time()) + 1)
+        try:
+            body = json.loads(error.read(8192))
+        except (ValueError, OSError, TypeError, AttributeError):
+            body = {}
+        error.close()
+        message = body.get("message", "") if isinstance(body, dict) else ""
+        message = message.lower() if isinstance(message, str) else ""
+        rate = self.code == 429 or (self.code == 403 and (
+            remaining == "0" or self.delay is not None or "rate limit" in message))
+        if rate:
+            category = "rate-limit"
+        elif self.code == 401 or (self.code == 403 and any(text in message for text in (
+                "resource not accessible", "insufficient permission", "requires authentication"))):
+            category = "permission"
+        elif self.code == 422:
+            category = "validation"
+        else:
+            category = "unknown"
+        self.category = category
+        detail = {"http_status": self.code, "category": category}
+        if self.code == 422:
+            # Recognize only the explicit status-capacity response, never infer it from
+            # HTTP 422, an arbitrary validation message, or the locally counted history.
+            capacity_message = "this sha and context has reached the maximum number of statuses."
+            errors = body.get("errors", []) if isinstance(body, dict) else []
+            capacity = isinstance(errors, list) and any(
+                isinstance(item, dict) and item.get("resource") == "Status"
+                and item.get("code") == "custom"
+                and isinstance(item.get("message"), str)
+                and item["message"].strip().lower() == capacity_message
+                for item in errors)
+            detail["reason"] = "status-capacity" if capacity else "unknown"
+        # Only numeric rate metadata and a bounded request ID are safe to retain. Response
+        # messages/errors may echo user content, tokens or URLs, so they are never logged.
+        for name in ("X-RateLimit-Remaining", "X-RateLimit-Reset", "Retry-After"):
+            value = headers.get(name, "")
+            if re.fullmatch(r"[0-9]{1,10}", value):
+                detail[name.lower()] = int(value)
+        request_id = headers.get("X-GitHub-Request-Id", "")
+        if re.fullmatch(r"[A-Fa-f0-9:]{1,80}", request_id):
+            detail["request_id"] = request_id
+        super().__init__("GitHub API " + json.dumps(detail, sort_keys=True))
+
+
 class GitHub:
     def __init__(self, repository, token):
         if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
@@ -296,8 +360,21 @@ class GitHub:
         if data is not None:
             headers["Content-Type"] = "application/json"
         request = Request(self.root + route, data=data, headers=headers)
-        with urlopen(request, timeout=timeout) as response:
-            return json.load(response), response.headers.get("Link", "")
+        deadline = time.monotonic() + timeout
+        for attempt in range(2):
+            try:
+                with urlopen(request, timeout=max(0.001, deadline - time.monotonic())) as response:
+                    return json.load(response), response.headers.get("Link", "")
+            except HTTPError as error:
+                failure = GitHubHTTPError(error)
+                # Retry reads only, once, with explicit rate timing and within the existing
+                # request budget. Never replay a status POST or guess a delay from HTTP 403.
+                if (attempt == 0 and payload is None and failure.category == "rate-limit"
+                        and failure.delay is not None and failure.delay <= 60
+                        and failure.delay + 1 < deadline - time.monotonic()):
+                    time.sleep(failure.delay)
+                    continue
+                raise failure from None
 
     def get(self, route):
         return self.request(route)[0]
@@ -322,7 +399,8 @@ class GitHub:
         payload = {"state": state, "context": CONTEXT, "description": description}
         run_id = os.environ.get("GITHUB_RUN_ID")
         if run_id:
-            repository_url = self.root.replace("https://api.github.com/repos/", "https://github.com/")
+            repository_url = self.root.replace(
+                "https://api.github.com/repos/", "https://github.com/")
             payload["target_url"] = f"{repository_url}actions/runs/{run_id}"
         self.request(f"statuses/{head}", payload)
 
@@ -330,12 +408,15 @@ class GitHub:
         # GitHub treats the context name case-insensitively, so counting only the exact spelling
         # would miss equivalent entries and could spend the last free slots on a pending and a
         # success. The list is newest first, which makes entry 0 the head's effective status.
+        #
+        # The deadline is already one target's share of the sweep, so this method only stops when
+        # that share is spent; the publication reserve is withheld by the caller.
         key = CONTEXT.casefold()
         found = []
         page = 1
         while True:
             remaining = deadline - time.monotonic()
-            if page > HISTORY_PAGES or remaining <= HISTORY_RESERVE:
+            if page > HISTORY_PAGES or remaining <= 0:
                 raise ValueError("Status history scan exceeded its budget")
             query = urlencode({"per_page": 100, "page": page})
             items, links = self.request(f"commits/{head}/statuses?{query}",
@@ -364,7 +445,8 @@ def deferred(reason):
 
 
 def evaluation_failure(error):
-    message = (f"GitHub API HTTP {error.code}" if isinstance(error, HTTPError)
+    message = (str(error) if isinstance(error, GitHubHTTPError)
+               else f"GitHub API HTTP {error.code}" if isinstance(error, HTTPError)
                else "GitHub API unavailable" if isinstance(error, OSError)
                else str(error) if isinstance(error, ValueError)
                else "Invalid GitHub API response")
@@ -561,6 +643,17 @@ def invalidated(api, head, dry_run, deadline):
     return None, True
 
 
+def target_deadline(deadline, remaining_targets):
+    # One absolute budget for the whole sweep starved every target after the earlier ones had
+    # spent it, and a retry replayed the same prefix. Each target instead gets an equal share of
+    # the time left, capped so one slow head cannot hold the sweep: a target that finishes early
+    # returns its unused time to the later ones. Inside the publication reserve the share is
+    # negative, which makes the read fail closed immediately.
+    now = time.monotonic()
+    share = (deadline - HISTORY_RESERVE - now) / max(remaining_targets, 1)
+    return now + min(TARGET_SECONDS, share)
+
+
 def lifecycle_result(result, scan_error):
     # Invalidate an old success when the current declaration was not validly assessed. The
     # check still publishes a verdict; only an unknowable lifecycle is reported without a write.
@@ -573,10 +666,64 @@ def lifecycle_result(result, scan_error):
     return {**result, "rerun": False}
 
 
-def check_prs(api, policy, policy_sha, dry_run, numbers=None):
-    # One deadline for the whole sweep: history reads share it, so a long scan on an early target
-    # cannot leave a later target without time to publish its own failure.
-    deadline = time.monotonic() + HISTORY_SECONDS
+def plan_file(path, policy_sha):
+    # The plan is scoped to one trusted base and one runner invocation. A different base means the
+    # loaded policy and checker are different code, so earlier verdicts may not describe it.
+    if path is None or not path.exists():
+        return {"policy_sha": policy_sha, "completed": {}}
+    try:
+        value = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+    except (OSError, ValueError, TypeError):
+        return {"policy_sha": policy_sha, "completed": {}}
+    if not isinstance(value, dict) or value.get("policy_sha") != policy_sha:
+        return {"policy_sha": policy_sha, "completed": {}}
+    if not isinstance(value.get("completed"), dict):
+        return {"policy_sha": policy_sha, "completed": {}}
+    return value
+
+
+def write_plan(path, plan):
+    if path is None:
+        return
+    path.write_text(json.dumps(plan, ensure_ascii=True, sort_keys=True), encoding="utf-8")
+
+
+def still_current(api, number, entry, policy, open_prs, scan_error):
+    # Premise revalidation for work another attempt already published. The verdict depended on
+    # evidence outside the PR snapshot, so a carried entry must prove all of it still holds: the
+    # metadata snapshot, the approvals that were read, and head ownership across the open PRs. A
+    # stored premise that is missing cannot be revalidated, so it falls back to full evaluation.
+    if "comments" not in entry or "ownership" not in entry:
+        return False
+    if scan_error is not None:
+        # Without the open-PR collection the target alone looks like a unique owner, which is the
+        # same assumption `lifecycle_result` refuses for a fresh verdict.
+        return False
+    try:
+        live = api.get(f"pulls/{number}")
+        snapshot = admission_snapshot(live)
+    except API_ERRORS:
+        return False
+    if snapshot != tuple(entry.get("snapshot") or ()) or not addressable(live, policy):
+        return False
+    if head_owner(open_prs or [live], number, live["head"]["sha"]) != entry["ownership"]:
+        # A peer appearing or leaving changes eligibility without changing this PR.
+        return False
+    if entry["comments"]:
+        try:
+            if api.pages(f"issues/{number}/comments") != entry["comments"]:
+                # An approval added, edited or revoked changes the verdict it produced.
+                return False
+        except API_ERRORS:
+            return False
+    return True
+
+
+def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger=None,
+              report_scope=False):
+    # The sweep deadline bounds the whole evaluation pass and keeps publication time free; each
+    # target's read is bounded separately by its share of what remains.
+    deadline = time.monotonic() + SWEEP_SECONDS
     scan_error = None
     try:
         open_prs = api.pages("pulls?state=open")
@@ -590,10 +737,30 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                      "kind": "unverified", "description": "Lifecycle metadata unavailable",
                      "errors": [evaluation_failure(scan_error)["errors"][0]]}]
         numbers = [pr["number"] for pr in open_prs if addressable(pr, policy)]
+        # A close/base-change event must receive a fresh explicit N/A result as well.
+        if trigger is not None:
+            numbers = [trigger, *(number for number in numbers if number != trigger)]
+    # Work another attempt already settled is not repeated: re-running it would spend the same
+    # bounded time and, in a later attempt's exhausted tail, replace a published verdict with a
+    # failure. A carried target is trusted only after its own premise is re-confirmed here.
+    completed = {} if plan is None else plan["completed"]
+    carried = {}
+    pending = list(numbers)
+    for number in list(numbers):
+        entry = completed.get(str(number))
+        if not isinstance(entry, dict):
+            continue
+        head = entry.get("head")
+        if isinstance(head, str) and SHA.fullmatch(head):
+            if not still_current(api, number, entry, policy, open_prs, scan_error):
+                continue
+            carried[number] = entry
+            pending.remove(number)
+    numbers = pending
     # One evaluation pass. Stale work is returned as deferred so the outer runner, which can
     # refetch trusted main, owns retries; this checker never repairs its own loaded policy.
     records = {}
-    for number in numbers:
+    for index, number in enumerate(numbers):
         try:
             pr = api.get(f"pulls/{number}")
         except API_ERRORS as error:
@@ -610,7 +777,8 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                "ownership": None, "publish": False,
                                "result": closed_result("Not open against the policy branch")}
             continue
-        failure, publish = invalidated(api, head, dry_run, deadline)
+        failure, publish = invalidated(api, head, dry_run,
+                                      target_deadline(deadline, len(numbers) - index))
         if failure is not None:
             # Without a published invalidation an old success would still be the head's effective
             # state, so this target gets no verdict and asks the runner for a fresh attempt.
@@ -695,11 +863,16 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
         ownership = None if scan_error is not None else head_owner(open_prs, number, head)
         if premise or ownership != record["ownership"]:
             # Reassess against current metadata and the current open-PR collection: a closed
-            # peer can end head sharing, and a moved body or approval changes the verdict.
-            result, _ = read_pr_result(api, live, policy, policy_sha,
-                                       open_prs if open_prs else [live])
+            # peer can end head sharing, and a moved body or approval changes the verdict. The
+            # premises recorded afterwards must be the ones this reassessment used, or the plan
+            # would pair a new verdict with evidence that no longer produced it.
+            result, comments = read_pr_result(api, live, policy, policy_sha,
+                                              open_prs if open_prs else [live])
+            record["comments"] = comments
+            record["snapshot"] = admission_snapshot(live)
             ownership = (None if scan_error is not None
                          else head_owner(open_prs, number, head))
+            record["ownership"] = ownership
         if result["kind"] in NO_PUBLISH:
             # The reassessment observed that this head is no longer the target.
             published[number] = {**result, "head": head,
@@ -723,6 +896,30 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                                      evaluation_failure(error)["errors"][0]]}
         published[number] = {**result, "head": head,
                              "rerun": result["kind"] in RERUN_KINDS}
+    # Carried verdicts are reported as they were published by the earlier attempt. Nothing is
+    # rewritten for them here: their head was re-confirmed as current at the start of this run.
+    for number, entry in carried.items():
+        if number not in published:
+            published[number] = {**entry["result"], "head": entry["head"], "rerun": False}
+    if plan is not None:
+        # The next attempt inherits only what this one settled, together with the premise the
+        # verdict was assessed against: the head alone would let an edited declaration or a moved
+        # base be carried as if it had been evaluated.
+        plan["completed"] = {str(number): entry for number, entry in carried.items()}
+        for number, item in published.items():
+            settled = plan["completed"].get(str(number), {})
+            record = records.get(number)
+            head_value = record["head"] if record else settled.get("head")
+            snapshot_value = record["snapshot"] if record else settled.get("snapshot")
+            comments_value = record["comments"] if record else settled.get("comments")
+            ownership_value = record["ownership"] if record else settled.get("ownership")
+            if (item["kind"] in COMPLETED_KINDS and snapshot_value is not None
+                    and comments_value is not None):
+                plan["completed"][str(number)] = {
+                    "head": head_value, "snapshot": snapshot_value,
+                    "comments": comments_value, "ownership": ownership_value,
+                    "result": {key: item[key] for key in
+                               ("state", "kind", "description", "errors")}}
     results = []
     for number in sorted(published):
         item = published[number]
@@ -731,6 +928,11 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None):
                         "rerun": item["rerun"], "state": item["state"],
                         "kind": item["kind"], "description": item["description"],
                         "errors": item["errors"]})
+    if report_scope and scan_error is not None:
+        results.append({"pull_request": 0, "head_sha": "", "policy_sha": policy_sha,
+                        "dry_run": dry_run, "rerun": True, "state": "failure",
+                        "kind": "unverified", "description": "Lifecycle metadata unavailable",
+                        "errors": [evaluation_failure(scan_error)["errors"][0]]})
     return results
 
 
@@ -746,6 +948,108 @@ def refresh_event(event, event_name):
     raise ValueError("Unsupported policy event; merge queue requires an explicit integration")
 
 
+
+def report_binding(repository, event_name, event_path, policy_sha, report_id):
+    """Bind a report to trusted runner inputs, not declaration text or an older attempt."""
+    if not report_id or not repository:
+        raise ValueError("Missing report binding")
+    raw = Path(event_path).read_bytes()
+    event = json.loads(raw, object_pairs_hook=unique_object)
+    refresh_event(event, event_name)
+    trigger = None
+    expected_head = None
+    if event_name == "pull_request_target":
+        trigger = event["number"]
+        if event["pull_request"]["number"] != trigger:
+            raise ValueError("Inconsistent trigger")
+    elif event_name == "issue_comment" and "pull_request" in event["issue"]:
+        trigger = event["issue"]["number"]
+    if trigger is not None and (type(trigger) is not int or trigger <= 0):
+        raise ValueError("Invalid trigger")
+    if event_name == "pull_request_target":
+        head = event["pull_request"].get("head")
+        expected_head = head.get("sha") if isinstance(head, dict) else None
+        if not isinstance(expected_head, str) or not SHA.fullmatch(expected_head):
+            raise ValueError("Missing or malformed trigger head")
+    return {"repository": repository, "event_name": event_name,
+            "event_digest": hashlib.sha256(raw).hexdigest(), "trigger": trigger,
+            "policy_sha": policy_sha, "report_id": report_id, "expected_head": expected_head}
+
+
+def write_report(path, binding, results):
+    if path is None:
+        return
+    report = {"schema_version": 1, "binding": binding, "results": results,
+              "sweep_exit": exit_code(results), "summary": summarize(results)}
+    temporary = path.with_name(path.name + ".tmp")
+    temporary.write_text(json.dumps(report, ensure_ascii=True, sort_keys=True), encoding="utf-8")
+    temporary.replace(path)
+
+
+def report_exit(path, binding, sweep_exit):
+    """Project ONLY the final completed attempt; global health remains visible."""
+    report = json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
+    if (type(report.get("schema_version")) is not int or report["schema_version"] != 1
+            or report.get("binding") != binding):
+        raise ValueError("Stale or mismatched admission report")
+    results = report["results"]
+    if not isinstance(results, list):
+        raise ValueError("Invalid admission results")
+    seen = set()
+    for result in results:
+        number = result["pull_request"]
+        if type(number) is not int or number < 0 or number in seen:
+            raise ValueError("Invalid or duplicate admission target")
+        seen.add(number)
+        if (result["policy_sha"] != binding["policy_sha"]
+                or result["dry_run"] is not False
+                or type(result["rerun"]) is not bool
+                or result["kind"] not in KINDS
+                or result["state"] not in {"success", "failure"}
+                or not isinstance(result["errors"], list)
+                or not isinstance(result["description"], str)
+                or not isinstance(result["head_sha"], str)
+                or (result["head_sha"] and not SHA.fullmatch(result["head_sha"]))):
+            raise ValueError("Invalid admission result")
+    if (type(sweep_exit) is not int or sweep_exit not in {0, 1, 2}
+            or type(report["sweep_exit"]) is not int
+            or report["sweep_exit"] != sweep_exit or exit_code(results) != sweep_exit
+            or report["summary"] != summarize(results)):
+        raise ValueError("Inconsistent admission report")
+    trigger = binding["trigger"]
+    own = [result for result in results if result["pull_request"] == trigger]
+    stale_event = bool(own and binding["event_name"] == "pull_request_target"
+                       and own[0]["head_sha"] != binding["expected_head"])
+    if trigger is None:
+        conclusion = int(sweep_exit != 0)
+    else:
+        conclusion = 1
+        if 0 not in seen and len(own) == 1 and not stale_event:
+            result = own[0]
+            if (result["kind"] in {"compliant", "closed"}
+                    and result["state"] == "success" and not result["rerun"]
+                    and not result["errors"] and SHA.fullmatch(result["head_sha"])):
+                conclusion = 0
+    summary = {"scope": "trigger-pr" if trigger is not None else "global-sweep",
+               "trigger": trigger, "job_exit": conclusion,
+               "target_kind": own[0]["kind"] if own else None,
+               "projection_reason": "stale-event-head" if stale_event else "final-target-result",
+               "expected_head": binding["expected_head"],
+               "evaluated_head": own[0]["head_sha"] if own else None,
+               "target_applicability": ("not-applicable" if own and own[0]["kind"] == "closed"
+                                        else "see-target-result"),
+               "global_summary": report["summary"], "policy_sha": binding["policy_sha"]}
+    print(json.dumps(summary, ensure_ascii=True))
+    if sweep_exit:
+        print("::warning::Global admission sweep remains incomplete or failed; "
+              "see structured results. Trigger-PR conclusion does not clear other PRs.")
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        with Path(summary_path).open("a", encoding="utf-8") as stream:
+            stream.write("### Admission result (final attempt)\n\n```json\n"
+                         + json.dumps(summary, indent=2, ensure_ascii=True) + "\n```\n")
+    return conclusion
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description="Check declared knowledge authorship")
     parser.add_argument("--repository", default=os.environ.get("GITHUB_REPOSITORY"), required=False)
@@ -754,9 +1058,23 @@ def main(argv=None):
     parser.add_argument("--policy-sha", required=True)
     parser.add_argument("--pull-request", type=int)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--plan", type=Path)
+    parser.add_argument("--report", type=Path)
+    parser.add_argument("--report-id")
+    parser.add_argument("--report-exit", type=int)
     args = parser.parse_args(argv)
     if not SHA.fullmatch(args.policy_sha):
         raise ValueError("Expected the trusted policy checkout SHA")
+    binding = None
+    if args.report is not None:
+        binding = report_binding(args.repository, os.environ["GITHUB_EVENT_NAME"],
+                                 args.event_path, args.policy_sha, args.report_id)
+        if args.pull_request is not None or args.dry_run:
+            raise ValueError("Scoped reporting requires the full publishing sweep")
+    if args.report_exit is not None:
+        if binding is None:
+            raise ValueError("Missing final report")
+        return report_exit(args.report, binding, args.report_exit)
     token = os.environ.get("GITHUB_TOKEN")
     if not args.dry_run and not token:
         raise ValueError("GITHUB_TOKEN is required to publish policy statuses")
@@ -772,10 +1090,15 @@ def main(argv=None):
         event = json.loads(Path(args.event_path).read_text(encoding="utf-8"))
         # Every trigger shares one writer, so a superseded queued event still covers all open PRs.
         numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
-    results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers)
+    plan = plan_file(args.plan, args.policy_sha)
+    results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan,
+                        trigger=binding["trigger"] if binding else None,
+                        report_scope=binding is not None)
+    write_plan(args.plan, plan)
     for result in results:
         print(json.dumps(result, ensure_ascii=True))
     print(json.dumps(summarize(results), ensure_ascii=True))
+    write_report(args.report, binding, results)
     return exit_code(results)
 
 
@@ -788,3 +1111,4 @@ if __name__ == "__main__":
                    else "Invalid policy or event input")
         print(message, file=sys.stderr)
         sys.exit(1)
+
