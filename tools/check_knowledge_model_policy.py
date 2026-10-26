@@ -399,7 +399,8 @@ class GitHub:
         payload = {"state": state, "context": CONTEXT, "description": description}
         run_id = os.environ.get("GITHUB_RUN_ID")
         if run_id:
-            repository_url = self.root.replace("https://api.github.com/repos/", "https://github.com/")
+            repository_url = self.root.replace(
+                "https://api.github.com/repos/", "https://github.com/")
             payload["target_url"] = f"{repository_url}actions/runs/{run_id}"
         self.request(f"statuses/{head}", payload)
 
@@ -718,7 +719,8 @@ def still_current(api, number, entry, policy, open_prs, scan_error):
     return True
 
 
-def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger=None, report_scope=False):
+def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger=None,
+              report_scope=False):
     # The sweep deadline bounds the whole evaluation pass and keeps publication time free; each
     # target's read is bounded separately by its share of what remains.
     deadline = time.monotonic() + SWEEP_SECONDS
@@ -955,6 +957,7 @@ def report_binding(repository, event_name, event_path, policy_sha, report_id):
     event = json.loads(raw, object_pairs_hook=unique_object)
     refresh_event(event, event_name)
     trigger = None
+    expected_head = None
     if event_name == "pull_request_target":
         trigger = event["number"]
         if event["pull_request"]["number"] != trigger:
@@ -963,9 +966,14 @@ def report_binding(repository, event_name, event_path, policy_sha, report_id):
         trigger = event["issue"]["number"]
     if trigger is not None and (type(trigger) is not int or trigger <= 0):
         raise ValueError("Invalid trigger")
+    if event_name == "pull_request_target":
+        head = event["pull_request"].get("head")
+        expected_head = head.get("sha") if isinstance(head, dict) else None
+        if not isinstance(expected_head, str) or not SHA.fullmatch(expected_head):
+            raise ValueError("Missing or malformed trigger head")
     return {"repository": repository, "event_name": event_name,
             "event_digest": hashlib.sha256(raw).hexdigest(), "trigger": trigger,
-            "policy_sha": policy_sha, "report_id": report_id}
+            "policy_sha": policy_sha, "report_id": report_id, "expected_head": expected_head}
 
 
 def write_report(path, binding, results):
@@ -1010,11 +1018,13 @@ def report_exit(path, binding, sweep_exit):
         raise ValueError("Inconsistent admission report")
     trigger = binding["trigger"]
     own = [result for result in results if result["pull_request"] == trigger]
+    stale_event = bool(own and binding["event_name"] == "pull_request_target"
+                       and own[0]["head_sha"] != binding["expected_head"])
     if trigger is None:
         conclusion = int(sweep_exit != 0)
     else:
         conclusion = 1
-        if 0 not in seen and len(own) == 1:
+        if 0 not in seen and len(own) == 1 and not stale_event:
             result = own[0]
             if (result["kind"] in {"compliant", "closed"}
                     and result["state"] == "success" and not result["rerun"]
@@ -1023,6 +1033,9 @@ def report_exit(path, binding, sweep_exit):
     summary = {"scope": "trigger-pr" if trigger is not None else "global-sweep",
                "trigger": trigger, "job_exit": conclusion,
                "target_kind": own[0]["kind"] if own else None,
+               "projection_reason": "stale-event-head" if stale_event else "final-target-result",
+               "expected_head": binding["expected_head"],
+               "evaluated_head": own[0]["head_sha"] if own else None,
                "target_applicability": ("not-applicable" if own and own[0]["kind"] == "closed"
                                         else "see-target-result"),
                "global_summary": report["summary"], "policy_sha": binding["policy_sha"]}

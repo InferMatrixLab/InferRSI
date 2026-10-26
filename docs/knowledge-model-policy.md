@@ -354,7 +354,11 @@ unfinished; a green triggering PR never stops those retries early. The triggerin
 PR is evaluated first without dropping any peer from the sweep.
 
 Only after the final attempt does a PR or PR-comment job use that triggering PR's
-own verified result for its job conclusion. A peer PR's history/publication error
+own verified result for its job conclusion. A `pull_request_target` result must
+match the immutable event head; rerunning an old event cannot turn its historical
+head green using a newer head's compliance. Missing/malformed event heads and
+advanced heads fail closed with an explicit stale-event reason. PR comments lack
+a head snapshot and retain current-head semantics. A peer PR's history/publication error
 therefore does not turn a verified compliant trigger PR red. A noncompliant
 trigger PR, unavailable evidence, status-publication failure, capacity failure,
 advanced head, or missing target still fails its own job. A freshly checked

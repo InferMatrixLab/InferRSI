@@ -2,9 +2,9 @@
 import contextlib
 import io
 import json
-import tempfile
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -27,7 +27,8 @@ class ReportingTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.path = Path(self.temp.name) / "report.json"
         self.event = Path(self.temp.name) / "event.json"
-        self.event.write_text(json.dumps({"number": 1, "pull_request": {"number": 1}}))
+        self.event.write_text(json.dumps({"number": 1, "pull_request": {"number": 1,
+                                                               "head": {"sha": "b" * 40}}}))
         self.binding = policy.report_binding("owner/repo", "pull_request_target",
                                              self.event, SHA, "attempt-3")
 
@@ -164,6 +165,33 @@ class ReportingTests(unittest.TestCase):
             with self.subTest(field=field), self.assertRaises(ValueError):
                 policy.report_exit(self.path, self.binding, 0)
 
+    def test_pull_request_event_head_must_match_evaluated_head(self):
+        self.assertEqual(self.project([result()]), 0)
+        advanced = result()
+        advanced["head_sha"] = "c" * 40
+        policy.write_report(self.path, self.binding, [advanced])
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            self.assertEqual(policy.report_exit(self.path, self.binding, 0), 1)
+        summary = json.loads(output.getvalue())
+        self.assertEqual(summary["projection_reason"], "stale-event-head")
+        self.assertEqual(summary["expected_head"], "b" * 40)
+        self.assertEqual(summary["evaluated_head"], "c" * 40)
+
+    def test_missing_or_malformed_event_head_fails_closed(self):
+        for head in (None, {}, {"sha": "bad"}, {"sha": True}, {"sha": "b" * 39}):
+            event = {"number": 1, "pull_request": {"number": 1, "head": head}}
+            self.event.write_text(json.dumps(event))
+            with self.subTest(head=head), self.assertRaises(ValueError):
+                policy.report_binding("owner/repo", "pull_request_target", self.event, SHA, "3")
+
+    def test_issue_comment_still_uses_current_head(self):
+        self.event.write_text(json.dumps({"issue": {"number": 1, "pull_request": {}}}))
+        binding = policy.report_binding("owner/repo", "issue_comment", self.event, SHA, "3")
+        advanced = result()
+        advanced["head_sha"] = "c" * 40
+        self.assertEqual(self.project([advanced], binding), 0)
+
 
 class RunnerTests(unittest.TestCase):
     def run_runner(self, mode, event_name="pull_request_target"):
@@ -171,7 +199,8 @@ class RunnerTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             temp = Path(directory)
             event = temp / "event.json"
-            event.write_text(json.dumps({"number": 1, "pull_request": {"number": 1}}))
+            event.write_text(json.dumps({"number": 1, "pull_request": {"number": 1,
+                                                               "head": {"sha": "b" * 40}}}))
             git = temp / "git"
             git.write_text("#!/bin/sh\nif [ \"$1\" = rev-parse ]; then printf '%040d\\n' 0; fi\n")
             python = temp / "python"
@@ -184,7 +213,8 @@ args = sys.argv[2:]
 def arg(name): return args[args.index(name) + 1]
 if "--report-exit" in args:
     sys.argv = [sys.argv[1]] + args
-    runpy.run_path(str(Path(os.environ["FIXTURE_ROOT"]) / "tools/check_knowledge_model_policy.py"), run_name="__main__")
+    runpy.run_path(str(Path(os.environ["FIXTURE_ROOT"]) / "tools/check_knowledge_model_policy.py"),
+                   run_name="__main__")
 counter = Path(os.environ["RUNNER_TEMP"]) / "count"
 count = int(counter.read_text()) + 1 if counter.exists() else 1
 counter.write_text(str(count))
@@ -198,7 +228,8 @@ def row(number, kind):
             "state": "success" if kind == "compliant" else "failure", "kind": kind,
             "description": "fixture", "errors": []}
 binding = policy.report_binding(os.environ["GITHUB_REPOSITORY"], os.environ["GITHUB_EVENT_NAME"],
-                                os.environ["GITHUB_EVENT_PATH"], arg("--policy-sha"), arg("--report-id"))
+                                os.environ["GITHUB_EVENT_PATH"], arg("--policy-sha"),
+                                arg("--report-id"))
 policy.write_report(Path(arg("--report")), binding, [row(1, kind), row(2, "history-unavailable")])
 sys.exit(2)
 ''')
@@ -209,8 +240,9 @@ sys.exit(2)
                    "GITHUB_EVENT_NAME": event_name, "GITHUB_EVENT_PATH": str(event),
                    "GITHUB_REPOSITORY": "owner/repo", "FIXTURE_ROOT": str(root),
                    "FIXTURE_MODE": mode, "PYTHONDONTWRITEBYTECODE": "1"}
-            completed = subprocess.run(["/bin/bash", str(root / "tools/run_knowledge_model_policy.sh")],
-                                       cwd=root, env=env, capture_output=True, text=True, timeout=10)
+            completed = subprocess.run(
+                ["/bin/bash", str(root / "tools/run_knowledge_model_policy.sh")],
+                cwd=root, env=env, capture_output=True, text=True, timeout=10)
             self.assertEqual((temp / "count").read_text(), "3", completed.stderr)
             self.assertFalse(list(temp.glob("knowledge-model-policy-*.json")))
             return completed
