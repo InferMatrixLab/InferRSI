@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5506c6b88d441860f1467146ede263ca41514713/src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
-      "commit": "5506c6b88d441860f1467146ede263ca41514713",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/487593c8fd548433e8bebf8700114cfbbf04e6ca/src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+      "commit": "487593c8fd548433e8bebf8700114cfbbf04e6ca",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json",
@@ -42,7 +42,7 @@
         "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/source-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "5fb9ea1d1373e110d9b506f69963c4857338b7dbf5e38ec9a49b59a0ff683ed0"
+      "content_sha256": "d99fc28d48127d3bc627f2a0cab6f3f16158a77da49428838a08865adaea9905"
     }
   ],
   "index_type": "packaged-skill",
@@ -51,7 +51,7 @@
   },
   "checkout_ref": "checkout:diagnose-vllm-admission-pressure",
   "source_files": {
-    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md": "5fb9ea1d1373e110d9b506f69963c4857338b7dbf5e38ec9a49b59a0ff683ed0",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md": "d99fc28d48127d3bc627f2a0cab6f3f16158a77da49428838a08865adaea9905",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json": "e2e0bc54f6f0142471320680827836e0b6ae778f6557e1c0772dfebf3ba34a0d",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/INTEGRATION_NOTES.md": "82b24be82451ee121892f61575d0cf4ecb9920813a25ccb26cce2b45dda6d8b3",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/migration-is-not-free-memory.md": "2ac168f2725cba7fc92dfcc67c01bf2258dff6a2dbe1ddb063bc60c175d82d0a",
