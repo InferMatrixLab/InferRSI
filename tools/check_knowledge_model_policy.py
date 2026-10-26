@@ -285,6 +285,52 @@ def assess(pr, paths, policy, comments=(), contributors=()):
     }
 
 
+class GitHubHTTPError(OSError):
+    """An allowlisted diagnostic, never a raw response body or credential-bearing URL."""
+
+    def __init__(self, error):
+        self.code = error.code
+        headers = error.headers or {}
+        self.delay = None
+        retry_after = headers.get("Retry-After", "")
+        remaining = headers.get("X-RateLimit-Remaining", "")
+        reset = headers.get("X-RateLimit-Reset", "")
+        if re.fullmatch(r"[0-9]{1,10}", retry_after):
+            self.delay = max(1, int(retry_after))
+        elif remaining == "0" and re.fullmatch(r"[0-9]{1,10}", reset):
+            self.delay = max(1, int(reset) - int(time.time()) + 1)
+        try:
+            body = json.loads(error.read(8192))
+        except (ValueError, OSError, TypeError, AttributeError):
+            body = {}
+        error.close()
+        message = body.get("message", "") if isinstance(body, dict) else ""
+        message = message.lower() if isinstance(message, str) else ""
+        rate = self.code == 429 or (self.code == 403 and (
+            remaining == "0" or self.delay is not None or "rate limit" in message))
+        if rate:
+            category = "rate-limit"
+        elif self.code == 401 or (self.code == 403 and any(text in message for text in (
+                "resource not accessible", "insufficient permission", "requires authentication"))):
+            category = "permission"
+        elif self.code == 422:
+            category = "validation"
+        else:
+            category = "unknown"
+        self.category = category
+        detail = {"http_status": self.code, "category": category}
+        # Only numeric rate metadata and a bounded request ID are safe to retain. Response
+        # messages/errors may echo user content, tokens or URLs, so they are never logged.
+        for name in ("X-RateLimit-Remaining", "X-RateLimit-Reset", "Retry-After"):
+            value = headers.get(name, "")
+            if re.fullmatch(r"[0-9]{1,10}", value):
+                detail[name.lower()] = int(value)
+        request_id = headers.get("X-GitHub-Request-Id", "")
+        if re.fullmatch(r"[A-Fa-f0-9:]{1,80}", request_id):
+            detail["request_id"] = request_id
+        super().__init__("GitHub API " + json.dumps(detail, sort_keys=True))
+
+
 class GitHub:
     def __init__(self, repository, token):
         if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
@@ -301,8 +347,21 @@ class GitHub:
         if data is not None:
             headers["Content-Type"] = "application/json"
         request = Request(self.root + route, data=data, headers=headers)
-        with urlopen(request, timeout=timeout) as response:
-            return json.load(response), response.headers.get("Link", "")
+        deadline = time.monotonic() + timeout
+        for attempt in range(2):
+            try:
+                with urlopen(request, timeout=max(0.001, deadline - time.monotonic())) as response:
+                    return json.load(response), response.headers.get("Link", "")
+            except HTTPError as error:
+                failure = GitHubHTTPError(error)
+                # Retry reads only, once, with explicit rate timing and within the existing
+                # request budget. Never replay a status POST or guess a delay from HTTP 403.
+                if (attempt == 0 and payload is None and failure.category == "rate-limit"
+                        and failure.delay is not None and failure.delay <= 60
+                        and failure.delay + 1 < deadline - time.monotonic()):
+                    time.sleep(failure.delay)
+                    continue
+                raise failure from None
 
     def get(self, route):
         return self.request(route)[0]
@@ -372,7 +431,8 @@ def deferred(reason):
 
 
 def evaluation_failure(error):
-    message = (f"GitHub API HTTP {error.code}" if isinstance(error, HTTPError)
+    message = (str(error) if isinstance(error, GitHubHTTPError)
+               else f"GitHub API HTTP {error.code}" if isinstance(error, HTTPError)
                else "GitHub API unavailable" if isinstance(error, OSError)
                else str(error) if isinstance(error, ValueError)
                else "Invalid GitHub API response")
@@ -910,3 +970,4 @@ if __name__ == "__main__":
                    else "Invalid policy or event input")
         print(message, file=sys.stderr)
         sys.exit(1)
+
