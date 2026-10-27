@@ -45,6 +45,11 @@ assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
 assert len(skill_index) == 61, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
+splash_notices = files("inferrsi").joinpath(
+    "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES"
+)
+assert splash_notices.is_file(), "Splash third-party notices are missing from the wheel"
+assert "The ggml authors" in splash_notices.read_text(encoding="utf-8")
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
 case_path = (

@@ -63,11 +63,14 @@ cancellation or E2E correctness. Evidence:
 - A native cycle normally produces eight draft rows: one anchor and seven
   proposals. Remaining output budget and verify-row choice can reduce the
   verified/retained portion. Unverified proposals are not acceptance failures.
-- `draft_n` counts proposals actually verified. `draft_n_accepted` counts the
-  accepted proposals that the response's policy retains, with exclusions for
-  stop/output-limit and thinking-end replacement described by the API contract.
-  Do not divide by every proposal produced internally and call that the same
-  metric. Retain the definitions with the raw counter values.
+- `draft_n` counts proposals actually verified. `draft_n_accepted` counts those
+  verification accepted, excluding accepted proposals past the output limit or
+  from a model stop token onward. A later server-side `stop`-string cut does
+  **not** subtract those proposals: they still count. Thinking-budget end tokens
+  substituted for draft proposals count as neither proposed nor accepted.
+  Do not divide by every internally produced proposal, or recalculate accepted
+  counts from only the final visible string. Retain these definitions with the
+  raw counters; visible retained output and verification acceptance differ.
 - `metrics.speculation.cycles` and `1 + accepted / cycles` describe speculative
   yield. They omit preparation, prefill, queueing and the cost of the draft,
   target verifier, state/cache work and corrections. More accepted tokens can
