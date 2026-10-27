@@ -1,0 +1,214 @@
+[
+  {
+    "locale": "en",
+    "width": 1600,
+    "height": 1050,
+    "baseline": "4817f92121df73fd9cd5fb4a319e3c56a68b4a5b",
+    "author_model": "gpt-6.1-sol",
+    "author_reasoning_effort": "xhigh",
+    "text_checks": [
+      {
+        "title": "Complete skill library",
+        "line_count": 4,
+        "title_width": 163.0,
+        "available_width": 260
+      },
+      {
+        "title": "Imported catalog sources",
+        "line_count": 3,
+        "title_width": 193.0,
+        "available_width": 260
+      },
+      {
+        "title": "Typed source identities",
+        "line_count": 5,
+        "title_width": 177.0,
+        "available_width": 260
+      },
+      {
+        "title": "Ownership and qualification",
+        "line_count": 5,
+        "title_width": 217.0,
+        "available_width": 260
+      },
+      {
+        "title": "Stable-ID registry",
+        "line_count": 3,
+        "title_width": 133.0,
+        "available_width": 292
+      },
+      {
+        "title": "Source-pinned projection",
+        "line_count": 6,
+        "title_width": 195.0,
+        "available_width": 292
+      },
+      {
+        "title": "Explicit authorities",
+        "line_count": 5,
+        "title_width": 144.0,
+        "available_width": 292
+      },
+      {
+        "title": "Bundle identity contract",
+        "line_count": 3,
+        "title_width": 185.0,
+        "available_width": 292
+      },
+      {
+        "title": "Legacy: knowledge search",
+        "line_count": 4,
+        "title_width": 199.0,
+        "available_width": 288
+      },
+      {
+        "title": "Default: Collect",
+        "line_count": 5,
+        "title_width": 118.0,
+        "available_width": 288
+      },
+      {
+        "title": "Two independent opt-ins",
+        "line_count": 10,
+        "title_width": 192.0,
+        "available_width": 288
+      },
+      {
+        "title": "Exact-revision access",
+        "line_count": 4,
+        "title_width": 160.0,
+        "available_width": 284
+      },
+      {
+        "title": "Complete context contract",
+        "line_count": 7,
+        "title_width": 203.0,
+        "available_width": 284
+      },
+      {
+        "title": "Inspectable returned material",
+        "line_count": 3,
+        "title_width": 226.0,
+        "available_width": 284
+      },
+      {
+        "title": "Agent chooses explicit use",
+        "line_count": 3,
+        "title_width": 202.0,
+        "available_width": 284
+      }
+    ],
+    "svg": "inferrsi-knowledge-architecture.en.svg",
+    "png": "inferrsi-knowledge-architecture.en.png",
+    "render_size": [
+      3200,
+      2100
+    ]
+  },
+  {
+    "locale": "zh-CN",
+    "width": 1600,
+    "height": 1050,
+    "baseline": "4817f92121df73fd9cd5fb4a319e3c56a68b4a5b",
+    "author_model": "gpt-6.1-sol",
+    "author_reasoning_effort": "xhigh",
+    "text_checks": [
+      {
+        "title": "完整技能库",
+        "line_count": 4,
+        "title_width": 80.0,
+        "available_width": 260
+      },
+      {
+        "title": "导入的目录来源",
+        "line_count": 3,
+        "title_width": 112.0,
+        "available_width": 260
+      },
+      {
+        "title": "按类型保存来源身份",
+        "line_count": 5,
+        "title_width": 144.0,
+        "available_width": 260
+      },
+      {
+        "title": "内容归属与验证边界",
+        "line_count": 4,
+        "title_width": 144.0,
+        "available_width": 260
+      },
+      {
+        "title": "稳定 ID 注册表",
+        "line_count": 3,
+        "title_width": 108.0,
+        "available_width": 292
+      },
+      {
+        "title": "固定来源的生成投影",
+        "line_count": 6,
+        "title_width": 144.0,
+        "available_width": 292
+      },
+      {
+        "title": "显式选择三类权威",
+        "line_count": 5,
+        "title_width": 128.0,
+        "available_width": 292
+      },
+      {
+        "title": "完整包身份契约",
+        "line_count": 3,
+        "title_width": 112.0,
+        "available_width": 292
+      },
+      {
+        "title": "既有入口：knowledge search",
+        "line_count": 4,
+        "title_width": 226.0,
+        "available_width": 288
+      },
+      {
+        "title": "默认入口：Collect",
+        "line_count": 5,
+        "title_width": 136.0,
+        "available_width": 288
+      },
+      {
+        "title": "两项相互独立的可选能力",
+        "line_count": 10,
+        "title_width": 176.0,
+        "available_width": 288
+      },
+      {
+        "title": "读取精确内容修订",
+        "line_count": 4,
+        "title_width": 128.0,
+        "available_width": 284
+      },
+      {
+        "title": "完整上下文契约",
+        "line_count": 7,
+        "title_width": 112.0,
+        "available_width": 284
+      },
+      {
+        "title": "可检查的返回材料",
+        "line_count": 3,
+        "title_width": 128.0,
+        "available_width": 284
+      },
+      {
+        "title": "Agent 显式决定使用",
+        "line_count": 3,
+        "title_width": 150.0,
+        "available_width": 284
+      }
+    ],
+    "svg": "inferrsi-knowledge-architecture.zh-CN.svg",
+    "png": "inferrsi-knowledge-architecture.zh-CN.png",
+    "render_size": [
+      3200,
+      2100
+    ]
+  }
+]
