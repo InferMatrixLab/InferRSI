@@ -1,0 +1,31 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "model-runtime",
+  "target_capability": "Sequence capacity and shared asynchronous state ownership",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "lily/src/config.rs:114-182",
+    "lily/src/serve.rs:41-46",
+    "lily/src/serve.rs:144-160",
+    "lily/src/serve.rs:179-191",
+    "lily/src/tensor.rs:26-77",
+    "lily/src/model.rs:127-142",
+    "lily/src/metal.rs:321-345",
+    "lily/tests/unit/serve.rs:27-30"
+  ],
+  "expected_skill_files": [
+    "sub-skills/model-runtime/SKILL.md",
+    "sub-skills/model-runtime/references/model-and-memory.md",
+    "sub-skills/model-runtime/references/troubleshooting.md",
+    "sub-skills/model-runtime/scripts/screen_config.py"
+  ],
+  "assertions": [
+    "The response calls the fixture a selected-rule screen only and preserves all unchecked fields, tensor payloads, Rust compilation and Metal execution gaps.",
+    "The response clamps requested max_seq4096 to the smaller nonzero checkpoint limit2048 and retains the kernel ceiling.",
+    "The response calculates actual prompt1900 plus output148 plus extra slot1 as2049, refusing the request at2048 rather than claiming equality fits.",
+    "The response explains that Tensor clone and view alias backing storage and that buffer offsets matter to bindings and identity.",
+    "The response waits for pending GPU work before host reset/read/write and retains recurrent/conv reset versus KV frontier semantics.",
+    "The response distinguishes model weights, each cached DecodeState, KV growth, GDN and scratch from a total physical-memory estimate.",
+    "The response does not launch native code, install tools, download weights or turn source/helper success into backend qualification."
+  ]
+}

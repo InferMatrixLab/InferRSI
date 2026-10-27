@@ -6,12 +6,25 @@ The stable commit-status context is **`knowledge-model-policy`**.
 
 ## Rollout and scope
 
-Start in **report-only**: noncompliance produces a failed status and workflow,
-while the status is not yet required for merging. Required-check enforcement
-needs separate acceptance and repository-owner authorization. This lightweight
-metadata check complements the four CI lanes; it adds no device/campaign lane.
+The `knowledge-model-policy` status is a **required status check on `main`**, so
+noncompliance blocks merging. The repository ruleset (`protect-main`, id
+`25528020`) is the source of truth for that state and can change independently of
+this page; re-read it instead of relying on the wording here:
+
+```bash
+gh api repos/<owner>/<repo>/rules/branches/main \
+  --jq '.[] | select(.type=="required_status_checks") | .parameters.required_status_checks'
+```
+
+Observed on 2026-10-27: the ruleset is active and `main` lists exactly one
+required context, `knowledge-model-policy` (integration id `15368`). This
+lightweight metadata check complements the four CI lanes; it adds no
+device/campaign lane.
 Success means **declaration compliance only**, not proven execution settings,
-knowledge accuracy, independent review, Skill Eval or candidate promotion.
+knowledge accuracy, independent review, Skill Eval or candidate promotion. The
+workflow evaluates trusted code from `main`, so a green status reports only what
+the PR declares; it says nothing about the PR's own code, its execution settings
+or its results.
 Never request private session logs, secrets or hidden reasoning. This policy is
 prospective; do not reconstruct unknown identities or rewrite historical commits.
 
@@ -387,9 +400,13 @@ This isolates unrelated job conclusions without clearing any peer's failing
 commit status or hiding repository-wide failures. No admission rules, publishing
 permissions, status-history limits, or acceptance requirements are weakened.
 
-The bootstrap PR cannot exercise a target-branch workflow that has not landed:
-independently review and accept it before merging, then validate report-only on
-real PRs. Local/PR CI success does not close #50 or authorize required enforcement.
+The bootstrap PR could not exercise a target-branch workflow that had not landed:
+it was independently reviewed and accepted before merging, then validated on real
+PRs. [#50](https://github.com/InferMatrixLab/InferRSI/issues/50) closed as
+completed on 2026-10-26 and the required-check enforcement described under
+[Rollout and scope](#rollout-and-scope) is now active. Local or PR CI success
+still proves nothing about a specific PR's declarations, since only the
+main-branch workflow's own status does.
 
 ```bash
 python -m pytest tests/test_knowledge_model_policy.py

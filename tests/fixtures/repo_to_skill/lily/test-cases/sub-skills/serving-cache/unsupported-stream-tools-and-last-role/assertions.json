@@ -1,0 +1,28 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "serving-cache",
+  "target_capability": "strict request schema and checked sequence budget",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "lily/src/serve.rs:20-46",
+    "lily/src/serve.rs:165-192",
+    "lily/src/chat.rs:7-35",
+    "lily/tests/unit/serve.rs:3-30",
+    "lily/src/tokenizer.rs:163-229"
+  ],
+  "expected_skill_files": [
+    "sub-skills/serving-cache/SKILL.md",
+    "sub-skills/serving-cache/references/api-and-session.md",
+    "sub-skills/serving-cache/references/troubleshooting.md",
+    "sub-skills/serving-cache/scripts/request_template.py"
+  ],
+  "assertions": [
+    "The response identifies temperature and tools as unknown fields, including zero/empty values, rather than supported ignored options.",
+    "It identifies stream:true as unsupported and the final assistant role as invalid for the required user-last request.",
+    "It explains that the server is inherently greedy and uses disabled-thinking template rendering, not configurable sampling or reasoning fields.",
+    "It offers a valid explicitly text-only user request while disclosing lost streaming/tool semantics instead of silently changing the user's goal.",
+    "It uses or references the bundled offline request helper without starting a service or loading a model.",
+    "It states the checked budget is rendered_prompt_tokens + max_tokens + 1 and computes 10 + 20 + 1 = 31.",
+    "It distinguishes helper structural screening from native template token counts, Rust API execution and Metal/model verification."
+  ]
+}

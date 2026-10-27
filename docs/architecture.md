@@ -105,6 +105,11 @@ src/inferrsi/
   skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
   knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
   knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
+  research.py               Read-only model-aware discovery joined over catalog queries
+  _skill_selection.py       Deterministic lexical skill ranking and context view
+  claim.py                  Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
+  evidence_paths.py         Per-campaign evidence tree: plan/results/patch/validator
+  summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
   harness/
     improvement.py          Offline quality-first selection and usage accounting
     skill_evaluation.py     Skill trial/client interface and independent grading

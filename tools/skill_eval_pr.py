@@ -57,11 +57,20 @@ def prepare(repo, mapping_path, identity, output, *, provider=None):
             raise ValueError("Expected immutable revision: " + key)
     mapping = compare.read_json(mapping_path)
     if provider is not None:
-        if set(provider) != {"model", "client", "pricing", "spend_limit"}:
+        required = {"model", "client", "pricing", "spend_limit"}
+        if (not isinstance(provider, dict) or not required <= provider.keys()
+                or provider.keys() - required - {"limits"}):
             raise ValueError("Unknown or incomplete provider configuration")
+        overrides = provider.get("limits", {})
+        if "limits" in provider and (
+                not isinstance(overrides, dict) or set(overrides) != {"token_stop_new_trials"}
+                or type(overrides["token_stop_new_trials"]) is not int
+                or overrides["token_stop_new_trials"] <= 0):
+            raise ValueError("Provider limits support one positive integer token_stop_new_trials")
         reservation(provider["model"]["name"], provider["client"], provider["pricing"],
                     provider["spend_limit"], 1, now=0)
-        mapping.update(provider)
+        mapping.update({key: provider[key] for key in required})
+        mapping["limits"] = {**mapping["limits"], **overrides}
     changes = changed_files(repo, identity["base"], identity["head"])
     output.mkdir(parents=True, exist_ok=False)
     coverage, selected = [], set()
