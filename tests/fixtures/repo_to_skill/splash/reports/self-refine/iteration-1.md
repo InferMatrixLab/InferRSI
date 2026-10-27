@@ -1,0 +1,3 @@
+# Content self-refine
+
+The root author reviewed every complete lane output and helper, all case assertions and source-script decisions. Concrete state/format/memory/measurement contracts, root/sibling routing, internal links and native gaps are present. Added the safe root request helper link only after its file existed. Fixed verdict/noise thresholds were removed from the adapted statistics helper; budget syntax is explicitly not memory fit. Source body limits and protocol-versus-native implementation boundaries remain explicit. Fresh independent runtime-only usability grading is separately pending.

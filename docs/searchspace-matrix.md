@@ -439,3 +439,10 @@ Network coverage. Existing resource cells and maturity boundaries remain unchang
 This adds conditional Hopper guidance without new measured or green coverage.
 Registers, SMEM and HBM remain device resources; local CTA/cluster coordination
 and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.
+
+## Splash source-derived planning and state
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM / SSD | Diagnose / Configure: mandatory memory floors, expert/PLE stores, dynamic KV/state, disk spill and precision boundaries | [runtime-planning](../src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/SKILL.md) | Source and CPU syntax checks, not measured device/process peak memory or actual spill IO. |
+| Host / Accelerator / service boundary | Diagnose / Verify: salted prompt identity versus global image reuse, composite-state commit/reclaim, persistent namespace and process-local Responses history, adaptive DFlash2 row budgeting | [serving-cache](../src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/SKILL.md) | Python codec/LRU and descriptive statistics do not qualify native Metal/ANE/model state, service SLOs or efficacy. No measured Network coverage is added. |
