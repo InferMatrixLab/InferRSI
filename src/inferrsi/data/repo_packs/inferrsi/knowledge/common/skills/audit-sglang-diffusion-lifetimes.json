@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3a09eae8ba04f003b75e6df781f64d4cef61d81e/src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
-      "commit": "3a09eae8ba04f003b75e6df781f64d4cef61d81e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
         "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
@@ -43,9 +43,9 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": "b0a4ba4751087126143ef86983798deb0ed00e24b6ff06bf6ef76a9df6e274f2",
-    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "2080a5435a66ade85d2d8318003afd7f25e37aa7942ba6b468992115de7fa20b",
+    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "6ed57dfb4f25ecb34b81f2188b055e05d172ba2581e6a3b605b814b2f733a4d6",
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "audit-sglang-diffusion-lifetimes",
@@ -111,7 +111,6 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

@@ -19,9 +19,7 @@
     "accelerator",
     "akg",
     "affine",
-    "tail-guards",
-    "causal-conv1d",
-    "state-update"
+    "tail-guards"
   ],
   "origin": [
     "external"
@@ -29,17 +27,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3a09eae8ba04f003b75e6df781f64d4cef61d81e/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
-      "commit": "3a09eae8ba04f003b75e6df781f64d4cef61d81e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
-        "src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md",
-        "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/causal-conv1d-contract.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "2a2407ca0c74226ce9b966f368cdb0d6a5c813643a60b3ec6a283bae1d04425d"
+      "content_sha256": "01fb1712d7eb988c5e412f02340d2e48b4f8564fcf4ab232dc5897869d0d50a0"
     }
   ],
   "index_type": "packaged-skill",
@@ -48,12 +44,10 @@
   },
   "checkout_ref": "checkout:kernel-writing-guide",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "2a2407ca0c74226ce9b966f368cdb0d6a5c813643a60b3ec6a283bae1d04425d",
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/causal-conv1d-dispatch-state.md": "2eb67dd522021bb2234616d7f660e6ba99acb43676f48cb23141bc69bf3e0029",
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "8957c2e82335bf60f9ffa51104aa011aeb1b45d0200f523c1d3bbf82f7c963ad",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "01fb1712d7eb988c5e412f02340d2e48b4f8564fcf4ab232dc5897869d0d50a0",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "0189d184337662056fc6952c7beffc1bf6154c4fa173ae3e3e463bd22d70f36c",
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/causal-conv1d-contract.md": "b3a6245cf5e9deeba0dffd4a15ddcf97da6a4315f4d3131921779438832663ad",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "kernel-writing-guide",
@@ -68,9 +62,7 @@
       "accelerator",
       "akg",
       "affine",
-      "tail-guards",
-      "causal-conv1d",
-      "state-update"
+      "tail-guards"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -79,46 +71,17 @@
     "origin": [
       "external"
     ],
-    "sources": [
-      {
-        "type": "git",
-        "url": "https://github.com/Dao-AILab/causal-conv1d",
-        "commit": "cd81f0413cad2fc1e6f17e785ac39f59aae690cd",
-        "paths": [
-          "LICENSE",
-          "README.md",
-          "causal_conv1d/__init__.py",
-          "causal_conv1d/causal_conv1d_interface.py",
-          "causal_conv1d/cpp_functions.py",
-          "csrc/causal_conv1d.cpp",
-          "csrc/causal_conv1d_fwd.cu",
-          "csrc/causal_conv1d_update.cu",
-          "setup.py",
-          "tests/test_causal_conv1d.py"
-        ],
-        "readset": "references/causal-conv1d-contract.md",
-        "license": "BSD-3-Clause",
-        "scope": "Forward/update caller contracts, selected packed/state kernel branches and build/binding evidence; no native execution."
-      }
-    ],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [
-      "references/akg-affine-tail-guards.md",
-      "references/causal-conv1d-contract.md"
+      "references/akg-affine-tail-guards.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

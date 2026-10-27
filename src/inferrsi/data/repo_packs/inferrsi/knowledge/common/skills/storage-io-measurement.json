@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3a09eae8ba04f003b75e6df781f64d4cef61d81e/src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
-      "commit": "3a09eae8ba04f003b75e6df781f64d4cef61d81e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json",
@@ -41,8 +41,8 @@
   "checkout_ref": "checkout:storage-io-measurement",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md": "63b883c10a8d3e7d918abfc7175b72e2b401ff1e02697f94b8382ec1c8f369b7",
-    "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json": "1d3195ca8ac8e1b0e94acda01863b83046cff7d773e8131e9f3f925150bad66e",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json": "0a41c7b00978332b54ee1e4a7c1ade88ecde3e961128f24d1b4f7708caff5ff5",
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "storage-io-measurement",
@@ -63,22 +63,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

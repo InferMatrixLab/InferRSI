@@ -6,6 +6,8 @@ own the observations and exact runtime/artifact pins. The campaign remains
 INCONCLUSIVE and optimization is paused. A completed individual gate failure
 does not supply missing concurrency/repetition evidence. No experiment is
 reopened and no external raw trace is rehashed here.
+Kind, origin, state and source identities belong to the
+[typed source and scope record](drama3-rejected-directions.json).
 
 | Direction | Recorded observation and disposition | Suggested revisit condition and first check |
 | --- | --- | --- |

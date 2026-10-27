@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3a09eae8ba04f003b75e6df781f64d4cef61d81e/src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
-      "commit": "3a09eae8ba04f003b75e6df781f64d4cef61d81e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:diagnose-attention-bottlenecks",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md": "a25738dbb3b9daa15c5827cb536a20fe13f7c8b9dd14aa3fb7cfa7e132879431",
-    "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/metadata.json": "47b3c30d5f2268ffac852e1bc578a0d795e8e9a9350c92db46878c8b323d61ff",
+    "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/metadata.json": "3abe626a6e4c73c943429f609ce2c62aa77aae7e1726475ebbbdfbe1794f6f7d",
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/mechanisms.md": "fe08b2292fa587be3874774ddf41063b84c579a0085df422ec6710d8aa90b8b7",
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/papers-20261015/INTEGRATION_NOTES.md": "371b01ee201ef51fecbfd6da892d517aaba295930b9395025f03f34e21c030a1",
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/papers-20261015/NEXT_GATE_LEADS.md": "35b8b58ae5db02b2df51ccbe5cdf870a7383d17f345f9ee5eb7b0a4146dfc74b",
@@ -52,7 +52,7 @@
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/partitioning-after-fusion.md": "4d4cabe0991eab554dcfbd4fa9c8199e61fa4767709b0c4cd646e2588bb398a2",
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/papers-20261015/knowledge/attention-cost-model-boundaries.md": "5ed8f888443e38ccb72545b6025447aab7b92936f78c151fed680e582126239b",
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/sources.md": "53436e0de4e6dda2d29426591bf61f8526378cdc6f9ec7967b88b1bcd4c61e6f",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "diagnose-attention-bottlenecks",
@@ -66,10 +66,6 @@
     "origin": [
       "external"
     ],
-    "sources": [],
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -85,12 +81,9 @@
       "references/papers-20261015/README.md",
       "references/sources.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

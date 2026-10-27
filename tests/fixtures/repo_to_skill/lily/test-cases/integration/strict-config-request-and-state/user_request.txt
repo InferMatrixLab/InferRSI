@@ -1,0 +1,1 @@
+I have an MLX4bit checkpoint and a Lily cache key that matched yesterday. I changed an earlier user message, set max_tokens so prompt plus output equals max-seq, and want to bypass all loader checks because the config screen passed. Diagnose without a Mac.

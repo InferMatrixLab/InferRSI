@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3a09eae8ba04f003b75e6df781f64d4cef61d81e/src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
-      "commit": "3a09eae8ba04f003b75e6df781f64d4cef61d81e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json",
@@ -41,9 +41,9 @@
   "checkout_ref": "checkout:dcp-async-save-performance",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md": "645139ee0c88ec865cad952e24cda35f4648d4b777b732c9b7d274b6c7830845",
-    "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json": "2452e400592bc6e084981b27153f6936b5a12e7f3584951cb8e3373e9c27db4e",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json": "db7ad368394ccbfdeff6a16e3423c300d51305b1f95ff5c3936df91738a8cc35",
     "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/references/sources.md": "22afe4f4d77f441096cc657d55d763473bfcbea8fb531c8e493fe49ab84955f7",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "dcp-async-save-performance",
@@ -63,11 +63,7 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -75,12 +71,9 @@
     "provenance_readsets": [
       "references/sources.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

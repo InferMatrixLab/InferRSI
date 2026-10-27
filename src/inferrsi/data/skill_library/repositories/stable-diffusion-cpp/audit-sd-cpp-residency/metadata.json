@@ -27,6 +27,5 @@
     "Video/audio pipelines, detailed model kernels, approximate denoising caches and full multi-device execution remain outside this readset."
   ],
   "provenance_readsets": ["references/source-notes.md"],
-  "references": [],
   "consumption_mode": "packaged"
 }
