@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/cd01523c030c5ea5a44326be61b63b8cec502b7a/src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
-      "commit": "cd01523c030c5ea5a44326be61b63b8cec502b7a",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
+      "commit": "f321699b42a490276ffa4ea52350591683b575cc",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md"

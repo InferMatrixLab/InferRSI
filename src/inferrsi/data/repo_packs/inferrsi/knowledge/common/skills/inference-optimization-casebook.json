@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/cd01523c030c5ea5a44326be61b63b8cec502b7a/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "cd01523c030c5ea5a44326be61b63b8cec502b7a",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "f321699b42a490276ffa4ea52350591683b575cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
@@ -46,13 +46,13 @@
   "checkout_ref": "checkout:inference-optimization-casebook",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "1d569fbe16272aa4584225b9b94221231bc24600351f370245e22c5d5126025c",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "3319e23bbe2bd40e2d45fb89dc87bdc92d4df2b5ddd8086fcf84813b43885b7c",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "677d95abb353cecdfca81132759e6a8cd5804ee48c4163e150dde72a2b89f335",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "2cc0a526fe0509551607a03e7626dd3d7844e643c4afb194837f75cddead8b12",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "5adddf5cd6455b8c0bb40f96a22da29b87caf578a14d48dc671b17025748f4f1",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "c61654189fe763f8696a2beba04245e327bf697b3a940e10dfb4394c946b1c62",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "a2df4056af372fbbb2fbe90db01acc926fad78775844fa91cff8bc2f3286ff58",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "b3d538f79c56724ccb2895cbf50cf2e6b0fec3979be62a684a8230cd932dff55",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "146ea1564a46ed03092c7dc5796b318fc05b04b1821105ee00eb7fa7fa1333e2",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "fb55067fb45970319787068a3206110641cceaf0ccbabd706be6d0b3d2afc2ed",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
