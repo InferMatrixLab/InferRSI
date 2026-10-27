@@ -18,6 +18,8 @@ from inferrsi.harness.skill_evaluation import (
 )
 from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
+from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
+from inferrsi.model.anthropic_agent import AnthropicAgentClient, validate_schema, validate_spec
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -165,7 +167,7 @@ def validate_default_audit(task: dict) -> None:
 
 def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) -> None:
     if set(config) - {"mode", "skill", "skill_root", "cases", "schema", "grader",
-                      "snapshots", "model", "limits"}:
+                      "snapshots", "model", "limits", "client"}:
         raise ValueError("Unknown configuration field")
     if config["mode"] not in ("addition", "update"):
         raise ValueError("mode must be addition or update")
@@ -185,6 +187,8 @@ def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) ->
         raise ValueError("model supports name and effort only")
     if not all(isinstance(v, str) and v for v in config["model"].values()):
         raise ValueError("model name and effort are required")
+    if "client" in config:
+        validate_spec(config["model"], config["client"])
     limits = config["limits"]
     if set(limits) != {"repeats", "max_task_calls", "timeout_seconds", "campaign_seconds",
                        "token_stop_new_trials"}:
@@ -286,6 +290,8 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         grader.read_bytes() == (ROOT / "tools/skill_eval_verifier.py").read_bytes()))
     require_git_version(subprocess.check_output(("git", "--version"), cwd=repo, text=True))
     schema = read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA
+    if "client" in config:
+        validate_schema(schema)
     output.mkdir(parents=True, exist_ok=False)
     for name in ("plan", "validator", "results"):
         (output / name).mkdir()
@@ -334,6 +340,15 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         "CodexClient disables global skills, plugins, apps, memories and web. "
         "Controlled exposure is not OS read confinement.",
     }
+    if "client" in config:
+        client = AnthropicAgentClient(config["model"]["name"], config["client"],
+                                      config["limits"]["timeout_seconds"])
+        plan["client"] = client.frozen_identity()
+        plan["controllers"][AGENT_SOURCE] = sha256(ROOT / AGENT_SOURCE)
+        plan["max_api_requests"] = len(plan["schedule"]) * config["client"]["max_requests"]
+        plan["isolation"] = ("Fresh workspaces; read/submit tools expose selected files only. "
+                             "No shell, network tool, external agent CLI or global config. "
+                             "Live provider execution is unavailable in this offline slice.")
     write_json(output / "plan/freeze.json", plan)
     return sha256(output / "plan/freeze.json")
 
@@ -398,6 +413,9 @@ def execute(output: Path, authorization: str, *, client=None,
     plan = load_plan(output)
     if any((output / "results").iterdir()):
         raise ValueError("Execution requires fresh results; prepare a new output directory")
+    if "client" in plan:
+        # No Codex fallback or injected-client bypass of incomplete live setup.
+        AnthropicAgentClient.require_live_readiness()
     if client is None:
         client = CodexClient(plan["model"]["name"], plan["model"]["effort"],
                              plan["limits"]["timeout_seconds"])
@@ -495,6 +513,10 @@ def retained_trial(output: Path, entry: dict) -> dict:
         if isinstance(record["observations"].get("commands"), list) else None,
     }
     error = record.get("evaluation_error")
+    if record["observations"].get("client_kind"):
+        selected["observations"].update({
+            key: record["observations"].get(key) for key in
+            ("client_kind", "provider_model", "api_requests", "usage_complete", "observed_usage")})
     if data is None:
         error = error or "missing_retained_output"
     elif actual_hash != record["output_sha256"]:
@@ -589,6 +611,9 @@ def read_report(output: Path) -> dict:
         "claim": "Pipeline results only; fixed-output offline clients do not establish "
         "skill efficacy. Discovery is separate. Unknown usage and cost remain unknown.",
     }
+    if "client" in plan:
+        result["client"] = plan["client"]
+        result["max_api_requests"] = plan["max_api_requests"]
     return result
 
 

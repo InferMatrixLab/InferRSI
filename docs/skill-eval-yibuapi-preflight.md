@@ -128,3 +128,27 @@ Open blockers are effective price units/group, enforceable total-cap semantics,
 owner-provisioned isolated credentials, offline-reviewed client wiring and the
 new exact execution plan. No whole-#101/#88 or efficacy acceptance follows from
 this preflight design.
+
+## Offline implementation boundary
+
+The opt-in comparison `client` settings select the bounded Messages read/submit
+contract. Preparation freezes provider/protocol/endpoint/model, request/output/
+read/tool ceilings, source hash and maximum API-request count across both arms.
+The model effort must be `not_applicable`; the Codex default is unchanged.
+
+This implementation slice is offline-only. The core loop accepts an explicit
+transport for mocked tests, and HTTP construction is tested with fake keys.
+Comparison execution refuses this provider before creating start/trial evidence,
+even with an injected client. There is no live worker, environment-approval
+shortcut, credential lookup/injection or hosted workflow change. Reviewed
+pricing/cap enforcement and runtime credential wiring remain a separate required
+implementation before live execution can be enabled. Preparation or green offline
+CI is not provider compatibility, monetary control or real-evaluation acceptance.
+
+Only complete UTF-8 reads of exposed workspace files and structured answer
+submission are supported. A task-read/tool-result round trip is mandatory;
+plaintext answers, shell/network tools and general coding actions are unsupported.
+Schema support is limited to the existing audit/extract vocabulary. The normalized
+agent trace records request hashes/lengths, reads/hashes, provider model, usage and
+terminal errors without provider text or key material. Interrupted/unknown usage
+remains unverified, with known partial observations retained separately.
