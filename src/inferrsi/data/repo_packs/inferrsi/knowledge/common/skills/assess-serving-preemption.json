@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9137da7b22589d6d768b79c95bbb8a4166b9ec88/src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
-      "commit": "9137da7b22589d6d768b79c95bbb8a4166b9ec88",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
+      "commit": "f321699b42a490276ffa4ea52350591683b575cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
         "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json",
@@ -34,9 +34,9 @@
   "checkout_ref": "checkout:assess-serving-preemption",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md": "0a5f48d9352c5bf460775ef47f9136829978811f4a16e84983e299782cae305d",
-    "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json": "4c52db9b143204496d9bc194d981322ad39a6f8cb399fb49abcb80d7b2924533",
+    "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json": "77ce5ba16245cbd80d46d0abdf80aaf26fc0924fa2d2a5624ff430de68a1daf0",
     "src/inferrsi/data/skill_library/methods/assess-serving-preemption/references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f",
-    "src/inferrsi/data/skill_library/skill-index.json": "ea80d57e29a2949cffceefcc1715db375937499144864b9df41c3e7fcae61c16"
+    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
     "name": "assess-serving-preemption",
@@ -50,10 +50,6 @@
     "origin": [
       "external"
     ],
-    "sources": [],
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -61,12 +57,9 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

@@ -65,13 +65,16 @@ metadata authority or maintained matrix.
 | Legacy sidecars | Existing keys retained unless explicitly normalized | Conflicting duplicate fields fail visibly; matching historical fields can be read |
 | Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Do not migrate it into local sidecars or relabel imported records |
 | Engine procedures/resources | Imported English library and source manifest | Preserve licenses, source relationships and installed access; catalog abstracts link the complete English procedures |
-| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results |
+| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results. Source identities and digests live only in the record; the document links it and cites the same source URLs. The record lists its own basename in `required_resources`, so that link resolves inside the read bundle |
 
 The 43 branch-added candidate headers were normalized without replacing their
 procedures. All structured frontmatter fields, including tags, synchronization
 lineage, unknown license and source-pack notes, are retained in sidecars. Existing
 sidecar name/status duplication agreed with the frontmatter; normalization found
-no contradictory values. Abbreviated historical repository pins remain explicitly
+no contradictory values. Sidecars omit fields equal to the reader defaults:
+empty `sources` and `references`, and the former shared placeholder
+`applicability`; absent sources still read as explicit unknown provenance.
+Abbreviated historical repository pins remain explicitly
 prefixes, not invented full SHAs. Legacy untyped source inventories remain marked
 incomplete, with their substantive procedure/readsets retained for inspection.
 

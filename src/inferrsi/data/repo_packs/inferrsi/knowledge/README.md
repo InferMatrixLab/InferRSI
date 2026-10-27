@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 61 registered skills in `data/skill_library/`.
+Generated abstracts for all 60 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [9137da7b22589d6d768b79c95bbb8a4166b9ec88](https://github.com/InferMatrixLab/InferRSI/tree/9137da7b22589d6d768b79c95bbb8a4166b9ec88/src/inferrsi/data/skill_library).
+Source snapshot: [f321699b42a490276ffa4ea52350591683b575cc](https://github.com/InferMatrixLab/InferRSI/tree/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 9137da7b22589d6d768b79c95bbb8a4166b9ec88 --check
+python tools/build_skill_index.py --source-revision f321699b42a490276ffa4ea52350591683b575cc --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -72,7 +72,6 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [diagnose-vllm-admission-pressure](common/skills/diagnose-vllm-admission-pressure.json) | common | candidate |
 | [diffusers-invocation-state](common/skills/diffusers-invocation-state.json) | common | candidate |
 | [draft-acceptance-issue](common/skills/draft-acceptance-issue.json) | common | unspecified |
-| [dwarfstar](common/skills/dwarfstar.json) | common | candidate |
 | [evaluate-elastic-serving-placement](common/skills/evaluate-elastic-serving-placement.json) | common | candidate |
 | [generation-cache-lifecycle](common/skills/generation-cache-lifecycle.json) | common | candidate |
 | [host-memory-management](common/skills/host-memory-management.json) | common | candidate |

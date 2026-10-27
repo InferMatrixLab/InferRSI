@@ -48,6 +48,5 @@
     "The dynamic native allocator and third-party custom-node behavior remain outside the verified scope."
   ],
   "provenance_readsets": ["references/repo-provenance.md"],
-  "references": [],
   "consumption_mode": "packaged"
 }

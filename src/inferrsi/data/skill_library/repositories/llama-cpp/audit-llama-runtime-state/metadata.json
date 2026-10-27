@@ -44,6 +44,5 @@
     "KV, recurrent and hybrid state contracts must be checked independently."
   ],
   "provenance_readsets": ["references/source-notes.md"],
-  "references": [],
   "consumption_mode": "packaged"
 }
