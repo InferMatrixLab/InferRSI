@@ -1,8 +1,8 @@
 # InferRSI skill library
 
-The English-only library contains **85 skill documents**: 61 registered roots (including the Splash graph),
-21 separately indexed engine/router documents and three Splash sub-skills. Complete procedures, metadata,
-references, cases and source notices ship with the package.
+The English-only library contains **89 skill documents**: 62 registered roots,
+21 separately indexed engine/router documents and 6 AREX graph sub-skills.
+Complete procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
 
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 61 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 62 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -118,7 +118,7 @@ guidance; it establishes no cross-pin implementation compatibility.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 61-ID registry.
+the links and catalog records below, separately from the 62-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -228,6 +228,14 @@ separates mined mechanisms, unmined source headers and Blackwell-only recipes;
 retain contradictions and distribution discrepancies. GPU execution and efficacy
 remain not_run.
 
+## DwarfStar portable AREX candidate
+
+[DwarfStar](repositories/dwarfstar/SKILL.md) routes memory/SSD, serving-state and
+qualification questions to one source-pinned operating graph. The portable AREX
+create/verify workflow was adapted to native C with the user-approved partial
+backend boundary. CPU checks do not qualify accelerated/model/service execution;
+required backend gaps remain explicit. Its generated catalog ID is
+`inferrsi.common.skills.dwarfstar`.
 ## Splash portable AREX candidate
 
 [Splash](repositories/splash/SKILL.md) links source-pinned format/memory planning,

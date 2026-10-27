@@ -12,7 +12,7 @@ import yaml
 PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = PROJECT / "src/inferrsi/data/skill_library/repositories"
 FIXTURES = PROJECT / "tests/fixtures/repo_to_skill"
-GRAPHS = ("splash",)
+GRAPHS = ("dwarfstar",)
 
 
 def frontmatter(path):
@@ -72,20 +72,19 @@ def test_arex_assertion_cases_resolve_their_expected_runtime_resources():
                 assert selected.is_relative_to(root.resolve()) and selected.is_file()
 
 
-def test_splash_offline_helpers_keep_syntax_and_statistics_separate_from_verdict():
-    import runpy
-
-    root = LIBRARY / "splash"
-    parser = runpy.run_path(str(root / "sub-skills/runtime-planning/scripts/parse_budget.py"))
-    assert parser["parse_budget"]("max-memory", "2.5G") == 2684354560
-    assert parser["parse_budget"]("ple-memory", "off") == "off"
-    summarizer = runpy.run_path(str(root / "sub-skills/qualification/scripts/summarize_rounds.py"))
-    value = summarizer["summarize"]({"rounds": [[100], [90], [92], [102]]})
-    assert value["baseline"] == 101 and value["candidate"] == 91
-    assert "verdict" not in value and "descriptive" in value["scope"]
+def test_dwarfstar_request_helper_is_offline_and_validates_its_small_contract():
+    script = LIBRARY / "dwarfstar/scripts/request_template.py"
     result = subprocess.run(
-        [sys.executable, str(root / "scripts/request_template.py"),
-         "--model", "local-model", "--prompt", "Hello", "--cache-salt", "scope"],
+        [sys.executable, str(script), "--model", "local-model", "--prompt", "Hello"],
         check=True, capture_output=True, text=True,
     )
-    assert json.loads(result.stdout)["cache_salt"] == "scope"
+    value = json.loads(result.stdout)
+    assert value == {
+        "model": "local-model", "messages": [{"role": "user", "content": "Hello"}],
+        "max_tokens": 64, "temperature": 0.0, "stream": False,
+    }
+    invalid = subprocess.run(
+        [sys.executable, str(script), "--model", "x", "--prompt", "y", "--max-tokens", "0"],
+        capture_output=True, text=True,
+    )
+    assert invalid.returncode == 2 and "positive" in invalid.stderr

@@ -403,6 +403,11 @@ and diffusion archive inspection (2026-10-22) remain separate. This navigation
 adds no upstream reinspection, common dependency tuple or validation result;
 source maps, notices and imported/candidate states stay with their owners.
 
+## DwarfStar portable AREX extraction
+
+| Source / revision | Inspected scope | Reuse, extraction and limits |
+| --- | --- | --- |
+| antirez/ds4 @ `ee7e8405232c8971000cc7ba2b945b00bf6d20d3`; AREX-Skill method @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected SSD budgeting, shared prefill workspace, session/token/image identity, disk KV/tool replay, speculation and topology/test contracts | [DwarfStar operating graph](../src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md) with bounded source hashes, bundled request helper and owner-local references. Actual portable create/verify method, not an unexecuted CLI run. Native C adaptation and partial drafting were user-approved. Accelerated/model/physical-distributed/quality/performance verification remains blocked; CPU checks do not establish those claims. Source MIT notice retained; `NO_LICENSE` is the unauthenticated resolver fallback, not a legal conclusion. |
 ## Splash portable AREX extraction
 
 | Source / revision | Inspected scope | Reuse, extraction and limits |

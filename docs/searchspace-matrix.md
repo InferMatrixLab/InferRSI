@@ -440,6 +440,12 @@ This adds conditional Hopper guidance without new measured or green coverage.
 Registers, SMEM and HBM remain device resources; local CTA/cluster coordination
 and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.
 
+## DwarfStar source-derived execution/state graph
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| RAM / Accelerator / SSD | Diagnose / Configure: routed-expert cache versus non-routed weights, context, shared prefill workspace and per-session recurrent/KV state | [DwarfStar runtime-memory](../src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/runtime-memory/SKILL.md) | Bounded source-derived budgeting guidance; native GPU/model SSD I/O and actual peak memory are not validated. |
+| Host / Accelerator / service boundary | Diagnose / Verify: token and image prefix identity, disk payload compatibility, tool replay, speculation rollback and actual batching/fallback path | [DwarfStar serving-state](../src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/qualification/SKILL.md) | Model-free CPU bookkeeping and source contracts are distinct from accelerated correctness, physical TCP/RDMA or service performance. This adds no measured Network coverage. |
 ## Splash source-derived planning and state
 
 | Resource | Stage / named mechanism | Canonical owner | Evidence boundary |

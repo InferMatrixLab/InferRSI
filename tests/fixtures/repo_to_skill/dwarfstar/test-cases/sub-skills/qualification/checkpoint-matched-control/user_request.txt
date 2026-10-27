@@ -1,0 +1,1 @@
+I already have an installed DwarfStar binary and a checkpoint-matched Flash 0731 target and DSpark support file. I want to compare single-host greedy decoding with and without DSpark. Give me a small experiment worksheet and command templates, keep my files untouched, and say exactly what this could and could not qualify.

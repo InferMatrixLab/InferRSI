@@ -241,6 +241,10 @@
       "path": "hardware/cuda/reason-hopper-kernels",
       "backend": "cuda"
     },
+    "dwarfstar": {
+      "path": "repositories/dwarfstar",
+      "backend": "common"
+    },
     "splash": {
       "path": "repositories/splash",
       "backend": "common"

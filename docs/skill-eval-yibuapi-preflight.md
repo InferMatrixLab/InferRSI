@@ -8,8 +8,8 @@ provider configuration is supplied. No external agent executable is required.
 ## Configuration and cost reservation
 
 Supply public JSON as the workflow_dispatch provider_config input, unchanged
-between planning, execution and any retained-publication retry. It has exactly
-four top-level fields:
+between planning, execution and any retained-publication retry. It has four
+required top-level fields and one narrowly scoped optional override:
 
 | Field | Required content |
 | --- | --- |
@@ -17,6 +17,7 @@ four top-level fields:
 | client | kind, provider, endpoint, api_version and all five integer bounds below |
 | pricing | exact model/group/currency/units, all effective rates, fees, full context bound, evidence and expiry |
 | spend_limit | currency and approved finite amount as a decimal string |
+| limits (optional) | exactly token_stop_new_trials as a finite positive integer |
 
 The client identity is kind=anthropic-messages-agent-v1, provider=yibuapi,
 endpoint=https://yibuapi.com/v1/messages and api_version=2023-06-01. Its required
@@ -26,6 +27,20 @@ execution choices; approve them in the exact frozen plan. max_requests counts
 every attempted Messages request in a trial, including failed/uncertain requests.
 No additional compatibility probe is sent: the first baseline request is the
 compatibility observation.
+
+For a paid pair, optional limits.token_stop_new_trials overrides only that
+mapping limit. Other limit overrides, zero/negative values, booleans and strings
+are rejected. Omitting limits preserves the existing mapping and Codex defaults.
+The effective limit is frozen in each comparison, the PR plan, and the complete
+Budget JSON; changing it requires a new exact plan and approval. Monetary
+reservation, request/tool/read/output/deadline bounds and unknown-usage stops
+remain unchanged.
+
+Token usage is cumulative across both arms and checked before every new trial.
+If a completed baseline reaches the threshold, candidate is not started. Choose
+explicit finite headroom appropriate to the whole authorized pair; it is neither
+a per-arm limit nor a hard provider token/money cap. Do not reuse an older plan
+or retry a consumed paid run after changing headroom.
 
 pricing requires currency (USD or CNY), unit=per_million_tokens, model, group,
 rates, request_fee, max_input_tokens, rate_evidence and expires_at. rates contains
