@@ -6,6 +6,8 @@ which attributes them to amy-why-3459 at upstream head
 They apply to its one-910B1, BF16, eager, 1280x704, native eight-sigma cohort.
 They are author-reported, `locally_verified=false`, with InferRSI acceptance
 INCONCLUSIVE. No raw timings, images or frozen validator were imported.
+Kind, origin, state and source identities belong to the
+[typed source and scope record](qwen-ascend-rejected-directions.json).
 
 | Direction | Recorded observation and disposition | Suggested revisit condition and first check |
 | --- | --- | --- |

@@ -119,6 +119,5 @@
     "references/source-identity.json",
     "references/minimax-h3-weight-inventory.json"
   ],
-  "references": [],
   "consumption_mode": "packaged"
 }

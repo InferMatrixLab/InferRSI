@@ -11,6 +11,7 @@
       "run": "drama3-mixed-20261016",
       "artifact": "vllm-continuous-schedule.json",
       "sha256": "29e5cafe329cb85eaba69db7536a28a83fb7e3ac29bc154fc8747f317f6a4b3f",
+      "request_metadata_sha256": "bd50166976a4753b33c8aeb5a774ebb5711c74ccbba0df1843885f353ecdc996",
       "integrity_status": "reported_not_rehashed",
       "evidence_url": "https://github.com/InferMatrixLab/InferRSI/blob/c13027983b853fee3700de6aabde52b72e61885a/evidence/drama3-b300-scale150/results/diagnostic-lessons.md#continuous-admission-profile-and-mixed-backbone-2026-10-16"
     }

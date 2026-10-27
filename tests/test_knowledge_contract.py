@@ -1,9 +1,15 @@
 import json
+import re
 from pathlib import Path
 
 import pytest
 
-from inferrsi.skill_catalog import skill_directory, skill_records, skill_reference
+from inferrsi.skill_catalog import (
+    skill_directories,
+    skill_directory,
+    skill_records,
+    skill_reference,
+)
 
 ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
 
@@ -25,6 +31,42 @@ def test_local_profiles_preserve_core_and_structured_ownership():
         for readset in metadata["provenance_readsets"]:
             assert (sidecar.parent / readset).is_file()
     assert len(normalized) == 55
+
+
+def test_local_sidecars_omit_fields_that_equal_reader_defaults():
+    # Readers default absent sources/references to [] and applicability to {};
+    # a stored empty or placeholder value would only repeat that default.
+    placeholder = {"scope": "See procedure prerequisites and counter-signals"}
+    for record in skill_records(ROOT):
+        sidecar = skill_directory(ROOT, record["name"]) / "metadata.json"
+        if not sidecar.exists():
+            continue
+        metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+        assert metadata.get("sources") != [], record["name"]
+        assert metadata.get("references") != [], record["name"]
+        assert metadata.get("applicability") != placeholder, record["name"]
+
+
+def _case_records():
+    for directory in skill_directories(ROOT).values():
+        for path in sorted(directory.glob("cases/*.json")):
+            record = json.loads(path.read_text(encoding="utf-8"))
+            if record.get("kind") == "case":
+                yield path, record
+
+
+def test_case_documents_cite_their_record_without_copying_digests():
+    cases = list(_case_records())
+    assert len(cases) == 4
+    for path, record in cases:
+        body = (path.parent / record["content"]).read_text(encoding="utf-8")
+        # The JSON record is the single home for source identities and digests.
+        assert f"]({path.name})" in body, path.name
+        assert not re.search(r"\b[0-9a-f]{64}\b", body), path.name
+        for source in record["sources"]:
+            for key in ("url", "evidence_url", "issue"):
+                if key in source:
+                    assert source[key] in body, (path.name, key)
 
 
 def test_contradictory_legacy_metadata_fails(tmp_path):
