@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c395cd7cae7978d51faf37ba97e2e7c1cd0d9270/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "c395cd7cae7978d51faf37ba97e2e7c1cd0d9270",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/cd01523c030c5ea5a44326be61b63b8cec502b7a/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "cd01523c030c5ea5a44326be61b63b8cec502b7a",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
@@ -58,7 +58,7 @@
   "checkout_ref": "checkout:performance-ceiling-analysis",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "c5f78961c23e3c8d659f5675b522518ab06e1f2a8ea8bc74c5d428ffb41693d5",
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "42eed3e1aa5e8dbc6405099e80aac020f79c651efe44b6906b65f96c7f8f80ce",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "60b5b24ead590b0fb222398fba47822bf6723690da683e256a450bb5c0eeb806",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/README.md": "17b2d1c7c14124d59ac8a0d5ad4200ad2803d991e784a1a98cd97188cc364999",
@@ -171,7 +171,6 @@
       "references/papers-20261015/references/vidur.md",
       "references/papers-20261015/STATIC_CHECKS.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c395cd7cae7978d51faf37ba97e2e7c1cd0d9270/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
-      "commit": "c395cd7cae7978d51faf37ba97e2e7c1cd0d9270",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/cd01523c030c5ea5a44326be61b63b8cec502b7a/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+      "commit": "cd01523c030c5ea5a44326be61b63b8cec502b7a",
       "paths": [
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json",
@@ -34,7 +34,7 @@
   "checkout_ref": "checkout:calibrate-serving-simulation",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352",
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "553406b95177a38d73ea6f305c30f361765a437dfe8cfec86c26d4c00e1ac41c",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "261ce9f644ea6eebb90c830f41fb8b320d2b401456e5bd8d494095a44b8620d0",
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
@@ -63,21 +63,15 @@
         "readset": "references/source-notes.md"
       }
     ],
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation."
     ],
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."
