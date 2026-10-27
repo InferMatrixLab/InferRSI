@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json",
@@ -52,7 +52,7 @@
   "checkout_ref": "checkout:diagnose-vllm-admission-pressure",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md": "5fb9ea1d1373e110d9b506f69963c4857338b7dbf5e38ec9a49b59a0ff683ed0",
-    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json": "e2e0bc54f6f0142471320680827836e0b6ae778f6557e1c0772dfebf3ba34a0d",
+    "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json": "78459416734f61a8faa819d9a1a3ad7b9a985e8bf8e149813c604d15be6bb92f",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/INTEGRATION_NOTES.md": "82b24be82451ee121892f61575d0cf4ecb9920813a25ccb26cce2b45dda6d8b3",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/migration-is-not-free-memory.md": "2ac168f2725cba7fc92dfcc67c01bf2258dff6a2dbe1ddb063bc60c175d82d0a",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/cases/parallelism-change-with-state-cost.md": "5accc81086e4500d66f894ef6af9951e1cbb76941f6c631aab5c5561a786d8d8",
@@ -86,10 +86,6 @@
     "origin": [
       "external"
     ],
-    "sources": [],
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -110,12 +106,9 @@
       "references/papers-20261015/references/orca-readset.md",
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

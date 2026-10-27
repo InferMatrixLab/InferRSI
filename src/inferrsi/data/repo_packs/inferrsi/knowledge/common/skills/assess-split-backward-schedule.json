@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
+      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
       "paths": [
         "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
         "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json",
@@ -34,7 +34,7 @@
   "checkout_ref": "checkout:assess-split-backward-schedule",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md": "1e64f28ea71672fb53c56f6108b87864738c6d03d6dcd32eedaef9e0625e96e3",
-    "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json": "858fdd88c6bd2f118bd1d527bb37d47bcc2722cc6140d52ee4657e646cdce080",
+    "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json": "c6acae57d70190cea0e18c71c79127962181e58169e011df75d8635b3db4daa7",
     "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/references/source-notes.md": "61b1609f71c37b61d136b8c4d39f793de87cffb1cf31c8ec737a1c3fa6fb1b4e",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
@@ -49,10 +49,6 @@
     "origin": [
       "external"
     ],
-    "sources": [],
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -60,12 +56,9 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
+      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
       "paths": [
         "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json",
@@ -48,7 +48,7 @@
   "checkout_ref": "checkout:training-resource-budget",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md": "bdfa5a4ef37d9f303c3a23cd6f98c21137b97ac5ed58e0ed5fac6d71d33e52ef",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json": "160b340fe224d73d942aceda02102404c5b4cbfa6d1188951aaaa3f8c992340d",
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json": "d42b614af9cee6ee0d4a25dc5d57c7b98438feed1e807a7c9f1755109a86e9cf",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md": "eb97f935ed30517a8fc9edec5e9cddc04f5d679d156c16d75bd29c534593360a",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101",
@@ -77,11 +77,7 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -96,12 +92,9 @@
       "references/sources.md",
       "references/stas-decision-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

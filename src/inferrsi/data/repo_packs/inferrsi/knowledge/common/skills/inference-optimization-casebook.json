@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
@@ -46,15 +46,15 @@
   "checkout_ref": "checkout:inference-optimization-casebook",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "1d569fbe16272aa4584225b9b94221231bc24600351f370245e22c5d5126025c",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "677d95abb353cecdfca81132759e6a8cd5804ee48c4163e150dde72a2b89f335",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md": "fbe1061e07502072a08841974845cccb3e133cded0c8eead0c27a912b1554d02",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "5adddf5cd6455b8c0bb40f96a22da29b87caf578a14d48dc671b17025748f4f1",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "65b4228f8e4ea980b93197e505190ccfedfc5a0f7fd1c28671ec693e3d2a4218",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "c61654189fe763f8696a2beba04245e327bf697b3a940e10dfb4394c946b1c62",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "a2df4056af372fbbb2fbe90db01acc926fad78775844fa91cff8bc2f3286ff58",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "fdcadb4488e29ca45edf21a350ed28ed4f6c6a9fb4772a61d90ca8f62ce5bb04",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "6aa0dd8ae9a8b45d770593f236ce39a6c2e06a8e67ad7176b47d484686028f63",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "fb55067fb45970319787068a3206110641cceaf0ccbabd706be6d0b3d2afc2ed",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
@@ -73,22 +73,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
+      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json",
@@ -41,7 +41,7 @@
   "checkout_ref": "checkout:ascend-operator-tuning",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "ab7dedfa873b8572db277e43536e6ce04c68ac987aee189ffd5861e4e9bb2d6d",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "04d2002fc8a0a7becf86b0b73daaf2da8716ab466d7f988da43d41a10f26680e",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
@@ -63,22 +63,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."
