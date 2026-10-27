@@ -197,11 +197,14 @@ def run_trial(
     # An injected client may tighten the frozen limit, but cannot extend it.
     timeout = client.timeout_seconds if timeout_seconds is None else min(
         client.timeout_seconds, timeout_seconds)
+    agent_environment = getattr(client, "environment", None)
+    options = {"environment": agent_environment()} if agent_environment else {}
     execution = execute_command(
         command,
         workspace,
         trial_dir / "agent",
         min(deadline, time.monotonic() + timeout),
+        **options,
     )
     atomic_write_json(trial_dir / "execution.json", execution)
     try:
@@ -229,11 +232,14 @@ def run_trial(
             except ValueError:
                 evaluation_error = "invalid_output_json"
     if evaluation_error is None:
+        verifier_environment = getattr(client, "verifier_environment", None)
+        options = {"environment": verifier_environment()} if verifier_environment else {}
         verification = execute_command(
             (sys.executable, str(verifier), str(workspace / "task.json"), str(final)),
             workspace,
             trial_dir / "verification",
             min(deadline, time.monotonic() + 30),
+            **options,
         )
         result_path = trial_dir / "verification/result.json"
         if verification["status"] not in ("completed", "failed"):

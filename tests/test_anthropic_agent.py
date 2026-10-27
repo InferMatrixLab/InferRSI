@@ -298,7 +298,7 @@ def test_opt_in_plan_freezes_identity_and_cannot_execute_or_fall_back(tmp_path, 
     assert plan["client"]["settings"] == spec
     assert plan["client"]["source_sha256"] == sha256(compare.ROOT / agent.SOURCE)
     assert plan["controllers"][agent.SOURCE] == sha256(compare.ROOT / agent.SOURCE)
-    assert plan["client"]["runtime_state"] == "offline_only"
+    assert plan["client"]["runtime_state"] == "unconfigured"
     report = compare.report(output)
     assert report["client"] == plan["client"]
     assert agent.KIND in (output / "report.md").read_text(encoding="utf-8")

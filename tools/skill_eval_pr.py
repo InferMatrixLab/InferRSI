@@ -14,6 +14,7 @@ from pathlib import Path, PurePosixPath
 from urllib.error import HTTPError
 
 from inferrsi.infra.artifacts import sha256, write_json
+from inferrsi.model.anthropic_agent import KIND, money, reservation
 from tools import skill_eval_compare as compare
 from tools.check_knowledge_model_policy import GitHubHTTPError
 from tools.skill_eval_verifier import verify
@@ -49,12 +50,18 @@ def blob_exists(repo, revision, path):
     return bool(git(repo, "ls-tree", revision, "--", path).strip())
 
 
-def prepare(repo, mapping_path, identity, output):
+def prepare(repo, mapping_path, identity, output, *, provider=None):
     # Read only trusted configuration and raw Git objects, never PR Python or graders.
     for key in ("base", "head", "version"):
         if not re.fullmatch(SHA, identity[key]):
             raise ValueError("Expected immutable revision: " + key)
     mapping = compare.read_json(mapping_path)
+    if provider is not None:
+        if set(provider) != {"model", "client", "pricing", "spend_limit"}:
+            raise ValueError("Unknown or incomplete provider configuration")
+        reservation(provider["model"]["name"], provider["client"], provider["pricing"],
+                    provider["spend_limit"], 1, now=0)
+        mapping.update(provider)
     changes = changed_files(repo, identity["base"], identity["head"])
     output.mkdir(parents=True, exist_ok=False)
     coverage, selected = [], set()
@@ -85,6 +92,8 @@ def prepare(repo, mapping_path, identity, output):
                   "snapshots": {"baseline": {"git_revision": identity["base"]},
                                 "candidate": {"git_revision": identity["head"]}},
                   "model": mapping["model"], "limits": mapping["limits"]}
+        if provider is not None:
+            config.update({key: provider[key] for key in ("client", "pricing", "spend_limit")})
         config_path = output / (item["skill"] + ".json")
         write_json(config_path, config)
         destination = output / item["skill"]
@@ -111,13 +120,35 @@ def prepare(repo, mapping_path, identity, output):
             "comparisons": comparisons, "model": mapping["model"], "limits": mapping["limits"],
             "estimated_calls": sum(c.get("calls", 0) for c in comparisons),
             "retention_days": RETENTION_DAYS}
+    if provider is not None:
+        plan["provider_config"] = provider
+        plan["reservation"] = provider_reservation(plan, now=0)
     write_json(output / "pr-plan.json", plan)
     return plan
 
 
+def provider_reservation(plan, *, now=None):
+    provider = plan["provider_config"]
+    selected = [c for c in plan["comparisons"] if "plan_sha256" in c]
+    if sum(c["calls"] for c in selected) != plan["estimated_calls"] or not selected:
+        raise ValueError("Provider plan requires supported paired trials")
+    allocated = [reservation(provider["model"]["name"], provider["client"],
+                              provider["pricing"], provider["spend_limit"], c["calls"], now=now)
+                 for c in selected]
+    amount = sum(money(c["amount"]) for c in allocated)
+    if amount > money(provider["spend_limit"]["amount"]):
+        raise ValueError("All-comparison reservation exceeds approved total")
+    return {**allocated[0], "amount": str(amount),
+            "requests": sum(c["requests"] for c in allocated)}
+
+
 def budget(plan):
-    return {"estimated_calls": plan["estimated_calls"], "limits_per_comparison": plan["limits"],
-            "comparisons": sum("plan_sha256" in c for c in plan["comparisons"])}
+    value = {"estimated_calls": plan["estimated_calls"], "limits_per_comparison": plan["limits"],
+             "comparisons": sum("plan_sha256" in c for c in plan["comparisons"])}
+    if "provider_config" in plan:
+        value.update(reservation=plan["reservation"],
+                     provider_config_sha256=fingerprint(plan["provider_config"]))
+    return value
 
 
 def execution_id(plan):
@@ -139,6 +170,8 @@ def authorize(plan, request, actor, permission, current):
         raise ValueError("PR changed; prepare and authorize a new plan")
     if not plan["estimated_calls"]:
         raise ValueError("No supported comparisons selected")
+    if "provider_config" in plan and provider_reservation(plan) != plan["reservation"]:
+        raise ValueError("Provider reservation changed")
     return {**expected, "actor": actor, "execution_id": execution_id(plan)}
 
 
@@ -159,6 +192,17 @@ def execute(output, approval, *, client=None):
     plan = compare.read_json(output / "pr-plan.json")
     if approval["execution_id"] != execution_id(plan):
         raise ValueError("Approval belongs to another plan")
+    if "provider_config" in plan:
+        if client is not None:
+            raise ValueError("A paid provider plan cannot substitute an injected client")
+        if provider_reservation(plan) != plan["reservation"]:
+            raise ValueError("Provider reservation changed")
+        for item in plan["comparisons"]:
+            if "plan_sha256" in item:
+                frozen = compare.load_plan(output / item["skill"])
+                provider = compare.provider_client(frozen)
+                provider.require_live_readiness(len(frozen["schedule"]))
+                provider.environment()  # Before the exclusive local consumption record.
     # Exclusive creation also protects local/offline callers sharing retained storage.
     with (output / "execution-claim.json").open("x", encoding="utf-8") as handle:
         handle.write(canonical(approval))
@@ -166,7 +210,10 @@ def execute(output, approval, *, client=None):
         if "plan_sha256" in item:
             # Artifact downloads omit empty directories required by the executor.
             (output / item["skill"] / "results").mkdir(exist_ok=True)
-            compare.execute(output / item["skill"], item["plan_sha256"], client=client)
+            result = compare.execute(output / item["skill"], item["plan_sha256"], client=client,
+                                     stop_on_unknown_usage="provider_config" in plan)
+            if "provider_config" in plan and result["status"]["execution_state"] != "completed":
+                break
 
 
 def result_archive(output):
@@ -293,6 +340,8 @@ def summary(plan, results, evidence_url, expires_at, now):
             lines.append("\nFrozen exam hashes: `" + canonical(item["exam"]) + "`\n")
         else:
             lines.append(f"| {item['skill']} | unsupported snapshot | — | 0 |")
+    if "provider_config" in plan:
+        lines += ["", "Provider/settings: `" + canonical(plan["provider_config"]) + "`"]
     lines += ["", "</details>", "", "<details>",
               f"<summary>Uncovered / unsupported paths ({len(gaps)})</summary>", ""]
     # A collapsed HTML container still requires data escaping for untrusted Git paths.
@@ -564,9 +613,12 @@ def main():
                         f"refs/pull/{pr}/head"], cwd=ROOT, check=True)
         version = git(ROOT, "rev-parse", "HEAD").decode().strip()
         plan = prepare(ROOT, MAPPING, {"repository": repository, "pr": pr,
-                       "version": version, **current}, output)
+                       "version": version, **current}, output,
+                       provider=json.loads(inputs["provider_config"])
+                       if inputs.get("provider_config") else None)
         with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
             handle.write(f"pr={pr}\nplan_sha256={fingerprint(plan)}\n")
+            handle.write("client_kind=" + (KIND if "provider_config" in plan else "codex") + "\n")
         return
     plan = compare.read_json(output / "pr-plan.json")
     if args.mode == "authorize":

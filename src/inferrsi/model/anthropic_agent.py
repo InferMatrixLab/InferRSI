@@ -1,17 +1,16 @@
-"""Bounded Messages read/submit agent for offline contract validation.
+"""Bounded direct Messages agent with frozen per-call cost reservations."""
 
-The comparison controller may freeze this opt-in identity. Live execution stays
-unavailable until verified pricing/cap controls and credential wiring are reviewed.
-No credentials are discovered here; transport receives an explicit runtime key.
-"""
-
+import argparse
 import hashlib
 import json
 import math
+import os
 import re
+import sys
 import time
 import urllib.request
 from dataclasses import dataclass
+from decimal import ROUND_CEILING, Decimal
 from pathlib import Path, PurePosixPath
 from urllib.error import HTTPError
 
@@ -19,8 +18,9 @@ KIND = "anthropic-messages-agent-v1"
 ENDPOINT = "https://yibuapi.com/v1/messages"
 SOURCE = "src/inferrsi/model/anthropic_agent.py"
 MAX_RESPONSE = 1024 * 1024
-LIVE_BLOCKER = ("Live provider execution requires reviewed pricing/cap controls "
-                "and credential wiring")
+# Full context bound from https://platform.claude.com/docs/en/models/opus-5-5/overview
+MODEL_CONTEXT = {"claude-opus-5-5": 1000000}
+KEY_ENV = "SKILL_EVAL_YIBUAPI_KEY"
 
 
 def canonical(value):
@@ -99,30 +99,122 @@ def matches_schema(value, schema):
             or all(matches_schema(v, schema["items"]) for v in value))
 
 
+def money(value):
+    if not isinstance(value, str) or not re.fullmatch(r"[0-9]{1,9}(?:[.][0-9]{1,8})?", value):
+        raise ValueError("Money and rates must be explicit finite nonnegative decimal strings")
+    return Decimal(value)
+
+
+def evidence_reference(value):
+    return isinstance(value, str) and re.fullmatch(
+        r"https://github[.]com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/issues/[0-9]+"
+        r"#issuecomment-[0-9]+", value) is not None
+
+
+def reservation(model, spec, pricing, spend_limit, trials, *, now=None):
+    validate_spec({"name": model, "effort": "not_applicable"}, spec)
+    required = {"currency", "unit", "model", "group", "rates", "request_fee",
+                "max_input_tokens", "rate_evidence", "expires_at"}
+    if not isinstance(pricing, dict) or set(pricing) != required:
+        raise ValueError("Live provider pricing/cap settings are incomplete")
+    if (pricing["currency"] not in ("CNY", "USD") or pricing["unit"] != "per_million_tokens"
+            or pricing["model"] != model or not isinstance(pricing["group"], str)
+            or not pricing["group"] or len(pricing["group"]) > 100
+            or any(ord(c) < 32 for c in pricing["group"])):
+        raise ValueError("Pricing must bind currency, units, exact model and effective group")
+    if not evidence_reference(pricing["rate_evidence"]):
+        raise ValueError("A reviewed effective-rate/group evidence reference is required")
+    rates = pricing["rates"]
+    if not isinstance(rates, dict) or set(rates) != {
+            "input", "output", "cache_read", "cache_write"}:
+        raise ValueError("Every input/output/cache rate must be explicit")
+    amounts = {name: money(rate) for name, rate in rates.items()}
+    fee = money(pricing["request_fee"])
+    if (model not in MODEL_CONTEXT or type(pricing["max_input_tokens"]) is not int
+            or pricing["max_input_tokens"] < MODEL_CONTEXT[model]
+            or pricing["max_input_tokens"] > 2 ** 31):
+        raise ValueError("A verified full model-context input-token ceiling is required")
+    if (type(pricing["expires_at"]) is not int
+            or pricing["expires_at"] <= (time.time() if now is None else now)):
+        raise ValueError("Verified pricing/input-bound record expired")
+    if (not isinstance(spend_limit, dict) or set(spend_limit) != {"currency", "amount"}
+            or spend_limit["currency"] != pricing["currency"]
+            or money(spend_limit["amount"]) <= 0
+            or type(trials) is not int or trials <= 0):
+        raise ValueError("A finite same-currency total limit and trial count are required")
+    # Charge all possible input as the most expensive cache/input class. No cache discount
+    # or successful completion is assumed; uncertain/error requests consume their allowance.
+    per_request = ((pricing["max_input_tokens"] * max(amounts["input"], amounts["cache_read"],
+                                                     amounts["cache_write"])
+                    + spec["max_output_tokens"] * amounts["output"]) / Decimal(1000000) + fee)
+    per_request = per_request.quantize(Decimal("0.00000001"), rounding=ROUND_CEILING)
+    total_requests = trials * spec["max_requests"]
+    total = (per_request * total_requests).quantize(Decimal("0.01"), rounding=ROUND_CEILING)
+    if total > money(spend_limit["amount"]):
+        raise ValueError("Worst-case cost reservation exceeds approved total limit")
+    return {"currency": pricing["currency"], "amount": str(total), "limit": spend_limit["amount"],
+            "requests": total_requests, "per_request": str(per_request),
+            "pricing_sha256": hashlib.sha256(canonical(pricing).encode()).hexdigest(),
+            "group": pricing["group"]}
+
+
+def execution_environment(environment, *, with_key=True):
+    # Called only at runtime. Neither plan/authorize nor tests discover existing credentials.
+    safe = {k: environment[k] for k in ("PATH", "SystemRoot", "WINDIR", "TEMP", "TMP", "LANG")
+            if k in environment}
+    safe["PYTHONUTF8"] = "1"
+    if with_key:
+        key = environment.get(KEY_ENV)
+        if (not isinstance(key, str) or not key or not key.isascii()
+                or any(c.isspace() for c in key)):
+            raise ValueError("Provider credential is missing or malformed")
+        safe[KEY_ENV] = key
+    return safe
+
+
 @dataclass(frozen=True)
 class AnthropicAgentClient:
     model: str
     spec: dict
     timeout_seconds: float
+    pricing: dict | None = None
+    spend_limit: dict | None = None
 
     def frozen_identity(self):
         validate_spec({"name": self.model, "effort": "not_applicable"}, self.spec)
-        return {"settings": json.loads(canonical(self.spec)),
-                "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-                "runtime_state": "offline_only"}
+        value = {"settings": json.loads(canonical(self.spec)),
+                 "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                 "runtime_state": "unconfigured",
+                 "request_policy": {"tool_choice": "auto", "thinking": "model_default",
+                                    "sampling": "model_default", "retries": 0}}
+        if self.pricing is not None or self.spend_limit is not None:
+            self.require_live_readiness(now=0)
+            value.update(pricing=json.loads(canonical(self.pricing)),
+                         spend_limit=json.loads(canonical(self.spend_limit)),
+                         runtime_state="configured")
+        return value
 
-    @staticmethod
-    def require_live_readiness():
-        # No environment variable or self-declared quota can authorize unknown spend.
-        raise ValueError(LIVE_BLOCKER)
+    def require_live_readiness(self, trials=1, *, now=None):
+        return reservation(self.model, self.spec, self.pricing, self.spend_limit, trials, now=now)
+
+    def environment(self):
+        return execution_environment(os.environ)
+
+    def verifier_environment(self):
+        return execution_environment(os.environ, with_key=False)
 
     def command(self, workspace, final, schema, prompt):
         self.require_live_readiness()
+        settings = {"model": self.model, "client": self.spec, "pricing": self.pricing,
+                    "spend_limit": self.spend_limit}
+        return (sys.executable, "-I", str(Path(__file__).resolve()),
+                "--workspace", str(workspace), "--final", str(final), "--schema", str(schema),
+                "--settings", canonical(settings), "--prompt", prompt,
+                "--timeout", str(self.timeout_seconds))
 
     @staticmethod
     def trace_metrics(path):
         return trace_metrics(path)
-
 
 class AgentError(Exception):
     """Only fixed reason codes cross the evidence boundary."""
@@ -204,7 +296,23 @@ def exposed_files(workspace):
     return paths
 
 
-def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send):
+def valid_content_block(block):
+    if not isinstance(block, dict):
+        return False
+    kind = block.get("type")
+    if kind == "tool_use":
+        return True  # The read/submit dispatcher validates identity and input below.
+    if kind == "text":
+        return isinstance(block.get("text"), str)
+    if kind == "thinking":
+        return isinstance(block.get("thinking"), str) and isinstance(block.get("signature"), str)
+    if kind == "redacted_thinking":
+        return isinstance(block.get("data"), str)
+    return False
+
+
+def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send,
+              input_token_ceiling=None):
     """Run only the read/submit contract. Tests inject transport; no implicit live path."""
     validate_spec({"name": model, "effort": "not_applicable"}, spec)
     validate_schema(schema)
@@ -219,8 +327,9 @@ def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send):
         {"name": "submit_answer",
          "description": "Submit a structured answer after reading task.json.",
          "input_schema": schema}]
-    messages = [{"role": "user", "content": prompt + "\nExposed paths: "
-                 + canonical(sorted(files))}]
+    messages = [{"role": "user", "content": prompt
+                 + "\nUse read_file to read task.json; finish with submit_answer. "
+                 "Plain text is not a submission. Exposed paths: " + canonical(sorted(files))}]
     deadline, task_read_at, tool_count = time.monotonic() + timeout, None, 0
     totals = {"input_tokens": 0, "output_tokens": 0, "cached_input_tokens": 0}
     try:
@@ -229,7 +338,7 @@ def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send):
             if remaining <= 0:
                 raise AgentError("timeout")
             payload = {"model": model, "max_tokens": spec["max_output_tokens"], "stream": False,
-                       "tools": tools, "messages": messages}
+                       "tools": tools, "tool_choice": {"type": "auto"}, "messages": messages}
             raw = canonical(payload).encode()
             if len(raw) > spec["max_request_bytes"]:
                 raise AgentError("request_bytes_limit")
@@ -242,11 +351,11 @@ def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send):
                     or response.get("role") != "assistant" or response.get("model") != model
                     or response.get("stop_reason") != "tool_use"
                     or not isinstance(response.get("content"), list)
-                    or any(not isinstance(c, dict) or c.get("type") not in ("text", "tool_use")
-                           or (c.get("type") == "text" and not isinstance(c.get("text"), str))
-                           for c in response["content"])):
+                    or any(not valid_content_block(c) for c in response["content"])):
                 raise AgentError("incompatible_response")
             usage = token_usage(response.get("usage"))
+            if input_token_ceiling is not None and usage["input_tokens"] > input_token_ceiling:
+                raise AgentError("input_token_limit")
             if usage["output_tokens"] > spec["max_output_tokens"]:
                 raise AgentError("output_token_limit")
             for name in totals:
@@ -336,3 +445,42 @@ def trace_metrics(path):
             "completed_turns": 1 if valid else 0, "api_requests": len(requests),
             "client_kind": KIND, "provider_model": responses[-1]["provider_model"] if responses
             else None}
+
+
+def main(argv=None, *, environment=None, transport=None, emit=None):
+    parser = argparse.ArgumentParser(description=__doc__)
+    for name in ("workspace", "final", "schema", "settings", "prompt"):
+        parser.add_argument("--" + name, required=True)
+    parser.add_argument("--timeout", type=float, required=True)
+    args = parser.parse_args(argv)
+    emit = emit or (lambda event: print(canonical(event), flush=True))
+    try:
+        settings = json.loads(args.settings, object_pairs_hook=unique_object)
+        if set(settings) != {"model", "client", "pricing", "spend_limit"}:
+            raise ValueError("Unknown worker setting")
+        client = AnthropicAgentClient(settings["model"], settings["client"], args.timeout,
+                                      settings["pricing"], settings["spend_limit"])
+        reserved = client.require_live_readiness()
+        runtime = execution_environment(os.environ if environment is None else environment)
+        key = runtime[KEY_ENV]
+        sender = transport or send_message
+
+        def send(payload, spec, timeout):
+            return sender(payload, spec, key, timeout)
+
+        schema = json.loads(Path(args.schema).read_text(encoding="utf-8"))
+        emit({"type": "agent.reservation", **reserved})
+        answer = run_agent(Path(args.workspace), schema, args.prompt, client.model,
+                           client.spec, args.timeout, emit, send=send,
+                           input_token_ceiling=client.pricing["max_input_tokens"])
+        Path(args.final).write_text(canonical(answer) + "\n", encoding="utf-8")
+        return 0
+    except AgentError:
+        return 1  # run_agent already retained a fixed failure code.
+    except Exception:
+        emit({"type": "agent.failed", "reason": "readiness_or_worker_error"})
+        return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

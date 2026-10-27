@@ -38,6 +38,9 @@ on:
       budget:
         required: false
         description: Required for execute; approval of the complete Budget JSON in the plan
+      provider_config:
+        required: false
+        description: Optional exact public model/client/pricing/spend-limit JSON; never credentials
       source_run:
         description: Execution workflow run ID, required for publish-only retries
 
@@ -53,6 +56,8 @@ env:
 
 jobs:
   plan:
+    outputs:
+      client_kind: ${{ steps.prepare.outputs.client_kind }}
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -108,13 +113,20 @@ jobs:
         with:
           name: skill-eval-plan
           path: prepared
-      - name: Existing client preflight (requires separately provisioned model access)
+      - name: Existing Codex client preflight
+        if: needs.plan.outputs.client_kind == 'codex'
         run: codex --version
       - name: Recheck live revision and authorization before execution
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python -m tools.skill_eval_pr authorize --output prepared
-      - name: Execute existing comparison without publication credentials
+      - name: Execute existing Codex comparison without publication credentials
+        if: needs.plan.outputs.client_kind == 'codex'
+        run: python -m tools.skill_eval_pr execute --output prepared
+      - name: Execute configured Yibuapi comparison without publication credentials
+        if: needs.plan.outputs.client_kind == 'anthropic-messages-agent-v1'
+        env:
+          SKILL_EVAL_YIBUAPI_KEY: ${{ secrets.SKILL_EVAL_YIBUAPI_KEY }}
         run: python -m tools.skill_eval_pr execute --output prepared
       - name: Package retained results even after interruption
         if: always()
