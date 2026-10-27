@@ -11,8 +11,8 @@ The current WIP develops three connected objectives:
 
 1. **Roofline / Optimization Headroom:** source-grounded bounds, observed
    attainable limits, calibrated predictions and experiment selection. The
-   ceiling skill is guidance, not an automatic calculator; application results
-   require their own measurements.
+   ceiling skill provides guidance and pure conditional arithmetic for supplied
+   L1 inputs; application results require their own measurements.
 2. **Dense Commit Coordination:** ownership, concurrent work, review, testing,
    integration, release and feedback into later changes. The existing Magpie
    material is history analysis. A first-hand coordination case is pending Dot
