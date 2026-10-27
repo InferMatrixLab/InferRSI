@@ -51,14 +51,6 @@ The **offline harness-improvement MVP** adds a separate Skill Eval path for supp
 declarative candidates. Its fixed-output experiments validate the controller;
 real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/harness-improvement.md)
 
-```mermaid
-flowchart LR
-    H["Frozen H0 + INV / DOM edits"] --> P["Matched Skill Eval probes"]
-    P --> C["Quality / token selection + rerun"]
-    C --> G["Freeze + one held-out gate"]
-    G --> A["Candidate or H0; no promotion"]
-```
-
 ## Choose your starting path
 
 | You want to… | Start at |
