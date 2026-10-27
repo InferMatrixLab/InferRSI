@@ -111,7 +111,7 @@ def test_worker_runs_read_submit_with_fake_transport_and_no_key_in_evidence(tmp_
     assert len(calls) == before
 
 
-def install_fake_worker(monkeypatch):
+def install_fake_worker(monkeypatch, *, usage=None):
     sent = []
 
     def environment(self):
@@ -127,9 +127,11 @@ def install_fake_worker(monkeypatch):
             def transport(payload, spec, key, timeout):
                 sent.append(copy.deepcopy(payload))
                 assert key == FAKE_KEY
-                if len(payload["messages"]) == 1:
-                    return read()
-                return submit(DATA["cases"][0]["answer"])
+                result = (read() if len(payload["messages"]) == 1
+                          else submit(DATA["cases"][0]["answer"]))
+                if usage is not None:
+                    result["usage"] = copy.deepcopy(usage)
+                return result
 
             status = agent.main(command[3:], environment=options["environment"],
                                 transport=transport, emit=events.append)
@@ -262,3 +264,113 @@ def test_thinking_blocks_are_preserved_opaquely_in_tool_round_trip(tmp_path):
 ])
 def test_malformed_thinking_blocks_fail_before_replay(block):
     assert not agent.valid_content_block(block)
+
+
+@pytest.mark.parametrize("headroom,expected_trials", [
+    (None, 1), (20000, 1), (30200, 1), (100000, 2),
+])
+def test_explicit_token_headroom_controls_candidate_after_large_baseline(
+        tmp_path, monkeypatch, headroom, expected_trials):
+    repo, mapping, identity = setup(tmp_path, ids=("one",), token_stop_new_trials=20000)
+    original = compare.read_json(mapping)
+    profile = configuration()
+    if headroom is not None:
+        profile["limits"] = {"token_stop_new_trials": headroom}
+    output = tmp_path / "run"
+    plan = integration.prepare(repo, mapping, identity, output, provider=profile)
+    frozen = compare.load_plan(output / "selected")
+    effective = 20000 if headroom is None else headroom
+    assert plan["limits"] == {**original["limits"], "token_stop_new_trials": effective}
+    assert frozen["limits"] == plan["limits"]
+    assert integration.budget(plan)["limits_per_comparison"] == plan["limits"]
+    assert compare.read_json(mapping) == original
+    sent = install_fake_worker(monkeypatch, usage={
+        "input_tokens": 15000, "output_tokens": 100,
+        "cache_read_input_tokens": 0, "cache_creation_input_tokens": 0})
+    integration.execute(output, approval(plan))
+    report = integration.reports(output)[0]
+    status = report["status"]
+    assert status["recorded_trials"] == expected_trials
+    assert len(sent) == 2 * expected_trials
+    assert report["conditions"]["baseline"]["input_tokens"] == 30000
+    assert report["conditions"]["baseline"]["output_tokens"] == 200
+    if expected_trials == 2:
+        assert status["execution_state"] == "completed" and status["stop_reason"] is None
+        assert report["counts"]["unchanged_correct"] == 1
+        assert status["observed_tokens"] == 60400
+    else:
+        assert status["execution_state"] == "stopped" and status["stop_reason"] == "token_budget"
+        assert report["counts"]["missing_pair"] == 1
+        assert report["conditions"]["candidate"]["missing_trials"] == 1
+    with pytest.raises(FileExistsError):
+        integration.execute(output, approval(plan))
+    assert len(sent) == 2 * expected_trials
+
+
+def test_headroom_is_bound_to_plan_and_full_budget_without_changing_money(tmp_path):
+    repo, mapping, identity = setup(tmp_path, ids=("one",), token_stop_new_trials=20000)
+    profile = configuration()
+    profile["limits"] = {"token_stop_new_trials": 100000}
+    first_out = tmp_path / "first"
+    first = integration.prepare(repo, mapping, identity, first_out, provider=profile)
+    old = approval(first)
+    changed_profile = copy.deepcopy(profile)
+    changed_profile["limits"]["token_stop_new_trials"] = 200000
+    second_out = tmp_path / "second"
+    second = integration.prepare(repo, mapping, identity, second_out, provider=changed_profile)
+    assert first["comparisons"][0]["plan_sha256"] != second["comparisons"][0]["plan_sha256"]
+    assert integration.fingerprint(first) != integration.fingerprint(second)
+    assert integration.budget(first) != integration.budget(second)
+    assert first["reservation"] == second["reservation"]
+    assert first["estimated_calls"] == second["estimated_calls"] == 2
+    assert first["provider_config"]["client"] == second["provider_config"]["client"]
+    request = {key: old[key] for key in ("plan_sha256", "version", "base", "head", "budget")}
+    with pytest.raises(ValueError, match="exact plan"):
+        integration.authorize(second, request, "fixture-operator", "write",
+                              {"base": identity["base"], "head": identity["head"]})
+
+
+@pytest.mark.parametrize("limits", [
+    {}, None, [], {"token_stop_new_trials": 0}, {"token_stop_new_trials": -1},
+    {"token_stop_new_trials": True}, {"token_stop_new_trials": 1.5},
+    {"token_stop_new_trials": "100000"}, {"timeout_seconds": 600},
+    {"token_stop_new_trials": 100000, "repeats": 2},
+])
+def test_provider_headroom_rejects_invalid_or_unrelated_limit_overrides(tmp_path, limits):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    profile = configuration()
+    profile["limits"] = limits
+    output = tmp_path / "invalid"
+    with pytest.raises(ValueError, match="token_stop_new_trials"):
+        integration.prepare(repo, mapping, identity, output, provider=profile)
+    assert not output.exists()
+
+
+def test_high_headroom_preserves_unknown_usage_and_money_stops(tmp_path, monkeypatch):
+    repo, mapping, identity = setup(tmp_path, ids=("one",), token_stop_new_trials=20000)
+    profile = configuration()
+    profile["limits"] = {"token_stop_new_trials": 100000}
+    poor = copy.deepcopy(profile)
+    poor["spend_limit"]["amount"] = "1"
+    with pytest.raises(ValueError, match="reservation exceeds"):
+        integration.prepare(repo, mapping, identity, tmp_path / "too-poor", provider=poor)
+    assert not (tmp_path / "too-poor").exists()
+    output = tmp_path / "unknown"
+    plan = integration.prepare(repo, mapping, identity, output, provider=profile)
+    sent = install_fake_worker(monkeypatch, usage={"input_tokens": 15000, "output_tokens": 100})
+    integration.execute(output, approval(plan))
+    report = integration.reports(output)[0]
+    assert len(sent) == report["status"]["recorded_trials"] == 1
+    assert report["status"]["execution_state"] == "stopped"
+    assert report["counts"]["missing_pair"] == 1
+    assert report["pairs"][0]["baseline"]["verdict"] == "INCONCLUSIVE"
+
+
+def test_codex_plan_limits_are_unchanged_without_provider_override(tmp_path):
+    repo, mapping, identity = setup(tmp_path, ids=("one",), token_stop_new_trials=20000)
+    original = compare.read_json(mapping)
+    output = tmp_path / "codex"
+    plan = integration.prepare(repo, mapping, identity, output)
+    assert plan["limits"] == original["limits"]
+    assert compare.load_plan(output / "selected")["limits"] == original["limits"]
+    assert "provider_config" not in plan
