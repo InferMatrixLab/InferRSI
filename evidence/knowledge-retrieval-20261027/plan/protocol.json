@@ -1,0 +1,58 @@
+{
+  "schema_version": 1,
+  "campaign": "knowledge-retrieval-20261027",
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/190",
+  "baseline_sha": "4817f92121df73fd9cd5fb4a319e3c56a68b4a5b",
+  "author": {"tool": "Codex", "model_id": "gpt-6.1-sol", "effort": "xhigh", "role": "evaluation-material-author"},
+  "scope": "CPU-only offline retrieval software behavior and latency; no model, engine, service, production-distribution, complete recall or agent-efficacy claim",
+  "fixture": {
+    "total": 24,
+    "development": 16,
+    "withheld": 8,
+    "construction": "Independent source-content judgements made without retrieval rankings; synthetic questions, not private production logs or a statistically representative sample.",
+    "release": "Withheld text and labels must not be read by the runtime author or orchestrator before the candidate revision and runtime source digest are fixed. Freeze manifest commits their exact bytes."
+  },
+  "quality": {
+    "repo": "inferrsi",
+    "limit": 5,
+    "entries": {
+      "search": "catalog.search_knowledge(query=cue, repo='inferrsi', backend=case_backend, limit=5)",
+      "relevance": "KnowledgeReader.collect(query='', relevance=cue, repo='inferrsi', backend=case_backend, limit=5)",
+      "context_material": "Same relevance call with material=True, max_bytes=1048576, context_bytes=65536",
+      "default_diagnostic": "KnowledgeReader.collect(query=cue, repo='inferrsi', backend=case_backend, limit=5); report separately"
+    },
+    "answerable_metrics": ["Success@5 = mean(any labelled relevant identity in ordered top five))", "MRR@5 = mean(1 / first labelled relevant rank), or zero if absent"],
+    "denominator": "Answerable cases only; report entrypoint and development/withheld splits plus per-case judgements. Labels identify defensible relevant results, not an exhaustive relevance inventory. Do not call this Recall.",
+    "no_answer": "Separate count, returned identities and no_match behavior; do not include in Success/MRR and do not treat empty lists as proof that the corpus has no answer.",
+    "equivalence": "All four modes on every case must have exactly equal canonical JSON bytes between revisions, including order, omissions, resource hashes, revisions, material and context budgets. Retain byte count, SHA-256 and readable projection of each exact output.",
+    "serialization": "json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8')"
+  },
+  "performance": {
+    "pairs": 20,
+    "order": "Pair 0 AB, pair 1 BA, alternating for 10 groups of each order. A=baseline, B=candidate. Each side runs in a new isolated subprocess, sequentially. No concurrency.",
+    "hot_cases": ["dev01", "dev05", "dev09", "dev13"],
+    "warmup": "One untimed hot relevance collect per hot case on the same KnowledgeReader, followed by one default dev05 and one context_material dev09 warmup before measurements; record reader record/library cache population. Reuse this reader for hot measurements. Cold measurement creates a new reader inside the timed interval. OS filesystem caches are not evicted or claimed cold.",
+    "api_workloads": ["hot and fresh-reader relevance for all four hot cases", "search for all four hot cases", "hot and fresh-reader default collect using dev05", "hot and fresh-reader context_material using dev09"],
+    "timing": "perf_counter_ns around API call only; output serialization/hashing outside API timer. Warm measurements include normal output construction. Raw nanoseconds retained per query/pair/side/mode.",
+    "cli": "Separate full process subprocess.run([same_python, '-S', '-m', 'inferrsi', ...]), UTF-8 decode+JSON parse timing and raw stdout SHA-256/byte count. search uses --repo-type inferrsi; collect does not expose repo/backend filters and is explicitly an unfiltered CLI diagnostic. No CLI numbers pooled into the hot-API gate.",
+    "cli_cases": ["search dev05", "default collect dev05", "relevance collect dev05", "context/material collect dev09"],
+    "summaries": "Per mode/query/side p50 and p95 from all raw observations using linear interpolation at (n-1)*p. No trimming, outlier removal, retries or stopped-run pooling.",
+    "primary_estimator": "For each pair, take median of its four hot relevance query latencies for each side. Paired reduction r_i = 1 - median(candidate_queries_i) / median(baseline_queries_i). Report median(r_i). Each pair is one resampling unit, preserving its query set.",
+    "bootstrap": {"method": "percentile bootstrap of paired reductions; each draw samples 20 reductions with replacement, then computes their median", "iterations": 10000, "seed": 19020261027, "confidence": 0.95, "quantiles": [0.025, 0.975], "quantile_method": "linear interpolation at (n-1)*p"},
+    "gate": {"minimum_paired_median_reduction": 0.20, "lower_95_percent_bound_must_exceed": 0.0},
+    "limits": "Machine background load and filesystem-cache state remain observational limits. This is neither OS-cache-cold nor an engine/service benchmark. Cold/API/CLI regressions reported individually. Estimated bounded run length 5-10 minutes; actual elapsed and every completed sample retained. An incomplete run is INCONCLUSIVE.",
+    "completeness": "Before summary/gating require pair IDs exactly 0..19 once each with prescribed alternating AB/BA order and each side's exact16 API plus4 CLI case-by-mode set, no duplicates or extras. Quality requires the complete expected24x4 output set per side. Missing/duplicate/extra structure is INCONCLUSIVE and cannot satisfy the performance gate."
+  },
+  "source_control": {
+    "loading": "Explicit checkout/src overrides editable installs; -S excludes site initializers and editable hooks. Explicit exceptions verify inferrsi, catalog, knowledge_operations and CLI resolved inside requested source tree. Critical checks do not use removable Python assertions. Children set PYTHONOPTIMIZE=0 and record sys.flags.optimize; parent optimization is recorded. Same interpreter for both versions.",
+    "identity": "Record explicit git HEAD, dirty tracked-source status, all Python source relative-path SHA-256s and aggregate; all shipped repo_packs/**/*.json, knowledge_packs files and entire skill_library relative-path file SHA-256s, aggregate, counts and bytes. This covers contribution, dependency and peer records plus their package and library resources. Ignore incidental __pycache__/.pyc only. No personal absolute paths or host names in artifacts.",
+    "corpus": "Both variants must have exactly equal complete shipped corpus digest; do not use a reduced custom corpus. Corpus inventory covers all shipped records and library resources, not merely retrieved items.",
+    "freezing": "Freeze protocol, fixture and validator scripts in plan/freeze.json before candidate timing. Separate withheld fixture remains sealed until candidate freeze. A validator change requires a new freeze manifest and explanation; never silently amend frozen evidence."
+  },
+  "diagnostics": {
+    "profile": "Optional baseline-only cProfile with relative/sanitized source labels; keep counts, total and cumulative times. Profiling time is excluded from benchmark samples.",
+    "trace_129": "Execute distinct search, default, relevance and context/material modes on an independently authored development cue; record selection method/ranking flag, revisions, context resource roles and omissions. This tests merged #129 delivery code paths, not historical #128 task efficacy.",
+    "integrity": "Mutation/stale-index/dependency/path/checkout/revision regression tests belong to runtime patch verification; evaluator parity does not replace them."
+  },
+  "verdict": "FAIL for observed parity/metric/performance-gate failure; INCONCLUSIVE for missing required measurements or unequal/unverified corpus/source; PASS only for this bounded CPU retrieval campaign after all required evidence and independent review. Merge/issue closure remains with acceptance owner."
+}

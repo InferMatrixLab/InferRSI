@@ -57,7 +57,9 @@ def validate_manifest(repo, bundle, entry, unavailable):
     schema = entry["schema"]
     checked = 0
     if schema in ("bundle-sha256", "historical-sha256"):
-        if not data:
+        if schema == "bundle-sha256" and "field" in entry:
+            data = data[entry["field"]]
+        if not isinstance(data, dict) or not data:
             raise ValueError("empty hash manifest")
         mapping = entry.get("files", {})
         if schema == "historical-sha256" and set(mapping) != set(data):

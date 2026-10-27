@@ -1,0 +1,473 @@
+{
+  "schema_version": 1,
+  "source": "quality.json",
+  "source_sha256": "5263406bb621b34ce7cdec67f0bd3719197f6642496eb419abca3e792e9ee836",
+  "analysis": "Post-hoc diagnostic, not a frozen gate or change to item-ranking metrics.",
+  "definition": "At least one returned contexts[].ref matches an independently labelled package identity. API response presence only; agent consumption was not measured.",
+  "summary": {
+    "A": {
+      "answerable": 20,
+      "labelled_owner_context_present": 19
+    },
+    "B": {
+      "answerable": 20,
+      "labelled_owner_context_present": 19
+    }
+  },
+  "per_case": [
+    {
+      "side": "A",
+      "case": "dev01",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.dcp_async_save_performance"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 12636,
+      "total_context_bytes": 64465,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev02",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.dcp_async_save_performance"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 12636,
+      "total_context_bytes": 12636,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev03",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.weight_loading_optimization"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 41017,
+      "total_context_bytes": 62379,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev04",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.weight_loading_optimization"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 41017,
+      "total_context_bytes": 63529,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev05",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.storage_io_measurement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 8813,
+      "total_context_bytes": 51533,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev06",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.storage_io_measurement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 8813,
+      "total_context_bytes": 35244,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev07",
+      "labelled_refs": [
+        "package:inferrsi.ascend.skills.ascendc_tiling_design"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 11860,
+      "total_context_bytes": 64663,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev08",
+      "labelled_refs": [
+        "package:inferrsi.ascend.skills.torchnpu_device_memory_lifecycle"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 17459,
+      "total_context_bytes": 17459,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev09",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.kv_tier_management"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 10812,
+      "total_context_bytes": 61835,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev10",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.checkpoint_recovery_consistency"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 14400,
+      "total_context_bytes": 14400,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev11",
+      "labelled_refs": [
+        "package:inferrsi.cuda.skills.diagnose_attention_bottlenecks"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 56835,
+      "total_context_bytes": 56835,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev12",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.os_process_placement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 16944,
+      "total_context_bytes": 65309,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev13",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.plan_activation_residency"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 17414,
+      "total_context_bytes": 45716,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "dev14",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.claim_contract"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 1075,
+      "total_context_bytes": 40799,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "withheld01",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.training_input_pipeline"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 9502,
+      "total_context_bytes": 9502,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "withheld02",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.calibrate_serving_simulation"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 12299,
+      "total_context_bytes": 62288,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "withheld03",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.assess_serving_preemption"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 36807,
+      "total_context_bytes": 47619,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "withheld04",
+      "labelled_refs": [
+        "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 19749,
+      "total_context_bytes": 63132,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "withheld05",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.evaluate_elastic_serving_placement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 51463,
+      "total_context_bytes": 51463,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "A",
+      "case": "withheld06",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.performance_ceiling_analysis"
+      ],
+      "labelled_owner_context_present": false,
+      "labelled_context_bytes": 0,
+      "total_context_bytes": 51702,
+      "labelled_context_omissions": [
+        {
+          "available_bytes": 65536,
+          "reason": "context_limit",
+          "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+          "required_bytes": 170782
+        }
+      ]
+    },
+    {
+      "side": "B",
+      "case": "dev01",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.dcp_async_save_performance"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 12636,
+      "total_context_bytes": 64465,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev02",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.dcp_async_save_performance"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 12636,
+      "total_context_bytes": 12636,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev03",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.weight_loading_optimization"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 41017,
+      "total_context_bytes": 62379,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev04",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.weight_loading_optimization"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 41017,
+      "total_context_bytes": 63529,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev05",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.storage_io_measurement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 8813,
+      "total_context_bytes": 51533,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev06",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.storage_io_measurement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 8813,
+      "total_context_bytes": 35244,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev07",
+      "labelled_refs": [
+        "package:inferrsi.ascend.skills.ascendc_tiling_design"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 11860,
+      "total_context_bytes": 64663,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev08",
+      "labelled_refs": [
+        "package:inferrsi.ascend.skills.torchnpu_device_memory_lifecycle"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 17459,
+      "total_context_bytes": 17459,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev09",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.kv_tier_management"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 10812,
+      "total_context_bytes": 61835,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev10",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.checkpoint_recovery_consistency"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 14400,
+      "total_context_bytes": 14400,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev11",
+      "labelled_refs": [
+        "package:inferrsi.cuda.skills.diagnose_attention_bottlenecks"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 56835,
+      "total_context_bytes": 56835,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev12",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.os_process_placement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 16944,
+      "total_context_bytes": 65309,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev13",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.plan_activation_residency"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 17414,
+      "total_context_bytes": 45716,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "dev14",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.claim_contract"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 1075,
+      "total_context_bytes": 40799,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "withheld01",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.training_input_pipeline"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 9502,
+      "total_context_bytes": 9502,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "withheld02",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.calibrate_serving_simulation"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 12299,
+      "total_context_bytes": 62288,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "withheld03",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.assess_serving_preemption"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 36807,
+      "total_context_bytes": 47619,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "withheld04",
+      "labelled_refs": [
+        "package:inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 19749,
+      "total_context_bytes": 63132,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "withheld05",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.evaluate_elastic_serving_placement"
+      ],
+      "labelled_owner_context_present": true,
+      "labelled_context_bytes": 51463,
+      "total_context_bytes": 51463,
+      "labelled_context_omissions": []
+    },
+    {
+      "side": "B",
+      "case": "withheld06",
+      "labelled_refs": [
+        "package:inferrsi.common.skills.performance_ceiling_analysis"
+      ],
+      "labelled_owner_context_present": false,
+      "labelled_context_bytes": 0,
+      "total_context_bytes": 51702,
+      "labelled_context_omissions": [
+        {
+          "available_bytes": 65536,
+          "reason": "context_limit",
+          "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+          "required_bytes": 170782
+        }
+      ]
+    }
+  ]
+}

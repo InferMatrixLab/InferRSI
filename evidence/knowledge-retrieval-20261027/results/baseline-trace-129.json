@@ -1,0 +1,713 @@
+{
+  "modules": {
+    "inferrsi": {
+      "sha256": "606691627d4b346e60072208ada8d6b4df2409de190daffb7795c2cc24517e47",
+      "source": "src/inferrsi/__init__.py"
+    },
+    "inferrsi.catalog": {
+      "sha256": "da5d5b01fed6a4a7027c7249a5514c7fdefbeabd9911846add1f69ae3ce3fbe5",
+      "source": "src/inferrsi/catalog.py"
+    },
+    "inferrsi.cli": {
+      "sha256": "91ddb289186ffb6bd76372c03a0ed4714cef2a50a0fee4452a027a67c0155b88",
+      "source": "src/inferrsi/cli.py"
+    },
+    "inferrsi.knowledge_operations": {
+      "sha256": "b601568bbd3d7eae9aa31193b9f281483328a46e32496c30a3a4bad5fb001a0b",
+      "source": "src/inferrsi/knowledge_operations.py"
+    }
+  },
+  "outputs": [
+    {
+      "answerable": true,
+      "case": "dev09",
+      "mode": "search",
+      "output": {
+        "ordered_items": [],
+        "serialized_bytes": 2,
+        "sha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      "reciprocal_rank_at_5": 0,
+      "success_at_5": 0
+    },
+    {
+      "answerable": true,
+      "case": "dev09",
+      "mode": "relevance",
+      "output": {
+        "collisions": [],
+        "material_bytes": 432011,
+        "no_match": false,
+        "omissions": [
+          {
+            "id": "package:inferrsi.common.skills.audit_llama_runtime_state",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.audit_vllm_kv_lifetimes",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.diagnose_vllm_admission_pressure",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.weight_loading_optimization",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.cann_attribution_overlap",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.torchnpu_device_memory_lifecycle",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.torchnpu_pinned_host_memory_lifecycle",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.assess_serving_preemption",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.assess_split_backward_schedule",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.audit_sglang_diffusion_lifetimes",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.calibrate_serving_simulation",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.cgroup_resource_controls",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.checkpoint_recovery_consistency",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.comfy_ui",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.dcp_async_save_performance",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.evaluate_elastic_serving_placement",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.host_memory_management",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.host_overhead_optimization",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.inference_benchmark_design",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.inference_optimization_casebook",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.kernel_writing_guide",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.lazy_evaluation_stream_lifetimes",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.npu_skill_factory",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.optimization_search_policy",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.performance_ceiling_analysis",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.plan_activation_residency",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.rsi_evidence",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.skill_evolution_playbook",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.storage_io_measurement",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.training_input_pipeline",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.training_resource_budget",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.cuda.skills.audit_afd_p2p_exchanges",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.cuda.skills.reason_hopper_kernels",
+            "reason": "output_limit"
+          }
+        ],
+        "ordered_items": [
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.kv_tier_management",
+            "ref": "package:inferrsi.common.skills.kv_tier_management",
+            "resource_count": 343,
+            "resource_hashes_sha256": "ee42b55fa8a404149ecd1dccc32a892566ee8867710531bc0af553409758a019",
+            "revision": "sha256:5816c2e526a71152486af2230ace24d27b54baeb373bf5d27e353ccd44f640aa"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.bound_windowed_attention_replay",
+            "ref": "package:inferrsi.common.skills.bound_windowed_attention_replay",
+            "resource_count": 343,
+            "resource_hashes_sha256": "fb70e2e746f7ba833a696431c6a4deda830188acf5c4eafce6b0008818f8190a",
+            "revision": "sha256:0a4b1c3323f63771684eaf577ede6f4359ccf196ce596f9f7c2f86b596098334"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.audit_sd_cpp_residency",
+            "ref": "package:inferrsi.common.skills.audit_sd_cpp_residency",
+            "resource_count": 343,
+            "resource_hashes_sha256": "c83d7a76dffa5a3d97e932a3eac4602ad82e20babb09d9942504fff6b4db53d6",
+            "revision": "sha256:9a0d9397fbac8a5f480ef012d13c9edd180cbc66cf2f0891fc14b83843313cde"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.diffusers_invocation_state",
+            "ref": "package:inferrsi.common.skills.diffusers_invocation_state",
+            "resource_count": 343,
+            "resource_hashes_sha256": "64b10a60e44276bc4a20b3441f65afd929341e8558fde32491ba27a20fde4020",
+            "revision": "sha256:a8529f2c6bf5f84ce48ba0d6426f1bf1bc6fce172cd0a599b6a149878e3b4be4"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.generation_cache_lifecycle",
+            "ref": "package:inferrsi.common.skills.generation_cache_lifecycle",
+            "resource_count": 343,
+            "resource_hashes_sha256": "052e200da2a160661cf44647685c70e52feec4b72fc0f2e7b34a10ce54710e03",
+            "revision": "sha256:22411ef79b30ddd4f8b01a7ed5d00fc4fc75a3c9f1e4d31f56f2e440d9b09d2f"
+          }
+        ],
+        "selection": {
+          "cue": "LMCache skip_l1 retain",
+          "method": "weighted-lexical-v1",
+          "ranking_applied": true,
+          "scope": "generated-packaged-skills"
+        },
+        "serialized_bytes": 435629,
+        "sha256": "4acef85df250bc9967208b838f534e75b4d9706be8e1dda8ec71bb7409eeca57"
+      },
+      "reciprocal_rank_at_5": 1.0,
+      "success_at_5": 1
+    },
+    {
+      "answerable": true,
+      "case": "dev09",
+      "mode": "context_material",
+      "output": {
+        "collisions": [],
+        "context_budget": {
+          "accounting": "utf8-resource-content",
+          "excludes": "provenance, omission and control metadata",
+          "max_bytes": 65536
+        },
+        "context_bytes": 61835,
+        "context_omissions": [
+          {
+            "available_bytes": 3701,
+            "reason": "context_limit",
+            "ref": "package:inferrsi.common.skills.diffusers_invocation_state",
+            "required_bytes": 10129
+          },
+          {
+            "available_bytes": 3701,
+            "reason": "context_limit",
+            "ref": "package:inferrsi.common.skills.generation_cache_lifecycle",
+            "required_bytes": 10146
+          }
+        ],
+        "contexts": [
+          {
+            "attribution": [
+              {
+                "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+                "content_sha256": "e4b78f368d70c8abb74a935acb910414015f1aeec1b50f7a295e836822ec4b27",
+                "paths": [
+                  "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
+                  "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json",
+                  "src/inferrsi/data/skill_library/skill-index.json"
+                ],
+                "type": "git",
+                "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md"
+              }
+            ],
+            "content_bytes": 10812,
+            "limitations": [
+              "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+              "The imported status describes this index, not the original skill; its declared status is candidate.",
+              "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+              "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+              "Source-derived candidate; no local efficacy validation.",
+              "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+              "Imported guidance; reading does not validate or execute it.",
+              "Historical revisions require the matching installed snapshot or a retained store.",
+              "Selected resources are complete files; this view is not a standalone Bundle.",
+              "Follow omitted or other linked resources through the exact owner revision."
+            ],
+            "omissions": [
+              {
+                "path": "data/skill_library/repositories/lmcache/kv-tier-management/metadata.json",
+                "reason": "not_context_resource"
+              }
+            ],
+            "ref": "package:inferrsi.common.skills.kv_tier_management",
+            "resources": [
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
+                "role": "core",
+                "sha256": "e4b78f368d70c8abb74a935acb910414015f1aeec1b50f7a295e836822ec4b27"
+              }
+            ],
+            "revision": "sha256:5816c2e526a71152486af2230ace24d27b54baeb373bf5d27e353ccd44f640aa",
+            "sources": [
+              {
+                "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+                "content_sha256": "e4b78f368d70c8abb74a935acb910414015f1aeec1b50f7a295e836822ec4b27",
+                "paths": [
+                  "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
+                  "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json",
+                  "src/inferrsi/data/skill_library/skill-index.json"
+                ],
+                "revision_precision": "full",
+                "type": "git",
+                "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md"
+              }
+            ]
+          },
+          {
+            "attribution": [
+              {
+                "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+                "content_sha256": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5",
+                "paths": [
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json",
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md",
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md",
+                  "src/inferrsi/data/skill_library/skill-index.json"
+                ],
+                "type": "git",
+                "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md"
+              }
+            ],
+            "content_bytes": 29732,
+            "limitations": [
+              "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+              "The imported status describes this index, not the original skill; its declared status is candidate.",
+              "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+              "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+              "Source-derived candidate; no equivalence run was performed.",
+              "Applies to architectures with a demonstrated boundary dependency, not to arbitrary sliding-window stacks.",
+              "Window sizes, boundary-layer index and ring lengths are model-config specific and are not transferable.",
+              "Query-row compaction does not imply dropping historical keys; the two decisions are separate.",
+              "Prompt logprobs are unrecoverable for the clipped region; the reference forces them off with a warning.",
+              "The truncation path is off by default in the reference source.",
+              "Imported guidance; reading does not validate or execute it.",
+              "Historical revisions require the matching installed snapshot or a retained store.",
+              "Selected resources are complete files; this view is not a standalone Bundle.",
+              "Follow omitted or other linked resources through the exact owner revision."
+            ],
+            "omissions": [
+              {
+                "path": "data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json",
+                "reason": "not_context_resource"
+              }
+            ],
+            "ref": "package:inferrsi.common.skills.bound_windowed_attention_replay",
+            "resources": [
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+                "role": "core",
+                "sha256": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5"
+              },
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md",
+                "role": "reference",
+                "sha256": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098"
+              },
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md",
+                "role": "reference",
+                "sha256": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff"
+              }
+            ],
+            "revision": "sha256:0a4b1c3323f63771684eaf577ede6f4359ccf196ce596f9f7c2f86b596098334",
+            "sources": [
+              {
+                "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+                "content_sha256": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5",
+                "paths": [
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json",
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md",
+                  "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md",
+                  "src/inferrsi/data/skill_library/skill-index.json"
+                ],
+                "revision_precision": "full",
+                "type": "git",
+                "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md"
+              }
+            ]
+          },
+          {
+            "attribution": [
+              {
+                "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+                "content_sha256": "3e93b2b4764f61ea00ec7d1a96aa5b9e2c5f2e746cb6e65287cdce659c056cf6",
+                "paths": [
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md",
+                  "src/inferrsi/data/skill_library/skill-index.json"
+                ],
+                "type": "git",
+                "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md"
+              }
+            ],
+            "content_bytes": 21291,
+            "limitations": [
+              "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+              "The imported status describes this index, not the original skill; its declared status is candidate.",
+              "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+              "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+              "Source-derived candidate; native inference, allocator behavior, image quality and performance were not run.",
+              "Eighteen bounded readset paths plus one separately identity-checked README match the pinned Git commit/tree blob IDs and sizes (19 blobs total); header coverage is limited to selected owner/state declarations, and this does not authenticate every archive member or submodule contents.",
+              "GGML and other submodules are not expanded; matching private GGML headers are required even for a system library.",
+              "CPU bypasses the inspected accelerator capacity gate and segmentation eligibility, so CPU checks cannot qualify accelerator memory budgets or prefetch.",
+              "Video/audio pipelines, detailed model kernels, approximate denoising caches and full multi-device execution remain outside this readset.",
+              "Imported guidance; reading does not validate or execute it.",
+              "Historical revisions require the matching installed snapshot or a retained store.",
+              "Selected resources are complete files; this view is not a standalone Bundle.",
+              "Follow omitted or other linked resources through the exact owner revision."
+            ],
+            "omissions": [
+              {
+                "path": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json",
+                "reason": "not_context_resource"
+              },
+              {
+                "path": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json",
+                "reason": "not_relevant"
+              },
+              {
+                "path": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md",
+                "reason": "not_relevant"
+              }
+            ],
+            "ref": "package:inferrsi.common.skills.audit_sd_cpp_residency",
+            "resources": [
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+                "role": "core",
+                "sha256": "3e93b2b4764f61ea00ec7d1a96aa5b9e2c5f2e746cb6e65287cdce659c056cf6"
+              },
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md",
+                "role": "reference",
+                "sha256": "b67affbd7d237d82b7f51be49f1537e9820fe56ec70a71ee76809f9e599ca693"
+              },
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
+                "role": "reference",
+                "sha256": "b53fa08f515cb5a6fff7b9fd8fcd0961a4b80df29d74372d25e1f9171aa042ee"
+              },
+              {
+                "locator": "whole-resource",
+                "path": "data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md",
+                "role": "reference",
+                "sha256": "7b537cb972347dd68e303960f142892346d8b19b884e4d08016ea36a23bdaa7a"
+              }
+            ],
+            "revision": "sha256:9a0d9397fbac8a5f480ef012d13c9edd180cbc66cf2f0891fc14b83843313cde",
+            "sources": [
+              {
+                "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+                "content_sha256": "3e93b2b4764f61ea00ec7d1a96aa5b9e2c5f2e746cb6e65287cdce659c056cf6",
+                "paths": [
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md",
+                  "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md",
+                  "src/inferrsi/data/skill_library/skill-index.json"
+                ],
+                "revision_precision": "full",
+                "type": "git",
+                "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md"
+              }
+            ]
+          }
+        ],
+        "material_bytes": 462705,
+        "no_match": false,
+        "omissions": [
+          {
+            "id": "package:inferrsi.common.skills.audit_llama_runtime_state",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.audit_vllm_kv_lifetimes",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.diagnose_vllm_admission_pressure",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.weight_loading_optimization",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.ascend_model_adaptation",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.cann_attribution_overlap",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.torchnpu_device_memory_lifecycle",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.ascend.skills.torchnpu_pinned_host_memory_lifecycle",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.assess_serving_preemption",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.assess_split_backward_schedule",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.audit_h3_runtime_residency",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.audit_sglang_diffusion_lifetimes",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.calibrate_serving_simulation",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.cgroup_resource_controls",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.checkpoint_recovery_consistency",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.comfy_ui",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.dcp_async_save_performance",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.evaluate_elastic_serving_placement",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.host_memory_management",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.host_overhead_optimization",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.inference_benchmark_design",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.inference_optimization_casebook",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.kernel_writing_guide",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.lazy_evaluation_stream_lifetimes",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.npu_skill_factory",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.optimization_search_policy",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.performance_ceiling_analysis",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.plan_activation_residency",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.rsi_evidence",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.skill_evolution_playbook",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.storage_io_measurement",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.training_input_pipeline",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.common.skills.training_resource_budget",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.cuda.skills.audit_afd_p2p_exchanges",
+            "reason": "output_limit"
+          },
+          {
+            "id": "package:inferrsi.cuda.skills.reason_hopper_kernels",
+            "reason": "output_limit"
+          }
+        ],
+        "ordered_items": [
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.kv_tier_management",
+            "ref": "package:inferrsi.common.skills.kv_tier_management",
+            "resource_count": 343,
+            "resource_hashes_sha256": "ee42b55fa8a404149ecd1dccc32a892566ee8867710531bc0af553409758a019",
+            "revision": "sha256:5816c2e526a71152486af2230ace24d27b54baeb373bf5d27e353ccd44f640aa"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.bound_windowed_attention_replay",
+            "ref": "package:inferrsi.common.skills.bound_windowed_attention_replay",
+            "resource_count": 343,
+            "resource_hashes_sha256": "fb70e2e746f7ba833a696431c6a4deda830188acf5c4eafce6b0008818f8190a",
+            "revision": "sha256:0a4b1c3323f63771684eaf577ede6f4359ccf196ce596f9f7c2f86b596098334"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.audit_sd_cpp_residency",
+            "ref": "package:inferrsi.common.skills.audit_sd_cpp_residency",
+            "resource_count": 343,
+            "resource_hashes_sha256": "c83d7a76dffa5a3d97e932a3eac4602ad82e20babb09d9942504fff6b4db53d6",
+            "revision": "sha256:9a0d9397fbac8a5f480ef012d13c9edd180cbc66cf2f0891fc14b83843313cde"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.diffusers_invocation_state",
+            "ref": "package:inferrsi.common.skills.diffusers_invocation_state",
+            "resource_count": 343,
+            "resource_hashes_sha256": "64b10a60e44276bc4a20b3441f65afd929341e8558fde32491ba27a20fde4020",
+            "revision": "sha256:a8529f2c6bf5f84ce48ba0d6426f1bf1bc6fce172cd0a599b6a149878e3b4be4"
+          },
+          {
+            "dependencies_sha256": "809334a5ef2698c430e2ba00b4f8809d924c21645eb93bd561639d042baa537f",
+            "id": "inferrsi.common.skills.generation_cache_lifecycle",
+            "ref": "package:inferrsi.common.skills.generation_cache_lifecycle",
+            "resource_count": 343,
+            "resource_hashes_sha256": "052e200da2a160661cf44647685c70e52feec4b72fc0f2e7b34a10ce54710e03",
+            "revision": "sha256:22411ef79b30ddd4f8b01a7ed5d00fc4fc75a3c9f1e4d31f56f2e440d9b09d2f"
+          }
+        ],
+        "selection": {
+          "cue": "LMCache skip_l1 retain",
+          "method": "weighted-lexical-v1",
+          "ranking_applied": true,
+          "scope": "generated-packaged-skills"
+        },
+        "serialized_bytes": 541917,
+        "sha256": "1804ed714dd8eeb38a8f1d0fbcfa3aebac8202a23103b285a84c5a814f47194b"
+      },
+      "reciprocal_rank_at_5": 1.0,
+      "success_at_5": 1
+    },
+    {
+      "answerable": true,
+      "case": "dev09",
+      "mode": "default_diagnostic",
+      "output": {
+        "collisions": [],
+        "material_bytes": 0,
+        "no_match": true,
+        "omissions": [],
+        "ordered_items": [],
+        "serialized_bytes": 312,
+        "sha256": "2ac3a9ad1e6fdd68f013bdb3cf9b6836e6d00219872d5a92696fdfe6a3b25859"
+      },
+      "reciprocal_rank_at_5": 0,
+      "success_at_5": 0
+    }
+  ]
+}
