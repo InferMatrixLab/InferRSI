@@ -1,0 +1,26 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "topology/mode compatibility and physical-backend evidence",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "tests/test_tp_commands.c:20-153",
+    "ds4_tp.c:700-738",
+    "docs/DISTRIBUTED.md:13-32,89-106,139-144",
+    "docs/SPECULATIVE_DECODING.md:66-78",
+    "ds4.c:82967-83022"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/qualification/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response routes to qualification and distinguishes in-process CUDA TP, network two-rank TP and pipeline placement.",
+    "The response rejects combining CUDA network TP with SSD streaming or in-process --cuda-tensor-parallel in the inspected validator.",
+    "The response states that local socketpair success and ping do not establish a physical RDMA data plane, GPU inference, or model correctness.",
+    "The response preserves the V4.1 network-DSpark source documentation conflict and notes implementation paths without asserting resolved support or absence.",
+    "The response requires exact matching peer/model/build identities, actual negotiated transport, both-rank runtime and cancellation/partial-commit/restore/failure evidence.",
+    "The response keeps missing accelerator and physical transport evidence BLOCKED_REQUIRED_BACKEND and does not recommend bypassing validators, changing host settings or starting services."
+  ]
+}

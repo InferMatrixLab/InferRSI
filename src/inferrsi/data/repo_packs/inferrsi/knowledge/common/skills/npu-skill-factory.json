@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/905ecd9af654e1d48f2f47ea57f5438ddbe6f575/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
-      "commit": "905ecd9af654e1d48f2f47ea57f5438ddbe6f575",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
@@ -54,9 +54,9 @@
   },
   "checkout_ref": "checkout:npu-skill-factory",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1",
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e",
-    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "8d82e5e7bf2eece16056076e1ab888669330c2533fee26fabe747fbb551e1388",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "12fc9272bd5fbf02dd9b897d8ca40984b72ae54f20492ace5304711bbc4d71c3",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/QA.md": "3f3785ec39a6938a5d1f2e874e99153fe92c0e666dd3e78a499c8b47d891346a",
@@ -162,7 +162,6 @@
       "references/papers-20261015/UNREAD_LEADS.md",
       "references/papers-20261015/updates/bounded-updates.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

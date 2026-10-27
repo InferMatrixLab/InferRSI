@@ -450,3 +450,27 @@ Network coverage. Existing resource cells and maturity boundaries remain unchang
 This adds conditional Hopper guidance without new measured or green coverage.
 Registers, SMEM and HBM remain device resources; local CTA/cluster coordination
 and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.
+
+## DwarfStar source-derived execution/state graph
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| RAM / Accelerator / SSD | Diagnose / Configure: routed-expert cache versus non-routed weights, context, shared prefill workspace and per-session recurrent/KV state | [DwarfStar runtime-memory](../src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/runtime-memory/SKILL.md) | Bounded source-derived budgeting guidance; native GPU/model SSD I/O and actual peak memory are not validated. |
+| Host / Accelerator / service boundary | Diagnose / Verify: token and image prefix identity, disk payload compatibility, tool replay, speculation rollback and actual batching/fallback path | [DwarfStar serving-state](../src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/qualification/SKILL.md) | Model-free CPU bookkeeping and source contracts are distinct from accelerated correctness, physical TCP/RDMA or service performance. This adds no measured Network coverage. |
+## Splash source-derived planning and state
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM / SSD | Diagnose / Configure: mandatory memory floors, expert/PLE stores, dynamic KV/state, disk spill and precision boundaries | [runtime-planning](../src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/SKILL.md) | Source and CPU syntax checks, not measured device/process peak memory or actual spill IO. |
+| Host / Accelerator / service boundary | Diagnose / Verify: salted prompt identity versus global image reuse, composite-state commit/reclaim, persistent namespace and process-local Responses history, adaptive DFlash2 row budgeting | [serving-cache](../src/inferrsi/data/skill_library/repositories/splash/sub-skills/serving-cache/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/SKILL.md) | Python codec/LRU and descriptive statistics do not qualify native Metal/ANE/model state, service SLOs or efficacy. No measured Network coverage is added. |
+## Lily exact-model source contracts
+
+| Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM | Diagnose / Configure / Verify: exact affine-Q4 plus role-Q8, shared buffer views, state/scratch/sequence capacity and completion ownership | [model-runtime](../src/inferrsi/data/skill_library/repositories/lily/sub-skills/model-runtime/SKILL.md) | Source/Python selected-rule checks, not Rust loading, actual memory fit, Metal synchronization or model quality. |
+| Host / Accelerator / service boundary | Diagnose / Verify: strict API, extra lookahead token, strict token prefix before key preference, actually-fed state retention and version/metric qualification | [serving-cache](../src/inferrsi/data/skill_library/repositories/lily/sub-skills/serving-cache/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/lily/sub-skills/qualification/SKILL.md) | Compiler/native/model stages not run; CPU references and ignored/cfg-omitted tests are not GPU evidence. No measured service or Network coverage is added. |
+## Husky research questions, not measured coverage
+
+| Resource | Stage | Owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Unqualified / conditional host-device questions | Diagnose / propose a falsifiable comparison and required artifacts | [Husky document research](../src/inferrsi/data/skill_library/repositories/husky/SKILL.md) | Author-reported unversioned page and original audit questions only. No inspected implementation, backend validation, measured service improvement or expanded resource coverage. |

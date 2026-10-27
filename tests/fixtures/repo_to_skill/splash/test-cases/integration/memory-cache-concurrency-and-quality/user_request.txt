@@ -1,0 +1,1 @@
+Splash accepts my 28G memory cap, but larger context and more concurrent requests wait. I changed recurrent state to BF16 and turned PLE memory off. Can I call the lower tensor count a safe memory fit and reuse last week’s output-equality result?

@@ -1,0 +1,30 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "runtime-planning",
+  "target_capability": "Model/draft formats and incompatible streaming settings",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "README.md:15-25",
+    "DEVELOPMENT.md:304-312",
+    "DEVELOPMENT.md:1655-1699",
+    "DEVELOPMENT.md:1789-1858",
+    "DEVELOPMENT.md:1925-1954",
+    "install/gguf.py:905-949",
+    "dev/tests/server/test_serve_options.py:90-129"
+  ],
+  "expected_skill_files": [
+    "sub-skills/runtime-planning/SKILL.md",
+    "sub-skills/runtime-planning/references/memory-and-formats.md",
+    "sub-skills/runtime-planning/references/troubleshooting.md",
+    "sub-skills/runtime-planning/scripts/parse_budget.py"
+  ],
+  "assertions": [
+    "The response rejects the all-BF16/F16/F32 projection-and-expert target while allowing that individual BF16/F16 tensors may be legal in mixed quantized GGUFs.",
+    "The response checks the actual target configuration, tensor roles and compatible DFlash2 draft instead of repository names, matching hidden size or suffix.",
+    "The response distinguishes header/configuration screening from full tensor-shape, payload and native-execution checks.",
+    "The response says rebuilt NVFP4 or rotated PLE table layouts cannot use the requested row-streaming path and a numeric size cannot fix that compatibility.",
+    "The response rejects sparse-kv-memory off and retains its minimum floor, while explaining that ple-memory off and expert-memory off load the whole corresponding part.",
+    "The response states the Apple M3-or-newer and macOS26.4-or-later native constraint and does not clear BLOCKED_REQUIRED_BACKEND from Linux syntax checks.",
+    "The response neither installs dependencies, downloads alternative models, runs native inference nor promises quality/performance."
+  ]
+}

@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/905ecd9af654e1d48f2f47ea57f5438ddbe6f575/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "905ecd9af654e1d48f2f47ea57f5438ddbe6f575",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
@@ -45,10 +45,10 @@
   "checkout_ref": "checkout:weight-loading-optimization",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "94197ceea1301d4138e9d712ef409f027ea71139fd357a5c8b6c077534063213",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "71cd6227a8d8c2ecbd9a9853162b096df7cd940a7818137ac123b660dd57e718",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "798cbff6f10b7c24b188080ebf233b188b0e98ef2c6fdb5e00e1fe3eff727c0f",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",
@@ -110,9 +110,6 @@
       }
     ],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
@@ -123,12 +120,9 @@
       "references/llama-loading-readset.md",
       "references/fastsafetensors-transfer-readset.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

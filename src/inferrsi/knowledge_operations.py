@@ -118,18 +118,22 @@ class Bundle:
         if record["entrypoint"] not in self.content:
             raise ValueError("Missing entrypoint in complete bundle")
         for required in record.get("required_resources", []):
+            # Present string keys already passed the content path validation.
+            if isinstance(required, str) and required in self.content:
+                continue
             if safe_path(required) not in self.content:
                 raise ValueError(f"Missing required resource: {required}")
+        resources = {path: _hash(data) for path, data in sorted(self.content.items())}
         for dependency, revision in self.dependencies.items():
             safe_path(dependency)
             if not re.fullmatch(r"sha256:[0-9a-f]{64}", revision):
                 raise ValueError("Dependency requires a resolved content revision")
             if dependency in self.content:
-                actual = "sha256:" + _hash(self.content[dependency])
+                actual = "sha256:" + resources[dependency]
             else:
                 members = {
-                    path: _hash(data)
-                    for path, data in sorted(self.content.items())
+                    path: digest
+                    for path, digest in resources.items()
                     if path.startswith(dependency + "/")
                 }
                 if not members:
@@ -139,7 +143,7 @@ class Bundle:
                 raise RevisionConflict(f"Dependency bytes disagree with revision: {dependency}")
         return {
             "metadata": record,
-            "resources": {path: _hash(data) for path, data in sorted(self.content.items())},
+            "resources": resources,
             "dependencies": dict(sorted(self.dependencies.items())),
         }
 
