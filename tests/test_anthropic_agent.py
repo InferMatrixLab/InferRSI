@@ -236,6 +236,7 @@ def test_http_transport_shape_no_redirect_and_no_auth_data_in_body(spec, monkeyp
             assert request.get_header("Anthropic-version") == "2023-06-01"
             assert request.get_header("Content-type") == "application/json"
             assert fake_key.encode() not in request.data
+            assert json.loads(request.data) == payload
             return io.BytesIO(agent.canonical(read()).encode())
 
     def opener(*handlers):
@@ -298,6 +299,9 @@ def test_opt_in_plan_freezes_identity_and_cannot_execute_or_fall_back(tmp_path, 
     assert plan["client"]["source_sha256"] == sha256(compare.ROOT / agent.SOURCE)
     assert plan["controllers"][agent.SOURCE] == sha256(compare.ROOT / agent.SOURCE)
     assert plan["client"]["runtime_state"] == "offline_only"
+    report = compare.report(output)
+    assert report["client"] == plan["client"]
+    assert agent.KIND in (output / "report.md").read_text(encoding="utf-8")
     assert plan["max_api_requests"] == len(plan["schedule"]) * spec["max_requests"]
     assert plan["arms"]["baseline"]["bundle"] is None if mode == "addition" else (
         plan["arms"]["baseline"]["bundle"] is not None)

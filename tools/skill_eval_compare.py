@@ -633,6 +633,11 @@ def markdown(result: dict) -> str:
         bundle = arm["bundle"]
         lines.append(f"| {role} | `{arm['git_revision']}` | "
                      + (f"`{bundle['revision']}`" if bundle else "absent") + " |")
+    if "client" in result:
+        lines += ["", "Client/provider identity: `"
+                  + json.dumps(result["client"], sort_keys=True) + "`",
+                  "Maximum API requests across both arms: "
+                  + str(result["max_api_requests"]) + "."]
     lines += ["", "Shared model/settings: `" + json.dumps(result["model"], sort_keys=True) + "`",
               "", "Execution limits: `" + json.dumps(result["limits"], sort_keys=True) + "`",
               "", "Execution status/client runtime: `"
