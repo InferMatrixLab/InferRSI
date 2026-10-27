@@ -205,7 +205,8 @@ def run_trial(
     )
     atomic_write_json(trial_dir / "execution.json", execution)
     try:
-        trace = trace_metrics(trial_dir / "agent/stdout.log")
+        parser = getattr(client, "trace_metrics", trace_metrics)
+        trace = parser(trial_dir / "agent/stdout.log")
     except (ValueError, KeyError, TypeError, FileNotFoundError) as error:
         trace = {
             "usage": None,

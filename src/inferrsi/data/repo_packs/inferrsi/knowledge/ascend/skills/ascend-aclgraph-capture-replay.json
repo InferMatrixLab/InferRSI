@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
-      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c395cd7cae7978d51faf37ba97e2e7c1cd0d9270/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "commit": "c395cd7cae7978d51faf37ba97e2e7c1cd0d9270",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json",
@@ -39,7 +39,7 @@
   "checkout_ref": "checkout:ascend-aclgraph-capture-replay",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md": "d494fc7e539cbb7388189bd7b3f04bb5c4983fdd7a82484348aad1cee7f741f2",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "71c68431663ed2336cccc985a354adab6b13b4cfd6123a18a5d8d53c28268509",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "e4c02d4ae85e473947e024c38aed121ca8e5cfbfe1091c5792ce58a349248187",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md": "6ffbfb68cc7e04923b4fbca2a73a7555b7c3b45a6f40819bb5f3213ef05cf88d",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
@@ -60,6 +60,10 @@
     "origin": [
       "external"
     ],
+    "sources": [],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -67,9 +71,12 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
+    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

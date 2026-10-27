@@ -246,15 +246,46 @@ def reports(output):
 
 def summary(plan, results, evidence_url, expires_at, now):
     expired = now >= expires_at
-    lines = [MARKER, "## Skill evaluation", "", f"Plan SHA-256: `{fingerprint(plan)}`",
-             f"Base: `{plan['base']}` · Head: `{plan['head']}`",
-             f"Trusted implementation: `{plan['version']}`", "",
-             "Applicable only while these revisions and inputs match the current PR.", "",
-             "Model/settings: `" + canonical(plan["model"]) + "`",
-             "Budget: `" + canonical(budget(plan)) + "`", "",
-             "Token usage stops new trials; it is not a hard provider token or monetary cap.",
-             "Cost remains unknown.", "", "| Skill | Comparison | Cases | Estimated calls |",
-             "| --- | --- | --- | --- |"]
+    lines = [MARKER, "## Skill evaluation", ""]
+    counts = {k: 0 for k in ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
+                             "inconclusive", "missing_pair")}
+    if expired:
+        lines += ["**EXPIRED: retained evidence is no longer verifiable.**"]
+    elif results:
+        for result in results:
+            for key in counts:
+                counts[key] += result["counts"][key]
+        lines += ["**RETAINED RESULTS**", "", "Outcomes: `" + canonical(counts) + "`",
+                  "Discovery is reported separately in retained evidence."]
+    else:
+        counts["missing_pair"] = sum(
+            sum(c["split"] != "discovery" for c in item["cases"]) * plan["limits"]["repeats"]
+            for item in plan["comparisons"] if "plan_sha256" in item)
+        lines += ["**PLANNED: execution is not authorized by knowing this hash.**",
+                  "Outcomes: `" + canonical(counts) + "`",
+                  "Earlier revision results are stale for this plan."]
+    gaps = [c for c in plan["coverage"] if c["coverage"] != "covered"]
+    selected = sum("plan_sha256" in item for item in plan["comparisons"])
+    lines += ["", f"Selected comparisons: **{selected}** · Estimated task calls: "
+              f"**{plan['estimated_calls']}**.",
+              f"Uncovered/unsupported changes: **{len(gaps)}**. Gaps never count as passes.", "",
+              "Applicable only while these revisions and inputs match the current PR.",
+              "Execution requires exact plan, versions and budget approval; a hash alone "
+              "does not authorize it.",
+              "Token usage stops new trials; it is not a hard provider token or monetary cap.",
+              "Cost remains unknown.", "",
+              f"[Evidence and logs]({evidence_url}) · Retention: {RETENTION_DAYS} days.",
+              f"Outcomes are historical; verifiable only before Unix time `{int(expires_at)}` "
+              "while the linked artifact is available. Expired evidence is unverified.", "",
+              "Pipeline evidence only; offline fixed outputs do not establish skill efficacy.",
+              "", "<details>", "<summary>Plan bindings, budget and frozen exam</summary>", "",
+              f"Plan SHA-256: `{fingerprint(plan)}`",
+              f"Base: `{plan['base']}` · Head: `{plan['head']}`",
+              f"Trusted implementation: `{plan['version']}`", "",
+              "Model/settings: `" + canonical(plan["model"]) + "`",
+              "Budget: `" + canonical(budget(plan)) + "`", "",
+              "| Skill | Comparison | Cases | Estimated calls |",
+              "| --- | --- | --- | --- |"]
     for item in plan["comparisons"]:
         if "plan_sha256" in item:
             cases = ", ".join(c["id"] + " (" + c["split"] + ")" for c in item["cases"])
@@ -262,34 +293,15 @@ def summary(plan, results, evidence_url, expires_at, now):
             lines.append("\nFrozen exam hashes: `" + canonical(item["exam"]) + "`\n")
         else:
             lines.append(f"| {item['skill']} | unsupported snapshot | — | 0 |")
-    counts = {k: 0 for k in ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
-                             "inconclusive", "missing_pair")}
-    if expired:
-        lines += ["", "**EXPIRED: retained evidence is no longer verifiable.**"]
-    elif results:
-        for result in results:
-            for key in counts:
-                counts[key] += result["counts"][key]
-        lines += ["", "Outcomes: `" + canonical(counts) + "`", "",
-                  "Discovery is reported separately in retained evidence."]
-    else:
-        counts["missing_pair"] = sum(
-            sum(c["split"] != "discovery" for c in item["cases"]) * plan["limits"]["repeats"]
-            for item in plan["comparisons"] if "plan_sha256" in item)
-        lines += ["", "**PLANNED: execution is not authorized by knowing this hash.**",
-                  "Outcomes: `" + canonical(counts) + "`",
-                  "Earlier revision results are stale for this plan."]
-    gaps = [c for c in plan["coverage"] if c["coverage"] != "covered"]
-    lines += ["", f"Uncovered/unsupported changes: **{len(gaps)}**. "
-              "Gaps never count as passes.", ""]
-    # Encode untrusted Git paths as data, so Markdown/mentions cannot escape into the comment.
+    lines += ["", "</details>", "", "<details>",
+              f"<summary>Uncovered / unsupported paths ({len(gaps)})</summary>", ""]
+    # A collapsed HTML container still requires data escaping for untrusted Git paths.
     for gap in gaps:
         lines.append("- " + gap["coverage"] + ": <code>"
                      + html.escape(canonical(gap["path"])).replace("@", "&#64;") + "</code>")
-    lines += ["", f"[Evidence and logs]({evidence_url}) · Retention: {RETENTION_DAYS} days.",
-              f"Outcomes are historical; verifiable only before Unix time `{int(expires_at)}` "
-              "while the linked artifact is available. Expired evidence is unverified.",
-              "", "Pipeline evidence only; offline fixed outputs do not establish skill efficacy."]
+    if not gaps:
+        lines.append("(none)")
+    lines += ["", "</details>"]
     return "\n".join(lines)
 
 

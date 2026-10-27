@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
-      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c395cd7cae7978d51faf37ba97e2e7c1cd0d9270/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+      "commit": "c395cd7cae7978d51faf37ba97e2e7c1cd0d9270",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json",
@@ -40,7 +40,7 @@
   "checkout_ref": "checkout:torchnpu-pinned-host-memory-lifecycle",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": "23e93ea7c98f99743509fdc04139d78ed2e7123c63e80b366c6beaba7eb70d0d",
-    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json": "97836a38465106d816a9ace894a7b277d6d330f9accade8f8493ce6f0fb57ef9",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json": "17f96ff8d36a844d4a62a06975ad918bb8554f343543a3e7ea23e2d98c37fd0b",
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md": "435193590b4a2ba32e2e4c6fa9d7e8f889528d412cbbb48e35ec5433f7dab384",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
@@ -62,6 +62,10 @@
     "origin": [
       "external"
     ],
+    "sources": [],
+    "applicability": {
+      "scope": "See procedure prerequisites and counter-signals"
+    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -69,9 +73,12 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
+    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "See procedure prerequisites and counter-signals"
+  },
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

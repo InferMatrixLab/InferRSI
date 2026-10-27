@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
-      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c395cd7cae7978d51faf37ba97e2e7c1cd0d9270/src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
+      "commit": "c395cd7cae7978d51faf37ba97e2e7c1cd0d9270",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json",
@@ -43,7 +43,7 @@
   "checkout_ref": "checkout:generation-cache-lifecycle",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md": "bf1177cb9985c12a9bf11edb64771018e1e314c4713920de8fd4a989ff70115f",
-    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json": "d86cecb615e93ba0f6be09d1ead102cd5a17068c07e1be2549ac5cd8f7519279",
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json": "a65220e8375130ddba7426e7741cc5af5c9bfdf7e1967be36bec3eb26d78c431",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/cache-stop.md": "bba6b5c73261065309cbcf11b1e591eef48916f0c79ceaaf74d98a9fa96b0992",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/generation-batch.md": "f16d3c57d45e63bcaffd3871aa41c76972ee11f7dbf1e12b45d9b170303cad9b",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/source-map.md": "91d26181f246307f2113f94b12ac9587d689b654dcd216e9f14b11cf5ebb650c",
@@ -98,6 +98,7 @@
     "provenance_readsets": [
       "references/source-map.md"
     ],
+    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
-      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c395cd7cae7978d51faf37ba97e2e7c1cd0d9270/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "commit": "c395cd7cae7978d51faf37ba97e2e7c1cd0d9270",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:diffusers-invocation-state",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "7581b56336d07213a87d01477793ae1a8acf0b7cf876fce36c9a761ee32c1ff4",
-    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "68ac7f64b7ab947fc2db664bc3990f102c1cc5539b42350aa5818d0bbf17d86c",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "a50b84089c98d81aad9feb8d00321ab2ccae360c9a4aa3b4b348b6f429e1fea2",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7",
@@ -94,6 +94,7 @@
     "provenance_readsets": [
       "references/source-map.md"
     ],
+    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

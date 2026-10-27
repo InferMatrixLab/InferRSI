@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad90f011fbcd21e7f262d5da9111378b87bbc9fa/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "ad90f011fbcd21e7f262d5da9111378b87bbc9fa",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c395cd7cae7978d51faf37ba97e2e7c1cd0d9270/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "c395cd7cae7978d51faf37ba97e2e7c1cd0d9270",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
@@ -43,9 +43,12 @@
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/vidur.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-contract.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-example.json",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "3a4d5e6146286bf07407b75f0bd9d8957c589817ae8f0eece26123231eafa0ec"
+      "content_sha256": "c5f78961c23e3c8d659f5675b522518ab06e1f2a8ea8bc74c5d428ffb41693d5"
     }
   ],
   "index_type": "packaged-skill",
@@ -54,8 +57,8 @@
   },
   "checkout_ref": "checkout:performance-ceiling-analysis",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "3a4d5e6146286bf07407b75f0bd9d8957c589817ae8f0eece26123231eafa0ec",
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "2502362f68dad563421b874c0262b274b8f4e80bce90d67c8d9efc48b2779606",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "c5f78961c23e3c8d659f5675b522518ab06e1f2a8ea8bc74c5d428ffb41693d5",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "42eed3e1aa5e8dbc6405099e80aac020f79c651efe44b6906b65f96c7f8f80ce",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/README.md": "17b2d1c7c14124d59ac8a0d5ad4200ad2803d991e784a1a98cd97188cc364999",
@@ -72,6 +75,9 @@
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md": "21f47111197a0b7f8d6384ea918d139dc8318a62ca3313ce060048271f50b639",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/prior-coverage.md": "35d47ac078591221fcb666219bcd824f9400fc17aafecdc0499d8336f7178238",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/references/vidur.md": "d38602af5219f5feeb49e6cd6bf53d66098c77fad141dae676f1d8a6743cf25d",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
@@ -124,7 +130,7 @@
     "verification": {
       "locally_verified": false,
       "evidence_level": "source_grounded",
-      "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. No local accelerator measurements or automatic calculator."
+      "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification."
     },
     "applicability": {
       "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -165,6 +171,7 @@
       "references/papers-20261015/references/vidur.md",
       "references/papers-20261015/STATIC_CHECKS.md"
     ],
+    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {
