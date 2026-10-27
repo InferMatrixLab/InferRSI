@@ -1,8 +1,8 @@
 import copy
 import json
 import sys
-from pathlib import Path
 from decimal import Decimal
+from pathlib import Path
 
 import pytest
 import yaml

@@ -4,8 +4,8 @@ import json
 import math
 import re
 import shutil
-import sys
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
