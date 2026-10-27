@@ -147,7 +147,7 @@ def reservation(model, spec, pricing, spend_limit, trials, *, now=None):
     per_request = ((pricing["max_input_tokens"] * max(amounts["input"], amounts["cache_read"],
                                                      amounts["cache_write"])
                     + spec["max_output_tokens"] * amounts["output"]) / Decimal(1000000) + fee)
-    per_request = per_request.quantize(Decimal("0.00000001"), rounding=ROUND_CEILING)
+    per_request = per_request.quantize(Decimal("0.01"), rounding=ROUND_CEILING)
     total_requests = trials * spec["max_requests"]
     total = (per_request * total_requests).quantize(Decimal("0.01"), rounding=ROUND_CEILING)
     if total > money(spend_limit["amount"]):

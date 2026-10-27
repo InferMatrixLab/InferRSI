@@ -45,6 +45,8 @@ def test_full_context_reservation_uses_highest_cache_rate_and_all_attempts():
     value = agent.reservation(MODEL, p["client"], p["pricing"], p["spend_limit"], 2)
     expected = (Decimal(1000000) * 5 + Decimal(256) * 4) / 1000000 * 6
     assert value["requests"] == 6 and value["currency"] == "USD"
+    one = client(p).require_live_readiness(1)
+    assert Decimal(value["amount"]) == Decimal(one["amount"]) * 2
     assert Decimal(value["amount"]) >= expected
     assert value["group"] == p["pricing"]["group"]
     p["spend_limit"]["amount"] = "1"
