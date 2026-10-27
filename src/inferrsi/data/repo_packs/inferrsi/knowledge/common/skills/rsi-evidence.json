@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e9d26f14288a4c6d737b9e404261815592bf9c9f/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
-      "commit": "e9d26f14288a4c6d737b9e404261815592bf9c9f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/51660a7deda3911b056ec76d0a43f2bbd119b227/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+      "commit": "51660a7deda3911b056ec76d0a43f2bbd119b227",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md"

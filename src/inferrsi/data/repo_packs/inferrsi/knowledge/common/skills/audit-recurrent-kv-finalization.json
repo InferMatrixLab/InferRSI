@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e9d26f14288a4c6d737b9e404261815592bf9c9f/src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
-      "commit": "e9d26f14288a4c6d737b9e404261815592bf9c9f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/51660a7deda3911b056ec76d0a43f2bbd119b227/src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
+      "commit": "51660a7deda3911b056ec76d0a43f2bbd119b227",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/LICENSE",
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
@@ -48,7 +48,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md": "a468d75f25e77b96e6fb5376692f7a89c0464cc00d4df035f1dc6cc923f713cc",
-    "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/metadata.json": "c165137e92ed4f33b6c73e55d08e90a7f52133d045c23200b979f0e584f462bb",
+    "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/metadata.json": "db0b4593d7a6fbb898fdf11a1710b529abbade847ea57319843669b375b68fc8",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/NOTICE.md": "cca794656897ecdc37f983f7f23c4cd12306dbe3c9cd2f54fece6340753ae4cf",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-identity.json": "5e52db0a0bda4673b9aac46a3fc035b824780def72921fee6796edb2ed9fca65",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-notes.md": "0956f59cd9a1fac27da53228dd60c51a07b87639a43c09bfab296c4aeeceaab9",
@@ -123,7 +123,6 @@
       "references/source-notes.md",
       "references/source-identity.json"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {
