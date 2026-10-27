@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
-      "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3291ffbeab2fe72b217d21c8cac282a4f5348267/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
+      "commit": "3291ffbeab2fe72b217d21c8cac282a4f5348267",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json",
@@ -41,7 +41,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "efd37bb23acb500dad4ec8ebe7ddfe5c3f196374052825f923ac85da8445f06b",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "ea80d57e29a2949cffceefcc1715db375937499144864b9df41c3e7fcae61c16"
   },
   "skill_metadata": {
     "name": "ascend-operator-profiling",
