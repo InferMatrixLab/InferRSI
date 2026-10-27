@@ -6,7 +6,6 @@ import pytest
 
 from tools import skill_eval_pr as integration
 
-
 KEYS = ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
         "inconclusive", "missing_pair")
 
