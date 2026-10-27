@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
-      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f22c4f30c19b2fcebf76fd018a4231e09784fa9b/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
+      "commit": "f22c4f30c19b2fcebf76fd018a4231e09784fa9b",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json",
@@ -44,7 +44,7 @@
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053",
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "ec02995c075f0a540921f57b4846f2cafe334eb90f44389f17c3c50457c3e9c5",
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e",
-    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
+    "src/inferrsi/data/skill_library/skill-index.json": "5c6bd2fd73826076819cd053ecb2ee0dd12d7ab7517ef17a17cbdfc2adee43d6"
   },
   "skill_metadata": {
     "name": "os-process-placement",
