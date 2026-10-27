@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/99fca181e71fab22c09bb1967335d0653852eff3/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
-      "commit": "99fca181e71fab22c09bb1967335d0653852eff3",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
+      "commit": "7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
@@ -54,7 +54,7 @@
   },
   "checkout_ref": "checkout:npu-skill-factory",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "027d1e77cd0145135abc65b67efb3aa799f6f88c4e3a16db74314cbb9a08acc4",
+    "src/inferrsi/data/skill_library/skill-index.json": "82701425f9ac2a1e75dbb75185ab38d905b5a75a6f66e69e774c6d2c48fa1809",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "12fc9272bd5fbf02dd9b897d8ca40984b72ae54f20492ace5304711bbc4d71c3",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",

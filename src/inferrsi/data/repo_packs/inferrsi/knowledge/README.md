@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 62 registered skills in `data/skill_library/`.
+Generated abstracts for all 63 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [99fca181e71fab22c09bb1967335d0653852eff3](https://github.com/InferMatrixLab/InferRSI/tree/99fca181e71fab22c09bb1967335d0653852eff3/src/inferrsi/data/skill_library).
+Source snapshot: [7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c](https://github.com/InferMatrixLab/InferRSI/tree/7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 99fca181e71fab22c09bb1967335d0653852eff3 --check
+python tools/build_skill_index.py --source-revision 7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -83,6 +83,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [kernel-writing-guide](common/skills/kernel-writing-guide.json) | common | candidate |
 | [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
 | [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |
+| [lily](common/skills/lily.json) | common | candidate |
 | [npu-skill-factory](common/skills/npu-skill-factory.json) | common | candidate |
 | [optimization-search-policy](common/skills/optimization-search-policy.json) | common | candidate |
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
