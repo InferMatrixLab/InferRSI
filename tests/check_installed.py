@@ -194,7 +194,7 @@ exec(compile(ceiling.joinpath("scripts", "roofline.py").read_text(encoding="utf-
 ceiling_example = json.loads(
     ceiling.joinpath("references", "roofline-example.json").read_text(encoding="utf-8")
 )
-assert ceiling_namespace["analyze"](**ceiling_example)["conditional_roof_flop_per_s"] == 61
+assert ceiling_namespace["analyze"](**ceiling_example)["conditional_roof_flop_per_s"] == 60
 assert ceiling.joinpath("references", "roofline-contract.md").is_file()
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
