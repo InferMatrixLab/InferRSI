@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/cb90c570583f0c0877f252a72356d907df5c11a5/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
-      "commit": "cb90c570583f0c0877f252a72356d907df5c11a5",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bc49433d0c4c03560174f70fe4003dd6c4e489da/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
+      "commit": "bc49433d0c4c03560174f70fe4003dd6c4e489da",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/splash/LICENSE",
         "src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
@@ -68,7 +68,7 @@
     "src/inferrsi/data/skill_library/repositories/splash/scripts/request_template.py": "086d773d42edf67c43cedae16974061b09ac66458ee47fe961fc01733f3b2a0e",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/SKILL.md": "4fddc39811c12ec4b3279ad68a8864b7f1ef80e838ea03788b54cb025a03ae16",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/references/troubleshooting.md": "dbd2179a48eb3fc0ecfd54c5df8a690d0cb2e1814acc19ac3b0aabf184092c92",
-    "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/references/verification-contract.md": "a16aa32e85d85865b2e5f74640f023df8c3a5311c83b39e5fd770f146b43b75a",
+    "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/references/verification-contract.md": "9efffa0ecfd3b6771dfce631137eccc6d939c3239f60b1fadcd0c6c1ed7700be",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/qualification/scripts/summarize_rounds.py": "107a844954e3909500c60eb1ca365ac9b5e7dc3d91122dbae46f402a5cef4e3b",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/SKILL.md": "f0fe3d3f4053937767ae586559cc7fba89dacb6c896186a029fff220414e8d22",
     "src/inferrsi/data/skill_library/repositories/splash/sub-skills/runtime-planning/references/memory-and-formats.md": "04edf10f4a965c512f6a262b1f8295f3c033d615849e49d21d3d94c78b549f2b",
