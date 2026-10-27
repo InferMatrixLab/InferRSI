@@ -402,3 +402,9 @@ readset. Original contribution access (2026-10-14), HiCache access (2026-10-15)
 and diffusion archive inspection (2026-10-22) remain separate. This navigation
 adds no upstream reinspection, common dependency tuple or validation result;
 source maps, notices and imported/candidate states stay with their owners.
+
+## Husky document-only research adaptation
+
+| Source / version | Inspected scope | Reuse and limits |
+| --- | --- | --- |
+| Official https://husky.underdog.ai/; displayed2026-09-20, read2026-10-27; unversioned | Public-page report only; no canonical source repository, implementation revision or retained receipts identified | [Document-research candidate](../src/inferrsi/data/skill_library/repositories/husky/SKILL.md), bounded attribution and original verification questions. User-approved AREX-informed document adaptation, not complete repo-to-skill/native verification. Source license UNKNOWN; NO_LICENSE resolver unavailable. No new measured coverage. |

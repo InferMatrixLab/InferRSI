@@ -439,3 +439,9 @@ Network coverage. Existing resource cells and maturity boundaries remain unchang
 This adds conditional Hopper guidance without new measured or green coverage.
 Registers, SMEM and HBM remain device resources; local CTA/cluster coordination
 and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.
+
+## Husky research questions, not measured coverage
+
+| Resource | Stage | Owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Unqualified / conditional host-device questions | Diagnose / propose a falsifiable comparison and required artifacts | [Husky document research](../src/inferrsi/data/skill_library/repositories/husky/SKILL.md) | Author-reported unversioned page and original audit questions only. No inspected implementation, backend validation, measured service improvement or expanded resource coverage. |
