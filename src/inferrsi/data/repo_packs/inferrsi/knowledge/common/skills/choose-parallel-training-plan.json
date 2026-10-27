@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c/src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md",
-      "commit": "7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md",
         "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/metadata.json",
@@ -36,7 +36,7 @@
     "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md": "25d04aed9782b2a8ff1186828becdc7fce93c4418039ceaef9b8dcc5ec9bcd24",
     "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/metadata.json": "c6acae57d70190cea0e18c71c79127962181e58169e011df75d8635b3db4daa7",
     "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/references/source-notes.md": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b",
-    "src/inferrsi/data/skill_library/skill-index.json": "82701425f9ac2a1e75dbb75185ab38d905b5a75a6f66e69e774c6d2c48fa1809"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "choose-parallel-training-plan",

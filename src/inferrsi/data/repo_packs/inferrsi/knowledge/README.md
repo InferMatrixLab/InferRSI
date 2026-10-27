@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 63 registered skills in `data/skill_library/`.
+Generated abstracts for all 64 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c](https://github.com/InferMatrixLab/InferRSI/tree/7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c/src/inferrsi/data/skill_library).
+Source snapshot: [bb81ef2fec1b79d71eba1026ab1466117c3262cc](https://github.com/InferMatrixLab/InferRSI/tree/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 7766bcd57817aa80bfab3ffdb9fd1cd12e902c9c --check
+python tools/build_skill_index.py --source-revision bb81ef2fec1b79d71eba1026ab1466117c3262cc --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -78,6 +78,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [host-memory-management](common/skills/host-memory-management.json) | common | candidate |
 | [host-overhead-optimization](common/skills/host-overhead-optimization.json) | common | candidate |
 | [host-overhead-profiling](cuda/skills/host-overhead-profiling.json) | cuda | candidate |
+| [husky](common/skills/husky.json) | common | candidate |
 | [inference-benchmark-design](common/skills/inference-benchmark-design.json) | common | candidate |
 | [inference-optimization-casebook](common/skills/inference-optimization-casebook.json) | common | candidate |
 | [kernel-writing-guide](common/skills/kernel-writing-guide.json) | common | candidate |
