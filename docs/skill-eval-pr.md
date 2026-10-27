@@ -51,6 +51,33 @@ missing pairs. A publisher checks live revisions twice and refuses older writer
 runs, so delayed jobs cannot replace a newer summary. All plan/execute/publish
 runs for one PR share non-cancelling Actions concurrency.
 
+### Refresh a plan without execution
+
+Dispatch **Skill PR evaluation** on **main** with `action=plan` and the PR number
+to rebuild the plan and update its single **PLANNED** summary using the current
+trusted workflow implementation. No execution approval fields or `source_run`
+are needed. This reuses the automatic prepare/publish path; it makes no model
+calls, reserves no execution, and produces no evaluation results. The controller
+also rejects `action=plan` with its authorize, execute or pack CLI modes.
+Supplying execution fields or a `source_run` to this action does not authorize
+execution or import earlier results.
+
+Only `action=execute` schedules authorization and execution. Its five approval
+fields remain mandatory in the controller, although optional in the shared
+dispatch form. `action=publish` still requires a validated original execution
+run; a planning-only run is not a supported source for retained results.
+
+A new trusted implementation or changed PR inputs creates a new plan identity;
+old hashes and approvals cannot authorize it. A plan dispatch has a non-execution
+run title, so it does not consume that plan's execution identity. It still adds
+an Actions dispatch-history record, subject to the existing history limit below.
+Re-running an old workflow uses its original implementation; it cannot select
+the newer diagnostic code by refreshing main. An authorized plan dispatch offers
+a repeatable current-main publication recheck without changing the subject PR;
+automatic PR planning can also exercise that publisher. Retain the safe HTTP
+diagnostic or successful summary receipt. Neither entry repairs a permission
+denial. This verifies publication only, not evaluation.
+
 ## Explicit execution authorization
 
 Planning grants no execution budget. An operator with repository `write`,
@@ -125,8 +152,9 @@ Workflow reruns may republish results but must not rerun evaluation.
 
 ## Publication and retention
 
-Use `action=publish` with the original **execution `source_run` ID** and the current
-plan inputs to retry publication. This mode contains no call to the client or
+Use `action=publish` with the PR number and original **execution `source_run` ID**
+to retry publication. The publisher reconstructs the current plan rather than
+trusting dispatch-supplied plan fields. This mode contains no call to the client or
 comparison executor. A lost publication response is safe: the next attempt finds
 and updates the same marked bot comment instead of creating another summary.
 

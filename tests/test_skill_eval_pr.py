@@ -6,6 +6,7 @@ import threading
 import urllib.request
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
+from unittest.mock import Mock
 
 import pytest
 import yaml
@@ -466,3 +467,175 @@ def test_download_redirect_drops_the_github_token():
     redirected = integration.ArtifactRedirect().redirect_request(
         request, None, 302, "Found", {}, "https://storage.example.invalid/signed-artifact")
     assert not redirected.has_header("Authorization")
+
+
+def dispatch_event(monkeypatch, root, output, inputs, mode, run_id=11):
+    write_json(root / "event.json", {"inputs": inputs})
+    environment = {"GITHUB_EVENT_PATH": str(root / "event.json"),
+                   "GITHUB_EVENT_NAME": "workflow_dispatch",
+                   "GITHUB_REPOSITORY": "example/fixture", "GITHUB_RUN_ID": str(run_id),
+                   "GITHUB_RUN_ATTEMPT": "1", "GITHUB_ACTOR": "fixture-operator",
+                   "GITHUB_TOKEN": "offline-not-a-credential",
+                   "GITHUB_OUTPUT": str(root / "github-output")}
+    for key, value in environment.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setattr(sys, "argv", ["skill_eval_pr", mode, "--output", str(output)])
+
+
+@pytest.mark.parametrize("mode", ["addition", "update"])
+@pytest.mark.parametrize("extra_inputs", [{}, {"source_run": "10", "budget": "not approval",
+                                             "plan_sha256": "not approval"}])
+def test_plan_dispatch_prepare_publish_has_no_execution_side_effects(
+    tmp_path, monkeypatch, mode, extra_inputs,
+):
+    repo, mapping, identity = setup(tmp_path, mode, ids=("one",))
+    plan = integration.prepare(repo, mapping, identity, tmp_path / "expected")
+    api = SimulatedGitHub(plan)
+    request = Mock(wraps=api.request)
+    monkeypatch.setattr(api, "request", request)
+    monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
+    monkeypatch.setattr(integration, "ROOT", repo)
+    monkeypatch.setattr(integration, "MAPPING", mapping)
+    for name in ("authorize", "claim", "execute", "publish_retained", "result_archive"):
+        monkeypatch.setattr(integration, name, Mock(side_effect=AssertionError(name)))
+    monkeypatch.setattr(compare, "execute", Mock(side_effect=AssertionError("model call")))
+    original_run = integration.subprocess.run
+    fetches = []
+
+    def local_git_only(command, *args, **kwargs):
+        if list(command[:2]) == ["git", "fetch"]:
+            fetches.append(command)
+            assert command[-2:] == [identity["base"], "refs/pull/7/head"]
+            return None  # The fixture already owns the required Git objects.
+        return original_run(command, *args, **kwargs)
+
+    monkeypatch.setattr(integration.subprocess, "run", local_git_only)
+    output = tmp_path / "prepared"
+    inputs = {"action": "plan", "pr": "7", **extra_inputs}
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "prepare")
+    integration.main()
+    assert compare.read_json(output / "pr-plan.json") == plan and len(fetches) == 1
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "publish")
+    api.fail_response = True
+    with pytest.raises(ConnectionError):
+        integration.main()
+    assert len(api.writes) == 1 and len(api.comments) == 1
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "publish", run_id=12)
+    integration.main()
+    assert [write[0] for write in api.writes] == ["POST", "PATCH"]
+    assert len(api.comments) == 1 and "**PLANNED:" in api.comments[0]["body"]
+    assert identity["head"] in api.comments[0]["body"]
+    assert not (output / "approval.json").exists()
+    assert not (output / "execution-claim.json").exists()
+    assert not any((output / "selected/results").iterdir())
+    assert not any("/actions/" in call.args[1] or "/collaborators/" in call.args[1]
+                   for call in request.call_args_list)
+
+
+@pytest.mark.parametrize("mode", ["authorize", "execute", "pack"])
+def test_plan_action_rejects_execution_cli_modes(tmp_path, monkeypatch, mode):
+    output = tmp_path / "prepared"
+    dispatch_event(monkeypatch, tmp_path, output, {"action": "plan", "pr": "7"}, mode)
+    forbidden = Mock(side_effect=AssertionError("Execution path reached"))
+    for name in ("GitHub", "authorize", "claim", "execute", "result_archive"):
+        monkeypatch.setattr(integration, name, forbidden)
+    with pytest.raises(ValueError, match="Plan-only dispatch"):
+        integration.main()
+    forbidden.assert_not_called()
+    assert not output.exists()
+
+
+def test_plan_dispatch_does_not_consume_execution_identity(history_plan):
+    planned = {"id": 1, "event": "workflow_dispatch",
+               "display_title": "skill-eval plan or publish PR 7"}
+    execution = {"id": 2, "event": "workflow_dispatch", "display_title":
+                 integration.run_title(7, integration.fingerprint(history_plan))}
+    with pytest.raises(ValueError, match="Duplicate or uncertain"):
+        integration.claim(history_plan, [planned], 1, 1)
+    assert integration.claim(history_plan, [planned, execution], 2, 1) == (
+        integration.execution_id(history_plan))
+
+
+@pytest.mark.parametrize("field", ["plan_sha256", "version", "base", "head", "budget"])
+@pytest.mark.parametrize("invalid", ["missing", "empty", "wrong"])
+def test_execute_dispatch_requires_all_approval_inputs_before_claim(
+    tmp_path, monkeypatch, history_plan, field, invalid,
+):
+    inputs = {key: history_plan[key] for key in ("version", "base", "head")}
+    inputs.update(action="execute", pr="7", plan_sha256=integration.fingerprint(history_plan),
+                  budget=integration.canonical(integration.budget(history_plan)))
+    if invalid == "missing":
+        del inputs[field]
+    else:
+        inputs[field] = "" if invalid == "empty" else "{}" if field == "budget" else "wrong"
+    output = tmp_path / "prepared"
+    write_json(output / "pr-plan.json", history_plan)
+    api = SimulatedWorkflowHistory(history_plan, [])
+    monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
+    forbidden = Mock(side_effect=AssertionError("Execution identity consumed"))
+    monkeypatch.setattr(integration, "claim", forbidden)
+    monkeypatch.setattr(integration, "execute", forbidden)
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "authorize")
+    with pytest.raises((KeyError, ValueError)):
+        integration.main()
+    forbidden.assert_not_called()
+    assert api.pages_requested == []
+    assert not (output / "approval.json").exists()
+    assert not (output / "execution-claim.json").exists()
+
+
+@pytest.mark.parametrize("source", ["automatic-plan", "manual-plan"])
+def test_publish_dispatch_rejects_planning_source_before_artifact_access(
+    tmp_path, monkeypatch, source,
+):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    output = tmp_path / "prepared"
+    plan = integration.prepare(repo, mapping, identity, output)
+    api = SimulatedGitHub(plan)
+    if source == "automatic-plan":
+        api.run["event"] = "pull_request_target"
+    else:
+        api.run["display_title"] = "skill-eval plan or publish PR 7"
+    request = Mock(wraps=api.request)
+    monkeypatch.setattr(api, "request", request)
+    monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
+    dispatch_event(monkeypatch, tmp_path, output,
+                   {"action": "publish", "pr": "7", "source_run": "10"}, "publish")
+    with pytest.raises(ValueError, match="Untrusted or mismatched execution workflow"):
+        integration.main()
+    request.assert_called_once_with("GET", "/actions/runs/10")
+    assert api.writes == [] and api.comments == []
+
+
+@pytest.mark.parametrize("source", [None, ""])
+def test_publish_dispatch_requires_source_run(tmp_path, monkeypatch, history_plan, source):
+    output = tmp_path / "prepared"
+    write_json(output / "pr-plan.json", history_plan)
+    inputs = {"action": "publish", "pr": "7"}
+    if source is not None:
+        inputs["source_run"] = source
+    forbidden = Mock(side_effect=AssertionError("Source validation bypassed"))
+    monkeypatch.setattr(integration, "GitHub", Mock())
+    monkeypatch.setattr(integration, "publish_retained", forbidden)
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "publish")
+    with pytest.raises(ValueError, match="requires the original execution run ID"):
+        integration.main()
+    forbidden.assert_not_called()
+
+
+def test_plan_dispatch_workflow_keeps_execution_guards():
+    workflow = yaml.safe_load((ROOT / integration.WORKFLOW).read_text(encoding="utf-8"))
+    # PyYAML's YAML 1.1 resolver treats the Actions key `on` as True.
+    triggers = workflow.get("on", workflow.get(True))
+    inputs = triggers["workflow_dispatch"]["inputs"]
+    assert inputs["action"]["options"] == ["plan", "execute", "publish"]
+    assert inputs["action"]["required"] and inputs["pr"]["required"]
+    assert all(inputs[key]["required"] is False
+               for key in ("plan_sha256", "version", "base", "head", "budget"))
+    guard = "github.event_name == 'workflow_dispatch' && inputs.action == 'execute'"
+    assert workflow["jobs"]["plan"]["if"] == "github.ref == 'refs/heads/main'"
+    assert workflow["jobs"]["execute"]["if"] == guard
+    authorize = next(step for step in workflow["jobs"]["plan"]["steps"]
+                     if "authorize --output" in step.get("run", ""))
+    assert authorize["if"] == guard
+    assert workflow["run-name"].startswith("${{ " + guard)

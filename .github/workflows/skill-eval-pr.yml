@@ -17,27 +17,27 @@ on:
     inputs:
       action:
         type: choice
-        options: [execute, publish]
+        options: [plan, execute, publish]
         required: true
-        description: Execute consumes authorization once; publish reuses retained results
+        description: Plan prepares and publishes without execution; execute consumes approval once
       pr:
         required: true
         description: PR number
       plan_sha256:
-        required: true
-        description: Exact PR plan SHA-256 shown by automatic planning
+        required: false
+        description: Required for execute; exact PR plan SHA-256 shown by planning
       version:
-        required: true
-        description: Exact trusted implementation SHA shown in the plan
+        required: false
+        description: Required for execute; exact trusted implementation SHA in the plan
       base:
-        required: true
-        description: Exact compared base SHA
+        required: false
+        description: Required for execute; exact compared base SHA
       head:
-        required: true
-        description: Exact compared head SHA
+        required: false
+        description: Required for execute; exact compared head SHA
       budget:
-        required: true
-        description: Explicit approval of the complete Budget JSON shown in the plan
+        required: false
+        description: Required for execute; approval of the complete Budget JSON in the plan
       source_run:
         description: Execution workflow run ID, required for publish-only retries
 

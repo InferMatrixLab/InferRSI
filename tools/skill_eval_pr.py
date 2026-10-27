@@ -473,6 +473,8 @@ def main():
     output = args.output.resolve()
     event = compare.read_json(Path(os.environ["GITHUB_EVENT_PATH"]))
     inputs = event.get("inputs", {})
+    if inputs.get("action") == "plan" and args.mode not in ("prepare", "publish"):
+        raise ValueError("Plan-only dispatch supports prepare and publish only")
     pr = int(inputs.get("pr") or event["pull_request"]["number"])
     repository = os.environ["GITHUB_REPOSITORY"]
     run_id = int(os.environ["GITHUB_RUN_ID"])
