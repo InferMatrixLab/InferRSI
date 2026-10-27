@@ -70,7 +70,8 @@ class ScriptedClient:
             correct, tokens = category != "domain", 90
         elif self.fault == "holdout_regression" and self.phase == "holdout" and (inv or dom):
             correct = False
-        elif self.fault in ("unknown_usage", "runner_error", "hidden_write") and inv:
+        elif self.fault in ("unknown_usage", "string_usage", "list_usage",
+                            "runner_error", "hidden_write") and inv:
             fault = self.fault
         answers = compare.read_json(self.root / "answers.json")
         answer = final.parent.parent / (final.parent.name + "-fixed.json")

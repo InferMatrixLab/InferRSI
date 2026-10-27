@@ -199,14 +199,17 @@ def run_offline(repo: Path, output: Path, digest: str, *, client_factory) -> dic
         client = client_factory(phase, candidate)
         if client is None or isinstance(client, CodexClient):
             raise ValueError("Only an explicitly injected trusted offline client is supported")
-        compare.execute(directory, authorization, client=client, campaign_deadline=deadline)
+        compare.execute(directory, authorization, client=client, campaign_deadline=deadline,
+                        stop_on_unknown_usage=True)
         phases[phase] = {"candidate": candidate, "plan_sha256": authorization,
                          "report": f"results/{phase}/report.json"}
         report = read_phase(phase)  # Revalidate retained bytes before selection.
         reports[phase] = report
         trials.extend(t for p in report["pairs"] for t in (p["baseline"], p["candidate"])
                       if not t["missing"])
-        if report["status"]["execution_state"] != "completed":
+        if report["status"].get("stop_reason") == "unknown_usage":
+            stopped = "unknown_usage"
+        elif report["status"]["execution_state"] != "completed":
             stopped = "incomplete_execution"
         elif time.monotonic() >= deadline:
             stopped = "total_budget"

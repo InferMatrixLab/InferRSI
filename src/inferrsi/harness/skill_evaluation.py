@@ -75,6 +75,19 @@ class CodexClient:
         return (*argv, prompt)
 
 
+def normalize_usage(usage) -> dict | None:
+    """Keep valid token observations; malformed containers/fields remain unknown.
+
+    The original provider event remains in the trace for diagnosis. This view is
+    shared by live parsing and retained-result reporting, including older records.
+    """
+    if not isinstance(usage, dict):
+        return None
+    return {key: value if type(value) is int and value >= 0 else None
+            for key, value in usage.items()
+            if key in ("input_tokens", "output_tokens", "cached_input_tokens")}
+
+
 def trace_metrics(path: Path) -> dict:
     # Missing usage stays unknown; cached_input is a subset of input.
     usage, commands, errors, completed = None, [], [], 0
@@ -82,7 +95,7 @@ def trace_metrics(path: Path) -> dict:
         event = json.loads(line)
         if event["type"] == "turn.completed":
             completed += 1
-            usage = event.get("usage")
+            usage = normalize_usage(event.get("usage"))
         elif event["type"] in ("turn.failed", "error"):
             errors.append(event)
         elif event["type"] == "item.completed":
@@ -115,7 +128,7 @@ def summarize(trials: list[dict]) -> dict:
     groups = {}
     for condition in sorted({t["condition"] for t in trials}):
         selected = [t for t in trials if t["condition"] == condition]
-        usage = [t["observations"]["usage"] for t in selected]
+        usage = [normalize_usage(t["observations"]["usage"]) for t in selected]
         groups[condition] = {
             "trials": len(selected),
             "verdicts": {
@@ -172,17 +185,23 @@ def run_trial(
     verifier: Path,
     prompt: str,
     deadline: float,
+    *,
+    timeout_seconds: float | None = None,
 ) -> dict:
     trial_dir.mkdir(parents=True)
     final = trial_dir / "answer.json"
     before = {
         p.relative_to(workspace).as_posix(): sha256(p) for p in workspace.rglob("*") if p.is_file()
     }
+    command = client.command(workspace, final, schema, prompt)
+    # An injected client may tighten the frozen limit, but cannot extend it.
+    timeout = client.timeout_seconds if timeout_seconds is None else min(
+        client.timeout_seconds, timeout_seconds)
     execution = execute_command(
-        client.command(workspace, final, schema, prompt),
+        command,
         workspace,
         trial_dir / "agent",
-        min(deadline, time.monotonic() + client.timeout_seconds),
+        min(deadline, time.monotonic() + timeout),
     )
     atomic_write_json(trial_dir / "execution.json", execution)
     try:

@@ -9,7 +9,13 @@ import tempfile
 import time
 from pathlib import Path
 
-from inferrsi.harness.skill_evaluation import CodexClient, export_bundle, run_trial, summarize
+from inferrsi.harness.skill_evaluation import (
+    CodexClient,
+    export_bundle,
+    normalize_usage,
+    run_trial,
+    summarize,
+)
 from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
@@ -385,7 +391,8 @@ def receipt_error(raw_record: bytes, receipt_path: Path, label: str) -> str | No
 
 
 def execute(output: Path, authorization: str, *, client=None,
-            campaign_deadline: float | None = None) -> dict:
+            campaign_deadline: float | None = None,
+            stop_on_unknown_usage: bool = False) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
@@ -421,7 +428,8 @@ def execute(output: Path, authorization: str, *, client=None,
             directory = trial_directory(output, entry)
             result = run_trial(client, task, role, entry["repeat"], workspace,
                                directory, output / "plan/schema.json",
-                               output / "validator/verify.py", prompt, deadline)
+                               output / "validator/verify.py", prompt, deadline,
+                               timeout_seconds=plan["limits"]["timeout_seconds"])
             result["evidence_sha256"] = {name: sha256(directory / name) for name in EVIDENCE
                                          if (directory / name).is_file()}
             atomic_write_json(directory / "result.json", result)
@@ -431,6 +439,11 @@ def execute(output: Path, authorization: str, *, client=None,
         completed += 1
         if result["execution_state"] != "completed":
             stop_reason = "client_" + result["execution_state"]
+            break
+        usage = normalize_usage(result["observations"]["usage"])
+        if stop_on_unknown_usage and (usage is None or any(
+                usage.get(key) is None for key in ("input_tokens", "output_tokens"))):
+            stop_reason = "unknown_usage"
             break
     status = {"client_runtime": runtime,
               "recorded_trials": completed, "expected_trials": len(plan["schedule"]),
@@ -477,7 +490,7 @@ def retained_trial(output: Path, entry: dict) -> dict:
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
                 "verdict", "checks", "elapsed_seconds", "observations", "inputs_unchanged")}
     selected["observations"] = {
-        "usage": record["observations"]["usage"],
+        "usage": normalize_usage(record["observations"]["usage"]),
         "tool_calls": len(record["observations"]["commands"])
         if isinstance(record["observations"].get("commands"), list) else None,
     }
@@ -520,7 +533,7 @@ def condition_summary(trials: list[dict]) -> dict:
         group["expected_trials"] = len(selected)
         group["missing_trials"] = sum(t["missing"] for t in selected)
         for metric in ("input_tokens", "output_tokens"):
-            usage = [t["observations"]["usage"] for t in selected]
+            usage = [normalize_usage(t["observations"]["usage"]) for t in selected]
             group[metric] = sum(u[metric] for u in usage) if all(
                 u is not None and u.get(metric) is not None for u in usage
             ) and usage else None

@@ -3,6 +3,8 @@
 import math
 from dataclasses import dataclass
 
+from .skill_evaluation import normalize_usage
+
 
 @dataclass(frozen=True)
 class SelectionPolicy:
@@ -21,8 +23,9 @@ class SelectionPolicy:
 def usage_totals(trials: list[dict]) -> dict:
     """Unknown and invalid metrics stay unknown; cached input is not added twice."""
     result = {"calls": len(trials), "cost": None}
+    usage = [normalize_usage(t["observations"].get("usage")) for t in trials]
     for field in ("input_tokens", "output_tokens", "cached_input_tokens"):
-        values = [(t["observations"].get("usage") or {}).get(field) for t in trials]
+        values = [(u or {}).get(field) for u in usage]
         result[field] = sum(values) if values and all(
             type(value) is int and value >= 0 for value in values) else None
     for field, values in (

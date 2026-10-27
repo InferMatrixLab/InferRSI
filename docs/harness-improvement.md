@@ -95,9 +95,11 @@ local integrity checks, not signatures against coordinated rewriting.
 The total call allowance includes both arms of every probe, the successor rerun
 and the held-out comparison. The same absolute deadline and remaining observed
 token threshold carry across stages, including comparison preparation time.
-Unknown token usage stops subsequent stages. The token threshold stops **new**
+Unknown token usage stops further task calls and stages. The token threshold stops **new**
 trials; one running trial can cross it. It is not a provider token or monetary
 cap. Unusable evidence or exhausted limits retain H0.
+Each client execution is also bounded by the frozen `timeout_seconds`; an
+injected offline client may use a shorter limit, but cannot extend that bound.
 
 The controller keeps a matched H0 in each comparison. With two proposals this
 means three development comparisons and one held-out comparison, not the four
@@ -119,6 +121,12 @@ them all. It does not infer that a composition works from its component probes.
   composition is deterministic. Human authoring effort is not measured.
   Monetary cost remains unknown, rather than fabricated as zero.
 - Verifier failures in pair grades, separate from runner/input/evidence errors.
+
+Malformed usage containers (including strings and lists) and invalid token
+fields remain unknown in both live parsing and retained-report normalization;
+raw trace bytes are preserved. The improvement loop stops before the next task
+call when input/output usage is unknown and retains H0. Observed token counters
+are only lower bounds; they do not turn missing usage into zero total cost.
 
 The saved `development` record describes the attempted successor even if the
 held-out gate later rejects it. `holdout.successes` scores the frozen candidate;

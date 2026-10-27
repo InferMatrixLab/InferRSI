@@ -1,5 +1,6 @@
 import copy
 import subprocess
+import sys
 from unittest.mock import patch
 
 import pytest
@@ -162,6 +163,33 @@ def test_expired_absolute_deadline_prevents_phase_calls(tmp_path):
     assert result["selected"] == "h0" and result["usage"]["total"]["calls"] == 0
 
 
+@pytest.mark.parametrize("configured_timeout,client_timeout", [(1, 10), (10, 0.1)])
+def test_frozen_and_shorter_client_timeouts_both_bound_offline_calls(
+        tmp_path, configured_timeout, client_timeout):
+    config, repo = fixture(tmp_path)
+    config["limits"]["timeout_seconds"] = configured_timeout
+    output = tmp_path / "run"
+    digest = improve.prepare(config, repo, output)
+    calls = []
+
+    class DelayedClient:
+        timeout_seconds = client_timeout
+
+        def command(self, workspace, final, schema, prompt):
+            calls.append(final)
+            return (sys.executable, "-c", "import time; time.sleep(1.3)")
+
+    result = improve.run_offline(repo, output, digest,
+                                client_factory=lambda *args: DelayedClient())
+    assert len(calls) == 1
+    record = compare.read_json(calls[0].parent / "result.json")
+    assert record["execution_state"] == "timeout"
+    report = compare.read_report(output / "results/inv")
+    assert report["status"]["stop_reason"] == "client_timeout"
+    assert result["selected"] == "h0" and not result["accepted"]
+    assert list(result["phases"]) == ["inv"]
+
+
 @pytest.mark.parametrize("mutation", ["overlap", "mixed_split", "calls", "threshold", "extra"])
 def test_reject_invalid_control_plan_before_execution(tmp_path, mutation):
     config, repo = fixture(tmp_path)
@@ -190,7 +218,8 @@ def test_proposals_cannot_change_hidden_answers_metadata_or_executables(tmp_path
         improve.prepare(config, repo, tmp_path / "run")
 
 
-def test_plan_mutation_and_real_client_rejected(tmp_path):
+@pytest.mark.parametrize("client", [None, CodexClient("unused", "test", 1)])
+def test_plan_mutation_and_real_client_rejected(tmp_path, client):
     config, repo = fixture(tmp_path)
     output = tmp_path / "run"
     digest = improve.prepare(config, repo, output)
@@ -200,8 +229,7 @@ def test_plan_mutation_and_real_client_rejected(tmp_path):
         improve.run_offline(repo, output, digest, client_factory=None)
     (output / "freeze.json").write_bytes(original)
     with pytest.raises(ValueError, match="offline client"):
-        improve.run_offline(repo, output, digest,
-                            client_factory=lambda *args: CodexClient("unused", "test", 1))
+        improve.run_offline(repo, output, digest, client_factory=lambda *args: client)
 
 
 @pytest.mark.parametrize("artifact", ["answer.json", "result.json", "agent/stdout.log"])
@@ -291,6 +319,30 @@ def test_cost_selection_ignores_unknown_and_preserves_quality_floor(tmp_path):
     assert choose({"inv": report}, policy, composable=False)["successor"] == "inv"
     report["pairs"][0]["candidate"]["observations"]["usage"] = None
     assert choose({"inv": report}, policy, composable=False)["successor"] == "h0"
+
+
+@pytest.mark.parametrize("usage", ["malformed", [1]])
+def test_malformed_usage_container_stays_unknown(usage):
+    trial = {"observations": {"usage": usage}, "elapsed_seconds": 1}
+    totals = usage_totals([trial])
+    assert totals["total_tokens"] is None
+    assert totals["input_tokens"] is None and totals["output_tokens"] is None
+
+
+@pytest.mark.parametrize("fault", ["string_usage", "list_usage"])
+def test_malformed_trace_usage_stops_calls_and_retains_h0(tmp_path, fault):
+    result, clients, output, _, _ = run(tmp_path, fault)
+    assert result["selected"] == "h0" and not result["accepted"]
+    assert result["usage"]["total"]["total_tokens"] is None
+    assert result["stop_reason"] == "unknown_usage"
+    assert sum(len(client.calls) for client in clients) == 2
+    assert list(result["phases"]) == ["inv"]
+    # Reporting retained bytes must also work without another client invocation.
+    report = compare.read_report(output / "results/inv")
+    trial = report["pairs"][0]["candidate"]
+    assert trial["observations"]["usage"] is None
+    assert report["conditions"]["candidate"]["input_tokens"] is None
+    assert report["conditions"]["candidate"]["output_tokens"] is None
 
 
 def test_holdout_allows_exact_tie_but_rejects_equal_quality_at_higher_cost(tmp_path):

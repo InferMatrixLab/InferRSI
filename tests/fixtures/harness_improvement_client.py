@@ -18,5 +18,9 @@ event = {"type": "turn.completed"}
 if fault != "unknown_usage":
     event["usage"] = {"input_tokens": int(tokens) - 20, "output_tokens": 20,
                       "cached_input_tokens": 10}
+if fault == "string_usage":
+    event["usage"] = "malformed"
+elif fault == "list_usage":
+    event["usage"] = [1]
 print(json.dumps(event))
 raise SystemExit(2 if fault == "runner_error" else 0)
