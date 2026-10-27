@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md",
-      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e9d26f14288a4c6d737b9e404261815592bf9c9f/src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md",
+      "commit": "e9d26f14288a4c6d737b9e404261815592bf9c9f",
       "paths": [
         "src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md",
         "src/inferrsi/data/skill_library/methods/training-input-pipeline/metadata.json",
@@ -43,7 +43,7 @@
     "src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md": "64bd2c6b795d966045d1d3cca55976d3d49b08b06df7c7e06a70c2824cf55b7e",
     "src/inferrsi/data/skill_library/methods/training-input-pipeline/metadata.json": "80659099fce6a6ec05e9084b75452c877a5812e30f60a78f31ef8c7efcdc1bac",
     "src/inferrsi/data/skill_library/methods/training-input-pipeline/references/sources.md": "60e0f3e88655d8e1d5eb4797f39ca4370deda01614f265b8d2ea4559d8ac020f",
-    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
+    "src/inferrsi/data/skill_library/skill-index.json": "18e22c8e3136c463c8f83bcd1fc95f10592e59e9b097aeb1acf37863e374dded"
   },
   "skill_metadata": {
     "name": "training-input-pipeline",
