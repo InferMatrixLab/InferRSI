@@ -1,0 +1,27 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "model-runtime",
+  "target_capability": "Exact MLX affine layout and role-bit contract",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "lily/src/config.rs:114-182",
+    "lily/src/weights.rs:22-82",
+    "lily/src/weights.rs:276-321",
+    "lily/tests/unit/weights.rs:1-32"
+  ],
+  "expected_skill_files": [
+    "sub-skills/model-runtime/SKILL.md",
+    "sub-skills/model-runtime/references/model-and-memory.md",
+    "sub-skills/model-runtime/references/troubleshooting.md",
+    "sub-skills/model-runtime/scripts/screen_config.py"
+  ],
+  "assertions": [
+    "The response routes to model-runtime and refuses to treat changing config fields as conversion of GPTQ or group128 payloads.",
+    "The response specifies MLX affine group64, U32 low-element-first packed codes, BF16 multiplicative scales and additive biases.",
+    "The response distinguishes global Q4 from required Q8 router and shared-expert-gate storage.",
+    "The response uses or names the bundled screen as selected-rule screening only, with tensor names/shapes/dtypes/packing/payload and native execution unchecked.",
+    "The response rejects the wrong-group fixture without claiming it represents a complete checkpoint.",
+    "The response retains missing Rust1.92 and Apple Metal requirements and does not call Python checks native validation.",
+    "The response stops before modifying weights, installing a compiler, downloading a model or asserting quality/performance."
+  ]
+}

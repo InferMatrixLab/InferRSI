@@ -1,0 +1,27 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "serving-cache",
+  "target_capability": "salted prompt identity versus global image encoding",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "DEVELOPMENT.md:952-957",
+    "server/frontend.py:604-617",
+    "runtime/engine/KvCache.cpp:30-67",
+    "runtime/engine/KvCache.hpp:96-101",
+    "runtime/engine/Cache.cpp:212-247"
+  ],
+  "expected_skill_files": [
+    "sub-skills/serving-cache/SKILL.md",
+    "sub-skills/serving-cache/references/state-and-api.md",
+    "sub-skills/serving-cache/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response routes to serving-cache and uses the bundled identity/lifetime guidance.",
+    "It explains that exact token blocks chain through parents and include image identity, with the cache salt separating different requests' prompt chains at the root.",
+    "It states that different salts do not share cached prompt KV and composite states, even when visible text and tokens match.",
+    "It separately states that encoded image rows may be reused from a global image-keyed cache independent of the request salt.",
+    "It rejects treating cache_salt as authentication, filesystem access control or universal all-cache tenant isolation.",
+    "It proposes an offline identity/counter comparison rather than running inference, downloading weights or changing server exposure.",
+    "It does not present source inspection or Python protocol/LRU checks as native Metal/ANE cache verification."
+  ]
+}

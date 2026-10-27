@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "source_commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+  "subdirectory": "lily",
+  "environment": "Linux x86_64; private Python3.12 helper checks only; Cargo/rustc and supported Apple native resources unavailable.",
+  "stage_order": "All author lanes and root integrated/reviewed before final graph/helper verification. No original Rust/native test was run.",
+  "cases": [
+    {
+      "id": "source-native-rust",
+      "status": "NOT_RUN_MISSING_TOOLCHAIN",
+      "reason": "cargo/rustc absent; no host toolchain install performed",
+      "scope": "Compile/cfg/integration tests not executed; source reading is not compiler evidence."
+    },
+    {
+      "id": "offline-config-helper",
+      "status": "PASS",
+      "scope": "Lane4 positive+13 negative fixtures, CLI/help and explicit screen-only/unchecked boundary; not full serde/config/native loader parity."
+    },
+    {
+      "id": "offline-request-helper",
+      "status": "PASS",
+      "scope": "Lane5 positive+16 negative structural shapes, CLI/help/fixtures and conflicts; not tokenizer, native request/cache or capacity validation."
+    },
+    {
+      "id": "offline-record-auditor",
+      "status": "PASS",
+      "scope": "Production/diagnostic supplied records and8 negative fixtures plus CLI/help; consistency is not authentic execution."
+    },
+    {
+      "id": "graph-and-helper-regression",
+      "status": "PASS",
+      "tests": 3,
+      "scope": "Root YAML/JSON/links/resources/helper tests and Ruff; recursive license gate valid4."
+    },
+    {
+      "id": "native-metal-model-state",
+      "status": "BLOCKED_REQUIRED_BACKEND",
+      "backend_requirement": "accelerator-specific",
+      "backend_criticality": "required",
+      "cpu_substitute": "partial",
+      "dependency_variant": "Rust1.92 locked crate, macOS26/M5+, exact supported MLX affine checkpoint",
+      "hardware_prerequisites": "Apple GPU family10+, actual compatible model/tokenizer/template bytes",
+      "verification_expectation": "native compile/shader/operator/recurrent/session/golden and model/quality/service cases",
+      "assigned_environment": "unavailable"
+    }
+  ],
+  "not_run": [
+    "Rust compilation and native tests",
+    "Metal shader/operator/state/model execution",
+    "model payload/tokenizer/template validation",
+    "service quality/performance and behavioral skill efficacy"
+  ],
+  "final_admission": "pending informed manual candidate decision; native block is not removed by helper checks"
+}

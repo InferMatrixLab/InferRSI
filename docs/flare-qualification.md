@@ -63,9 +63,16 @@ it does not load a tokenizer or prove that a rendered prompt tokenizes correctly
 
 Each observation must match its sidecar and raw SSE payloads, successful HTTP
 completion, terminal DONE, prompt/output/usage counts and sent request identity.
+Pinned Flare saves each sidecar before `run` adds
+`analysis.http_prefill_tokens_per_second` to measurements for `ttft-4096` and
+`prefill-65536`. The adapter accepts that one addition only with the pinned
+formula (`prompt_token_count * 1e9 / analysis.delivery_ttft_ns`); every original
+field, including the rest of analysis, must still match. Identical unaugmented
+copies remain supported. The adapter does not modify either input copy.
 Coalesced groups must agree with any recorded grouping analysis. Summary TTFT
-numbers are not metric inputs. Explicit failed qualification/group flags and
-stream errors remain rejections even if other raw checks pass.
+and derived throughput numbers are not metric inputs. Explicit failed
+qualification/group flags and stream errors remain rejections even if other raw
+checks pass.
 
 The native `prefill_chunk_size` label must match the preparation report. Selected
 raw snapshots must contain unlabelled integer samples for the scheduler gauges,
@@ -146,6 +153,7 @@ pytest tests/test_flare_adapter.py
 
 The fixture writer saves a complete one-repetition packet, including raw SSE,
 coalesced token events, a prefix-hit case and before/after resource snapshots.
+It follows the pinned producer's sidecar-before-derived-analysis write order.
 It labels every packet `synthetic=true`; no tokenizer, model, server or device
 is used. Synthetic delivery timings and model/package placeholders are parser
 test inputs, not measured service results.
@@ -153,5 +161,6 @@ test inputs, not measured service results.
 Tests cover raw recomputation and unchanged originals; missing raw/group/request
 records; wrong clock declarations; invented coalesced-token timing; capacity,
 counter and resource mismatches; stream failures and digest drift; pair scope;
-and real local runner execution of both adapter commands. Fixture acceptance
-does not establish service quality, a performance gain or agent efficacy.
+sidecar/measurements divergence even with refreshed digests; and real local
+runner execution of both adapter commands. Fixture acceptance does not establish
+service quality, a performance gain or agent efficacy.

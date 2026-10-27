@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/17b404a018fe2c0d5c6457c4fc31ad641f884f5d/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
-      "commit": "17b404a018fe2c0d5c6457c4fc31ad641f884f5d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json",
@@ -41,10 +41,10 @@
   "checkout_ref": "checkout:ascend-performance-analysis",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "dccbc404b18cb7ec46b0cfa85d8937e2626456526bd2453db8136f730debd456",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "9e705625c8308013c287576b0247da6f6116d817a4a535cbecff80abd6ea35ee",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "ascend-performance-analysis",
@@ -93,9 +93,6 @@
       }
     ],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
@@ -105,12 +102,9 @@
     "provenance_readsets": [
       "references/cannbot-stage-evidence.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

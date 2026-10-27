@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/17b404a018fe2c0d5c6457c4fc31ad641f884f5d/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
-      "commit": "17b404a018fe2c0d5c6457c4fc31ad641f884f5d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
@@ -45,12 +45,12 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md": "c993bd6ff8e9b5f82f39f175ec8242341136e4ee0808af414e1d94ad3e196c5e",
-    "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json": "c1542bfea85a0c4a1537a05a66cd04b59c97633d88937b53c92ee274b264eab3",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json": "74742851a002a51c208362cdcd2a59fdab5d1734d8492b1f93fbec3cf21e0841",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md": "614c9a4e6943d24d7d7be7d632682ce8b1dcc239124a37d9dc1d487113772eac",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md": "ca996ef515af42a3ce304747fa3f12a31c00533deaace5ba2ce21aefa0a62e2e",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/validation-boundaries.md": "1913dedbeb558d872d6a0e015cc11d822910c3cb259a236db29fb60ad8a64263",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "comfy-ui",
@@ -114,7 +114,6 @@
     "provenance_readsets": [
       "references/repo-provenance.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

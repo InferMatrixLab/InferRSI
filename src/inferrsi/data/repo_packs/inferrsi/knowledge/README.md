@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 60 registered skills in `data/skill_library/`.
+Generated abstracts for all 64 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [17b404a018fe2c0d5c6457c4fc31ad641f884f5d](https://github.com/InferMatrixLab/InferRSI/tree/17b404a018fe2c0d5c6457c4fc31ad641f884f5d/src/inferrsi/data/skill_library).
+Source snapshot: [bb81ef2fec1b79d71eba1026ab1466117c3262cc](https://github.com/InferMatrixLab/InferRSI/tree/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 17b404a018fe2c0d5c6457c4fc31ad641f884f5d --check
+python tools/build_skill_index.py --source-revision bb81ef2fec1b79d71eba1026ab1466117c3262cc --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -72,16 +72,19 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [diagnose-vllm-admission-pressure](common/skills/diagnose-vllm-admission-pressure.json) | common | candidate |
 | [diffusers-invocation-state](common/skills/diffusers-invocation-state.json) | common | candidate |
 | [draft-acceptance-issue](common/skills/draft-acceptance-issue.json) | common | unspecified |
+| [dwarfstar](common/skills/dwarfstar.json) | common | candidate |
 | [evaluate-elastic-serving-placement](common/skills/evaluate-elastic-serving-placement.json) | common | candidate |
 | [generation-cache-lifecycle](common/skills/generation-cache-lifecycle.json) | common | candidate |
 | [host-memory-management](common/skills/host-memory-management.json) | common | candidate |
 | [host-overhead-optimization](common/skills/host-overhead-optimization.json) | common | candidate |
 | [host-overhead-profiling](cuda/skills/host-overhead-profiling.json) | cuda | candidate |
+| [husky](common/skills/husky.json) | common | candidate |
 | [inference-benchmark-design](common/skills/inference-benchmark-design.json) | common | candidate |
 | [inference-optimization-casebook](common/skills/inference-optimization-casebook.json) | common | candidate |
 | [kernel-writing-guide](common/skills/kernel-writing-guide.json) | common | candidate |
 | [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
 | [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |
+| [lily](common/skills/lily.json) | common | candidate |
 | [npu-skill-factory](common/skills/npu-skill-factory.json) | common | candidate |
 | [optimization-search-policy](common/skills/optimization-search-policy.json) | common | candidate |
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
@@ -91,6 +94,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | unspecified |
 | [skill-evolution-playbook](common/skills/skill-evolution-playbook.json) | common | candidate |
+| [splash](common/skills/splash.json) | common | candidate |
 | [storage-io-measurement](common/skills/storage-io-measurement.json) | common | candidate |
 | [torchnpu-device-memory-lifecycle](ascend/skills/torchnpu-device-memory-lifecycle.json) | ascend | candidate |
 | [torchnpu-pinned-host-memory-lifecycle](ascend/skills/torchnpu-pinned-host-memory-lifecycle.json) | ascend | candidate |

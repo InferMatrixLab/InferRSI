@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/17b404a018fe2c0d5c6457c4fc31ad641f884f5d/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
-      "commit": "17b404a018fe2c0d5c6457c4fc31ad641f884f5d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json",
@@ -41,9 +41,9 @@
   "checkout_ref": "checkout:audit-llama-runtime-state",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md": "95e81b6bc096a954fa73139ea5bc001d1efa6c99747161da62f012b494e5c013",
-    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "c354138008eb577b93d2a3cf93f6ae56369439d0d70d799c47a63d8cb4ff8b75",
+    "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/metadata.json": "1d30b31dc8352fc6a8d7b8abbef8118c840e47e5b90795dae0c758bf9717278c",
     "src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/references/source-notes.md": "3d12a401e9decb55a2f4f3b2bfa0d360ef5110f63a0469dfe285654e78054190",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "audit-llama-runtime-state",
@@ -104,7 +104,6 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

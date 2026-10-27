@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/17b404a018fe2c0d5c6457c4fc31ad641f884f5d/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "17b404a018fe2c0d5c6457c4fc31ad641f884f5d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
@@ -46,16 +46,16 @@
   "checkout_ref": "checkout:inference-optimization-casebook",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "677d95abb353cecdfca81132759e6a8cd5804ee48c4163e150dde72a2b89f335",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md": "fbe1061e07502072a08841974845cccb3e133cded0c8eead0c27a912b1554d02",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "5adddf5cd6455b8c0bb40f96a22da29b87caf578a14d48dc671b17025748f4f1",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "65b4228f8e4ea980b93197e505190ccfedfc5a0f7fd1c28671ec693e3d2a4218",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "a2df4056af372fbbb2fbe90db01acc926fad78775844fa91cff8bc2f3286ff58",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "fdcadb4488e29ca45edf21a350ed28ed4f6c6a9fb4772a61d90ca8f62ce5bb04",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "6aa0dd8ae9a8b45d770593f236ce39a6c2e06a8e67ad7176b47d484686028f63",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "3319e23bbe2bd40e2d45fb89dc87bdc92d4df2b5ddd8086fcf84813b43885b7c",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "2cc0a526fe0509551607a03e7626dd3d7844e643c4afb194837f75cddead8b12",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.md": "6f143bc363a3290fc008c08e57cb075f1776d1c8cca8a6a59297d5b1fbbf61bf",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.json": "b3d538f79c56724ccb2895cbf50cf2e6b0fec3979be62a684a8230cd932dff55",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "146ea1564a46ed03092c7dc5796b318fc05b04b1821105ee00eb7fa7fa1333e2",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "fb55067fb45970319787068a3206110641cceaf0ccbabd706be6d0b3d2afc2ed",
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "inference-optimization-casebook",
@@ -73,22 +73,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

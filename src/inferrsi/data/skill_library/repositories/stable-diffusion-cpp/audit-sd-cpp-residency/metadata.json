@@ -29,6 +29,5 @@
     "Loader rules select ordinary non-ZIP safetensors; full GGUF/Torch/ZIP parsers, special quantization/conversion correctness and native failure injection remain unqualified."
   ],
   "provenance_readsets": ["references/source-notes.md", "references/loader-storage-boundaries.md"],
-  "references": [],
   "consumption_mode": "packaged"
 }
