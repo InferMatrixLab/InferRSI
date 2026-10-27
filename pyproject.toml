@@ -23,7 +23,7 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/scripts/*.py"]
+inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py"]
 
 [project.optional-dependencies]
 skills = ["PyYAML>=6.0"]

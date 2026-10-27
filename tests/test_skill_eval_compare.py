@@ -125,6 +125,29 @@ def test_budget_stops_leave_missing_sides_and_unknown_usage(tmp_path):
     assert result["pairs"][1]["baseline"]["missing"] is True
 
 
+@pytest.mark.parametrize("usage", ["malformed", [1]])
+def test_legacy_malformed_usage_report_stays_unknown_without_rewriting_evidence(tmp_path, usage):
+    config, repo = configuration(tmp_path, ids=("one",))
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path)
+    original = compare.execute(output, authorization, client=client)
+    path = output / original["pairs"][0]["candidate"]["evidence"]["result.json"]
+    record = compare.read_json(path)
+    # Model a legacy controller that retained raw provider usage with a valid receipt.
+    record["observations"]["usage"] = usage
+    write_json(path, record)
+    receipt = path.parent / "receipt.json"
+    write_json(receipt, {"result_sha256": sha256(path)})
+    saved = path.read_bytes(), receipt.read_bytes()
+    result = compare.report(output)
+    assert result["pairs"][0]["candidate"]["observations"]["usage"] is None
+    assert result["conditions"]["candidate"]["input_tokens"] is None
+    assert result["conditions"]["candidate"]["output_tokens"] is None
+    assert len(client.calls) == 2
+    assert saved == (path.read_bytes(), receipt.read_bytes())
+
+
 def test_run_status_receipt_rejects_changed_completion_and_budget_fields(tmp_path):
     config, repo = configuration(tmp_path, ids=("one",), token_stop_new_trials=1)
     output = tmp_path / "run"

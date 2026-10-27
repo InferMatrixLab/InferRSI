@@ -1,0 +1,25 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "serving-state",
+  "target_capability": "multimodal live-prefix identity",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "ds4.h:448-472",
+    "ds4.c:76362-76425",
+    "ds4_server.c:11593-11614",
+    "tests/test_session_state.c:6-117"
+  ],
+  "expected_skill_files": [
+    "sub-skills/serving-state/SKILL.md",
+    "sub-skills/serving-state/references/state-contracts.md",
+    "sub-skills/serving-state/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response routes this cache question to serving-state and its bundled references.",
+    "It rejects old image-conditioned reuse when a historical fingerprint or embedding row count differs, even if visible text and tool IDs match.",
+    "It distinguishes the fingerprint-only routing probe from subsequent token-history, span-position and independent continuation checks.",
+    "It treats appending an image as conditional on preserving historical identity and placing the new image at or beyond the retained frontier, not as unconditional reuse.",
+    "It proposes a one-variable image-identity diagnostic without a model download or inference execution.",
+    "It keeps required native accelerator/model verification blocked and does not describe a synthetic or CPU predicate check as equivalent evidence."
+  ]
+}

@@ -31,9 +31,6 @@
     }
   ],
   "empirical_validation": "not_run",
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Only the incremental awesome-ascend-skills communication-test slice is normalized; inherited strategy guidance and its source identities remain unchanged.",
@@ -42,6 +39,5 @@
   "provenance_readsets": [
     "references/awesome-ascend-communication-tests.md"
   ],
-  "references": [],
   "consumption_mode": "packaged"
 }

@@ -36,6 +36,12 @@ Before profiling, gather what you can analytically:
 
 Requires only model config and a hardware table entry.
 
+For supplied single-resource work/traffic counts, the bundled
+[pure helper](scripts/roofline.py) implements the arithmetic under an explicit
+[input/output contract and synthetic attachment example](references/roofline-contract.md).
+It preserves sources and unknowns; it does not collect hardware facts, estimate
+model work or establish attainable speedup, goal acceptance or E2E performance.
+
 **FLOPs per forward pass:**
 
 For a linear projection of shape (batch × seq, in_channels, out_channels):
@@ -334,5 +340,6 @@ and [decision cases](references/papers-20261015/cases/decision-cases.md) retain
 paper-specific costs, counter-signals and unresolved metric discrepancies.
 Use [simulator calibration](../calibrate-serving-simulation/SKILL.md) for a
 prediction-based shortlist and [attention diagnosis](../../hardware/cuda/diagnose-attention-bottlenecks/SKILL.md)
-for algorithm/operation-class changes. These are candidate guidance, not local
-performance measurements or an automatic ceiling calculator.
+for algorithm/operation-class changes. These remain candidate guidance, not local
+performance measurements. The bundled helper only computes explicitly supplied
+L1 inputs under the contract above.
