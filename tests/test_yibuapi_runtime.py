@@ -99,8 +99,7 @@ def test_worker_runs_read_submit_with_fake_transport_and_no_key_in_evidence(tmp_
         calls.append(copy.deepcopy(payload))
         return read() if len(calls) == 1 else submit()
 
-    args = ["--workspace", str(workspace), "--final", str(final), "--schema", str(schema),
-            "--settings", agent.canonical(p), "--prompt", "public fixture", "--timeout", "30"]
+    args = client(p).command(workspace, final, schema, "public fixture")[3:]
     assert agent.main(args, environment={agent.KEY_ENV: FAKE_KEY},
                       transport=transport, emit=events.append) == 0
     assert json.loads(final.read_text()) == ANSWER and len(calls) == 2
