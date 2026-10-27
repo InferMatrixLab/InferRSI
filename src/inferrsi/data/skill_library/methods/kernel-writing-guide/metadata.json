@@ -9,7 +9,10 @@
     "accelerator",
     "akg",
     "affine",
-    "tail-guards"
+    "tail-guards",
+    "vllm",
+    "gdn",
+    "causal-convolution"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -18,17 +21,41 @@
   "origin": [
     "external"
   ],
-  "sources": [],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/vllm-project/vllm",
+      "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+      "paths": [
+        "LICENSE",
+        "vllm/model_executor/models/qwen3_next.py",
+        "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+        "vllm/model_executor/layers/mamba/gdn/base.py",
+        "vllm/model_executor/layers/mamba/mamba_utils.py",
+        "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+        "vllm/v1/attention/backends/gdn_attn.py",
+        "vllm/v1/attention/backends/utils.py",
+        "vllm/envs.py",
+        "vllm/third_party/flash_linear_attention/LICENSE",
+        "tests/v1/attention/test_gdn_metadata_builder.py",
+        "tests/kernels/mamba/test_causal_conv1d.py"
+      ],
+      "readset": "references/vllm-gdn-causal-conv-contract.md"
+    }
+  ],
   "empirical_validation": "not_run",
   "applicability": {
     "scope": "See procedure prerequisites and counter-signals"
   },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "The typed vLLM entry covers only the new GDN reference; older source inventories remain incomplete.",
+    "vLLM GDN source contract only; no concrete HF binding, native backend execution, hardware qualification, performance or agent-efficacy evaluation."
   ],
   "provenance_readsets": [
-    "references/akg-affine-tail-guards.md"
+    "references/akg-affine-tail-guards.md",
+    "references/vllm-gdn-causal-conv-contract.md"
   ],
   "references": [],
   "consumption_mode": "packaged"

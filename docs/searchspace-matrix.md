@@ -439,3 +439,9 @@ Network coverage. Existing resource cells and maturity boundaries remain unchang
 This adds conditional Hopper guidance without new measured or green coverage.
 Registers, SMEM and HBM remain device resources; local CTA/cluster coordination
 and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.
+
+## vLLM GDN operator qualification
+
+| Resource | Stages and mechanism | Owner and evidence | Qualification boundary |
+|---|---|---|---|
+| Accelerator | Diagnose / Configure / Verify: concrete Qwen3-Next GDN caller, requested/effective prefill recurrence, separate in-tree conv fwd/update, mixed/speculative metadata, state-row and progress contract | [kernel-writing-guide reference](../src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md), [four source cases](../src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.md); vLLM @ `537a79f0fc5ba564d2bef43d54915b2f80f9f77d` | Source-derived candidate; native not_run, agent efficacy not_evaluated. HF caller binding, external implementation equivalence, physical allocation/recycling, target hardware and performance remain unqualified. |
