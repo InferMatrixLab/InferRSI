@@ -99,10 +99,11 @@ from pathlib import Path
 
 owner = Path("<skill-root>")
 helper = runpy.run_path(str(owner / "scripts/roofline.py"))
+analyze = helper["analyze"]
 example = json.loads((owner / "references/roofline-example.json").read_text(encoding="utf-8"))
 attachment = {
     "helper_revision": "<knowledge-bundle-revision-or-helper-code-sha256>",
-    "analysis": helper["analyze"](**example),
+    "analysis": analyze(**example),
 }
 target = Path("<campaign-root>") / "plan/attachments/<analysis-id>.json"
 target.parent.mkdir(parents=True, exist_ok=True)
