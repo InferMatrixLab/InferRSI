@@ -19,7 +19,10 @@
     "accelerator",
     "akg",
     "affine",
-    "tail-guards"
+    "tail-guards",
+    "vllm",
+    "gdn",
+    "causal-convolution"
   ],
   "origin": [
     "external"
@@ -27,15 +30,18 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e862b0ff1b97d0dc9bb10572201121bd2b159800/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
+      "commit": "e862b0ff1b97d0dc9bb10572201121bd2b159800",
       "paths": [
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.json",
+        "src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.md",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md",
+        "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "01fb1712d7eb988c5e412f02340d2e48b4f8564fcf4ab232dc5897869d0d50a0"
+      "content_sha256": "3614ce5c4a51311a4d203a66bfa5866d5c24687bbf139671d7ddd0ef378becaf"
     }
   ],
   "index_type": "packaged-skill",
@@ -44,9 +50,12 @@
   },
   "checkout_ref": "checkout:kernel-writing-guide",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "01fb1712d7eb988c5e412f02340d2e48b4f8564fcf4ab232dc5897869d0d50a0",
-    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "a16a3c72a82c25794b5493ff5037e7baec37a1469a823497f96be362ad6c28f0",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "3614ce5c4a51311a4d203a66bfa5866d5c24687bbf139671d7ddd0ef378becaf",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.json": "78176ff600be312b42438c25d243113f94a7cf511ec8943418997176a07d4d05",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.md": "65f4b969c39345e31d7ab8f157df078b9e6274d2a4b52aac980ee8521fd51b0f",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "74e36ccaa41916c455b5719dcad1361317146ba6edf94f85251cd6bf7c76e875",
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",
+    "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md": "eec09a6e95983c46b67d5f066d34419c17819899f5d8e3c65f2f163f2ada0fde",
     "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
   },
   "skill_metadata": {
@@ -62,7 +71,10 @@
       "accelerator",
       "akg",
       "affine",
-      "tail-guards"
+      "tail-guards",
+      "vllm",
+      "gdn",
+      "causal-convolution"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -71,17 +83,41 @@
     "origin": [
       "external"
     ],
-    "sources": [],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm",
+        "commit": "537a79f0fc5ba564d2bef43d54915b2f80f9f77d",
+        "paths": [
+          "LICENSE",
+          "vllm/model_executor/models/qwen3_next.py",
+          "vllm/model_executor/layers/mamba/gdn/qwen_gdn_linear_attn.py",
+          "vllm/model_executor/layers/mamba/gdn/base.py",
+          "vllm/model_executor/layers/mamba/mamba_utils.py",
+          "vllm/model_executor/layers/mamba/ops/causal_conv1d.py",
+          "vllm/v1/attention/backends/gdn_attn.py",
+          "vllm/v1/attention/backends/utils.py",
+          "vllm/envs.py",
+          "vllm/third_party/flash_linear_attention/LICENSE",
+          "tests/v1/attention/test_gdn_metadata_builder.py",
+          "tests/kernels/mamba/test_causal_conv1d.py"
+        ],
+        "readset": "references/vllm-gdn-causal-conv-contract.md"
+      }
+    ],
     "empirical_validation": "not_run",
     "applicability": {
       "scope": "See procedure prerequisites and counter-signals"
     },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "The typed vLLM entry covers only the new GDN reference; older source inventories remain incomplete.",
+      "vLLM GDN source contract only; no concrete HF binding, native backend execution, hardware qualification, performance or agent-efficacy evaluation."
     ],
     "provenance_readsets": [
-      "references/akg-affine-tail-guards.md"
+      "references/akg-affine-tail-guards.md",
+      "references/vllm-gdn-causal-conv-contract.md"
     ],
     "references": [],
     "consumption_mode": "packaged"
@@ -99,7 +135,9 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "The typed vLLM entry covers only the new GDN reference; older source inventories remain incomplete.",
+    "vLLM GDN source contract only; no concrete HF binding, native backend execution, hardware qualification, performance or agent-efficacy evaluation."
   ],
   "verification": {
     "locally_verified": false,
