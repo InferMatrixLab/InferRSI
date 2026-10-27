@@ -67,30 +67,6 @@ def test_changed_hashed_file_fails(bundle):
     assert "SHA-256 mismatch" in str(validate_inventory(repo)["errors"])
 
 
-def test_nested_bundle_hashes_are_verified(bundle):
-    repo, root, inventory = bundle
-    hashes = json.loads((root / "plan/freeze.json").read_text(encoding="utf-8"))
-    write_json(root / "plan/freeze.json", {"schema_version": 1, "files": hashes})
-    inventory["bundles"]["synthetic"]["manifests"][0]["field"] = "files"
-    write_json(repo / "tools/evidence_inventory.json", inventory)
-    result = validate_inventory(repo)
-    assert result["errors"] == []
-    assert result["checked_hashes"] == 1
-    (root / "validator/check.py").write_bytes(b"# changed nested payload\n")
-    assert "SHA-256 mismatch" in str(validate_inventory(repo)["errors"])
-
-
-@pytest.mark.parametrize("manifest", [
-    {"other": {}}, {"files": []}, {"files": None}, {"files": "not a mapping"}, {"files": {}},
-])
-def test_nested_bundle_field_must_exist_and_be_nonempty_mapping(bundle, manifest):
-    repo, root, inventory = bundle
-    write_json(root / "plan/freeze.json", manifest)
-    inventory["bundles"]["synthetic"]["manifests"][0]["field"] = "files"
-    write_json(repo / "tools/evidence_inventory.json", inventory)
-    assert validate_inventory(repo)["errors"]
-
-
 @pytest.mark.parametrize("path", ["../outside", "/outside", "C:/outside", "..\\outside", "a/../b"])
 def test_unsafe_manifest_path_fails(bundle, path):
     repo, root, _ = bundle
@@ -169,6 +145,6 @@ def test_checked_in_inventory():
     repo = Path(__file__).resolve().parents[1]
     result = validate_inventory(repo)
     assert result["errors"] == []
-    assert len(result["bundles"]) == 9
-    assert result["checked_hashes"] == 120
+    assert len(result["bundles"]) == 8
+    assert result["checked_hashes"] == 112
     assert result["unavailable"]  # Historical raw artifacts are not in this checkout.

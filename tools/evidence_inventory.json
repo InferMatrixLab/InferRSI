@@ -7,13 +7,6 @@
       "manifests": [{"path": "plan/freeze.json", "schema": "bundle-sha256"}],
       "external": ["Runtime evidence referenced by results/status.json is stored separately."]
     },
-    "knowledge-retrieval-20261027": {
-      "kind": "campaign",
-      "manifests": [{
-        "path": "plan/freeze.json", "schema": "bundle-sha256", "field": "files"
-      }],
-      "external": ["Private local pytest logs are not copied; results/validation-summary.md retains the failed suite, baseline failure reproductions and package-check qualification."]
-    },
     "modular-refactor-20261013": {
       "kind": "campaign",
       "manifests": [{
