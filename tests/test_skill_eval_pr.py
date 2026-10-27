@@ -451,8 +451,13 @@ def test_workflow_separates_execution_and_publication_credentials():
     workflow = yaml.safe_load((ROOT / integration.WORKFLOW).read_text(encoding="utf-8"))
     assert workflow["concurrency"]["cancel-in-progress"] is False
     executor = workflow["jobs"]["execute"]
-    assert all(value != "write" for value in executor["permissions"].values())
-    assert workflow["jobs"]["publish"]["permissions"]["issues"] == "write"
+    readers = {"contents": "read", "actions": "read", "pull-requests": "read"}
+    assert workflow["permissions"] == {}
+    assert workflow["jobs"]["plan"]["permissions"] == readers
+    assert executor["permissions"] == readers
+    # PR conversation writes belong only to the separate trusted publisher.
+    assert workflow["jobs"]["publish"]["permissions"] == {
+        **readers, "pull-requests": "write", "issues": "write"}
     for job in workflow["jobs"].values():
         checkout = next(step for step in job["steps"] if step.get("uses") == "actions/checkout@v4")
         assert checkout["with"]["persist-credentials"] is False

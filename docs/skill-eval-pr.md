@@ -121,6 +121,18 @@ paid trial until that prerequisite and its budget are separately authorized.
 The execute job has read-only repository permissions, no publication token in
 its model step, and checkout uses `persist-credentials: false`. The privileged
 publisher is a separate fresh job. Model access must not also grant PR publishing.
+Only the publish job requests `pull-requests: write`, alongside its existing
+`issues: write`; planning and execution retain read-only repository permissions.
+In the controlled fork [baseline](https://github.com/Dong1017/OmniRSI/actions/runs/40455073055),
+the same Actions job could create/update an ordinary Issue comment but received
+permission HTTP403 for a PR conversation comment with PullRequests read.
+The owner-approved [contrast](https://github.com/Dong1017/OmniRSI/actions/runs/40460346043)
+verified PR comment creation/update with PullRequests write, preserving the HTTP
+client and other grants. The [result and restoration record](https://github.com/Dong1017/OmniRSI/issues/3#issuecomment-6435261413)
+covers that fork push context; upstream recovery still needs a successful
+publication receipt from the merged trusted workflow. Advertised endpoint
+permission alternatives alone do not prove effective authorization.
+
 The existing client's controlled skill exposure is not OS read confinement.
 Plan artifacts contain files rather than empty directories. The adapter restores
 each comparison's empty results directory after download; the existing executor
