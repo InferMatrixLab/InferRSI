@@ -40,6 +40,16 @@ Writing a kernel is expensive. Verify the bottleneck before starting.
 - The bottleneck is host-side scheduling: that is a Python/GIL problem, not a
   kernel problem. See `host-overhead-profiling`.
 
+## Qualify an existing causal convolution operator
+
+Before replacing or binding causal depthwise convolution, use the
+[causal-conv1d contract](references/causal-conv1d-contract.md) to choose a
+full-sequence forward call or an in-place state update. Check dtype, strides,
+packed boundaries, state rows and circular-buffer cursors before substitution.
+The [five decision cases](cases/causal-conv1d-dispatch-state.md) cover invalid
+layouts, continuation state and unproved dispatch. Build targets and import
+success do not establish the executing operator, numerical parity or a gain.
+
 ## Framework routing
 
 | Pattern | CUDA / Ampere+ | Ascend NPU |
