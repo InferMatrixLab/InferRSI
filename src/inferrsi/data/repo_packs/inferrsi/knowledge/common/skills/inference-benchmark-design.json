@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d100791ac4e02406b685d8bc0030de51130a3a06/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "d100791ac4e02406b685d8bc0030de51130a3a06",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
@@ -49,10 +49,10 @@
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "19ebc1f567aadf49f7a534a18fdb629c72c0e4ce043d360983136491cb72bfab",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "d5d375d5b8ad4bdc80346f8fee44de37fe0bd88bb93902768f23f5cd30b632d8",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "18310402a8ade03fd48ac687f79ba9d447871e90337de84c0e1bc15c0b827306",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
-    "src/inferrsi/data/skill_library/skill-index.json": "1b9722330262d8918d686af166f83af96dc15b771d8acc94f8b983ee92b19897"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",
@@ -200,9 +200,6 @@
       }
     ],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
@@ -219,9 +216,7 @@
     ],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

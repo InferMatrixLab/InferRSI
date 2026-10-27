@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d100791ac4e02406b685d8bc0030de51130a3a06/src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
-      "commit": "d100791ac4e02406b685d8bc0030de51130a3a06",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json",
@@ -40,8 +40,8 @@
   "checkout_ref": "checkout:ascend-device-health",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json": "2c23209ef418287f1023f53eba4eda66551f09ab102a61c879df27c25365e757",
-    "src/inferrsi/data/skill_library/skill-index.json": "1b9722330262d8918d686af166f83af96dc15b771d8acc94f8b983ee92b19897"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json": "80d80c15514919826fa72d6f6cf26b76db8accd85d21187fc239232ca454e7bf",
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "ascend-device-health",
@@ -61,22 +61,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

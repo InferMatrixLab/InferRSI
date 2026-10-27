@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d100791ac4e02406b685d8bc0030de51130a3a06/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
-      "commit": "d100791ac4e02406b685d8bc0030de51130a3a06",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json",
@@ -42,10 +42,10 @@
   "checkout_ref": "checkout:bound-windowed-attention-replay",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5",
-    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "ce52c99752ddb771adfa8ae3fba53844f64219513b5e88126f62351de3bb3f9d",
+    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "014be24d0e669f4acbc0717dc323eec784026cf185186619d5a19d6d84496131",
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098",
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff",
-    "src/inferrsi/data/skill_library/skill-index.json": "1b9722330262d8918d686af166f83af96dc15b771d8acc94f8b983ee92b19897"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "bound-windowed-attention-replay",
@@ -104,7 +104,6 @@
       "references/source-notes.md",
       "references/validation.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

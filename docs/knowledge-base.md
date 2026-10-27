@@ -14,7 +14,7 @@ separate work, not an implemented capability of this knowledge base.
 ```text
 src/inferrsi/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (60 skills)
+  skill-index.json                   Stable IDs → categorized paths/backend (65 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
   repositories/<repo>/              Engine entry, sub-skills and focused complete skills
@@ -65,13 +65,16 @@ metadata authority or maintained matrix.
 | Legacy sidecars | Existing keys retained unless explicitly normalized | Conflicting duplicate fields fail visibly; matching historical fields can be read |
 | Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Do not migrate it into local sidecars or relabel imported records |
 | Engine procedures/resources | Imported English library and source manifest | Preserve licenses, source relationships and installed access; catalog abstracts link the complete English procedures |
-| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results |
+| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results. Source identities and digests live only in the record; the document links it and cites the same source URLs. The record lists its own basename in `required_resources`, so that link resolves inside the read bundle |
 
 The 43 branch-added candidate headers were normalized without replacing their
 procedures. All structured frontmatter fields, including tags, synchronization
 lineage, unknown license and source-pack notes, are retained in sidecars. Existing
 sidecar name/status duplication agreed with the frontmatter; normalization found
-no contradictory values. Abbreviated historical repository pins remain explicitly
+no contradictory values. Sidecars omit fields equal to the reader defaults:
+empty `sources` and `references`, and the former shared placeholder
+`applicability`; absent sources still read as explicit unknown provenance.
+Abbreviated historical repository pins remain explicitly
 prefixes, not invented full SHAs. Legacy untyped source inventories remain marked
 incomplete, with their substantive procedure/readsets retained for inspection.
 
@@ -168,18 +171,18 @@ Complete procedures, sidecars, references and cases are packaged, with 13 Ascend
 repositories, methods or workflows. The 21 engine and research-router skills
 use the same ownership layout under `repositories/<engine>/` and
 `workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 81 `SKILL.md` files, all in English.
+The library contains 95 `SKILL.md` files, all in English.
 The collection overview, import notes and source manifest belong to the research
 workflow's references; Strata design-space analysis belongs to Strata. The library
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 60 registered skills into the contribution catalog. Its records
+projects the 65 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-60-ID registry; engine procedures remain available through library navigation
+65-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
 The registered [h3.c runtime audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)

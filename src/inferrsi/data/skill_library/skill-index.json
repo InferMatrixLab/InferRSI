@@ -241,6 +241,22 @@
       "path": "hardware/cuda/reason-hopper-kernels",
       "backend": "cuda"
     },
+    "dwarfstar": {
+      "path": "repositories/dwarfstar",
+      "backend": "common"
+    },
+    "splash": {
+      "path": "repositories/splash",
+      "backend": "common"
+    },
+    "lily": {
+      "path": "repositories/lily",
+      "backend": "common"
+    },
+    "husky": {
+      "path": "repositories/husky",
+      "backend": "common"
+    },
     "audit-fixed-workload-claim": {
       "path": "methods/audit-fixed-workload-claim",
       "backend": "common"

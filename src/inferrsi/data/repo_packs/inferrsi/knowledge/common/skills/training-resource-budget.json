@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d100791ac4e02406b685d8bc0030de51130a3a06/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
-      "commit": "d100791ac4e02406b685d8bc0030de51130a3a06",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json",
@@ -48,7 +48,7 @@
   "checkout_ref": "checkout:training-resource-budget",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md": "bdfa5a4ef37d9f303c3a23cd6f98c21137b97ac5ed58e0ed5fac6d71d33e52ef",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json": "160b340fe224d73d942aceda02102404c5b4cbfa6d1188951aaaa3f8c992340d",
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json": "d42b614af9cee6ee0d4a25dc5d57c7b98438feed1e807a7c9f1755109a86e9cf",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md": "eb97f935ed30517a8fc9edec5e9cddc04f5d679d156c16d75bd29c534593360a",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101",
@@ -57,7 +57,7 @@
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/sources.md": "6d248f58af8b350fc66c22898988d6f451ac60d03bcd805cd6e84df5e55174ac",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744",
-    "src/inferrsi/data/skill_library/skill-index.json": "1b9722330262d8918d686af166f83af96dc15b771d8acc94f8b983ee92b19897"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "training-resource-budget",
@@ -77,11 +77,7 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -96,12 +92,9 @@
       "references/sources.md",
       "references/stas-decision-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

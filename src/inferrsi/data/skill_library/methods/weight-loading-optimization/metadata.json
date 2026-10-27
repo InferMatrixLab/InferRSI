@@ -56,9 +56,6 @@
     }
   ],
   "empirical_validation": "not_run",
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
@@ -69,6 +66,5 @@
     "references/llama-loading-readset.md",
     "references/fastsafetensors-transfer-readset.md"
   ],
-  "references": [],
   "consumption_mode": "packaged"
 }

@@ -1,0 +1,89 @@
+{
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "partial_cpu_only",
+  "license": "NO_LICENSE",
+  "tags": [
+    "dwarfstar",
+    "ds4",
+    "moe",
+    "ssd-streaming",
+    "session-state",
+    "kv-cache",
+    "speculation",
+    "tensor-parallelism"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/antirez/ds4",
+      "commit": "ee7e8405232c8971000cc7ba2b945b00bf6d20d3",
+      "paths": [
+        "README.md",
+        "LICENSE",
+        "Makefile",
+        "ds4.h",
+        "ds4.c",
+        "ds4_ssd.c",
+        "ds4_ssd.h",
+        "ds4_kvstore.c",
+        "ds4_kvstore.h",
+        "ds4_server.c",
+        "ds4_tp.c",
+        "ds4_tp.h",
+        "docs/SSD_STREAMING.md",
+        "docs/SERVER.md",
+        "docs/SPECULATIVE_DECODING.md",
+        "docs/DISTRIBUTED.md",
+        "docs/CUDA_MULTI_GPU.md",
+        "docs/TESTING.md",
+        "tests/test_session_state.c",
+        "tests/test_sampling.c",
+        "tests/test_tp_commands.c",
+        "tests/test_engine_mgpu_placement.c",
+        "ds4_cuda.cu",
+        "QA_BEFORE_RELEASES.md"
+      ],
+      "readset": "references/source-identity.json",
+      "license": "MIT"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+      "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+      "paths": [
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+        "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+        "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+        "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+      ],
+      "scope": "Portable instructions executed by compatible agent with native C adaptation; no DisCo CLI/model run or managed import."
+    }
+  ],
+  "construction": {
+    "anchor_kind": "source",
+    "distillation_form": "repository-operating-graph",
+    "strategy": "arex-portable-meta-skills",
+    "status": "partial-candidate",
+    "native_import": "not-run",
+    "method": "User-approved native C adaptation and partial drafting; manual stable-ID subskill orchestration and integrated create/verify stages. Required-backend blocks disable automatic admission."
+  },
+  "applicability": {
+    "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification."
+  },
+  "limitations": [
+    "Metal/CUDA/ROCm inference, actual model output, SSD runtime I/O, GPU recurrent rollback, physical distributed behavior, service quality/performance and skill efficacy remain unverified.",
+    "CPU build/help and selected bookkeeping tests do not clear BLOCKED_REQUIRED_BACKEND.",
+    "NO_LICENSE is the actual unauthenticated GitHub CLI resolver fallback, not a legal conclusion; pinned source MIT notice is retained.",
+    "Only selected source bodies were inspected; full kernels, conversion/imatrix tools and every workflow are not covered."
+  ],
+  "provenance_readsets": [
+    "references/repo-provenance.md",
+    "references/source-identity.json"
+  ],
+  "consumption_mode": "packaged"
+}

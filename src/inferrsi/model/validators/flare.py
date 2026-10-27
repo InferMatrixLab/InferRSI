@@ -330,7 +330,28 @@ def adapt(packet_path: Path) -> dict:
         results = []
         for name in group["cases"]:
             observation = json.loads(files[f"{root}/{name}/observation.json"])
-            _require(observation in observations, "observation sidecar differs")
+            expected = observation
+            analysis = observation.get("analysis", {})
+            ttft = analysis.get("delivery_ttft_ns")
+            if (
+                group["kind"] in ("ttft-4096", "prefill-65536")
+                and ttft
+                and "http_prefill_tokens_per_second" not in analysis
+            ):
+                # Pinned Flare adds this derived value only after saving the sidecar.
+                expected = {
+                    **observation,
+                    "analysis": {
+                        **analysis,
+                        "http_prefill_tokens_per_second": (
+                            len(cases[name]["prompt_tokens"]) * 1e9 / ttft
+                        ),
+                    },
+                }
+            _require(
+                observation in observations or expected in observations,
+                "observation sidecar differs",
+            )
             request = json.loads(files[f"{root}/{name}/request.json"])
             expected_request = dict(cases[name]["request"])
             expected_request.update(
