@@ -4,6 +4,7 @@
   "origin": ["internal"],
   "state": "historical_observation",
   "content": "admission-drain-occupancy.md",
+  "required_resources": ["admission-drain-occupancy.json"],
   "sources": [
     {
       "type": "internal",

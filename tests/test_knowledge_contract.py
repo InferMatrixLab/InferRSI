@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi.knowledge_operations import KnowledgeReader
 from inferrsi.skill_catalog import (
     skill_directories,
     skill_directory,
@@ -60,13 +61,28 @@ def test_case_documents_cite_their_record_without_copying_digests():
     assert len(cases) == 4
     for path, record in cases:
         body = (path.parent / record["content"]).read_text(encoding="utf-8")
-        # The JSON record is the single home for source identities and digests.
+        # The JSON record is the single home for source identities and digests;
+        # pinned source URLs stay in the prose as citations.
         assert f"]({path.name})" in body, path.name
-        assert not re.search(r"\b[0-9a-f]{64}\b", body), path.name
+        prose = re.sub(r"https://\S+", "", body)
+        assert not re.search(r"\b(?:[0-9a-f]{40}|[0-9a-f]{64})\b", prose), path.name
         for source in record["sources"]:
             for key in ("url", "evidence_url", "issue"):
                 if key in source:
                     assert source[key] in body, (path.name, key)
+
+
+def test_case_document_links_resolve_inside_the_delivered_bundle():
+    reader = KnowledgeReader(skill_root=ROOT)
+    for path, record in _case_records():
+        bundle = reader.read(record["id"])
+        body = bundle.content[bundle.metadata["entrypoint"]].decode("utf-8")
+        links = re.findall(r"\]\(([^)#\s]+)(?:#[^)]*)?\)", body)
+        local = [link for link in links if "://" not in link]
+        assert path.name in local, path.name
+        for link in local:
+            data = reader.resource(record["id"], link, revision=bundle.revision)
+            assert data == (path.parent / link).read_bytes(), (path.name, link)
 
 
 def test_contradictory_legacy_metadata_fails(tmp_path):
