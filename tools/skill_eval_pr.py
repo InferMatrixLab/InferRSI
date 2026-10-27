@@ -293,6 +293,58 @@ def summary(plan, results, evidence_url, expires_at, now):
     return "\n".join(lines)
 
 
+def comment_permission_requirements(headers):
+    """Parse bounded server-advertised requirements, never granted permissions."""
+    if headers is None:
+        return {"status": "absent"}
+    name = "X-Accepted-GitHub-Permissions"
+    get_all = getattr(headers, "get_all", None)
+    if callable(get_all):
+        values = get_all(name, [])
+        if type(values) is not list:
+            return {"status": "unavailable"}
+        if not values:
+            return {"status": "absent"}
+        if len(values) != 1:
+            return {"status": "unavailable"}
+        raw = values[0]
+    else:
+        missing = object()
+        raw = headers.get(name, missing)
+        if raw is missing:
+            return {"status": "absent"}
+    # ASCII makes the character bound a byte bound. Never parse a truncated prefix.
+    if type(raw) is not str or len(raw) > 256 or not raw.isascii():
+        return {"status": "unavailable"}
+    # Commas join requirements; semicolons separate alternative permission sets.
+    alternatives = raw.split(";")
+    if len(alternatives) > 4:
+        return {"status": "unavailable"}
+    allowed = {"issues": ("read", "write"), "pull_requests": ("read", "write"),
+               "contents": ("read", "write"), "metadata": ("read",)}
+    sets, seen = [], set()
+    for alternative in alternatives:
+        entries = alternative.split(",")
+        if len(entries) > 4:
+            return {"status": "unavailable"}
+        group = {}
+        for entry in entries:
+            match = re.fullmatch(r"[ \t]*([a-z_]+)[ \t]*=[ \t]*(read|write)[ \t]*", entry)
+            if not match:
+                return {"status": "unavailable"}
+            permission, level = match.groups()
+            if (permission not in allowed or level not in allowed[permission]
+                    or permission in group):
+                return {"status": "unavailable"}
+            group[permission] = level
+        identity = tuple(sorted(group.items()))
+        if identity in seen:
+            return {"status": "unavailable"}
+        seen.add(identity)
+        sets.append(group)
+    return {"status": "available", "sets": sets}
+
+
 def publication_http_error(error, method, path):
     """Reuse the existing allowlist formatter, without its client's retry behavior."""
     code = error.code if type(error.code) is int and 100 <= error.code <= 599 else 0
@@ -327,7 +379,15 @@ def publication_http_error(error, method, path):
             # Always retain the original HTTP failure instead of failing in the formatter.
             failure = OSError("GitHub API " + json.dumps(
                 {"http_status": code, "category": "unknown"}, sort_keys=True))
-        failure.args = (str(failure) + " request=" + canonical(context),)
+        permissions = ""
+        if (method, endpoint) in (("POST", "/issues/{number}/comments"),
+                                  ("PATCH", "/issues/comments/{id}")):
+            try:
+                permissions = " accepted_permissions=" + canonical(
+                    comment_permission_requirements(error.headers))
+            except Exception:
+                permissions = ' accepted_permissions={"status":"unavailable"}'
+        failure.args = (str(failure) + " request=" + canonical(context) + permissions,)
         return failure
     finally:
         try:
