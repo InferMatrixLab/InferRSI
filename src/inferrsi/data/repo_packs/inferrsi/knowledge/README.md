@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 60 registered skills in `data/skill_library/`.
+Generated abstracts for all 61 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [f321699b42a490276ffa4ea52350591683b575cc](https://github.com/InferMatrixLab/InferRSI/tree/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library).
+Source snapshot: [cb90c570583f0c0877f252a72356d907df5c11a5](https://github.com/InferMatrixLab/InferRSI/tree/cb90c570583f0c0877f252a72356d907df5c11a5/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision f321699b42a490276ffa4ea52350591683b575cc --check
+python tools/build_skill_index.py --source-revision cb90c570583f0c0877f252a72356d907df5c11a5 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -91,6 +91,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | unspecified |
 | [skill-evolution-playbook](common/skills/skill-evolution-playbook.json) | common | candidate |
+| [splash](common/skills/splash.json) | common | candidate |
 | [storage-io-measurement](common/skills/storage-io-measurement.json) | common | candidate |
 | [torchnpu-device-memory-lifecycle](ascend/skills/torchnpu-device-memory-lifecycle.json) | ascend | candidate |
 | [torchnpu-pinned-host-memory-lifecycle](ascend/skills/torchnpu-pinned-host-memory-lifecycle.json) | ascend | candidate |

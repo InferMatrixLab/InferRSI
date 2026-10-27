@@ -27,8 +27,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f321699b42a490276ffa4ea52350591683b575cc/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
-      "commit": "f321699b42a490276ffa4ea52350591683b575cc",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/cb90c570583f0c0877f252a72356d907df5c11a5/src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
+      "commit": "cb90c570583f0c0877f252a72356d907df5c11a5",
       "paths": [
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md",
         "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json",
@@ -47,7 +47,7 @@
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md": "01fb1712d7eb988c5e412f02340d2e48b4f8564fcf4ab232dc5897869d0d50a0",
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/metadata.json": "0189d184337662056fc6952c7beffc1bf6154c4fa173ae3e3e463bd22d70f36c",
     "src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/akg-affine-tail-guards.md": "113deb2db10b171db3425bb3f1792bee763706b794c8cc2e222b4cc0d0114118",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "b98c760249231af6007cf245180c18900a471091729752d4721050c7f036743a"
   },
   "skill_metadata": {
     "name": "kernel-writing-guide",
