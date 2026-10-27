@@ -34,11 +34,50 @@ def edit_observation(packet, change):
     edit(packet, "measurements.json", lambda m: m["observations"].__setitem__(0, observation))
 
 
+def test_pinned_producer_augments_measurements_after_saving_sidecars(packet):
+    measurements = json.loads((packet.parent / "measurements.json").read_bytes())
+    augmented = []
+    for observation in measurements["observations"]:
+        name = observation["case"]
+        group = name.rsplit("-", 1)[0]
+        sidecar = json.loads(
+            (packet.parent / f"run/{group}/{name}/observation.json").read_bytes()
+        )
+        if group in ("ttft-4096-r0", "prefill-65536-r0"):
+            assert "http_prefill_tokens_per_second" not in sidecar["analysis"]
+            expected = {
+                **sidecar,
+                "analysis": {
+                    **sidecar["analysis"],
+                    "http_prefill_tokens_per_second": (
+                        (4096 if group == "ttft-4096-r0" else 65536) * 1e9 / 100_000_000
+                    ),
+                },
+            }
+            assert observation == expected
+            augmented.append(name)
+        else:
+            assert observation == sidecar
+    assert len(augmented) == 2
+    receipt = adapt(packet)
+    assert receipt["metrics"] == {"delivery_ttft_ns": 100_000_000}
+
+
 def test_complete_raw_packet_recomputes_metric_and_preserves_originals(packet, tmp_path):
+    def change_summaries(measurements):
+        measurements.update(summary={"delivery_ttft_ns": -999})
+        observation = next(
+            o for o in measurements["observations"] if o["case"] == "ttft-512-r0-0"
+        )
+        observation["analysis"]["delivery_ttft_ns"] = -999
+
+    edit(packet, "measurements.json", change_summaries)
+    edit(
+        packet,
+        "run/ttft-512-r0/ttft-512-r0-0/observation.json",
+        lambda o: o["analysis"].update(delivery_ttft_ns=-999),
+    )
     before = {p: p.read_bytes() for p in packet.parent.rglob("*") if p.is_file()}
-    edit(packet, "measurements.json", lambda m: m.update(summary={"delivery_ttft_ns": -999}))
-    before[packet] = packet.read_bytes()
-    before[packet.parent / "measurements.json"] = (packet.parent / "measurements.json").read_bytes()
     receipt = adapt(packet)
     assert receipt["metrics"] == {"delivery_ttft_ns": 100_000_000}
     assert receipt["synthetic"] is True
@@ -54,6 +93,61 @@ def test_complete_raw_packet_recomputes_metric_and_preserves_originals(packet, t
         == 0
     )
     assert json.loads(output.read_bytes())["identities"]["manifest_sha256"]
+
+
+def test_identical_unaugmented_observations_remain_supported(packet):
+    def remove_derived(measurements):
+        for observation in measurements["observations"]:
+            observation["analysis"].pop("http_prefill_tokens_per_second", None)
+
+    edit(packet, "measurements.json", remove_derived)
+    assert adapt(packet)["metrics"] == {"delivery_ttft_ns": 100_000_000}
+
+
+@pytest.mark.parametrize("side", ["sidecar", "measurements"])
+@pytest.mark.parametrize(
+    "mutation", ["timestamp", "status", "request", "analysis", "extra_analysis"]
+)
+def test_divergent_observation_rejects_even_with_refreshed_digest(packet, tmp_path, side, mutation):
+    def change(observation):
+        if mutation == "timestamp":
+            observation["events"][0]["elapsed_ns"] += 1
+        elif mutation == "status":
+            observation["status"] = 201
+        elif mutation == "request":
+            observation["request_sha256"] = "0" * 64
+        elif mutation == "analysis":
+            observation["analysis"]["delivery_ttft_ns"] += 1
+        else:
+            observation["analysis"]["unrecognized_derived_value"] = 123
+
+    if side == "sidecar":
+        edit(packet, "run/ttft-4096-r0/ttft-4096-r0-0/observation.json", change)
+    else:
+        edit(
+            packet,
+            "measurements.json",
+            lambda m: change(next(o for o in m["observations"] if o["case"] == "ttft-4096-r0-0")),
+        )
+    output = tmp_path / "rejected.json"
+    assert (
+        main(["measure", "--packet", str(packet), "--peer", str(packet), "--output", str(output)])
+        == 2
+    )
+    rejected = json.loads(output.read_bytes())
+    assert rejected["error"] == "observation sidecar differs"
+    assert rejected["metrics"] == {}
+
+
+@pytest.mark.parametrize("case", ["warmup-0", "ttft-4096-r0-0"])
+def test_derived_analysis_exception_rejects_wrong_group_or_value(packet, case):
+    def change(measurements):
+        observation = next(o for o in measurements["observations"] if o["case"] == case)
+        observation["analysis"]["http_prefill_tokens_per_second"] = -1
+
+    edit(packet, "measurements.json", change)
+    with pytest.raises(ValueError, match="observation sidecar differs"):
+        adapt(packet)
 
 
 @pytest.mark.parametrize(

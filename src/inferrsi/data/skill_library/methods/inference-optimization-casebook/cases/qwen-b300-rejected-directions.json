@@ -4,6 +4,7 @@
   "origin": ["internal"],
   "state": "historical_observation",
   "content": "qwen-b300-rejected-directions.md",
+  "required_resources": ["qwen-b300-rejected-directions.json"],
   "sources": [{
     "type": "git",
     "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-b300.md#optimization-ledger",

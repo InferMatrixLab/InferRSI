@@ -1,0 +1,29 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "runtime-planning",
+  "target_capability": "Memory ownership, byte parsing and state precision",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "DEVELOPMENT.md:191-252",
+    "DEVELOPMENT.md:288-344",
+    "DEVELOPMENT.md:418-452",
+    "runtime/engine/MemoryPlan.cpp:612-741",
+    "runtime/engine/MemoryAudit.cpp:45-190",
+    "dev/tests/server/test_serve_options.py:90-139"
+  ],
+  "expected_skill_files": [
+    "sub-skills/runtime-planning/SKILL.md",
+    "sub-skills/runtime-planning/references/memory-and-formats.md",
+    "sub-skills/runtime-planning/references/troubleshooting.md",
+    "sub-skills/runtime-planning/scripts/parse_budget.py"
+  ],
+  "assertions": [
+    "The response routes to runtime-planning and uses the bundled memory contract.",
+    "The response says max-memory can only lower the automatic safe ceiling and is not combined process RSS.",
+    "The response counts weights, draft/vision, arenas/reserves, ANE or disk staging, PLE host rows and dynamic KV/state separately.",
+    "The response says ple-memory off loads the whole table rather than removing it.",
+    "The response distinguishes target KV from recurrent state and explains BF16 storage rounding at chunk, capture and decode boundaries despite FP32 compute.",
+    "The response gives the bundled parser command with kind max-memory and reports 2.5G as 2684354560 bytes, syntax only.",
+    "The response does not run an engine, raise OS limits, download files, or claim memory fit or backend qualification from the parser."
+  ]
+}

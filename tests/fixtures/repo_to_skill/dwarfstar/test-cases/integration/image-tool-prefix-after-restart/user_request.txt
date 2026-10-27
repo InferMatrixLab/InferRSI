@@ -1,0 +1,1 @@
+A DwarfStar tool conversation had an image, then I restarted the server. The visible chat and tool IDs look the same, but one old image changed. Can I force the disk KV cache to restore it and skip prefill? I need a safe diagnosis without running a GPU.
