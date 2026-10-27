@@ -114,6 +114,7 @@ def build_packet(root: Path, ttft_ns=100_000_000, repetitions=1):
     for group in groups:
         folder = root / "run" / group["id"]
         folder.mkdir(parents=True)
+        observations = []
         reused = 0
         for identifier in group["cases"]:
             case = next(c for c in cases if c["id"] == identifier)
@@ -179,13 +180,13 @@ def build_packet(root: Path, ttft_ns=100_000_000, repetitions=1):
                 "events": events,
                 "analysis": {
                     "passed": True,
+                    "delivery_ttft_ns": ttft_ns,
                     "token_groups": token_groups,
                     "delivery_itl_exact": len(output) == 1,
                     "delivery_itl_ns": [],
                 },
             }
             write_json(local / "request.json", request)
-            write_json(local / "observation.json", observation)
             raw = b"".join(
                 b"data: "
                 + (e["data"].encode() if isinstance(e["data"], str) else encoded(e["data"]))
@@ -193,7 +194,8 @@ def build_packet(root: Path, ttft_ns=100_000_000, repetitions=1):
                 for e in events
             )
             (local / "response.sse").write_bytes(raw)
-            measurements["observations"].append(observation)
+            write_json(local / "observation.json", observation)
+            observations.append(observation)
         values = {
             "flare_active_requests": 0,
             "flare_free_request_slots": 4,
@@ -220,6 +222,15 @@ def build_packet(root: Path, ttft_ns=100_000_000, repetitions=1):
             names.append(name)
         snapshots[group["id"]] = names
         measurements["groups"].append({"id": group["id"], "passed": True})
+        # Pinned Flare augments in-memory analysis after saving observation sidecars.
+        for observation in observations:
+            ttft = observation["analysis"]["delivery_ttft_ns"]
+            if ttft and group["kind"] in ("ttft-4096", "prefill-65536"):
+                case = next(c for c in cases if c["id"] == observation["case"])
+                observation["analysis"]["http_prefill_tokens_per_second"] = (
+                    len(case["prompt_tokens"]) * 1e9 / ttft
+                )
+        measurements["observations"].extend(observations)
     write_json(root / "measurements.json", measurements)
     manifest = {
         "schema": SCHEMA,

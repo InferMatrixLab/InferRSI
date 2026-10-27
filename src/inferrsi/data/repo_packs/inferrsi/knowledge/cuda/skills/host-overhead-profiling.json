@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/6d1d4d0340ce5e8b649430a5a474575535f57cad/src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
-      "commit": "6d1d4d0340ce5e8b649430a5a474575535f57cad",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json",
@@ -39,8 +39,8 @@
   "checkout_ref": "checkout:host-overhead-profiling",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d",
-    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "e89f1fbbfdf63b666d42adec7826eb4b4a80428b288e476ddb9c977d9aeb3ab2",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "76e34c1c64aba473a9e126b032a776417caa0f913f6ac3cf4dba3a5d123b1ee0",
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "host-overhead-profiling",
@@ -59,22 +59,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

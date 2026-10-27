@@ -1,0 +1,1 @@
+{"model":"Qwen3.6-35B-A3B","messages":[{"role":"user","content":"Explain prefix caching briefly."}],"max_tokens":32,"stream":false,"prompt_cache_key":"conversation-a"}

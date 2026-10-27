@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/6d1d4d0340ce5e8b649430a5a474575535f57cad/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "6d1d4d0340ce5e8b649430a5a474575535f57cad",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb81ef2fec1b79d71eba1026ab1466117c3262cc/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "bb81ef2fec1b79d71eba1026ab1466117c3262cc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json",
@@ -44,14 +44,14 @@
   "checkout_ref": "checkout:optimization-search-policy",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "882e7850b9b49ad692a2d11618701afe0f4e83727ea78df114be2029923c725a",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "113c761ae488055da7e59c77df2db4247a545fdaf558188f01bde4b0960123c6",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "9f1fd8a2af52bc964021e21f16ecbdb891e08f2057370e700d67f86605d333db",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/MECHANISMS.md": "18bb2f5d7e52773c516420a142edfb531d0b9c822a2934d60f3234ac1cb9d40e",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/NEXT_GATE_LEADS.md": "16a264c7159f9c2c700ce8ba46e63f3e636b277c987da4970f6d2fa085fcb053",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/knowledge/adaptation-interfaces.md": "5e761957cb5ecd93926e6ffc13deee7c830c6e8f0ee3c3846e9dd3b50dc74446",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/references/source-notes.md": "54d83c3713045d59a48821bcf93598374ba4a630e3891ad39498f919317c4fb8",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/updates/optimization-search-policy.md": "d3db44fa9a6831b86a02c638b323ed943e69fe256866213f10d68c72d762879e",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "c6f36fd34e8ddea0c301d45b3ac0b88b5b9734adce7bb7bc1419b1793d720e4b"
   },
   "skill_metadata": {
     "name": "optimization-search-policy",
@@ -69,11 +69,7 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -96,9 +92,7 @@
     ],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

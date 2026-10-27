@@ -7,6 +7,8 @@ generates JSON and Markdown reports. It reuses the existing reader,
 
 The [PR integration](skill-eval-pr.md) adds automatic planning, explicit operator
 authorization and retained-result publication around these interfaces.
+The [offline improvement MVP](harness-improvement.md) reuses the same interfaces
+for bounded INV/DOM probes, successor rerun and a one-shot held-out gate.
 
 ```mermaid
 flowchart LR

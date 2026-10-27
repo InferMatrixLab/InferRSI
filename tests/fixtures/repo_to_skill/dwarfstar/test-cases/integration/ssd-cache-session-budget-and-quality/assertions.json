@@ -1,0 +1,22 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "memory and qualification",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/SERVER.md",
+    "docs/SSD_STREAMING.md",
+    "docs/SPECULATIVE_DECODING.md",
+    "tests/test_session_state.c"
+  ],
+  "expected_skill_files": [
+    "sub-skills/runtime-memory/references/memory-ledger.md",
+    "sub-skills/qualification/references/verification-contract.md"
+  ],
+  "assertions": [
+    "The answer distinguishes expert cache, mandatory non-routed weights, shared scratch and per-slot KV/recurrent state.",
+    "The answer rejects a monotonic more-cache solution without phase evidence.",
+    "The answer checks model-specific DSpark/SSD compatibility and sampling controls.",
+    "The answer does not turn CPU bookkeeping into accelerated/service performance evidence."
+  ]
+}
