@@ -359,3 +359,36 @@ def test_completion_without_a_tool_round_trip_is_not_verified(tmp_path):
         "type": "agent.completed", "requests": 0,
         "usage": {"input_tokens": 0, "output_tokens": 0, "cached_input_tokens": 0}}]))
     assert trace["completed_turns"] == 0 and trace["usage"] is None
+
+
+@pytest.mark.parametrize("bad_text", [
+    {"type": "text"}, {"type": "text", "text": None}, {"type": "text", "text": []},
+])
+@pytest.mark.parametrize("turn", ["read", "submit"])
+def test_malformed_text_block_stops_before_usage_tools_or_replay(
+        workspace, spec, bad_text, turn):
+    malformed = response(bad_text, call(
+        "read_file" if turn == "read" else "submit_answer",
+        {"path": "task.json"} if turn == "read" else ANSWER))
+    responses = [malformed, submit()] if turn == "read" else [read(), malformed, submit()]
+    send, requests = scripted(*responses)
+    events = []
+    with pytest.raises(agent.AgentError, match="incompatible_response"):
+        agent.run_agent(workspace, SCHEMA_SMALL, "fixture", MODEL, spec, 30,
+                        events.append, send=send)
+    rejected_request = 1 if turn == "read" else 2
+    assert len(requests) == rejected_request
+    assert not any(e["type"] == "agent.completed" for e in events)
+    assert not any(e["type"] in ("agent.response", "agent.tool")
+                   and e["request"] == rejected_request for e in events)
+    assert events[-1] == {"type": "agent.failed", "reason": "incompatible_response"}
+
+
+def test_valid_text_blocks_can_accompany_read_and_submit(workspace, spec):
+    first = response({"type": "text", "text": "Read the task."},
+                     call("read_file", {"path": "task.json"}))
+    last = response({"type": "text", "text": "Submit the result."},
+                    call("submit_answer", ANSWER))
+    answer, requests, events = run(workspace, spec, [first, last])
+    assert answer == ANSWER and len(requests) == 2
+    assert events[-1]["type"] == "agent.completed"

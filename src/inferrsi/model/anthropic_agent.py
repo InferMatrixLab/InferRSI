@@ -243,6 +243,7 @@ def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send):
                     or response.get("stop_reason") != "tool_use"
                     or not isinstance(response.get("content"), list)
                     or any(not isinstance(c, dict) or c.get("type") not in ("text", "tool_use")
+                           or (c.get("type") == "text" and not isinstance(c.get("text"), str))
                            for c in response["content"])):
                 raise AgentError("incompatible_response")
             usage = token_usage(response.get("usage"))
