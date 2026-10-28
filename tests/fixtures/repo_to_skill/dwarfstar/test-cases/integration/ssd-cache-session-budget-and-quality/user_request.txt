@@ -1,1 +1,0 @@
-My DwarfStar model starts with a 32GB SSD expert cache, but four 32K server slots fail. Increasing the expert-cache request should fix it, right? I also want to enable DSpark and report faster serving based on a local CPU state test.

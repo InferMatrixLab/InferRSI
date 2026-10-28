@@ -1,7 +1,0 @@
-{
-  "scope": "exact_env_i_policy_with_observation_shell",
-  "exit_code": 0,
-  "stdout": "clean-environment",
-  "actual_make_or_compiler_executed": false,
-  "wrapper_sha256": "a1e7a351ae86a11172346f64f0a74c4eff84fe384dcb41359b2fdbdad55418e7"
-}

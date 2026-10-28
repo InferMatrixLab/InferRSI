@@ -1,1 +1,0 @@
-After enabling Splash persistent cache I restarted it, then previous_response_id returned404. I also changed cache_salt and still saw an image cache hit. A high draft acceptance rate should prove faster end-to-end chat, right? Diagnose without inference.

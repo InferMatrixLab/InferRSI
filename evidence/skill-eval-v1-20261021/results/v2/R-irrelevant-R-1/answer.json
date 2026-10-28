@@ -1,1 +1,0 @@
-{"report_verdict":null,"latency_reduction_pct":28.864465920323216,"findings":[],"claim_scope":"none","evidence":["baseline.latencies_ms","candidate.latencies_ms"],"reason":"基线与候选的试验均值中位数分别为 374.1702143258105 ms 和 266.1679803277366 ms；降幅 = (基线 − 候选) / 基线 × 100%。仅完成计算，未作验收判断。"}

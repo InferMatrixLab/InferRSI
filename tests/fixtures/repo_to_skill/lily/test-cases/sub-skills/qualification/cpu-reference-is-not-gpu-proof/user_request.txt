@@ -1,1 +1,0 @@
-Our Linux library check was green. Lily's tests say matches_cpu, and the model goldens are ignored, so I want to record Metal correctness as passed without an M5 or checkpoint. The shader test is also cfg-gated. Review that conclusion and give the smallest evidence ladder for a new shape-dependent Q4 route. Do not install Rust, run models or change fixtures.
