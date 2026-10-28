@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 116, "Knowledge is missing from the installation"
+assert len(records) == 117, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -43,7 +43,7 @@ for record in mlx_records:
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 68, "Missing installed skill abstracts"
+assert len(skill_index) == 69, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -169,7 +169,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 68
+assert len(registry) == 69
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
@@ -313,4 +313,28 @@ for area, script in (
     assert vllm_metal_skill.joinpath("sub-skills", area, "scripts", script).is_file()
 vllm_metal_bundle = KnowledgeReader().read("inferrsi.common.skills.vllm_metal")
 assert any("screen_pool_budget.py" in name for name in vllm_metal_bundle.content)
+assert not inference_modules & sys.modules.keys()
+
+# mistral.rs packages source evidence/support without an upstream Rust/Metal import.
+mistral = library.joinpath("repositories", "mistral-rs")
+mistral_meta = json.loads(mistral.joinpath("metadata.json").read_text())
+assert mistral_meta["status"] == "candidate"
+assert mistral_meta["empirical_validation"] == "not_run"
+mistral_identity = json.loads(mistral.joinpath("references", "source-identity.json").read_text())
+for upstream, relative in (
+    ("LICENSE", "LICENSE"),
+    ("mistralrs-paged-attn/LICENSE-APACHE", "references/apache-component-license.md"),
+    ("mistralrs-paged-attn/NOTICE", "references/paged-component-notice.md"),
+):
+    assert hashlib.sha256(mistral.joinpath(*relative.split("/")).read_bytes()).hexdigest() == (
+        mistral_identity["files"][upstream]
+    )
+for area, script in (
+    ("decode-contract", "audit_decode_metadata.py"),
+    ("prefill-contract", "screen_prefill_metadata.py"),
+    ("qualification", "warmup_shape_inventory.py"),
+):
+    assert mistral.joinpath("sub-skills", area, "scripts", script).is_file()
+mistral_bundle = KnowledgeReader().read("inferrsi.common.skills.mistral_rs")
+assert any("warmup_shape_inventory.py" in name for name in mistral_bundle.content)
 assert not inference_modules & sys.modules.keys()

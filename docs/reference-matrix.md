@@ -447,3 +447,9 @@ resources do not reproduce runtime behavior or promote the candidate.
 | Source / revision | Inspected scope | Reuse and limits |
 | --- | --- | --- |
 | vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934`, package0.32.0; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected platform/config/ABI/loading, cache/offload owner-consumer and speculative/deferred/GQA measurement contracts; explicit analysis spans in the [readset](../src/inferrsi/data/skill_library/repositories/vllm-metal/references/source-identity.json) | [Candidate graph](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md), upstream Apache-2.0 notice and3 offline helpers. Installed pure Python API/parser checks only; dependency health failed and required Apple MLX/Metal/MPS/model/quality/service evidence remains blocked. Actual portable workflow adaptation, not DisCo CLI/model or managed import. NO_LICENSE is the actual unauthenticated resolver fallback. |
+
+## mistral.rs Metal paged-attention extraction
+
+| Source / revision | Inspected scope | Reuse and limits |
+| --- | --- | --- |
+| EricLBuehler/mistral.rs @ `9459891e7697238225885518119682ac8209a612`, workspace 0.9.5; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected Rust owner/native MSL consumer/test assertions for decode, prefill and actual-model preparation; [bounded readset](../src/inferrsi/data/skill_library/repositories/mistral-rs/references/source-identity.json). Candle `66a8cf184a5a519671454066b1b9efd446ec9f5c` is declared lineage, not a full dependency audit | [Candidate graph](../src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md), root MIT and component Apache-2.0/NOTICE, three offline helpers. Actual portable Rust/source adaptation; no Rust compilation, native Metal/kernel/model/quality/service or efficacy run. Required backend blocked; no DisCo CLI/model or managed import. NO_LICENSE is actual unauthenticated resolver fallback. |

@@ -272,6 +272,10 @@
     "vllm-metal": {
       "path": "repositories/vllm-metal",
       "backend": "common"
+    },
+    "mistral-rs": {
+      "path": "repositories/mistral-rs",
+      "backend": "common"
     }
   }
 }
