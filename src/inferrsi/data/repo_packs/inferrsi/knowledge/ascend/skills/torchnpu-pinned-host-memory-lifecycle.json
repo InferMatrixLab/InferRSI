@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c422579dce6cadd7a53272826fe01abe3e0534d/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
-      "commit": "3c422579dce6cadd7a53272826fe01abe3e0534d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d8a54eb8414f29a5152040a7c6bfc5a8f4d09332/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+      "commit": "d8a54eb8414f29a5152040a7c6bfc5a8f4d09332",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json",
@@ -42,7 +42,7 @@
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": "23e93ea7c98f99743509fdc04139d78ed2e7123c63e80b366c6beaba7eb70d0d",
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json": "97836a38465106d816a9ace894a7b277d6d330f9accade8f8493ce6f0fb57ef9",
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md": "435193590b4a2ba32e2e4c6fa9d7e8f889528d412cbbb48e35ec5433f7dab384",
-    "src/inferrsi/data/skill_library/skill-index.json": "5c57177ec2d5cc085acbb2aecabc66bd683f636d6adfd198fdce5dffb1d5208e"
+    "src/inferrsi/data/skill_library/skill-index.json": "f5b52c963bac4017453ff92baed69b6cbac4aa96b1599970a6416e4d13cd9143"
   },
   "skill_metadata": {
     "name": "torchnpu-pinned-host-memory-lifecycle",

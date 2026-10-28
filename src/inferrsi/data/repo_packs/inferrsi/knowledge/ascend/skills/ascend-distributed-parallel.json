@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c422579dce6cadd7a53272826fe01abe3e0534d/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
-      "commit": "3c422579dce6cadd7a53272826fe01abe3e0534d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d8a54eb8414f29a5152040a7c6bfc5a8f4d09332/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "d8a54eb8414f29a5152040a7c6bfc5a8f4d09332",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
@@ -44,7 +44,7 @@
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "4ce9dcadd1ae3c7a8cc633336760d0a3c382f354f1b7028e3a10d28fa0d0c9fa",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "b6cb25879b1bca5f5af08b48776f2e664cf5dcd11a0efb1c4f56879e2afa9006",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
-    "src/inferrsi/data/skill_library/skill-index.json": "5c57177ec2d5cc085acbb2aecabc66bd683f636d6adfd198fdce5dffb1d5208e"
+    "src/inferrsi/data/skill_library/skill-index.json": "f5b52c963bac4017453ff92baed69b6cbac4aa96b1599970a6416e4d13cd9143"
   },
   "skill_metadata": {
     "name": "ascend-distributed-parallel",

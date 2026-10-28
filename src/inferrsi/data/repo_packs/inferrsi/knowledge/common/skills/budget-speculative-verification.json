@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c422579dce6cadd7a53272826fe01abe3e0534d/src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
-      "commit": "3c422579dce6cadd7a53272826fe01abe3e0534d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d8a54eb8414f29a5152040a7c6bfc5a8f4d09332/src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
+      "commit": "d8a54eb8414f29a5152040a7c6bfc5a8f4d09332",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json",
@@ -45,7 +45,7 @@
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json": "4d68bf4c1767eaee12ade963bbd551d0e61d1bcd81a984bb02fd3aae46965919",
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/source-notes.md": "6fa955022f16cd598f44fd6521901d1cb868b06cec545cabe2b82769a641b5d6",
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/validation.md": "673d93f6700052974b340fab25b3438e0e6344960569ac9abec7d7720f662288",
-    "src/inferrsi/data/skill_library/skill-index.json": "5c57177ec2d5cc085acbb2aecabc66bd683f636d6adfd198fdce5dffb1d5208e"
+    "src/inferrsi/data/skill_library/skill-index.json": "f5b52c963bac4017453ff92baed69b6cbac4aa96b1599970a6416e4d13cd9143"
   },
   "skill_metadata": {
     "name": "budget-speculative-verification",
