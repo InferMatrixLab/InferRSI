@@ -67,8 +67,27 @@ runner or paid execution is required to deliver this plan.
 |---|---|---|
 | N | No target skill or resources; same task facts and client | Baseline diagnosis |
 | E-session | Complete Flare reader bundle | Correct application of complete-state, ticket/fence and outcome distinctions |
-| E-preparation | Complete weight-loading bundle, including its Flare reference | Correct preparation ownership, independent versions and timing phases |
+| E-preparation-old | Complete pre-update weight-loading bundle pinned below | Existing loading behavior and preparation diagnosis before this update |
+| E-preparation-new | Complete updated weight-loading bundle pinned below, including its Flare reference | Incremental preparation ownership, independent-version and phase-accounting guidance |
 | R | Both owners through native skill discovery | Relevant selection and avoidance of LMCache/vLLM contract substitution |
+
+The new Flare session skill uses the matched **N / E-session** addition comparison.
+The existing weight-loading owner uses **E-preparation-old / E-preparation-new**
+to isolate this update; N alone is not its update baseline. Freeze the complete
+owner sources, then record each native full-reader export and its resource
+manifest/digest using the same frozen trusted exporter before authorized trials:
+
+| Paired condition | Immutable owner source | Complete source resources |
+|---|---|---|
+| E-preparation-old | [Pre-update608](https://github.com/InferMatrixLab/InferRSI/tree/608df33683108b66ca497ec57a91fca559354a52/src/inferrsi/data/skill_library/methods/weight-loading-optimization) | All4 files: `SKILL.md`, `metadata.json`, `references/fastsafetensors-transfer-readset.md`, `references/llama-loading-readset.md` |
+| E-preparation-new | [Updated3e6e](https://github.com/InferMatrixLab/InferRSI/tree/3e6ed45871696854c594071ae6e74203483c47e4/src/inferrsi/data/skill_library/methods/weight-loading-optimization) | All5 files: the updated `SKILL.md` and `metadata.json`, both existing readsets, and `references/flare-preparation-boundary.md` |
+
+Both paired conditions use identical task inputs, full-target-bundle exposure
+rules, access boundaries, answer schema, independent grader, client/model/effort
+and environment. Only the target bundle version differs. Use fresh sessions,
+balanced order/repeats and the same frozen cases; keep source scope and export
+manifests explicit instead of substituting an abridged SKILL body or the current
+mutable checkout for the old bundle. R remains a separate discovery probe.
 
 Cross-owner navigation is not automatically exported by one reader bundle.
 Declare every extra exposed bundle explicitly and retain the same condition
@@ -81,9 +100,17 @@ owners in its explicit condition rather than silently granting another source.
 | Admission policy / development | Deep endpoint fails additional-token cost inequality; shorter endpoint passes | Both CostRejected and Admitted may occur; compute savings from consumed minus resident; no completed-reuse claim |
 | Cancellation / sealed | Last waiter cancels after accepted enqueue, before completion | Ticket retains destinations/parent pin; require accounted completion/drain; separate logical cancellation from transfer cancellation |
 | Restart/error / sealed | Namespace/layout mismatch, corrupt payload, and a permission-read failure as distinct inputs | Mismatch/corruption follows evidenced rejection/recompute path; unreadable file fails scan and is retained; no partial-state success |
+| Existing loading accounting / sealed old-new pair | A pre-Flare startup report separates cold-cache loading, warmup and per-request measurements; warmup shapes do not match the requested shapes | Preserve existing owner sections1-2: retain source/format/placement/duplication and bytes/counts evidence, use startup wall-clock for fixed loading/warmup, keep per-request cost separate, and require warmup hit criteria; elapsed warmup alone does not prove a hit |
 | Compatibility / sealed | Payload/carrier version looks familiar, but ABI or prepared contract differs | Require ABI 4 and prepared contract 2 and matching typed semantics; re-export, never retag handles |
 | Measurement / sealed | Multiple tokens per SSE event and unrelated client/native absolute origins | Preserve groups, no invented per-token delivery interval, no cross-clock subtraction; core TTFT is not pure GPU prefill |
 | Irrelevant route / sealed R probe | Ordinary LMCache MP retention configuration at its own pin | Route to existing LMCache owner; avoid imposing Flare's cost/ticket implementation |
+
+Run the compatibility case and existing loading-accounting regression case
+under both preparation versions with the same frozen task and oracle. Run the
+session lifecycle and SSE-measurement cases under N/E-session; keep R selection
+results separate. For old/new, report fixes, regressions, unchanged correctness,
+uncovered cases and execution/grading errors per case, including retained older
+capabilities; do not infer improvement from N/new alone.
 
 These are proposed assertion-backed usability cases derived from the source;
 their inputs and oracle files have not been executed by an evaluation client.
