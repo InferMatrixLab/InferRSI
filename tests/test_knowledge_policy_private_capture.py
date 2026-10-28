@@ -14,7 +14,7 @@ from tools import check_knowledge_model_policy as policy
 @pytest.fixture
 def capture(tmp_path, monkeypatch):
     event = tmp_path / "event.json"
-    event.write_text(json.dumps({"before": policy.PRIVATE_CAPTURE_BEFORE,
+    event.write_text(json.dumps({"before": "a" * 40, "after": "b" * 40,
         "ref": "refs/heads/main", "repository": {"full_name": "InferMatrixLab/InferRSI"}}))
     root = tmp_path / "checkout"
     cert = root / ".github/diagnostics/issue203-capture-public.pem"
@@ -29,6 +29,7 @@ def capture(tmp_path, monkeypatch):
                        "GITHUB_TOKEN": "FAKE_TOKEN", "EXTRA_SECRET": "FAKE_SECRET"}.items():
         monkeypatch.setenv(key, value)
     monkeypatch.setattr(policy, "ROOT", root)
+    monkeypatch.setattr(policy, "capture_certificate_introduced", lambda event: True)
     encrypt = Mock(return_value=Mock(stdout=b"synthetic ciphertext"))
     monkeypatch.setattr(policy.subprocess, "run", encrypt)
     payload = {"context": policy.CONTEXT, "state": "pending"}
@@ -66,7 +67,7 @@ def test_other_runs_default_off(capture, monkeypatch, key, value):
 
 
 @pytest.mark.parametrize("mutation", [
-    {"before": "b" * 40}, {"ref": "refs/heads/other"},
+    {"ref": "refs/heads/other"},
     {"repository": {"full_name": "other/repository"}},
 ])
 def test_unrelated_pushes_do_not_capture(capture, mutation):
@@ -123,3 +124,89 @@ def test_only_errors_string_from_existing_422_is_offered(code, errors, expected)
         assert result["kind"] == "status-rejected"
         assert result["state"] == "failure"
     assert "FAKE_" not in str(failure)
+
+
+def test_certificate_introduction_requires_known_commit_trees_and_exact_blob(monkeypatch):
+    certificate = ".github/diagnostics/issue203-capture-public.pem"
+    expected = f"100644 blob {policy.PRIVATE_CAPTURE_CERT_BLOB}\t{certificate}"
+    responses = ["false", "", "", "", "", "", expected, policy.PRIVATE_CAPTURE_CERT_BLOB]
+    transport = Mock(side_effect=[Mock(stdout=value) for value in responses])
+    monkeypatch.setattr(policy.subprocess, "run", transport)
+    assert policy.capture_certificate_introduced({"before": "a" * 40, "after": "b" * 40})
+    assert transport.call_count == 8
+    for call in transport.call_args_list:
+        assert "GITHUB_TOKEN" not in call.kwargs["env"]
+        assert call.kwargs["stderr"] is subprocess.DEVNULL
+        assert call.kwargs["timeout"] <= 10
+
+
+@pytest.mark.parametrize("before_entry,after_entry", [
+    ("existing", "unused"), ("", ""), ("", "120000 blob wrong symlink"),
+    ("", "100644 blob wrong certificate"),
+])
+def test_later_push_absent_after_or_changed_certificate_never_activates(
+        monkeypatch, before_entry, after_entry):
+    transport = Mock(side_effect=[Mock(stdout=value) for value in
+                                  ["false", "", "", "", before_entry, "", after_entry]])
+    monkeypatch.setattr(policy.subprocess, "run", transport)
+    assert not policy.capture_certificate_introduced({"before": "a" * 40, "after": "b" * 40})
+
+
+def test_missing_commit_is_not_treated_as_certificate_absence(monkeypatch):
+    transport = Mock(side_effect=[Mock(stdout="false"), subprocess.CalledProcessError(1, "git")])
+    monkeypatch.setattr(policy.subprocess, "run", transport)
+    with pytest.raises(subprocess.CalledProcessError):
+        policy.capture_certificate_introduced({"before": "a" * 40, "after": "b" * 40})
+
+
+@pytest.mark.parametrize("event", [{"before": "0" * 40, "after": "b" * 40},
+    {"before": "a" * 40, "after": "b" * 40, "forced": True},
+    {"before": "--malicious", "after": "b" * 40}, {}])
+def test_invalid_or_forced_introduction_does_no_git_work(monkeypatch, event):
+    transport = Mock()
+    monkeypatch.setattr(policy.subprocess, "run", transport)
+    assert not policy.capture_certificate_introduced(event)
+    transport.assert_not_called()
+
+
+def test_removed_and_readded_certificate_never_rearms(monkeypatch):
+    transport = Mock(side_effect=[Mock(stdout=value) for value in
+                                  ["false", "", "", "", "", "c" * 40]])
+    monkeypatch.setattr(policy.subprocess, "run", transport)
+    assert not policy.capture_certificate_introduced({"before": "a" * 40, "after": "b" * 40})
+    assert transport.call_args.args[0][-6:] == [
+        "-1", "--full-history", "--format=%H", "a" * 40, "--",
+        ".github/diagnostics/issue203-capture-public.pem"]
+
+
+def test_shallow_graph_never_captures_or_fetches(monkeypatch):
+    transport = Mock(return_value=Mock(stdout="true"))
+    monkeypatch.setattr(policy.subprocess, "run", transport)
+    assert not policy.capture_certificate_introduced({"before": "a" * 40, "after": "b" * 40})
+    assert transport.call_count == 1
+
+
+def test_real_git_graph_accepts_first_certificate_introduction_only(tmp_path, monkeypatch):
+    certificate = ".github/diagnostics/issue203-capture-public.pem"
+    public = (policy.ROOT / certificate).read_bytes()
+
+    def git(*args, stdin=None):
+        return subprocess.run(["git", *args], cwd=tmp_path, input=stdin, text=True,
+                              capture_output=True, check=True).stdout.strip()
+
+    git("init", "-q")
+    git("config", "user.name", "Fixture")
+    git("config", "user.email", "fixture@example.invalid")
+    empty = git("mktree", stdin="")
+    before = git("commit-tree", empty, stdin="before")
+    destination = tmp_path / certificate
+    destination.parent.mkdir(parents=True)
+    destination.write_bytes(public)
+    git("add", certificate)
+    tree = git("write-tree")
+    after = git("commit-tree", tree, "-p", before, stdin="first introduction")
+    monkeypatch.setattr(policy, "ROOT", tmp_path)
+    assert policy.capture_certificate_introduced({"before": before, "after": after})
+    removed = git("commit-tree", empty, "-p", after, stdin="removed")
+    readded = git("commit-tree", tree, "-p", removed, stdin="readded")
+    assert not policy.capture_certificate_introduced({"before": removed, "after": readded})
