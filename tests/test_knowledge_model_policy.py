@@ -349,7 +349,11 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     steps = value["jobs"]["declarations"]["steps"]
     assert steps[0]["with"] == {"ref": "main", "persist-credentials": False}
     assert all("pip install" not in step.get("run", "") for step in steps)
-    assert steps[-1]["run"] == "bash tools/run_knowledge_model_policy.sh"
+    assert steps[-2]["run"] == "bash tools/run_knowledge_model_policy.sh"
+    assert steps[-1]["uses"] == "actions/upload-artifact@v4"
+    assert steps[-1]["with"]["path"] == "${{ runner.temp }}/issue203-422-errors.cms"
+    assert "steps.admission.outputs.private_capture == 'encrypted'" in steps[-1]["if"]
+    assert steps[-1]["with"]["retention-days"] == 1
     runner = (ROOT / "tools/run_knowledge_model_policy.sh").read_text(encoding="utf-8")
     # The runner refetches trusted main and reruns only for the stale-base exit code.
     assert "git fetch --quiet origin main" in runner
