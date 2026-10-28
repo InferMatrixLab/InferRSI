@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d70fa5e4c5c2b1b70c6fbad1f020ab457c409c63/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "d70fa5e4c5c2b1b70c6fbad1f020ab457c409c63",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/aafa181251043882546678920ae992498b405ffb/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "aafa181251043882546678920ae992498b405ffb",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json",
