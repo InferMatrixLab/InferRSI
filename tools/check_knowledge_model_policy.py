@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from fnmatch import fnmatchcase
@@ -1028,6 +1029,117 @@ def refresh_event(event, event_name):
 
 
 
+# Fixed dependencies, not merely the policy's self-declared path list.
+ROUTING_POLICY_INPUTS = {
+    ".github/knowledge-model-policy.json", "tools/check_knowledge_model_policy.py",
+    "tools/run_knowledge_model_policy.sh", ".github/workflows/knowledge-model-policy.yml",
+    "docs/knowledge-model-policy.md",
+}
+
+
+class AdmissionGraph:
+    """Read Git objects only; never check out or execute PR code. Bounded per plan."""
+
+    def __init__(self, repository):
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+            raise ValueError("Invalid repository")
+        self.repository = repository
+        self.deadline = time.monotonic() + 60
+
+    def git(self, *arguments):
+        remaining = self.deadline - time.monotonic()
+        if remaining <= 0:
+            raise ValueError("Routing graph deadline exhausted")
+        return subprocess.run(["git", "--no-replace-objects", *arguments], cwd=ROOT,
+                              check=True, capture_output=True, text=True,
+                              timeout=remaining).stdout.strip()
+
+    def prepare(self, shas):
+        if any(not SHA.fullmatch(sha) for sha in shas):
+            raise ValueError("Invalid graph revision")
+        shallow = self.git("rev-parse", "--is-shallow-repository")
+        # Fetch immutable objects from the trusted repository, not a PR-supplied URL.
+        options = ["--unshallow"] if shallow == "true" else []
+        self.git("fetch", "--quiet", "--no-tags", *options,
+                 f"https://github.com/{self.repository}.git", *sorted(set(shas)))
+        if self.git("rev-parse", "--is-shallow-repository") != "false":
+            raise ValueError("Incomplete routing graph")
+
+    def unchanged(self, before, current, head):
+        old = self.git("merge-base", "--all", before, head).splitlines()
+        new = self.git("merge-base", "--all", current, head).splitlines()
+        return len(old) == len(new) == 1 and old == new
+
+
+def routing_snapshot(prs):
+    seen = set()
+    snapshot = []
+    for pr in prs:
+        number = pr["number"]
+        if type(number) is not int or number <= 0 or number in seen:
+            raise ValueError("Invalid routing PR collection")
+        seen.add(number)
+        head = pr["head"]["sha"]
+        if not isinstance(head, str) or not SHA.fullmatch(head) or pr["state"] != "open":
+            raise ValueError("Invalid routing PR head or lifecycle")
+        snapshot.append((number, *admission_snapshot(pr)))
+    return sorted(snapshot)
+
+
+def routing_current(api, policy_sha, snapshot):
+    return (api.get("git/ref/heads/main")["object"]["sha"] == policy_sha
+            and routing_snapshot(api.pages("pulls?state=open")) == snapshot)
+
+
+def admission_route(api, event, event_name, policy, policy_sha, repository, graph=None):
+    """Select only proven affected targets; ambiguous evidence keeps the full sweep."""
+    full = {"mode": "full-sweep", "reason": "event-requires-refresh"}
+    is_close = event_name == "pull_request_target" and event.get("action") == "closed"
+    if event_name != "push" and not is_close:
+        return None, full, None
+    try:
+        if policy["base_branch"] != "main" or event["repository"]["full_name"] != repository:
+            raise ValueError("Routing repository or branch mismatch")
+        prs = api.pages("pulls?state=open")
+        snapshot = routing_snapshot(prs)
+        if is_close:
+            trigger = event["number"]
+            live = api.get(f"pulls/{trigger}")
+            captured = event["pull_request"]
+            head = captured["head"]["sha"]
+            if (live["state"] != "closed" or live["number"] != trigger
+                    or captured["number"] != trigger or live["head"]["sha"] != head
+                    or not isinstance(head, str) or not SHA.fullmatch(head)):
+                raise ValueError("Closed event no longer matches current lifecycle")
+            numbers = sorted({trigger, *(pr["number"] for pr in prs
+                                        if pr["head"]["sha"] == head and addressable(pr, policy))})
+            route = {"mode": "closed-impact", "reason": "closed-head-peers", "targets": numbers}
+        else:
+            before = event["before"]
+            if (event["ref"] != "refs/heads/main" or event.get("forced", False)
+                    or not isinstance(before, str) or not SHA.fullmatch(before)
+                    or before == "0" * 40):
+                raise ValueError("Push history cannot be proven")
+            graph = graph or AdmissionGraph(repository)
+            candidates = [pr for pr in prs if addressable(pr, policy)]
+            graph.prepare([before, policy_sha, *(pr["head"]["sha"] for pr in candidates)])
+            graph.git("merge-base", "--is-ancestor", before, policy_sha)
+            changed = set(graph.git("diff", "--no-renames", "--name-only",
+                                    before, policy_sha, "--").splitlines())
+            if changed & ROUTING_POLICY_INPUTS or matching(changed, policy["policy_paths"]):
+                return None, {"mode": "full-sweep", "reason": "policy-inputs-changed"}, None
+            numbers = [pr["number"] for pr in candidates
+                       if head_owner(prs, pr["number"], pr["head"]["sha"]) is not None
+                       or not graph.unchanged(before, policy_sha, pr["head"]["sha"])]
+            route = {"mode": "push-impact", "reason": "base-relative-impact",
+                     "targets": sorted(numbers)}
+        if not routing_current(api, policy_sha, snapshot):
+            raise ValueError("Routing premise advanced")
+        return numbers, route, snapshot
+    except (*API_ERRORS, subprocess.SubprocessError):
+        return None, {"mode": "full-sweep", "reason": "impact-unverified"}, None
+
+
 def report_binding(repository, event_name, event_path, policy_sha, report_id):
     """Bind a report to trusted runner inputs, not declaration text or an older attempt."""
     if not report_id or not repository:
@@ -1055,11 +1167,13 @@ def report_binding(repository, event_name, event_path, policy_sha, report_id):
             "policy_sha": policy_sha, "report_id": report_id, "expected_head": expected_head}
 
 
-def write_report(path, binding, results):
+def write_report(path, binding, results, routing=None):
     if path is None:
         return
     report = {"schema_version": 1, "binding": binding, "results": results,
               "sweep_exit": exit_code(results), "summary": summarize(results)}
+    if routing is not None:
+        report["routing"] = routing
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=True, sort_keys=True), encoding="utf-8")
     temporary.replace(path)
@@ -1109,7 +1223,16 @@ def report_exit(path, binding, sweep_exit):
                     and result["state"] == "success" and not result["rerun"]
                     and not result["errors"] and SHA.fullmatch(result["head_sha"])):
                 conclusion = 0
-    summary = {"scope": "trigger-pr" if trigger is not None else "global-sweep",
+    routing = report.get("routing", {"mode": "full-sweep"})
+    if routing.get("mode") not in {"full-sweep", "push-impact", "closed-impact"}:
+        raise ValueError("Invalid routing scope")
+    impact = routing["mode"] != "full-sweep"
+    summary = {"scope": ("trigger-pr" if trigger is not None else
+                         "affected-admissions" if impact else "global-sweep"),
+               "routing": routing,
+               "scope_note": ("No affected admissions; not a global health assessment"
+                              if impact and not results else
+                              "Only selected admissions assessed" if impact else "Full sweep"),
                "trigger": trigger, "job_exit": conclusion,
                "target_kind": own[0]["kind"] if own else None,
                "projection_reason": "stale-event-head" if stale_event else "final-target-result",
@@ -1117,10 +1240,11 @@ def report_exit(path, binding, sweep_exit):
                "evaluated_head": own[0]["head_sha"] if own else None,
                "target_applicability": ("not-applicable" if own and own[0]["kind"] == "closed"
                                         else "see-target-result"),
-               "global_summary": report["summary"], "policy_sha": binding["policy_sha"]}
+               "global_summary": None if impact else report["summary"],
+               "scope_summary": report["summary"], "policy_sha": binding["policy_sha"]}
     print(json.dumps(summary, ensure_ascii=True))
     if sweep_exit:
-        print("::warning::Global admission sweep remains incomplete or failed; "
+        print("::warning::Admission work in the reported scope remains incomplete or failed; "
               "see structured results. Trigger-PR conclusion does not clear other PRs.")
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
@@ -1161,23 +1285,39 @@ def main(argv=None):
     if policy["schema_version"] != 1:
         raise ValueError("Unsupported policy schema")
     api = GitHub(args.repository or "", token)
+    routing = {"mode": "full-sweep", "reason": "explicit-or-unrouted"}
+    route_snapshot = None
     if args.pull_request is not None:
         if args.pull_request <= 0:
             raise ValueError("PR number must be positive")
         numbers = [args.pull_request]
     else:
         event = json.loads(Path(args.event_path).read_text(encoding="utf-8"))
-        # Every trigger shares one writer, so a superseded queued event still covers all open PRs.
-        numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
+        event_name = os.environ["GITHUB_EVENT_NAME"]
+        numbers = None if refresh_event(event, event_name) else []
+        if numbers is None:
+            numbers, routing, route_snapshot = admission_route(
+                api, event, event_name, policy, args.policy_sha, args.repository or "")
     plan = plan_file(args.plan, args.policy_sha)
     results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan,
                         trigger=binding["trigger"] if binding else None,
                         report_scope=binding is not None)
+    if route_snapshot is not None:
+        try:
+            current = routing_current(api, args.policy_sha, route_snapshot)
+        except API_ERRORS:
+            current = False
+        if not current and not any(result["pull_request"] == 0 for result in results):
+            results.append({"pull_request": 0, "head_sha": "", "policy_sha": args.policy_sha,
+                            "dry_run": args.dry_run, "rerun": True, "state": "failure",
+                            "kind": "deferred", "description": "Routing premise advanced",
+                            "errors": ["Replan against current main and open PRs"]})
     write_plan(args.plan, plan)
+    print(json.dumps({"routing": routing}, ensure_ascii=True))
     for result in results:
         print(json.dumps(result, ensure_ascii=True))
     print(json.dumps(summarize(results), ensure_ascii=True))
-    write_report(args.report, binding, results)
+    write_report(args.report, binding, results, routing)
     return exit_code(results)
 
 
