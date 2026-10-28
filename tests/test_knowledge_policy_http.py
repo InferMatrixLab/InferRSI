@@ -63,6 +63,24 @@ class DiagnosticsTests(unittest.TestCase):
                 self.assertNotIn("status-capacity", str(error))
                 self.assertNotIn("FAKE_SECRET", str(error))
 
+    def test_validation_fields_are_bounded_fixed_vocabulary(self):
+        body = {"message": "FAKE_SECRET", "errors": [
+            {"resource": "Status", "field": "target_url", "code": "invalid",
+             "value": "FAKE_SECRET", "message": "FAKE_SECRET"},
+            {"resource": "FAKE_SECRET", "field": "FAKE_SECRET", "code": "FAKE_SECRET"},
+        ] * 100}
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(json.dumps(body).encode())))
+        # Use a small response for the positive case; oversized/truncated JSON fails safe.
+        self.assertNotIn("FAKE_SECRET", str(error))
+        body["errors"] = body["errors"][:2]
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(json.dumps(body).encode())))
+        self.assertIn('"field": "target_url"', str(error))
+        self.assertIn('"code": "invalid"', str(error))
+        self.assertNotIn("FAKE_SECRET", str(error))
+        self.assertEqual(error.reason, "unknown")
+
     def test_body_read_is_bounded_and_invalid_json_is_safe(self):
         body = io.BytesIO(b"x" * 20000)
         error = HTTPError("https://example.invalid", 403, "", {}, body)
