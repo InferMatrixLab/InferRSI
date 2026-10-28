@@ -288,6 +288,21 @@ def assess(pr, paths, policy, comments=(), contributors=()):
     }
 
 
+def json_type(value):
+    """Fixed JSON shape vocabulary; never use a server-provided type or key name."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, dict):
+        return "object"
+    if isinstance(value, list):
+        return "array"
+    if isinstance(value, str):
+        return "string"
+    return "number"
+
+
 class GitHubHTTPError(OSError):
     """An allowlisted diagnostic, never a raw response body or credential-bearing URL."""
 
@@ -302,10 +317,17 @@ class GitHubHTTPError(OSError):
             self.delay = max(1, int(retry_after))
         elif remaining == "0" and re.fullmatch(r"[0-9]{1,10}", reset):
             self.delay = max(1, int(reset) - int(time.time()) + 1)
+        body = None
+        body_parse = "read-error"
+        read_limit_reached = None
         try:
-            body = json.loads(error.read(8192))
+            raw = error.read(8192)
+            read_limit_reached = len(raw) >= 8192
+            body_parse = "invalid-json"
+            body = json.loads(raw)
+            body_parse = "ok"
         except (ValueError, OSError, TypeError, AttributeError):
-            body = {}
+            pass
         error.close()
         message = body.get("message", "") if isinstance(body, dict) else ""
         message = message.lower() if isinstance(message, str) else ""
@@ -336,6 +358,23 @@ class GitHubHTTPError(OSError):
                 for item in errors)
             self.reason = "status-capacity" if capacity else "unknown"
             detail["reason"] = self.reason
+            # Structural telemetry only: fixed types/booleans and counts bounded to
+            # the first 20 entries. No response keys, values or message fragments.
+            present = isinstance(body, dict) and "errors" in body
+            sample = errors[:20] if isinstance(errors, list) else []
+            detail["response_shape"] = {
+                "body_parse": body_parse,
+                "body_type": json_type(body) if body_parse == "ok" else "unavailable",
+                # Reaching the read bound does not prove the response was truncated.
+                "read_limit_reached": read_limit_reached,
+                "errors_present": present,
+                "errors_type": json_type(errors) if present else "absent",
+                "errors_sample_count": len(sample),
+                "errors_sample_truncated": isinstance(errors, list) and len(errors) > 20,
+                "object_entries": sum(isinstance(item, dict) for item in sample),
+                "string_entries": sum(isinstance(item, str) for item in sample),
+                "other_entries": sum(not isinstance(item, (dict, str)) for item in sample),
+            }
             # Retain only fixed vocabulary, never values or free-form server messages.
             validation = []
             if isinstance(errors, list):
@@ -350,6 +389,7 @@ class GitHubHTTPError(OSError):
                     }.items() if isinstance(item.get(key), str) and item[key] in allowed}
                     if safe and safe not in validation:
                         validation.append(safe)
+            detail["response_shape"]["allowlisted_detail_count"] = len(validation)
             if validation:
                 detail["validation"] = validation
         # Only numeric rate metadata and a bounded request ID are safe to retain. Response

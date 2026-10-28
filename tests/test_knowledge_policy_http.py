@@ -81,6 +81,69 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertNotIn("FAKE_SECRET", str(error))
         self.assertEqual(error.reason, "unknown")
 
+    def shape(self, raw):
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(raw)))
+        self.assertNotIn("FAKE_SECRET", str(error))
+        self.assertEqual(error.reason, "unknown")
+        return json.loads(str(error).removeprefix("GitHub API "))["response_shape"]
+
+    def test_response_shape_distinguishes_missing_wrong_type_and_redacted_entries(self):
+        cases = [({}, "absent", False), ({"errors": None}, "null", True),
+                 ({"errors": "FAKE_SECRET"}, "string", True),
+                 ({"errors": {"FAKE_SECRET": "FAKE_SECRET"}}, "object", True)]
+        for body, kind, present in cases:
+            with self.subTest(kind=kind):
+                shape = self.shape(json.dumps(body).encode())
+                self.assertEqual(shape["body_parse"], "ok")
+                self.assertEqual(shape["body_type"], "object")
+                self.assertEqual(shape["errors_type"], kind)
+                self.assertEqual(shape["errors_present"], present)
+                self.assertEqual(shape["errors_sample_count"], 0)
+        shape = self.shape(json.dumps({"errors": [
+            {"FAKE_SECRET": "FAKE_SECRET"}, "FAKE_SECRET", None, 12, True,
+            {"resource": "Status", "code": "invalid"}]}).encode())
+        self.assertEqual(shape["errors_sample_count"], 6)
+        self.assertEqual(shape["object_entries"], 2)
+        self.assertEqual(shape["string_entries"], 1)
+        self.assertEqual(shape["other_entries"], 3)
+        self.assertEqual(shape["allowlisted_detail_count"], 1)
+
+    def test_response_shape_nonobject_and_invalid_json_are_distinct(self):
+        for value, kind in [(None, "null"), (True, "boolean"), (3, "number"),
+                            (["FAKE_SECRET"], "array"), ("FAKE_SECRET", "string")]:
+            with self.subTest(kind=kind):
+                shape = self.shape(json.dumps(value).encode())
+                self.assertEqual(shape["body_parse"], "ok")
+                self.assertEqual(shape["body_type"], kind)
+                self.assertFalse(shape["errors_present"])
+        shape = self.shape(b"not json FAKE_SECRET")
+        self.assertEqual(shape["body_parse"], "invalid-json")
+        self.assertEqual(shape["body_type"], "unavailable")
+        self.assertFalse(shape["read_limit_reached"])
+
+    def test_response_shape_bounds_counts_and_separates_read_limit_from_truncation(self):
+        shape = self.shape(json.dumps({"errors": ["FAKE_SECRET"] * 100}).encode())
+        self.assertEqual(shape["errors_sample_count"], 20)
+        self.assertEqual(shape["string_entries"], 20)
+        self.assertTrue(shape["errors_sample_truncated"])
+        shape = self.shape(b"{}" + b" " * 8190)
+        self.assertEqual(shape["body_parse"], "ok")
+        self.assertTrue(shape["read_limit_reached"])
+        shape = self.shape(b"x" * 9000)
+        self.assertEqual(shape["body_parse"], "invalid-json")
+        self.assertTrue(shape["read_limit_reached"])
+
+    def test_response_shape_read_error_is_not_json_parse_error(self):
+        original = HTTPError("https://example.invalid", 422, "", {}, io.BytesIO())
+        with patch.object(original, "read", side_effect=OSError("FAKE_SECRET")):
+            error = policy.GitHubHTTPError(original)
+        self.assertNotIn("FAKE_SECRET", str(error))
+        shape = json.loads(str(error).removeprefix("GitHub API "))["response_shape"]
+        self.assertEqual(shape["body_parse"], "read-error")
+        self.assertEqual(shape["body_type"], "unavailable")
+        self.assertIsNone(shape["read_limit_reached"])
+
     def test_body_read_is_bounded_and_invalid_json_is_safe(self):
         body = io.BytesIO(b"x" * 20000)
         error = HTTPError("https://example.invalid", 403, "", {}, body)
