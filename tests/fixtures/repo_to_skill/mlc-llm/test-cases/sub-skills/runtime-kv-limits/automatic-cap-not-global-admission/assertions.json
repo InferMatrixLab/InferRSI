@@ -1,0 +1,23 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "runtime-kv-limits",
+  "target_capability": "automatic-cap-not-global-admission",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:cpp/serve/config.cc",
+    "mlc-ai/mlc-llm:python/mlc_llm/compiler_pass/dispatch_kv_cache_creation.py",
+    "mlc-ai/mlc-llm:tests/python/model/test_kv_cache.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/runtime-kv-limits/SKILL.md",
+    "sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+    "sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+    "sub-skills/runtime-kv-limits/references/helper-contract.md"
+  ],
+  "assertions": [
+    "32768 caps estimated automatic Metal capacity; explicit total capacity bypasses this selection branch, not necessarily every validator.",
+    "Explicit prefill is retained in the inspected function; automatic mode-dependent minima do not invent override-rejection rules.",
+    "Workspace reads nested compile-time prefill; reported memory attribute and positive estimate are not allocation receipts.",
+    "FlashInfer is CUDA-gated; Metal target uses target-specific TIR path. Generic IR structural tests are not actual cache/parity execution."
+  ]
+}

@@ -1,9 +1,16 @@
 import json
+import re
 from pathlib import Path
 
 import pytest
 
-from inferrsi.skill_catalog import skill_directory, skill_records, skill_reference
+from inferrsi.knowledge_operations import KnowledgeReader
+from inferrsi.skill_catalog import (
+    skill_directories,
+    skill_directory,
+    skill_records,
+    skill_reference,
+)
 
 ROOT = Path(__file__).resolve().parents[1] / "src/inferrsi/data/skill_library"
 
@@ -24,7 +31,58 @@ def test_local_profiles_preserve_core_and_structured_ownership():
         assert metadata["kind"] == "skill"
         for readset in metadata["provenance_readsets"]:
             assert (sidecar.parent / readset).is_file()
-    assert len(normalized) == 55
+    assert len(normalized) == 59
+
+
+def test_local_sidecars_omit_fields_that_equal_reader_defaults():
+    # Readers default absent sources/references to [] and applicability to {};
+    # a stored empty or placeholder value would only repeat that default.
+    placeholder = {"scope": "See procedure prerequisites and counter-signals"}
+    for record in skill_records(ROOT):
+        sidecar = skill_directory(ROOT, record["name"]) / "metadata.json"
+        if not sidecar.exists():
+            continue
+        metadata = json.loads(sidecar.read_text(encoding="utf-8"))
+        assert metadata.get("sources") != [], record["name"]
+        assert metadata.get("references") != [], record["name"]
+        assert metadata.get("applicability") != placeholder, record["name"]
+
+
+def _case_records():
+    for directory in skill_directories(ROOT).values():
+        for path in sorted(directory.glob("cases/*.json")):
+            record = json.loads(path.read_text(encoding="utf-8"))
+            if record.get("kind") == "case":
+                yield path, record
+
+
+def test_case_documents_cite_their_record_without_copying_digests():
+    cases = list(_case_records())
+    assert len(cases) == 5
+    for path, record in cases:
+        body = (path.parent / record["content"]).read_text(encoding="utf-8")
+        # The JSON record is the single home for source identities and digests;
+        # pinned source URLs stay in the prose as citations.
+        assert f"]({path.name})" in body, path.name
+        prose = re.sub(r"https://\S+", "", body)
+        assert not re.search(r"\b(?:[0-9a-f]{40}|[0-9a-f]{64})\b", prose), path.name
+        for source in record["sources"]:
+            for key in ("url", "evidence_url", "issue"):
+                if key in source:
+                    assert source[key] in body, (path.name, key)
+
+
+def test_case_document_links_resolve_inside_the_delivered_bundle():
+    reader = KnowledgeReader(skill_root=ROOT)
+    for path, record in _case_records():
+        bundle = reader.read(record["id"])
+        body = bundle.content[bundle.metadata["entrypoint"]].decode("utf-8")
+        links = re.findall(r"\]\(([^)#\s]+)(?:#[^)]*)?\)", body)
+        local = [link for link in links if "://" not in link]
+        assert path.name in local, path.name
+        for link in local:
+            data = reader.resource(record["id"], link, revision=bundle.revision)
+            assert data == (path.parent / link).read_bytes(), (path.name, link)
 
 
 def test_contradictory_legacy_metadata_fails(tmp_path):

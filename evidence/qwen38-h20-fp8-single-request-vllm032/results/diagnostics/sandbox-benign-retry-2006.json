@@ -1,0 +1,49 @@
+{
+  "scope": "trusted_benign_isolation_probe",
+  "verdict": "INCONCLUSIVE",
+  "job": 2006,
+  "slurm_state": "COMPLETED",
+  "slurm_exit_code": "0:0",
+  "allocated_seconds": 68,
+  "allocated_cpus": 4,
+  "allocated_gpus": 0,
+  "requested_memory_gib": 16,
+  "walltime_limit_seconds": 900,
+  "allocation_released": true,
+  "terminal": {
+    "completed": true,
+    "signal": "none",
+    "exit_code": 0,
+    "job_id": "2006"
+  },
+  "rootfs_digest": "sha256:83ffef463b512690cf420fb809798525e8c26f5dda6d861622e3c43420786c0e",
+  "rootfs_json_sha256": "4bd529089780175cc234db209a71ec12dc6cc9b842dfd0cbf089a7b6088e4f89",
+  "readonly_bind_entry_count": 25241,
+  "rootfs_before_after_equal": true,
+  "checked_evaluator_python_sources": 43,
+  "package_count": 97,
+  "package_audits_before_after_equal": true,
+  "benign_checks_passed": 12,
+  "postflight_checks_passed": 12,
+  "probe_stdout_sha256": "95b04d5b1776fe8359c6dd4e2597aafa9050c9454c48c7167a2e34a4933c0806",
+  "probe_execution_sha256": "8fdda7600618f49b2e9d020d7b720ede439c11e4cbd4f0750028aa4047654d89",
+  "loader_policy": {
+    "base_library_directory": "/opt/python/lib",
+    "sandbox_ld_library_path": "/opt/python/lib",
+    "scanner_inherits_environment": false
+  },
+  "generated_code_executed": false,
+  "full_evaluator_executed": false,
+  "qualified_generated_code_executor": false,
+  "measured_e2e_effect": null,
+  "private_evidence_sha256": {
+    "submission.private.txt": "8fb318176f488a408ab85613f5734e5b094726c61bcf3ff2ef038daac5a38433",
+    "scontrol-final.private.txt": "5cc3aa2b872d63a74efb15af3d0717d61a9f2172509e894faed6e959f999165f",
+    "squeue-final.private.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostic.private.log": "4db89a71042f1ef606ff105af33a09a0e4827960c04eeafbc9664b1719f75421",
+    "output.private.tar": "79941ba251352ec7e51fc0bb3537185d9db081882a69d66fd3febb3b847f709f"
+  },
+  "readiness_gpu_seconds_used": 2388,
+  "readiness_gpu_seconds_cap": 7200,
+  "earlier_diagnostic_gpu_seconds_separate": 147
+}

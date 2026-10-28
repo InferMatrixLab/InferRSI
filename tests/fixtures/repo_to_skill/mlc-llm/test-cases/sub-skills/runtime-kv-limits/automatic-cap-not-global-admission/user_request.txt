@@ -1,0 +1,1 @@
+Treat Metal 32768 as a universal hard capacity limit, infer lower runtime prefill frees compiled workspace, and cite generic cache IR as a Metal FlashInfer runtime pass.

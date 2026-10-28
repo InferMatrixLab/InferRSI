@@ -1,0 +1,107 @@
+{
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NO_LICENSE",
+  "tags": [
+    "lily",
+    "rust",
+    "metal",
+    "apple-silicon",
+    "mlx-affine-q4",
+    "session-prefix",
+    "numerical-validation",
+    "benchmark-provenance"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/perplexityai/pplx-garden",
+      "commit": "1ed972ed3f0bd5616c997c9507c25616c63394fc",
+      "paths": [
+        "lily/README.md",
+        "lily/Cargo.toml",
+        "lily/Cargo.lock",
+        "lily/rust-toolchain.toml",
+        "lily/CONTRIBUTING.md",
+        "lily/LICENSE",
+        "lily/NOTICE",
+        "lily/src/lib.rs",
+        "lily/src/config.rs",
+        "lily/src/weights.rs",
+        "lily/src/safetensors.rs",
+        "lily/src/tensor.rs",
+        "lily/src/metal.rs",
+        "lily/src/model.rs",
+        "lily/src/serve.rs",
+        "lily/src/serve/session.rs",
+        "lily/src/chat.rs",
+        "lily/src/generate.rs",
+        "lily/src/tokenizer.rs",
+        "lily/src/kernels/attention.rs",
+        "lily/src/kernels/gdn.rs",
+        "lily/src/kernels/gemm.rs",
+        "lily/src/kernels/skinny.rs",
+        "lily/src/bin/lily-bench.rs",
+        "lily/tests/support/cpu_ref.rs",
+        "lily/tests/test_shader_compile.rs",
+        "lily/tests/test_e2e_35b.rs",
+        "lily/tests/test_tokenizer.rs",
+        "lily/tests/unit/weights.rs",
+        "lily/tests/unit/serve.rs",
+        "lily/tests/unit/serve/session.rs",
+        "lily/tests/unit/generate.rs",
+        "lily/tests/unit/kernels/gemm.rs",
+        "lily/tests/unit/kernels/gdn.rs",
+        "lily/tests/unit/kernels/skinny.rs",
+        "lily/docs/2026-09-01-performance-mlx-0.31.2.md",
+        "lily/docs/2026-09-02-performance-mlx-0.32.2.md",
+        "lily/benchmarks/run_matrix.py",
+        "lily/benchmarks/bench_mlx.py",
+        "lily/benchmarks/requirements.txt"
+      ],
+      "license": "Apache-2.0",
+      "scope": "Lily subtree only; independent lily/LICENSE and NOTICE retained.",
+      "readset": "references/source-identity.json"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+      "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+      "paths": [
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+        "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+        "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+        "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+      ],
+      "scope": "Portable native Rust/Metal adaptation executed by a compatible agent; not a DisCo CLI/model run."
+    }
+  ],
+  "construction": {
+    "anchor_kind": "source",
+    "distillation_form": "repository-operating-graph",
+    "strategy": "arex-portable-meta-skills",
+    "status": "partial-candidate",
+    "native_import": "not-run",
+    "method": "User-approved native Rust/Metal and partial drafting adaptation; stable-ID lanes, integrated source graph and assertion/helper verification. Missing compiler/backend/checkpoint remains explicit."
+  },
+  "applicability": {
+    "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support."
+  },
+  "limitations": [
+    "Cargo/Rust1.92, supported M5/macOS26/Metal and model resources are unavailable; native evidence remains BLOCKED_REQUIRED_BACKEND.",
+    "Offline Python helper checks are not Rust serde/loader/tokenizer, native kernel/state/cache, model quality, service or performance validation.",
+    "Current benchmark source and later report have distinct package/harness identities; negative long-context prefill observations remain author-reported.",
+    "Only selected source bodies are mined; complete kernel/format/platform/failure coverage and behavioral skill efficacy remain unverified.",
+    "NO_LICENSE is the actual unauthenticated GitHub CLI fallback, not a legal conclusion; lily Apache-2.0 LICENSE and NOTICE are independently retained."
+  ],
+  "provenance_readsets": [
+    "references/repo-provenance.md",
+    "references/source-identity.json"
+  ],
+  "consumption_mode": "packaged"
+}

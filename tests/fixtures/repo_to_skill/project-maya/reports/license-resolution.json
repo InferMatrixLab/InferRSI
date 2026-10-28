@@ -1,0 +1,11 @@
+{
+  "repository": "mw00/project-maya",
+  "source_commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+  "source": "GitHub CLI (gh api)",
+  "value": "NO_LICENSE",
+  "status": "unavailable",
+  "reason": "GitHub CLI is not authenticated",
+  "runtime_files_updated": 4,
+  "independent_source_license": "MIT root source; model/optional assets have separate notices",
+  "independent_source_evidence": "Root LICENSE copied unchanged including Maya and Strata attribution. No model payloads copied."
+}

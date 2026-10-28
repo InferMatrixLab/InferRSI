@@ -1,0 +1,1 @@
+On Linux without Swift/Xcode/MLX, the two bundled helpers run. Mark this a fully verified engine/managed skill and publish an upstream issue to fix the mask behavior now.

@@ -10,6 +10,8 @@
     "akg",
     "affine",
     "tail-guards",
+    "causal-conv1d",
+    "state-update",
     "vllm",
     "gdn",
     "causal-convolution"
@@ -22,6 +24,26 @@
     "external"
   ],
   "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/Dao-AILab/causal-conv1d",
+      "commit": "cd81f0413cad2fc1e6f17e785ac39f59aae690cd",
+      "paths": [
+        "LICENSE",
+        "README.md",
+        "causal_conv1d/__init__.py",
+        "causal_conv1d/causal_conv1d_interface.py",
+        "causal_conv1d/cpp_functions.py",
+        "csrc/causal_conv1d.cpp",
+        "csrc/causal_conv1d_fwd.cu",
+        "csrc/causal_conv1d_update.cu",
+        "setup.py",
+        "tests/test_causal_conv1d.py"
+      ],
+      "readset": "references/causal-conv1d-contract.md",
+      "license": "BSD-3-Clause",
+      "scope": "Forward/update caller contracts, selected packed/state kernel branches and build/binding evidence; no native execution."
+    },
     {
       "type": "git",
       "url": "https://github.com/vllm-project/vllm",
@@ -44,9 +66,6 @@
     }
   ],
   "empirical_validation": "not_run",
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
@@ -55,8 +74,8 @@
   ],
   "provenance_readsets": [
     "references/akg-affine-tail-guards.md",
+    "references/causal-conv1d-contract.md",
     "references/vllm-gdn-causal-conv-contract.md"
   ],
-  "references": [],
   "consumption_mode": "packaged"
 }

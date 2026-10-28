@@ -5,6 +5,7 @@ import json
 import re
 import sqlite3
 from dataclasses import dataclass
+from datetime import date, datetime
 from importlib.resources import files
 from pathlib import Path, PurePosixPath
 
@@ -40,6 +41,39 @@ def safe_path(value: str) -> str:
 
 def _json(value: object) -> bytes:
     return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(",", ":")).encode()
+
+
+def _normalized(value: object, field: str, ancestors: frozenset[int] = frozenset()) -> object:
+    # Bundle identity is JSON, so YAML scalars without a JSON form are rejected
+    # here instead of failing inside revision serialization.
+    if value is None or isinstance(value, (str, bool, int, float)):
+        return value
+    if isinstance(value, (datetime, date)):
+        return value.isoformat()
+    if isinstance(value, (list, dict)):
+        # A YAML alias can make a container its own descendant. Only the active path
+        # is tracked, so the same object shared by sibling fields stays accepted.
+        identity = id(value)
+        if identity in ancestors:
+            raise ValueError(
+                f"Field {field} contains a reference cycle: {type(value).__name__}"
+            )
+        ancestors = ancestors | {identity}
+        if isinstance(value, list):
+            return [
+                _normalized(item, f"{field}[{index}]", ancestors)
+                for index, item in enumerate(value)
+            ]
+        result = {}
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise ValueError(f"Field {field} has a non-string key: {key!r}")
+            result[key] = _normalized(item, f"{field}.{key}" if field else key, ancestors)
+        return result
+    raise ValueError(
+        f"Field {field or '<metadata>'} cannot be represented in the bundle identity: "
+        f"{type(value).__name__}"
+    )
 
 
 def _hash(data: bytes) -> str:
@@ -87,6 +121,10 @@ class Bundle:
     content: dict[str, bytes]
     dependencies: dict[str, str]
 
+    def __post_init__(self) -> None:
+        # Normalize once at ingestion so manifest, revision and views agree.
+        object.__setattr__(self, "metadata", _normalized(self.metadata, "metadata"))
+
     def manifest(self) -> dict:
         record = self.metadata
         if not isinstance(record.get("id"), str) or not re.fullmatch(IDENTITY, record["id"]):
@@ -118,18 +156,22 @@ class Bundle:
         if record["entrypoint"] not in self.content:
             raise ValueError("Missing entrypoint in complete bundle")
         for required in record.get("required_resources", []):
+            # Present string keys already passed the content path validation.
+            if isinstance(required, str) and required in self.content:
+                continue
             if safe_path(required) not in self.content:
                 raise ValueError(f"Missing required resource: {required}")
+        resources = {path: _hash(data) for path, data in sorted(self.content.items())}
         for dependency, revision in self.dependencies.items():
             safe_path(dependency)
             if not re.fullmatch(r"sha256:[0-9a-f]{64}", revision):
                 raise ValueError("Dependency requires a resolved content revision")
             if dependency in self.content:
-                actual = "sha256:" + _hash(self.content[dependency])
+                actual = "sha256:" + resources[dependency]
             else:
                 members = {
-                    path: _hash(data)
-                    for path, data in sorted(self.content.items())
+                    path: digest
+                    for path, digest in resources.items()
                     if path.startswith(dependency + "/")
                 }
                 if not members:
@@ -139,7 +181,7 @@ class Bundle:
                 raise RevisionConflict(f"Dependency bytes disagree with revision: {dependency}")
         return {
             "metadata": record,
-            "resources": {path: _hash(data) for path, data in sorted(self.content.items())},
+            "resources": resources,
             "dependencies": dict(sorted(self.dependencies.items())),
         }
 
@@ -163,7 +205,18 @@ class Bundle:
 INCIDENTAL = ("__pycache__", ".DS_Store")
 
 
-def _tree(node, prefix: str) -> dict[str, bytes]:
+def _tree(
+    node, prefix: str, *, root: Path | None = None, ancestors: frozenset[Path] = frozenset()
+) -> dict[str, bytes]:
+    if isinstance(node, Path):
+        # A junction or symlink resolves away from where it appears; every descended
+        # directory must still land inside the root that owns this walk.
+        directory = node.resolve()
+        if root is None:
+            root = directory
+        if directory in ancestors:
+            raise ValueError(f"Resource cycle inside the skills root: {prefix}")
+        ancestors = ancestors | {directory}
     result = {}
     for child in sorted(node.iterdir(), key=lambda p: p.name):
         if child.name in INCIDENTAL or child.name.endswith(".pyc"):
@@ -172,7 +225,11 @@ def _tree(node, prefix: str) -> dict[str, bytes]:
         if isinstance(child, Path) and child.is_symlink():
             raise ValueError(f"Symlink resource is not supported: {path}")
         if child.is_dir():
-            result.update(_tree(child, path))
+            if isinstance(child, Path) and root is not None and not child.resolve().is_relative_to(
+                root
+            ):
+                raise ValueError(f"Resource escapes the skills root: {path}")
+            result.update(_tree(child, path, root=root, ancestors=ancestors))
         else:
             result[path] = child.read_bytes()
     return result
@@ -253,9 +310,12 @@ class KnowledgeReader:
                         raise ValueError("Case must stay inside the selected skills root")
                     record = json.loads(path.read_text(encoding="utf-8"))
                     if record.get("kind") == "case":
-                        if record["id"] in result:
-                            raise ValueError(f"Duplicate case identity: {record['id']}")
-                        result[record["id"]] = path
+                        identity = record["id"]
+                        if not isinstance(identity, str) or not re.fullmatch(IDENTITY, identity):
+                            raise ValueError(f"Invalid case identity in {path.name}: {identity!r}")
+                        if identity in result:
+                            raise ValueError(f"Duplicate case identity: {identity}")
+                        result[identity] = path
         return result
 
     def read(self, reference: str, *, revision: str | None = None) -> Bundle:
@@ -366,7 +426,7 @@ class KnowledgeReader:
         record = get_skill(root, identity)
         directory = skill_directory(root, identity)
         prefix = directory.relative_to(root).as_posix()
-        content = _tree(directory, prefix)
+        content = _tree(directory, prefix, root=root)
         metadata = skill_metadata(root, identity)
         dependencies = {}
         for reference in metadata.get("references", []):
@@ -429,21 +489,50 @@ class KnowledgeReader:
         relevance: str | None = None,
         context_bytes: int | None = None,
     ) -> dict:
-        if limit < 1 or (max_bytes is not None and max_bytes < 1):
-            raise ValueError("Collect limits must be positive")
+        if type(limit) is not int or limit < 1:
+            raise ValueError("limit must be a positive integer")
+        if max_bytes is not None and (type(max_bytes) is not int or max_bytes < 1):
+            raise ValueError("max_bytes must be a positive integer")
+        if ids is not None and (
+            not isinstance(ids, list) or any(not isinstance(identity, str) for identity in ids)
+        ):
+            raise ValueError("ids must be a list of identity strings")
         if kind not in (None, "skill", "knowledge", "case"):
             raise ValueError("Unknown content kind")
         if relevance is not None and (not isinstance(relevance, str) or not words(relevance)):
             raise ValueError("relevance requires at least one word")
         if context_bytes is not None and (type(context_bytes) is not int or context_bytes < 1):
             raise ValueError("context_bytes must be a positive integer")
-        revisions = revisions or {}
+        if revisions is None:
+            revisions = {}
+        if not isinstance(revisions, dict) or any(
+            not isinstance(key, str) or not isinstance(value, str)
+            for key, value in revisions.items()
+        ):
+            raise ValueError("revisions must map identity strings to revision strings")
         if ids is not None and len(set(ids)) != len(ids):
             raise ValueError("Duplicate requested identity")
         owners = self.owners()
         requested = ids if ids is not None else self.identities()
-        if set(revisions) - set(requested):
-            raise ValueError("Revision requested for an unselected identity")
+
+        def qualified(reference: str) -> str | None:
+            # Revision keys may use any spelling the API accepts for an identity.
+            try:
+                return self.resolve(reference, owners)
+            except IdentityError:
+                return None
+
+        selected = {identity for identity in map(qualified, requested) if identity is not None}
+        pinned: dict[str, str] = {}
+        for reference, revision in revisions.items():
+            target = qualified(reference)
+            if target is None or target not in selected:
+                raise ValueError(
+                    f"Revision requested for an unselected identity: {reference}"
+                )
+            if pinned.setdefault(target, revision) != revision:
+                raise ValueError(f"Conflicting revisions for the same identity: {reference}")
+            pinned[target] = revision
         collisions = sorted(i for i, authorities in owners.items() if len(authorities) > 1)
         if tier is not None and tier not in KNOWLEDGE_SCOPES:
             raise ValueError(f"Unknown knowledge tier: {tier}")
@@ -524,7 +613,7 @@ class KnowledgeReader:
                     if ids is not None:
                         omitted.append({"id": reference, "reason": "filters"})
                     continue
-                bundle = self._read(qualified, revisions.get(reference))
+                bundle = self._read(qualified, pinned.get(qualified))
                 view = {**bundle.view(material=material), "authority": authority, "ref": qualified}
                 entry = bundle.content[bundle.metadata["entrypoint"]]
                 haystack = (_json(bundle.metadata) + entry).decode("utf-8", "replace").casefold()

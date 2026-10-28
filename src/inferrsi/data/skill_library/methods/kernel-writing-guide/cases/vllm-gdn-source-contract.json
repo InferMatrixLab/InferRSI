@@ -38,5 +38,9 @@
     "No concrete HF binding, external implementation equivalence, hardware compatibility or performance claim",
     "Physical state allocation, release and recycling outside the readset"
   ],
-  "attribution": "vLLM contributors; Apache-2.0 root and in-file notices retained in the source reference. The in-tree conv file additionally credits Tri Dao; vendored FLA carries its separate MIT notice."
+  "attribution": "vLLM contributors; Apache-2.0 root and in-file notices retained in the source reference. The in-tree conv file additionally credits Tri Dao; vendored FLA carries its separate MIT notice.",
+  "required_resources": [
+    "vllm-gdn-source-contract.json",
+    "vllm-gdn-causal-conv-contract.md"
+  ]
 }

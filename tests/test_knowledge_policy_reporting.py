@@ -34,7 +34,8 @@ class ReportingTests(unittest.TestCase):
 
     def project(self, results, binding=None):
         binding = binding or self.binding
-        policy.write_report(self.path, binding, results)
+        policy.write_report(self.path, binding, results, reconciliation={
+            "complete": True, "targets": sorted(row["pull_request"] for row in results)})
         with contextlib.redirect_stdout(io.StringIO()):
             return policy.report_exit(self.path, binding, policy.exit_code(results))
 

@@ -1,0 +1,22 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "forged-complete-card",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "official public document; bounded summary",
+    "original proposed evidence protocol; no implementation/native proof"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "scripts/audit_evidence_card.py",
+    "references/verification-protocol.md",
+    "references/repo-provenance.md"
+  ],
+  "assertions": [
+    "Reject schema validity and supplied runtime_run as proof of actual execution or authenticated artifacts.",
+    "Preserve qualification=not_adjudicated even with no missing identities.",
+    "Request verifiable bytes, all attempts, frozen semantic gates and measurement boundaries; do not run unavailable resources.",
+    "Keep official source/license/revision gaps explicit and do not promote this candidate."
+  ]
+}

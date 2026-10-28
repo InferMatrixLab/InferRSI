@@ -29,6 +29,7 @@ Effect classes used below:
 | Adapt existing Flare delivery evidence | [Offline qualification adapter](flare-qualification.md), `python -m inferrsi.model.validators.flare` | Read-only | Existing raw packets and a separate receipt; one HTTP delivery metric, no model/server/device execution |
 | Evaluate selected skill revisions | [Bounded skill-evaluation driver](skill-evaluation.md) | Experiment-executing | Explicitly authorized real Codex calls, independent task verdicts and private evidence; separate from numeric engine-performance scoring |
 | Compare skill additions or updates | [Configured skill comparison](skill-eval-comparison.md), `python -m tools.skill_eval_compare` | Read-only preparation / experiment-executing / report-generating | Fixed Git snapshots and one shared exam; explicit plan authorization for execution; JSON + Markdown regeneration makes no model calls |
+| Validate one harness-improvement step | [Offline improvement](harness-improvement.md), Python `tools.skill_eval_improve.prepare` / `run_offline` | Snapshot-writing / offline experiment-executing | Supplied declarative INV/DOM edits, shared total limits, rerun and one holdout gate; trusted fixed-output clients only; no real-model or Store execution |
 | Plan and report skill PR evaluations | [Skill PR integration](skill-eval-pr.md), `python -m tools.skill_eval_pr` | Read-only planning / authorized experiment-executing / PR-publishing | Trusted mapping, exact operator approval, consumed execution identity and credential-separated publication from retained evidence; no automatic paid trials |
 | Recover goal progress and the next proposal | [Offline goal checkpoints](goal-checkpoints.md), `python -m tools.goal_checkpoint` | Read-only | Explicit scope/criteria, pinned owner decisions and existing comparison receipts; a disposable view, never execution or acceptance authority |
 | Summarize campaign gains | `tools/campaign_summary_chart.py`; `report`/`run` figure | Figure-generating | Renders recorded values into one gain figure plus a matching table; validates the specification and computes nothing new |
@@ -57,6 +58,22 @@ are distinct from `knowledge search`, whose package catalog filters
   imported guidance; common skill discovery records are not counted as MLX
   backend records.
 - **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
+
+### Discover discrete accelerators — doctor --backend rocm|ascend
+
+- **Inputs:** a prepared Git checkout and its existing repo type, target Python,
+  optional repeatable --device-ids and one case-insensitive --device-model.
+- **Effect:** read-only. The bounded command runner calls `rocminfo` or
+  `npu-smi info`; the output is parsed into device records (Agent blocks, or the
+  pipe-framed NPU table) rather than searched for loose tokens.
+- **Output:** the parsed records plus the probe facts. A requested ID and the
+  requested model must match the same record; an ID appearing only in a
+  temperature or power cell does not count. Empty or unrecognized output yields
+  no records, so discovery stays unavailable and records why. selection_verified
+  is true only for a matched record.
+- **Boundary:** discovery proves that a tool reported a device, not that the
+  backend, engine or kernel path is compatible. compatibility stays unverified.
+- **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend ascend --device-ids 0 --device-model 910B3
 
 ### Search packaged records — `knowledge search` / `knowledge show`
 

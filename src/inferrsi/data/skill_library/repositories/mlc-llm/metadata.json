@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NO_LICENSE",
+  "tags": [
+    "mlc-llm",
+    "tvm",
+    "metal",
+    "artifact-contract",
+    "target",
+    "sdk",
+    "module",
+    "stream",
+    "kv-cache",
+    "compiled-limits"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/mlc-ai/mlc-llm",
+      "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+      "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+      "readset": "references/source-identity.json",
+      "paths": [
+        ".github/workflows/lint.yml",
+        ".gitmodules",
+        "CONTRIBUTORS.md",
+        "LICENSE",
+        "NOTICE",
+        "README.md",
+        "cpp/serve/config.cc",
+        "cpp/serve/config.h",
+        "docs/community/guideline.rst",
+        "docs/compilation/model_artifact_manifest.rst",
+        "pyproject.toml",
+        "python/mlc_llm/__init__.py",
+        "python/mlc_llm/base.py",
+        "python/mlc_llm/compiler_pass/dispatch_kv_cache_creation.py",
+        "python/mlc_llm/interface/compile.py",
+        "python/mlc_llm/interface/convert_weight.py",
+        "python/mlc_llm/interface/gen_config.py",
+        "python/mlc_llm/model/gemma4/gemma4_model.py",
+        "python/mlc_llm/model/model.py",
+        "python/mlc_llm/protocol/__init__.py",
+        "python/mlc_llm/protocol/artifact_manifest.py",
+        "python/mlc_llm/serve/__init__.py",
+        "python/mlc_llm/serve/engine.py",
+        "python/mlc_llm/support/auto_target.py",
+        "tests/python/conftest.py",
+        "tests/python/integration/test_model_compile.py",
+        "tests/python/model/test_kv_cache.py",
+        "tests/python/protocol/test_artifact_manifest.py",
+        "tests/python/support/test_auto_target.py"
+      ]
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/mlc-ai/relax",
+      "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+      "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+      "readset": "references/source-identity.json",
+      "paths": [
+        "AGENTS.md",
+        "LICENSE",
+        "NOTICE",
+        "src/backend/metal/codegen/codegen_metal.cc",
+        "src/backend/metal/codegen/metal_fallback_module.cc",
+        "src/backend/metal/codegen/metal_fallback_module.h",
+        "src/backend/metal/runtime/metal_common.h",
+        "src/backend/metal/runtime/metal_device_api.mm",
+        "src/backend/metal/runtime/metal_module.mm",
+        "tests/python/codegen/test_target_codegen_metal.py"
+      ]
+    }
+  ],
+  "applicability": {
+    "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification."
+  },
+  "limitations": [
+    "Source-derived candidate; original compiled CPU/native tests, compiler/live API/CLI/model/Metal/fit/quality/service/performance execution not_run; required native BLOCKED_REQUIRED_BACKEND.",
+    "Opt-in artifact manifest first targets WebLLM; native engine ignoring that ABI is not qualified by canonical metadata agreement.",
+    "Serializable kind=metal fallback can be non-runnable; codegen/export/pipeline/submission and actual load/dispatch/completion differ.",
+    "Helpers screen narrow explicit canonical metadata, literal target strings or limit clamping only; no general Pydantic/TVM emulation, actual tensor/weight/export authentication or GPU/memory simulation.",
+    "Full model/tokenizer/quantization/VLM/RNN/speculation/disaggregation/CUDA/scheduler/dependency implementation and broad skill efficacy remain outside selected contracts.",
+    "NO_LICENSE is unavailable machine SPDX metadata, not legal absence; both source owners Apache LICENSE/NOTICE bytes are independently retained."
+  ],
+  "provenance_readsets": [
+    "references/repo-provenance.md",
+    "references/source-identity.json"
+  ],
+  "consumption_mode": "packaged"
+}

@@ -1,0 +1,20 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "root",
+  "target_capability": "negative-and-exclusion-policy",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "official public document; bounded summary",
+    "original proposed evidence protocol; no implementation/native proof"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/author-report.md",
+    "references/verification-protocol.md"
+  ],
+  "assertions": [
+    "Preserve the reported negative observation without making a universal impossibility claim.",
+    "Retain every attempt and exclusion reason; explain that selected repeats alone cannot independently authenticate quality or performance.",
+    "Propose a falsifiable changed-condition experiment without claiming it has run."
+  ]
+}

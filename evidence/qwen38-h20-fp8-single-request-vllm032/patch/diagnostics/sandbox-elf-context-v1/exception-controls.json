@@ -1,0 +1,19 @@
+{
+  "scope": "actual_run_function_with_mock_subprocess",
+  "helper_sha256": "8d87ef1fcec257ea62ead056f8cd809187d3dc44768fcdc199a43274ccefd434",
+  "controls": [
+    {
+      "case": "timeout",
+      "retained_partial_output": true,
+      "exception_preserved": true,
+      "attempt_recorded": true
+    },
+    {
+      "case": "missing_tool",
+      "retained_partial_output": true,
+      "exception_preserved": true,
+      "attempt_recorded": true
+    }
+  ],
+  "external_commands_executed": false
+}

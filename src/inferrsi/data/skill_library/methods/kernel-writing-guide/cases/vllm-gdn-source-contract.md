@@ -1,8 +1,9 @@
 # vLLM GDN source-contract cases
 
 These four representative scenarios qualify source reasoning for the
-[Qwen3-Next GDN contract](../references/vllm-gdn-causal-conv-contract.md).
-Source: vLLM `537a79f0fc5ba564d2bef43d54915b2f80f9f77d`. State: candidate.
+[Qwen3-Next GDN contract](vllm-gdn-causal-conv-contract.md).
+Source: [vLLM](https://github.com/vllm-project/vllm). State: candidate.
+Source identity and scope: [case record](vllm-gdn-source-contract.json).
 Native execution is `not_run`; agent efficacy is `not_evaluated`.
 These cases do not report a reproduced failure or a performance result.
 

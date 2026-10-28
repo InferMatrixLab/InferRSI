@@ -54,7 +54,8 @@ filters run before any resource bytes are loaded. `max_bytes` bounds
 returned item payloads, not the omission/control envelope. Each omission carries a
 `reason` code (`unknown_identity`, `ambiguous_identity`, `invalid_identity`,
 `duplicate_identity`, `unavailable_revision`, `invalid`, `filters`, `query`,
-`output_limit`) and, for errors, a `detail` message. No-match is explicit.
+`output_limit`, `index_unavailable`) and, for errors, a `detail` message. No-match
+is explicit.
 Per-item omission applies after identity discovery: a checkout skill or case
 record that cannot be parsed or validated during discovery (for example invalid
 frontmatter or JSON, a name/directory mismatch, conflicting metadata, a missing

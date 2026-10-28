@@ -1,0 +1,3 @@
+# Content refinement
+
+Root and two canonical route boundary: do not invent full-stream ModelContainer serialization or a public synchronize getter; preparation/iterator work can precede returned task cancellation. Joined producer and final-info events are not interchangeable. Ops is differentiable MLX behavior, not a demonstrated CPU backend; actual fused dispatch can be absent even when useKernel is requested. Preserve source-only masked-output difference and unknown provider packing as gaps. Native commands and unbundled source fixtures belong only in external reports. No native test/compiler result is relabeled passed.

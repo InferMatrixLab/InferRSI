@@ -1,0 +1,1 @@
+Use the dense uniform pool helper example but set kv_budget_bytes=65536 and blocks_per_chunk=2. A full request takes49152 bytes including its null block, so surely it fits. Diagnose the pool-floor conflict without allocating.

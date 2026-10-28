@@ -7,9 +7,11 @@ run-name: >-
 on:
   pull_request_target:
     branches: [main]
-    types: [opened, synchronize, reopened]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, closed]
     paths:
       - src/inferrsi/data/skill_library/**
+      - src/inferrsi/data/knowledge_packs/**
+      - src/inferrsi/data/repo_packs/**/knowledge/**
       - tools/skill_eval_*
       - docs/examples/skill-comparison/**
       - .github/workflows/skill-eval-pr.yml
@@ -17,27 +19,30 @@ on:
     inputs:
       action:
         type: choice
-        options: [execute, publish]
+        options: [plan, execute, publish]
         required: true
-        description: Execute consumes authorization once; publish reuses retained results
+        description: Plan prepares and publishes without execution; execute consumes approval once
       pr:
         required: true
         description: PR number
       plan_sha256:
-        required: true
-        description: Exact PR plan SHA-256 shown by automatic planning
+        required: false
+        description: Required for execute; exact PR plan SHA-256 shown by planning
       version:
-        required: true
-        description: Exact trusted implementation SHA shown in the plan
+        required: false
+        description: Required for execute; exact trusted implementation SHA in the plan
       base:
-        required: true
-        description: Exact compared base SHA
+        required: false
+        description: Required for execute; exact compared base SHA
       head:
-        required: true
-        description: Exact compared head SHA
+        required: false
+        description: Required for execute; exact compared head SHA
       budget:
-        required: true
-        description: Explicit approval of the complete Budget JSON shown in the plan
+        required: false
+        description: Required for execute; approval of the complete Budget JSON in the plan
+      provider_config:
+        required: false
+        description: Optional exact public model/client/pricing/spend-limit JSON; never credentials
       source_run:
         description: Execution workflow run ID, required for publish-only retries
 
@@ -53,7 +58,10 @@ env:
 
 jobs:
   plan:
-    if: github.ref == 'refs/heads/main'
+    outputs:
+      client_kind: ${{ steps.prepare.outputs.client_kind }}
+      auto_candidate: ${{ steps.prepare.outputs.auto_candidate }}
+    if: github.ref == 'refs/heads/main' && github.event.action != 'closed'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -74,11 +82,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: python -m tools.skill_eval_pr prepare --output prepared
-      - name: Validate explicit operator authorization and reserve execution
-        if: github.event_name == 'workflow_dispatch' && inputs.action == 'execute'
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        run: python -m tools.skill_eval_pr authorize --output prepared
       - uses: actions/upload-artifact@v4
         with:
           name: skill-eval-plan
@@ -87,12 +90,12 @@ jobs:
           retention-days: 30
 
   execute:
-    if: github.event_name == 'workflow_dispatch' && inputs.action == 'execute'
+    if: github.event_name == 'pull_request_target' && needs.plan.outputs.auto_candidate == 'true'
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
-      contents: read
+      contents: write
       actions: read
       pull-requests: read
     steps:
@@ -108,14 +111,11 @@ jobs:
         with:
           name: skill-eval-plan
           path: prepared
-      - name: Existing client preflight (requires separately provisioned model access)
-        run: codex --version
-      - name: Recheck live revision and authorization before execution
+      - name: Trusted cumulative-budget controller (never executes PR code)
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: python -m tools.skill_eval_pr authorize --output prepared
-      - name: Execute existing comparison without publication credentials
-        run: python -m tools.skill_eval_pr execute --output prepared
+          SKILL_EVAL_YIBUAPI_KEY: ${{ secrets.SKILL_EVAL_YIBUAPI_KEY }}
+        run: python -m tools.skill_eval_pr control --output prepared
       - name: Package retained results even after interruption
         if: always()
         run: python -m tools.skill_eval_pr pack --output prepared
@@ -134,7 +134,7 @@ jobs:
     permissions:
       contents: read
       actions: read
-      pull-requests: read
+      pull-requests: write
       issues: write
     steps:
       - uses: actions/checkout@v4
@@ -151,6 +151,7 @@ jobs:
         run: python -m tools.skill_eval_pr prepare --output prepared
       - name: Update the single revision-bound summary from retained data
         env:
+          SKILL_EVAL_AUTO_SOURCE: ${{ github.event_name == 'pull_request_target' && needs.plan.outputs.auto_candidate == 'true' }}
           GITHUB_TOKEN: ${{ github.token }}
         run: python -m tools.skill_eval_pr publish --output prepared
       - uses: actions/upload-artifact@v4

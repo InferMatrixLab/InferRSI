@@ -6,6 +6,7 @@ import threading
 import urllib.request
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
+from unittest.mock import Mock
 
 import pytest
 import yaml
@@ -107,6 +108,21 @@ def test_deleted_and_unmapped_skill_changes_are_visible_not_passed(tmp_path):
     assert "uncovered" in body and "unsupported" in body and '"fix":0' in body
     with pytest.raises(ValueError, match="No supported comparisons"):
         approval(plan)
+
+
+@pytest.mark.parametrize("skill", ["../../escape", "selected/child", "Selected", "", "."])
+def test_mapping_skill_ids_are_validated_before_building_output_paths(tmp_path, skill):
+    repo, mapping, identity = setup(tmp_path)
+    raw = compare.read_json(mapping)
+    raw["skills"][0]["skill"] = skill
+    write_json(mapping, raw)
+    output = tmp_path / "plan"
+    with pytest.raises(ValueError):
+        integration.prepare(repo, mapping, identity, output)
+    # Nothing may be written outside --output, and the config file is not created.
+    assert not (tmp_path / "escape.json").exists()
+    assert not (tmp_path / "escape").exists()
+    assert not (output / "pr-plan.json").exists()
 
 
 def test_unsupported_file_mode_does_not_disappear_or_become_a_pass(tmp_path):
@@ -329,7 +345,9 @@ def test_file_only_plan_artifact_round_trip_can_execute(tmp_path, mode):
 
 
 @pytest.mark.parametrize("mode", ["addition", "update"])
-def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs(tmp_path, mode):
+@pytest.mark.parametrize("event_name", ["workflow_dispatch", "pull_request_target"])
+def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs(
+        tmp_path, mode, event_name):
     repo, mapping, identity = setup(tmp_path, mode, token_stop_new_trials=200)
     output = tmp_path / "execution"
     plan = integration.prepare(repo, mapping, identity, output)
@@ -341,6 +359,9 @@ def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs
     publisher = tmp_path / "publisher"
     integration.prepare(repo, mapping, identity, publisher)
     api = SimulatedGitHub(plan, data)
+    if event_name == "pull_request_target":
+        api.run.update(event=event_name, head_sha=plan["head"],
+                       display_title=f"skill-eval plan or publish PR {plan['pr']}")
     api.fail_response = True
     with pytest.raises(ConnectionError):
         integration.publish_retained(api, publisher, 10, 11, 1)
@@ -441,23 +462,29 @@ def test_artifact_envelope_and_run_provenance_are_validated(tmp_path):
             integration.publish_retained(api, output, 10, 11, 1)
         api.run[field] = original
     api.data = envelope(b"not a zip")
-    with pytest.raises(zipfile.BadZipFile):
-        integration.publish_retained(api, output, 10, 11, 1)
-    assert api.writes == []
+    integration.publish_retained(api, output, 10, 11, 1)
+    assert "artifacts are invalid" in api.comments[0]["body"]
+    assert "obtain missing evidence" in api.comments[0]["body"]
+    assert len(api.writes) == 1
 
 
 def test_workflow_separates_execution_and_publication_credentials():
     workflow = yaml.safe_load((ROOT / integration.WORKFLOW).read_text(encoding="utf-8"))
     assert workflow["concurrency"]["cancel-in-progress"] is False
     executor = workflow["jobs"]["execute"]
-    assert all(value != "write" for value in executor["permissions"].values())
-    assert workflow["jobs"]["publish"]["permissions"]["issues"] == "write"
+    readers = {"contents": "read", "actions": "read", "pull-requests": "read"}
+    assert workflow["permissions"] == {}
+    assert workflow["jobs"]["plan"]["permissions"] == readers
+    assert executor["permissions"] == {**readers, "contents": "write"}
+    # PR conversation writes belong only to the separate trusted publisher.
+    assert workflow["jobs"]["publish"]["permissions"] == {
+        **readers, "pull-requests": "write", "issues": "write"}
     for job in workflow["jobs"].values():
         checkout = next(step for step in job["steps"] if step.get("uses") == "actions/checkout@v4")
         assert checkout["with"]["persist-credentials"] is False
         assert checkout["with"]["ref"] == "${{ github.workflow_sha }}"
-    step = next(s for s in executor["steps"] if "execute --output" in s.get("run", ""))
-    assert "env" not in step
+    step = next(s for s in executor["steps"] if "control --output" in s.get("run", ""))
+    assert set(step["env"]) == {"GITHUB_TOKEN", "SKILL_EVAL_YIBUAPI_KEY"}
 
 
 def test_download_redirect_drops_the_github_token():
@@ -466,3 +493,341 @@ def test_download_redirect_drops_the_github_token():
     redirected = integration.ArtifactRedirect().redirect_request(
         request, None, 302, "Found", {}, "https://storage.example.invalid/signed-artifact")
     assert not redirected.has_header("Authorization")
+
+
+def dispatch_event(monkeypatch, root, output, inputs, mode, run_id=11):
+    write_json(root / "event.json", {"inputs": inputs})
+    environment = {"GITHUB_EVENT_PATH": str(root / "event.json"),
+                   "GITHUB_EVENT_NAME": "workflow_dispatch",
+                   "GITHUB_REPOSITORY": "example/fixture", "GITHUB_RUN_ID": str(run_id),
+                   "GITHUB_RUN_ATTEMPT": "1", "GITHUB_ACTOR": "fixture-operator",
+                   "GITHUB_TOKEN": "offline-not-a-credential",
+                   "GITHUB_OUTPUT": str(root / "github-output")}
+    for key, value in environment.items():
+        monkeypatch.setenv(key, value)
+    monkeypatch.setattr(sys, "argv", ["skill_eval_pr", mode, "--output", str(output)])
+
+
+@pytest.mark.parametrize("mode", ["addition", "update"])
+@pytest.mark.parametrize("extra_inputs", [{}, {"source_run": "10", "budget": "not approval",
+                                             "plan_sha256": "not approval"}])
+def test_plan_dispatch_prepare_publish_has_no_execution_side_effects(
+    tmp_path, monkeypatch, mode, extra_inputs,
+):
+    from tools import skill_eval_auto as auto
+
+    repo, mapping, identity = setup(tmp_path, mode, ids=("one",))
+    # This synthetic repository has no deployed controller configuration.
+    # Do not let the real checkout's opt-in configuration change its plan.
+    monkeypatch.setattr(auto, "CONFIG", repo / "tools/skill_eval_auto_config.json")
+    plan = integration.prepare(repo, mapping, identity, tmp_path / "expected",
+                               planning_blocked="Trusted automatic configuration is missing")
+    api = SimulatedGitHub(plan)
+    request = Mock(wraps=api.request)
+    monkeypatch.setattr(api, "request", request)
+    monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
+    monkeypatch.setattr(integration, "ROOT", repo)
+    monkeypatch.setattr(integration, "MAPPING", mapping)
+    for name in ("authorize", "claim", "execute", "publish_retained", "result_archive"):
+        monkeypatch.setattr(integration, name, Mock(side_effect=AssertionError(name)))
+    monkeypatch.setattr(compare, "execute", Mock(side_effect=AssertionError("model call")))
+    original_run = integration.subprocess.run
+    fetches = []
+
+    def local_git_only(command, *args, **kwargs):
+        if list(command[:2]) == ["git", "fetch"]:
+            fetches.append(command)
+            assert command[-2:] == [identity["base"], "refs/pull/7/head"]
+            return None  # The fixture already owns the required Git objects.
+        return original_run(command, *args, **kwargs)
+
+    monkeypatch.setattr(integration.subprocess, "run", local_git_only)
+    output = tmp_path / "prepared"
+    inputs = {"action": "plan", "pr": "7", **extra_inputs}
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "prepare")
+    integration.main()
+    assert compare.read_json(output / "pr-plan.json") == plan and len(fetches) == 1
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "publish")
+    api.fail_response = True
+    with pytest.raises(ConnectionError):
+        integration.main()
+    assert len(api.writes) == 1 and len(api.comments) == 1
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "publish", run_id=12)
+    integration.main()
+    assert [write[0] for write in api.writes] == ["POST", "PATCH"]
+    assert len(api.comments) == 1 and "**PLANNED:" in api.comments[0]["body"]
+    assert identity["head"] in api.comments[0]["body"]
+    assert not (output / "approval.json").exists()
+    assert not (output / "execution-claim.json").exists()
+    assert not (output / "selected/results").exists()
+    assert not any("/actions/" in call.args[1] or "/collaborators/" in call.args[1]
+                   for call in request.call_args_list)
+
+
+@pytest.mark.parametrize("mode", ["authorize", "execute", "pack"])
+def test_plan_action_rejects_execution_cli_modes(tmp_path, monkeypatch, mode):
+    output = tmp_path / "prepared"
+    dispatch_event(monkeypatch, tmp_path, output, {"action": "plan", "pr": "7"}, mode)
+    forbidden = Mock(side_effect=AssertionError("Execution path reached"))
+    for name in ("GitHub", "authorize", "claim", "execute", "result_archive"):
+        monkeypatch.setattr(integration, name, forbidden)
+    with pytest.raises(ValueError, match="Plan-only dispatch"):
+        integration.main()
+    forbidden.assert_not_called()
+    assert not output.exists()
+
+
+def test_plan_dispatch_does_not_consume_execution_identity(history_plan):
+    planned = {"id": 1, "event": "workflow_dispatch",
+               "display_title": "skill-eval plan or publish PR 7"}
+    execution = {"id": 2, "event": "workflow_dispatch", "display_title":
+                 integration.run_title(7, integration.fingerprint(history_plan))}
+    with pytest.raises(ValueError, match="Duplicate or uncertain"):
+        integration.claim(history_plan, [planned], 1, 1)
+    assert integration.claim(history_plan, [planned, execution], 2, 1) == (
+        integration.execution_id(history_plan))
+
+
+@pytest.mark.parametrize("field", ["plan_sha256", "version", "base", "head", "budget"])
+@pytest.mark.parametrize("invalid", ["missing", "empty", "wrong"])
+def test_execute_dispatch_requires_all_approval_inputs_before_claim(
+    tmp_path, monkeypatch, history_plan, field, invalid,
+):
+    inputs = {key: history_plan[key] for key in ("version", "base", "head")}
+    inputs.update(action="execute", pr="7", plan_sha256=integration.fingerprint(history_plan),
+                  budget=integration.canonical(integration.budget(history_plan)))
+    if invalid == "missing":
+        del inputs[field]
+    else:
+        inputs[field] = "" if invalid == "empty" else "{}" if field == "budget" else "wrong"
+    output = tmp_path / "prepared"
+    write_json(output / "pr-plan.json", history_plan)
+    api = SimulatedWorkflowHistory(history_plan, [])
+    monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
+    forbidden = Mock(side_effect=AssertionError("Execution identity consumed"))
+    monkeypatch.setattr(integration, "claim", forbidden)
+    monkeypatch.setattr(integration, "execute", forbidden)
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "authorize")
+    with pytest.raises((KeyError, ValueError)):
+        integration.main()
+    forbidden.assert_not_called()
+    assert api.pages_requested == []
+    assert not (output / "approval.json").exists()
+    assert not (output / "execution-claim.json").exists()
+
+
+@pytest.mark.parametrize("source", ["automatic-plan", "manual-plan"])
+def test_publish_dispatch_rejects_planning_source_before_artifact_access(
+    tmp_path, monkeypatch, source,
+):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    output = tmp_path / "prepared"
+    plan = integration.prepare(repo, mapping, identity, output)
+    api = SimulatedGitHub(plan)
+    if source == "automatic-plan":
+        api.run["event"] = "pull_request_target"
+    else:
+        api.run["display_title"] = "skill-eval plan or publish PR 7"
+    request = Mock(wraps=api.request)
+    monkeypatch.setattr(api, "request", request)
+    monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
+    dispatch_event(monkeypatch, tmp_path, output,
+                   {"action": "publish", "pr": "7", "source_run": "10"}, "publish")
+    with pytest.raises(ValueError, match="Untrusted or mismatched execution workflow"):
+        integration.main()
+    request.assert_called_once_with("GET", "/actions/runs/10")
+    assert api.writes == [] and api.comments == []
+
+
+@pytest.mark.parametrize("source", [None, ""])
+def test_publish_dispatch_requires_source_run(tmp_path, monkeypatch, history_plan, source):
+    output = tmp_path / "prepared"
+    write_json(output / "pr-plan.json", history_plan)
+    inputs = {"action": "publish", "pr": "7"}
+    if source is not None:
+        inputs["source_run"] = source
+    forbidden = Mock(side_effect=AssertionError("Source validation bypassed"))
+    monkeypatch.setattr(integration, "GitHub", Mock())
+    monkeypatch.setattr(integration, "publish_retained", forbidden)
+    dispatch_event(monkeypatch, tmp_path, output, inputs, "publish")
+    with pytest.raises(ValueError, match="requires the original execution run ID"):
+        integration.main()
+    forbidden.assert_not_called()
+
+
+def test_plan_dispatch_workflow_keeps_execution_guards():
+    workflow = yaml.safe_load((ROOT / integration.WORKFLOW).read_text(encoding="utf-8"))
+    # PyYAML's YAML 1.1 resolver treats the Actions key `on` as True.
+    triggers = workflow.get("on", workflow.get(True))
+    inputs = triggers["workflow_dispatch"]["inputs"]
+    assert inputs["action"]["options"] == ["plan", "execute", "publish"]
+    assert inputs["action"]["required"] and inputs["pr"]["required"]
+    assert all(inputs[key]["required"] is False
+               for key in ("plan_sha256", "version", "base", "head", "budget"))
+    guard = "github.event_name == 'workflow_dispatch' && inputs.action == 'execute'"
+    assert workflow["jobs"]["plan"]["if"] == (
+        "github.ref == 'refs/heads/main' && github.event.action != 'closed'")
+    assert workflow["jobs"]["execute"]["if"] == (
+        "github.event_name == 'pull_request_target' && needs.plan.outputs.auto_candidate == 'true'")
+    assert not any("authorize --output" in step.get("run", "")
+                   for step in workflow["jobs"]["plan"]["steps"])
+    assert workflow["run-name"].startswith("${{ " + guard)
+
+
+@pytest.mark.parametrize("prior_publication", [False, True])
+def test_automatic_source_plan_rejects_new_head_with_same_trusted_main(
+        tmp_path, prior_publication):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    identity["version"] = identity["base"]  # Current trusted main stays fixed across the PR push.
+    execution = tmp_path / "execution"
+    old = integration.prepare(repo, mapping, identity, execution)
+    client = FixedOutputClient(tmp_path)
+    integration.execute(execution, approval(old), client=client)
+    api = SimulatedGitHub(old, integration.result_archive(execution).read_bytes())
+    api.run.update(event="pull_request_target", head_sha=api.current["head"],
+                   display_title="skill-eval plan or publish PR 7")
+    if prior_publication:
+        integration.publish_retained(api, execution, 10, 11, 1)
+        assert '"unchanged_correct":1' in api.comments[0]["body"]
+    # PR push after execution (or after the first publish), with unchanged main.
+    # Even unchanged skill bytes do not establish that this new revision was tested.
+    (repo / "unrelated.txt").write_text("new PR revision")
+    git(repo, "add", "unrelated.txt")
+    git(repo, "commit", "--quiet", "-m", "Offline PR push after execution")
+    current = {**identity, "head": git(repo, "rev-parse", "HEAD")}
+    publisher = tmp_path / "publisher"
+    new = integration.prepare(repo, mapping, current, publisher)
+    assert old["version"] == new["version"] and old["head"] != new["head"]
+    api.current["head"] = new["head"]
+    api.reads.clear()
+    calls = len(client.calls)
+    with pytest.raises(ValueError, match="Untrusted"):
+        integration.publish_retained(api, publisher, 10, 12, 1)
+    # Even metadata matching the new head cannot rebind the old immutable plan.
+    api.run["head_sha"] = new["head"]
+    integration.publish_retained(api, publisher, 10, 12, 1)
+    body = api.comments[0]["body"]
+    assert "artifacts are invalid" in body and "obtain missing evidence" in body
+    assert '"unchanged_correct":1' not in body
+    assert "/actions/artifacts/90/zip" not in api.reads
+    assert not list((publisher / "selected/results").iterdir())
+    assert len(client.calls) == calls
+
+
+@pytest.mark.parametrize("damage", ["missing", "expired", "malformed", "duplicate",
+                                     "symlink", "oversized", "ambiguous", "rerun_mismatch",
+                                     "unsafe_path", "member_oversize", "plan_only"])
+def test_automatic_missing_or_invalid_source_plan_never_imports_results(tmp_path, damage):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    output = tmp_path / "execution"
+    plan = integration.prepare(repo, mapping, identity, output)
+    api = SimulatedGitHub(plan)
+    api.run.update(event="pull_request_target", head_sha=api.current["head"],
+                   display_title="skill-eval plan or publish PR 7")
+    if damage == "missing":
+        api.plan_artifact = None
+    elif damage == "expired":
+        api.plan_artifact["expired"] = True
+    elif damage == "oversized":
+        api.plan_artifact["size_in_bytes"] = integration.MAX_ARCHIVE + 1
+    elif damage == "plan_only":
+        original_pages = api.pages
+        api.pages = lambda path, *a, **kw: ([api.plan_artifact] if "/artifacts" in path
+                                          else original_pages(path, *a, **kw))
+    elif damage == "ambiguous":
+        original_pages = api.pages
+        api.pages = lambda path, *a, **kw: (original_pages(path, *a, **kw)
+                    + ([api.plan_artifact] if "/artifacts" in path else []))
+    else:
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            entry = zipfile.ZipInfo("pr-plan.json")
+            if damage == "symlink":
+                entry.external_attr = (stat.S_IFLNK | 0o777) << 16
+            value = {**plan, "head": "f" * 40} if damage == "rerun_mismatch" else plan
+            archive.writestr(entry, "not JSON" if damage == "malformed"
+                             else integration.canonical(value))
+            if damage == "unsafe_path":
+                archive.writestr("../untrusted", "must not extract")
+            if damage == "member_oversize":
+                archive.writestr("oversized", b"x" * (integration.MAX_ARCHIVE + 1))
+            if damage == "duplicate":
+                with pytest.warns(UserWarning, match="Duplicate name"):
+                    archive.writestr("pr-plan.json", integration.canonical(plan))
+        api.plan_data = buffer.getvalue()
+        if damage == "rerun_mismatch":
+            api.run["run_attempt"] = 2
+    integration.publish_retained(api, output, 10, 11, 1)
+    assert "/actions/artifacts/90/zip" not in api.reads
+    assert '"unchanged_correct":1' not in api.comments[0]["body"]
+    assert "obtain missing evidence" in api.comments[0]["body"]
+
+
+def test_source_plan_artifact_is_immutable_across_workflow_reruns():
+    workflow = yaml.safe_load((integration.ROOT / integration.WORKFLOW).read_text())
+    uploads = [step["with"] for step in workflow["jobs"]["plan"]["steps"]
+               if step.get("uses") == "actions/upload-artifact@v4"]
+    assert len(uploads) == 1 and uploads[0]["name"] == "skill-eval-plan"
+    assert uploads[0].get("overwrite", False) is False
+
+
+@pytest.mark.parametrize("event", ["workflow_dispatch", "pull_request_target"])
+@pytest.mark.parametrize("damage", ["event", "path", "repository_id", "repository_name",
+                                     "head", "missing_repository"])
+def test_retained_source_identity_rejected_before_artifacts(tmp_path, event, damage):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    identity["version"] = "e" * 40
+    output = tmp_path / "publisher"
+    plan = integration.prepare(repo, mapping, identity, output)
+    assert len({plan["version"], plan["base"], plan["head"]}) == 3
+    api = SimulatedGitHub(plan)
+    if event == "pull_request_target":
+        api.run.update(event=event, head_sha=plan["head"],
+                       display_title="skill-eval plan or publish PR 7")
+    if damage == "event":
+        api.run["event"] = "pull_request"
+    elif damage == "path":
+        api.run["path"] = ".github/workflows/untrusted.yml"
+    elif damage == "repository_id":
+        api.run["repository"]["id"] = 456
+    elif damage == "repository_name":
+        api.run["repository"]["full_name"] = "other/repo"
+    elif damage == "missing_repository":
+        del api.run["repository"]
+    else:
+        api.run["head_sha"] = plan["version"] if event == "pull_request_target" else plan["head"]
+    with pytest.raises(ValueError, match="Untrusted"):
+        integration.publish_retained(api, output, 10, 11, 1)
+    assert not any("/artifacts" in path for path in api.reads)
+    assert not api.writes
+
+
+@pytest.mark.parametrize("run_id", [40683638660, 40683653311])
+def test_observed_automatic_run_metadata_uses_pr_head_not_policy(tmp_path, monkeypatch, run_id):
+    # Real API metadata, synthetic plan/results: these runs skipped execution.
+    fixture = ROOT / "tests/fixtures/skill_eval_live_identity" / f"run-{run_id}.json"
+    run = compare.read_json(fixture)
+    observed_plan = compare.read_json(fixture.with_name(f"plan-identity-{run_id}.json"))
+    assert observed_plan["control_status"]["eligible"] is False
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    output = tmp_path / "publisher"
+    plan = integration.prepare(repo, mapping, identity, output)
+    source_pr = run["pull_requests"][0]
+    plan.update(repository=run["repository"]["full_name"], pr=source_pr["number"],
+                base=source_pr["base"]["sha"], head=source_pr["head"]["sha"],
+                version=observed_plan["plan_identity"]["version"])
+    write_json(output / "pr-plan.json", plan)
+    assert len({plan["version"], plan["base"], plan["head"]}) == 3
+    api = SimulatedGitHub(plan, run_id=run_id)
+    api.run = run
+    original = api.request
+    api.request = lambda method, path, *a, **kw: (run["repository"] if not path else
+                                                original(method, path, *a, **kw))
+    from tools import skill_eval_auto
+    monkeypatch.setattr(skill_eval_auto, "report_control", lambda *a: {})
+    # Invalid synthetic results are harmless; reaching their download proves the
+    # observed event metadata and full source-plan fingerprint both passed.
+    integration.publish_retained(api, output, run_id, run_id + 1, 1)
+    assert api.reads.index("/actions/artifacts/91/zip") < api.reads.index(
+        "/actions/artifacts/90/zip")
+    assert len(api.writes) == 1

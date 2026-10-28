@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "readiness": "partial",
+  "host": {
+    "os": "Linux",
+    "architecture": "x86_64",
+    "python": "3.12.14"
+  },
+  "available_support": "Existing Python pytest/ruff/PyYAML environment for new stdlib support and scaffold checks only",
+  "unavailable": [
+    "swift",
+    "xcodebuild",
+    "Apple SDK",
+    "actual Metal device",
+    "prepared native MLX Swift stack"
+  ],
+  "swift_package_resolution": "not_run",
+  "native_toolchain_or_dependency_installation": "not_run",
+  "compiler_check": "not_run",
+  "original_source_tests": "not_run",
+  "required_backend_status": "BLOCKED_REQUIRED_BACKEND",
+  "full_backend_verification": false,
+  "auto_import_eligible": false,
+  "authorization_boundary": "User accepted source/offline-support candidate repository delivery; no native toolchain/MLX package/model/device/service/paid execution or managed installation."
+}

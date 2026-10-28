@@ -1,0 +1,7 @@
+{
+  "ref": "store:case.qwen38-flashinfer-gdn-integration-cand",
+  "revision": "sha256:0113c51e765be3d87468e5807d15bc1673ed095a80a24f2a91ed125b07bf5a85",
+  "readback_verified": true,
+  "content": "failure-2095-qualified.md",
+  "prior_revision": "sha256:6f7f02435f75bc838e6ca68f8b1bd1ee51a12d866d87a01337e0486e1b6e4bf0"
+}

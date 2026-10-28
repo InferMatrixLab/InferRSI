@@ -37,7 +37,7 @@
 <text x="700" y="630" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">runspec.py           Immutable RunSpec</text>
 <text x="700" y="659" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">catalog.py           Search + cited context</text>
 <text x="700" y="688" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">data/repo_packs/     Repository knowledge</text>
-<text x="700" y="717" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">data/platform_packs/ Backend descriptors</text>
+<text x="700" y="717" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">data/knowledge_packs/ Dependency + peer</text>
 <text x="700" y="746" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1"></text>
 <text x="700" y="775" font-family="ui-monospace,SFMono-Regular,Consolas,monospace" font-size="18" font-weight="400" fill="#c1cee1">examples/           Campaign composition</text>
 <text x="700" y="804" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" fill="#91a8c4">tests/fixtures/legacy/  Frozen compatibility tests</text>
@@ -49,7 +49,7 @@
 <text x="72" y="974" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#c1cee1">Freeze protocol and quality checks</text>
 <text x="466" y="948" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#c1cee1">infra/targets/ + repo_packs/</text>
 <text x="466" y="974" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#c1cee1">Compose the benchmark scenario</text>
-<text x="864" y="948" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#c1cee1">infra/platforms/ + platform_packs/</text>
+<text x="864" y="948" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#c1cee1">infra/platforms/ (probe commands)</text>
 <text x="864" y="974" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="400" fill="#c1cee1">Qualify the backend independently</text>
 <rect x="48" y="1028" width="1224" height="96" rx="18" fill="#2c261d" stroke="#947342"/>
 <text x="72" y="1062" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="17" font-weight="700" fill="#f0c678">PRESERVED COMPATIBILITY</text>
