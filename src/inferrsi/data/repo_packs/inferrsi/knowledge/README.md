@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [aafa181251043882546678920ae992498b405ffb](https://github.com/InferMatrixLab/InferRSI/tree/aafa181251043882546678920ae992498b405ffb/src/inferrsi/data/skill_library).
+Source snapshot: [49335e0c388b84211364170daf3603525885eb28](https://github.com/InferMatrixLab/InferRSI/tree/49335e0c388b84211364170daf3603525885eb28/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision aafa181251043882546678920ae992498b405ffb --check
+python tools/build_skill_index.py --source-revision 49335e0c388b84211364170daf3603525885eb28 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.

@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/aafa181251043882546678920ae992498b405ffb/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
-      "commit": "aafa181251043882546678920ae992498b405ffb",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/49335e0c388b84211364170daf3603525885eb28/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
+      "commit": "49335e0c388b84211364170daf3603525885eb28",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json",
