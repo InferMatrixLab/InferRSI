@@ -304,10 +304,68 @@ def json_type(value):
     return "number"
 
 
+# Owner-authorized, one-shot diagnostic. Remove after the encrypted artifact is collected.
+PRIVATE_CAPTURE_BEFORE = "a3970f55ff62b628f85d638708ad9fb28361720a"
+PRIVATE_CAPTURE_HEAD = "3c1b2ff969537f3216d0125d034ae903d0743e7a"
+PRIVATE_CAPTURE_FILE = "issue203-422-errors.cms"
+
+
+def capture_private_rejection(value, route, payload):
+    """Encrypt only one selected response's errors string; never persist plaintext."""
+    if (os.environ.get("ISSUE203_PRIVATE_CAPTURE") != "one-shot"
+            or os.environ.get("GITHUB_EVENT_NAME") != "push"
+            or os.environ.get("GITHUB_RUN_ATTEMPT") != "1"
+            or os.environ.get("GITHUB_REPOSITORY") != "InferMatrixLab/InferRSI"
+            or route != f"statuses/{PRIVATE_CAPTURE_HEAD}"
+            or not isinstance(payload, dict) or payload.get("context") != CONTEXT
+            or payload.get("state") != "pending" or not isinstance(value, str)):
+        return
+    try:
+        event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
+        if (event.get("before") != PRIVATE_CAPTURE_BEFORE
+                or event.get("ref") != "refs/heads/main"
+                or event.get("repository", {}).get("full_name") != "InferMatrixLab/InferRSI"):
+            return
+        directory = Path(os.environ["RUNNER_TEMP"])
+        if not directory.is_absolute() or not directory.is_dir() or directory.is_symlink():
+            raise ValueError("Unsafe diagnostic destination")
+        # A zero-byte exclusive marker prevents another process/retry in this run from
+        # collecting again, including when encryption fails. It is never uploaded.
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
+        try:
+            marker = os.open(directory / "issue203-capture-attempted", flags, 0o600)
+        except FileExistsError:
+            return
+        os.close(marker)
+        certificate = ROOT / ".github/diagnostics/issue203-capture-public.pem"
+        if certificate.is_symlink() or not certificate.is_file():
+            raise ValueError("Unavailable diagnostic public certificate")
+        encrypted = subprocess.run(
+            ["/usr/bin/openssl", "cms", "-encrypt", "-binary", "-aes-256-cbc",
+             "-outform", "DER", str(certificate)], input=value.encode("utf-8"),
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True, timeout=10,
+            env={"PATH": "/usr/bin:/bin", "LANG": "C", "OPENSSL_CONF": "/dev/null"}).stdout
+        if not encrypted:
+            raise ValueError("Empty encrypted diagnostic")
+        # Encryption completes in memory before any content file is opened. Refuse
+        # preexisting files/symlinks; no plaintext, headers, token or full body is stored.
+        destination = os.open(directory / PRIVATE_CAPTURE_FILE, flags, 0o600)
+        with os.fdopen(destination, "wb") as stream:
+            stream.write(encrypted)
+        step_output = os.environ.get("GITHUB_OUTPUT")
+        if step_output:
+            with Path(step_output).open("a", encoding="utf-8") as stream:
+                stream.write("private_capture=encrypted\n")
+        print('{"private_capture":"encrypted"}')
+    except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError):
+        # Never echo exception text: transport/encryption failures may contain inputs.
+        print('{"private_capture":"unavailable"}')
+
+
 class GitHubHTTPError(OSError):
     """An allowlisted diagnostic, never a raw response body or credential-bearing URL."""
 
-    def __init__(self, error):
+    def __init__(self, error, capture=None):
         self.code = error.code
         headers = error.headers or {}
         self.delay = None
@@ -351,6 +409,8 @@ class GitHubHTTPError(OSError):
             # HTTP 422, an arbitrary validation message, or the locally counted history.
             capacity_message = "this sha and context has reached the maximum number of statuses."
             errors = body.get("errors", []) if isinstance(body, dict) else []
+            if capture is not None and isinstance(errors, str):
+                capture(errors)
             # GitHub may return the same capacity diagnostic directly as `errors`
             # rather than in a Status/custom array. Match only this fixed full text.
             capacity = (isinstance(errors, str) and
@@ -431,7 +491,8 @@ class GitHub:
                 with urlopen(request, timeout=max(0.001, deadline - time.monotonic())) as response:
                     return json.load(response), response.headers.get("Link", "")
             except HTTPError as error:
-                failure = GitHubHTTPError(error)
+                failure = GitHubHTTPError(
+                    error, capture=lambda value: capture_private_rejection(value, route, payload))
                 # Retry reads only, once, with explicit rate timing and within the existing
                 # request budget. Never replay a status POST or guess a delay from HTTP 403.
                 if (attempt == 0 and payload is None and failure.category == "rate-limit"
