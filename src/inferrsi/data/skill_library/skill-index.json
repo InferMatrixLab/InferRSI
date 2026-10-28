@@ -264,6 +264,10 @@
     "audit-recurrent-kv-finalization": {
       "path": "repositories/vllm-rlt/audit-recurrent-kv-finalization",
       "backend": "common"
+    },
+    "project-maya": {
+      "path": "repositories/project-maya",
+      "backend": "common"
     }
   }
 }

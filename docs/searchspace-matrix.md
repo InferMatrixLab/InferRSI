@@ -477,3 +477,10 @@ Agent coordination/accounting is not Accelerator, Communication/Network or
 OS-control qualification; local journal files do not establish SSD performance.
 The existing five resource rows and all prior source/evidence boundaries remain
 unchanged.
+
+## Project Maya model-specific source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM / SSD | Diagnose / plan: family/representation guards, physical-pool ownership, expert tiers, private state and scratch overlap | [model-runtime](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/model-runtime/SKILL.md) | Source plus bounded host arithmetic/simulation; not actual accelerator allocation, pressure, tensor payload or residency performance. |
+| Host / Accelerator / service boundary | Diagnose / verify: API snapshots versus native slots, parallel state, completion, speculative retained state, calibration controls and quality evidence | [serving-state](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/serving-state/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/qualification/SKILL.md) | Required CUDA/HIP/model/parallel restore/cancellation evidence remains unavailable. HTTP procedure adds no measured Network/OS or service-gain coverage. Qwen deep state/kernels remain unmined. |

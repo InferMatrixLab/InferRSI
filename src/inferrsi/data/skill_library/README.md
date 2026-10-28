@@ -1,7 +1,7 @@
 # InferRSI skill library
 
-The English-only library contains **96 skill documents**: 66 registered roots,
-21 separately indexed engine/router documents and 9 AREX graph sub-skills.
+The English-only library contains **100 skill documents**: 67 registered roots,
+21 separately indexed engine/router documents and 12 AREX graph sub-skills.
 Complete procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 66 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 67 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -125,7 +125,7 @@ guidance; it establishes no cross-pin implementation compatibility.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 66-ID registry.
+the links and catalog records below, separately from the 67-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -264,3 +264,12 @@ from implementation, reproduction and original research proposals. Repository,
 revision, source license and raw receipts remain unknown; its offline helper
 screens supplied metadata only. This is not complete repo-to-skill or native
 verification. Catalog ID: `inferrsi.common.skills.husky`.
+
+## Project Maya portable AREX candidate
+
+[Project Maya](repositories/project-maya/SKILL.md) owns model-family dispatch and
+physical residency planning, API versus native state, and speculation/calibration
+qualification. Selected direct-compiler CPU policies and safe offline helpers do
+not clear CUDA/HIP/model/state/quality/service gaps. New Qwen coverage is shallow
+routing/format/guard evidence, not deep kernel qualification. Catalog ID:
+`inferrsi.common.skills.project_maya`.
