@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/30664de0633ab915bc49073592d7b7689b2fd454/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "30664de0633ab915bc49073592d7b7689b2fd454",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3e6ed45871696854c594071ae6e74203483c47e4/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "3e6ed45871696854c594071ae6e74203483c47e4",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
@@ -78,7 +78,7 @@
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-contract.md": "419ec4bcaec45ac579a133bce083d4f48779f26e664d7a86f720fa65f343b1d1",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/roofline-example.json": "597cd3205df043cff3ae9d15924c77934e8d8eb300c00c4840f6bb2921f90faf",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py": "524de48a6764401695fe1444f1fa3d38f363069b0cd2fba4715a86ca4b28a5d4",
-    "src/inferrsi/data/skill_library/skill-index.json": "838b48c7f1f329b6395df9acfceb56339c5c1f3e888531c7e12011d0718649c1"
+    "src/inferrsi/data/skill_library/skill-index.json": "d28a1c2da087a12cb710d131d4a29458e727e5e6c9053b1b7ca20fb006bb261d"
   },
   "skill_metadata": {
     "name": "performance-ceiling-analysis",

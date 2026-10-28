@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/30664de0633ab915bc49073592d7b7689b2fd454/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
-      "commit": "30664de0633ab915bc49073592d7b7689b2fd454",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3e6ed45871696854c594071ae6e74203483c47e4/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+      "commit": "3e6ed45871696854c594071ae6e74203483c47e4",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json",
@@ -44,7 +44,7 @@
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "9e705625c8308013c287576b0247da6f6116d817a4a535cbecff80abd6ea35ee",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
-    "src/inferrsi/data/skill_library/skill-index.json": "838b48c7f1f329b6395df9acfceb56339c5c1f3e888531c7e12011d0718649c1"
+    "src/inferrsi/data/skill_library/skill-index.json": "d28a1c2da087a12cb710d131d4a29458e727e5e6c9053b1b7ca20fb006bb261d"
   },
   "skill_metadata": {
     "name": "ascend-performance-analysis",
