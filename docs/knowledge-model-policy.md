@@ -480,8 +480,15 @@ existing ready lane runs unit tests on Python 3.10 and 3.11 in its full suite.
 
 The one-shot opt-in captures only the selected pending-status POST's HTTP 422
 `errors` string, from the response already being processed. It adds no request.
-Activation requires the pinned main-push `before`, first run attempt, repository
-and exact head; other events and later pushes are disabled. An exclusive marker
+Activation requires the first run attempt of the main push that introduces the
+exact owner-held public certificate blob, repository and exact head. Both commit
+objects must be readable; the certificate must be absent in `before`, match the
+pinned blob in `after`, and match the checked-out certificate. Complete ancestry
+must prove `before` is an ancestor of `after` and that this certificate path never
+existed before; removing and readding it cannot re-arm capture. This uses existing
+Git objects only, with a ten-second aggregate bound; temporary full-depth trusted
+main checkout supplies that ancestry without depending on a PR-head fetch. Missing/shallow objects or
+force pushes disable collection. Other events and later pushes are disabled. An exclusive marker
 prevents a second capture even if encryption fails. The string is passed in memory
 to OpenSSL CMS using a temporary public certificate and a credential-free child
 environment. Only ciphertext is written and uploaded, after a successful-capture
