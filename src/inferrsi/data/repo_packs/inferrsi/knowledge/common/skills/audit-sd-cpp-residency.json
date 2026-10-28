@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
-      "commit": "ca201c99455200a5a3d0007aca6a2963f01be17d",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c250b71f8abe10b67ac3258916be034a2608ef57/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+      "commit": "c250b71f8abe10b67ac3258916be034a2608ef57",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
         "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
@@ -55,7 +55,7 @@
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json": "af4830370b6eddc2d176a9ae14da4ab56a90b0fe048a01a89ee051df4365d8e9",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-notes.md": "c493af8f6fd11ab7c9a37c9eec78cac31d57c04403a790035efbb4fff99f4669",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/validation-boundaries.md": "3aaf79b36192bf8ff3e8f95ac90f2e769aa065dfac1fe70368824f3591849b8d",
-    "src/inferrsi/data/skill_library/skill-index.json": "11ce84e1e514eb39a0982cd104ed2321f34b786e522f41cc71d331788eba772b"
+    "src/inferrsi/data/skill_library/skill-index.json": "3274de9dea49cea622d5fd99f3de9739dcb93c412da85d24c40cb141480f593e"
   },
   "skill_metadata": {
     "name": "audit-sd-cpp-residency",

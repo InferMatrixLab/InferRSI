@@ -1,0 +1,225 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.vllm_metal",
+  "title": "vllm-metal",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership, speculative/deferred state and actual dispatch/serving evidence without upgrading source or CPU checks to backend qualification.",
+  "tags": [
+    "vllm-metal",
+    "apple-silicon",
+    "mlx",
+    "mps",
+    "paged-kv",
+    "kv-offload",
+    "speculation",
+    "deferred-execution",
+    "evidence-boundaries"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c250b71f8abe10b67ac3258916be034a2608ef57/src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
+      "commit": "c250b71f8abe10b67ac3258916be034a2608ef57",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/references/repo-routing-metadata.json",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/references/scope-and-notices.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/references/source-identity.json",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/references/configuration.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/record-schema.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "20d67ceddef9aa5626e306c3a0bced4eeb918dc408d378a9c700d8dd83a4bc74"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/vllm-metal/SKILL.md"
+  },
+  "checkout_ref": "checkout:vllm-metal",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md": "20d67ceddef9aa5626e306c3a0bced4eeb918dc408d378a9c700d8dd83a4bc74",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/metadata.json": "63d51d1ace6b0ba503c28751a8ffbf9224038395f4146a94c775c628d8075470",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/references/repo-provenance.md": "970bda4d1081704aa82c94d6544a98bbf479430c4fc2c82a1a82f206043aa72a",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/references/repo-routing-metadata.json": "230a2b383bcf2855af4de50374c41f11b0b0841268ae45e424c1c97f679b477a",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/references/scope-and-notices.md": "aaef98eaea4cff56f39852e1d131163ebc01334e79034b1890f67a2660727d3e",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/references/source-identity.json": "9da529574e81f9f91d86c01153eb09a8b1e728dc5327c40364fff74085598c1f",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/SKILL.md": "1c642c3b2373ce264926d92ffeb9d99d1da70c33818a48503677db686d3bd792",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/references/cache-and-offload.md": "9829c14cf20f22575c44c1a0fcf18f63578443710e1a592c9fea709a43a3b888",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/references/helper-contract.md": "56a7494b58c47e07d1c85471ddc6075b15e34dc7a852b937002416dbd55b65ce",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/references/troubleshooting.md": "a4600c6d17a980b6442fc4c36f1c9ae148a2710c644126a9a898675b01f95366",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/scripts/screen_pool_budget.py": "dd615f7d3239f48510ce83416fb14fba8d5da2b9017627bdd312567be1bd7956",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/SKILL.md": "a65b1aea0a58e5738226ca5d8307ab480965c127c9a32ef0a3be5e2108130a38",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/references/configuration.md": "69949b93f4f319145e37d1b28487e37bd4ef21622f3169583d9cff46234a9c76",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/references/platform-and-loading.md": "7f11dc9e4bb9ae7bac25fcd6a2909cbea0eb2ae329e28ec9a7a2f4085c56e5cc",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/references/troubleshooting.md": "837cef82321fa050af3f01804fe337b0a0462255261fea5c21158ecfa3d0c325",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/scripts/check_environment_plan.py": "2603200fef87e3afad7820b84994f7e43e6041b45c17d0ed613d0d6229535bf2",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/SKILL.md": "334b47a2300c854df90430d693f32cdb32e8301224482f362c432be4d08e3586",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/dispatch-and-measurement.md": "360719d4253ad7e5a36823171d432aa8ca0f74d1ae565c7803af1990d99f2af9",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/record-schema.md": "f3cefb8b131613535dcacf30d130ffc2dea991acfb495adb4e1c7050046903d7",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md": "64faced7f31d489e9b0c4b9523a803ff1a76dca0f9315bdc6d0b83935bd338a4",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/troubleshooting.md": "a2e85696120ffc2af4249ac9c1e1b96320e02287e5099577c0474c025ab4f5f6",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py": "78e660a13a6a6941d006cb11fc2f401a34f489e54273860ae6a208dca6a6a3c2",
+    "src/inferrsi/data/skill_library/skill-index.json": "3274de9dea49cea622d5fd99f3de9739dcb93c412da85d24c40cb141480f593e"
+  },
+  "skill_metadata": {
+    "name": "vllm-metal",
+    "description": "Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership, speculative/deferred state and actual dispatch/serving evidence without upgrading source or CPU checks to backend qualification.",
+    "license": "NO_LICENSE",
+    "disable-model-invocation": true,
+    "metadata": {
+      "disco-role": "operating"
+    },
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "partial_cpu_only",
+    "tags": [
+      "vllm-metal",
+      "apple-silicon",
+      "mlx",
+      "mps",
+      "paged-kv",
+      "kv-offload",
+      "speculation",
+      "deferred-execution",
+      "evidence-boundaries"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-metal",
+        "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+        "version": "0.32.0",
+        "license": "Apache-2.0 (retained source); dependency/model assets separate",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "LICENSE",
+          "README.md",
+          "docs/CONTRIBUTING.md",
+          "docs/benchmarking-macos.md",
+          "docs/configuration.md",
+          "docs/gqa-decode.md",
+          "docs/installation.md",
+          "docs/kv_offloading.md",
+          "docs/pytorch-mps.md",
+          "docs/speculative_decoding.md",
+          "pyproject.toml",
+          "scripts/lint.sh",
+          "scripts/test.sh",
+          "setup.py",
+          "tests/conftest.py",
+          "tests/test_config.py",
+          "tests/test_envs.py",
+          "tests/test_kv_offload_budget.py",
+          "tests/test_kv_offload_tiering.py",
+          "tests/test_kv_offload_worker.py",
+          "tests/test_macos_defaults.py",
+          "tools/avg_gen_length.py",
+          "tools/native_sampling_probe.py",
+          "vllm_metal/__init__.py",
+          "vllm_metal/config.py",
+          "vllm_metal/envs.py",
+          "vllm_metal/metal/build.py",
+          "vllm_metal/metal/paged_attention.cpp",
+          "vllm_metal/platform.py",
+          "vllm_metal/v1/cache_policy.py",
+          "vllm_metal/v1/decode_pipeline.py",
+          "vllm_metal/v1/kv_offload/config.py",
+          "vllm_metal/v1/kv_offload/connector.py",
+          "vllm_metal/v1/kv_offload/fs_tier.py",
+          "vllm_metal/v1/kv_offload/shared_region.py",
+          "vllm_metal/v1/kv_offload/spec.py",
+          "vllm_metal/v1/kv_offload/worker.py",
+          "vllm_metal/v1/model_lifecycle.py"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import."
+      }
+    ],
+    "construction": {
+      "anchor_kind": "source",
+      "distillation_form": "repository-operating-graph",
+      "strategy": "arex-portable-meta-skills",
+      "status": "partial-candidate",
+      "native_import": "not-run",
+      "method": "Stable-ID manual author sequencing plus bounded cache author lane; integrated graph followed by assertion/helper/static and selected pure Python source tests; Apple native blocks retained."
+    },
+    "applicability": {
+      "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification."
+    },
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: actual Apple MLX/Metal and MPS kernels/model loading, cache transfers/sleep/wake and real worker dispatch are not verified.",
+      "Installed pure API inspection and selected parser/default tests do not establish a healthy inference dependency set: pip check failed missing requirements, a FastAPI mismatch and unsupported host platform.",
+      "No model payload authentication, numerical/model quality, physical memory fit, HTTP service/performance or broad skill efficacy validation.",
+      "Detailed GGUF/AWQ/quantization/MoE, DFlash/DSpark, multimodal, diffusion, STT/pooling/LoRA and distributed paths remain bounded route evidence or explicit long-tail gaps.",
+      "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; upstream Apache-2.0 LICENSE retained independently."
+    ],
+    "provenance_readsets": [
+      "references/repo-provenance.md",
+      "references/source-identity.json"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "BLOCKED_REQUIRED_BACKEND: actual Apple MLX/Metal and MPS kernels/model loading, cache transfers/sleep/wake and real worker dispatch are not verified.",
+    "Installed pure API inspection and selected parser/default tests do not establish a healthy inference dependency set: pip check failed missing requirements, a FastAPI mismatch and unsupported host platform.",
+    "No model payload authentication, numerical/model quality, physical memory fit, HTTP service/performance or broad skill efficacy validation.",
+    "Detailed GGUF/AWQ/quantization/MoE, DFlash/DSpark, multimodal, diffusion, STT/pooling/LoRA and distributed paths remain bounded route evidence or explicit long-tail gaps.",
+    "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; upstream Apache-2.0 LICENSE retained independently."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

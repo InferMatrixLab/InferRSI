@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 67 registered skills in `data/skill_library/`.
+Generated abstracts for all 68 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [ca201c99455200a5a3d0007aca6a2963f01be17d](https://github.com/InferMatrixLab/InferRSI/tree/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library).
+Source snapshot: [c250b71f8abe10b67ac3258916be034a2608ef57](https://github.com/InferMatrixLab/InferRSI/tree/c250b71f8abe10b67ac3258916be034a2608ef57/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision ca201c99455200a5a3d0007aca6a2963f01be17d --check
+python tools/build_skill_index.py --source-revision c250b71f8abe10b67ac3258916be034a2608ef57 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -103,4 +103,5 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [torchnpu-pinned-host-memory-lifecycle](ascend/skills/torchnpu-pinned-host-memory-lifecycle.json) | ascend | candidate |
 | [training-input-pipeline](common/skills/training-input-pipeline.json) | common | candidate |
 | [training-resource-budget](common/skills/training-resource-budget.json) | common | candidate |
+| [vllm-metal](common/skills/vllm-metal.json) | common | candidate |
 | [weight-loading-optimization](common/skills/weight-loading-optimization.json) | common | candidate |
