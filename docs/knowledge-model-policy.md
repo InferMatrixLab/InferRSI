@@ -360,6 +360,12 @@ enabling a queue with this required check.
 HTTP diagnostics retain only the response status, a conservative category,
 numeric rate-limit timing/remaining headers, a bounded GitHub request ID, and
 fixed allowlisted validation resource/field/code values (never rejected values).
+For HTTP 422, `response_shape` distinguishes read failure, invalid JSON, parsed
+non-object bodies, missing/wrong-type error arrays, and entries without allowlisted
+details. Only fixed type names, booleans and counts over at most 20 entries are
+retained. `read_limit_reached` means the 8 KiB read bound was reached, not proof of
+truncation; `errors_sample_truncated` describes only the parsed error-array sample.
+These shape diagnostics do not identify the cause of an otherwise unknown 422.
 Raw response messages, error arrays, request URLs and credentials are not logged.
 A 403 alone is not proof of rate limiting; a 422 is a validation error, not proof
 that the status-history cap was reached. Read requests may retry once when an
