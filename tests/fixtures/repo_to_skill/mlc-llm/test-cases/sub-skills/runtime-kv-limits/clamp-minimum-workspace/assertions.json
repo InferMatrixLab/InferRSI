@@ -1,0 +1,21 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "runtime-kv-limits",
+  "target_capability": "clamp-minimum-workspace",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:cpp/serve/config.cc"
+  ],
+  "expected_skill_files": [
+    "sub-skills/runtime-kv-limits/SKILL.md",
+    "sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+    "sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+    "sub-skills/runtime-kv-limits/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Clamp per model before minima: contexts aggregate 4096, compiled prefill 512, runtime prefill 128 then 32.",
+    "Nested workspace-prefill inputs 1024 and 512 remain unchanged; the helper computes no memory allocation or capacity.",
+    "All -1 context can remain unbounded in this rule; finite positive compiled/runtime prefill aggregates are separately required.",
+    "The narrow declaration domain is not a full native parser or effective-engine override validator."
+  ]
+}

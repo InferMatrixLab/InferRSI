@@ -460,6 +460,12 @@ resources do not reproduce runtime behavior or promote the candidate.
 | --- | --- | --- |
 | ml-explore/mlx-swift-lm @ `3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac`; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected actual container/mutex/iterator/worker/loop and embedded GatedDelta MSL/host/caller/test contracts; [bounded readset](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/source-identity.json). MLX Swift manifest range is not a resolved dependency pin | [Candidate graph](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md), retained MIT, two offline support helpers, source-only masked-output parity gap. Actual partial Swift/source adaptation; no compile/original host-control/native/Metal/model/quality/service or efficacy run. Required native blocked; no DisCo CLI/model/managed import. NO_LICENSE is actual unauthenticated resolver fallback. |
 
+## MLC LLM compiled Metal and runtime contracts
+
+| Source / revision | Selected scope | Reuse and boundary |
+| --- | --- | --- |
+| mlc-ai/mlc-llm @ `8978ea9aec626d64096aaa92fbc89bda2e3ea802`; TVM gitlink mlc-ai/relax @ `201fa0001c81431ccce05419b442c47779ea917c` | Canonical artifact/task/parameter metadata and consumer boundary; Apple target/export; generic cache lowering/config; actual pinned TVM Metal codegen/module/storage/stream/test assertions. [Exact two-owner readset](../src/inferrsi/data/skill_library/repositories/mlc-llm/references/source-identity.json) | [Candidate graph](../src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md), both Apache LICENSE/NOTICE owners, three declaration helpers. Opt-in WebLLM manifest is not native ABI support; kind=metal fallback may not run. No original compiled CPU/native/compiler/Metal/model/fit/quality/service or efficacy execution; native blocked. |
+
 ## Flare preparation and complete-session source knowledge
 
 | Source / revision | Inspected scope | Reuse, extraction and limits |

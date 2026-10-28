@@ -1,0 +1,228 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.mlc_llm",
+  "title": "mlc-llm",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Investigate MLC LLM compiled Metal artifact/schema, Apple target and pinned TVM module/storage/stream contracts, and compile/runtime KV limits without confusing canonical metadata, codegen or automatic estimates with runnable native model qualification.",
+  "tags": [
+    "mlc-llm",
+    "tvm",
+    "metal",
+    "artifact-contract",
+    "target",
+    "sdk",
+    "module",
+    "stream",
+    "kv-cache",
+    "compiled-limits"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9ac81c164a90f49e605764a336af34be65ba75ad/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
+      "commit": "9ac81c164a90f49e605764a336af34be65ba75ad",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/mlc-notice.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-routing-metadata.json",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/scope-and-notices.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/source-identity.json",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/tvm-license.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/references/tvm-notice.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "e0fd1accb4216191c56e7e4a8074633f36d9063727c2546e0d2eed14220d8cf4"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/mlc-llm/SKILL.md"
+  },
+  "checkout_ref": "checkout:mlc-llm",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md": "e0fd1accb4216191c56e7e4a8074633f36d9063727c2546e0d2eed14220d8cf4",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/metadata.json": "c9927e284e44aa09733424c024409ec8efc9593520418bb7d2e53ef301363681",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/references/mlc-notice.md": "3a7dfb37bb96ce6f5a1cc0d6d4c8da3b8a35e6ec4692647ba0a37f6155c7e694",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-provenance.md": "423f21e1de6d7ab2e11c0bdf540357efde025ae4535bdf76ed9770b1a59ba35a",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-routing-metadata.json": "5309c27e7b60c4fe7aaef28bf6911e7e3c936b58b1a907aa8486bf0e40b4c0d0",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/references/scope-and-notices.md": "8c573c234f44a0808a731774921fb5228fc0844cd238496a2c4d61d0120bdc79",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/references/source-identity.json": "75e91b0f7fdac12466e62eedfb49baa6f1b3016111d7479aa2b04e5c799454b2",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/references/tvm-license.md": "e62264b483aca7a9f8c1ac69388b476971b43975ced90ac11dbd9e9c530edb46",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/references/tvm-notice.md": "967cd2fb97712c43271e2b1c4f636c4d8823898869f0f76f65bf8a3232584f0f",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/SKILL.md": "933fdd05ca853f47e3ace024cf1e08df7511834c31676851c28803b6dcb1c681",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/contract-mechanisms.md": "82187f4a1478352c68a5690101e9798973ef63f9b6d717e06188b03a1832bb8c",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/helper-contract.md": "48492a36435ff1340a4db4e0959f052cd72683ced26bb8ab35baa84bd79ccd7b",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/references/troubleshooting.md": "41b002a31b031a78ca372504de4c9cccc9353d6d80d989b8d62e56260c291e2e",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/scripts/audit_artifact_declarations.py": "874a16cb16d75a14cb51b4fbe442f4fac46feb21ac242063f5f845a0fcbabaa4",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/SKILL.md": "25dbd48f4fe84b7d759005d04a2aa9db33da987cafac7975a148e62cc9efae34",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/helper-contract.md": "5428efd6dca0654a58e9e226805e15c9a9f1b3f1ef60db234139985d107acbfa",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/modules-and-streams.md": "56faaf149f95ee821c242ccca8115a6f3b166d34392499798ae8532fcd10372d",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/native-evidence.md": "133322e879fd9010a7513afd278d937838aa2ec97d593ed11d324cc59793374e",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/targets-and-export.md": "547eb8e56af4f7b58415eb58c338ea1a33ff8edf8b58fa523700947dc7e04821",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/references/troubleshooting.md": "e392b8329ed183bba5fd79fbd260c3fbfb389016ee71880a957741e71a0d59c0",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/scripts/audit_apple_target_declarations.py": "d5bf16f7def4cfe28b143a700ca45a9636ddaeac12ead04cbaecdcc8b4b71aa5",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md": "6b4914cb60831c07d4c748162251c49fc16b229e0d62b4c5a5663719c45b16de",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md": "a118f5bc584ea885e8c573978eaf1e32d448910860b8135196c5c1acd42aee05",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/helper-contract.md": "da33306472cbda5a33605b80fe52d6cb1fa886b3b7eea13adbdf0ce8a6024c66",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md": "77105db95de2b8ea27ed6953b5441c8af061fb745ddb13d3904f8773fc21e879",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md": "b89255fc04507185bc8bcf74de779730b009b12d13bb38ad0193205dfed8e921",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py": "d82a6dda5f5931eb369003a5e1f419bfbdd82304766a18be8ea1e1849e26b77d",
+    "src/inferrsi/data/skill_library/skill-index.json": "4b1ab4221e0be589638d03829fb1927ce2f6bd2049461d422119104f13d25676"
+  },
+  "skill_metadata": {
+    "name": "mlc-llm",
+    "description": "Investigate MLC LLM compiled Metal artifact/schema, Apple target and pinned TVM module/storage/stream contracts, and compile/runtime KV limits without confusing canonical metadata, codegen or automatic estimates with runnable native model qualification.",
+    "license": "NO_LICENSE",
+    "disable-model-invocation": true,
+    "metadata": {
+      "disco-role": "operating"
+    },
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "tags": [
+      "mlc-llm",
+      "tvm",
+      "metal",
+      "artifact-contract",
+      "target",
+      "sdk",
+      "module",
+      "stream",
+      "kv-cache",
+      "compiled-limits"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/mlc-ai/mlc-llm",
+        "commit": "8978ea9aec626d64096aaa92fbc89bda2e3ea802",
+        "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".github/workflows/lint.yml",
+          ".gitmodules",
+          "CONTRIBUTORS.md",
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "cpp/serve/config.cc",
+          "cpp/serve/config.h",
+          "docs/community/guideline.rst",
+          "docs/compilation/model_artifact_manifest.rst",
+          "pyproject.toml",
+          "python/mlc_llm/__init__.py",
+          "python/mlc_llm/base.py",
+          "python/mlc_llm/compiler_pass/dispatch_kv_cache_creation.py",
+          "python/mlc_llm/interface/compile.py",
+          "python/mlc_llm/interface/convert_weight.py",
+          "python/mlc_llm/interface/gen_config.py",
+          "python/mlc_llm/model/gemma4/gemma4_model.py",
+          "python/mlc_llm/model/model.py",
+          "python/mlc_llm/protocol/__init__.py",
+          "python/mlc_llm/protocol/artifact_manifest.py",
+          "python/mlc_llm/serve/__init__.py",
+          "python/mlc_llm/serve/engine.py",
+          "python/mlc_llm/support/auto_target.py",
+          "tests/python/conftest.py",
+          "tests/python/integration/test_model_compile.py",
+          "tests/python/model/test_kv_cache.py",
+          "tests/python/protocol/test_artifact_manifest.py",
+          "tests/python/support/test_auto_target.py"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/mlc-ai/relax",
+        "commit": "201fa0001c81431ccce05419b442c47779ea917c",
+        "license": "Apache-2.0 with retained NOTICE and source-specific component notices",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "AGENTS.md",
+          "LICENSE",
+          "NOTICE",
+          "src/backend/metal/codegen/codegen_metal.cc",
+          "src/backend/metal/codegen/metal_fallback_module.cc",
+          "src/backend/metal/codegen/metal_fallback_module.h",
+          "src/backend/metal/runtime/metal_common.h",
+          "src/backend/metal/runtime/metal_device_api.mm",
+          "src/backend/metal/runtime/metal_module.mm",
+          "tests/python/codegen/test_target_codegen_metal.py"
+        ]
+      }
+    ],
+    "applicability": {
+      "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification."
+    },
+    "limitations": [
+      "Source-derived candidate; original compiled CPU/native tests, compiler/live API/CLI/model/Metal/fit/quality/service/performance execution not_run; required native BLOCKED_REQUIRED_BACKEND.",
+      "Opt-in artifact manifest first targets WebLLM; native engine ignoring that ABI is not qualified by canonical metadata agreement.",
+      "Serializable kind=metal fallback can be non-runnable; codegen/export/pipeline/submission and actual load/dispatch/completion differ.",
+      "Helpers screen narrow explicit canonical metadata, literal target strings or limit clamping only; no general Pydantic/TVM emulation, actual tensor/weight/export authentication or GPU/memory simulation.",
+      "Full model/tokenizer/quantization/VLM/RNN/speculation/disaggregation/CUDA/scheduler/dependency implementation and broad skill efficacy remain outside selected contracts.",
+      "NO_LICENSE is unavailable machine SPDX metadata, not legal absence; both source owners Apache LICENSE/NOTICE bytes are independently retained."
+    ],
+    "provenance_readsets": [
+      "references/repo-provenance.md",
+      "references/source-identity.json"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; original compiled CPU/native tests, compiler/live API/CLI/model/Metal/fit/quality/service/performance execution not_run; required native BLOCKED_REQUIRED_BACKEND.",
+    "Opt-in artifact manifest first targets WebLLM; native engine ignoring that ABI is not qualified by canonical metadata agreement.",
+    "Serializable kind=metal fallback can be non-runnable; codegen/export/pipeline/submission and actual load/dispatch/completion differ.",
+    "Helpers screen narrow explicit canonical metadata, literal target strings or limit clamping only; no general Pydantic/TVM emulation, actual tensor/weight/export authentication or GPU/memory simulation.",
+    "Full model/tokenizer/quantization/VLM/RNN/speculation/disaggregation/CUDA/scheduler/dependency implementation and broad skill efficacy remain outside selected contracts.",
+    "NO_LICENSE is unavailable machine SPDX metadata, not legal absence; both source owners Apache LICENSE/NOTICE bytes are independently retained."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

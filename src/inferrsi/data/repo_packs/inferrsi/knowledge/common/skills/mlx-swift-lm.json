@@ -27,8 +27,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64ee0cffa76b22cbd31b8069e9c6f9e71b02d599/src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
-      "commit": "64ee0cffa76b22cbd31b8069e9c6f9e71b02d599",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9ac81c164a90f49e605764a336af34be65ba75ad/src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
+      "commit": "9ac81c164a90f49e605764a336af34be65ba75ad",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/LICENSE",
         "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
@@ -79,7 +79,7 @@
     "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md": "56fdec7ebc89b5c217c7e5c203886bef1d3c2eb5794852897bdb5941ab1db2a0",
     "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md": "de28b8ca9cf95be2a4e5762f938acfadb6d4b53459dbf86df4b2b2ec64ec347f",
     "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1",
-    "src/inferrsi/data/skill_library/skill-index.json": "fe333373768022c4f3f3459abfd42b8136ccd4b40b523e6261966e0df02b486f"
+    "src/inferrsi/data/skill_library/skill-index.json": "4b1ab4221e0be589638d03829fb1927ce2f6bd2049461d422119104f13d25676"
   },
   "skill_metadata": {
     "name": "mlx-swift-lm",

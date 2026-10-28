@@ -209,6 +209,10 @@
       "path": "repositories/mistral-rs",
       "backend": "common"
     },
+    "mlc-llm": {
+      "path": "repositories/mlc-llm",
+      "backend": "common"
+    },
     "mlx-swift-lm": {
       "path": "repositories/mlx-swift-lm",
       "backend": "common"
