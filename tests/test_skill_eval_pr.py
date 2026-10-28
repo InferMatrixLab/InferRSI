@@ -520,7 +520,8 @@ def test_plan_dispatch_prepare_publish_has_no_execution_side_effects(
     # This synthetic repository has no deployed controller configuration.
     # Do not let the real checkout's opt-in configuration change its plan.
     monkeypatch.setattr(auto, "CONFIG", repo / "tools/skill_eval_auto_config.json")
-    plan = integration.prepare(repo, mapping, identity, tmp_path / "expected")
+    plan = integration.prepare(repo, mapping, identity, tmp_path / "expected",
+                               planning_blocked="Trusted automatic configuration is missing")
     api = SimulatedGitHub(plan)
     request = Mock(wraps=api.request)
     monkeypatch.setattr(api, "request", request)
@@ -558,7 +559,7 @@ def test_plan_dispatch_prepare_publish_has_no_execution_side_effects(
     assert identity["head"] in api.comments[0]["body"]
     assert not (output / "approval.json").exists()
     assert not (output / "execution-claim.json").exists()
-    assert not any((output / "selected/results").iterdir())
+    assert not (output / "selected/results").exists()
     assert not any("/actions/" in call.args[1] or "/collaborators/" in call.args[1]
                    for call in request.call_args_list)
 

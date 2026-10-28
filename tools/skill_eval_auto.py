@@ -19,21 +19,43 @@ from tools.skill_eval_budget_git import GitHubGitStore, LedgerAnchor
 CONFIG = pr.ROOT / "tools/skill_eval_auto_config.json"
 
 
-def configuration(path=CONFIG, *, now=None):
+def configuration(path=None, *, now=None):
     """Never accept provider or ledger identity from dispatch inputs or PR files."""
-    value = json.loads(Path(path).read_text(encoding="utf-8"))
-    if set(value) != {"schema_version", "repository_id", "label", "operators", "expires_at",
-                      "provider", "provider_sha256", "anchors", "review_evidence"}:
+    value = json.loads(Path(CONFIG if path is None else path).read_text(encoding="utf-8"))
+    fields = {"schema_version", "repository_id", "label", "operators", "expires_at",
+              "provider", "provider_sha256", "anchors", "review_evidence"}
+    if not isinstance(value, dict) or set(value) != fields:
         raise ValueError("Incomplete trusted automatic-execution configuration")
-    if (value["schema_version"] != 1 or type(value["repository_id"]) is not int
+    if (type(value["schema_version"]) is not int or value["schema_version"] != 1
+            or type(value["repository_id"]) is not int
             or value["repository_id"] <= 0 or not isinstance(value["label"], str)
-            or not value["label"] or not value["operators"]
-            or not all(re.fullmatch(r"[A-Za-z0-9_-]+", a) for a in value["operators"])
+            or not value["label"] or not isinstance(value["operators"], list)
+            or not value["operators"]
+            or not all(isinstance(a, str) and re.fullmatch(r"[A-Za-z0-9_-]+", a)
+                       for a in value["operators"])
             or type(value["expires_at"]) is not int
             or value["expires_at"] <= (time.time() if now is None else now)
-            or not value["review_evidence"]):
+            or not isinstance(value["anchors"], dict)
+            or not isinstance(value["review_evidence"], str) or not value["review_evidence"]):
         raise ValueError("Invalid or expired trusted automatic-execution configuration")
+    for number, anchor in value["anchors"].items():
+        if (not isinstance(number, str) or not re.fullmatch(r"[1-9][0-9]*", number)
+                or not isinstance(anchor, dict)
+                or set(anchor) != {"ref", "genesis_commit", "checkpoint_commit"}):
+            raise ValueError("Invalid trusted ledger anchor configuration")
+        LedgerAnchor(key=PRKey(value["repository_id"], int(number)), **anchor)
     provider = value["provider"]
+    required = {"model", "client", "pricing", "spend_limit"}
+    if (not isinstance(provider, dict) or not required <= provider.keys()
+            or provider.keys() - required - {"limits"}
+            or any(not isinstance(provider[key], dict) for key in required)):
+        raise ValueError("Invalid trusted provider configuration")
+    if "limits" in provider and (
+            not isinstance(provider["limits"], dict)
+            or set(provider["limits"]) != {"token_stop_new_trials"}
+            or type(provider["limits"]["token_stop_new_trials"]) is not int
+            or provider["limits"]["token_stop_new_trials"] <= 0):
+        raise ValueError("Invalid trusted provider limits")
     if pr.fingerprint(provider) != value["provider_sha256"]:
         raise ValueError("Provider configuration identity mismatch")
     pricing = provider["pricing"]
@@ -106,6 +128,8 @@ def live_label(api, plan, config):
 
 
 def eligible(plan, config):
+    if plan.get("execution_blocked"):
+        raise ValueError("Planning-only plan is blocked from paid execution")
     if plan.get("version") != plan["base"]:
         raise ValueError("Automatic execution requires the current trusted main implementation")
     if not plan["estimated_calls"] or not plan["comparisons"]:
@@ -182,7 +206,8 @@ def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, laun
 
 def report_control(api, plan):
     """Read-only publisher derivation; never trust an artifact's claimed budget state."""
-    result = {"state": "blocked", "reason": "Trusted config / audited ledger unavailable",
+    result = {"state": "blocked",
+              "reason": "Trusted configuration or pricing missing, invalid or expired",
               "spent_or_legacy_usd": "unknown", "reserved_or_unresolved_usd": "unknown",
               "remaining_usd": "unknown"}
     try:
@@ -194,6 +219,6 @@ def report_control(api, plan):
         result["reason"] = "Current label, trusted operator permission or PR revision is invalid"
         live_label(api, plan, config)
         result.update(state="enabled", reason="Only an unconsumed reserved plan may execute")
-    except (OSError, ValueError, KeyError, TypeError):
+    except (OSError, ValueError, KeyError, TypeError, ArithmeticError):
         pass
     return result

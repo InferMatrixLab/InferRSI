@@ -1,0 +1,8 @@
+{
+  "repository": "EricLBuehler/mistral.rs",
+  "source_commit": "9459891e7697238225885518119682ac8209a612",
+  "source": "GitHub CLI (gh api)",
+  "value": "NO_LICENSE",
+  "status": "unavailable",
+  "reason": "GitHub CLI is not authenticated"
+}

@@ -51,7 +51,7 @@ def blob_exists(repo, revision, path):
     return bool(git(repo, "ls-tree", revision, "--", path).strip())
 
 
-def prepare(repo, mapping_path, identity, output, *, provider=None):
+def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blocked=None):
     # Read only trusted configuration and raw Git objects, never PR Python or graders.
     for key in ("base", "head", "version"):
         if not re.fullmatch(SHA, identity[key]):
@@ -93,6 +93,10 @@ def prepare(repo, mapping_path, identity, output, *, provider=None):
         # safe-ID rule here, before building any output path from it.
         if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", item["skill"]):
             raise ValueError("Unsafe skill ID in the PR case mapping")
+        if planning_blocked is not None:
+            comparisons.append({"skill": item["skill"],
+                                "unsupported": "Mapping-only scope; provider unavailable"})
+            continue
         entrypoint = mapping["skill_root"] + "/" + item["entrypoint"]
         if not blob_exists(repo, identity["head"], entrypoint):
             for entry in coverage:
@@ -134,10 +138,18 @@ def prepare(repo, mapping_path, identity, output, *, provider=None):
             "comparisons": comparisons, "model": mapping["model"], "limits": mapping["limits"],
             "estimated_calls": sum(c.get("calls", 0) for c in comparisons),
             "retention_days": RETENTION_DAYS}
+    if planning_blocked is not None:
+        plan["execution_blocked"] = planning_blocked
+        plan["model"] = {"name": "unconfigured", "effort": "not_applicable"}
     if provider is not None:
         plan["provider_config"] = provider
         if plan["estimated_calls"]:
-            plan["reservation"] = provider_reservation(plan, now=0)
+            try:
+                plan["reservation"] = provider_reservation(plan, now=0)
+            except ValueError:
+                # Free scope reporting must survive a refused aggregate reservation.
+                # Paid admission recomputes strict bounds and never splits this plan.
+                plan["execution_blocked"] = "Complete paid reservation exceeds approved bounds"
     write_json(output / "pr-plan.json", plan)
     return plan
 
@@ -175,6 +187,8 @@ def run_title(pr, digest):
 
 
 def authorize(plan, request, actor, permission, current):
+    if plan.get("execution_blocked"):
+        raise ValueError("Planning-only plan is blocked from paid execution")
     expected = {"plan_sha256": fingerprint(plan), "version": plan["version"],
                 "base": plan["base"], "head": plan["head"], "budget": budget(plan)}
     if permission not in ("write", "maintain", "admin") or not actor:
@@ -205,6 +219,8 @@ def claim(plan, runs, run_id, attempt):
 
 def execute(output, approval, *, client=None):
     plan = compare.read_json(output / "pr-plan.json")
+    if plan.get("execution_blocked"):
+        raise ValueError("Planning-only plan is blocked from paid execution")
     if approval["execution_id"] != execution_id(plan):
         raise ValueError("Approval belongs to another plan")
     if "provider_config" in plan:
@@ -396,6 +412,9 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
                       ("available" if results else "planned / unexecuted"))
     guidance = review_guidance(plan, results, evidence_state=evidence_state)
     lines = [MARKER, "## Skill evaluation"]
+    if plan.get("execution_blocked"):
+        lines += ["", "Paid execution blocked: " + plan["execution_blocked"] + ". "
+                  "This is free planning only; no alternate provider/model is selected."]
     if execution_control is not None:
         lines += ["", "Automatic execution / cumulative PR budget: `"
                   + canonical(execution_control) + "`", ""]
@@ -818,24 +837,38 @@ def main():
                         f"refs/pull/{pr}/head"], cwd=ROOT, check=True)
         version = git(ROOT, "rev-parse", "HEAD").decode().strip()
         from tools.skill_eval_auto import CONFIG, configuration, live_label
-        config = configuration(now=0) if CONFIG.exists() else None
-        provider = config["provider"] if config else (json.loads(inputs["provider_config"])
-                    if inputs.get("provider_config") else None)
+        config, config_blocked = None, None
+        try:
+            config = configuration(CONFIG, now=0)
+        except FileNotFoundError:
+            config_blocked = "Trusted automatic configuration is missing"
+        except (OSError, ValueError, KeyError, TypeError, ArithmeticError):
+            config_blocked = "Trusted automatic configuration is invalid or unreadable"
+        provider = config["provider"] if config else None
+        # An explicitly requested manual plan is not an automatic provider fallback.
+        if config is None and inputs.get("action") == "plan" and inputs.get("provider_config"):
+            provider = json.loads(inputs["provider_config"])
         plan = prepare(ROOT, MAPPING, {"repository": repository, "pr": pr,
-                       "version": version, **current}, output,
-                       provider=provider)
-        candidate, reason = False, "Trusted provider configuration and audited PR genesis required"
+                       "version": version, **current}, output, provider=provider,
+                       planning_blocked=config_blocked if provider is None else None)
+        candidate, reason = False, (config_blocked or
+                                   "Trusted provider configuration and audited PR genesis required")
         if config:
             try:
-                from tools.skill_eval_auto import eligible, ledger_store
-                configuration()
-                eligible(plan, config)
-                live_label(api, plan, config)
-                store, key = ledger_store(api, config, pr)
-                store.read_verified(key)
-                candidate, reason = True, "Eligible; durable reservation required before execution"
-            except (ValueError, KeyError, TypeError):
-                reason = "Blocked: label/operator, suitability, provider or audited ledger"
+                configuration(CONFIG)
+            except (OSError, ValueError, KeyError, TypeError, ArithmeticError):
+                reason = "Trusted automatic configuration or pricing is expired or invalid"
+            else:
+                try:
+                    from tools.skill_eval_auto import eligible, ledger_store
+                    eligible(plan, config)
+                    live_label(api, plan, config)
+                    store, key = ledger_store(api, config, pr)
+                    store.read_verified(key)
+                    candidate = True
+                    reason = "Eligible; durable reservation required before execution"
+                except (ValueError, KeyError, TypeError):
+                    reason = "Blocked: label/operator, suitability, budget or audited ledger"
         write_json(output / "control-status.json", {"eligible": candidate, "reason": reason})
         with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
             handle.write(f"auto_candidate={str(candidate).lower()}\n")

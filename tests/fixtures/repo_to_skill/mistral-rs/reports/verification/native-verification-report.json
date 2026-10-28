@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "compiler_check": "not_run",
+  "source_native_tests": "not_run",
+  "required_backend_results": [
+    {
+      "id": "native-decode",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "reason": "Required toolchain/Apple native device/environment unavailable"
+    },
+    {
+      "id": "native-prefill",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "reason": "Required toolchain/Apple native device/environment unavailable"
+    },
+    {
+      "id": "model-prewarm",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "reason": "Required toolchain/Apple native device/environment unavailable"
+    }
+  ],
+  "engine_empirical_validation": "not_run",
+  "scope": "Integrated source candidate; offline helper checks do not substitute for Rust/compiler/Metal/model execution."
+}

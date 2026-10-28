@@ -319,3 +319,18 @@ Live acceptance remains pending until the owner-reviewed provider configuration,
 explicit label/operator policy, current pricing evidence and audited historical
 spend/genesis anchors exist, followed by an authorized real run and publication.
 Offline controller tests do not establish provider charges or skill efficacy.
+
+### Free planning remains available when execution is blocked
+
+The full changed-skill scope is planned before paid admission. If the combined
+reservation exceeds the approved total, the report retains every comparison and
+marks paid execution blocked; it neither increases the cap nor splits the plan
+to bypass it. Missing labels or audited anchors also do not suppress free advice.
+
+Expired trusted configuration or pricing remains usable only as frozen planning
+identity; live paid checks still reject it. Missing, unreadable or corrupt trusted
+configuration produces an explicit mapping-only scope report with an unconfigured
+model, no provider selection and no executable comparison freezes. It never
+silently falls back to another model/provider. These blocked plans are rejected
+by PR authorization and execution as well as the automatic controller. Direct
+standalone comparison-harness behavior is unchanged.
