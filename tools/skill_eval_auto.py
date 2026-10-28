@@ -213,6 +213,33 @@ def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, laun
     # No refund: missing/partial usage and cancellations retain the full reservation.
 
 
+def retained_source(api, plan):
+    """Find prior evidence via the verified ledger, never via mutable comment text.
+
+    Expiry/label removal revokes spending, not read-only evidence publication.
+    An unavailable configured ledger is an error, not permission to erase results.
+    """
+    if "provider_config" not in plan:
+        return None
+    try:
+        config = configuration(now=0)
+    except FileNotFoundError:
+        return None
+    if str(plan["pr"]) not in config["anchors"]:
+        return None
+    if api.request("GET", "")["id"] != config["repository_id"]:
+        raise ValueError("Repository identity changed")
+    store, key = ledger_store(api, config, plan["pr"])
+    entries = store.read_verified(key).ledger.entries
+    matching = [entry for entry in entries if entry.binding.plan_digest == pr.fingerprint(plan)
+                and entry.phase in {"claimed", "finished"}]
+    if not matching:
+        return None
+    if len(matching) != 1 or not re.fullmatch(r"[1-9][0-9]*[.]1", matching[0].binding.run_id):
+        raise ValueError("Ambiguous or invalid retained execution identity")
+    return int(matching[0].binding.run_id.split(".")[0])
+
+
 def report_control(api, plan):
     """Read-only publisher derivation; never trust an artifact's claimed budget state."""
     result = {"state": "blocked",

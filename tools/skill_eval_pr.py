@@ -897,12 +897,15 @@ def main():
         claim(plan, runs, run_id, int(os.environ["GITHUB_RUN_ATTEMPT"]))
         write_json(output / "approval.json", approval)
         return
-    if (inputs.get("action") in ("execute", "publish")
-            or os.environ.get("SKILL_EVAL_AUTO_SOURCE") == "true"):
-        if inputs.get("action") == "publish" and not inputs.get("source_run"):
-            raise ValueError("Publish-only retry requires the original execution run ID")
-        receipt = publish_retained(api, output, int(inputs.get("source_run") or run_id),
-                                   run_id, time.time())
+    if inputs.get("action") == "publish" and not inputs.get("source_run"):
+        raise ValueError("Publish-only retry requires the original execution run ID")
+    from tools.skill_eval_auto import retained_source
+    source = (int(inputs["source_run"]) if inputs.get("action") == "publish"
+              else retained_source(api, plan))
+    if source is None and os.environ.get("SKILL_EVAL_AUTO_SOURCE") == "true":
+        source = run_id
+    if source is not None:
+        receipt = publish_retained(api, output, source, run_id, time.time())
     else:
         now = time.time()
         url = f"https://github.com/{repository}/actions/runs/{run_id}"

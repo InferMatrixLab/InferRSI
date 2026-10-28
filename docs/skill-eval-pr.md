@@ -208,8 +208,13 @@ link is simulated; inspect the corresponding local `publication/` evidence.
 The workflow is already on main. The bounded #88/#101 addition/update acceptance
 established the existing real-agent execution and feedback path, including a
 valid neutral update; it did not establish whole-library efficacy or subject-PR
-merge readiness. #215's advisory behavior still needs revision-scoped real-PR
-demonstration and independent review. Offline controls are not that demonstration.
+merge readiness. The deployed #215 path subsequently completed owner-authorized
+revision-scoped real runs on [#159](https://github.com/InferMatrixLab/InferRSI/actions/runs/40700386355)
+and [#160](https://github.com/InferMatrixLab/InferRSI/actions/runs/40700395804), with retained
+publication. #159's candidate was inconclusive and the advisory reported a regression;
+#160 was unchanged-correct. These bounded observations are not skill-efficacy claims.
+[Acceptance progress](https://github.com/InferMatrixLab/InferRSI/issues/215#issuecomment-6471044747)
+tracks the remaining #215 work; the issue is not declared closed here.
 Neither fixed outputs nor green CI authorize paid trials, merge or issue closure.
 
 ## Reading the advisory guidance
@@ -261,9 +266,9 @@ answers. Standalone freeze fields are not all independently authenticated.
 The PR path's trusted reconstruction narrows that boundary; it does not create
 cryptographic provenance. Review guidance is advisory evidence interpretation,
 not execution attestation or skill-efficacy certification. Unrelated harness
-lifecycle/Windows contention work remains outside this slice and under #179.
+lifecycle/Windows contention work was tracked separately in the now-closed #179.
 
-## Label-gated cumulative paid execution (deployment prerequisite)
+## Label-gated cumulative paid execution
 
 The trusted controller extends the existing prepare/execute/pack/publish pipeline;
 it is not another runner. It uses only the existing Yibuapi Messages agent and
@@ -274,10 +279,11 @@ subsequent requests through a live GitHub check, independently of whether a
 path-filtered notification starts another workflow. Already in-flight calls
 cannot be revoked. Closed events never start preparation or paid work.
 
-**Not activated by this change.** An owner must separately review and deploy
-`tools/skill_eval_auto_config.json` in trusted main. No working config, label,
-credential or ledger genesis is created by this implementation. The config is
-strictly shaped as:
+**Deployment is present on trusted main.** Owner-reviewed configuration and
+audited ledger genesis were deployed for the bounded #159/#160 rollout. A new
+deployment still requires separate owner approval, credentials and ledger audit;
+the code never creates these prerequisites implicitly.
+`tools/skill_eval_auto_config.json` is strictly shaped as:
 
 - `schema_version: 1`, immutable `repository_id`, dedicated `label`, and explicit
   owner-authorized GitHub logins in `operators`;
@@ -324,10 +330,22 @@ SHA contract. Neither event metadata alone nor a result can rebind an old plan.
 Legacy paid `workflow_dispatch execute` is explicitly blocked instead of bypassing
 the cumulative ledger. Existing credential-free injected-client tests still work.
 
-Live acceptance remains pending until the owner-reviewed provider configuration,
-explicit label/operator policy, current pricing evidence and audited historical
-spend/genesis anchors exist, followed by an authorized real run and publication.
-Offline controller tests do not establish provider charges or skill efficacy.
+The bounded real-run verification above exercised planning, guarded execution and
+retained publication. It does not authorize additional runs or establish general
+skill efficacy. Offline controller tests do not establish provider charges.
+
+Unpaid events (including label removal and duplicates) look up an exact frozen-plan
+fingerprint in the verified Git ledger and reuse its authenticated original source
+run. They do not spend or mutate the ledger. The publisher still verifies source
+workflow identity and the complete original plan before importing evidence; changed
+plans never inherit old results. Missing/expired/invalid evidence remains explicit.
+An unreadable configured ledger blocks publication instead of erasing evidence.
+
+The implementation version itself is part of the frozen plan. Deploying this
+retention repair therefore makes the earlier real-run plans historical; their
+source links remain receipts, not evidence for a newly generated plan. Same-plan
+preservation is verified offline without new paid validation. Do not weaken the
+version/exam binding merely to restore an older comment.
 
 ### Free planning remains available when execution is blocked
 
