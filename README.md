@@ -88,9 +88,11 @@ Author-reported means from three requests after two warmups; not independently v
 
 [Ascend measurements and rejected rounds →](docs/qwen-image-2.1-turbo-ascend.md) · [Upstream NPU patch](https://github.com/vllm-project/vllm-omni/pull/8729)
 
-### Standalone speech engines
+### Standalone inference engines
 
-Concurrency 1 (C1) results reported by each project. Values are **engine / vLLM-Omni / SGLang-Omni**; compare within a row, since workloads and audio-frame definitions differ.
+[h3-metal](https://github.com/zuiho-kai/h3-metal) provides Metal-native FastH3 and MiniMax-H3 text-to-video/audio inference on Apple GPUs.
+
+Speech-engine concurrency 1 (C1) results reported by each project. Values are **engine / vLLM-Omni / SGLang-Omni**; compare within a row, since workloads and audio-frame definitions differ.
 
 | Project | Device | Throughput (frames/s) ↑ | TTFA p50 (ms) ↓ | Report and status |
 | --- | --- | --- | --- | --- |
