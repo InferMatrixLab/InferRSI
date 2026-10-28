@@ -47,6 +47,36 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertIn('"reason": "status-capacity"', str(error))
         self.assertNotIn("This SHA", str(error))
 
+    def test_exact_string_capacity_is_recognized_but_remains_execution_failure(self):
+        body = {"message": "Validation Failed", "errors":
+                "This SHA and context has reached the maximum number of statuses."}
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(json.dumps(body).encode())))
+        self.assertEqual(error.reason, "status-capacity")
+        self.assertNotIn(body["errors"], str(error))
+        result = policy.status_write_failure(error, {"description": "fixture"})
+        result.update(pull_request=1, rerun=result["kind"] in policy.RERUN_KINDS)
+        self.assertEqual(result["kind"], "budget-saturated")
+        self.assertEqual(result["state"], "failure")
+        self.assertFalse(result["rerun"])
+        self.assertEqual(policy.exit_code([result]), policy.EXIT_NONCOMPLIANT)
+        self.assertEqual(policy.summarize([result])["execution"], "failed")
+        self.assertEqual(policy.summarize([result])["noncompliant_pull_requests"], [])
+
+    def test_capacity_string_near_misses_remain_unknown_and_redacted(self):
+        capacity = "This SHA and context has reached the maximum number of statuses."
+        for errors in ("FAKE_SECRET", capacity + " FAKE_SECRET", "FAKE_SECRET " + capacity,
+                       capacity.replace("maximum", "minimum"), capacity[:-1]):
+            with self.subTest(errors=errors):
+                body = {"message": capacity, "errors": errors}
+                error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                                      io.BytesIO(json.dumps(body).encode())))
+                self.assertEqual(error.reason, "unknown")
+                self.assertNotIn("FAKE_SECRET", str(error))
+                self.assertNotIn("This SHA", str(error))
+                self.assertEqual(policy.status_write_failure(
+                    error, {"description": "fixture"})["kind"], "status-rejected")
+
     def test_unknown_validation_is_redacted_and_not_inferred_as_capacity(self):
         capacity = "This SHA and context has reached the maximum number of statuses."
         for item in ({"resource": "Status", "code": "custom", "message": "FAKE_SECRET"},
