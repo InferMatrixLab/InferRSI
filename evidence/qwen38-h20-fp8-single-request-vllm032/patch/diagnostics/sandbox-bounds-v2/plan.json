@@ -1,0 +1,87 @@
+{
+  "scope": "trusted_startup_authorization_pidfd_and_cleanup_retry",
+  "status": "reviewed_not_submitted",
+  "plane": "harness",
+  "resources": {
+    "cpus": 4,
+    "requested_memory_gib": 16,
+    "walltime_seconds": 900,
+    "gpus": 0
+  },
+  "modes": [
+    "gate_valid",
+    "gate_eof",
+    "gate_short",
+    "gate_wrong",
+    "gate_timeout",
+    "gate_early_launcher_death",
+    "bounds",
+    "synthetic",
+    "normal",
+    "timeout",
+    "launcher_kill"
+  ],
+  "source_sha256": {
+    "runtime.py": "997cbfed8398e8ad62d1beb4f6b4bc6e61a0f4572b9156cfd0c6f3fb52b03233",
+    "bounds_driver.py": "bfeeb6ea794c0ebf24e72a0127458ff74951253471daee080b3a3b1d82a062ba",
+    "synthetic_probe.py": "236920f27573447b9f3833afb72739033c965e22a9e406b09f28da815529ca64",
+    "run-synthetic.sbatch": "8c0a3b5699578fe854a3b8f3c9e225d999f5f313a78151310e409bd31791c0f5"
+  },
+  "policy": {
+    "per_process_address_space_bytes": 2147483648,
+    "memlock_bytes": 0,
+    "posix_message_queue_bytes": 0,
+    "dev_mount_readonly": true,
+    "sysv_and_mqopen_seccomp_denied": [
+      29,
+      30,
+      31,
+      64,
+      65,
+      66,
+      67,
+      68,
+      69,
+      70,
+      71,
+      220,
+      240
+    ],
+    "architecture": "Linux x86_64 LP64; foreign ABI and x32 rejected",
+    "shm_tmpfs_bytes": 33554432,
+    "work_tmpfs_bytes": 67108864,
+    "uid_task_hard_limit": 16
+  },
+  "scope_limits": [
+    "No generated model program or benchmark data",
+    "Not an aggregate 16GiB hard memory cap",
+    "Thread RuntimeError cause remains unclassified",
+    "No formal qualification, gate activation, candidate search or measured E2E effect"
+  ],
+  "review": "Independent exact-source review cleared this bounded trusted CPU diagnostic; actual Linux behavior remains untested.",
+  "prior_rejected_versions": [
+    "test_startup.initial-exclusive-fixture.py",
+    "startup-controls.initial-failure.txt",
+    "bounds_driver.review-rejected-stability.py",
+    "test_controls.review-before-stability.py",
+    "test_startup.review-before-stability.py"
+  ],
+  "source_references": [
+    "https://github.com/containers/bubblewrap/tree/362936aea0d5c6e70f7af75d2d44b5a914cb4ba2",
+    "https://raw.githubusercontent.com/torvalds/linux/v6.12/arch/x86/entry/syscalls/syscall_64.tbl",
+    "https://man7.org/linux/man-pages/man2/getrlimit.2.html",
+    "https://man7.org/linux/man-pages/man7/pid_namespaces.7.html",
+    "https://man7.org/linux/man-pages/man2/pidfd_open.2.html",
+    "https://man7.org/linux/man-pages/man7/ipc_namespaces.7.html"
+  ],
+  "protocol": {
+    "actual_pidfd_capability_before_bwrap": true,
+    "raw_syscalls": [
+      434,
+      424
+    ],
+    "explicit_token_and_eof_before_payload": true,
+    "final_output_hash_requires_observed_init_and_launcher_exit": true,
+    "stop_remaining_cases_on_incomplete_cleanup": true
+  }
+}

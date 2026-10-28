@@ -1,0 +1,82 @@
+{
+  "issue": 67,
+  "job": 2113,
+  "execution": "FAILED124:0",
+  "allocated_gpu_seconds": 127,
+  "verdict": "INCONCLUSIVE",
+  "scope": "incomplete single-case prefill feasibility",
+  "candidate": "14bd5689892d69721d1020944d295ae61877f1ee",
+  "base": "5738647ba11237a62da40c173998293f6c0a8ca1",
+  "raw_archive_sha256": "9f2b7953ef53d95ebb2d45f26b8b4a5c4383562e07140aa11a9badc0893b29f6",
+  "operator": {
+    "complete": true,
+    "scope": "operator diagnostics, no numerical acceptance tolerance",
+    "heads": [
+      24,
+      4
+    ],
+    "head_dim": 256,
+    "dtype": "bfloat16",
+    "random_length": 129,
+    "numerical_observation": {
+      "max_abs": 0.015625,
+      "nrmse": 0.002609077375382185
+    },
+    "future_values_cannot_affect_prefix": true,
+    "full_length_zero_case": 8192,
+    "backend": "PyTorch SDPA FLASH_ATTENTION only",
+    "torch": "2.13.0+cu130"
+  },
+  "native_requests": [
+    {
+      "purpose": "warmup",
+      "input_tokens": 8192,
+      "output_tokens": 16,
+      "valid": true,
+      "ttft_s": 3.498593081953004,
+      "tpot_s": 0.01337959166460981,
+      "latency_s": 3.699286956922151
+    },
+    {
+      "purpose": "measurement",
+      "input_tokens": 8192,
+      "output_tokens": 2048,
+      "valid": true,
+      "ttft_s": 2.851307050092146,
+      "tpot_s": 0.01340791783486659,
+      "latency_s": 30.297314858064055
+    }
+  ],
+  "candidate_measurements": 0,
+  "errors": [
+    {
+      "phase": "error",
+      "arm": "sdpa_flash",
+      "exception": "CancelledError"
+    }
+  ],
+  "cleanup": [
+    {
+      "phase": "cleanup",
+      "arm": "native",
+      "exit_code": 0,
+      "forced": false,
+      "owned_group_remaining": 0,
+      "cleanup_errors": [],
+      "cleanup_complete": true
+    },
+    {
+      "phase": "cleanup",
+      "arm": "sdpa_flash",
+      "exit_code": -15,
+      "forced": false,
+      "owned_group_remaining": 0,
+      "cleanup_errors": [],
+      "cleanup_complete": true
+    }
+  ],
+  "overlay_prepost_exact": true,
+  "readiness_used_gpu_seconds": 7119,
+  "readiness_remaining_gpu_seconds": 81,
+  "preparation_gap": "Slurm rounded submitted208s to240s. No proven208s scheduler hard bound; actual127s stayed within budget. Future nonminute bounds need independent enforcement."
+}

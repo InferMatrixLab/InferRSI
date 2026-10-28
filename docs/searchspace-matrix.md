@@ -463,3 +463,16 @@ and tile scheduling add no RAM/Host, SSD, Network or OS-control coverage.
 | Resource | Stage | Owner | Evidence boundary |
 | --- | --- | --- | --- |
 | Unqualified / conditional host-device questions | Diagnose / propose a falsifiable comparison and required artifacts | [Husky document research](../src/inferrsi/data/skill_library/repositories/husky/SKILL.md) | Author-reported unversioned page and original audit questions only. No inspected implementation, backend validation, measured service improvement or expanded resource coverage. |
+
+## LoopX Goal governance (cross-cutting workflow)
+
+| Scope / stage | Named decision mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Cross-cutting Observe / Diagnose / Verify | Current Todo authority versus Markdown/index/audit projections; missing active Goal state, complete terminal evidence and ordered capability/workspace/inbox/repair decisions | [rsi-evidence Goal governance](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/README.md) | Pinned LoopX source/doc/test assertions, `f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9`; source-derived candidate, runtime and agent evaluation `not_run` |
+| Cross-cutting Diagnose / Verify, consumed by experiment selection | Local accounting effect/request identity, index CAS, commit repair versus replay lookup, exact Goal instance and external-effect crash-window limits | Same owner; [optimization-search-policy](../src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md#goal-admission-and-accounting-source-knowledge) links it | Local receipt idempotency does not prove external exactly-once or a supplier-side hard cost cap; a decision/receipt is not a campaign verdict |
+
+This adds workflow knowledge, with no new green or measured resource cell.
+Agent coordination/accounting is not Accelerator, Communication/Network or
+OS-control qualification; local journal files do not establish SSD performance.
+The existing five resource rows and all prior source/evidence boundaries remain
+unchanged.

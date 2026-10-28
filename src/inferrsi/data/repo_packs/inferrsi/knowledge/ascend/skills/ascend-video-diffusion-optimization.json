@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.ascend_video_diffusion_optimization",
+  "title": "ascend-video-diffusion-optimization",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Run and verify goal-driven Ascend video diffusion optimization. Use when the user asks for latency, RTF, throughput, or HBM targets across VLM, DiT, MoE, attention, or VAE. Not for text-only LLMs.",
+  "tags": [
+    "ascend",
+    "npu",
+    "video-diffusion",
+    "dit",
+    "moe",
+    "attention",
+    "vae",
+    "performance",
+    "profiling"
+  ],
+  "origin": [
+    "first-party"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c422579dce6cadd7a53272826fe01abe3e0534d/src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+      "commit": "3c422579dce6cadd7a53272826fe01abe3e0534d",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/assets/campaign.template.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/scripts/evaluate_target.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "bb08bb6de8b2c818dbcbcca9da649da5d4ae99b6771aaad6eba32d5f4b25f935"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md"
+  },
+  "checkout_ref": "checkout:ascend-video-diffusion-optimization",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md": "bb08bb6de8b2c818dbcbcca9da649da5d4ae99b6771aaad6eba32d5f4b25f935",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/assets/campaign.template.json": "1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json": "8622da20f59c40d798e57ff9e8c8dff69137854d79dd6ed883c1a5558d3d4f92",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/scripts/evaluate_target.py": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c",
+    "src/inferrsi/data/skill_library/skill-index.json": "5c57177ec2d5cc085acbb2aecabc66bd683f636d6adfd198fdce5dffb1d5208e"
+  },
+  "skill_metadata": {
+    "name": "ascend-video-diffusion-optimization",
+    "description": "Run and verify goal-driven Ascend video diffusion optimization. Use when the user asks for latency, RTF, throughput, or HBM targets across VLM, DiT, MoE, attention, or VAE. Not for text-only LLMs.",
+    "schema_version": 1,
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "status": "candidate",
+    "origin": [
+      "first-party"
+    ],
+    "tags": [
+      "ascend",
+      "npu",
+      "video-diffusion",
+      "dit",
+      "moe",
+      "attention",
+      "vae",
+      "performance",
+      "profiling"
+    ],
+    "empirical_validation": "not_run",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance",
+      "note": "Procedure is first-hand workflow guidance. The linked field notes are not reproducible as published. No acceptance campaign under this repository's evidence contract backs this skill, and no public performance claim is made."
+    },
+    "applicability": {
+      "scope": "Ascend NPU video diffusion inference and serving optimization",
+      "hardware": "Ascend NPU; procedures are hardware-agnostic apart from layout and profiler references",
+      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+    },
+    "limitations": [
+      "Candidate workflow guidance; not independently validated beyond the field notes.",
+      "Field notes are non-reproducible as published and must not be cited as evidence.",
+      "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
+      "Remaining figures are order-of-magnitude recollections."
+    ],
+    "provenance_readsets": [
+      "references/field-notes-video-diffusion.md"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Ascend NPU video diffusion inference and serving optimization",
+    "hardware": "Ascend NPU; procedures are hardware-agnostic apart from layout and profiler references",
+    "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Candidate workflow guidance; not independently validated beyond the field notes.",
+    "Field notes are non-reproducible as published and must not be cited as evidence.",
+    "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
+    "Remaining figures are order-of-magnitude recollections."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

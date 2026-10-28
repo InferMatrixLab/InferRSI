@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [51660a7deda3911b056ec76d0a43f2bbd119b227](https://github.com/InferMatrixLab/InferRSI/tree/51660a7deda3911b056ec76d0a43f2bbd119b227/src/inferrsi/data/skill_library).
+Source snapshot: [3c422579dce6cadd7a53272826fe01abe3e0534d](https://github.com/InferMatrixLab/InferRSI/tree/3c422579dce6cadd7a53272826fe01abe3e0534d/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 51660a7deda3911b056ec76d0a43f2bbd119b227 --check
+python tools/build_skill_index.py --source-revision 3c422579dce6cadd7a53272826fe01abe3e0534d --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -46,13 +46,13 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [ascend-operator-tuning](ascend/skills/ascend-operator-tuning.json) | ascend | candidate |
 | [ascend-optimization-casebook](ascend/skills/ascend-optimization-casebook.json) | ascend | candidate |
 | [ascend-performance-analysis](ascend/skills/ascend-performance-analysis.json) | ascend | candidate |
+| [ascend-video-diffusion-optimization](ascend/skills/ascend-video-diffusion-optimization.json) | ascend | candidate |
 | [ascendc-tiling-design](ascend/skills/ascendc-tiling-design.json) | ascend | candidate |
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
 | [audit-afd-p2p-exchanges](cuda/skills/audit-afd-p2p-exchanges.json) | cuda | candidate |
 | [audit-h3-runtime-residency](common/skills/audit-h3-runtime-residency.json) | common | candidate |
 | [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
-| [audit-recurrent-kv-finalization](common/skills/audit-recurrent-kv-finalization.json) | common | candidate |
 | [audit-sd-cpp-residency](common/skills/audit-sd-cpp-residency.json) | common | candidate |
 | [audit-sglang-diffusion-lifetimes](common/skills/audit-sglang-diffusion-lifetimes.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |

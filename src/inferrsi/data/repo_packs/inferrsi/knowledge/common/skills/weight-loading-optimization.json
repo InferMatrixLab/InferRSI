@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/51660a7deda3911b056ec76d0a43f2bbd119b227/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "51660a7deda3911b056ec76d0a43f2bbd119b227",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c422579dce6cadd7a53272826fe01abe3e0534d/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "3c422579dce6cadd7a53272826fe01abe3e0534d",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
@@ -48,7 +48,7 @@
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "798cbff6f10b7c24b188080ebf233b188b0e98ef2c6fdb5e00e1fe3eff727c0f",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",
-    "src/inferrsi/data/skill_library/skill-index.json": "18e22c8e3136c463c8f83bcd1fc95f10592e59e9b097aeb1acf37863e374dded"
+    "src/inferrsi/data/skill_library/skill-index.json": "5c57177ec2d5cc085acbb2aecabc66bd683f636d6adfd198fdce5dffb1d5208e"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",

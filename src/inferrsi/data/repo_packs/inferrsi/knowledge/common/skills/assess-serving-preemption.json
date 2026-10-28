@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/51660a7deda3911b056ec76d0a43f2bbd119b227/src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
-      "commit": "51660a7deda3911b056ec76d0a43f2bbd119b227",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/3c422579dce6cadd7a53272826fe01abe3e0534d/src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
+      "commit": "3c422579dce6cadd7a53272826fe01abe3e0534d",
       "paths": [
         "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
         "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json",
@@ -36,7 +36,7 @@
     "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md": "0a5f48d9352c5bf460775ef47f9136829978811f4a16e84983e299782cae305d",
     "src/inferrsi/data/skill_library/methods/assess-serving-preemption/metadata.json": "77ce5ba16245cbd80d46d0abdf80aaf26fc0924fa2d2a5624ff430de68a1daf0",
     "src/inferrsi/data/skill_library/methods/assess-serving-preemption/references/source-notes.md": "f29fcecfba0490008a354c11b42403983fe165e56ff907ad61cc6040d2b6407f",
-    "src/inferrsi/data/skill_library/skill-index.json": "18e22c8e3136c463c8f83bcd1fc95f10592e59e9b097aeb1acf37863e374dded"
+    "src/inferrsi/data/skill_library/skill-index.json": "5c57177ec2d5cc085acbb2aecabc66bd683f636d6adfd198fdce5dffb1d5208e"
   },
   "skill_metadata": {
     "name": "assess-serving-preemption",

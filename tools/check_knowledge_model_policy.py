@@ -43,23 +43,25 @@ HISTORY_RESERVE = 15
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
          "advanced", "publication-failed", "invalidation-failed", "history-unavailable",
-         "budget-exhausted", "budget-saturated")
+         "budget-exhausted", "budget-saturated", "status-rejected")
 # Per-PR verdict: a rejection is this PR's red status, not a failure of the sweep.
 REJECTION_KINDS = {"noncompliant"}
 # Sweep execution problems, reported as errors and never as a per-PR verdict.
 ERROR_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publication-failed",
                "invalidation-failed", "history-unavailable", "budget-exhausted",
-               "budget-saturated"}
+               "budget-saturated", "status-rejected"}
 FAILING_KINDS = REJECTION_KINDS | ERROR_KINDS
 # Only the outer runner retries; these kinds ask it for a fresh trusted checkout. A head out of
 # status budget is not retryable: a rerun cannot add capacity, it would only consume the reserve.
+# Status validation rejections also settle only this invocation, not future workflow runs.
 RERUN_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publication-failed",
                "invalidation-failed", "history-unavailable"}
 # A lifecycle kind forbids publication: the captured head is no longer the current target.
 NO_PUBLISH = {"closed", "advanced"}
 # Kinds that settle a target for this attempt. A later attempt trusts one only after re-checking
 # that the target is still open against the policy branch at the same head.
-COMPLETED_KINDS = {"compliant", "noncompliant", "closed", "budget-exhausted", "budget-saturated"}
+COMPLETED_KINDS = {"compliant", "noncompliant", "closed", "budget-exhausted", "budget-saturated",
+                   "status-rejected"}
 
 
 def summarize(results):
@@ -319,6 +321,7 @@ class GitHubHTTPError(OSError):
         else:
             category = "unknown"
         self.category = category
+        self.reason = "unknown"
         detail = {"http_status": self.code, "category": category}
         if self.code == 422:
             # Recognize only the explicit status-capacity response, never infer it from
@@ -331,7 +334,24 @@ class GitHubHTTPError(OSError):
                 and isinstance(item.get("message"), str)
                 and item["message"].strip().lower() == capacity_message
                 for item in errors)
-            detail["reason"] = "status-capacity" if capacity else "unknown"
+            self.reason = "status-capacity" if capacity else "unknown"
+            detail["reason"] = self.reason
+            # Retain only fixed vocabulary, never values or free-form server messages.
+            validation = []
+            if isinstance(errors, list):
+                for item in errors[:20]:
+                    if not isinstance(item, dict):
+                        continue
+                    safe = {key: item[key] for key, allowed in {
+                        "resource": {"Status"},
+                        "field": {"state", "context", "description", "target_url", "sha"},
+                        "code": {"missing", "missing_field", "invalid", "already_exists",
+                                 "unprocessable", "custom"},
+                    }.items() if isinstance(item.get(key), str) and item[key] in allowed}
+                    if safe and safe not in validation:
+                        validation.append(safe)
+            if validation:
+                detail["validation"] = validation
         # Only numeric rate metadata and a bounded request ID are safe to retain. Response
         # messages/errors may echo user content, tokens or URLs, so they are never logged.
         for name in ("X-RateLimit-Remaining", "X-RateLimit-Reset", "Retry-After"):
@@ -581,6 +601,23 @@ def recorded_budget_failure(entries):
     return newest.get("state") == "failure" and newest.get("description") == BUDGET_DESCRIPTION
 
 
+def status_write_failure(error, result, kind="publication-failed"):
+    """A rejected POST is not a declaration verdict or proof of remote invalidation.
+
+    HTTP 422 has no evidenced transient recovery here. Settle it only in this runner's
+    plan; a fresh invocation can try again after remediation. Never replay the same
+    rejected write three times or turn a stale remote success into local compliance.
+    """
+    description = result["description"]
+    if isinstance(error, GitHubHTTPError) and error.code == 422:
+        kind = "budget-saturated" if error.reason == "status-capacity" else "status-rejected"
+        description = ("Status capacity rejected; a new head is required"
+                       if error.reason == "status-capacity" else
+                       "Status write rejected; inspect validation diagnostics")
+    return {**result, "state": "failure", "kind": kind, "description": description,
+            "errors": [*result.get("errors", []), evaluation_failure(error)["errors"][0]]}
+
+
 def invalidated(api, head, dry_run, deadline):
     # A verdict from an earlier run must not survive an evaluation that has produced no evidence
     # yet. Replacing it is itself a write, so it can fail; the caller then stops this target's
@@ -605,9 +642,7 @@ def invalidated(api, head, dry_run, deadline):
         try:
             api.status(head, result["state"], result["description"])
         except API_ERRORS as failure:
-            return {**result, "kind": "publication-failed",
-                    "errors": [*result["errors"],
-                               evaluation_failure(failure)["errors"][0]]}, False
+            return status_write_failure(failure, result), False
         return result, False
     if len(entries) >= STATUS_LIMIT:
         # GitHub rejects every write at the cap. The newest entry, possibly an old success,
@@ -628,18 +663,18 @@ def invalidated(api, head, dry_run, deadline):
             api.status(head, result["state"], result["description"])
         except API_ERRORS as error:
             # The reserved slot is free and the newest entry may still be an old success, so the
-            # write must be retried: `publication-failed` is retryable, unlike the settled
-            # `budget-exhausted`. A later sweep recognises a completed entry and writes nothing.
-            return {**result, "kind": "publication-failed",
-                    "errors": [*result["errors"],
-                               evaluation_failure(error)["errors"][0]]}, False
+            # transient write failures must be retried. A validation rejection instead settles
+            # this invocation as an error. A later sweep can retry after remediation.
+            return status_write_failure(error, result), False
         return result, False
     try:
         api.status(head, "pending", "Admission evaluation in progress")
     except API_ERRORS as error:
-        return {"state": "failure", "kind": "invalidation-failed",
-                "description": "Earlier admission result could not be invalidated",
-                "errors": [evaluation_failure(error)["errors"][0]]}, False
+        result = {"description": "Earlier admission result could not be invalidated",
+                  "errors": [f"Status POST pending failed after complete history read: "
+                             f"{len(entries)} entries for context {CONTEXT}; "
+                             "the previous remote status was not replaced"]}
+        return status_write_failure(error, result, "invalidation-failed"), False
     return None, True
 
 
@@ -780,11 +815,15 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
         failure, publish = invalidated(api, head, dry_run,
                                       target_deadline(deadline, len(numbers) - index))
         if failure is not None:
-            # Without a published invalidation an old success would still be the head's effective
-            # state, so this target gets no verdict and asks the runner for a fresh attempt.
-            records[number] = {"head": head, "snapshot": None, "comments": [],
-                               "ownership": None, "result": failure, "publish": publish,
-                               "pre": True}
+            # No admission verdict exists without invalidation. Terminal write errors can be
+            # carried only as errors within this invocation, after premise revalidation.
+            terminal = plan is not None and failure["kind"] in COMPLETED_KINDS
+            records[number] = {"head": head,
+                               "snapshot": admission_snapshot(pr) if terminal else None,
+                               "comments": [],
+                               "ownership": (None if scan_error is not None else
+                                             head_owner(open_prs or [pr], number, head)),
+                               "result": failure, "publish": publish, "pre": True}
             continue
         # An unreadable collection must not be mistaken for a shared head under an explicit
         # --pull-request target; the target itself is the only known peer in that case.
@@ -832,11 +871,9 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
                 try:
                     api.status(head, result["state"], result["description"])
                 except API_ERRORS as error:
-                    # The failure is still reported; a retry is harmless because a later sweep
-                    # re-reads the history and preserves or records the terminal verdict once.
-                    result = {**result, "kind": "publication-failed", "state": "failure",
-                              "errors": [*result["errors"],
-                                         evaluation_failure(error)["errors"][0]]}
+                    # Transient failures retry after re-reading history. Validation rejections
+                    # remain errors but are not identically replayed in this invocation.
+                    result = status_write_failure(error, result)
             published[number] = {**result, "head": head,
                                  "rerun": result["kind"] in RERUN_KINDS}
             continue
@@ -891,9 +928,7 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
             try:
                 api.status(head, result["state"], result["description"])
             except API_ERRORS as error:
-                result = {**result, "kind": "publication-failed", "state": "failure",
-                          "errors": [*result["errors"],
-                                     evaluation_failure(error)["errors"][0]]}
+                result = status_write_failure(error, result)
         published[number] = {**result, "head": head,
                              "rerun": result["kind"] in RERUN_KINDS}
     # Carried verdicts are reported as they were published by the earlier attempt. Nothing is

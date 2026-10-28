@@ -37,6 +37,10 @@
       "path": "hardware/ascend/ascend-performance-analysis",
       "backend": "ascend"
     },
+    "ascend-video-diffusion-optimization": {
+      "path": "hardware/ascend/ascend-video-diffusion-optimization",
+      "backend": "ascend"
+    },
     "ascendc-tiling-design": {
       "path": "hardware/ascend/ascendc-tiling-design",
       "backend": "ascend"

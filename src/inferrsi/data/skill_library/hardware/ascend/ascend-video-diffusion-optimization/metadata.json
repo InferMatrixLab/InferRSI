@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "profile": "local-skill-v1",
+  "kind": "skill",
+  "status": "candidate",
+  "origin": ["first-party"],
+  "tags": [
+    "ascend",
+    "npu",
+    "video-diffusion",
+    "dit",
+    "moe",
+    "attention",
+    "vae",
+    "performance",
+    "profiling"
+  ],
+  "empirical_validation": "not_run",
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance",
+    "note": "Procedure is first-hand workflow guidance. The linked field notes are not reproducible as published. No acceptance campaign under this repository's evidence contract backs this skill, and no public performance claim is made."
+  },
+  "applicability": {
+    "scope": "Ascend NPU video diffusion inference and serving optimization",
+    "hardware": "Ascend NPU; procedures are hardware-agnostic apart from layout and profiler references",
+    "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+  },
+  "limitations": [
+    "Candidate workflow guidance; not independently validated beyond the field notes.",
+    "Field notes are non-reproducible as published and must not be cited as evidence.",
+    "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
+    "Remaining figures are order-of-magnitude recollections."
+  ],
+  "provenance_readsets": [
+    "references/field-notes-video-diffusion.md"
+  ],
+  "consumption_mode": "packaged"
+}
