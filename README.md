@@ -94,14 +94,16 @@ Author-reported means from three requests after two warmups; not independently v
 
 Author-reported results on **Apple M5 Max (40-core GPU), 128 GB, macOS 27**, at **768×448, 49 frames, seed 0**, using real weights with one engine running at a time.
 
-| Engine | Steps | Cold latency (s) ↓ | Warm latency (s) ↓ |
-| --- | --- | --- | --- |
-| **h3-metal — FastH3 + block-sparse attention** | 4 | **48.23** | **18.20** |
-| **h3-metal — original H3** | 20 | **54.29** | **29.89** |
-| antirez/h3.c — default preset | 20 | 67.6 | 73.3 |
-| PipeNetwork/minimax-h3-mlx — 4-bit | 20 | 153.1 | 134.6 |
+| Engine | Device | Steps | Cold | Warm | vs. MLX (cold / warm) | vs. h3.c (cold / warm) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `PipeNetwork/minimax-h3-mlx` (4-bit) | Apple M5 Max (40-core GPU) | 20 | 153.1 s | 134.6 s | 1.00× / 1.00× | 0.44× / 0.54× |
+| `antirez/h3.c`, default preset | Apple M5 Max (40-core GPU) | 20 | 67.6 s | 73.3 s | 2.26× / 1.84× | 1.00× / 1.00× |
+| **h3-metal**, original H3 | Apple M5 Max (40-core GPU) | 20 | **54.29 s** | **29.89 s** | **2.82× / 4.50×** | **1.25× / 2.45×** |
+| **h3-metal**, FastH3 4-step + block-sparse attention | Apple M5 Max (40-core GPU) | 4 ¹ | **48.23 s** | **18.20 s** | **3.17× / 7.40×** | **1.40× / 4.03×** |
 
-Cold includes the first clip's weight loading, text encoding and preparation; warm reuses loaded weights and prepared state. FastH3 uses a distilled 4-step checkpoint, unlike the 20-step configurations. Warm values average clips 2–4 for the 20-step rows and two A/B/B/A warm runs for FastH3.
+Cold includes the first clip's weight loading, text encoding and preparation; warm reuses loaded weights and prepared state.
+
+¹ FastH3 uses a distilled 4-step checkpoint, unlike the 20-step configurations. Warm values average clips 2–4 for the 20-step rows and two A/B/B/A warm runs for FastH3.
 
 [Author's report and reproduction →](https://github.com/zuiho-kai/h3-metal/blob/53b7fa5d88e2497ab427ab9c7155535f7e6e6817/README.md#performance). These external results were not rerun in InferRSI.
 
