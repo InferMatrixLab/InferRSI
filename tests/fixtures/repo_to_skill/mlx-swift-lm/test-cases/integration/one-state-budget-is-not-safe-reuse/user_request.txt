@@ -1,0 +1,1 @@
+A helper screens 8192 bytes of recurrent state and the stream yields final info. The app shares that state/cache with a second generation without joining the first and claims complete lifetime/memory safety.

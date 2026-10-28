@@ -1,0 +1,1 @@
+Two generations share a ModelContainer. One is cancelled while next() is blocked, then emits a token. A reviewer says actors serialize the whole stream and cancellation guarantees zero subsequent tokens.

@@ -344,7 +344,8 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     )
     assert " ".join(job["concurrency"]["group"].split()) == group
     assert job["concurrency"]["cancel-in-progress"] is False
-    assert set(job["concurrency"]) == {"group", "cancel-in-progress"}
+    assert set(job["concurrency"]) == {"group", "cancel-in-progress", "queue"}
+    assert job["concurrency"]["queue"] == "max"
     steps = value["jobs"]["declarations"]["steps"]
     assert steps[0]["with"] == {"ref": "main", "persist-credentials": False}
     assert all("pip install" not in step.get("run", "") for step in steps)
@@ -682,7 +683,8 @@ def test_api_batch_separates_rejection_from_lifecycle_outcomes(api_fixture, poli
                                        "unverified": 0, "deferred": 0, "closed": 1,
                                        "advanced": 0, "publication-failed": 0,
                                        "invalidation-failed": 0, "history-unavailable": 0,
-                                       "budget-exhausted": 0, "budget-saturated": 0},
+                                       "budget-exhausted": 0, "budget-saturated": 0,
+                                       "status-rejected": 0},
                        "results": 3, "failed": 1, "noncompliant_pull_requests": [124],
                        "execution": "ok", "rerun": False}
     # A per-PR rejection keeps that PR red; it does not fail the sweep.
@@ -1549,3 +1551,101 @@ def test_api_other_contexts_do_not_consume_the_budget(api_fixture, policy):
     assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
     assert latest_status(state)["state"] == "success"
 
+
+
+@pytest.mark.parametrize("capacity", [False, True])
+@pytest.mark.parametrize("stage", ["pending", "verdict", "reserve", "history-fallback"])
+def test_status_422_is_terminal_error_not_compliance(api_fixture, policy, capacity, stage):
+    from io import BytesIO
+
+    from tools.check_knowledge_model_policy import GitHubHTTPError
+
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    if stage == "reserve":
+        seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1 - len(state["statuses"]))
+    original = api.request
+    posts = []
+
+    def request(route, payload=None, **kwargs):
+        if stage == "history-fallback" and route.startswith("commits/"):
+            raise OSError("Synthetic unavailable history")
+        if payload is not None and route.startswith("statuses/"):
+            posts.append(payload["state"])
+            if stage != "verdict" or payload["state"] != "pending":
+                body = {"message": "FAKE_SECRET", "errors": [{"resource": "Status",
+                        "code": "custom", "message":
+                        "This SHA and context has reached the maximum number of statuses."
+                        if capacity else "FAKE_SECRET"}]}
+                raise GitHubHTTPError(HTTPError(route, 422, "", {},
+                                      BytesIO(json.dumps(body).encode())))
+        return original(route, payload, **kwargs)
+
+    api.request = request
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == ("budget-saturated" if capacity else "status-rejected")
+    assert result["state"] == "failure"
+    assert result["rerun"] is False
+    assert exit_code([result]) == EXIT_NONCOMPLIANT
+    assert summarize([result])["noncompliant_pull_requests"] == []
+    assert "FAKE_SECRET" not in json.dumps(result)
+    # A failed write does not revoke the remote old success. A failed final verdict leaves
+    # pending instead. Neither is a claim that this run published a failure status.
+    assert latest_status(state)["state"] == ("pending" if stage == "verdict" else "success")
+    assert len(posts) == (2 if stage == "verdict" else 1)
+
+
+def test_status_422_settled_only_in_current_plan(api_fixture, policy):
+    from io import BytesIO
+
+    from tools.check_knowledge_model_policy import GitHubHTTPError
+
+    api, state = api_fixture
+    seed_history(state, 900)
+    original = api.request
+    posts = []
+
+    def request(route, payload=None, **kwargs):
+        if payload is not None:
+            posts.append(payload)
+            raise GitHubHTTPError(HTTPError(route, 422, "", {}, BytesIO(b'{}')))
+        return original(route, payload, **kwargs)
+
+    api.request = request
+    plan = {"completed": {}}
+    for _ in range(2):
+        results = check_prs(api, policy, BASE, False, [123], plan=plan)
+        assert results[0]["kind"] == "status-rejected"  # 900 is not capacity evidence.
+        assert exit_code(results) == EXIT_NONCOMPLIANT
+    assert len(posts) == 1
+    state["prs"][123]["head"]["sha"] = "c" * 40
+    check_prs(api, policy, BASE, False, [123], plan=plan)
+    assert len(posts) == 2  # A changed head invalidates the carried terminal error.
+    check_prs(api, policy, BASE, False, [123], plan={"completed": {}})
+    assert len(posts) == 3  # A new invocation can reassess after external remediation.
+
+
+@pytest.mark.parametrize("event_name", ["pull_request_target", "issue_comment"])
+def test_targeted_event_does_not_read_history_or_publish_to_unrelated_pr(
+        api_fixture, policy, event_name):
+    from tools.check_knowledge_model_policy import admission_route
+
+    api, state = api_fixture
+    other = copy.deepcopy(pr())
+    other.update(number=124, head={"sha": "c" * 40})
+    state["prs"][124] = other
+    event = {"repository": {"full_name": "example/repository"}, "action": "edited"}
+    if event_name == "pull_request_target":
+        event.update(number=123, pull_request=pr())
+    else:
+        event["issue"] = {"number": 123, "pull_request": {}}
+    numbers, routing, _ = admission_route(
+        api, event, event_name, policy, BASE, "example/repository")
+    assert numbers == [123]
+    assert routing["mode"] == "pr-impact"
+    results = check_prs(api, policy, BASE, False, numbers)
+    assert results[0]["kind"] == "compliant"
+    assert [item["state"] for item in state["statuses"]] == ["pending", "success"]
+    assert all(item["sha"] == HEAD for item in state["statuses"])
+    assert ("GET", "commits/" + "c" * 40 + "/statuses") not in state["requests"]
+    assert ("GET", "pulls/124/files") not in state["requests"]

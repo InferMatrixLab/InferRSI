@@ -1,0 +1,20 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "platform-config",
+  "target_capability": "boolean-and-aggregate-errors",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "vllm_metal/envs.py",
+    "tests/test_envs.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/platform-config/SKILL.md",
+    "sub-skills/platform-config/scripts/check_environment_plan.py",
+    "sub-skills/platform-config/references/configuration.md"
+  ],
+  "assertions": [
+    "Uses the bundled explicit-input syntax checker.",
+    "Reports device and integer errors together; yes means false, not parser rejection.",
+    "Does not call syntax success feature compatibility or native readiness."
+  ]
+}

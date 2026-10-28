@@ -6,6 +6,7 @@ import json
 import math
 import os
 import re
+import runpy
 import sys
 import time
 import urllib.request
@@ -21,6 +22,11 @@ MAX_RESPONSE = 1024 * 1024
 # Full context bound from https://platform.claude.com/docs/en/models/opus-5-5/overview
 MODEL_CONTEXT = {"claude-opus-5-5": 1000000}
 KEY_ENV = "SKILL_EVAL_YIBUAPI_KEY"
+# The isolated (-I) worker must load its adjacent, frozen trusted guard, not an
+# installed package or a module from the model workspace/PYTHONPATH.
+_guard = runpy.run_path(str(Path(__file__).with_name("request_guard.py")))
+authorize_request = _guard["authorize_request"]
+gate_environment = _guard["gate_environment"]
 
 
 def canonical(value):
@@ -169,6 +175,7 @@ def execution_environment(environment, *, with_key=True):
                 or any(c.isspace() for c in key)):
             raise ValueError("Provider credential is missing or malformed")
         safe[KEY_ENV] = key
+        safe.update({k: environment[k] for k in _guard["ENV_KEYS"] if k in environment})
     return safe
 
 
@@ -179,11 +186,14 @@ class AnthropicAgentClient:
     timeout_seconds: float
     pricing: dict | None = None
     spend_limit: dict | None = None
+    require_authorization: bool = False
 
     def frozen_identity(self):
         validate_spec({"name": self.model, "effort": "not_applicable"}, self.spec)
         value = {"settings": json.loads(canonical(self.spec)),
                  "source_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+                 "guard_source_sha256": hashlib.sha256(
+                     Path(__file__).with_name("request_guard.py").read_bytes()).hexdigest(),
                  "runtime_state": "unconfigured",
                  "request_policy": {"tool_choice": "auto", "thinking": "model_default",
                                     "sampling": "model_default", "retries": 0}}
@@ -198,6 +208,8 @@ class AnthropicAgentClient:
         return reservation(self.model, self.spec, self.pricing, self.spend_limit, trials, now=now)
 
     def environment(self):
+        if self.require_authorization:
+            gate_environment(os.environ)
         return execution_environment(os.environ)
 
     def verifier_environment(self):
@@ -210,7 +222,8 @@ class AnthropicAgentClient:
         return (sys.executable, "-I", str(Path(__file__).resolve()),
                 "--workspace", str(workspace), "--final", str(final), "--schema", str(schema),
                 "--settings", canonical(settings), "--prompt", prompt,
-                "--timeout", str(self.timeout_seconds))
+                "--timeout", str(self.timeout_seconds),
+                *(("--require-authorization",) if self.require_authorization else ()))
 
     @staticmethod
     def trace_metrics(path):
@@ -234,7 +247,7 @@ def unique_object(pairs):
     return result
 
 
-def send_message(payload, spec, key, timeout):
+def send_message(payload, spec, key, timeout, *, environment=None, require_authorization=False):
     """One non-streaming request. Callers must supply approved runtime credentials."""
     validate_spec({"name": payload.get("model"), "effort": "not_applicable"}, spec)
     if not isinstance(key, str) or not key or not key.isascii() or any(c.isspace() for c in key):
@@ -248,6 +261,12 @@ def send_message(payload, spec, key, timeout):
         "x-api-key": key, "anthropic-version": spec["api_version"],
         "Content-Type": "application/json", "Accept": "application/json",
         "User-Agent": "inferrsi-anthropic-agent/1"})
+    runtime = os.environ if environment is None else environment
+    if require_authorization or any(k in runtime for k in _guard["ENV_KEYS"]):
+        try:
+            authorize_request(raw, environment=runtime, timeout=timeout)
+        except Exception:
+            raise AgentError("request_authorization_denied") from None
     try:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
         with opener.open(request, timeout=timeout) as response:
@@ -452,6 +471,7 @@ def main(argv=None, *, environment=None, transport=None, emit=None):
     for name in ("workspace", "final", "schema", "settings", "prompt"):
         parser.add_argument("--" + name, required=True)
     parser.add_argument("--timeout", type=float, required=True)
+    parser.add_argument("--require-authorization", action="store_true")
     args = parser.parse_args(argv)
     emit = emit or (lambda event: print(canonical(event), flush=True))
     try:
@@ -466,6 +486,9 @@ def main(argv=None, *, environment=None, transport=None, emit=None):
         sender = transport or send_message
 
         def send(payload, spec, timeout):
+            if transport is None:
+                return sender(payload, spec, key, timeout, environment=runtime,
+                              require_authorization=args.require_authorization)
             return sender(payload, spec, key, timeout)
 
         schema = json.loads(Path(args.schema).read_text(encoding="utf-8"))

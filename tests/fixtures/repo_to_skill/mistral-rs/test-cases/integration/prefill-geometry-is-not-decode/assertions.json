@@ -1,0 +1,26 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "prefill-geometry-is-not-decode",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+    "mistralrs-paged-attn/src/metal/backend/paged_attention.rs"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/scope-and-notices.md",
+    "sub-skills/decode-contract/SKILL.md",
+    "sub-skills/decode-contract/references/layout-and-features.md",
+    "sub-skills/decode-contract/references/workspace-and-evidence.md",
+    "sub-skills/decode-contract/references/helper-contract.md",
+    "sub-skills/prefill-contract/SKILL.md",
+    "sub-skills/prefill-contract/references/prefill-and-metadata.md",
+    "sub-skills/prefill-contract/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Standalone prefill allows different value head dimension and broader primitive block domain than bounded block32 decode support.",
+    "Decode layout has matched D and native consumer-specific cache view; equal counts do not establish strides/offsets/alias identity.",
+    "Offline declaration success is neither complete native guard coverage nor selected variant/dispatch/parity; stop for actual producer-view-consumer evidence."
+  ]
+}

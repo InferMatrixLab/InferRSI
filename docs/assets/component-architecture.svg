@@ -39,7 +39,7 @@
 <text x="1084" y="500" font-size="21" font-weight="400" fill="#172B42" text-anchor="start">CUDA / ROCm / Ascend</text>
 <text x="1084" y="531" font-size="21" font-weight="400" fill="#172B42" text-anchor="start">设备、拓扑、版本与能力</text>
 <text x="1084" y="562" font-size="21" font-weight="400" fill="#172B42" text-anchor="start">profiling 采集与解析</text>
-<text x="1084" y="593" font-size="21" font-weight="400" fill="#172B42" text-anchor="start">platform_packs / 设备知识</text>
+<text x="1084" y="593" font-size="21" font-weight="400" fill="#172B42" text-anchor="start">infra/platforms / 设备知识</text>
 <rect x="60" y="740" width="320" height="150" rx="16" fill="#EDF8F4" stroke="#168168" stroke-width="2"/>
 <text x="84" y="783" font-size="26" font-weight="700" fill="#168168" text-anchor="start">Knowledge · 调优经验</text>
 <text x="84" y="820" font-size="21" font-weight="400" fill="#172B42" text-anchor="start">公共 / 仓库 / 后端经验</text>

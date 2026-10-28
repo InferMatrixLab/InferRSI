@@ -59,6 +59,22 @@ are distinct from `knowledge search`, whose package catalog filters
   backend records.
 - **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
 
+### Discover discrete accelerators — doctor --backend rocm|ascend
+
+- **Inputs:** a prepared Git checkout and its existing repo type, target Python,
+  optional repeatable --device-ids and one case-insensitive --device-model.
+- **Effect:** read-only. The bounded command runner calls `rocminfo` or
+  `npu-smi info`; the output is parsed into device records (Agent blocks, or the
+  pipe-framed NPU table) rather than searched for loose tokens.
+- **Output:** the parsed records plus the probe facts. A requested ID and the
+  requested model must match the same record; an ID appearing only in a
+  temperature or power cell does not count. Empty or unrecognized output yields
+  no records, so discovery stays unavailable and records why. selection_verified
+  is true only for a matched record.
+- **Boundary:** discovery proves that a tool reported a device, not that the
+  backend, engine or kernel path is compatible. compatibility stays unverified.
+- **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend ascend --device-ids 0 --device-model 910B3
+
 ### Search packaged records — `knowledge search` / `knowledge show`
 
 - **Inputs:** query words plus optional `--tier`, `--repo-type`, `--backend`, `--scenario`, `--limit`, `--json`; `show` takes one record ID.

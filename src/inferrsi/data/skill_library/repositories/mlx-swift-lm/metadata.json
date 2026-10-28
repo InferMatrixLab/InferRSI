@@ -1,0 +1,104 @@
+{
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NO_LICENSE",
+  "tags": [
+    "mlx-swift-lm",
+    "swift",
+    "metal",
+    "generation",
+    "ownership",
+    "cancellation",
+    "task-join",
+    "recurrent-state",
+    "gated-delta",
+    "native-evidence"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/ml-explore/mlx-swift-lm",
+      "commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+      "version": "main 3.x API context; Swift tools 6.2",
+      "license": "MIT; unselected vendored xgrammar separately Apache-2.0",
+      "readset": "references/source-identity.json",
+      "paths": [
+        ".github/workflows/integration_tests.yml",
+        ".github/workflows/pull_request.yml",
+        "AGENTS.md",
+        "CONTRIBUTING.md",
+        "LICENSE",
+        "Libraries/MLXLLM/Models/Qwen35.swift",
+        "Libraries/MLXLLM/Models/Qwen3Next.swift",
+        "Libraries/MLXLMCommon/Documentation.docc/upgrade.md",
+        "Libraries/MLXLMCommon/Documentation.docc/using.md",
+        "Libraries/MLXLMCommon/Evaluate.swift",
+        "Libraries/MLXLMCommon/GatedDelta.swift",
+        "Libraries/MLXLMCommon/KVCache.swift",
+        "Libraries/MLXLMCommon/ModelContainer.swift",
+        "Libraries/MLXLMCommon/ModelFactory.swift",
+        "Libraries/MLXLMCommon/TokenLoopHandler.swift",
+        "Libraries/MLXLMCommon/Tokenizer.swift",
+        "Libraries/MLXLMCommon/UserInput.swift",
+        "Libraries/MLXLMCommon/Utilities/GenerationWorker.swift",
+        "Libraries/MLXLMCommon/Utilities/SerialAccessContainer.swift",
+        "Libraries/MLXVLM/Models/Qwen35.swift",
+        "Package.swift",
+        "README.md",
+        "Tests/MLXLMTests/CancellationTests.swift",
+        "Tests/MLXLMTests/GatedDeltaQKNormTests.swift",
+        "Tests/MLXLMTests/GatedDeltaTests.swift",
+        "Tests/MLXLMTests/GenerationExecutionTests.swift",
+        "Tests/MLXLMTests/Qwen35GDNDecodeBitwiseTests.swift",
+        "Tests/MLXLMTests/Qwen35MTPTests.swift",
+        "skills/mlx-swift-lm/SKILL.md",
+        "skills/mlx-swift-lm/references/concurrency.md",
+        "skills/mlx-swift-lm/references/generation.md",
+        "skills/mlx-swift-lm/references/kv-cache.md",
+        "skills/mlx-swift-lm/references/model-container.md",
+        "skills/mlx-swift-lm/references/model-porting.md"
+      ]
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+      "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+      "paths": [
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+        "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+        "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+        "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+      ],
+      "scope": "Actual portable compatible-agent source/native-Swift adaptation; no DisCo CLI/model run or managed installation."
+    }
+  ],
+  "construction": {
+    "anchor_kind": "source",
+    "distillation_form": "repository-operating-graph",
+    "strategy": "arex-portable-meta-skills",
+    "status": "partial-candidate",
+    "native_import": "not-run",
+    "method": "Stable-ID lifecycle and recurrent-kernel author lanes, integrated root/local references, hard cases and offline support/static/scaffold/package checks; native Swift/Xcode/MLX compiler/tests not_run."
+  },
+  "applicability": {
+    "scope": "Selected Swift ownership/cancellation/settling and actual GatedDelta Metal/ops contracts. Common categorization is not CPU inference or Apple qualification."
+  },
+  "limitations": [
+    "BLOCKED_REQUIRED_BACKEND: native Swift/MLX compiler, host-control tests and required Apple Metal cancellation/backgrounding/kernel/cache/model/fit/quality/service/performance evidence not_run.",
+    "Swift/Xcode/Apple SDK/MLX native stack unavailable; no live Swift API, package resolution, original source/native tests or CLI execution claimed.",
+    "Helpers audit caller-declared evidence or selected metadata/byte/source-predicate contracts only; no tasks/recurrence/GPU simulation, authenticated observation, actual dispatch or numerical validation.",
+    "Inspected masked kernel and ops output handling differ at source level; no masked-output native parity case executed, confirmed numeric bug or fix claimed.",
+    "Full ChatSession/cache reconciliation, models/loading/quantization/VLM/tools/grammar/LoRA/training/FoundationModels and external MLX manager/provider internals are bounded gaps; broad skill efficacy unmeasured.",
+    "NO_LICENSE is actual unauthenticated gh resolver fallback, not legal absence; root MIT retained independently."
+  ],
+  "provenance_readsets": [
+    "references/repo-provenance.md",
+    "references/source-identity.json"
+  ],
+  "consumption_mode": "packaged"
+}

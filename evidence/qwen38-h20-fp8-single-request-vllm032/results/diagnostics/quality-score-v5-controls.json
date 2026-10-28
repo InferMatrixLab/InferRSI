@@ -1,0 +1,15 @@
+{
+  "scope": "handwritten_synthetic_scoring_fixture",
+  "verdict": "INCONCLUSIVE",
+  "checks": [
+    "export-without-evaluation",
+    "full-score-binds-frozen-protocol",
+    "full-score-reads-provenance-once",
+    "full-score-rejects-protocol",
+    "full-score-rejects-samples_sha256",
+    "full-score-rejects-dataset_sha256"
+  ],
+  "checks_passed": 6,
+  "real_evaluator_executed": false,
+  "real_quality_result": false
+}

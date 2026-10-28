@@ -12,6 +12,14 @@ dependency installation is performed by this procedure.
 | Next-segment prefetch activation and cleanup | `SegmentWeightPipeline`, `model_manager_prefetch.cpp`; proposed native trace/assertion harness | Backend/placement advertising and actually executing async prefetch | Same device/model with prefetch disabled | **No** for async device overlap | Event/transfer trace, pin/protection lifetime, completion before consumer, cancellation/failure cleanup, quality and latency. Capability alone is insufficient. |
 | Multi-device accounting | `ModelManager::check_capacity`, runner scheduler path; proposed native harness | Exact device set/backend/split mode | Single-device separately | **No** | Multiple devices and matching backend; trace actual placement. Segmented single-device eligibility must not be extrapolated. |
 
+The [loader/storage checks](loader-storage-boundaries.md#proposed-checks)
+add proposed catalog-identity, range/short-read and mapping/staging cases.
+They require the actual matching parser/manager and a legal small fixture;
+source, package and reader checks cannot substitute for those native results.
+Observe both the returned result and consumer state: a destination callback
+is not read completion, and releasing one mapping owner is not proof of unmap.
+No native loader case or agent-efficacy evaluation has been run.
+
 Minimal falsifiers: changing a required model/input without the expected
 preparation; evicting pinned/queued weights; stale output after a supported
 policy change; a completed image with incorrect quality; a device cap apparently

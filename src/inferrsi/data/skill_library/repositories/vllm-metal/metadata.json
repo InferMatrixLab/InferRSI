@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "partial_cpu_only",
+  "license": "NO_LICENSE",
+  "tags": [
+    "vllm-metal",
+    "apple-silicon",
+    "mlx",
+    "mps",
+    "paged-kv",
+    "kv-offload",
+    "speculation",
+    "deferred-execution",
+    "evidence-boundaries"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/vllm-project/vllm-metal",
+      "commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+      "version": "0.32.0",
+      "license": "Apache-2.0 (retained source); dependency/model assets separate",
+      "readset": "references/source-identity.json",
+      "paths": [
+        "LICENSE",
+        "README.md",
+        "docs/CONTRIBUTING.md",
+        "docs/benchmarking-macos.md",
+        "docs/configuration.md",
+        "docs/gqa-decode.md",
+        "docs/installation.md",
+        "docs/kv_offloading.md",
+        "docs/pytorch-mps.md",
+        "docs/speculative_decoding.md",
+        "pyproject.toml",
+        "scripts/lint.sh",
+        "scripts/test.sh",
+        "setup.py",
+        "tests/conftest.py",
+        "tests/test_config.py",
+        "tests/test_envs.py",
+        "tests/test_kv_offload_budget.py",
+        "tests/test_kv_offload_tiering.py",
+        "tests/test_kv_offload_worker.py",
+        "tests/test_macos_defaults.py",
+        "tools/avg_gen_length.py",
+        "tools/native_sampling_probe.py",
+        "vllm_metal/__init__.py",
+        "vllm_metal/config.py",
+        "vllm_metal/envs.py",
+        "vllm_metal/metal/build.py",
+        "vllm_metal/metal/paged_attention.cpp",
+        "vllm_metal/platform.py",
+        "vllm_metal/v1/cache_policy.py",
+        "vllm_metal/v1/decode_pipeline.py",
+        "vllm_metal/v1/kv_offload/config.py",
+        "vllm_metal/v1/kv_offload/connector.py",
+        "vllm_metal/v1/kv_offload/fs_tier.py",
+        "vllm_metal/v1/kv_offload/shared_region.py",
+        "vllm_metal/v1/kv_offload/spec.py",
+        "vllm_metal/v1/kv_offload/worker.py",
+        "vllm_metal/v1/model_lifecycle.py"
+      ]
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+      "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+      "paths": [
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+        "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+        "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+        "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+      ],
+      "scope": "Compatible-agent portable source/Python partial adaptation, not DisCo CLI/model execution or managed import."
+    }
+  ],
+  "construction": {
+    "anchor_kind": "source",
+    "distillation_form": "repository-operating-graph",
+    "strategy": "arex-portable-meta-skills",
+    "status": "partial-candidate",
+    "native_import": "not-run",
+    "method": "Stable-ID manual author sequencing plus bounded cache author lane; integrated graph followed by assertion/helper/static and selected pure Python source tests; Apple native blocks retained."
+  },
+  "applicability": {
+    "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification."
+  },
+  "limitations": [
+    "BLOCKED_REQUIRED_BACKEND: actual Apple MLX/Metal and MPS kernels/model loading, cache transfers/sleep/wake and real worker dispatch are not verified.",
+    "Installed pure API inspection and selected parser/default tests do not establish a healthy inference dependency set: pip check failed missing requirements, a FastAPI mismatch and unsupported host platform.",
+    "No model payload authentication, numerical/model quality, physical memory fit, HTTP service/performance or broad skill efficacy validation.",
+    "Detailed GGUF/AWQ/quantization/MoE, DFlash/DSpark, multimodal, diffusion, STT/pooling/LoRA and distributed paths remain bounded route evidence or explicit long-tail gaps.",
+    "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; upstream Apache-2.0 LICENSE retained independently."
+  ],
+  "provenance_readsets": [
+    "references/repo-provenance.md",
+    "references/source-identity.json"
+  ],
+  "consumption_mode": "packaged"
+}

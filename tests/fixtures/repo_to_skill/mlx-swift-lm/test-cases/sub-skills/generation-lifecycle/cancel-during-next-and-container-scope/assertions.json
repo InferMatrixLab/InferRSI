@@ -1,0 +1,24 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "generation-lifecycle",
+  "target_capability": "cancel-during-next-and-container-scope",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "Libraries/MLXLMCommon/ModelContainer.swift",
+    "Libraries/MLXLMCommon/Utilities/SerialAccessContainer.swift",
+    "Libraries/MLXLMCommon/Utilities/GenerationWorker.swift",
+    "Tests/MLXLMTests/GenerationExecutionTests.swift"
+  ],
+  "expected_skill_files": [
+    "sub-skills/generation-lifecycle/SKILL.md",
+    "sub-skills/generation-lifecycle/references/ownership-and-termination.md",
+    "sub-skills/generation-lifecycle/references/evidence-schema.md",
+    "sub-skills/generation-lifecycle/references/native-evidence.md"
+  ],
+  "assertions": [
+    "ModelContainer is a Sendable class backed by an explicit async mutex; actor reentrancy alone is not exclusive access across await.",
+    "Container generation holds exclusive context only around startup/prefill, not an entire returned stream; separate workers permit concurrent generations.",
+    "Cancellation before entering next differs from cancellation during an already-entered next; source test records one token then finalization before join.",
+    "Caller-owned mutable caches/arrays are not made safe for arbitrary sharing; evaluate and respect actual Sendable/transfer ownership, without inventing a public synchronize method."
+  ]
+}

@@ -1,0 +1,1 @@
+A new Kernels object is called cold. A nonempty embedded metallib fails load so the operator expects runtime compile fallback, and green check-metal is treated as native correctness.

@@ -19,11 +19,14 @@ PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = Path("src/inferrsi/data/skill_library")
 DESTINATION = Path("src/inferrsi/data/repo_packs/inferrsi/knowledge")
 REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
+# Match the comparison tool: replacement refs and lazy promisor fetches must not
+# change the bytes hashed for a pinned revision.
+GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 
 
 def _git(project: Path, *args: str) -> bytes:
     return subprocess.run(
-        ["git", "-C", str(project), *args], check=True, capture_output=True
+        [*GIT_READ, "-C", str(project), *args], check=True, capture_output=True
     ).stdout
 
 
@@ -31,7 +34,7 @@ def _source_hashes(project: Path, revision: str, paths: set[str]) -> dict[str, s
     ordered = sorted(paths)
     requests = "".join(f"{revision}:{path}\n" for path in ordered).encode("utf-8")
     completed = subprocess.run(
-        ["git", "-C", str(project), "cat-file", "--batch"],
+        [*GIT_READ, "-C", str(project), "cat-file", "--batch"],
         input=requests, check=True, capture_output=True,
     )
     stream = io.BytesIO(completed.stdout)

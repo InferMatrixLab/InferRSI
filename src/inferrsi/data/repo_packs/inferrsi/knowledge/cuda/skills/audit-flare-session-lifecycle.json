@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.cuda.skills.audit_flare_session_lifecycle",
+  "title": "audit-flare-session-lifecycle",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "cuda",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit Flare complete prefix/session restoration, inbound transfer tickets, publication/use/retirement fences and host-restore admission outcomes. Use when a lookup hit does not become reused tokens, a cancelled waiter leaves transfers in flight, or a restarted session must recover KV pages together with recurrent, convolution and partial-tail state.",
+  "tags": [
+    "Flare",
+    "flare-local-inference",
+    "local-inference",
+    "cuda",
+    "session-state",
+    "kv-cache",
+    "recurrent-state",
+    "convolution",
+    "restore-admission",
+    "transfer-ticket",
+    "fences",
+    "offload"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d70fa5e4c5c2b1b70c6fbad1f020ab457c409c63/src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
+      "commit": "d70fa5e4c5c2b1b70c6fbad1f020ab457c409c63",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md",
+        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md",
+        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json",
+        "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "02a5f7c18e44201215ecec17c6ac96b27be9148bcc189df287f39d1b372b7721"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md"
+  },
+  "checkout_ref": "checkout:audit-flare-session-lifecycle",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md": "02a5f7c18e44201215ecec17c6ac96b27be9148bcc189df287f39d1b372b7721",
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/metadata.json": "58716737446f46bd1de77aa323c5652f97277d44dd952c82b42399b2cb769b87",
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md": "0908a0eae53a2e10775a8b6ee3e3944b2fa410174402b5a1a8c98eb674dd4b4d",
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md": "107ebe3c22e5dba8007c3b8ea61149f10bc55c51b557a4230f3e5de859bb0f7c",
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json": "61e51a97ffd7c1fa7866bdd440b024d0c5e0065635ac8d0ba53d2c69c7f9e470",
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md": "fc7ceb819b91ef1731d8b7783f543c92ef6bb5c97ef5f897c055824f8a560168",
+    "src/inferrsi/data/skill_library/skill-index.json": "6d5784993dc8702b2c299c2354c39f765299a6734f7c24db994a97efd3fdbed6"
+  },
+  "skill_metadata": {
+    "name": "audit-flare-session-lifecycle",
+    "description": "Audit Flare complete prefix/session restoration, inbound transfer tickets, publication/use/retirement fences and host-restore admission outcomes. Use when a lookup hit does not become reused tokens, a cancelled waiter leaves transfers in flight, or a restarted session must recover KV pages together with recurrent, convolution and partial-tail state.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "license": "Apache-2.0",
+    "tags": [
+      "Flare",
+      "flare-local-inference",
+      "local-inference",
+      "cuda",
+      "session-state",
+      "kv-cache",
+      "recurrent-state",
+      "convolution",
+      "restore-admission",
+      "transfer-ticket",
+      "fences",
+      "offload"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/flare-local-inference",
+        "resolved_url": "https://github.com/NVIDIA/local-inference",
+        "commit": "bce032c014bae34502ba22d3304fa084d5b40afe",
+        "paths": [
+          "README.md",
+          "LICENSE",
+          "docs/runtime-package-design.md",
+          "docs/prefix-cache-offload.md",
+          "helios/src/runtime_package/format.rs",
+          "helios/src/runtime_package/model.rs",
+          "helios/src/execution/manifest.rs",
+          "helios/src/model/contract.rs",
+          "helios/src/model/catalog.rs",
+          "helios/src/cache.rs",
+          "helios/src/offload/mod.rs",
+          "helios/src/offload/geometry.rs",
+          "helios/src/offload/index.rs",
+          "helios/src/offload/record.rs",
+          "helios/src/offload/transfer.rs",
+          "helios/src/scheduler.rs",
+          "helios/src/server/runtime.rs",
+          "tests/server/test_prefix_cache_offload.py",
+          "qualify/performance.py",
+          "qualify/provenance.py"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-ledger.json",
+        "license": "Apache-2.0"
+      }
+    ],
+    "construction": {
+      "anchor_kind": "source",
+      "distillation_form": "task-agnostic",
+      "strategy": "reuse-existing",
+      "status": "source-derived-candidate",
+      "method": "AREX scope/ground/construct/verify and repository evidence/usability methods adapted to InferRSI native owners and packaging; no DisCo runtime or managed import."
+    },
+    "applicability": {
+      "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification."
+    },
+    "limitations": [
+      "Source-only candidate; native Flare/model/GPU/service and skill efficacy were not evaluated.",
+      "GDS/Direct transport is deferred and explicitly rejected by the pinned implementation.",
+      "Multi-rank source branches do not establish multi-GPU, multi-host or hardware failure qualification.",
+      "Root Apache-2.0 attribution does not grant model, asset or separately licensed dependency rights.",
+      "Only the selected symbols/sections were inspected; kernels, exporter implementation and whole-repository behavior are outside coverage."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md",
+      "references/source-ledger.json"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-only candidate; native Flare/model/GPU/service and skill efficacy were not evaluated.",
+    "GDS/Direct transport is deferred and explicitly rejected by the pinned implementation.",
+    "Multi-rank source branches do not establish multi-GPU, multi-host or hardware failure qualification.",
+    "Root Apache-2.0 attribution does not grant model, asset or separately licensed dependency rights.",
+    "Only the selected symbols/sections were inspected; kernels, exporter implementation and whole-repository behavior are outside coverage."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
