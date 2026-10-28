@@ -87,10 +87,11 @@ uses the existing frozen provider plans and enforces their complete worst-case
 reservation against USD 200 cumulatively per PR. The non-provider default mapping
 remains useful for offline planning, but cannot execute as a paid PR fallback.
 
-No provider credential, label or deployment configuration is created by this
-change. A historical successful run does not establish current credentials,
-permission, provider readiness or remaining budget. See the deployment checklist
-below before enabling the switch.
+The bounded [issue 215 deployment record](skill-eval-deployment-215.md) supplies
+the reviewed configuration for PR159/160 only. It creates no provider credential
+or execution label. A historical successful run does not establish current
+credentials, permission, provider readiness or remaining budget. See the
+deployment checklist below before enabling the switch.
 
 The controller alone has owner-approved `contents: write` for the dedicated Git
 budget ledger. Its existing model executor runs in a sanitized child process with
@@ -137,7 +138,15 @@ and updates the same marked bot comment instead of creating another summary.
 
 The publisher reconstructs trusted inputs from Git and the maintained mapping.
 It requires the source run's workflow path, event, trusted revision and exact
-plan identity. It downloads only that run's uniquely named result artifact.
+plan identity. Automatic runs have only a PR-number title, so before downloading
+results the publisher reads that source run's unique `skill-eval-plan` artifact
+through the authenticated Actions API and requires its original `pr-plan.json`
+fingerprint to equal the complete freshly reconstructed plan. This binds both
+initial publication and publish-only retries to the actually planned PR head,
+even when main and skill bytes stayed unchanged. Missing, expired, ambiguous or
+invalid source plans cannot substantiate results; artifact files are never
+executed. Dispatch sources retain their exact plan-hash title requirement.
+It then downloads only that run's uniquely named result artifact.
 ZIP members must be bounded, unique, regular files at explicitly scheduled
 result paths; traversal, symlinks, executable scripts and replacement plans or
 Markdown are rejected before extraction. GitHub authorization is stripped on

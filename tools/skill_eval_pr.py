@@ -675,7 +675,7 @@ class MissingEvidence(ValueError):
     """A known absent artifact, not an API access or integrity failure."""
 
 
-def artifact_zip(api, run_id, name, now):
+def artifact_download(api, run_id, name, now):
     artifacts = api.pages(f"/actions/runs/{run_id}/artifacts", "artifacts")
     selected = [a for a in artifacts if a["name"] == name]
     if not selected:
@@ -691,6 +691,15 @@ def artifact_zip(api, run_id, name, now):
     if artifact["expired"] or now >= expires:
         return None, min(expires, now)
     raw = api.request("GET", f"/actions/artifacts/{artifact['id']}/zip", binary=True)
+    if len(raw) > MAX_ARCHIVE:
+        raise ValueError("Oversized artifact download")
+    return raw, expires
+
+
+def artifact_zip(api, run_id, name, now):
+    raw, expires = artifact_download(api, run_id, name, now)
+    if raw is None:
+        return None, expires
     with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
         if zipped.namelist() != ["results.zip"]:
             raise ValueError("Unexpected artifact envelope")
@@ -700,6 +709,41 @@ def artifact_zip(api, run_id, name, now):
         return zipped.read(member), expires
 
 
+def source_plan_expiry(api, run_id, plan, now):
+    """Bind automatic evidence to the trusted planner artifact from this source run.
+
+    The run's authenticated workflow identity is checked by the caller. Neither a
+    result's self-reported head nor the PR-only automatic run title is provenance.
+    Read data only; never extract or execute any file from the planning archive.
+    """
+    raw, expires = artifact_download(api, run_id, "skill-eval-plan", now)
+    if raw is None:
+        return expires
+    with zipfile.ZipFile(io.BytesIO(raw)) as zipped:
+        members = zipped.infolist()
+        names = [m.orig_filename for m in members]
+        if (len(members) > 10000 or len(names) != len(set(names))
+                or sum(m.file_size for m in members) > MAX_ARCHIVE
+                or names.count("pr-plan.json") != 1):
+            raise ValueError("Invalid source planning archive")
+        for item, name in zip(members, names):
+            path = PurePosixPath(name)
+            mode = item.external_attr >> 16
+            if (path.is_absolute() or ".." in path.parts or "\\" in name
+                    or stat.S_ISLNK(mode)
+                    or stat.S_IFMT(mode) not in (0, stat.S_IFREG, stat.S_IFDIR)):
+                raise ValueError("Unsafe source planning archive member")
+        member = members[names.index("pr-plan.json")]
+        mode = member.external_attr >> 16
+        if (member.file_size > 4_000_000 or stat.S_ISLNK(mode)
+                or stat.S_IFMT(mode) not in (0, stat.S_IFREG)):
+            raise ValueError("Invalid source plan member")
+        original = json.loads(zipped.read(member))
+    if fingerprint(original) != fingerprint(plan):
+        raise ValueError("Source execution plan does not match current PR plan")
+    return expires
+
+
 def publish_retained(api, output, source_run, writer_run, now):
     plan = compare.read_json(output / "pr-plan.json")
     run = api.request("GET", f"/actions/runs/{source_run}")
@@ -707,15 +751,22 @@ def publish_retained(api, output, source_run, writer_run, now):
                       and run["display_title"] == run_title(plan["pr"], fingerprint(plan)))
     trusted_source |= (run["event"] == "pull_request_target"
                        and run["display_title"] == f"skill-eval plan or publish PR {plan['pr']}")
-    if (run["path"] != WORKFLOW or not trusted_source
+    if (run["id"] != source_run or run["path"] != WORKFLOW or not trusted_source
             or run["head_sha"] != plan["version"]
             or run["status"] != "completed" and source_run != writer_run):
         raise ValueError("Untrusted or mismatched execution workflow")
     evidence_state = "available"
+    data, expires = None, now + RETENTION_DAYS * 86400
     try:
-        data, expires = artifact_zip(api, source_run, "skill-eval-results", now)
+        if run["event"] == "pull_request_target":
+            expires = source_plan_expiry(api, source_run, plan, now)
+        if now < expires:
+            data, result_expiry = artifact_zip(api, source_run, "skill-eval-results", now)
+            expires = min(expires, result_expiry)
     except MissingEvidence:
-        data, expires, evidence_state = None, now + RETENTION_DAYS * 86400, "missing"
+        evidence_state = "missing"
+    except (ValueError, KeyError, TypeError, zipfile.BadZipFile):
+        evidence_state = "invalid"
     results = []
     if data is not None:
         try:

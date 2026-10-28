@@ -514,7 +514,12 @@ def dispatch_event(monkeypatch, root, output, inputs, mode, run_id=11):
 def test_plan_dispatch_prepare_publish_has_no_execution_side_effects(
     tmp_path, monkeypatch, mode, extra_inputs,
 ):
+    from tools import skill_eval_auto as auto
+
     repo, mapping, identity = setup(tmp_path, mode, ids=("one",))
+    # This synthetic repository has no deployed controller configuration.
+    # Do not let the real checkout's opt-in configuration change its plan.
+    monkeypatch.setattr(auto, "CONFIG", repo / "tools/skill_eval_auto_config.json")
     plan = integration.prepare(repo, mapping, identity, tmp_path / "expected")
     api = SimulatedGitHub(plan)
     request = Mock(wraps=api.request)
@@ -666,3 +671,94 @@ def test_plan_dispatch_workflow_keeps_execution_guards():
     assert not any("authorize --output" in step.get("run", "")
                    for step in workflow["jobs"]["plan"]["steps"])
     assert workflow["run-name"].startswith("${{ " + guard)
+
+
+@pytest.mark.parametrize("prior_publication", [False, True])
+def test_automatic_source_plan_rejects_new_head_with_same_trusted_main(
+        tmp_path, prior_publication):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    identity["version"] = identity["base"]  # Current trusted main stays fixed across the PR push.
+    execution = tmp_path / "execution"
+    old = integration.prepare(repo, mapping, identity, execution)
+    client = FixedOutputClient(tmp_path)
+    integration.execute(execution, approval(old), client=client)
+    api = SimulatedGitHub(old, integration.result_archive(execution).read_bytes())
+    api.run.update(event="pull_request_target", display_title="skill-eval plan or publish PR 7")
+    if prior_publication:
+        integration.publish_retained(api, execution, 10, 11, 1)
+        assert '"unchanged_correct":1' in api.comments[0]["body"]
+    # PR push after execution (or after the first publish), with unchanged main.
+    # Even unchanged skill bytes do not establish that this new revision was tested.
+    (repo / "unrelated.txt").write_text("new PR revision")
+    git(repo, "add", "unrelated.txt")
+    git(repo, "commit", "--quiet", "-m", "Offline PR push after execution")
+    current = {**identity, "head": git(repo, "rev-parse", "HEAD")}
+    publisher = tmp_path / "publisher"
+    new = integration.prepare(repo, mapping, current, publisher)
+    assert old["version"] == new["version"] and old["head"] != new["head"]
+    api.current["head"] = new["head"]
+    api.reads.clear()
+    calls = len(client.calls)
+    integration.publish_retained(api, publisher, 10, 12, 1)
+    body = api.comments[0]["body"]
+    assert "artifacts are invalid" in body and "obtain missing evidence" in body
+    assert '"unchanged_correct":1' not in body
+    assert "/actions/artifacts/90/zip" not in api.reads
+    assert not list((publisher / "selected/results").iterdir())
+    assert len(client.calls) == calls
+
+
+@pytest.mark.parametrize("damage", ["missing", "expired", "malformed", "duplicate",
+                                     "symlink", "oversized", "ambiguous", "rerun_mismatch",
+                                     "unsafe_path", "member_oversize", "plan_only"])
+def test_automatic_missing_or_invalid_source_plan_never_imports_results(tmp_path, damage):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    output = tmp_path / "execution"
+    plan = integration.prepare(repo, mapping, identity, output)
+    api = SimulatedGitHub(plan)
+    api.run.update(event="pull_request_target", display_title="skill-eval plan or publish PR 7")
+    if damage == "missing":
+        api.plan_artifact = None
+    elif damage == "expired":
+        api.plan_artifact["expired"] = True
+    elif damage == "oversized":
+        api.plan_artifact["size_in_bytes"] = integration.MAX_ARCHIVE + 1
+    elif damage == "plan_only":
+        original_pages = api.pages
+        api.pages = lambda path, *a, **kw: ([api.plan_artifact] if "/artifacts" in path
+                                          else original_pages(path, *a, **kw))
+    elif damage == "ambiguous":
+        original_pages = api.pages
+        api.pages = lambda path, *a, **kw: (original_pages(path, *a, **kw)
+                    + ([api.plan_artifact] if "/artifacts" in path else []))
+    else:
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w", compression=zipfile.ZIP_DEFLATED) as archive:
+            entry = zipfile.ZipInfo("pr-plan.json")
+            if damage == "symlink":
+                entry.external_attr = (stat.S_IFLNK | 0o777) << 16
+            value = {**plan, "head": "f" * 40} if damage == "rerun_mismatch" else plan
+            archive.writestr(entry, "not JSON" if damage == "malformed"
+                             else integration.canonical(value))
+            if damage == "unsafe_path":
+                archive.writestr("../untrusted", "must not extract")
+            if damage == "member_oversize":
+                archive.writestr("oversized", b"x" * (integration.MAX_ARCHIVE + 1))
+            if damage == "duplicate":
+                with pytest.warns(UserWarning, match="Duplicate name"):
+                    archive.writestr("pr-plan.json", integration.canonical(plan))
+        api.plan_data = buffer.getvalue()
+        if damage == "rerun_mismatch":
+            api.run["run_attempt"] = 2
+    integration.publish_retained(api, output, 10, 11, 1)
+    assert "/actions/artifacts/90/zip" not in api.reads
+    assert '"unchanged_correct":1' not in api.comments[0]["body"]
+    assert "obtain missing evidence" in api.comments[0]["body"]
+
+
+def test_source_plan_artifact_is_immutable_across_workflow_reruns():
+    workflow = yaml.safe_load((integration.ROOT / integration.WORKFLOW).read_text())
+    uploads = [step["with"] for step in workflow["jobs"]["plan"]["steps"]
+               if step.get("uses") == "actions/upload-artifact@v4"]
+    assert len(uploads) == 1 and uploads[0]["name"] == "skill-eval-plan"
+    assert uploads[0].get("overwrite", False) is False
