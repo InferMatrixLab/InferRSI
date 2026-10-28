@@ -44,6 +44,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: main
+          # Temporary: prove the certificate's first introduction without diagnostic fetches.
+          fetch-depth: 0
           persist-credentials: false
       - uses: actions/setup-python@v5
         with:
@@ -52,15 +54,14 @@ jobs:
         id: admission
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          # Temporary owner-approved capture: Python also enforces event/before/head gating.
+          # Temporary owner-approved capture: Python also enforces event/certificate/head gating.
           ISSUE203_PRIVATE_CAPTURE: one-shot
         run: bash tools/run_knowledge_model_policy.sh
 
       - name: Retain only encrypted one-shot rejection diagnostic
         if: >-
           ${{ always() && steps.admission.outputs.private_capture == 'encrypted' &&
-              github.event_name == 'push' && github.run_attempt == 1 &&
-              github.event.before == 'a3970f55ff62b628f85d638708ad9fb28361720a' }}
+              github.event_name == 'push' && github.run_attempt == 1 }}
         uses: actions/upload-artifact@v4
         with:
           name: issue203-encrypted-rejection
