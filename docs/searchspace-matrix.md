@@ -478,6 +478,21 @@ OS-control qualification; local journal files do not establish SSD performance.
 The existing five resource rows and all prior source/evidence boundaries remain
 unchanged.
 
+## Flare preparation and complete-session source contracts
+
+| Resource / stage | Named mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / Diagnose / Verify | Complete KV page chain plus continuation row; publish/use/retire fences, shared inbound ticket and five admission outcomes | [audit-flare-session-lifecycle](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md) | Fixed `bce032c014bae34502ba22d3304fa084d5b40afe` CODE/DOC/TEST-SOURCE; NVIDIA SM120/SM121 research prototype; no kernel/model/device/performance qualification |
+| RAM / Diagnose / Verify | Registered/staging storage lifetime through accounted transfer completion/drain; waiter cancellation does not free ticket destinations | Same [complete-state/fence owner](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md) | Source lifetime contract; no physical-RAM peak, bandwidth or pressure result |
+| SSD / Diagnose / Verify | Record namespace/layout/row/chain completeness, restart/corruption versus unreadable-file handling; conditional transfer-versus-additional-prefill cost | Same [diagnostic owner](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md) | No GDS implementation or measured storage gain; actual device/server tests not_run |
+| Startup boundary / Diagnose / Verify | Python preparation/native export ownership, nonportable live handles, execution ABI 4 versus prepared contract 2, separate phase accounting | Existing [weight-loading owner](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md) | Source-derived candidate; no preparation/runtime execution or Python-to-Rust performance-causation claim |
+
+There is no new measured/green resource cell, Network or OS coverage. Multi-rank
+source branches and tests do not qualify multi-host transport or multi-GPU
+behavior. The source-derived candidates remain empirical **not_run**; the
+[bounded evaluation plan](reviews/issue148-flare-source-distillation.md) is
+**not evaluated**.
+
 ## Project Maya model-specific source contracts
 
 | Resource | Stage / mechanism | Canonical owner | Evidence boundary |

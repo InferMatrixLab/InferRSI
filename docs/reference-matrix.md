@@ -436,6 +436,17 @@ proposal. Provider storage internals, distributed leases, UI and the complete
 controller remain outside this extraction. Reading test assertions and packaging
 resources do not reproduce runtime behavior or promote the candidate.
 
+## Flare preparation and complete-session source knowledge
+
+| Source / revision | Inspected scope | Reuse, extraction and limits |
+| --- | --- | --- |
+| NVIDIA/flare-local-inference → [NVIDIA/local-inference](https://github.com/NVIDIA/local-inference/tree/bce032c014bae34502ba22d3304fa084d5b40afe) @ `bce032c014bae34502ba22d3304fa084d5b40afe` (Apache-2.0) | Bounded source inspection, 2026-10-28: preparation/package documentation, actual ABI/prepared validators and call path, cache/scheduler/worker, offload geometry/index/record/transfer, server test assertions and qualification/provenance; [20-file pin/blob/readset ledger](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-notes.md) | mined — existing [weight-loading preparation owner](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md) plus one [Flare session candidate](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md): full KV/recurrent/convolution/tail state, cancellation/transfer/fences, five restore-admission outcomes and timing/namespace/cost diagnostics. Research prototype SM120/SM121, GDS deferred; native/model/device/service and efficacy not_run/not evaluated. Root source license does not grant model/dependency rights. |
+
+The redirect preserves the fixed source commit; no ABI/version upgrade is
+implied. [Construction and evaluation plan](reviews/issue148-flare-source-distillation.md)
+uses AREX methods with InferRSI's native registration/projections. This does not
+create a repo runtime descriptor, backend port or measured resource effect.
+
 ## Project Maya source and CPU-slice extraction
 
 | Source / revision | Inspected scope | Reuse and limits |

@@ -424,6 +424,18 @@ dropping the OS file cache, a run is not a cold-start physical test.
   `--no-mmap` with `--load-mode` values); re-verify entry paths against the
   pinned revision before relying on any flag name.
 
+## 10. Separate preparation from serving
+
+The [Flare preparation boundary](references/flare-preparation-boundary.md)
+adds a source-scoped example of Python load/tune/compile/capture, a native
+exporter and Rust serving. Record what is serialized, what must be rebuilt,
+which live resource owners stay in the preparation process, and the independent
+execution ABI/prepared-contract versions. Reject mismatches instead of editing
+their tags. Keep preparation/export, package load/readiness and request timing
+separate; changing language at the boundary does not by itself establish a gain.
+For complete runtime KV/recurrent/convolution/tail state, follow that reference
+to the Flare session owner. The addition remains candidate and empirical not_run.
+
 ## Verification checklist (before claiming a load-path win)
 
 - [ ] Fixed overhead accounted separately from per-request cost
