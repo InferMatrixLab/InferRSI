@@ -305,9 +305,47 @@ def json_type(value):
 
 
 # Owner-authorized, one-shot diagnostic. Remove after the encrypted artifact is collected.
-PRIVATE_CAPTURE_BEFORE = "a3970f55ff62b628f85d638708ad9fb28361720a"
+PRIVATE_CAPTURE_CERT_BLOB = "09d541518a02bed5f6065fc3a48dc752f839675d"
 PRIVATE_CAPTURE_HEAD = "3c1b2ff969537f3216d0125d034ae903d0743e7a"
 PRIVATE_CAPTURE_FILE = "issue203-422-errors.cms"
+
+
+def capture_certificate_introduced(event):
+    """Only the push introducing this exact owner-held certificate can capture."""
+    before, after = event.get("before"), event.get("after")
+    if (not isinstance(before, str) or not isinstance(after, str)
+            or not SHA.fullmatch(before) or not SHA.fullmatch(after)
+            or before == "0" * 40 or after == "0" * 40 or event.get("forced", False)):
+        return False
+    deadline = time.monotonic() + 10
+    environment = {"PATH": "/usr/bin:/bin", "LANG": "C", "GIT_CONFIG_NOSYSTEM": "1",
+                   "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_TERMINAL_PROMPT": "0"}
+
+    def git(*arguments):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise ValueError("Capture event proof deadline exhausted")
+        return subprocess.run(
+            ["/usr/bin/git", "--no-replace-objects", "-c", "credential.helper=",
+             "-c", "core.hooksPath=/dev/null", *arguments], cwd=ROOT, env=environment,
+            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True,
+            timeout=remaining, text=True).stdout.strip()
+
+    # Use only existing complete Git evidence, normally prepared by push routing.
+    # No extra network operation: missing/shallow objects disable collection.
+    if git("rev-parse", "--is-shallow-repository") != "false":
+        return False
+    for revision in (before, after):
+        git("cat-file", "-e", revision + "^{commit}")
+    git("merge-base", "--is-ancestor", before, after)
+    certificate = ".github/diagnostics/issue203-capture-public.pem"
+    if (git("ls-tree", before, "--", certificate)
+            or git("log", "-1", "--full-history", "--format=%H", before, "--", certificate)):
+        # Removal followed by re-addition must not re-arm this diagnostic.
+        return False
+    expected = f"100644 blob {PRIVATE_CAPTURE_CERT_BLOB}\t{certificate}"
+    return (git("ls-tree", after, "--", certificate) == expected
+            and git("hash-object", "--no-filters", certificate) == PRIVATE_CAPTURE_CERT_BLOB)
 
 
 def capture_private_rejection(value, route, payload):
@@ -322,9 +360,9 @@ def capture_private_rejection(value, route, payload):
         return
     try:
         event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
-        if (event.get("before") != PRIVATE_CAPTURE_BEFORE
-                or event.get("ref") != "refs/heads/main"
-                or event.get("repository", {}).get("full_name") != "InferMatrixLab/InferRSI"):
+        if (event.get("ref") != "refs/heads/main"
+                or event.get("repository", {}).get("full_name") != "InferMatrixLab/InferRSI"
+                or not capture_certificate_introduced(event)):
             return
         directory = Path(os.environ["RUNNER_TEMP"])
         if not directory.is_absolute() or not directory.is_dir() or directory.is_symlink():
