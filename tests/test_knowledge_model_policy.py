@@ -347,7 +347,7 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     assert set(job["concurrency"]) == {"group", "cancel-in-progress", "queue"}
     assert job["concurrency"]["queue"] == "max"
     steps = value["jobs"]["declarations"]["steps"]
-    assert steps[0]["with"] == {"ref": "main", "persist-credentials": False}
+    assert steps[0]["with"] == {"ref": "main", "fetch-depth": 0, "persist-credentials": False}
     assert all("pip install" not in step.get("run", "") for step in steps)
     assert steps[-2]["run"] == "bash tools/run_knowledge_model_policy.sh"
     assert steps[-1]["uses"] == "actions/upload-artifact@v4"
