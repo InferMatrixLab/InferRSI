@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 117, "Knowledge is missing from the installation"
+assert len(records) == 118, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -43,7 +43,7 @@ for record in mlx_records:
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 69, "Missing installed skill abstracts"
+assert len(skill_index) == 70, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -169,7 +169,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 69
+assert len(registry) == 70
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
@@ -337,4 +337,23 @@ for area, script in (
     assert mistral.joinpath("sub-skills", area, "scripts", script).is_file()
 mistral_bundle = KnowledgeReader().read("inferrsi.common.skills.mistral_rs")
 assert any("warmup_shape_inventory.py" in name for name in mistral_bundle.content)
+assert not inference_modules & sys.modules.keys()
+
+# Swift source/support candidate is packaged without a Swift/MLX runtime import.
+swift_lm = library.joinpath("repositories", "mlx-swift-lm")
+swift_meta = json.loads(swift_lm.joinpath("metadata.json").read_text())
+assert swift_meta["status"] == "candidate"
+assert swift_meta["empirical_validation"] == "not_run"
+swift_identity = json.loads(swift_lm.joinpath("references", "source-identity.json").read_text())
+assert hashlib.sha256(swift_lm.joinpath("LICENSE").read_bytes()).hexdigest() == (
+    swift_identity["files"]["LICENSE"]
+)
+for area, script in (
+    ("generation-lifecycle", "audit_generation_evidence.py"),
+    ("gated-delta-contract", "audit_gated_delta_declarations.py"),
+):
+    assert swift_lm.joinpath("sub-skills", area, "scripts", script).is_file()
+swift_bundle = KnowledgeReader().read("inferrsi.common.skills.mlx_swift_lm")
+assert any("audit_generation_evidence.py" in name for name in swift_bundle.content)
+assert any("audit_gated_delta_declarations.py" in name for name in swift_bundle.content)
 assert not inference_modules & sys.modules.keys()

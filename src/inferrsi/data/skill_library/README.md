@@ -1,7 +1,7 @@
 # InferRSI skill library
 
-The English-only library contains **108 skill documents**: 69 registered roots,
-21 separately indexed engine/router documents and 18 AREX graph sub-skills.
+The English-only library contains **111 skill documents**: 70 registered roots,
+21 separately indexed engine/router documents and 20 AREX graph sub-skills.
 Complete procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 69 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 70 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -125,7 +125,7 @@ guidance; it establishes no cross-pin implementation compatibility.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 69-ID registry.
+the links and catalog records below, separately from the 70-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -281,3 +281,7 @@ The [vllm-metal graph](repositories/vllm-metal/SKILL.md) routes platform/native 
 ## mistral.rs native paged-attention source candidate
 
 The [mistral-rs graph](repositories/mistral-rs/SKILL.md) owns selected Metal decode layout/scales/workspace, prefill coordinates/masks/workspace and actual-model prewarm/evidence. Three offline metadata/formula/inventory helpers add no GPU simulation or execution proof. Rust compilation and Apple native/model/quality/service evidence remain not_run / blocked.
+
+## MLX Swift LM ownership and recurrent Metal source candidate
+
+The [mlx-swift-lm graph](repositories/mlx-swift-lm/SKILL.md) adds selected Swift exclusive-access/cancellation/task-settlement and actual GatedDelta native/ops contracts. Two bounded evidence/metadata helpers authenticate neither observations nor dispatch. Swift compilation and required Apple native/model/quality/service evidence remain not_run / blocked; source-only masked-output parity gap is retained.
