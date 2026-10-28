@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 118, "Knowledge is missing from the installation"
+assert len(records) == 119, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -43,7 +43,7 @@ for record in mlx_records:
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 70, "Missing installed skill abstracts"
+assert len(skill_index) == 71, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -169,7 +169,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 70
+assert len(registry) == 71
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
@@ -357,3 +357,28 @@ swift_bundle = KnowledgeReader().read("inferrsi.common.skills.mlx_swift_lm")
 assert any("audit_generation_evidence.py" in name for name in swift_bundle.content)
 assert any("audit_gated_delta_declarations.py" in name for name in swift_bundle.content)
 assert not inference_modules & sys.modules.keys()
+
+# MLC source contracts remain readable without native MLC/TVM imports.
+mlc = library.joinpath("repositories", "mlc-llm")
+mlc_meta = json.loads(mlc.joinpath("metadata.json").read_text())
+assert mlc_meta["status"] == "candidate" and mlc_meta["empirical_validation"] == "not_run"
+mlc_identity = json.loads(mlc.joinpath("references", "source-identity.json").read_text())
+mlc_sources = {source["repository"]: source for source in mlc_identity["sources"]}
+for repository, upstream, relative in (
+    ("mlc-ai/mlc-llm", "LICENSE", "LICENSE"),
+    ("mlc-ai/mlc-llm", "NOTICE", "references/mlc-notice.md"),
+    ("mlc-ai/relax", "LICENSE", "references/tvm-license.md"),
+    ("mlc-ai/relax", "NOTICE", "references/tvm-notice.md"),
+):
+    assert hashlib.sha256(mlc.joinpath(*relative.split("/")).read_bytes()).hexdigest() == (
+        mlc_sources[repository]["files"][upstream]
+    )
+for area, script in (
+    ("artifact-contract", "audit_artifact_declarations.py"),
+    ("metal-build-runtime", "audit_apple_target_declarations.py"),
+    ("runtime-kv-limits", "audit_kv_limit_declarations.py"),
+):
+    assert mlc.joinpath("sub-skills", area, "scripts", script).is_file()
+mlc_bundle = KnowledgeReader().read("inferrsi.common.skills.mlc_llm")
+assert any("audit_kv_limit_declarations.py" in name for name in mlc_bundle.content)
+assert not (inference_modules | {"tvm", "tvm_ffi", "mlc_llm"}) & sys.modules.keys()

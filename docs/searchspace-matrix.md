@@ -505,3 +505,10 @@ unchanged.
 | --- | --- | --- | --- |
 | Host control / accelerator lifetime | Diagnose / verify: exclusive async access, Sendable transfer, lookahead/cancellation/finalization/default-stream sync versus task join | `mlx-swift-lm`: [generation-lifecycle](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md) | Caller evidence declarations only; no actual task/device execution, native cleanup, backgrounding or safe shared-cache proof. No measured resource coverage. |
 | Accelerator / RAM | Diagnose / configure: recurrent FP32 state/layout, Dk tails, public kernel/ops gate, source mask discrepancy and dispatch/parity evidence | `mlx-swift-lm`: [gated-delta-contract](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md) | Static source/declared bytes only; no actual provider stride/allocator/dispatch/numerical or physical-fit qualification. No new SSD/Network/OS control, quality/service or performance result. |
+
+## MLC LLM artifact, target and runtime source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM | Diagnose / configure: parameter-only resource declarations versus runtime KV/workspace/limit origins | `mlc-llm`: [artifact-contract](../src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/SKILL.md) and [runtime-kv-limits](../src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md) | Source/hash/declared minima only; no authenticated weights/allocator/free-memory/cache or physical-fit evidence. No measured resource coverage. |
+| Accelerator / host completion boundary | Diagnose / verify: SDK/export/prefix, runnable versus serializable module, private/staging buffers, copy/flush/wait/default-stream contracts | `mlc-llm`: [metal-build-runtime](../src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/SKILL.md) | Native compile/load/dispatch/sync/parity not_run. No new SSD/Network/OS control or quality/service/performance qualification. |

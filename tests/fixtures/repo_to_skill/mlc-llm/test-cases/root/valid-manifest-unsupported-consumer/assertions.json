@@ -1,0 +1,23 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "root",
+  "target_capability": "valid-manifest-unsupported-consumer",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:docs/compilation/model_artifact_manifest.rst",
+    "mlc-ai/mlc-llm:python/mlc_llm/protocol/artifact_manifest.py"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "references/scope-and-notices.md",
+    "sub-skills/artifact-contract/SKILL.md",
+    "sub-skills/artifact-contract/references/contract-mechanisms.md",
+    "sub-skills/artifact-contract/references/helper-contract.md"
+  ],
+  "assertions": [
+    "The manifest is opt-in and first consumed by WebLLM; native engine ignoring this contract does not acquire the new ABI from a matching sidecar.",
+    "Schema/interface IDs exclude tensor bytes and actual executable symbol authentication.",
+    "Native load/dispatch/cache/model/quality/service evidence remains independent and unrun; keep source-derived candidate status."
+  ]
+}
