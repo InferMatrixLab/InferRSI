@@ -23,7 +23,6 @@ data/
       common/<component>/<entry>.json Backend-independent methods
       cuda/<component>/<entry>.json   CUDA-scoped experience
       ascend/<component>/<entry>.json Ascend-scoped experience
-  platform_packs/<backend>/pack.json   Backend inspection and capabilities
 evidence/<campaign>/                   Frozen plans, artifacts and verdicts
 ```
 

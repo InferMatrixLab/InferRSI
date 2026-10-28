@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "source_commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+  "graph_state": "all root/sub-skills integrated before any source tests",
+  "results": [
+    {
+      "id": "pure-config-env-defaults",
+      "execution": "PASS",
+      "exit_code": 0,
+      "tests_passed": 58,
+      "duration_seconds": 0.27,
+      "scope": "Original test files copied byte-for-byte; isolated pytest config and no heavyweight upstream conftest. Source package imports via explicit path. Not full native suite, actual macOS/default execution or backend inference."
+    },
+    {
+      "id": "offload-native-storage",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "scope": "Required Apple native transfers, page release/reuse and actual matched backend unavailable; not_run"
+    },
+    {
+      "id": "native-pipeline-spec-dispatch",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "scope": "Required actual Apple MLX/Metal/MPS/model/dispatch evidence unavailable; not_run"
+    }
+  ],
+  "native_engine_qualification": "not_verified"
+}

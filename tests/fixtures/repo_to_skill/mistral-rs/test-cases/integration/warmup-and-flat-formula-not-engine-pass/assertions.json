@@ -1,0 +1,27 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "warmup-and-flat-formula-not-engine-pass",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mistralrs-core/src/pipeline/metal_warmup.rs",
+    "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+    "mistralrs-paged-attn/tests/metal_prefill.rs"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/scope-and-notices.md",
+    "sub-skills/prefill-contract/SKILL.md",
+    "sub-skills/prefill-contract/references/prefill-and-metadata.md",
+    "sub-skills/prefill-contract/references/helper-contract.md",
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/prewarm-and-evidence.md",
+    "sub-skills/qualification/references/warmup-inventory.md"
+  ],
+  "assertions": [
+    "Inventory/preparation, primary workspace formula, scaffolding and native dispatch are distinct evidence layers.",
+    "Primary workspace excludes persistent KV, tables, caller masks, cache writes and possible copies, so no physical-fit conclusion.",
+    "No actual Rust/Metal/kernel/model/quality/service/performance execution was performed; retain candidate and required-backend gap.",
+    "Request separately authorized matched offline native evidence rather than silently downloading dependencies or running a model."
+  ]
+}

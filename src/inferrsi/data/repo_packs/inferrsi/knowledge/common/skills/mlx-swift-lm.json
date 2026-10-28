@@ -1,0 +1,217 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.mlx_swift_lm",
+  "title": "mlx-swift-lm",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Investigate MLX Swift LM generation ownership, cancellation and settled task completion, and recurrent GatedDelta Metal versus ops contracts without confusing source predicates, final info or offline metadata with executed native correctness.",
+  "tags": [
+    "mlx-swift-lm",
+    "swift",
+    "metal",
+    "generation",
+    "ownership",
+    "cancellation",
+    "task-join",
+    "recurrent-state",
+    "gated-delta",
+    "native-evidence"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/aafa181251043882546678920ae992498b405ffb/src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
+      "commit": "aafa181251043882546678920ae992498b405ffb",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/repo-routing-metadata.json",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/scope-and-notices.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/source-identity.json",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "501f73e7b327b04b6b80501b42b20dab1ac15c875817e6f4c4b66fe3e69b4fc4"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/mlx-swift-lm/SKILL.md"
+  },
+  "checkout_ref": "checkout:mlx-swift-lm",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/LICENSE": "7b1d86acac816ce8192209d7e01141c129b4d48d474c15cc5fb4af62f497c323",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md": "501f73e7b327b04b6b80501b42b20dab1ac15c875817e6f4c4b66fe3e69b4fc4",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/metadata.json": "014131f345a28d3367313ed5a4cce858fe4c93d4d47a5f03eb89f609592e032f",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/repo-provenance.md": "f1b15edf89c597db0c3fc0bff7db6b2451924ce9273c39623bc0cbdccb568d31",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/repo-routing-metadata.json": "8fc804347771cd768a7ed027f2041d96c9832fe5f8c5869e6593a3021b1bef8b",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/scope-and-notices.md": "18e56805a8f275d35af3d8e42f3aa1525871b43400921a5d2dca4897c2047214",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/source-identity.json": "518da7bb64f22ff8ee6beb0e0f0579e7cd0da2fd70fa69fd8288294b0c08ba24",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md": "04b97959b4e207380a06d932e9a557954a9fb9aa880c243439da6d4a981854ed",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/helper-contract.md": "1358531257e00c0f9fb2eb9fb7a40f9d749f5435c90168c8923b6646353dce6f",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/recurrence-and-state.md": "ff0ebbeacb8219d93a890418d18bdf2856e6326d67f974a7050de3a0e5a3c5a3",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/troubleshooting.md": "3bbecbf91b241e7b37b3e8c753bf3fbcbdbba0b0f4d0ddf2f65eb653007f6cff",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/references/verification-boundaries.md": "21b6fceb692f29b410dc967f82e31d0d082904cea827443ffc05f6f940191dfe",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/scripts/audit_gated_delta_declarations.py": "3a256c37c867866e49dfdc2893cbb3f32d061e389fe4395555eff899bc0415ff",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md": "7effaa20ddaf32e3b4008c95888ccd09bc2bbc3bb5ff17c710f989b36be49535",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/evidence-schema.md": "d40e44910d8fc43ee3c731735902b1c1ba506c2ae972bb53dbacfaf37e38509e",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/native-evidence.md": "3e9a630a30932989faea5f52b347318cb94c73c7d4d6c81c0465ccaee2818671",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/ownership-and-termination.md": "56fdec7ebc89b5c217c7e5c203886bef1d3c2eb5794852897bdb5941ab1db2a0",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/references/troubleshooting.md": "de28b8ca9cf95be2a4e5762f938acfadb6d4b53459dbf86df4b2b2ec64ec347f",
+    "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/scripts/audit_generation_evidence.py": "2aba6caf42ca1b3fc55299fd96419af8681c37750c21a7ba75205a43baa9c7b1",
+    "src/inferrsi/data/skill_library/skill-index.json": "6d5784993dc8702b2c299c2354c39f765299a6734f7c24db994a97efd3fdbed6"
+  },
+  "skill_metadata": {
+    "name": "mlx-swift-lm",
+    "description": "Investigate MLX Swift LM generation ownership, cancellation and settled task completion, and recurrent GatedDelta Metal versus ops contracts without confusing source predicates, final info or offline metadata with executed native correctness.",
+    "license": "NO_LICENSE",
+    "disable-model-invocation": true,
+    "metadata": {
+      "disco-role": "operating"
+    },
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "tags": [
+      "mlx-swift-lm",
+      "swift",
+      "metal",
+      "generation",
+      "ownership",
+      "cancellation",
+      "task-join",
+      "recurrent-state",
+      "gated-delta",
+      "native-evidence"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/ml-explore/mlx-swift-lm",
+        "commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+        "version": "main 3.x API context; Swift tools 6.2",
+        "license": "MIT; unselected vendored xgrammar separately Apache-2.0",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".github/workflows/integration_tests.yml",
+          ".github/workflows/pull_request.yml",
+          "AGENTS.md",
+          "CONTRIBUTING.md",
+          "LICENSE",
+          "Libraries/MLXLLM/Models/Qwen35.swift",
+          "Libraries/MLXLLM/Models/Qwen3Next.swift",
+          "Libraries/MLXLMCommon/Documentation.docc/upgrade.md",
+          "Libraries/MLXLMCommon/Documentation.docc/using.md",
+          "Libraries/MLXLMCommon/Evaluate.swift",
+          "Libraries/MLXLMCommon/GatedDelta.swift",
+          "Libraries/MLXLMCommon/KVCache.swift",
+          "Libraries/MLXLMCommon/ModelContainer.swift",
+          "Libraries/MLXLMCommon/ModelFactory.swift",
+          "Libraries/MLXLMCommon/TokenLoopHandler.swift",
+          "Libraries/MLXLMCommon/Tokenizer.swift",
+          "Libraries/MLXLMCommon/UserInput.swift",
+          "Libraries/MLXLMCommon/Utilities/GenerationWorker.swift",
+          "Libraries/MLXLMCommon/Utilities/SerialAccessContainer.swift",
+          "Libraries/MLXVLM/Models/Qwen35.swift",
+          "Package.swift",
+          "README.md",
+          "Tests/MLXLMTests/CancellationTests.swift",
+          "Tests/MLXLMTests/GatedDeltaQKNormTests.swift",
+          "Tests/MLXLMTests/GatedDeltaTests.swift",
+          "Tests/MLXLMTests/GenerationExecutionTests.swift",
+          "Tests/MLXLMTests/Qwen35GDNDecodeBitwiseTests.swift",
+          "Tests/MLXLMTests/Qwen35MTPTests.swift",
+          "skills/mlx-swift-lm/SKILL.md",
+          "skills/mlx-swift-lm/references/concurrency.md",
+          "skills/mlx-swift-lm/references/generation.md",
+          "skills/mlx-swift-lm/references/kv-cache.md",
+          "skills/mlx-swift-lm/references/model-container.md",
+          "skills/mlx-swift-lm/references/model-porting.md"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Actual portable compatible-agent source/native-Swift adaptation; no DisCo CLI/model run or managed installation."
+      }
+    ],
+    "construction": {
+      "anchor_kind": "source",
+      "distillation_form": "repository-operating-graph",
+      "strategy": "arex-portable-meta-skills",
+      "status": "partial-candidate",
+      "native_import": "not-run",
+      "method": "Stable-ID lifecycle and recurrent-kernel author lanes, integrated root/local references, hard cases and offline support/static/scaffold/package checks; native Swift/Xcode/MLX compiler/tests not_run."
+    },
+    "applicability": {
+      "scope": "Selected Swift ownership/cancellation/settling and actual GatedDelta Metal/ops contracts. Common categorization is not CPU inference or Apple qualification."
+    },
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: native Swift/MLX compiler, host-control tests and required Apple Metal cancellation/backgrounding/kernel/cache/model/fit/quality/service/performance evidence not_run.",
+      "Swift/Xcode/Apple SDK/MLX native stack unavailable; no live Swift API, package resolution, original source/native tests or CLI execution claimed.",
+      "Helpers audit caller-declared evidence or selected metadata/byte/source-predicate contracts only; no tasks/recurrence/GPU simulation, authenticated observation, actual dispatch or numerical validation.",
+      "Inspected masked kernel and ops output handling differ at source level; no masked-output native parity case executed, confirmed numeric bug or fix claimed.",
+      "Full ChatSession/cache reconciliation, models/loading/quantization/VLM/tools/grammar/LoRA/training/FoundationModels and external MLX manager/provider internals are bounded gaps; broad skill efficacy unmeasured.",
+      "NO_LICENSE is actual unauthenticated gh resolver fallback, not legal absence; root MIT retained independently."
+    ],
+    "provenance_readsets": [
+      "references/repo-provenance.md",
+      "references/source-identity.json"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Selected Swift ownership/cancellation/settling and actual GatedDelta Metal/ops contracts. Common categorization is not CPU inference or Apple qualification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "BLOCKED_REQUIRED_BACKEND: native Swift/MLX compiler, host-control tests and required Apple Metal cancellation/backgrounding/kernel/cache/model/fit/quality/service/performance evidence not_run.",
+    "Swift/Xcode/Apple SDK/MLX native stack unavailable; no live Swift API, package resolution, original source/native tests or CLI execution claimed.",
+    "Helpers audit caller-declared evidence or selected metadata/byte/source-predicate contracts only; no tasks/recurrence/GPU simulation, authenticated observation, actual dispatch or numerical validation.",
+    "Inspected masked kernel and ops output handling differ at source level; no masked-output native parity case executed, confirmed numeric bug or fix claimed.",
+    "Full ChatSession/cache reconciliation, models/loading/quantization/VLM/tools/grammar/LoRA/training/FoundationModels and external MLX manager/provider internals are bounded gaps; broad skill efficacy unmeasured.",
+    "NO_LICENSE is actual unauthenticated gh resolver fallback, not legal absence; root MIT retained independently."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

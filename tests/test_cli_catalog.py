@@ -142,8 +142,9 @@ class CatalogTests(unittest.TestCase):
 
 def test_knowledge_has_one_canonical_record_and_complete_navigation():
     packs = PROJECT / "src/inferrsi/data/repo_packs"
-    records = search_knowledge(tier="contribution", limit=100)
-    assert len(records) == len(list(packs.glob("*/knowledge/*/*/*.json")))
+    canonical_paths = list(packs.glob("*/knowledge/*/*/*.json"))
+    records = search_knowledge(tier="contribution", limit=len(canonical_paths))
+    assert len(records) == len(canonical_paths)
     for repo in {record["repo"] for record in records}:
         root = packs / repo / "knowledge"
         paths = list(root.glob("*/*/*.json"))

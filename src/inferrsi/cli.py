@@ -290,11 +290,12 @@ def main(argv: list[str] | None = None) -> int:
         environment["invocation"] = argv if argv is not None else sys.argv[1:]
         if args.command == "doctor":
             _print(environment)
-            healthy = environment["repository"].get("available", False) and environment[
+            device = environment["device"]
+            known = device["status"] == "available" and device.get("selection_verified", True)
+            available = environment["repository"].get("available", False) and environment[
                 "target_python"
             ].get("environment")
-            available = environment["device"]["status"] in ("available", "tool_available")
-            return 0 if healthy and available else 1
+            return 0 if available and known else 1
 
         spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
@@ -309,8 +310,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if not environment["repository"].get("available"):
             raise ValueError("The baseline must be a readable Git checkout for source provenance")
-        if environment["device"]["status"] not in ("available", "tool_available"):
+        if environment["device"]["status"] != "available":
             raise ValueError(f"Backend inspection failed: {environment['device']['status']}")
+        if not environment["device"].get("selection_verified", True):
+            raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
 

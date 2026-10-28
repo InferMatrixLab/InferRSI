@@ -1,9 +1,12 @@
 import json
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
 
 from inferrsi.knowledge_operations import (
+    Bundle,
     IdentityError,
     KnowledgeReader,
     RevisionConflict,
@@ -255,3 +258,183 @@ def test_malformed_checkout_discovery_fails_explicitly(tmp_path):
 def test_unsafe_resource_paths_fail(path):
     with pytest.raises(ValueError, match="Unsafe"):
         safe_path(path)
+
+
+def _skill(root: Path, name: str = "sk", **frontmatter) -> Path:
+    directory = root / name
+    directory.mkdir(parents=True)
+    extra = "".join(f"{key}: {value}\n" for key, value in frontmatter.items())
+    (directory / "SKILL.md").write_text(
+        f"---\nname: {name}\ndescription: test\n{extra}---\nBody", encoding="utf-8"
+    )
+    return directory
+
+
+def _junction(link: Path, target: Path) -> None:
+    # Junctions need no privilege, but they exist only on Windows and is_symlink()
+    # reports False for them, which is exactly the gap under test.
+    if not sys.platform.startswith("win"):
+        pytest.skip("NTFS junctions are Windows-only")
+    result = subprocess.run(
+        ["cmd", "/c", "mklink", "/J", str(link), str(target)],
+        capture_output=True, text=True, check=False,
+    )
+    if result.returncode != 0:
+        pytest.skip(f"junction unavailable: {result.stdout}{result.stderr}")
+
+
+def test_directory_junction_cannot_escape_the_skills_root(tmp_path):
+    skills = tmp_path / "skills"
+    directory = _skill(skills)
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (outside / "secret.txt").write_text("foreign", encoding="utf-8")
+    _junction(directory / "linked", outside)
+    reader = KnowledgeReader(skill_root=skills)
+    with pytest.raises(ValueError, match="escapes the skills root: sk/linked"):
+        reader.read("sk")
+    result = reader.collect(ids=["sk"], context_bytes=65536)
+    assert result["no_match"]
+    assert result["omissions"] == [
+        {"id": "sk", "reason": "invalid", "detail": "Resource escapes the skills root: sk/linked"}
+    ]
+
+
+def test_junction_cycle_fails_instead_of_recursing(tmp_path):
+    skills = tmp_path / "skills"
+    _skill(skills)
+    _junction(skills / "sk" / "loop", skills / "sk")
+    reader = KnowledgeReader(skill_root=skills)
+    with pytest.raises(ValueError, match="cycle inside the skills root: sk/loop"):
+        reader.read("sk")
+    result = reader.collect(ids=["sk"])
+    assert result["omissions"][0]["reason"] == "invalid"
+
+
+def test_unquoted_yaml_date_is_named_and_normalized(tmp_path):
+    # YAML parses an unquoted date as datetime.date, which json.dumps cannot encode.
+    # The bundle identity is JSON, so ingestion normalizes it to the ISO string
+    # instead of failing later at revision time.
+    _skill(tmp_path, sources="[{type: unknown, accessed: 2026-10-23}]")
+    reader = KnowledgeReader(skill_root=tmp_path)
+    bundle = reader.read("sk")
+    assert bundle.metadata["sources"][0]["accessed"] == "2026-10-23"
+    assert (tmp_path / "sk" / "SKILL.md").read_text(encoding="utf-8").find("2026-10-23") > 0
+    quoted = Bundle(
+        {**bundle.metadata, "sources": [{"type": "unknown", "accessed": "2026-10-23"}]},
+        dict(bundle.content),
+        dict(bundle.dependencies),
+    )
+    assert quoted.revision == bundle.revision
+    result = reader.collect(ids=["sk"], material=True)
+    assert [item["ref"] for item in result["items"]] == ["checkout:sk"]
+    assert "Body" in result["items"][0]["content"]
+
+
+def test_metadata_without_a_json_form_names_the_field_at_ingestion():
+    metadata = {
+        "id": "x",
+        "kind": "skill",
+        "entrypoint": "x/SKILL.md",
+        "sources": [{"type": "unknown", "tags": {1, 2}}],
+        "applicability": {},
+        "state": "candidate",
+        "limitations": [],
+        "attribution": [],
+    }
+    with pytest.raises(ValueError, match="metadata.sources\\[0\\].tags.*set"):
+        Bundle(metadata, {"x/SKILL.md": b"Body"}, {})
+
+
+def test_unrepresentable_metadata_names_the_offending_field():
+    metadata = {
+        "id": "x",
+        "kind": "skill",
+        "entrypoint": "x/SKILL.md",
+        "sources": [{"type": "unknown", "tags": {1, 2}}],
+        "applicability": {},
+        "state": "candidate",
+        "limitations": [],
+        "attribution": [],
+    }
+    with pytest.raises(ValueError, match="metadata.sources\\[0\\].tags.*set"):
+        Bundle(metadata, {"x/SKILL.md": b"Body"}, {})
+
+
+def test_cyclic_alias_is_an_invalid_omission_not_a_crash(tmp_path):
+    # YAML aliases can make a container its own descendant; normalization must
+    # report that field instead of recursing until the interpreter gives up.
+    _skill(tmp_path, applicability="&loop [*loop]")
+    _skill(tmp_path, "ok")
+    reader = KnowledgeReader(skill_root=tmp_path)
+    result = reader.collect(ids=["sk", "ok"])
+    assert [item["ref"] for item in result["items"]] == ["checkout:ok"]
+    assert [(o["id"], o["reason"]) for o in result["omissions"]] == [("sk", "invalid")]
+    assert "metadata.applicability" in result["omissions"][0]["detail"]
+    assert "cycle" in result["omissions"][0]["detail"]
+
+
+def test_shared_acyclic_reference_is_still_normalized():
+    # The same object under two sibling fields is not a cycle.
+    shared = {"note": "x"}
+    metadata = {
+        "id": "x",
+        "kind": "skill",
+        "entrypoint": "x/SKILL.md",
+        "sources": [{"type": "unknown"}],
+        "applicability": {"left": shared, "right": shared},
+        "state": "candidate",
+        "limitations": [],
+        "attribution": [],
+    }
+    bundle = Bundle(metadata, {"x/SKILL.md": b"Body"}, {})
+    assert bundle.metadata["applicability"] == {"left": {"note": "x"}, "right": {"note": "x"}}
+    assert bundle.revision.startswith("sha256:")
+
+
+def test_malformed_case_identity_is_rejected_at_registration(tmp_path):
+    _case(tmp_path, "Upper.Case")
+    with pytest.raises(ValueError, match="Invalid case identity in note.json: 'Upper.Case'"):
+        KnowledgeReader(skill_root=tmp_path).identities()
+    _declare(tmp_path, id=123)
+    with pytest.raises(ValueError, match="Invalid case identity in note.json: 123"):
+        KnowledgeReader(skill_root=tmp_path).collect()
+
+
+def test_revision_keys_use_the_resolved_identity_not_the_spelling(tmp_path):
+    _skill(tmp_path)
+    reader = KnowledgeReader(skill_root=tmp_path)
+    revision = reader.read("sk").revision
+    other = "sha256:" + "0" * 64
+    for ids, keys in [
+        (["sk"], {"checkout:sk": revision}),
+        (["checkout:sk"], {"sk": revision}),
+        (["sk"], {"checkout:sk": revision, "sk": revision}),
+    ]:
+        result = reader.collect(ids=ids, revisions=keys)
+        assert [(item["ref"], item["revision"]) for item in result["items"]] == [
+            ("checkout:sk", revision)
+        ]
+    unpinned = reader.collect(ids=["checkout:sk"], revisions={"sk": revision})
+    assert [item["ref"] for item in unpinned["items"]] == ["checkout:sk"]
+    with pytest.raises(
+        ValueError, match="Revision requested for an unselected identity: package:x"
+    ):
+        reader.collect(ids=["sk"], revisions={"package:x": revision})
+    with pytest.raises(ValueError, match="Conflicting revisions for the same identity: sk"):
+        reader.collect(ids=["sk"], revisions={"checkout:sk": revision, "sk": other})
+
+
+@pytest.mark.parametrize(("options", "message"), [
+    ({"ids": "sk"}, "ids must be a list of identity strings"),
+    ({"ids": ["sk", 3]}, "ids must be a list of identity strings"),
+    ({"ids": ("sk",)}, "ids must be a list of identity strings"),
+    ({"limit": "10"}, "limit must be a positive integer"),
+    ({"limit": True}, "limit must be a positive integer"),
+    ({"max_bytes": 1.5}, "max_bytes must be a positive integer"),
+    ({"revisions": {"sk": 7}}, "revisions must map identity strings"),
+])
+def test_collect_arguments_are_type_checked_before_selection(options, message):
+    with pytest.raises(ValueError, match=message):
+        KnowledgeReader().collect(**options)
+

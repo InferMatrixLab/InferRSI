@@ -36,15 +36,22 @@ Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
 Use `harness/scenarios` and `model/protocols` / `model/validators` for new models,
-`infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` with
-`data/platform_packs` for hardware. Reuse the common AB/BA loop, cleanup and
-adjudication. See [extension contracts](architecture.md#where-to-extend).
+`infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` for
+hardware. A backend is registered in `infra/platforms/__init__.py`; its probe
+command is defined in the implementing module under `infra/platforms/`. That
+module owns the command name and the discovery boundary. Reuse the common AB/BA loop,
+cleanup and adjudication. See [extension contracts](architecture.md#where-to-extend).
 
 For knowledge, edit one named JSON record under
 `data/repo_packs/<repo>/knowledge/<backend>/<component>/` for contribution sources,
 or `data/knowledge_packs/<dependency|peer>/<repo>/<backend>/<component>/` for
 external sources, and add its navigation link to the owning README. See the
 [three learning tiers](../src/inferrsi/data/knowledge_packs/README.md).
+`data/repo_packs/inferrsi/knowledge/` is the exception: it is generated from
+`data/skill_library/` and must be refreshed, never edited. Change the skill body,
+sidecar or registry, commit, then run
+`python tools/build_skill_index.py --source-revision <committed-revision>`; a
+hand edit there is reverted by the next run and only `--check` reports it.
 Do not maintain a second per-entry Markdown summary.
 Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the

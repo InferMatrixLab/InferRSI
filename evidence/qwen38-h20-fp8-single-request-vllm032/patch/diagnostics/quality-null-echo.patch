@@ -1,0 +1,11 @@
+--- a/run.py
++++ b/run.py
+@@ -44,7 +44,7 @@
+             choice = choices[0]
+             if choice.get("index") != 0 or not isinstance(choice.get("text"), str):
+                 raise ProtocolError("invalid choice")
+-            if "prompt_token_ids" in choice:
++            if choice.get("prompt_token_ids") is not None:
+                 if observed_prompt is not None or text:
+                     raise ProtocolError("prompt IDs must occur once in the first choice")
+                 observed_prompt = choice["prompt_token_ids"]

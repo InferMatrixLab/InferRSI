@@ -198,8 +198,9 @@ failure instead of evaluating, so the newest entry is a failure rather than an
 earlier success, and reports that a new head is required.
 That verdict is terminal: a later sweep recognises it as its own and writes
 nothing, so repeated sweeps do not consume the reserve. If that one write
-fails, the run reports `publication-failed`; the next sweep attempts the same
-single write once more.
+fails transiently, the run reports `publication-failed`; the next sweep attempts
+the same single write once more. HTTP 422 follows the terminal rejection handling
+below instead.
 
 A head can also carry statuses from other contexts, so the read is bounded by
 both 50 pages and time. Time is split rather than shared as one absolute
@@ -257,14 +258,14 @@ must not be described as enforced:
 | Situation | Behavior and limitation |
 | --- | --- |
 | The target PR cannot be read at all | Its head may already be merged, so no write is attempted. The result is `unverified`, the run fails, and an earlier green remains `pending`-free until a run can read the target |
-| The `pending` write itself fails | Result is `invalidation-failed`; the earlier verdict still applies to the head and the run fails visibly |
-| The final verdict write fails | Result is `publication-failed`; the head keeps the `pending` placeholder, which does not satisfy a required check |
+| The `pending` write itself fails | Result is `invalidation-failed` (or terminal HTTP 422 rejection below); the earlier verdict still applies to the head and the run fails visibly |
+| The final verdict write fails | Result is `publication-failed` (or terminal HTTP 422 rejection below); the head keeps the `pending` placeholder, which does not satisfy a required check |
 | The PR is closed before publication | No verdict is written. If the target was still open at evaluation time it keeps the `pending` it received there, and the workflow reports success without a verdict for that head |
 | The head advances before publication | No verdict is written. The superseded head keeps its `pending`; the new head has no status until a run covers it, and the run exits `2` for that retry |
 | A merge attempt races the run | The check reads metadata, invalidates, evaluates and publishes without holding any lock. A merge authorized by the previous state can land between the last read and the status write |
 | The head has used its reserved status capacity | Result is `budget-exhausted`: one failure is recorded there and no success is published. The entry is recognised on later sweeps, so nothing further is appended and the state is not retried. Only a new head resumes evaluation |
 | The head is already at the 1,000-status cap | Result is `budget-saturated`: no write is possible, so an earlier `success` may still be the head's newest entry and this checker cannot replace it. The head is blocked from new statuses, not necessarily from merging; only a new head resumes evaluation |
-| The status history cannot be read | The failure is published immediately rather than in the publication pass, so a sweep cut off before reaching this target still replaces the old verdict. If that write also fails, the head keeps the earlier verdict and the result is `publication-failed`, which retries |
+| The status history cannot be read | The failure is published immediately rather than in the publication pass, so a sweep cut off before reaching this target still replaces the old verdict. If that write also fails, the head keeps the earlier verdict and the result is `publication-failed`, which retries unless it is a terminal HTTP 422 rejection below |
 | GitHub has not yet dispatched the event | Enforcement cannot precede the event that triggers it. A commit or body edit is enforced only after a run for that change has published a result |
 
 `pending` narrows the window in which an old success describes stale evidence. It
@@ -311,7 +312,8 @@ Each result carries `kind` alongside the status `state`:
 | `invalidation-failed` | The earlier result could not be replaced by `pending`; no verdict was published |
 | `history-unavailable` | The head's status history could not be read within its share of the sweep, so the capacity margin is unproven; an explicit failure replaces the old result immediately, before any other target is processed |
 | `budget-exhausted` | The head has used its reserved status capacity; one failure is recorded there, no success is published and a new head is required |
-| `budget-saturated` | The head already holds 1,000 statuses for this context; nothing can be written, so an earlier success may remain the newest entry |
+| `budget-saturated` | Complete history reaches the status cap, or GitHub explicitly rejects status capacity; nothing further can be written, so an earlier success may remain the newest entry |
+| `status-rejected` | GitHub rejected a status POST with HTTP 422 without an explicit capacity reason; the current invocation stops repeating it, remains failed, and does not claim the old status was replaced |
 
 The final JSON summary counts each kind, lists the `noncompliant_pull_requests`, and
 states the sweep `execution` as `ok`, `failed` or `unfinished`. Exit codes: `0`
@@ -322,10 +324,11 @@ rejection neither greens nor fails another PR's status.
 
 The workflow handles PR open/reopen/close/commits/body-or-base edits on any target
 branch (a PR against another base can share a main PR's head), approval-comment
-creation/edit/deletion, every main push and manual dispatch. Main pushes refresh
-all open main-target PRs. All eligible triggers share one serialized status writer and each
-run refreshes every open main-target PR, so replacing a pending job cannot lose another
-PR's refresh or let an older run overwrite a newer result. It checks out `main`,
+creation/edit/deletion, every main push and manual dispatch. All eligible triggers
+share one serialized status writer. Ordinary main pushes and closed-PR events use
+the bounded impact routing below; PR and approval-comment events select the
+trigger and affected head peers. Policy changes, manual dispatch and unverified
+routing evidence retain the full open main-target PR refresh. It checks out `main`,
 executes only trusted code, installs no PR
 dependencies and treats PR text/files as API data. Permissions are limited to
 contents/PR/issues read and commit-status write. Statuses explicitly target the
@@ -334,7 +337,12 @@ approvals are reread before publication; changes fail closed and need a fresh ru
 PR edits and status publication are not atomic: integrators still check the
 current head and latest run.
 
-The shared concurrency group belongs to the declaration job. Ordinary non-PR Issue
+The shared concurrency group belongs to the declaration job. It uses
+[`queue: max`](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency)
+with `cancel-in-progress: false`: one writer runs while up to 100 jobs wait,
+instead of each new merge event replacing the single pending job. This is bounded
+queueing, not event deduplication: overflow can still cancel pending work, and
+queued runs still refresh current trusted state rather than replaying old verdicts. Ordinary non-PR Issue
 comments skip that job. A newly created, nonempty PR comment without the
 `knowledge-policy-approval` marker also skips the job; every PR comment edit or
 deletion remains eligible, including removal of an approval marker. Missing event
@@ -351,7 +359,14 @@ never become compliant/non-applicable results. Current rules have no merge queue
 enabling a queue with this required check.
 
 HTTP diagnostics retain only the response status, a conservative category,
-numeric rate-limit timing/remaining headers, and a bounded GitHub request ID.
+numeric rate-limit timing/remaining headers, a bounded GitHub request ID, and
+fixed allowlisted validation resource/field/code values (never rejected values).
+For HTTP 422, `response_shape` distinguishes read failure, invalid JSON, parsed
+non-object bodies, missing/wrong-type error arrays, and entries without allowlisted
+details. Only fixed type names, booleans and counts over at most 20 entries are
+retained. `read_limit_reached` means the 8 KiB read bound was reached, not proof of
+truncation; `errors_sample_truncated` describes only the parsed error-array sample.
+These shape diagnostics do not identify the cause of an otherwise unknown 422.
 Raw response messages, error arrays, request URLs and credentials are not logged.
 A 403 alone is not proof of rate limiting; a 422 is a validation error, not proof
 that the status-history cap was reached. Read requests may retry once when an
@@ -359,18 +374,70 @@ explicit rate-limit delay fits inside their remaining retry budget (at most 60
 seconds). The wait is deducted before passing the remaining timeout to the retry.
 The urllib timeout applies to socket operations, not a strict total wall-clock
 deadline for reading the response.
-Status POSTs are never retried by the transport. The existing outer sweep retry
-plan remains unchanged; this diagnostic improvement does not repair permissions,
-restore exhausted status capacity, or guarantee that historical red checks clear.
+Status POSTs are never retried by the transport. An HTTP 422 status rejection is
+terminal only for the current runner invocation: `status-rejected` remains an
+execution error, not declaration noncompliance or a successful invalidation.
+An explicit recognized status-capacity response is `budget-saturated`: the fixed
+full capacity message is recognized either directly in the `errors` string or in
+a structured `Status`/`custom` array entry. The exact string variant with the
+`Validation failed: ` prefix is also recognized, based on the verified #203 sample;
+this classification does not restore status capacity or replace an old remote status.
+An arbitrary string, substring match,
+count of 900, or unknown 422 is not capacity proof. Other transient write failures retain
+the bounded outer retries. A fresh invocation may retry after remediation.
+The previous remote status may remain green or pending when a write is rejected;
+no failure status is claimed to have been published. Diagnostics and retry control
+do not repair permissions, restore capacity, identify every unknown validation
+cause, or guarantee that historical red checks clear.
 
+
+### Bounded impact routing for main and PR events
+
+An ordinary main push compares the event's `before` SHA to the **current fetched
+main SHA**, not merely the event's `after`. A changed trusted input forces a full
+refresh: the policy JSON, checker, shell runner, workflow, policy documentation,
+or any additional declared `policy_paths`. New routing dependencies must join the
+fixed input manifest in the checker; policy JSON cannot remove the fixed inputs.
+
+When those inputs are unchanged, the router fetches Git objects (never checks out
+or executes PR code), with a 60-second aggregate graph-operation budget. It requires
+complete non-shallow ancestry and `before` to be an ancestor of current main. For
+each fixed open PR head, exactly one identical merge base against both revisions
+proves that its base-relative diff and contributor commit set are unchanged. That
+PR is not reevaluated and receives no new status. A changed or ambiguous merge
+base selects the PR; unchanged policy JSON alone is not enough, because another
+merge can change the protected paths bound by an exception approval.
+
+All open PRs, including other base branches, remain in the ownership scan. A shared
+head is never skipped by push-impact analysis. A closed-PR event selects the closed
+trigger (reported N/A, no new status) plus remaining open main-target peers on that
+same head. Other PR events select the trigger and open main-target peers sharing
+its event head, current head, or (for synchronize) previous head. Missing previous
+head evidence falls back to a full refresh. Approval-comment create/edit/delete
+events select the trigger and current-head peers; edits and revocations remain
+eligible. Retargeting outside main still refreshes main-target peers. The evaluator
+continues checking ownership against all open PRs, including other base branches.
+Unrelated PRs receive no history scan or status POST. This reduces duplicate writes;
+it is not a persistent cache or deduplication of repeated events on the same PR.
+Every selected PR still invalidates pending before assessment, and known saturated
+heads remain blocked until a supported recovery changes the underlying condition.
+
+Missing objects, shallow/incomplete history, force pushes, malformed collections,
+repository/branch mismatches, fetch timeouts and unverified impact fall back to a
+full refresh. Main and open-PR snapshots are reread before and after routed work;
+a race requests replanning rather than declaring an empty selection healthy.
+`No affected admissions` means no new work for this event—not that every existing
+status is valid, that a known 422 was repaired, or that historical red checks clear.
+An affected blocked PR still fails honestly. Queue overflow/event loss remains a
+platform limitation; manual dispatch retains the full reconciliation path.
 
 ### Trigger-PR conclusion versus global sweep health
 
-Every eligible workflow event still refreshes **all open policy-branch PRs** through the
-single serialized writer. This is necessary because concurrency may replace a
-pending event. The runner still makes up to three attempts when global work is
-unfinished; a green triggering PR never stops those retries early. The triggering
-PR is evaluated first without dropping any peer from the sweep.
+All selected targets still use the single serialized writer. The runner makes up
+to three attempts when selected work is unfinished; a green triggering PR never
+stops those retries early. Full sweeps evaluate the triggering PR first without
+dropping peers. Impact-routed results describe only the selected scope, not global
+admission health.
 
 Only after the final attempt does a PR or PR-comment job use that triggering PR's
 own verified result for its job conclusion. A `pull_request_target` result must
@@ -383,8 +450,34 @@ trigger PR, unavailable evidence, status-publication failure, capacity failure,
 advanced head, or missing target still fails its own job. A freshly checked
 closed/non-policy-branch target is explicitly **not applicable**, not an admission
 or acceptance PASS. It is added to the sweep even when absent from the open list.
-Push-to-main and manual workflow-dispatch jobs continue to report global execution
-health. Explicit CLI `--pull-request` and dry-run behavior is unchanged.
+Push-to-main jobs report reconciliation execution for the explicitly displayed
+scope, separately from unresolved PR admissions. A complete, verified push report
+may finish **complete-with-findings** when its only problems are confirmed status
+capacity (`budget-exhausted` or `budget-saturated`) or noncompliant declarations.
+This is not admission success or a claim that a PR is blocked from merging: an
+older remote success can remain visible when capacity prevents replacement.
+Per-PR statuses and raw sweep errors remain unchanged, with unresolved PR numbers,
+kind counts and a warning in the final summary. Impact scopes are not global health
+assessments; policy-input changes still reconcile the full open-PR set.
+
+```mermaid
+flowchart LR
+  A[Serialized final attempt] --> B[Per-head admission statuses unchanged]
+  A --> C[Bound report and complete target enumeration]
+  C --> D[Push reconciliation execution]
+  D --> E[Capacity findings visible, not admission success]
+  C --> F[PR own result or manual global result unchanged]
+```
+
+Capacity is established only by a complete history read or a recognized GitHub
+status-capacity response, with typed provenance retained through retries. A prior
+history, authorization, network or evaluator error cannot be hidden by a later
+capacity rejection. Unknown 422 responses and all other execution errors still
+fail the push job. Projection requires complete enumeration and one result for
+each selected target; newly appearing full-sweep targets, incomplete enumeration,
+missing provenance and missing/stale/malformed reports cannot yield success.
+Manual workflow-dispatch, explicit CLI `--pull-request`, dry-run and trigger-PR
+semantics are unchanged, including their capacity failures.
 
 The runner deletes the report before each attempt. The checker atomically writes
 a report bound to repository, event digest/type, policy SHA and attempt identifier;
@@ -418,4 +511,3 @@ python tools/check_knowledge_model_policy.py --repository <owner/repo> --pull-re
 publishing statuses. It does not show the main workflow is operational. Production
 uses runtime-injected `GITHUB_TOKEN`; never pass tokens as CLI arguments. The
 existing ready lane runs unit tests on Python 3.10 and 3.11 in its full suite.
-

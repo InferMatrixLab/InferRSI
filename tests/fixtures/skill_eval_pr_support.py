@@ -61,23 +61,35 @@ class SimulatedGitHub(integration.GitHub):
         self.run = {"id": run_id, "path": integration.WORKFLOW, "event": "workflow_dispatch",
                     "display_title": integration.run_title(plan["pr"],
                                                           integration.fingerprint(plan)),
-                    "head_sha": plan["version"], "status": "completed"}
+                    "head_sha": plan["version"], "status": "completed",
+                    "repository": {"id": 123, "full_name": plan["repository"]}}
         self.artifact = {"id": 90, "name": "skill-eval-results", "expired": False,
                          "expires_at": "2030-01-01T00:00:00Z", "size_in_bytes": len(data)}
         self.data = envelope(data)
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(buffer, "w") as archive:
+            archive.writestr("pr-plan.json", integration.canonical(plan))
+        self.plan_data = buffer.getvalue()
+        self.plan_artifact = {**self.artifact, "id": 91, "name": "skill-eval-plan",
+                              "size_in_bytes": len(self.plan_data)}
+        self.reads = []
 
     def request(self, method, path, data=None, *, binary=False):
         if method == "GET":
+            self.reads.append(path)
+            if not path:
+                return {"id": 123, "full_name": self.repository}
             if path.startswith("/pulls/"):
                 return {"state": "open", **{key: {"sha": value}
                                            for key, value in self.current.items()}}
             if path.startswith("/actions/runs/") and "/artifacts" not in path:
                 return self.run
             if path.startswith("/actions/runs/") and "/artifacts" in path:
-                return {"artifacts": [self.artifact]}
+                return {"artifacts": [self.artifact, *([self.plan_artifact]
+                        if self.plan_artifact is not None else [])]}
             if path.startswith("/actions/artifacts/"):
                 assert binary
-                return self.data
+                return self.plan_data if path == "/actions/artifacts/91/zip" else self.data
             if path.startswith("/issues/") and "/comments?" in path:
                 if self.change_during_read:
                     self.current["head"] = "f" * 40

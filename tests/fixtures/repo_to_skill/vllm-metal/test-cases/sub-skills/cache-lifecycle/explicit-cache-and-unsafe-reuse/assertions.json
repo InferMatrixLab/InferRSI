@@ -1,0 +1,21 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "cache-lifecycle",
+  "target_capability": "explicit-cache-and-unsafe-reuse",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/kv_offloading.md",
+    "vllm_metal/v1/kv_offload/shared_region.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/cache-lifecycle/SKILL.md",
+    "sub-skills/cache-lifecycle/references/cache-and-offload.md",
+    "sub-skills/cache-lifecycle/scripts/screen_pool_budget.py"
+  ],
+  "assertions": [
+    "Keeps1048576 cache plus65536 pool additional, total1114112 declared bytes.",
+    "Rejects native-fit/wake proof; reuse failure must stop writes.",
+    "Explains host-index reset differs from disk and name/dtype is not weight-byte identity.",
+    "Does not delete stores or alter backups/permissions without specific authority."
+  ]
+}
