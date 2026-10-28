@@ -37,65 +37,13 @@
       "path": "hardware/ascend/ascend-performance-analysis",
       "backend": "ascend"
     },
+    "ascend-video-diffusion-optimization": {
+      "path": "hardware/ascend/ascend-video-diffusion-optimization",
+      "backend": "ascend"
+    },
     "ascendc-tiling-design": {
       "path": "hardware/ascend/ascendc-tiling-design",
       "backend": "ascend"
-    },
-    "cann-attribution-overlap": {
-      "path": "hardware/ascend/cann-attribution-overlap",
-      "backend": "ascend"
-    },
-    "torchnpu-device-memory-lifecycle": {
-      "path": "hardware/ascend/torchnpu-device-memory-lifecycle",
-      "backend": "ascend"
-    },
-    "torchnpu-pinned-host-memory-lifecycle": {
-      "path": "hardware/ascend/torchnpu-pinned-host-memory-lifecycle",
-      "backend": "ascend"
-    },
-    "host-overhead-profiling": {
-      "path": "hardware/cuda/host-overhead-profiling",
-      "backend": "cuda"
-    },
-    "diagnose-attention-bottlenecks": {
-      "path": "hardware/cuda/diagnose-attention-bottlenecks",
-      "backend": "cuda"
-    },
-    "cgroup-resource-controls": {
-      "path": "hardware/host/cgroup-resource-controls",
-      "backend": "common"
-    },
-    "host-memory-management": {
-      "path": "hardware/host/host-memory-management",
-      "backend": "common"
-    },
-    "host-overhead-optimization": {
-      "path": "hardware/host/host-overhead-optimization",
-      "backend": "common"
-    },
-    "os-process-placement": {
-      "path": "hardware/host/os-process-placement",
-      "backend": "common"
-    },
-    "storage-io-measurement": {
-      "path": "hardware/host/storage-io-measurement",
-      "backend": "common"
-    },
-    "dcp-async-save-performance": {
-      "path": "frameworks/pytorch/dcp-async-save-performance",
-      "backend": "common"
-    },
-    "audit-vllm-kv-lifetimes": {
-      "path": "repositories/vllm/audit-vllm-kv-lifetimes",
-      "backend": "common"
-    },
-    "diagnose-vllm-admission-pressure": {
-      "path": "repositories/vllm/diagnose-vllm-admission-pressure",
-      "backend": "common"
-    },
-    "kv-tier-management": {
-      "path": "repositories/lmcache/kv-tier-management",
-      "backend": "common"
     },
     "assess-serving-preemption": {
       "path": "methods/assess-serving-preemption",
@@ -105,8 +53,64 @@
       "path": "methods/assess-split-backward-schedule",
       "backend": "common"
     },
+    "audit-afd-p2p-exchanges": {
+      "path": "repositories/afd-plugin/audit-afd-p2p-exchanges",
+      "backend": "cuda"
+    },
+    "audit-fixed-workload-claim": {
+      "path": "methods/audit-fixed-workload-claim",
+      "backend": "common"
+    },
+    "audit-flare-session-lifecycle": {
+      "path": "repositories/flare-local-inference/audit-flare-session-lifecycle",
+      "backend": "cuda"
+    },
+    "audit-h3-metal-fasth3-semantics": {
+      "path": "repositories/h3-metal/audit-h3-metal-fasth3-semantics",
+      "backend": "common"
+    },
+    "audit-h3-runtime-residency": {
+      "path": "repositories/h3-c/audit-h3-runtime-residency",
+      "backend": "common"
+    },
+    "audit-llama-runtime-state": {
+      "path": "repositories/llama-cpp/audit-llama-runtime-state",
+      "backend": "common"
+    },
+    "audit-recurrent-kv-finalization": {
+      "path": "repositories/vllm-rlt/audit-recurrent-kv-finalization",
+      "backend": "common"
+    },
+    "audit-sd-cpp-residency": {
+      "path": "repositories/stable-diffusion-cpp/audit-sd-cpp-residency",
+      "backend": "common"
+    },
+    "audit-sglang-diffusion-lifetimes": {
+      "path": "repositories/sglang/audit-sglang-diffusion-lifetimes",
+      "backend": "common"
+    },
+    "audit-vllm-kv-lifetimes": {
+      "path": "repositories/vllm/audit-vllm-kv-lifetimes",
+      "backend": "common"
+    },
+    "bound-windowed-attention-replay": {
+      "path": "repositories/deepinfer/bound-windowed-attention-replay",
+      "backend": "common"
+    },
+    "budget-speculative-verification": {
+      "path": "repositories/deepinfer/budget-speculative-verification",
+      "backend": "common"
+    },
     "calibrate-serving-simulation": {
       "path": "methods/calibrate-serving-simulation",
+      "backend": "common"
+    },
+    "cann-attribution-overlap": {
+      "path": "hardware/ascend/cann-attribution-overlap",
+      "backend": "ascend"
+    },
+    "cgroup-resource-controls": {
+      "path": "hardware/host/cgroup-resource-controls",
       "backend": "common"
     },
     "checkpoint-recovery-consistency": {
@@ -117,12 +121,72 @@
       "path": "methods/choose-parallel-training-plan",
       "backend": "common"
     },
+    "cite-check-downstream-pr": {
+      "path": "workflows/cite-check-downstream-pr",
+      "backend": "common"
+    },
+    "claim-contract": {
+      "path": "workflows/claim-contract",
+      "backend": "common"
+    },
+    "comfy-ui": {
+      "path": "repositories/comfy-ui",
+      "backend": "common"
+    },
+    "competitor-scan": {
+      "path": "workflows/competitor-scan",
+      "backend": "common"
+    },
+    "dcp-async-save-performance": {
+      "path": "frameworks/pytorch/dcp-async-save-performance",
+      "backend": "common"
+    },
     "dense-performance-evidence": {
       "path": "methods/dense-performance-evidence",
       "backend": "common"
     },
+    "diagnose-attention-bottlenecks": {
+      "path": "hardware/cuda/diagnose-attention-bottlenecks",
+      "backend": "cuda"
+    },
+    "diagnose-vllm-admission-pressure": {
+      "path": "repositories/vllm/diagnose-vllm-admission-pressure",
+      "backend": "common"
+    },
+    "diffusers-invocation-state": {
+      "path": "frameworks/diffusers/diffusers-invocation-state",
+      "backend": "common"
+    },
+    "draft-acceptance-issue": {
+      "path": "workflows/draft-acceptance-issue",
+      "backend": "common"
+    },
+    "dwarfstar": {
+      "path": "repositories/dwarfstar",
+      "backend": "common"
+    },
     "evaluate-elastic-serving-placement": {
       "path": "methods/evaluate-elastic-serving-placement",
+      "backend": "common"
+    },
+    "generation-cache-lifecycle": {
+      "path": "repositories/mlx-lm/generation-cache-lifecycle",
+      "backend": "common"
+    },
+    "host-memory-management": {
+      "path": "hardware/host/host-memory-management",
+      "backend": "common"
+    },
+    "host-overhead-optimization": {
+      "path": "hardware/host/host-overhead-optimization",
+      "backend": "common"
+    },
+    "host-overhead-profiling": {
+      "path": "hardware/cuda/host-overhead-profiling",
+      "backend": "cuda"
+    },
+    "husky": {
+      "path": "repositories/husky",
       "backend": "common"
     },
     "inference-benchmark-design": {
@@ -137,8 +201,40 @@
       "path": "methods/kernel-writing-guide",
       "backend": "common"
     },
+    "kv-tier-management": {
+      "path": "repositories/lmcache/kv-tier-management",
+      "backend": "common"
+    },
+    "lazy-evaluation-stream-lifetimes": {
+      "path": "frameworks/mlx/lazy-evaluation-stream-lifetimes",
+      "backend": "common"
+    },
+    "lily": {
+      "path": "repositories/lily",
+      "backend": "common"
+    },
+    "mistral-rs": {
+      "path": "repositories/mistral-rs",
+      "backend": "common"
+    },
+    "mlc-llm": {
+      "path": "repositories/mlc-llm",
+      "backend": "common"
+    },
+    "mlx-swift-lm": {
+      "path": "repositories/mlx-swift-lm",
+      "backend": "common"
+    },
+    "npu-skill-factory": {
+      "path": "workflows/npu-skill-factory",
+      "backend": "common"
+    },
     "optimization-search-policy": {
       "path": "methods/optimization-search-policy",
+      "backend": "common"
+    },
+    "os-process-placement": {
+      "path": "hardware/host/os-process-placement",
       "backend": "common"
     },
     "performance-ceiling-analysis": {
@@ -149,13 +245,41 @@
       "path": "methods/plan-activation-residency",
       "backend": "common"
     },
+    "project-maya": {
+      "path": "repositories/project-maya",
+      "backend": "common"
+    },
+    "reason-hopper-kernels": {
+      "path": "hardware/cuda/reason-hopper-kernels",
+      "backend": "cuda"
+    },
     "repository-evolution-analysis": {
       "path": "methods/repository-evolution-analysis",
+      "backend": "common"
+    },
+    "rsi-evidence": {
+      "path": "workflows/rsi-evidence",
       "backend": "common"
     },
     "skill-evolution-playbook": {
       "path": "methods/skill-evolution-playbook",
       "backend": "common"
+    },
+    "splash": {
+      "path": "repositories/splash",
+      "backend": "common"
+    },
+    "storage-io-measurement": {
+      "path": "hardware/host/storage-io-measurement",
+      "backend": "common"
+    },
+    "torchnpu-device-memory-lifecycle": {
+      "path": "hardware/ascend/torchnpu-device-memory-lifecycle",
+      "backend": "ascend"
+    },
+    "torchnpu-pinned-host-memory-lifecycle": {
+      "path": "hardware/ascend/torchnpu-pinned-host-memory-lifecycle",
+      "backend": "ascend"
     },
     "training-input-pipeline": {
       "path": "methods/training-input-pipeline",
@@ -165,100 +289,12 @@
       "path": "methods/training-resource-budget",
       "backend": "common"
     },
+    "vllm-metal": {
+      "path": "repositories/vllm-metal",
+      "backend": "common"
+    },
     "weight-loading-optimization": {
       "path": "methods/weight-loading-optimization",
-      "backend": "common"
-    },
-    "cite-check-downstream-pr": {
-      "path": "workflows/cite-check-downstream-pr",
-      "backend": "common"
-    },
-    "claim-contract": {
-      "path": "workflows/claim-contract",
-      "backend": "common"
-    },
-    "competitor-scan": {
-      "path": "workflows/competitor-scan",
-      "backend": "common"
-    },
-    "draft-acceptance-issue": {
-      "path": "workflows/draft-acceptance-issue",
-      "backend": "common"
-    },
-    "npu-skill-factory": {
-      "path": "workflows/npu-skill-factory",
-      "backend": "common"
-    },
-    "rsi-evidence": {
-      "path": "workflows/rsi-evidence",
-      "backend": "common"
-    },
-    "comfy-ui": {
-      "path": "repositories/comfy-ui",
-      "backend": "common"
-    },
-    "lazy-evaluation-stream-lifetimes": {
-      "path": "frameworks/mlx/lazy-evaluation-stream-lifetimes",
-      "backend": "common"
-    },
-    "generation-cache-lifecycle": {
-      "path": "repositories/mlx-lm/generation-cache-lifecycle",
-      "backend": "common"
-    },
-    "audit-llama-runtime-state": {
-      "path": "repositories/llama-cpp/audit-llama-runtime-state",
-      "backend": "common"
-    },
-    "audit-sd-cpp-residency": {
-      "path": "repositories/stable-diffusion-cpp/audit-sd-cpp-residency",
-      "backend": "common"
-    },
-    "audit-sglang-diffusion-lifetimes": {
-      "path": "repositories/sglang/audit-sglang-diffusion-lifetimes",
-      "backend": "common"
-    },
-    "diffusers-invocation-state": {
-      "path": "frameworks/diffusers/diffusers-invocation-state",
-      "backend": "common"
-    },
-    "bound-windowed-attention-replay": {
-      "path": "repositories/deepinfer/bound-windowed-attention-replay",
-      "backend": "common"
-    },
-    "budget-speculative-verification": {
-      "path": "repositories/deepinfer/budget-speculative-verification",
-      "backend": "common"
-    },
-    "audit-h3-runtime-residency": {
-      "path": "repositories/h3-c/audit-h3-runtime-residency",
-      "backend": "common"
-    },
-    "audit-afd-p2p-exchanges": {
-      "path": "repositories/afd-plugin/audit-afd-p2p-exchanges",
-      "backend": "cuda"
-    },
-    "reason-hopper-kernels": {
-      "path": "hardware/cuda/reason-hopper-kernels",
-      "backend": "cuda"
-    },
-    "dwarfstar": {
-      "path": "repositories/dwarfstar",
-      "backend": "common"
-    },
-    "splash": {
-      "path": "repositories/splash",
-      "backend": "common"
-    },
-    "lily": {
-      "path": "repositories/lily",
-      "backend": "common"
-    },
-    "husky": {
-      "path": "repositories/husky",
-      "backend": "common"
-    },
-    "audit-fixed-workload-claim": {
-      "path": "methods/audit-fixed-workload-claim",
       "backend": "common"
     }
   }

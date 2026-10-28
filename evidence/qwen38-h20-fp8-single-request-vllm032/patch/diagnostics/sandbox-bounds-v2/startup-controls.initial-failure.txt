@@ -1,0 +1,1 @@
+Local control setup failed after earlier controls completed: runtime.write uses exclusive creation, but the wrong-job fixture attempted to overwrite cap.json. FileExistsError; no Linux execution, no sandbox launch. The test must use a separate capability file. The initial source is preserved.

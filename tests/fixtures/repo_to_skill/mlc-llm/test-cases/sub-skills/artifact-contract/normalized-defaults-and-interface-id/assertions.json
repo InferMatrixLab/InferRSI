@@ -1,0 +1,21 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "artifact-contract",
+  "target_capability": "normalized-defaults-and-interface-id",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:python/mlc_llm/protocol/artifact_manifest.py",
+    "mlc-ai/mlc-llm:tests/python/protocol/test_artifact_manifest.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/artifact-contract/SKILL.md",
+    "sub-skills/artifact-contract/references/contract-mechanisms.md",
+    "sub-skills/artifact-contract/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Source hashes normalized public tasks, not arbitrary raw input; parser defaults and explicit null/omission differ.",
+    "The narrow helper requires explicit normalized defaults/omissions and rejects unsupported input rather than emulating Pydantic.",
+    "Canonical key order preserves IDs; changing min_samples 161 to 1 changes the interface.",
+    "Matching IDs do not read weight bytes or prove binary exports, native Gemma4 ABI or Metal execution."
+  ]
+}

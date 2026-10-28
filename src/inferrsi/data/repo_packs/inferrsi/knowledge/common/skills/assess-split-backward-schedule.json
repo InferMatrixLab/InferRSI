@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f22c4f30c19b2fcebf76fd018a4231e09784fa9b/src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
-      "commit": "f22c4f30c19b2fcebf76fd018a4231e09784fa9b",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ceb3509942bee863f24eee96e3598c4e007feb20/src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
+      "commit": "ceb3509942bee863f24eee96e3598c4e007feb20",
       "paths": [
         "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
         "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json",
@@ -36,7 +36,7 @@
     "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md": "1e64f28ea71672fb53c56f6108b87864738c6d03d6dcd32eedaef9e0625e96e3",
     "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json": "c6acae57d70190cea0e18c71c79127962181e58169e011df75d8635b3db4daa7",
     "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/references/source-notes.md": "61b1609f71c37b61d136b8c4d39f793de87cffb1cf31c8ec737a1c3fa6fb1b4e",
-    "src/inferrsi/data/skill_library/skill-index.json": "5c6bd2fd73826076819cd053ecb2ee0dd12d7ab7517ef17a17cbdfc2adee43d6"
+    "src/inferrsi/data/skill_library/skill-index.json": "efc23969e86e349abe8fd3c9d9b3aa1f23edebf3cb8344cb65e26a8ff680eeb4"
   },
   "skill_metadata": {
     "name": "assess-split-backward-schedule",

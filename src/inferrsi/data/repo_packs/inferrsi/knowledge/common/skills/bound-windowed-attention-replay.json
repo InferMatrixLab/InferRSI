@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f22c4f30c19b2fcebf76fd018a4231e09784fa9b/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
-      "commit": "f22c4f30c19b2fcebf76fd018a4231e09784fa9b",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ceb3509942bee863f24eee96e3598c4e007feb20/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+      "commit": "ceb3509942bee863f24eee96e3598c4e007feb20",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json",
@@ -45,7 +45,7 @@
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "014be24d0e669f4acbc0717dc323eec784026cf185186619d5a19d6d84496131",
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098",
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff",
-    "src/inferrsi/data/skill_library/skill-index.json": "5c6bd2fd73826076819cd053ecb2ee0dd12d7ab7517ef17a17cbdfc2adee43d6"
+    "src/inferrsi/data/skill_library/skill-index.json": "efc23969e86e349abe8fd3c9d9b3aa1f23edebf3cb8344cb65e26a8ff680eeb4"
   },
   "skill_metadata": {
     "name": "bound-windowed-attention-replay",

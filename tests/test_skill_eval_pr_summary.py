@@ -47,8 +47,8 @@ def assert_boundaries(text):
     assert text.startswith(integration.MARKER + "\n")
     assert text.count("<details>") == text.count("</details>") == 2
     assert "<details open" not in text
-    for statement in ("Applicable only while", "exact plan, versions and budget approval",
-                      "not a hard provider token or monetary cap", "Cost remains unknown.",
+    for statement in ("Applicable only while", "trusted label authorization",
+                      "cumulative PR reservation", "Unknown accounting blocks new paid calls",
                       "Retention: 30 days", "Unix time", "Expired evidence is unverified.",
                       "offline fixed outputs do not establish skill efficacy"):
         assert statement in main

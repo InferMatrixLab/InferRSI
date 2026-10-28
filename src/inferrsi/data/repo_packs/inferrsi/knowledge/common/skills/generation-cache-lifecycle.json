@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f22c4f30c19b2fcebf76fd018a4231e09784fa9b/src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
-      "commit": "f22c4f30c19b2fcebf76fd018a4231e09784fa9b",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ceb3509942bee863f24eee96e3598c4e007feb20/src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
+      "commit": "ceb3509942bee863f24eee96e3598c4e007feb20",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json",
@@ -48,7 +48,7 @@
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/generation-batch.md": "f16d3c57d45e63bcaffd3871aa41c76972ee11f7dbf1e12b45d9b170303cad9b",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/source-map.md": "91d26181f246307f2113f94b12ac9587d689b654dcd216e9f14b11cf5ebb650c",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/validation.md": "73b5dd347017baba519ecc85415aead9993c1751d116b9ba4f07689f58c5f783",
-    "src/inferrsi/data/skill_library/skill-index.json": "5c6bd2fd73826076819cd053ecb2ee0dd12d7ab7517ef17a17cbdfc2adee43d6"
+    "src/inferrsi/data/skill_library/skill-index.json": "efc23969e86e349abe8fd3c9d9b3aa1f23edebf3cb8344cb65e26a8ff680eeb4"
   },
   "skill_metadata": {
     "name": "generation-cache-lifecycle",

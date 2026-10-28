@@ -22,10 +22,11 @@ from .knowledge_operations import (
 def _protected(skill_root: Path | None) -> list[Path]:
     package = Path(str(files("inferrsi"))).resolve()
     roots = [package]
-    # A source or editable install lives inside a checkout that also holds evidence
-    # and both matrices; protect that checkout even without an explicit skill_root.
+    # A source, editable or exported tree (git archive, sdist) surrounds the package
+    # and holds evidence and both matrices; protect it even without a .git entry,
+    # because review snapshots carry no repository metadata.
     for parent in package.parents:
-        if (parent / "pyproject.toml").is_file() and (parent / ".git").exists():
+        if (parent / "pyproject.toml").is_file() or (parent / ".git").exists():
             roots.append(parent)
             break
     if skill_root is not None:
@@ -191,53 +192,61 @@ class KnowledgeStore:
             raise ValueError(
                 "Create registers a candidate; imported or active content is not promoted"
             )
-        with closing(self._connect()) as connection, connection:
-            connection.execute("BEGIN IMMEDIATE")
-            current = connection.execute(
-                "SELECT revision FROM current WHERE id=?", (identity,)
-            ).fetchone()
-            if expected is None:
-                if current is not None:
-                    raise RevisionConflict(f"Duplicate identity: {identity}")
-            elif current is None or current[0] != expected:
-                raise RevisionConflict(f"Stale or missing revision for {identity}")
-            if expected is not None:
-                previous = connection.execute(
-                    "SELECT metadata FROM revisions WHERE id=? AND revision=?", (identity, expected)
+        try:
+            with closing(self._connect()) as connection, connection:
+                connection.execute("BEGIN IMMEDIATE")
+                current = connection.execute(
+                    "SELECT revision FROM current WHERE id=?", (identity,)
                 ).fetchone()
-                old = json.loads(previous[0])
-                if bundle.metadata["state"] != old["state"]:
-                    raise ValueError("Update cannot promote content state")
-            if revision == expected:
-                raise ValueError("Update must change the bundle")
-            if connection.execute(
-                "SELECT 1 FROM revisions WHERE id=? AND revision=?", (identity, revision)
-            ).fetchone():
-                raise RevisionConflict(
-                    f"Update reproduces retained revision {revision}; "
-                    "change the bundle so the successor has its own revision"
+                if expected is None:
+                    if current is not None:
+                        raise RevisionConflict(f"Duplicate identity: {identity}")
+                elif current is None or current[0] != expected:
+                    raise RevisionConflict(f"Stale or missing revision for {identity}")
+                if expected is not None:
+                    previous = connection.execute(
+                        "SELECT metadata FROM revisions WHERE id=? AND revision=?",
+                        (identity, expected),
+                    ).fetchone()
+                    old = json.loads(previous[0])
+                    if bundle.metadata["state"] != old["state"]:
+                        raise ValueError("Update cannot promote content state")
+                if revision == expected:
+                    raise ValueError("Update must change the bundle")
+                if connection.execute(
+                    "SELECT 1 FROM revisions WHERE id=? AND revision=?", (identity, revision)
+                ).fetchone():
+                    raise RevisionConflict(
+                        f"Update reproduces retained revision {revision}; "
+                        "change the bundle so the successor has its own revision"
+                    )
+                connection.execute(
+                    "INSERT INTO revisions VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        identity,
+                        revision,
+                        _json(bundle.metadata).decode(),
+                        _json(bundle.dependencies).decode(),
+                        expected,
+                        reason,
+                        _json(evidence).decode(),
+                    ),
                 )
-            connection.execute(
-                "INSERT INTO revisions VALUES (?, ?, ?, ?, ?, ?, ?)",
-                (
-                    identity,
-                    revision,
-                    _json(bundle.metadata).decode(),
-                    _json(bundle.dependencies).decode(),
-                    expected,
-                    reason,
-                    _json(evidence).decode(),
-                ),
-            )
-            connection.executemany(
-                "INSERT INTO resources VALUES (?, ?, ?, ?)",
-                [(identity, revision, path, data) for path, data in bundle.content.items()],
-            )
-            connection.execute(
-                "INSERT INTO current VALUES (?, ?) "
-                "ON CONFLICT(id) DO UPDATE SET revision=excluded.revision",
-                (identity, revision),
-            )
+                connection.executemany(
+                    "INSERT INTO resources VALUES (?, ?, ?, ?)",
+                    [(identity, revision, path, data) for path, data in bundle.content.items()],
+                )
+                connection.execute(
+                    "INSERT INTO current VALUES (?, ?) "
+                    "ON CONFLICT(id) DO UPDATE SET revision=excluded.revision",
+                    (identity, revision),
+                )
+        except sqlite3.OperationalError as exc:
+            if "locked" not in str(exc) and "busy" not in str(exc):
+                raise
+            raise RevisionConflict(
+                f"Store is locked by another writer; retry {identity} once it is released"
+            ) from exc
         return revision
 
     def read(self, identity: str, *, revision: str | None = None) -> Bundle:

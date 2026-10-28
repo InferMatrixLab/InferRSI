@@ -18,7 +18,10 @@
     "serving",
     "npu",
     "collectives",
-    "tensor-parallel"
+    "tensor-parallel",
+    "Flare",
+    "model-preparation",
+    "prepared-runtime-package"
   ],
   "origin": [
     "external"
@@ -26,16 +29,17 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f22c4f30c19b2fcebf76fd018a4231e09784fa9b/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "f22c4f30c19b2fcebf76fd018a4231e09784fa9b",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ceb3509942bee863f24eee96e3598c4e007feb20/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "ceb3509942bee863f24eee96e3598c4e007feb20",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md",
+        "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "94197ceea1301d4138e9d712ef409f027ea71139fd357a5c8b6c077534063213"
+      "content_sha256": "a1bf0e2ec066d5f30225c6cc5fb603f830f48eb5e2aee3fc3d084ed9d8aebe2f"
     }
   ],
   "index_type": "packaged-skill",
@@ -44,11 +48,12 @@
   },
   "checkout_ref": "checkout:weight-loading-optimization",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "94197ceea1301d4138e9d712ef409f027ea71139fd357a5c8b6c077534063213",
-    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "798cbff6f10b7c24b188080ebf233b188b0e98ef2c6fdb5e00e1fe3eff727c0f",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "a1bf0e2ec066d5f30225c6cc5fb603f830f48eb5e2aee3fc3d084ed9d8aebe2f",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json": "6df47ea943e42a11807c54869774957ac2383266120caad730f788207403581c",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
+    "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md": "1d7922785a196bdbafdc9791fe79428465a5acc0292ca8f99446f8c764b35454",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",
-    "src/inferrsi/data/skill_library/skill-index.json": "5c6bd2fd73826076819cd053ecb2ee0dd12d7ab7517ef17a17cbdfc2adee43d6"
+    "src/inferrsi/data/skill_library/skill-index.json": "efc23969e86e349abe8fd3c9d9b3aa1f23edebf3cb8344cb65e26a8ff680eeb4"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",
@@ -62,7 +67,10 @@
       "serving",
       "npu",
       "collectives",
-      "tensor-parallel"
+      "tensor-parallel",
+      "Flare",
+      "model-preparation",
+      "prepared-runtime-package"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -107,6 +115,24 @@
           "LICENSE"
         ],
         "readset": "references/fastsafetensors-transfer-readset.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/flare-local-inference",
+        "resolved_url": "https://github.com/NVIDIA/local-inference",
+        "commit": "bce032c014bae34502ba22d3304fa084d5b40afe",
+        "paths": [
+          "README.md",
+          "docs/runtime-package-design.md",
+          "helios/src/runtime_package/format.rs",
+          "helios/src/runtime_package/model.rs",
+          "helios/src/execution/manifest.rs",
+          "helios/src/model/contract.rs",
+          "helios/src/model/catalog.rs",
+          "LICENSE"
+        ],
+        "readset": "references/flare-preparation-boundary.md",
+        "license": "Apache-2.0"
       }
     ],
     "empirical_validation": "not_run",
@@ -114,11 +140,13 @@
       "Source-derived candidate; no local efficacy validation.",
       "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
       "The readsets record static mechanisms and source recommendations, not validated startup, memory, placement or backend performance.",
-      "The fastsafetensors delivery readset does not revalidate inherited I/O/save claims or qualify uneven scatter, accelerator/NPU compatibility, inter-node transport or agent efficacy."
+      "The fastsafetensors delivery readset does not revalidate inherited I/O/save claims or qualify uneven scatter, accelerator/NPU compatibility, inter-node transport or agent efficacy.",
+      "Flare adds source-only preparation/serving ownership and ABI/contract checks; live exporter handles, native backend execution, startup gains and model/dependency rights are not qualified."
     ],
     "provenance_readsets": [
       "references/llama-loading-readset.md",
-      "references/fastsafetensors-transfer-readset.md"
+      "references/fastsafetensors-transfer-readset.md",
+      "references/flare-preparation-boundary.md"
     ],
     "consumption_mode": "packaged"
   },
@@ -135,7 +163,8 @@
     "Source-derived candidate; no local efficacy validation.",
     "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
     "The readsets record static mechanisms and source recommendations, not validated startup, memory, placement or backend performance.",
-    "The fastsafetensors delivery readset does not revalidate inherited I/O/save claims or qualify uneven scatter, accelerator/NPU compatibility, inter-node transport or agent efficacy."
+    "The fastsafetensors delivery readset does not revalidate inherited I/O/save claims or qualify uneven scatter, accelerator/NPU compatibility, inter-node transport or agent efficacy.",
+    "Flare adds source-only preparation/serving ownership and ABI/contract checks; live exporter handles, native backend execution, startup gains and model/dependency rights are not qualified."
   ],
   "verification": {
     "locally_verified": false,

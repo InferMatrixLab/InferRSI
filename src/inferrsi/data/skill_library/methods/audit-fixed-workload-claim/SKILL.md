@@ -13,7 +13,10 @@ establish a measured improvement by itself.
 Identify the metric, unit, timing boundary, improvement direction, aggregation
 rule and threshold from the supplied contract. Separate these from the report's
 own verdict. Use the contract's comparison operator, including how equality is
-treated. If a missing rule permits different verdicts, expose the ambiguity
+treated.
+Treat a named minimum/min bound as inclusive (`>=`) and a maximum/max bound as
+inclusive (`<=`), unless the contract explicitly requires a strict comparison.
+If a missing rule permits different verdicts, expose the ambiguity
 instead of choosing the favorable interpretation.
 
 ## Preserve the observation hierarchy

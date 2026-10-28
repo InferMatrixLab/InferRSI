@@ -236,3 +236,13 @@ Use conditional headroom, measurement uncertainty, negative evidence and the
 authorized budget together. Preserve no-change when candidates cannot be
 separated. Reading these procedures authorizes no execution, framework change,
 new resource spending or publication.
+
+### Goal admission and accounting source knowledge
+
+When budget/stop reasoning depends on a Goal's current authority or a repeated
+settlement, follow the existing
+[RSI evidence owner's LoopX reference](../../workflows/rsi-evidence/references/loopx-goal-governance/README.md).
+Use its source/decision/receipt distinctions before selecting another experiment.
+That owner retains the mechanism and counterexamples; this search policy does
+not duplicate its accounting rules or turn a local quota into a provider cost
+cap. Runtime and agent-effect validation remain `not_run`.
