@@ -198,8 +198,9 @@ failure instead of evaluating, so the newest entry is a failure rather than an
 earlier success, and reports that a new head is required.
 That verdict is terminal: a later sweep recognises it as its own and writes
 nothing, so repeated sweeps do not consume the reserve. If that one write
-fails, the run reports `publication-failed`; the next sweep attempts the same
-single write once more.
+fails transiently, the run reports `publication-failed`; the next sweep attempts
+the same single write once more. HTTP 422 follows the terminal rejection handling
+below instead.
 
 A head can also carry statuses from other contexts, so the read is bounded by
 both 50 pages and time. Time is split rather than shared as one absolute
@@ -257,14 +258,14 @@ must not be described as enforced:
 | Situation | Behavior and limitation |
 | --- | --- |
 | The target PR cannot be read at all | Its head may already be merged, so no write is attempted. The result is `unverified`, the run fails, and an earlier green remains `pending`-free until a run can read the target |
-| The `pending` write itself fails | Result is `invalidation-failed`; the earlier verdict still applies to the head and the run fails visibly |
-| The final verdict write fails | Result is `publication-failed`; the head keeps the `pending` placeholder, which does not satisfy a required check |
+| The `pending` write itself fails | Result is `invalidation-failed` (or terminal HTTP 422 rejection below); the earlier verdict still applies to the head and the run fails visibly |
+| The final verdict write fails | Result is `publication-failed` (or terminal HTTP 422 rejection below); the head keeps the `pending` placeholder, which does not satisfy a required check |
 | The PR is closed before publication | No verdict is written. If the target was still open at evaluation time it keeps the `pending` it received there, and the workflow reports success without a verdict for that head |
 | The head advances before publication | No verdict is written. The superseded head keeps its `pending`; the new head has no status until a run covers it, and the run exits `2` for that retry |
 | A merge attempt races the run | The check reads metadata, invalidates, evaluates and publishes without holding any lock. A merge authorized by the previous state can land between the last read and the status write |
 | The head has used its reserved status capacity | Result is `budget-exhausted`: one failure is recorded there and no success is published. The entry is recognised on later sweeps, so nothing further is appended and the state is not retried. Only a new head resumes evaluation |
 | The head is already at the 1,000-status cap | Result is `budget-saturated`: no write is possible, so an earlier `success` may still be the head's newest entry and this checker cannot replace it. The head is blocked from new statuses, not necessarily from merging; only a new head resumes evaluation |
-| The status history cannot be read | The failure is published immediately rather than in the publication pass, so a sweep cut off before reaching this target still replaces the old verdict. If that write also fails, the head keeps the earlier verdict and the result is `publication-failed`, which retries |
+| The status history cannot be read | The failure is published immediately rather than in the publication pass, so a sweep cut off before reaching this target still replaces the old verdict. If that write also fails, the head keeps the earlier verdict and the result is `publication-failed`, which retries unless it is a terminal HTTP 422 rejection below |
 | GitHub has not yet dispatched the event | Enforcement cannot precede the event that triggers it. A commit or body edit is enforced only after a run for that change has published a result |
 
 `pending` narrows the window in which an old success describes stale evidence. It
@@ -311,7 +312,8 @@ Each result carries `kind` alongside the status `state`:
 | `invalidation-failed` | The earlier result could not be replaced by `pending`; no verdict was published |
 | `history-unavailable` | The head's status history could not be read within its share of the sweep, so the capacity margin is unproven; an explicit failure replaces the old result immediately, before any other target is processed |
 | `budget-exhausted` | The head has used its reserved status capacity; one failure is recorded there, no success is published and a new head is required |
-| `budget-saturated` | The head already holds 1,000 statuses for this context; nothing can be written, so an earlier success may remain the newest entry |
+| `budget-saturated` | Complete history reaches the status cap, or GitHub explicitly rejects status capacity; nothing further can be written, so an earlier success may remain the newest entry |
+| `status-rejected` | GitHub rejected a status POST with HTTP 422 without an explicit capacity reason; the current invocation stops repeating it, remains failed, and does not claim the old status was replaced |
 
 The final JSON summary counts each kind, lists the `noncompliant_pull_requests`, and
 states the sweep `execution` as `ok`, `failed` or `unfinished`. Exit codes: `0`
@@ -334,7 +336,12 @@ approvals are reread before publication; changes fail closed and need a fresh ru
 PR edits and status publication are not atomic: integrators still check the
 current head and latest run.
 
-The shared concurrency group belongs to the declaration job. Ordinary non-PR Issue
+The shared concurrency group belongs to the declaration job. It uses
+[`queue: max`](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax#concurrency)
+with `cancel-in-progress: false`: one writer runs while up to 100 jobs wait,
+instead of each new merge event replacing the single pending job. This is bounded
+queueing, not event deduplication: overflow can still cancel pending work, and
+queued runs still refresh current trusted state rather than replaying old verdicts. Ordinary non-PR Issue
 comments skip that job. A newly created, nonempty PR comment without the
 `knowledge-policy-approval` marker also skips the job; every PR comment edit or
 deletion remains eligible, including removal of an approval marker. Missing event
@@ -351,7 +358,8 @@ never become compliant/non-applicable results. Current rules have no merge queue
 enabling a queue with this required check.
 
 HTTP diagnostics retain only the response status, a conservative category,
-numeric rate-limit timing/remaining headers, and a bounded GitHub request ID.
+numeric rate-limit timing/remaining headers, a bounded GitHub request ID, and
+fixed allowlisted validation resource/field/code values (never rejected values).
 Raw response messages, error arrays, request URLs and credentials are not logged.
 A 403 alone is not proof of rate limiting; a 422 is a validation error, not proof
 that the status-history cap was reached. Read requests may retry once when an
@@ -359,9 +367,16 @@ explicit rate-limit delay fits inside their remaining retry budget (at most 60
 seconds). The wait is deducted before passing the remaining timeout to the retry.
 The urllib timeout applies to socket operations, not a strict total wall-clock
 deadline for reading the response.
-Status POSTs are never retried by the transport. The existing outer sweep retry
-plan remains unchanged; this diagnostic improvement does not repair permissions,
-restore exhausted status capacity, or guarantee that historical red checks clear.
+Status POSTs are never retried by the transport. An HTTP 422 status rejection is
+terminal only for the current runner invocation: `status-rejected` remains an
+execution error, not declaration noncompliance or a successful invalidation.
+An explicit recognized status-capacity response is `budget-saturated`; a count of
+900 or an unknown 422 is not capacity proof. Other transient write failures retain
+the bounded outer retries. A fresh invocation may retry after remediation.
+The previous remote status may remain green or pending when a write is rejected;
+no failure status is claimed to have been published. Diagnostics and retry control
+do not repair permissions, restore capacity, identify every unknown validation
+cause, or guarantee that historical red checks clear.
 
 
 ### Trigger-PR conclusion versus global sweep health
