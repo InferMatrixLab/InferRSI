@@ -1,0 +1,20 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "hybrid-partial-acceptance",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/speculative_decoding.md",
+    "vllm_metal/platform.py",
+    "vllm_metal/v1/model_lifecycle.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/speculation-and-pipeline.md"
+  ],
+  "assertions": [
+    "Rejects hybrid draft-model pairing: supported hybrid route is ngram GDN only.",
+    "Requires lazy GDN and FP32 recurrent state; weights/conv state distinction retained.",
+    "Partial acceptance starts from untouched pre-span state and actual native parity stays blocked."
+  ]
+}

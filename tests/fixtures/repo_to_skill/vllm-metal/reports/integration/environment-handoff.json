@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "readiness": "partial",
+  "host": {
+    "python": "3.12.14",
+    "os": "Linux",
+    "architecture": "x86_64"
+  },
+  "installation": "new private venv with system site packages; source editable --no-deps --no-build-isolation --no-index; no native build",
+  "verified": [
+    "distribution vllm-metal0.32.0",
+    "isolated outside-checkout root/config/env imports",
+    "MetalConfig constructor/default signature",
+    "two plugin entrypoint declarations"
+  ],
+  "pip_check": {
+    "execution": "failed",
+    "exit_code": 1,
+    "reasons": [
+      "missing accelerate/gguf/huggingface-hub/librosa/llguidance/numba/safetensors/transformers",
+      "FastAPI requirement mismatch",
+      "package platform not supported on Linux"
+    ]
+  },
+  "required_backend_status": "BLOCKED_REQUIRED_BACKEND",
+  "full_backend_verification": false,
+  "auto_import_eligible": false,
+  "native_test_execution_during_preparation": "not_run",
+  "accepted_boundary": "User-authorized source/CPU-supported partial candidate repository delivery; no claim to full dependency/backend health.",
+  "environment_mutation": "new private prefix only; existing InferRSI environment read-only reused for scaffold checks"
+}

@@ -268,6 +268,10 @@
     "project-maya": {
       "path": "repositories/project-maya",
       "backend": "common"
+    },
+    "vllm-metal": {
+      "path": "repositories/vllm-metal",
+      "backend": "common"
     }
   }
 }

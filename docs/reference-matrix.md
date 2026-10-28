@@ -441,3 +441,9 @@ resources do not reproduce runtime behavior or promote the candidate.
 | Source / revision | Inspected scope | Reuse and limits |
 | --- | --- | --- |
 | mw00/project-maya @ `249f9a87d1a9d72bec2b684d704b0aa9296b1c9c`, VERSION1.1.34; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Bounded GLM/DS4/MM3 model/residency/state/control and quality/calibration evidence, plus shallow new Qwen dispatch/format/guard/license map | [Complete candidate](../src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md),82-file source inventory, source MIT notices and3 offline helpers. Actual portable native-C++ adaptation with4 original pure host policy tests passed. Required GPU/model/state/vision/quality/service evidence remains blocked; no DisCo CLI/model run or automatic promotion. NO_LICENSE is the actual unavailable gh resolver fallback, not legal absence. |
+
+## vLLM Metal portable AREX source and CPU extraction
+
+| Source / revision | Inspected scope | Reuse and limits |
+| --- | --- | --- |
+| vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934`, package0.32.0; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected platform/config/ABI/loading, cache/offload owner-consumer and speculative/deferred/GQA measurement contracts; explicit analysis spans in the [readset](../src/inferrsi/data/skill_library/repositories/vllm-metal/references/source-identity.json) | [Candidate graph](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md), upstream Apache-2.0 notice and3 offline helpers. Installed pure Python API/parser checks only; dependency health failed and required Apple MLX/Metal/MPS/model/quality/service evidence remains blocked. Actual portable workflow adaptation, not DisCo CLI/model or managed import. NO_LICENSE is the actual unauthenticated resolver fallback. |

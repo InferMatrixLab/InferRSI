@@ -1,0 +1,3 @@
+# Whole-content self-refinement
+
+Reviewed all root/sub-skill references/helpers against ten explicit case contracts. Confirmed source-defined unsupported differs from unverified; no native claims. Fixed source-versus-effective MM_PREFIX default distinction, made helper unknown-key/type behavior explicit, distinguished completed-subset rates from concurrent wall-clock throughput and documented entire unsupported long-tail map. All cases have local resource targets and discriminating falsifiers. Grading is content inspection, not independently measured agent efficacy. Independent stable-head review follows separately.
