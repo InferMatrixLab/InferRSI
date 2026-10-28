@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:15f6aa9237afc144617167a4bdd44696f9ed141d88e2a63b93a8636d1f8f069d`
+- Input digest: `sha256:898c813f2f033af7bf36fa2214e2294039740c759a3deceb2d6d8ff934e076e7`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -31,16 +31,16 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 73 |
-| By category | frameworks 3, hardware 22, methods 18, repositories 24, workflows 6 |
-| By backend | ascend 14, common 54, cuda 5 |
+| Registered skill ids | 74 |
+| By category | frameworks 3, hardware 22, methods 19, repositories 24, workflows 6 |
+| By backend | ascend 14, common 55, cuda 5 |
 | Recorded on a numbered SearchSpace resource layer | 48 |
 | Recorded only in a supplementary guidance table (†) | 12 |
 | Recorded on two or more resource layers | 24 |
 | Recorded in the Reference Matrix | 67 |
-| With a `metadata.json` sidecar | 68 |
+| With a `metadata.json` sidecar | 69 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 117 |
+| `SKILL.md` documents in the library | 118 |
 | Unregistered documents (excluded from every count above) | 44 |
 
 A complete inventory is not a coverage claim. Every registered row below
@@ -111,12 +111,13 @@ optimization is fully covered or that any procedure has measured benefit.
 | [splash](../src/inferrsi/data/skill_library/repositories/splash/SKILL.md) | common | Investigate Splash model-format compatibility, automatic memory planning, Metal and ANE execution, DFlash2 ... | — | Splash portable AREX extraction (incoai/splash @ `39a97385f8560cf8a93972cec9b0a963c9195250`; AREX ...) | candidate · partial_cpu_only · 2 readset(s) | no-SearchSpace-layer, no-eval |
 | [vllm-metal](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md) | common | Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership ... | 1 Accelerator † guidance: vLLM Metal selected source contracts<br>2 RAM/Host † guidance: vLLM Metal selected source contracts<br>3 SSD † guidance: vLLM Metal selected source contracts | vLLM Metal portable AREX source and CPU extraction (vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 
-## Registered: Methods (18)
+## Registered: Methods (19)
 
 | Skill | Backend | Declared task | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|
 | [assess-serving-preemption](../src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md) | common | Assess whether LLM serving queue delays justify token-boundary priority preemption, accounting for suspended KV, host ... | 1 Accelerator · Diagnose / Configure / Optimize / Verify<br>2 RAM/Host · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Orca — OSDI 2022 proceedings) | candidate · not_run · 1 readset(s) | no-eval |
 | [assess-split-backward-schedule](../src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md) | common | Evaluate memory-capped split-backward and V-shaped pipeline scheduling proposals, preserving synchronous update ... | 1 Accelerator · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Zero Bubble — [2401.10241v1](https://arxiv.org/abs/2401.10241v1)) | candidate · not_run · 1 readset(s) | no-eval |
+| [audit-fixed-workload-claim](../src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md) | common | Audit a performance claim from supplied fixed-workload reports and an explicit measurement contract. Check aggregation ... | — | — | candidate · not_run · 0 readset(s) | no-SearchSpace-layer, no-Reference-Matrix-row, no-eval |
 | [calibrate-serving-simulation](../src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md) | common | Build an evidence-gated serving-configuration shortlist from a profiled simulator while separating empirical ... | 1 Accelerator · Diagnose / Verify | 1 · Systems sources (Vidur — [2405.05465v2](https://arxiv.org/abs/2405.05465v2)) | candidate · not_run · 1 readset(s) | no-eval |
 | [checkpoint-recovery-consistency](../src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md) | common | Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport ... | 2 RAM/Host · Configure / Verify<br>3 SSD · Configure / Verify<br>4 Network · Diagnose / Configure / Verify<br>5 OS · Diagnose / Configure | 1 · Systems sources (C3 / DLRover FlashCheckpoint @ `e35b1ad90e2928ca6bacf5d22117f71356 ...)<br>1 · Systems sources (C4 / NVIDIA Resiliency Extension @ ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [choose-parallel-training-plan](../src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md) | common | Compare stage, device-mesh and operator-sharding candidates for static distributed training while accounting for ... | 1 Accelerator · Diagnose / Configure / Optimize / Verify<br>4 Network · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Alpa — [2201.12023v3](https://arxiv.org/abs/2201.12023v3)) | candidate · not_run · 1 readset(s) | no-eval |
@@ -201,7 +202,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 73 of 73.
+- Registered ids resolve to an existing `SKILL.md`: 74 of 74.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 5.
@@ -210,10 +211,10 @@ an entrypoint routes to procedures below it rather than adding one.
 
 | Gap | Skills |
 |---|---|
-| `no-SearchSpace-layer` | 13: ascend-video-diffusion-optimization, audit-recurrent-kv-finalization, cite-check-downstream-pr, competitor-scan, draft-acceptance-issue, dwarfstar, husky, inference-benchmark-design, lily, npu-skill-factory, repository-evolution-analysis, skill-evolution-playbook, splash |
-| `no-Reference-Matrix-row` | 6: ascend-video-diffusion-optimization, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence |
+| `no-SearchSpace-layer` | 14: ascend-video-diffusion-optimization, audit-fixed-workload-claim, audit-recurrent-kv-finalization, cite-check-downstream-pr, competitor-scan, draft-acceptance-issue, dwarfstar, husky, inference-benchmark-design, lily, npu-skill-factory, repository-evolution-analysis, skill-evolution-playbook, splash |
+| `no-Reference-Matrix-row` | 7: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence |
 | `no-sidecar` | 5: cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence |
-| `no-eval` | 71: as listed in the Gaps column above |
+| `no-eval` | 72: as listed in the Gaps column above |
 
 These are inventory gaps, not defects. A workflow skill may legitimately
 have no hardware resource layer; a candidate may legitimately be untested.

@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 73 registered skills in `data/skill_library/`.
+Generated abstracts for all 74 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [ceb3509942bee863f24eee96e3598c4e007feb20](https://github.com/InferMatrixLab/InferRSI/tree/ceb3509942bee863f24eee96e3598c4e007feb20/src/inferrsi/data/skill_library).
+Source snapshot: [d70fa5e4c5c2b1b70c6fbad1f020ab457c409c63](https://github.com/InferMatrixLab/InferRSI/tree/d70fa5e4c5c2b1b70c6fbad1f020ab457c409c63/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision ceb3509942bee863f24eee96e3598c4e007feb20 --check
+python tools/build_skill_index.py --source-revision d70fa5e4c5c2b1b70c6fbad1f020ab457c409c63 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -51,6 +51,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
 | [audit-afd-p2p-exchanges](cuda/skills/audit-afd-p2p-exchanges.json) | cuda | candidate |
+| [audit-fixed-workload-claim](common/skills/audit-fixed-workload-claim.json) | common | candidate |
 | [audit-flare-session-lifecycle](cuda/skills/audit-flare-session-lifecycle.json) | cuda | candidate |
 | [audit-h3-metal-fasth3-semantics](common/skills/audit-h3-metal-fasth3-semantics.json) | common | candidate |
 | [audit-h3-runtime-residency](common/skills/audit-h3-runtime-residency.json) | common | candidate |
