@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from dataclasses import replace
 from pathlib import Path
 
 from inferrsi.harness.skill_evaluation import (
@@ -21,13 +22,14 @@ from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
 from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
 from inferrsi.model.anthropic_agent import AnthropicAgentClient, validate_schema, validate_spec
+from inferrsi.model.request_guard import SOURCE as GUARD_SOURCE
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 from tools.skill_eval_verifier import verify
 
 ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("baseline", "candidate")
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
-CONTROLLERS = ("tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
+CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py",
                "src/inferrsi/infra/artifacts.py")
@@ -482,14 +484,19 @@ def provider_client(plan):
 
 def execute(output: Path, authorization: str, *, client=None,
             campaign_deadline: float | None = None,
-            stop_on_unknown_usage: bool = True) -> dict:
+            stop_on_unknown_usage: bool = True,
+            require_request_authorization: bool = False) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
     if any((output / "results").iterdir()):
         raise ValueError("Execution requires fresh results; prepare a new output directory")
+    if require_request_authorization and "client" not in plan:
+        raise ValueError("PR execution requires the guarded bounded provider")
     if "client" in plan:
         configured = provider_client(plan)
+        if require_request_authorization:
+            configured = replace(configured, require_authorization=True)
         configured.require_live_readiness(len(plan["schedule"]))
         if client is not None:
             raise ValueError("A paid provider plan cannot substitute an injected client")

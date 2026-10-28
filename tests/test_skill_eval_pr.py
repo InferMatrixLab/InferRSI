@@ -345,7 +345,9 @@ def test_file_only_plan_artifact_round_trip_can_execute(tmp_path, mode):
 
 
 @pytest.mark.parametrize("mode", ["addition", "update"])
-def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs(tmp_path, mode):
+@pytest.mark.parametrize("event_name", ["workflow_dispatch", "pull_request_target"])
+def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs(
+        tmp_path, mode, event_name):
     repo, mapping, identity = setup(tmp_path, mode, token_stop_new_trials=200)
     output = tmp_path / "execution"
     plan = integration.prepare(repo, mapping, identity, output)
@@ -357,6 +359,9 @@ def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs
     publisher = tmp_path / "publisher"
     integration.prepare(repo, mapping, identity, publisher)
     api = SimulatedGitHub(plan, data)
+    if event_name == "pull_request_target":
+        api.run.update(event=event_name,
+                       display_title=f"skill-eval plan or publish PR {plan['pr']}")
     api.fail_response = True
     with pytest.raises(ConnectionError):
         integration.publish_retained(api, publisher, 10, 11, 1)
@@ -470,7 +475,7 @@ def test_workflow_separates_execution_and_publication_credentials():
     readers = {"contents": "read", "actions": "read", "pull-requests": "read"}
     assert workflow["permissions"] == {}
     assert workflow["jobs"]["plan"]["permissions"] == readers
-    assert executor["permissions"] == readers
+    assert executor["permissions"] == {**readers, "contents": "write"}
     # PR conversation writes belong only to the separate trusted publisher.
     assert workflow["jobs"]["publish"]["permissions"] == {
         **readers, "pull-requests": "write", "issues": "write"}
@@ -478,8 +483,8 @@ def test_workflow_separates_execution_and_publication_credentials():
         checkout = next(step for step in job["steps"] if step.get("uses") == "actions/checkout@v4")
         assert checkout["with"]["persist-credentials"] is False
         assert checkout["with"]["ref"] == "${{ github.workflow_sha }}"
-    step = next(s for s in executor["steps"] if "execute --output" in s.get("run", ""))
-    assert "env" not in step
+    step = next(s for s in executor["steps"] if "control --output" in s.get("run", ""))
+    assert set(step["env"]) == {"GITHUB_TOKEN", "SKILL_EVAL_YIBUAPI_KEY"}
 
 
 def test_download_redirect_drops_the_github_token():
@@ -654,9 +659,10 @@ def test_plan_dispatch_workflow_keeps_execution_guards():
     assert all(inputs[key]["required"] is False
                for key in ("plan_sha256", "version", "base", "head", "budget"))
     guard = "github.event_name == 'workflow_dispatch' && inputs.action == 'execute'"
-    assert workflow["jobs"]["plan"]["if"] == "github.ref == 'refs/heads/main'"
-    assert workflow["jobs"]["execute"]["if"] == guard
-    authorize = next(step for step in workflow["jobs"]["plan"]["steps"]
-                     if "authorize --output" in step.get("run", ""))
-    assert authorize["if"] == guard
+    assert workflow["jobs"]["plan"]["if"] == (
+        "github.ref == 'refs/heads/main' && github.event.action != 'closed'")
+    assert workflow["jobs"]["execute"]["if"] == (
+        "github.event_name == 'pull_request_target' && needs.plan.outputs.auto_candidate == 'true'")
+    assert not any("authorize --output" in step.get("run", "")
+                   for step in workflow["jobs"]["plan"]["steps"])
     assert workflow["run-name"].startswith("${{ " + guard)
