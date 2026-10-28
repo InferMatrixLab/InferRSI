@@ -324,10 +324,10 @@ rejection neither greens nor fails another PR's status.
 
 The workflow handles PR open/reopen/close/commits/body-or-base edits on any target
 branch (a PR against another base can share a main PR's head), approval-comment
-creation/edit/deletion, every main push and manual dispatch. Main pushes refresh
-all open main-target PRs. All eligible triggers share one serialized status writer and each
-run refreshes every open main-target PR, so replacing a pending job cannot lose another
-PR's refresh or let an older run overwrite a newer result. It checks out `main`,
+creation/edit/deletion, every main push and manual dispatch. All eligible triggers
+share one serialized status writer. Ordinary main pushes and closed-PR events use
+the bounded impact routing below; policy changes, manual dispatch and other
+eligible events retain the full open main-target PR refresh. It checks out `main`,
 executes only trusted code, installs no PR
 dependencies and treats PR text/files as API data. Permissions are limited to
 contents/PR/issues read and commit-status write. Statuses explicitly target the
@@ -387,13 +387,45 @@ do not repair permissions, restore capacity, identify every unknown validation
 cause, or guarantee that historical red checks clear.
 
 
+### Bounded impact routing for merge events
+
+An ordinary main push compares the event's `before` SHA to the **current fetched
+main SHA**, not merely the event's `after`. A changed trusted input forces a full
+refresh: the policy JSON, checker, shell runner, workflow, policy documentation,
+or any additional declared `policy_paths`. New routing dependencies must join the
+fixed input manifest in the checker; policy JSON cannot remove the fixed inputs.
+
+When those inputs are unchanged, the router fetches Git objects (never checks out
+or executes PR code), with a 60-second aggregate graph-operation budget. It requires
+complete non-shallow ancestry and `before` to be an ancestor of current main. For
+each fixed open PR head, exactly one identical merge base against both revisions
+proves that its base-relative diff and contributor commit set are unchanged. That
+PR is not reevaluated and receives no new status. A changed or ambiguous merge
+base selects the PR; unchanged policy JSON alone is not enough, because another
+merge can change the protected paths bound by an exception approval.
+
+All open PRs, including other base branches, remain in the ownership scan. A shared
+head is never skipped. A closed-PR event selects the closed trigger (reported N/A,
+no new status) plus remaining open main-target peers on that same head. Other PR
+and approval-comment events still perform full refreshes. This is deliberately not
+a general event router or persistent admission cache.
+
+Missing objects, shallow/incomplete history, force pushes, malformed collections,
+repository/branch mismatches, fetch timeouts and unverified impact fall back to a
+full refresh. Main and open-PR snapshots are reread before and after routed work;
+a race requests replanning rather than declaring an empty selection healthy.
+`No affected admissions` means no new work for this event—not that every existing
+status is valid, that a known 422 was repaired, or that historical red checks clear.
+An affected blocked PR still fails honestly. Queue overflow/event loss remains a
+platform limitation; manual dispatch retains the full reconciliation path.
+
 ### Trigger-PR conclusion versus global sweep health
 
-Every eligible workflow event still refreshes **all open policy-branch PRs** through the
-single serialized writer. This is necessary because concurrency may replace a
-pending event. The runner still makes up to three attempts when global work is
-unfinished; a green triggering PR never stops those retries early. The triggering
-PR is evaluated first without dropping any peer from the sweep.
+All selected targets still use the single serialized writer. The runner makes up
+to three attempts when selected work is unfinished; a green triggering PR never
+stops those retries early. Full sweeps evaluate the triggering PR first without
+dropping peers. Impact-routed results describe only the selected scope, not global
+admission health.
 
 Only after the final attempt does a PR or PR-comment job use that triggering PR's
 own verified result for its job conclusion. A `pull_request_target` result must
