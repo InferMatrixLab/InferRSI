@@ -1,7 +1,7 @@
 # InferRSI skill library
 
-The English-only library contains **96 skill documents**: 66 registered roots,
-21 separately indexed engine/router documents and 9 AREX graph sub-skills.
+The English-only library contains **117 skill documents**: 73 registered roots,
+21 separately indexed engine/router documents and 23 AREX graph sub-skills.
 Complete procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 66 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 73 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -137,7 +137,7 @@ scheduling/placement proposals remain separate from both implementation pins.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 66-ID registry.
+the links and catalog records below, separately from the 73-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -146,6 +146,7 @@ these imports and use generated abstracts rather than runtime repository packs.
 | ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](repositories/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
 | stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
 | h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json) |
+| h3-metal / FastH3 semantic audit | Effective parameters and ambient overrides, tensor/schedule transformations, VSA prefix/partial tiles and fallback; source-derived candidate | [Skill](repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-metal-fasth3-semantics.json) |
 | AFD plugin P2pNccl audit | CUDA eager dense-FFN rank namespaces and per-stage/per-peer payload ownership; source-derived candidate | [Skill](repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md) | `inferrsi.cuda.skills.audit_afd_p2p_exchanges` |
 | vLLM-RLT source audit | Synchronous early-exit KV propagation, later deeper attention and normal storage retirement; source-derived candidate | [Skill](repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-recurrent-kv-finalization.json) |
 | Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](repositories/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
@@ -276,3 +277,28 @@ from implementation, reproduction and original research proposals. Repository,
 revision, source license and raw receipts remain unknown; its offline helper
 screens supplied metadata only. This is not complete repo-to-skill or native
 verification. Catalog ID: `inferrsi.common.skills.husky`.
+
+## Project Maya portable AREX candidate
+
+[Project Maya](repositories/project-maya/SKILL.md) owns model-family dispatch and
+physical residency planning, API versus native state, and speculation/calibration
+qualification. Selected direct-compiler CPU policies and safe offline helpers do
+not clear CUDA/HIP/model/state/quality/service gaps. New Qwen coverage is shallow
+routing/format/guard evidence, not deep kernel qualification. Catalog ID:
+`inferrsi.common.skills.project_maya`.
+
+## vLLM Metal source and CPU candidate
+
+The [vllm-metal graph](repositories/vllm-metal/SKILL.md) routes platform/native ABI, KV/offload lifetime and speculative/deferred/dispatch evidence. Three bundled offline helpers support bounded syntax, dense-pool arithmetic and accounting. Required Apple Metal/MPS/model/service/quality verification remains blocked; CPU source tests do not promote it.
+
+## mistral.rs native paged-attention source candidate
+
+The [mistral-rs graph](repositories/mistral-rs/SKILL.md) owns selected Metal decode layout/scales/workspace, prefill coordinates/masks/workspace and actual-model prewarm/evidence. Three offline metadata/formula/inventory helpers add no GPU simulation or execution proof. Rust compilation and Apple native/model/quality/service evidence remain not_run / blocked.
+
+## MLX Swift LM ownership and recurrent Metal source candidate
+
+The [mlx-swift-lm graph](repositories/mlx-swift-lm/SKILL.md) adds selected Swift exclusive-access/cancellation/task-settlement and actual GatedDelta native/ops contracts. Two bounded evidence/metadata helpers authenticate neither observations nor dispatch. Swift compilation and required Apple native/model/quality/service evidence remain not_run / blocked; source-only masked-output parity gap is retained.
+
+## MLC LLM compiled Metal source contracts
+
+The [mlc-llm candidate](repositories/mlc-llm/SKILL.md) covers opt-in artifact/schema/resource declarations, Apple target and pinned TVM module/storage/stream consumers, and compiled/runtime KV limits. Helpers authenticate no binary/weights/dispatch or memory fit; required native/model/quality/service evidence remains not_run.

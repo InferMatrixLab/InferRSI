@@ -1,0 +1,30 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "audit-h3-metal-fasth3-semantics",
+  "target_capability": "tensor permutations, detector mismatch and schema-report limits",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "h3.c:893-923",
+    "h3_dit.c:249-455,575-670,1313-1418,2421-2483",
+    "h3_dit_schedule.c:162-243,324-401",
+    "tests/test_vsa_coarse.c:225-316",
+    "tools/fasth3_keymap.py:43-191"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/semantic-contracts.md",
+    "references/preflight.md",
+    "references/source-notes.md",
+    "references/troubleshooting.md",
+    "scripts/audit_fasth3.py"
+  ],
+  "assertions": [
+    "Rejects name/shape agreement as executable conversion, dtype/payload or numeric proof.",
+    "Shows per-head QKV grouping versus global concatenation using uniquely labeled rows.",
+    "Requires FC1 half swap before later quantization.",
+    "Distinguishes DiT path-substring detection from schedule key-presence detection and flags mixed identity.",
+    "Explains BF16 timestep materialization and generated RoPE dependencies without independently asserting FastVideo conformance.",
+    "Distinguishes checked-in report inference assertion from current empty-schema/skip behavior and shape-only comparisons.",
+    "Does not run or recommend remote curl source helper as safe validation."
+  ]
+}

@@ -28,6 +28,7 @@ The primary compute and HBM resource. Most current work lives here.
 |---|---|---|---|---|---|
 | **Diagnose / Configure / Verify** | CUDA eager dense-FFN Attention/FFN rank namespaces and per-stage/per-peer hidden-state ownership | [audit-afd-p2p-exchanges](../src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md) | A=3,F=2 control sender differs from data peer; matching total tokens does not preserve peer rows | afd-plugin @ df8d6a0c403c3ca1b4ed9cf1687e7204908bebec; [source ledger](../src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md), [proposed cases](reviews/issue91-afd-p2p.md) | 🟢 (source-derived candidate; native/model/efficacy not_run; no Network qualification) |
 | **Observe / Diagnose / Verify** | MiniMax-H3 joint audio/video AdaLN schedule/row-map validity, Metal BF16 rounding and actual int8 dispatch versus approximate controls | [audit-h3-runtime-residency](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | Fifty layers/reuse 1 does not disable M5 int8 or BF16 head; test-source parity is not full media quality | h3.c @ 8974cc055ea9c02fcd14cc27dfda3e1027c05153; [precision contracts](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/precision-and-streaming.md) | 🟢 (source-derived candidate; native/quality/performance not_run) |
+| **Observe / Diagnose / Verify** | FastH3 effective parameters/ambient override, semantic checkpoint transformations, partial/prefix VSA membership and sparse eligibility/fallback | [audit-h3-metal-fasth3-semantics](../src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) | Shape agreement is not conversion; sparse-disabled remains dense fine+coarse; parameter normalization does not erase ambient token enable | h3-metal @ 4ba47a3eabdbebf801ac6664b31f8ec168bc57a8; [semantic counterchecks](../src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md) | 🟢 (source-derived candidate; native/sparse/schedule/media/performance not_run) |
 | **Diagnose / Configure / Verify** | Workflow model-weight residency, partial unload versus wrapper removal, patch identity and static/dynamic backend dispatch | [comfy-ui](../src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md) | CPU dynamic construction reroutes to the static patcher; wrapper/free-byte bookkeeping is not physical allocator release | ComfyUI @ b1a247c9cf9dbfda4b2c0a0c1d50950667eeaa0c; [model ownership](../src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md) | 🟢 (source-derived audit; device/native allocator unverified) |
 | **Observe / Diagnose / Verify** | Native diffusion managed budget versus device headroom, graph-segment weight protection and optional prefetch completion | [audit-sd-cpp-residency](../src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | CPU bypasses accelerator capacity and segmentation gates; pin release is not physical free; backend capability does not prove overlap | stable-diffusion.cpp @ b13a48219d5cdf408edcb93da6cd69b612ed03d3; [phase residency](../src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md) | 🟢 (source-derived audit; native/device/model unverified) |
 | **Observe / Profile** | System-level GPU/NPU timeline, per-kernel stats, SOL%, AI Core utilization ratios, step-trace four-tuple | `ascend-performance-analysis`, `dense-performance-evidence` (L2) | CANN CSV pipeline, MindIE-SD profiling-analyze lessons | MindIE-SD @ 8481d39b; TRT-LLM nsys/ncu @ f33e0e5f | 🟢 |
@@ -488,3 +489,54 @@ Agent coordination/accounting is not Accelerator, Communication/Network or
 OS-control qualification; local journal files do not establish SSD performance.
 The existing five resource rows and all prior source/evidence boundaries remain
 unchanged.
+
+## Project Maya model-specific source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM / SSD | Diagnose / plan: family/representation guards, physical-pool ownership, expert tiers, private state and scratch overlap | `project-maya`: [model-runtime](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/model-runtime/SKILL.md) | Source plus bounded host arithmetic/simulation; not actual accelerator allocation, pressure, tensor payload or residency performance. |
+| Host / Accelerator / service boundary | Diagnose / verify: API snapshots versus native slots, parallel state, completion, speculative retained state, calibration controls and quality evidence | `project-maya`: [serving-state](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/serving-state/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/qualification/SKILL.md) | Required CUDA/HIP/model/parallel restore/cancellation evidence remains unavailable. HTTP procedure adds no measured Network/OS or service-gain coverage. Qwen deep state/kernels remain unmined. |
+
+## vLLM Metal selected source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM / SSD | Diagnose / configure: lazy KV capacity versus resident commitment, one physical unified pool, host/disk ownership, transfer/sleep/reuse and identity | `vllm-metal`: [cache-lifecycle](../src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/SKILL.md) | Selected substantive source/test assertions plus dense-uniform arithmetic only; real transfers/pressure/sleep/model/backend evidence blocked. No measured memory-fit or IO gain. |
+| Accelerator / host control boundary | Diagnose / verify: native ABI/backend/runner pairing, GDN state and deferred output ownership, executed dispatch versus selector, serving evidence | `vllm-metal`: [platform-config](../src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/SKILL.md) | Installed pure API and selected parser/default tests do not qualify Apple/native/model/quality/service. No new Network/OS control or green resource coverage. |
+
+## mistral.rs Metal paged-attention source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM | Diagnose / configure: HND/packed cache/scale/GQA contracts, instantaneous scratch versus capacity and prefill output/metadata reservation | `mistral-rs`: [decode-contract](../src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/SKILL.md) and [prefill-contract](../src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/SKILL.md) | Source-derived byte/metadata support only; no actual storage/allocator/pressure/parity or physical fit. No measured resource coverage. |
+| Accelerator / host control boundary | Diagnose / verify: absolute positions/masks/ranges and actual-model warmup/pipeline cache versus executed native test evidence | `mistral-rs`: [qualification](../src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/SKILL.md) | Compiler and native backend not_run; shape inventory is not GPU simulation or dispatch. No new SSD/Network/OS control, quality/service or performance qualification. |
+
+## MLX Swift LM ownership and recurrent Metal source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Host control / accelerator lifetime | Diagnose / verify: exclusive async access, Sendable transfer, lookahead/cancellation/finalization/default-stream sync versus task join | `mlx-swift-lm`: [generation-lifecycle](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md) | Caller evidence declarations only; no actual task/device execution, native cleanup, backgrounding or safe shared-cache proof. No measured resource coverage. |
+| Accelerator / RAM | Diagnose / configure: recurrent FP32 state/layout, Dk tails, public kernel/ops gate, source mask discrepancy and dispatch/parity evidence | `mlx-swift-lm`: [gated-delta-contract](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md) | Static source/declared bytes only; no actual provider stride/allocator/dispatch/numerical or physical-fit qualification. No new SSD/Network/OS control, quality/service or performance result. |
+
+## MLC LLM artifact, target and runtime source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM | Diagnose / configure: parameter-only resource declarations versus runtime KV/workspace/limit origins | `mlc-llm`: [artifact-contract](../src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/artifact-contract/SKILL.md) and [runtime-kv-limits](../src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/SKILL.md) | Source/hash/declared minima only; no authenticated weights/allocator/free-memory/cache or physical-fit evidence. No measured resource coverage. |
+| Accelerator / host completion boundary | Diagnose / verify: SDK/export/prefix, runnable versus serializable module, private/staging buffers, copy/flush/wait/default-stream contracts | `mlc-llm`: [metal-build-runtime](../src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/metal-build-runtime/SKILL.md) | Native compile/load/dispatch/sync/parity not_run. No new SSD/Network/OS control or quality/service/performance qualification. |
+
+## Flare preparation and complete-session source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator | Diagnose / Verify: complete KV page chain plus continuation row; publish/use/retire fences, shared inbound ticket and five admission outcomes | [audit-flare-session-lifecycle](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md) | Fixed `bce032c014bae34502ba22d3304fa084d5b40afe` CODE/DOC/TEST-SOURCE; NVIDIA SM120/SM121 research prototype; no kernel/model/device/performance qualification |
+| RAM / Host | Diagnose / Verify: registered/staging storage lifetime through accounted transfer completion/drain; waiter cancellation does not free ticket destinations | [audit-flare-session-lifecycle](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md), [lifetime detail](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md) | Source lifetime contract; no physical-RAM peak, bandwidth or pressure result |
+| SSD | Diagnose / Verify: record namespace/layout/row/chain completeness, restart/corruption versus unreadable-file handling; conditional transfer-versus-additional-prefill cost | [audit-flare-session-lifecycle](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md), [diagnostic detail](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md) | No GDS implementation or measured storage gain; actual device/server tests not_run |
+| SSD / RAM / Accelerator | Startup Diagnose / Verify: Python preparation/native export ownership, nonportable live handles, execution ABI 4 versus prepared contract 2, separate phase accounting | Existing [weight-loading owner](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md), [preparation detail](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md) | Source-derived candidate; no preparation/runtime execution or Python-to-Rust performance-causation claim |
+
+There is no new measured/green resource cell, Network or OS coverage. Multi-rank
+source branches and tests do not qualify multi-host transport or multi-GPU
+behavior. The source-derived candidates remain empirical **not_run**; the
+[bounded evaluation plan](reviews/issue148-flare-source-distillation.md) is
+**not evaluated**.
+

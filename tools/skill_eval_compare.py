@@ -8,6 +8,7 @@ import subprocess
 import sys
 import tempfile
 import time
+from dataclasses import replace
 from pathlib import Path
 
 from inferrsi.harness.skill_evaluation import (
@@ -21,12 +22,14 @@ from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
 from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
 from inferrsi.model.anthropic_agent import AnthropicAgentClient, validate_schema, validate_spec
+from inferrsi.model.request_guard import SOURCE as GUARD_SOURCE
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
+from tools.skill_eval_verifier import verify
 
 ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("baseline", "candidate")
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
-CONTROLLERS = ("tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
+CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py",
                "src/inferrsi/infra/artifacts.py")
@@ -372,6 +375,58 @@ def load_plan(output: Path) -> dict:
               for p in folder.rglob("*") if p.is_file()}
     if actual != set(plan["files"]) | {"plan/freeze.json"}:
         raise ValueError("Frozen input file set changed")
+    # The freeze hash covers every byte of freeze.json, so an edited copy can
+    # always carry a matching hash. Re-derive what the frozen inputs determine
+    # instead of trusting the fields that merely state it.
+    limits = plan["limits"]
+    if set(limits) != {"repeats", "max_task_calls", "timeout_seconds", "campaign_seconds",
+                       "token_stop_new_trials"}:
+        raise ValueError("Frozen execution limits changed shape")
+    for name in limits:
+        if type(limits[name]) is not int or limits[name] <= 0:
+            raise ValueError(f"Frozen limit {name} must be a positive integer")
+    tasks = read_json(output / "plan/tasks.json")
+    if plan["schedule"] != build_schedule(tasks, limits["repeats"]):
+        raise ValueError("Frozen schedule disagrees with the frozen tasks and repeats")
+    if len(plan["schedule"]) > limits["max_task_calls"]:
+        raise ValueError("Frozen schedule exceeds max_task_calls")
+    if set(plan["model"]) != {"name", "effort"} or not all(
+            isinstance(value, str) and value for value in plan["model"].values()):
+        raise ValueError("Frozen model settings changed shape")
+    for role in ROLES:
+        # Bundle bytes are covered by `files` above; the arm only names the commit.
+        arm = plan["arms"][role]
+        if set(arm) != {"git_revision", "bundle"} or not re.fullmatch(
+                r"[0-9a-f]{40}", arm["git_revision"]):
+            raise ValueError("Frozen arm does not identify a Git commit")
+    before = plan["arms"]["baseline"]["bundle"]
+    after = plan["arms"]["candidate"]["bundle"]
+    if plan["mode"] == "addition" and before is not None:
+        raise ValueError("Addition baseline must not carry a bundle revision")
+    if after is None:
+        raise ValueError("Candidate arm requires an exported bundle")
+    # The arm's bundle metadata states a revision and its resources; the exported
+    # bytes are the in-tree authority for those resources. Compare them so an
+    # edited arm cannot claim identical skill content that the export contradicts.
+    for role in ROLES:
+        bundle = plan["arms"][role]["bundle"]
+        if bundle is None:
+            continue
+        export = output / "plan/bundles" / role
+        actual = {path.relative_to(export).as_posix(): sha256(path)
+                  for path in sorted(export.rglob("*")) if path.is_file()}
+        if actual != bundle["resources"]:
+            raise ValueError(f"Exported bundle bytes disagree with the frozen {role} arm")
+    same_bundle = before is not None and before["revision"] == after["revision"]
+    if plan["same_bundle"] != same_bundle:
+        raise ValueError("Frozen identical-bundle flag disagrees with the frozen arms")
+    if same_bundle and before["resources"] != after["resources"]:
+        raise ValueError("Frozen identical-bundle claim disagrees with the exported bytes")
+    frozen_exam = {"cases": "plan/tasks.json", "schema": "plan/schema.json",
+                   "grader": "validator/verify.py"}
+    for name, path in frozen_exam.items():
+        if plan["exam"].get(name) != plan["files"].get(path):
+            raise ValueError(f"Frozen exam hash disagrees with the frozen file list: {name}")
     return plan
 
 
@@ -429,14 +484,19 @@ def provider_client(plan):
 
 def execute(output: Path, authorization: str, *, client=None,
             campaign_deadline: float | None = None,
-            stop_on_unknown_usage: bool = False) -> dict:
+            stop_on_unknown_usage: bool = True,
+            require_request_authorization: bool = False) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
     if any((output / "results").iterdir()):
         raise ValueError("Execution requires fresh results; prepare a new output directory")
+    if require_request_authorization and "client" not in plan:
+        raise ValueError("PR execution requires the guarded bounded provider")
     if "client" in plan:
         configured = provider_client(plan)
+        if require_request_authorization:
+            configured = replace(configured, require_authorization=True)
         configured.require_live_readiness(len(plan["schedule"]))
         if client is not None:
             raise ValueError("A paid provider plan cannot substitute an injected client")
@@ -454,9 +514,19 @@ def execute(output: Path, authorization: str, *, client=None,
     if campaign_deadline is not None:
         deadline = min(deadline, campaign_deadline)
     tokens, completed, stop_reason = 0, 0, None
+    budget_unknown = False
     for entry in plan["schedule"]:
-        if time.monotonic() >= deadline or tokens >= plan["limits"]["token_stop_new_trials"]:
-            stop_reason = "time_budget" if time.monotonic() >= deadline else "token_budget"
+        if time.monotonic() >= deadline:
+            stop_reason = "time_budget"
+            break
+        if tokens >= plan["limits"]["token_stop_new_trials"]:
+            stop_reason = "token_budget"
+            break
+        if budget_unknown and stop_on_unknown_usage:
+            # An unknown budget cannot be shown to be within the authorized
+            # limit, so no further trial is started. Checked before the next
+            # trial, not after the last one, so a finished schedule stays finished.
+            stop_reason = "unknown_usage"
             break
         task = tasks[entry["task_id"]]
         role = entry["condition"]
@@ -486,10 +556,8 @@ def execute(output: Path, authorization: str, *, client=None,
             stop_reason = "client_" + result["execution_state"]
             break
         usage = normalize_usage(result["observations"]["usage"])
-        if stop_on_unknown_usage and (usage is None or any(
-                usage.get(key) is None for key in ("input_tokens", "output_tokens"))):
-            stop_reason = "unknown_usage"
-            break
+        budget_unknown = usage is None or any(
+            usage.get(key) is None for key in ("input_tokens", "output_tokens"))
     status = {"client_runtime": runtime,
               "recorded_trials": completed, "expected_trials": len(plan["schedule"]),
               "observed_tokens": tokens, "stop_reason": stop_reason,
@@ -592,6 +660,12 @@ def condition_summary(trials: list[dict]) -> dict:
 def read_report(output: Path) -> dict:
     plan = load_plan(output)
     trials = [retained_trial(output, entry) for entry in plan["schedule"]]
+    # A receipt is an unkeyed hash: a rewritten tree can carry a consistent one.
+    # Re-grading retained answers with trusted code is what makes a PASS/FAIL
+    # verdict independent of the artifact copy the agent could reach. This runs
+    # before pairs are formed so an unverifiable grade cannot become an outcome.
+    verify_retained_grader(plan, [t for t in trials if not t["missing"]],
+                           {task["id"]: task for task in read_json(output / "plan/tasks.json")})
     index = {(t["task_id"], t["repeat"], t["condition"]): t for t in trials}
     pairs = []
     for entry in plan["schedule"]:
@@ -643,6 +717,36 @@ def read_report(output: Path) -> dict:
         result["max_api_requests"] = plan["max_api_requests"]
         result["reservation"] = plan.get("reservation")
     return result
+
+
+def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
+    """Re-derive every positive verdict with trusted code, not the frozen copy.
+
+    `validator/verify.py` lives beside the agent's workspace and the agent runs
+    first, so those bytes cannot establish a grade on their own. When the frozen
+    exam is the repository verifier, its verdict is computed here again from the
+    retained answer. A custom grader has no in-tree authority to re-derive from;
+    that exam is reported as unverified rather than silently trusted.
+    """
+    if plan["exam"]["grader"] != sha256(ROOT / "tools/skill_eval_verifier.py"):
+        for trial in trials:
+            if trial["verdict"] in ("PASS", "FAIL"):
+                # No in-tree authority can re-derive this grade, and the retained
+                # record is writable by the graded agent, so the stated outcome is
+                # not evidence. Keep the raw verdict visible under its own field,
+                # but do not let it count as a fix, regression or unchanged pair.
+                trial["stated_verdict"] = trial["verdict"]
+                trial["verdict"] = "INCONCLUSIVE"
+                trial["grader_trust"] = "unverified"
+                trial["evaluation_error"] = "unverified_custom_grader"
+        return
+    for trial in trials:
+        if trial["verdict"] not in ("PASS", "FAIL"):
+            continue
+        checks = verify(tasks[trial["task_id"]], json.loads(trial["output"]))
+        if checks != trial["checks"] or checks["passed"] != (trial["verdict"] == "PASS"):
+            raise ValueError("Untrusted grading disagrees with the trusted grader")
+        trial["grader_trust"] = "reverified"
 
 
 def report(output: Path) -> dict:

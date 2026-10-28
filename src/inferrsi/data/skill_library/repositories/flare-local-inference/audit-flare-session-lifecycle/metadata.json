@@ -1,0 +1,80 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "Apache-2.0",
+  "tags": [
+    "Flare",
+    "flare-local-inference",
+    "local-inference",
+    "cuda",
+    "session-state",
+    "kv-cache",
+    "recurrent-state",
+    "convolution",
+    "restore-admission",
+    "transfer-ticket",
+    "fences",
+    "offload"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/NVIDIA/flare-local-inference",
+      "resolved_url": "https://github.com/NVIDIA/local-inference",
+      "commit": "bce032c014bae34502ba22d3304fa084d5b40afe",
+      "paths": [
+        "README.md",
+        "LICENSE",
+        "docs/runtime-package-design.md",
+        "docs/prefix-cache-offload.md",
+        "helios/src/runtime_package/format.rs",
+        "helios/src/runtime_package/model.rs",
+        "helios/src/execution/manifest.rs",
+        "helios/src/model/contract.rs",
+        "helios/src/model/catalog.rs",
+        "helios/src/cache.rs",
+        "helios/src/offload/mod.rs",
+        "helios/src/offload/geometry.rs",
+        "helios/src/offload/index.rs",
+        "helios/src/offload/record.rs",
+        "helios/src/offload/transfer.rs",
+        "helios/src/scheduler.rs",
+        "helios/src/server/runtime.rs",
+        "tests/server/test_prefix_cache_offload.py",
+        "qualify/performance.py",
+        "qualify/provenance.py"
+      ],
+      "readset": "references/source-notes.md",
+      "identity": "references/source-ledger.json",
+      "license": "Apache-2.0"
+    }
+  ],
+  "construction": {
+    "anchor_kind": "source",
+    "distillation_form": "task-agnostic",
+    "strategy": "reuse-existing",
+    "status": "source-derived-candidate",
+    "method": "AREX scope/ground/construct/verify and repository evidence/usability methods adapted to InferRSI native owners and packaging; no DisCo runtime or managed import."
+  },
+  "applicability": {
+    "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification."
+  },
+  "limitations": [
+    "Source-only candidate; native Flare/model/GPU/service and skill efficacy were not evaluated.",
+    "GDS/Direct transport is deferred and explicitly rejected by the pinned implementation.",
+    "Multi-rank source branches do not establish multi-GPU, multi-host or hardware failure qualification.",
+    "Root Apache-2.0 attribution does not grant model, asset or separately licensed dependency rights.",
+    "Only the selected symbols/sections were inspected; kernels, exporter implementation and whole-repository behavior are outside coverage."
+  ],
+  "provenance_readsets": [
+    "references/source-notes.md",
+    "references/source-ledger.json"
+  ],
+  "consumption_mode": "packaged"
+}

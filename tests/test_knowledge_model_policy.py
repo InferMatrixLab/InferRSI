@@ -1623,3 +1623,29 @@ def test_status_422_settled_only_in_current_plan(api_fixture, policy):
     assert len(posts) == 2  # A changed head invalidates the carried terminal error.
     check_prs(api, policy, BASE, False, [123], plan={"completed": {}})
     assert len(posts) == 3  # A new invocation can reassess after external remediation.
+
+
+@pytest.mark.parametrize("event_name", ["pull_request_target", "issue_comment"])
+def test_targeted_event_does_not_read_history_or_publish_to_unrelated_pr(
+        api_fixture, policy, event_name):
+    from tools.check_knowledge_model_policy import admission_route
+
+    api, state = api_fixture
+    other = copy.deepcopy(pr())
+    other.update(number=124, head={"sha": "c" * 40})
+    state["prs"][124] = other
+    event = {"repository": {"full_name": "example/repository"}, "action": "edited"}
+    if event_name == "pull_request_target":
+        event.update(number=123, pull_request=pr())
+    else:
+        event["issue"] = {"number": 123, "pull_request": {}}
+    numbers, routing, _ = admission_route(
+        api, event, event_name, policy, BASE, "example/repository")
+    assert numbers == [123]
+    assert routing["mode"] == "pr-impact"
+    results = check_prs(api, policy, BASE, False, numbers)
+    assert results[0]["kind"] == "compliant"
+    assert [item["state"] for item in state["statuses"]] == ["pending", "success"]
+    assert all(item["sha"] == HEAD for item in state["statuses"])
+    assert ("GET", "commits/" + "c" * 40 + "/statuses") not in state["requests"]
+    assert ("GET", "pulls/124/files") not in state["requests"]

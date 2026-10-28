@@ -23,7 +23,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
     records = search_knowledge(repo="inferrsi", limit=100)
     names = {record["name"] for record in skill_records(ROOT)}
     registry = json.loads((ROOT / "skill-index.json").read_text(encoding="utf-8"))["skills"]
-    assert len(records) == len(names) == 66
+    assert len(records) == len(names) == 73
     assert {record["skill_metadata"]["name"] for record in records} == names
     states = []
     for record in records:
@@ -41,7 +41,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
         }
         assert set(record["source_files"]) == set(record["sources"][0]["paths"])
         states.append(metadata.get("status"))
-    assert states.count("candidate") == 61
+    assert states.count("candidate") == 68
     assert states.count(None) == 5
     profiling = next(r for r in records if r["title"] == "ascend-operator-profiling")
     assert profiling["skill_metadata"]["license"] == "UNKNOWN"
@@ -99,6 +99,33 @@ def test_committed_source_hashes_preserve_binary_and_newline_bytes(tmp_path):
     assert hashes == {
         name: hashlib.sha256(content).hexdigest() for name, content in resources.items()
     }
+
+
+def test_replacement_refs_cannot_rewrite_indexed_source_bytes(tmp_path):
+    # refs/replace/* leaves rev-parse alone but changes what cat-file returns,
+    # so the pinned revision must be read with the hardened Git invocation.
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(tmp_path), *args], check=True, capture_output=True, text=True
+        ).stdout
+
+    git("init")
+    (tmp_path / "source.md").write_bytes(b"original bytes\n")
+    git("add", "source.md")
+    git(
+        "-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
+        "commit", "-s", "-m", "Original",
+    )
+    original = git("rev-parse", "HEAD").strip()
+    (tmp_path / "source.md").write_bytes(b"replacement bytes\n")
+    git("add", "source.md")
+    git(
+        "-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
+        "commit", "-s", "-m", "Replacement",
+    )
+    git("replace", original, git("rev-parse", "HEAD").strip())
+    hashes = index_builder._source_hashes(tmp_path, original, {"source.md"})
+    assert hashes == {"source.md": hashlib.sha256(b"original bytes\n").hexdigest()}
 
 
 def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path, monkeypatch):
@@ -161,7 +188,7 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
     assert reader.resolve("claim-contract") == "checkout:claim-contract"
     assert reader.read("claim-contract").metadata["kind"] == "skill"
     collected = reader.collect(repo="inferrsi", kind="knowledge", limit=100, material=True)
-    assert len(collected["items"]) == 66
+    assert len(collected["items"]) == 73
     assert not collected["collisions"] and not collected["omissions"]
     assert all(item["authority"] == "package" for item in collected["items"])
     assert all("record.json" in item["resources"] for item in collected["items"])
@@ -191,9 +218,9 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
 
 
 def test_hardware_filters_include_only_matching_and_shared_skills():
-    for backend, count in (("ascend", 62), ("cuda", 52), ("cpu", 48)):
+    for backend, count in (("ascend", 68), ("cuda", 59), ("cpu", 54)):
         records = search_knowledge(repo="inferrsi", backend=backend, limit=100)
         assert len(records) == count
         assert all(record["backend"] in (backend, "common") for record in records)
     assert not (PROJECT / "skills").exists()
-    assert len(list(ROOT.rglob("SKILL.md"))) == 96
+    assert len(list(ROOT.rglob("SKILL.md"))) == 117

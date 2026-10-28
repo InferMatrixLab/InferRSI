@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:b9f843fa179b5d428bdd9f0f83c7645777a9ce13f54de8f96b93b34e2fd18918`
+- Input digest: `sha256:1b874dac85a2471104c0244d840d1b93fa9dac0f7bd89520c68a465c873c3361`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -31,17 +31,17 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 66 |
-| By category | frameworks 3, hardware 22, methods 18, repositories 17, workflows 6 |
-| By backend | ascend 14, common 48, cuda 4 |
-| Recorded on a numbered SearchSpace resource layer | 47 |
-| Recorded only in a supplementary guidance table (†) | 6 |
+| Registered skill ids | 73 |
+| By category | frameworks 3, hardware 22, methods 18, repositories 24, workflows 6 |
+| By backend | ascend 14, common 54, cuda 5 |
+| Recorded on a numbered SearchSpace resource layer | 48 |
+| Recorded only in a supplementary guidance table (†) | 12 |
 | Recorded on two or more resource layers | 24 |
-| Recorded in the Reference Matrix | 60 |
-| With a `metadata.json` sidecar | 61 |
+| Recorded in the Reference Matrix | 67 |
+| With a `metadata.json` sidecar | 68 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 96 |
-| Unregistered documents (excluded from every count above) | 30 |
+| `SKILL.md` documents in the library | 117 |
+| Unregistered documents (excluded from every count above) | 44 |
 
 A complete inventory is not a coverage claim. Every registered row below
 has an entry; that says the listing is exhaustive, not that inference
@@ -82,11 +82,13 @@ optimization is fully covered or that any procedure has measured benefit.
 | [diffusers-invocation-state](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md) | common | Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption ... | 2 RAM/Host † guidance: Diffusers invocation guidance (source-derived) | Diffusers invocation source extraction (huggingface/diffusers @ `aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e` ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | common | Diagnose MLX lazy evaluation, cross-stream ordering and array-buffer lifetimes when timing, memory use or asynchronous ... | 1 Accelerator † guidance: MLX framework guidance (source-derived) | MLX framework source extraction (ml-explore/mlx @ `bff10220c742907f0c68e55ff174aaea56f74e3d` (MIT)) | candidate · not_run · 1 readset(s) | no-eval |
 
-## Registered: Repositories (17)
+## Registered: Repositories (24)
 
 | Skill | Backend | Declared task | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|
 | [audit-afd-p2p-exchanges](../src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md) | cuda | Audit CUDA P2pNccl Attention/FFN rank namespaces and per-stage, per-peer hidden-state ownership when uneven worker ... | 1 Accelerator · Diagnose / Configure / Verify | 1 · Systems sources (vllm-project/afd-plugin @ `df8d6a0c403c3ca1b4ed9cf1687e7204908bebec` ...) | candidate · not_run · 1 readset(s) | no-eval |
+| [audit-flare-session-lifecycle](../src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md) | cuda | Audit Flare complete prefix/session restoration, inbound transfer tickets, publication/use/retirement fences and ... | 1 Accelerator † guidance: Flare preparation and complete-session source contracts<br>2 RAM/Host † guidance: Flare preparation and complete-session source contracts<br>3 SSD † guidance: Flare preparation and complete-session source contracts | Flare preparation and complete-session source knowledge (NVIDIA/flare-local-inference → [NVIDIA/local-inference](https://github ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [audit-h3-metal-fasth3-semantics](../src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) | common | Audit h3-metal FastH3 effective configuration, checkpoint tensor and schedule semantics, partial VSA tiles, sparse ... | 1 Accelerator · Observe / Diagnose / Verify | 1 · Systems sources (zuiho-kai/h3-metal @ `4ba47a3eabdbebf801ac6664b31f8ec168bc57a8` ...) | candidate · not_run · 3 readset(s) | no-eval |
 | [audit-h3-runtime-residency](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | common | Audit MiniMax-H3 generation in h3.c on Apple Silicon by tracing conditioning, AdaLN precompute, DiT residency, Metal ... | 1 Accelerator · Observe / Diagnose / Verify<br>2 RAM/Host · Observe / Diagnose / Verify<br>3 SSD · Diagnose / Configure / Verify | 1 · Systems sources (antirez/h3.c @ `8974cc055ea9c02fcd14cc27dfda3e1027c05153` (MIT ...) | candidate · not_run · 3 readset(s) | no-eval |
 | [audit-llama-runtime-state](../src/inferrsi/data/skill_library/repositories/llama-cpp/audit-llama-runtime-state/SKILL.md) | common | Audit llama.cpp context memory, partial decode progress, graph reuse and server cancellation when a retry, stale ... | 1 Accelerator · Diagnose / Verify<br>2 RAM/Host · Diagnose / Verify | 1 · Systems sources (ggml-org/llama.cpp @ `707616feb5f379e99ff7442680a55b4a1704c7c9` (MIT ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [audit-recurrent-kv-finalization](../src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md) | common | Audit vLLM-RLT synchronous early-exit KV propagation, later depth-specific attention reads, and request storage ... | — | 1 · Systems sources (InferMatrixLab/vllm-rlt (legacy ThinkFlowLab/vllm-rlt) @ ...) | candidate · not_run · 2 readset(s) | no-SearchSpace-layer, no-eval |
@@ -102,7 +104,12 @@ optimization is fully covered or that any procedure has measured benefit.
 | [husky](../src/inferrsi/data/skill_library/repositories/husky/SKILL.md) | common | Review Husky's official-document claims as research hypotheses, separating author reports, implementation evidence ... | — | Husky document-only research adaptation (Official https://husky.underdog.ai/; displayed2026-09-20 ...) | candidate · not_run · 2 readset(s) | no-SearchSpace-layer, no-eval |
 | [kv-tier-management](../src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md) | common | Manage runtime KV cache tiers (GPU → CPU RAM → local disk) for LLM serving: decide when KV is stored, retained ... | 2 RAM/Host · Configure / Optimize<br>3 SSD · Optimize | 1 · Systems sources (LMCache/LMCache @ c3b875a) | candidate · not_run · 0 readset(s) | no-eval |
 | [lily](../src/inferrsi/data/skill_library/repositories/lily/SKILL.md) | common | Investigate Lily's exact Qwen3.6-35B-A3B MLX-affine-Q4 contract, Metal state and kernels, strict greedy text API ... | — | Lily portable AREX extraction (perplexityai/pplx-garden `lily/` @ `1ed972ed3f0bd5616c997c9507c25616c6 ...) | candidate · not_run · 2 readset(s) | no-SearchSpace-layer, no-eval |
+| [mistral-rs](../src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md) | common | Investigate mistral.rs Metal paged-attention decode layouts, prefill coordinates and workspace, actual-model prewarm ... | 1 Accelerator † guidance: mistral.rs Metal paged-attention source contracts<br>2 RAM/Host † guidance: mistral.rs Metal paged-attention source contracts | mistral.rs Metal paged-attention extraction (EricLBuehler/mistral.rs @ `9459891e7697238225885518119682ac8209a612` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [mlc-llm](../src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md) | common | Investigate MLC LLM compiled Metal artifact/schema, Apple target and pinned TVM module/storage/stream contracts, and ... | 1 Accelerator † guidance: MLC LLM artifact, target and runtime source contracts<br>2 RAM/Host † guidance: MLC LLM artifact, target and runtime source contracts | MLC LLM compiled Metal and runtime contracts (mlc-ai/mlc-llm @ `8978ea9aec626d64096aaa92fbc89bda2e3ea802`; TVM ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [mlx-swift-lm](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md) | common | Investigate MLX Swift LM generation ownership, cancellation and settled task completion, and recurrent GatedDelta Metal ... | 1 Accelerator † guidance: MLX Swift LM ownership and recurrent Metal source contracts<br>2 RAM/Host † guidance: MLX Swift LM ownership and recurrent Metal source contracts | MLX Swift LM lifecycle and recurrent Metal extraction (ml-explore/mlx-swift-lm @ `3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [project-maya](../src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md) | common | Investigate Project Maya model-family dispatch, representation and memory tiers, API versus native state, speculative ... | 1 Accelerator † guidance: Project Maya model-specific source contracts<br>2 RAM/Host † guidance: Project Maya model-specific source contracts<br>3 SSD † guidance: Project Maya model-specific source contracts | Project Maya source and CPU-slice extraction (mw00/project-maya @ `249f9a87d1a9d72bec2b684d704b0aa9296b1c9c` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 | [splash](../src/inferrsi/data/skill_library/repositories/splash/SKILL.md) | common | Investigate Splash model-format compatibility, automatic memory planning, Metal and ANE execution, DFlash2 ... | — | Splash portable AREX extraction (incoai/splash @ `39a97385f8560cf8a93972cec9b0a963c9195250`; AREX ...) | candidate · partial_cpu_only · 2 readset(s) | no-SearchSpace-layer, no-eval |
+| [vllm-metal](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md) | common | Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership ... | 1 Accelerator † guidance: vLLM Metal selected source contracts<br>2 RAM/Host † guidance: vLLM Metal selected source contracts<br>3 SSD † guidance: vLLM Metal selected source contracts | vLLM Metal portable AREX source and CPU extraction (vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 
 ## Registered: Methods (18)
 
@@ -125,7 +132,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [skill-evolution-playbook](../src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md) | common | Practical design choices for evolving agent skills from execution traces: when one trajectory should update a skill ... | — | 2 · Methodology and corpus references (Qwen-Applications/Trace2Skill @ 3d0b52a)<br>2 · Methodology and corpus references (microsoft/SkillOpt @ 343db22) | candidate · not_run · 0 readset(s) | no-SearchSpace-layer, no-eval |
 | [training-input-pipeline](../src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md) | common | Diagnose training input stalls and choose bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic ... | 1 Accelerator · Observe / Configure / Optimize<br>2 RAM/Host · Observe / Diagnose / Configure / Optimize<br>3 SSD · Diagnose / Configure / Optimize<br>4 Network · Configure / Optimize<br>5 OS · Configure / Optimize | 1 · Systems sources (B1 / NVIDIA DALI @ `6fe47c48d3b0ca335f5e1afd3c77c750b2c7e041` ...)<br>1 · Systems sources (B2 / Mosaic Streaming @ `d99bf9c7cdf2dd4ed62a4960ed35270b93337a5f` ...)<br>1 · Systems sources (B3 / FFCV @ `3a12966b3afe3a81733a732e633317d747bfaac7` ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [training-resource-budget](../src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md) | common | Choose training offload and resource-budget changes using pinned DeepSpeed configuration, attributed expert diagnosis ... | 1 Accelerator · Diagnose / Configure / Optimize<br>2 RAM/Host · Observe / Diagnose / Configure / Optimize / Verify<br>3 SSD · Configure / Optimize<br>4 Network · Observe / Diagnose / Verify<br>5 OS · Diagnose / Configure | 1 · Systems sources (CR1 / DeepSpeed ZeRO-Infinity @ `5f266e26d216a705d9c64cac88fb813ce ...)<br>1 · Systems sources (CR5 / Ascend MindSpeed adaptive memory — `core_r0.8.0`, page ...)<br>1 · Systems sources (ZeRO-Offload — [2101.06840v1](https://arxiv.org/abs/2101.06840v1))<br>2 · Methodology and corpus references (CR6 / Stas Bekman ML Engineering Open Book @ ...) | candidate · not_run · 8 readset(s) | no-eval |
-| [weight-loading-optimization](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md) | common | Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source ... | 3 SSD · Observe / Profile / Diagnose / Optimize / Verify<br>4 Network · Configure / Optimize / Verify | 1 · Systems sources (Ascend/MindIE-SD @ 8481d39)<br>1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>1 · Systems sources (ascend-ai-coding/awesome-ascend-skills @ 75ec89c)<br>1 · Systems sources (foundation-model-stack/fastsafetensors @ 219e256)<br>1 · Systems sources (ggml-org/llama.cpp @ `3e390af18de1131dda27913c00511725b4274c8a` (MIT ...)<br>1 · Systems sources (mindie-agent/mindie-agent @ 6a81b41) | candidate · not_run · 2 readset(s) | no-eval |
+| [weight-loading-optimization](../src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md) | common | Optimize the serving-level weight load path from storage to device: judge the load path on four dimensions (source ... | 1 Accelerator † guidance: Flare preparation and complete-session source contracts<br>2 RAM/Host † guidance: Flare preparation and complete-session source contracts<br>3 SSD · Observe / Profile / Diagnose / Optimize / Verify † guidance: Flare preparation and complete-session source contracts<br>4 Network · Configure / Optimize / Verify | 1 · Systems sources (Ascend/MindIE-SD @ 8481d39)<br>1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>1 · Systems sources (ascend-ai-coding/awesome-ascend-skills @ 75ec89c)<br>1 · Systems sources (foundation-model-stack/fastsafetensors @ 219e256)<br>1 · Systems sources (ggml-org/llama.cpp @ `3e390af18de1131dda27913c00511725b4274c8a` (MIT ...)<br>1 · Systems sources (mindie-agent/mindie-agent @ 6a81b41) | candidate · not_run · 3 readset(s) | no-eval |
 
 ## Registered: Workflows (6)
 
@@ -140,7 +147,7 @@ optimization is fully covered or that any procedure has measured benefit.
 
 ## Documents outside the registry
 
-30 `SKILL.md` documents are not registered, so they have
+44 `SKILL.md` documents are not registered, so they have
 no stable id and no row above. They are engine entrypoints, their
 sub-skills, and the research router. Counting them would inflate coverage:
 an entrypoint routes to procedures below it rather than adding one.
@@ -153,6 +160,17 @@ an entrypoint routes to procedures below it rather than adding one.
 | `repositories/lily/sub-skills/model-runtime` | sub-skill |
 | `repositories/lily/sub-skills/qualification` | sub-skill |
 | `repositories/lily/sub-skills/serving-cache` | sub-skill |
+| `repositories/mistral-rs/sub-skills/decode-contract` | sub-skill |
+| `repositories/mistral-rs/sub-skills/prefill-contract` | sub-skill |
+| `repositories/mistral-rs/sub-skills/qualification` | sub-skill |
+| `repositories/mlc-llm/sub-skills/artifact-contract` | sub-skill |
+| `repositories/mlc-llm/sub-skills/metal-build-runtime` | sub-skill |
+| `repositories/mlc-llm/sub-skills/runtime-kv-limits` | sub-skill |
+| `repositories/mlx-swift-lm/sub-skills/gated-delta-contract` | sub-skill |
+| `repositories/mlx-swift-lm/sub-skills/generation-lifecycle` | sub-skill |
+| `repositories/project-maya/sub-skills/model-runtime` | sub-skill |
+| `repositories/project-maya/sub-skills/qualification` | sub-skill |
+| `repositories/project-maya/sub-skills/serving-state` | sub-skill |
 | `repositories/sglang` | engine entrypoint |
 | `repositories/sglang-omni` | engine entrypoint |
 | `repositories/sglang-omni/sub-skills/sglang-omni-architecture` | sub-skill |
@@ -169,6 +187,9 @@ an entrypoint routes to procedures below it rather than adding one.
 | `repositories/strata/sub-skills/tune-execution` | sub-skill |
 | `repositories/strata/sub-skills/validate-engine` | sub-skill |
 | `repositories/vllm` | engine entrypoint |
+| `repositories/vllm-metal/sub-skills/cache-lifecycle` | sub-skill |
+| `repositories/vllm-metal/sub-skills/platform-config` | sub-skill |
+| `repositories/vllm-metal/sub-skills/qualification` | sub-skill |
 | `repositories/vllm-omni` | engine entrypoint |
 | `repositories/vllm-omni/sub-skills/omni-architecture` | sub-skill |
 | `repositories/vllm-omni/sub-skills/omni-serving` | sub-skill |
@@ -180,7 +201,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 66 of 66.
+- Registered ids resolve to an existing `SKILL.md`: 73 of 73.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 5.
@@ -192,7 +213,7 @@ an entrypoint routes to procedures below it rather than adding one.
 | `no-SearchSpace-layer` | 13: ascend-video-diffusion-optimization, audit-recurrent-kv-finalization, cite-check-downstream-pr, competitor-scan, draft-acceptance-issue, dwarfstar, husky, inference-benchmark-design, lily, npu-skill-factory, repository-evolution-analysis, skill-evolution-playbook, splash |
 | `no-Reference-Matrix-row` | 6: ascend-video-diffusion-optimization, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence |
 | `no-sidecar` | 5: cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence |
-| `no-eval` | 64: as listed in the Gaps column above |
+| `no-eval` | 71: as listed in the Gaps column above |
 
 These are inventory gaps, not defects. A workflow skill may legitimately
 have no hardware resource layer; a candidate may legitimately be untested.

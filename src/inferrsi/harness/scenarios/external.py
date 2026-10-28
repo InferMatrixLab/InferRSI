@@ -6,7 +6,7 @@ from pathlib import Path
 
 from ...infra.artifacts import atomic_write_json as _write_json
 from ...infra.executors.local import execute_command
-from ..evaluation import read_metric
+from ...model.protocols.metrics import read_metric, validate_metric
 
 
 def execute_trial(
@@ -22,9 +22,10 @@ def execute_trial(
     result_path = Path(record["result_path"])
     if metric_key is not None:
         try:
-            record["metric"] = metric_reader(
-                json.loads(result_path.read_text(encoding="utf-8")), metric_key
-            )
+            document = json.loads(result_path.read_text(encoding="utf-8"))
+            # A reader is a conversion, not an exemption: the common metric
+            # contract applies here, before the value enters the trial record.
+            record["metric"] = validate_metric(metric_key, metric_reader(document, metric_key))
         except (OSError, ValueError, TypeError, OverflowError) as exc:
             record["metric_error"] = str(exc)
     _write_json(trial_dir / "execution.json", record)

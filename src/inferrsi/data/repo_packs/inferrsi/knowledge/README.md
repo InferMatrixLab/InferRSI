@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 66 registered skills in `data/skill_library/`.
+Generated abstracts for all 73 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [92f03ea79dbd52e38abb2216f7c062ae823bbabe](https://github.com/InferMatrixLab/InferRSI/tree/92f03ea79dbd52e38abb2216f7c062ae823bbabe/src/inferrsi/data/skill_library).
+Source snapshot: [8011318e0c1ba1b92fe35f28c149874e6280614b](https://github.com/InferMatrixLab/InferRSI/tree/8011318e0c1ba1b92fe35f28c149874e6280614b/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 92f03ea79dbd52e38abb2216f7c062ae823bbabe --check
+python tools/build_skill_index.py --source-revision 8011318e0c1ba1b92fe35f28c149874e6280614b --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -51,6 +51,8 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
 | [audit-afd-p2p-exchanges](cuda/skills/audit-afd-p2p-exchanges.json) | cuda | candidate |
+| [audit-flare-session-lifecycle](cuda/skills/audit-flare-session-lifecycle.json) | cuda | candidate |
+| [audit-h3-metal-fasth3-semantics](common/skills/audit-h3-metal-fasth3-semantics.json) | common | candidate |
 | [audit-h3-runtime-residency](common/skills/audit-h3-runtime-residency.json) | common | candidate |
 | [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
 | [audit-recurrent-kv-finalization](common/skills/audit-recurrent-kv-finalization.json) | common | candidate |
@@ -87,11 +89,15 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
 | [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |
 | [lily](common/skills/lily.json) | common | candidate |
+| [mistral-rs](common/skills/mistral-rs.json) | common | candidate |
+| [mlc-llm](common/skills/mlc-llm.json) | common | candidate |
+| [mlx-swift-lm](common/skills/mlx-swift-lm.json) | common | candidate |
 | [npu-skill-factory](common/skills/npu-skill-factory.json) | common | candidate |
 | [optimization-search-policy](common/skills/optimization-search-policy.json) | common | candidate |
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
 | [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | common | candidate |
 | [plan-activation-residency](common/skills/plan-activation-residency.json) | common | candidate |
+| [project-maya](common/skills/project-maya.json) | common | candidate |
 | [reason-hopper-kernels](cuda/skills/reason-hopper-kernels.json) | cuda | candidate |
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | unspecified |
@@ -102,4 +108,5 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [torchnpu-pinned-host-memory-lifecycle](ascend/skills/torchnpu-pinned-host-memory-lifecycle.json) | ascend | candidate |
 | [training-input-pipeline](common/skills/training-input-pipeline.json) | common | candidate |
 | [training-resource-budget](common/skills/training-resource-budget.json) | common | candidate |
+| [vllm-metal](common/skills/vllm-metal.json) | common | candidate |
 | [weight-loading-optimization](common/skills/weight-loading-optimization.json) | common | candidate |

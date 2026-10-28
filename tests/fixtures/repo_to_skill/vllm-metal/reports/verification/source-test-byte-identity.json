@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "source_commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+  "unchanged_copied_test_sha256": {
+    "tests/test_config.py": "bfceb62fa69282b6347297eb2fa8dc75cc0ce81b89880400cdca0dacce591e9b",
+    "tests/test_envs.py": "5db15bf10bad928b1742ca9952008e2a0f5deb65dcdbeebb223cd34ff203ba0c",
+    "tests/test_macos_defaults.py": "c8c7b857569d2dfa311c9c108dfd935430cb45596ceaa738c7afaaa93580c35b"
+  },
+  "scope": "Exact copied source test bytes; heavyweight original conftest omitted explicitly, not source-edited to hide dependencies."
+}

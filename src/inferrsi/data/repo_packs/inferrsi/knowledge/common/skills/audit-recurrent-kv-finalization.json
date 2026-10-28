@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/92f03ea79dbd52e38abb2216f7c062ae823bbabe/src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
-      "commit": "92f03ea79dbd52e38abb2216f7c062ae823bbabe",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8011318e0c1ba1b92fe35f28c149874e6280614b/src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
+      "commit": "8011318e0c1ba1b92fe35f28c149874e6280614b",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/LICENSE",
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
@@ -52,7 +52,7 @@
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/NOTICE.md": "cca794656897ecdc37f983f7f23c4cd12306dbe3c9cd2f54fece6340753ae4cf",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-identity.json": "5e52db0a0bda4673b9aac46a3fc035b824780def72921fee6796edb2ed9fca65",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-notes.md": "0956f59cd9a1fac27da53228dd60c51a07b87639a43c09bfab296c4aeeceaab9",
-    "src/inferrsi/data/skill_library/skill-index.json": "f5b52c963bac4017453ff92baed69b6cbac4aa96b1599970a6416e4d13cd9143"
+    "src/inferrsi/data/skill_library/skill-index.json": "efc23969e86e349abe8fd3c9d9b3aa1f23edebf3cb8344cb65e26a8ff680eeb4"
   },
   "skill_metadata": {
     "name": "audit-recurrent-kv-finalization",

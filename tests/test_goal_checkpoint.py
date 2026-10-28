@@ -220,6 +220,33 @@ def test_distinct_damaged_inputs_keep_distinct_checkpoint_identities(
         name: sha256(compare.ROOT / name) for name in compare.CONTROLLERS}
 
 
+def test_accepted_criteria_cannot_recommend_acceptance_before_any_trial_ran(
+    tmp_path, comparison_templates,
+):
+    # Every criterion can be explicitly accepted while the comparison is still
+    # only prepared. Acceptance of criteria is not execution of the comparison.
+    path, goal, run = setup_goal(tmp_path, comparison_templates[0])
+    # A never-executed comparison has no results to cite; the frozen plan is all
+    # the evidence that exists, and the owner can still accept the criteria.
+    criterion = goal["criteria"][0]
+    criterion["evidence"] = [pin(run / "plan/freeze.json", path.parent)]
+    record = path.parent / "acceptance.json"
+    write_json(record, {"goal_id": goal["id"], "criterion_id": criterion["id"],
+                        "criterion_sha256": checkpoint.criterion_sha256(goal, criterion),
+                        "accepted_by": goal["acceptance_owner"], "decision": "accepted"})
+    criterion["acceptance"] = pin(record, path.parent)
+    write_json(path, goal)
+    result = checkpoint.build_checkpoint(path, run)
+    assert result["comparison"]["status"]["execution_state"] == "not_completed"
+    assert not result["remaining"] and not result["problems"]
+    assert result["recommendation"]["action"] != "report_accepted"
+    assert result["recommendation"]["action"] == "request_authorization"
+    authorize(path, goal)
+    result = checkpoint.build_checkpoint(path, run)
+    assert result["recommendation"]["action"] not in ("report_accepted", "wait_acceptance")
+    assert result["recommendation"]["action"] == "propose_step"
+
+
 def test_interruption_never_becomes_a_fresh_or_accepted_attempt(tmp_path, comparison_templates):
     path, goal, run = setup_goal(tmp_path, comparison_templates[0])
     authorize(path, goal)
@@ -254,6 +281,8 @@ def test_real_client_failures_preserve_evidence_and_choose_the_actual_next_step(
     before = files(run)
     result = checkpoint.build_checkpoint(path, run)
     assert not result["problems"]
+    # One case is two trials, so an unknown usage on the last trial starts nothing
+    # further; the schedule completed and the next step is owner acceptance.
     expected = "prepare_new_plan" if mode in ("nonzero", "timeout") else "wait_acceptance"
     assert result["recommendation"]["action"] == expected
     assert result["comparison"]["counts"] == report["counts"]

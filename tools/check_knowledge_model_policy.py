@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from fnmatch import fnmatchcase
@@ -352,8 +353,11 @@ class GitHubHTTPError(OSError):
             errors = body.get("errors", []) if isinstance(body, dict) else []
             # GitHub may return the same capacity diagnostic directly as `errors`
             # rather than in a Status/custom array. Match only this fixed full text.
+            # The verified service response can include this exact validation prefix.
+            # Do not accept arbitrary prefixes/suffixes or substring matches.
+            capacity_strings = {capacity_message, "validation failed: " + capacity_message}
             capacity = (isinstance(errors, str) and
-                        errors.strip().lower() == capacity_message) or (
+                        errors.strip().lower() in capacity_strings) or (
                 isinstance(errors, list) and any(
                     isinstance(item, dict) and item.get("resource") == "Status"
                     and item.get("code") == "custom"
@@ -645,6 +649,21 @@ def recorded_budget_failure(entries):
     return newest.get("state") == "failure" and newest.get("description") == BUDGET_DESCRIPTION
 
 
+def confirmed_capacity(result):
+    """Typed provenance, never diagnostic text, distinguishes capacity from execution errors."""
+    evidence = result.get("capacity_evidence")
+    if not isinstance(evidence, dict) or set(evidence) != {
+            "source", "prior_kind", "prior_execution_error"}:
+        return False
+    prior = evidence["prior_kind"]
+    return (result["kind"] in {"budget-exhausted", "budget-saturated"}
+            and evidence["source"] in {"complete-history", "status-capacity-response"}
+            and evidence["prior_execution_error"] is False
+            and (prior is None or prior in {"compliant", "noncompliant",
+                                             "budget-exhausted", "budget-saturated"})
+            and (evidence["source"] != "complete-history" or prior is None))
+
+
 def status_write_failure(error, result, kind="publication-failed"):
     """A rejected POST is not a declaration verdict or proof of remote invalidation.
 
@@ -653,12 +672,23 @@ def status_write_failure(error, result, kind="publication-failed"):
     rejected write three times or turn a stale remote success into local compliance.
     """
     description = result["description"]
+    provenance = {}
+    if isinstance(error, GitHubHTTPError) and error.reason == "status-capacity":
+        prior_kind = result.get("kind")
+        prior = result.get("capacity_evidence", {})
+        provenance["capacity_evidence"] = {
+            "source": "status-capacity-response", "prior_kind": prior_kind,
+            "prior_execution_error": (prior_kind in ERROR_KINDS -
+                                      {"budget-exhausted", "budget-saturated"}
+                                      or prior.get("prior_execution_error", False)
+                                      or (prior_kind in {"budget-exhausted", "budget-saturated"}
+                                          and not confirmed_capacity(result)))}
     if isinstance(error, GitHubHTTPError) and error.code == 422:
         kind = "budget-saturated" if error.reason == "status-capacity" else "status-rejected"
         description = ("Status capacity rejected; a new head is required"
                        if error.reason == "status-capacity" else
                        "Status write rejected; inspect validation diagnostics")
-    return {**result, "state": "failure", "kind": kind, "description": description,
+    return {**result, **provenance, "state": "failure", "kind": kind, "description": description,
             "errors": [*result.get("errors", []), evaluation_failure(error)["errors"][0]]}
 
 
@@ -693,11 +723,15 @@ def invalidated(api, head, dry_run, deadline):
         # cannot be replaced by this checker; a new head is the only recovery.
         return {"state": "failure", "kind": "budget-saturated",
                 "description": "Status history is full; a new head is required",
+                "capacity_evidence": {"source": "complete-history", "prior_kind": None,
+                                      "prior_execution_error": False},
                 "errors": [f"{len(entries)} statuses recorded for this head and context "
                            f"(limit {STATUS_LIMIT}); no further status can be written"]}, False
     if not within_budget(len(entries)):
         result = {"state": "failure", "kind": "budget-exhausted",
                   "description": BUDGET_DESCRIPTION,
+                  "capacity_evidence": {"source": "complete-history", "prior_kind": None,
+                                        "prior_execution_error": False},
                   "errors": [f"{len(entries)} statuses recorded for this head and context "
                              f"(limit {STATUS_LIMIT}); no success is published"]}
         if recorded_budget_failure(entries):
@@ -799,9 +833,12 @@ def still_current(api, number, entry, policy, open_prs, scan_error):
 
 
 def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger=None,
-              report_scope=False):
+              report_scope=False, reconciliation=None):
     # The sweep deadline bounds the whole evaluation pass and keeps publication time free; each
     # target's read is bounded separately by its share of what remains.
+    full_sweep = numbers is None
+    if reconciliation is not None:
+        reconciliation.update(complete=False, targets=[])
     deadline = time.monotonic() + SWEEP_SECONDS
     scan_error = None
     try:
@@ -819,6 +856,13 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
         # A close/base-change event must receive a fresh explicit N/A result as well.
         if trigger is not None:
             numbers = [trigger, *(number for number in numbers if number != trigger)]
+    enumerated = sorted(numbers)
+    initial_scan_complete = scan_error is None
+    if reconciliation is not None:
+        try:
+            routing_snapshot(open_prs)
+        except API_ERRORS:
+            initial_scan_complete = False
     # Work another attempt already settled is not repeated: re-running it would spend the same
     # bounded time and, in a later attempt's exhausted tail, replace a published verdict with a
     # failure. A carried target is trusted only after its own premise is re-confirmed here.
@@ -998,7 +1042,8 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
                     "head": head_value, "snapshot": snapshot_value,
                     "comments": comments_value, "ownership": ownership_value,
                     "result": {key: item[key] for key in
-                               ("state", "kind", "description", "errors")}}
+                               ("state", "kind", "description", "errors", "capacity_evidence")
+                               if key in item}}
     results = []
     for number in sorted(published):
         item = published[number]
@@ -1006,12 +1051,30 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
                         "policy_sha": policy_sha, "dry_run": dry_run,
                         "rerun": item["rerun"], "state": item["state"],
                         "kind": item["kind"], "description": item["description"],
-                        "errors": item["errors"]})
+                        "errors": item["errors"],
+                        **({"capacity_evidence": item["capacity_evidence"]}
+                           if "capacity_evidence" in item else {})})
     if report_scope and scan_error is not None:
         results.append({"pull_request": 0, "head_sha": "", "policy_sha": policy_sha,
                         "dry_run": dry_run, "rerun": True, "state": "failure",
                         "kind": "unverified", "description": "Lifecycle metadata unavailable",
                         "errors": [evaluation_failure(scan_error)["errors"][0]]})
+    if reconciliation is not None:
+        try:
+            routing_snapshot(open_prs)
+        except API_ERRORS:
+            initial_scan_complete = False
+        final_targets = {pr["number"] for pr in open_prs if addressable(pr, policy)}
+        final_prs = {pr["number"]: pr for pr in open_prs}
+        carried_current = all(
+            number in final_prs
+            and admission_snapshot(final_prs[number]) == tuple(entry["snapshot"])
+            and head_owner(open_prs, number, entry["head"]) == entry["ownership"]
+            for number, entry in carried.items())
+        reconciliation.update(
+            complete=(initial_scan_complete and scan_error is None and carried_current
+                      and (not full_sweep or final_targets <= set(enumerated))),
+            targets=enumerated)
     return results
 
 
@@ -1026,6 +1089,151 @@ def refresh_event(event, event_name):
         return True
     raise ValueError("Unsupported policy event; merge queue requires an explicit integration")
 
+
+
+# Fixed dependencies, not merely the policy's self-declared path list.
+ROUTING_POLICY_INPUTS = {
+    ".github/knowledge-model-policy.json", "tools/check_knowledge_model_policy.py",
+    "tools/run_knowledge_model_policy.sh", ".github/workflows/knowledge-model-policy.yml",
+    "docs/knowledge-model-policy.md",
+}
+
+
+class AdmissionGraph:
+    """Read Git objects only; never check out or execute PR code. Bounded per plan."""
+
+    def __init__(self, repository):
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+            raise ValueError("Invalid repository")
+        self.repository = repository
+        self.deadline = time.monotonic() + 60
+
+    def git(self, *arguments):
+        remaining = self.deadline - time.monotonic()
+        if remaining <= 0:
+            raise ValueError("Routing graph deadline exhausted")
+        return subprocess.run(["git", "--no-replace-objects", *arguments], cwd=ROOT,
+                              check=True, capture_output=True, text=True,
+                              timeout=remaining).stdout.strip()
+
+    def prepare(self, shas):
+        if any(not SHA.fullmatch(sha) for sha in shas):
+            raise ValueError("Invalid graph revision")
+        shallow = self.git("rev-parse", "--is-shallow-repository")
+        # Fetch immutable objects from the trusted repository, not a PR-supplied URL.
+        options = ["--unshallow"] if shallow == "true" else []
+        self.git("fetch", "--quiet", "--no-tags", *options,
+                 f"https://github.com/{self.repository}.git", *sorted(set(shas)))
+        if self.git("rev-parse", "--is-shallow-repository") != "false":
+            raise ValueError("Incomplete routing graph")
+
+    def unchanged(self, before, current, head):
+        old = self.git("merge-base", "--all", before, head).splitlines()
+        new = self.git("merge-base", "--all", current, head).splitlines()
+        return len(old) == len(new) == 1 and old == new
+
+
+def routing_snapshot(prs):
+    seen = set()
+    snapshot = []
+    for pr in prs:
+        number = pr["number"]
+        if type(number) is not int or number <= 0 or number in seen:
+            raise ValueError("Invalid routing PR collection")
+        seen.add(number)
+        head = pr["head"]["sha"]
+        if not isinstance(head, str) or not SHA.fullmatch(head) or pr["state"] != "open":
+            raise ValueError("Invalid routing PR head or lifecycle")
+        snapshot.append((number, *admission_snapshot(pr)))
+    return sorted(snapshot)
+
+
+def routing_current(api, policy_sha, snapshot):
+    return (api.get("git/ref/heads/main")["object"]["sha"] == policy_sha
+            and routing_snapshot(api.pages("pulls?state=open")) == snapshot)
+
+
+def admission_route(api, event, event_name, policy, policy_sha, repository, graph=None):
+    """Select only proven affected targets; ambiguous evidence keeps the full sweep."""
+    full = {"mode": "full-sweep", "reason": "event-requires-refresh"}
+    is_close = event_name == "pull_request_target" and event.get("action") == "closed"
+    is_pr = event_name == "pull_request_target" and not is_close
+    is_comment = event_name == "issue_comment"
+    if event_name != "push" and not (is_close or is_pr or is_comment):
+        return None, full, None
+    try:
+        if policy["base_branch"] != "main" or event["repository"]["full_name"] != repository:
+            raise ValueError("Routing repository or branch mismatch")
+        prs = api.pages("pulls?state=open")
+        snapshot = routing_snapshot(prs)
+        if is_pr or is_comment:
+            if is_pr:
+                if event["action"] not in {"opened", "synchronize", "reopened", "edited",
+                                           "ready_for_review"}:
+                    raise ValueError("Unverified PR action")
+                trigger = event["number"]
+                captured = event["pull_request"]
+                if captured["number"] != trigger:
+                    raise ValueError("Inconsistent PR event identity")
+                heads = {captured["head"]["sha"]}
+                if event["action"] == "synchronize":
+                    # The old head can still belong to another open PR. Missing old-head
+                    # evidence cannot justify dropping that peer's ownership refresh.
+                    heads.add(event["before"])
+            else:
+                if (event["action"] not in {"created", "edited", "deleted"}
+                        or "pull_request" not in event["issue"]):
+                    raise ValueError("Unverified PR comment event")
+                trigger = event["issue"]["number"]
+                heads = set()
+            if type(trigger) is not int or trigger <= 0:
+                raise ValueError("Invalid trigger PR number")
+            live = api.get(f"pulls/{trigger}")
+            if live["number"] != trigger or live["state"] not in {"open", "closed"}:
+                raise ValueError("Unverified current PR identity")
+            heads.add(live["head"]["sha"])
+            if any(not isinstance(head, str) or not SHA.fullmatch(head)
+                   or head == "0" * 40 for head in heads):
+                raise ValueError("Unverified affected head")
+            numbers = sorted({trigger, *(pr["number"] for pr in prs
+                                        if pr["head"]["sha"] in heads and addressable(pr, policy))})
+            route = {"mode": "pr-impact", "reason": "trigger-and-head-peers", "targets": numbers}
+        elif is_close:
+            trigger = event["number"]
+            live = api.get(f"pulls/{trigger}")
+            captured = event["pull_request"]
+            head = captured["head"]["sha"]
+            if (live["state"] != "closed" or live["number"] != trigger
+                    or captured["number"] != trigger or live["head"]["sha"] != head
+                    or not isinstance(head, str) or not SHA.fullmatch(head)):
+                raise ValueError("Closed event no longer matches current lifecycle")
+            numbers = sorted({trigger, *(pr["number"] for pr in prs
+                                        if pr["head"]["sha"] == head and addressable(pr, policy))})
+            route = {"mode": "closed-impact", "reason": "closed-head-peers", "targets": numbers}
+        else:
+            before = event["before"]
+            if (event["ref"] != "refs/heads/main" or event.get("forced", False)
+                    or not isinstance(before, str) or not SHA.fullmatch(before)
+                    or before == "0" * 40):
+                raise ValueError("Push history cannot be proven")
+            graph = graph or AdmissionGraph(repository)
+            candidates = [pr for pr in prs if addressable(pr, policy)]
+            graph.prepare([before, policy_sha, *(pr["head"]["sha"] for pr in candidates)])
+            graph.git("merge-base", "--is-ancestor", before, policy_sha)
+            changed = set(graph.git("diff", "--no-renames", "--name-only",
+                                    before, policy_sha, "--").splitlines())
+            if changed & ROUTING_POLICY_INPUTS or matching(changed, policy["policy_paths"]):
+                return None, {"mode": "full-sweep", "reason": "policy-inputs-changed"}, None
+            numbers = [pr["number"] for pr in candidates
+                       if head_owner(prs, pr["number"], pr["head"]["sha"]) is not None
+                       or not graph.unchanged(before, policy_sha, pr["head"]["sha"])]
+            route = {"mode": "push-impact", "reason": "base-relative-impact",
+                     "targets": sorted(numbers)}
+        if not routing_current(api, policy_sha, snapshot):
+            raise ValueError("Routing premise advanced")
+        return numbers, route, snapshot
+    except (*API_ERRORS, subprocess.SubprocessError):
+        return None, {"mode": "full-sweep", "reason": "impact-unverified"}, None
 
 
 def report_binding(repository, event_name, event_path, policy_sha, report_id):
@@ -1055,11 +1263,15 @@ def report_binding(repository, event_name, event_path, policy_sha, report_id):
             "policy_sha": policy_sha, "report_id": report_id, "expected_head": expected_head}
 
 
-def write_report(path, binding, results):
+def write_report(path, binding, results, routing=None, reconciliation=None):
     if path is None:
         return
     report = {"schema_version": 1, "binding": binding, "results": results,
               "sweep_exit": exit_code(results), "summary": summarize(results)}
+    if routing is not None:
+        report["routing"] = routing
+    if reconciliation is not None:
+        report["reconciliation"] = reconciliation
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=True, sort_keys=True), encoding="utf-8")
     temporary.replace(path)
@@ -1099,8 +1311,25 @@ def report_exit(path, binding, sweep_exit):
     own = [result for result in results if result["pull_request"] == trigger]
     stale_event = bool(own and binding["event_name"] == "pull_request_target"
                        and own[0]["head_sha"] != binding["expected_head"])
+    execution_health = None
     if trigger is None:
         conclusion = int(sweep_exit != 0)
+        if binding["event_name"] == "push":
+            reconciliation = report.get("reconciliation", {})
+            targets = reconciliation.get("targets")
+            complete = (reconciliation.get("complete") is True
+                        and isinstance(targets, list)
+                        and all(type(number) is int and number > 0 for number in targets)
+                        and targets == sorted(seen) and 0 not in seen)
+            safe = all(not row["rerun"] and SHA.fullmatch(row["head_sha"])
+                       and ((row["kind"] in {"compliant", "closed"}
+                             and row["state"] == "success" and not row["errors"])
+                            or (row["kind"] == "noncompliant" and row["state"] == "failure")
+                            or (row["state"] == "failure" and confirmed_capacity(row)))
+                       for row in results)
+            conclusion = int(not (complete and safe))
+            if complete and safe and any(row["kind"] in FAILING_KINDS for row in results):
+                execution_health = "complete-with-findings"
     else:
         conclusion = 1
         if 0 not in seen and len(own) == 1 and not stale_event:
@@ -1109,18 +1338,48 @@ def report_exit(path, binding, sweep_exit):
                     and result["state"] == "success" and not result["rerun"]
                     and not result["errors"] and SHA.fullmatch(result["head_sha"])):
                 conclusion = 0
-    summary = {"scope": "trigger-pr" if trigger is not None else "global-sweep",
+    routing = report.get("routing", {"mode": "full-sweep"})
+    if routing.get("mode") not in {"full-sweep", "push-impact", "closed-impact", "pr-impact"}:
+        raise ValueError("Invalid routing scope")
+    if binding["event_name"] == "push" and (
+            routing["mode"] not in {"full-sweep", "push-impact"}
+            or (routing["mode"] == "push-impact"
+                and routing.get("targets") != sorted(seen))):
+        raise ValueError("Invalid push routing scope")
+    impact = routing["mode"] != "full-sweep"
+    summary = {"scope": ("trigger-pr" if trigger is not None else
+                         "affected-admissions" if impact else "global-sweep"),
+               "routing": routing,
+               "scope_note": ("No affected admissions; not a global health assessment"
+                              if impact and not results else
+                              "Only selected admissions assessed" if impact else "Full sweep"),
                "trigger": trigger, "job_exit": conclusion,
+               "execution_health": execution_health,
+               "admission_note": ("Execution completion is not admission success or merge "
+                                  "eligibility; old success may remain on saturated heads"),
+               "unresolved_admissions": [
+                   row["pull_request"] for row in results
+                   if row["kind"] in {"budget-exhausted", "budget-saturated"}],
                "target_kind": own[0]["kind"] if own else None,
-               "projection_reason": "stale-event-head" if stale_event else "final-target-result",
+               "projection_reason": ("stale-event-head" if stale_event else
+                                     "push-reconciliation" if execution_health else
+                                     "final-target-result"),
                "expected_head": binding["expected_head"],
                "evaluated_head": own[0]["head_sha"] if own else None,
                "target_applicability": ("not-applicable" if own and own[0]["kind"] == "closed"
                                         else "see-target-result"),
-               "global_summary": report["summary"], "policy_sha": binding["policy_sha"]}
+               "global_summary": None if impact else report["summary"],
+               "scope_summary": report["summary"], "policy_sha": binding["policy_sha"]}
     print(json.dumps(summary, ensure_ascii=True))
-    if sweep_exit:
-        print("::warning::Global admission sweep remains incomplete or failed; "
+    if execution_health and summary["unresolved_admissions"]:
+        print("::warning::Push reconciliation completed with capacity findings, not admission "
+              "success. Unresolved PR admissions require a new head; an old success may remain "
+              "visible. This does not establish that a PR is blocked from merging.")
+    elif execution_health:
+        print("::warning::Push reconciliation completed with noncompliant declarations; "
+              "completion is not admission success. See per-PR results.")
+    elif sweep_exit or (binding["event_name"] == "push" and conclusion):
+        print("::warning::Admission work in the reported scope remains incomplete or failed; "
               "see structured results. Trigger-PR conclusion does not clear other PRs.")
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
@@ -1161,23 +1420,40 @@ def main(argv=None):
     if policy["schema_version"] != 1:
         raise ValueError("Unsupported policy schema")
     api = GitHub(args.repository or "", token)
+    routing = {"mode": "full-sweep", "reason": "explicit-or-unrouted"}
+    route_snapshot = None
     if args.pull_request is not None:
         if args.pull_request <= 0:
             raise ValueError("PR number must be positive")
         numbers = [args.pull_request]
     else:
         event = json.loads(Path(args.event_path).read_text(encoding="utf-8"))
-        # Every trigger shares one writer, so a superseded queued event still covers all open PRs.
-        numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
+        event_name = os.environ["GITHUB_EVENT_NAME"]
+        numbers = None if refresh_event(event, event_name) else []
+        if numbers is None:
+            numbers, routing, route_snapshot = admission_route(
+                api, event, event_name, policy, args.policy_sha, args.repository or "")
     plan = plan_file(args.plan, args.policy_sha)
+    reconciliation = {}
     results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan,
                         trigger=binding["trigger"] if binding else None,
-                        report_scope=binding is not None)
+                        report_scope=binding is not None, reconciliation=reconciliation)
+    if route_snapshot is not None:
+        try:
+            current = routing_current(api, args.policy_sha, route_snapshot)
+        except API_ERRORS:
+            current = False
+        if not current and not any(result["pull_request"] == 0 for result in results):
+            results.append({"pull_request": 0, "head_sha": "", "policy_sha": args.policy_sha,
+                            "dry_run": args.dry_run, "rerun": True, "state": "failure",
+                            "kind": "deferred", "description": "Routing premise advanced",
+                            "errors": ["Replan against current main and open PRs"]})
     write_plan(args.plan, plan)
+    print(json.dumps({"routing": routing}, ensure_ascii=True))
     for result in results:
         print(json.dumps(result, ensure_ascii=True))
     print(json.dumps(summarize(results), ensure_ascii=True))
-    write_report(args.report, binding, results)
+    write_report(args.report, binding, results, routing, reconciliation)
     return exit_code(results)
 
 
