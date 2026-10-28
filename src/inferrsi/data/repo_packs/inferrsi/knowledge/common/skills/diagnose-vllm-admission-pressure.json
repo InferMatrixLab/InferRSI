@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9ac81c164a90f49e605764a336af34be65ba75ad/src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
-      "commit": "9ac81c164a90f49e605764a336af34be65ba75ad",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/efa9ba49968ee2bbd8f87125af24dea7b01062a4/src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+      "commit": "efa9ba49968ee2bbd8f87125af24dea7b01062a4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/metadata.json",
@@ -67,7 +67,7 @@
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/loongserve-readset.md": "f1a383e7bdbbd5a5a472d7f6e1292c8a17d4910ff736ca5a6aa422e1bee74f8c",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/papers-20261015/references/orca-readset.md": "a497ef23b7e60c0fbc15d95b7e07cd20547cfe56f37c24dfe6ed70d79ef7a3cf",
     "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/references/source-notes.md": "84033fd514773f10c0bddd9914fabb980497ba2b308f226a922c3e1888413827",
-    "src/inferrsi/data/skill_library/skill-index.json": "4b1ab4221e0be589638d03829fb1927ce2f6bd2049461d422119104f13d25676"
+    "src/inferrsi/data/skill_library/skill-index.json": "021a966411ac9b17c465b2125ea959ad251f658183544e18ff93b53e520f5d88"
   },
   "skill_metadata": {
     "name": "diagnose-vllm-admission-pressure",

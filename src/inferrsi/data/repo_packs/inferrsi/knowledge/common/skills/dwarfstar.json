@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9ac81c164a90f49e605764a336af34be65ba75ad/src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
-      "commit": "9ac81c164a90f49e605764a336af34be65ba75ad",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/efa9ba49968ee2bbd8f87125af24dea7b01062a4/src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
+      "commit": "efa9ba49968ee2bbd8f87125af24dea7b01062a4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/dwarfstar/LICENSE",
         "src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
@@ -71,7 +71,7 @@
     "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/SKILL.md": "71c27212847146376d72e6cc6d22abe2f7eed56402c5917cd7dfcda0b2aa5982",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/state-contracts.md": "8f74a07c947021e3069468268f6b5aa2548a17db518c5c0505b84dde73a1f31c",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/sub-skills/serving-state/references/troubleshooting.md": "c9eebe4109d418c4dfb9bb2425c145ebc1a52da9b665e0556149bc31a442e2fc",
-    "src/inferrsi/data/skill_library/skill-index.json": "4b1ab4221e0be589638d03829fb1927ce2f6bd2049461d422119104f13d25676"
+    "src/inferrsi/data/skill_library/skill-index.json": "021a966411ac9b17c465b2125ea959ad251f658183544e18ff93b53e520f5d88"
   },
   "skill_metadata": {
     "name": "dwarfstar",

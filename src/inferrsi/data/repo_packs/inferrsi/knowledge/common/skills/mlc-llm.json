@@ -27,8 +27,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9ac81c164a90f49e605764a336af34be65ba75ad/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
-      "commit": "9ac81c164a90f49e605764a336af34be65ba75ad",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/efa9ba49968ee2bbd8f87125af24dea7b01062a4/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
+      "commit": "efa9ba49968ee2bbd8f87125af24dea7b01062a4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlc-llm/LICENSE",
         "src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
@@ -97,7 +97,7 @@
     "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/limits-and-workspace.md": "77105db95de2b8ea27ed6953b5441c8af061fb745ddb13d3904f8773fc21e879",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/references/troubleshooting.md": "b89255fc04507185bc8bcf74de779730b009b12d13bb38ad0193205dfed8e921",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/sub-skills/runtime-kv-limits/scripts/audit_kv_limit_declarations.py": "d82a6dda5f5931eb369003a5e1f419bfbdd82304766a18be8ea1e1849e26b77d",
-    "src/inferrsi/data/skill_library/skill-index.json": "4b1ab4221e0be589638d03829fb1927ce2f6bd2049461d422119104f13d25676"
+    "src/inferrsi/data/skill_library/skill-index.json": "021a966411ac9b17c465b2125ea959ad251f658183544e18ff93b53e520f5d88"
   },
   "skill_metadata": {
     "name": "mlc-llm",
