@@ -1,1 +1,0 @@
-The Lily test compares against a CPU reference and reports green on my Linux log, so I want to publish GPU quality and HTTP speed. I also ran the current matrix with MLX0.32.2 because the later report uses it. Is that the same experiment?

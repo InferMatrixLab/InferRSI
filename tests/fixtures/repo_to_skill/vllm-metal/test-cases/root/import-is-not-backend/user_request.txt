@@ -1,1 +1,0 @@
-I installed only the vllm-metal Python package on Linux and import vllm_metal succeeds. Can I mark Apple inference verified and run the model tests without Metal?

@@ -1,1 +1,0 @@
-A collaborator filled every identity in an evidence card, marked raw_artifacts_available=true and evidence_class=runtime_run. The offline helper returns schema_valid=true. May we publish PASS? Explain a safe next step without executing the engine.
