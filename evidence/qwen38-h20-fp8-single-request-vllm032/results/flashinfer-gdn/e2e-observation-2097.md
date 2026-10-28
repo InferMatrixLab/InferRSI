@@ -1,0 +1,20 @@
+# FlashInfer GDN: actual bounded E2E observation
+
+Governing Issue67. Execution COMPLETED0:0; formal performance, retrieval and task-quality verdict INCONCLUSIVE. GPU2097 used one H20 for196 allocated seconds and released it. Readiness usage6992/7200GPU-seconds;208 remain. The earlier147-second diagnosis is separate; total44GPU-hour2/4/8/30 phase limits remain unchanged.
+
+Tested engine ed5d2b2a672ea54666cfd198052083e0321a13ab, same source/physical GPU/runtime/official FP8 checkpoint/client, fixed8192-token input. Native GDN then FlashInfer GDN, each one8192/16 warmup and one8192/2048 measured request, concurrency1, ignoreEOS. Both arms use FlashInfer small-M, DeepGEMM prefill and full_context Graph capacity10240. Only GDN selection differs. Startup/JIT/warmup are excluded from timed requests.
+
+| GDN | TTFT s | TPOT ms | Request s |
+| --- | ---: | ---: | ---: |
+| Native |3.535637285|16.362941744|37.030579035|
+| FlashInfer |2.836416518|13.279105203|30.018744869|
+
+FlashInfer/control ratios: TTFT0.802236284, TPOT0.811535322, request0.810647461. All2048 outputtoken IDs match. All four HTTP records passed prompt/count/usage/terminal/DONE/client ITL and timing recomputation checks. This single-case improvement is not formal10-input/3-repeat acceptance or general model quality. vLLM2084 is a different run and cannot serve as a same-job formal baseline here.
+
+Ten operator observations completed: T1/65, zero/nonzero state, four prefill→decode boundaries, decode reference and changed-input Graph. All compared tensors finite; changed-input Graph output/state exactly equal. Prefill output NRMSE up to0.00423034 and state up to0.00274707 are numerical diagnostics without a new acceptance tolerance; decode output exact in this synthetic case, state NRMSE8.09e-8. Zero-value/state algebraic check completed. These inputs use ordinary tensors; real Parameter semantics were exercised by whole-model execution after the2095 detach fix.
+
+Whole-model FlashInfer GDN with capacity10240:16predictions including initial prefill and15Graph replays, shared online eager-argmax history, every finite logit exactly equal between eager and Graph. Final live KV through8207 and complete convolution/recurrent states exactly equal. This compares two executions of the candidate, not candidate/reference task quality. Numerical rounding differences remain: prefill normalized Q/K round to BF16; fused decode gates omit the native BF16 sigmoid intermediate. Weights/scales unchanged and recurrent state FP32. Detach shares parameter storage; existing A_log.float conversion may allocate for non-FP32 input and is not a promise that the final FP32 argument shares checkpoint storage.
+
+Source archive58files matched current head; all32payload hashes verified. Actual imported native sources14/15modules matched source hashes; the extra FlashInfer GDN adapter appears only in the candidate. Both arms report2000Python FP8 forwards (1200FlashInfer,800DeepGEMM,0Triton), including warmup/capture/prefill and excluding Graph replay. These are not hardware kernel counts. Overlay899files/licenses authenticated before and after; dependencies unchanged. Both services exited0, no observer force-kill, no remaining owned process group or request/state, no cleanup errors. Normal server startup in separate processes covered actual decode warmup before capture.
+
+Archive87915b8893d5eaced9668dde75731cc5beff27decaee0b066978c06b0950369f. Raw logs/paths/device identities stay private. Retain2095FAILED56GPU-s/noHTTP, CPU2092's inherited BF16 oracle failure reproduced by2093, and preparation-review warmup/cleanup corrections. CPU2096 passed37 targeted tests after detach; this does not relabel the broader suite green. Independent actual review verified exact head/base, all source and result payloads, four SSE/client records, operator/Graph state, imports/overlay and cleanup. No remaining opt-in integration blocker. PR14 squash-merged at5738647ba11237a62da40c173998293f6c0a8ca1 from reviewed headed5d2b2a672ea54666cfd198052083e0321a13ab againstbase77f4ab13ddce1b4b0ba6f1ae5e612608959fbd1b. Current-head Actions/status lists were empty. Issue67 acceptance remains open.

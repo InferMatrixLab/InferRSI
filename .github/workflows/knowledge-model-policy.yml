@@ -34,6 +34,9 @@ jobs:
             contains(github.event.comment.body, 'knowledge-policy-approval')))) &&
             'knowledge-policy-status-writer' ||
             format('knowledge-policy-skipped-{0}-{1}', github.run_id, github.run_attempt) }}
+      # Preserve the serialized writer without replacing the sole pending merge event.
+      # GitHub bounds this queue at 100; overflow can still cancel pending work.
+      queue: max
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -1,0 +1,21 @@
+# DeepGEMM prefill: actual bounded E2E result
+
+Governing Issue67. Execution COMPLETED0:0; formal performance, retrieval and task-quality verdict INCONCLUSIVE. Slurm2084 used one H20 for956 allocated seconds and released it. Readiness usage becomes6475/7200 GPU-seconds;725 remain. The earlier147-second diagnosis is separate; total44GPU-hour phase limits remain unchanged.
+
+Tested engine b412062e13c92d2429b3758ca39af7439df4f7ec, same physical GPU/runtime, authenticated fixed8192-token input, pinned official vLLM0.32 streaming client, one8192/16 warmup and one8192/2048 measurement per arm, concurrency1, ignoreEOS. Arm order was vLLM, FlashInfer+DeepGEMM, FlashInfer-small-M control. The candidate overlay was absent from the baseline PYTHONPATH. Actual source/versions and operator origins are retained privately.
+
+| Arm | TTFT s | TPOT ms | Request s |
+| --- | ---: | ---: | ---: |
+| vLLM0.32 |1.681389540|10.723230021|23.631841392|
+| FlashInfer decode + DeepGEMM prefill |3.520265936|53.719378675|113.483834084|
+| FlashInfer decode + native Triton prefill |151.331971654|51.243170537|256.226741744|
+
+DeepGEMM/control ratios: TTFT0.0232618785, TPOT1.0483226957, latency0.4429039425. Relative to vLLM: TTFT2.0936647054, TPOT5.0096266304, latency4.8021579107. The prefill improvement is large on this case; decode TPOT is slightly worse in this one observation, with no causal/variability conclusion. Do not hide the regression or claim parity. All2048 outputtoken IDs match across all three arms on this synthetic input; this does not establish general task quality.
+
+All six raw SSE/client records passed prompt, count, usage, terminal, DONE framing, ITL and timing recomputation checks. All three observer cleanup receipts report exit0, zero remaining group members, no cleanup errors and no observer SIGKILL. This does not establish universally graceful shutdown: the vLLM server log reports an internal EngineCore abort-timeout force-kill and one leaked-semaphore cleanup warning. Startup also retained ten TritonBundler missing-cubin warning tracebacks before successful service execution. Native active-request/state counts were zero. Startup and warmup were excluded from measured requests. First DeepGEMM warmup TTFT18.413s includes first-use work; measured TTFT is3.520s. One case/repetition cannot substitute for formal10-case/3-repeat testing.
+
+Six operator cases completed with finite output and exact changed-input Graph/eager comparisons. For8192x5120 activations, five FP8 bytes differ from the independent PyTorch formula; FP32 scales are exact. Other five cases have zero byte differences. Diagnostic GEMM NRMSE against dequantized FP32 references is about0.00165–0.00169 on random cases and zero on zero/tiny cases. These are retained observations, not a newly invented numerical acceptance gate. Only original FP8 weight bytes and FP32 checkpoint multipliers were used. Full model quality remains unverified.
+
+Preflight and postflight each authenticated the frozen overlay manifest,899 operator files, licenses, allowed root entries and no symlinks. Imported package/extension paths and binary digest were checked before operator work. This remains an unmodified operator subtree repackaged from the installed vLLM wheel, not an independently rebuilt distribution. Source-build failures2061/2077 and prior launch failures remain retained.
+
+Archive SHA2560c39db0129ed4a4ef9027dc8356778d5a0486a426c33d55a1921b73f635d7468;33 retained file hashes verified. Raw paths, device identifiers and logs are private. Final implementation head980d8b1d141b69337531e52565afd250c2ff21c5 changes only two dispatch-comment lines from testedb412; independent review verified the actual archive, all six SSE/client records, source/overlay bindings and bounded integration limits. Final head a2ff24f61e0daeec128137806c193515a2a25f36 has the exact same tree as reviewed980d8b1; only merge ancestry changed after resolving documentation. PR12 merged at83d82067e72f500fd81163fc7ccfda979a499200. No Actions/status checks were configured; this opt-in integration leaves Issue67 acceptance open. The current graph capacity still demotes long decode to eager; the separately prepared full-context policy is not part of2084.

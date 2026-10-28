@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 64 registered skills in `data/skill_library/`.
+Generated abstracts for all 66 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [1e8982eab265616efc801b07741cdae5afb36adb](https://github.com/InferMatrixLab/InferRSI/tree/1e8982eab265616efc801b07741cdae5afb36adb/src/inferrsi/data/skill_library).
+Source snapshot: [7a7b34c9dc3f64726c54fac63f5322238caf047e](https://github.com/InferMatrixLab/InferRSI/tree/7a7b34c9dc3f64726c54fac63f5322238caf047e/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 1e8982eab265616efc801b07741cdae5afb36adb --check
+python tools/build_skill_index.py --source-revision 7a7b34c9dc3f64726c54fac63f5322238caf047e --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -46,12 +46,14 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [ascend-operator-tuning](ascend/skills/ascend-operator-tuning.json) | ascend | candidate |
 | [ascend-optimization-casebook](ascend/skills/ascend-optimization-casebook.json) | ascend | candidate |
 | [ascend-performance-analysis](ascend/skills/ascend-performance-analysis.json) | ascend | candidate |
+| [ascend-video-diffusion-optimization](ascend/skills/ascend-video-diffusion-optimization.json) | ascend | candidate |
 | [ascendc-tiling-design](ascend/skills/ascendc-tiling-design.json) | ascend | candidate |
 | [assess-serving-preemption](common/skills/assess-serving-preemption.json) | common | candidate |
 | [assess-split-backward-schedule](common/skills/assess-split-backward-schedule.json) | common | candidate |
 | [audit-afd-p2p-exchanges](cuda/skills/audit-afd-p2p-exchanges.json) | cuda | candidate |
 | [audit-h3-runtime-residency](common/skills/audit-h3-runtime-residency.json) | common | candidate |
 | [audit-llama-runtime-state](common/skills/audit-llama-runtime-state.json) | common | candidate |
+| [audit-recurrent-kv-finalization](common/skills/audit-recurrent-kv-finalization.json) | common | candidate |
 | [audit-sd-cpp-residency](common/skills/audit-sd-cpp-residency.json) | common | candidate |
 | [audit-sglang-diffusion-lifetimes](common/skills/audit-sglang-diffusion-lifetimes.json) | common | candidate |
 | [audit-vllm-kv-lifetimes](common/skills/audit-vllm-kv-lifetimes.json) | common | candidate |

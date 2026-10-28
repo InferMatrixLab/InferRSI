@@ -1,0 +1,15 @@
+{
+  "reviewer": "root",
+  "scope": "independent interpretation of delegated raw-receipt review and unchanged auditor replay",
+  "requests": 4,
+  "measured_requests": 2,
+  "ttft_ratio": 0.8105649764179438,
+  "ttft_reduction_percent": 18.94350235820562,
+  "tpot_ratio": 0.9980892217854955,
+  "output_token_ids_equal": false,
+  "first_different_output_token_zero_based": 5,
+  "full_quality_required": true,
+  "formal_statistics_eligible": false,
+  "verdict": "INCONCLUSIVE",
+  "receipt_sha256": "3c730644ac349ff858b10aa7ac10d621ff2eaa1cf71fbb175f98c6e08db6d3ca"
+}

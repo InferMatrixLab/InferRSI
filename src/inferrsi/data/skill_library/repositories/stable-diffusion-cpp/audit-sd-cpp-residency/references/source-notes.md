@@ -69,9 +69,25 @@ two bounded paths must not be advertised as every model's complete call graph.
 compares loader/catalog state and rebuilds affected runner groups.
 [`reset_runners`](https://github.com/leejet/stable-diffusion.cpp/blob/b13a48219d5cdf408edcb93da6cd69b612ed03d3/src/pipeline/diffusion_engine.cpp#L229-L267)
 clears conditioning caches, ends runners and unregisters parameters before
-resetting components. The loader's complete file-change predicate was not
-inspected; do not call it a content hash or assert equal mtime/size means equal
+resetting components. In the 2026-10-22 readset, the loader's complete file-change
+predicate was not inspected; do not call it a content hash or assert equal mtime/size means equal
 model bytes. Actual model revisions belong in the validation input ledger.
+
+## Bounded loader/storage extension
+
+The 2026-10-23 [loader/storage readset](loader-storage-boundaries.md) follows
+that predicate and one non-ZIP safetensors byte-delivery path at the same pinned
+revision. It authenticates twelve selected C++ blobs and the retained MIT text,
+using eleven fixed-blob fetches and the reused engine seed. Its table records
+the actual ranges; it is not a full-file or all-format review. The historical
+nineteen-blob archive receipt above remains unchanged.
+
+The new boundary distinguishes path/size/mtime and internal catalog generations
+from content hashes; metadata/range admission from actual reads; and host
+staging or mapping aliases from backend completion. ModelManager's failure
+cleanup covers blocks created for that load, not a global rollback. These
+source observations supplement the existing residency procedure; they do not
+qualify native loading, physical SSD I/O, image quality or performance.
 
 ## Build and verification boundary
 

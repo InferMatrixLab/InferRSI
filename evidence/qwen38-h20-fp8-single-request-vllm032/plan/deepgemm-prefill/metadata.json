@@ -1,0 +1,11 @@
+{
+  "issue": 67,
+  "engine_candidate": "b412062e13c92d2429b3758ca39af7439df4f7ec",
+  "base": "8859ef319486eb5ed4a444fc66c1018cbebbab33",
+  "plane": "model",
+  "source_archive_sha256": "25a15d6fd18147dc1ad2a772d618ebd8c483cb07c101c0847f18319d422d9109",
+  "knowledge_revision": "sha256:a98efeae08df1e252dc35968c6b9ddda249f57f1ea6da91fd6c3e44cfe05387c",
+  "next_scope": "GPUoperator/TMA/quantizer integration and fixed8K2048HTTP diagnostic; unexecuted at this snapshot",
+  "packaging": "candidate-only repackagedoperator; baselinePYTHONPATHremoved",
+  "formal_acceptance": "INCONCLUSIVE"
+}
