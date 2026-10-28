@@ -304,106 +304,10 @@ def json_type(value):
     return "number"
 
 
-# Owner-authorized, one-shot diagnostic. Remove after the encrypted artifact is collected.
-PRIVATE_CAPTURE_CERT_BLOB = "09d541518a02bed5f6065fc3a48dc752f839675d"
-PRIVATE_CAPTURE_HEAD = "3c1b2ff969537f3216d0125d034ae903d0743e7a"
-PRIVATE_CAPTURE_FILE = "issue203-422-errors.cms"
-
-
-def capture_certificate_introduced(event):
-    """Only the push introducing this exact owner-held certificate can capture."""
-    before, after = event.get("before"), event.get("after")
-    if (not isinstance(before, str) or not isinstance(after, str)
-            or not SHA.fullmatch(before) or not SHA.fullmatch(after)
-            or before == "0" * 40 or after == "0" * 40 or event.get("forced", False)):
-        return False
-    deadline = time.monotonic() + 10
-    environment = {"PATH": "/usr/bin:/bin", "LANG": "C", "GIT_CONFIG_NOSYSTEM": "1",
-                   "GIT_CONFIG_GLOBAL": "/dev/null", "GIT_TERMINAL_PROMPT": "0"}
-
-    def git(*arguments):
-        remaining = deadline - time.monotonic()
-        if remaining <= 0:
-            raise ValueError("Capture event proof deadline exhausted")
-        return subprocess.run(
-            ["/usr/bin/git", "--no-replace-objects", "-c", "credential.helper=",
-             "-c", "core.hooksPath=/dev/null", *arguments], cwd=ROOT, env=environment,
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True,
-            timeout=remaining, text=True).stdout.strip()
-
-    # Use only existing complete Git evidence, normally prepared by push routing.
-    # No extra network operation: missing/shallow objects disable collection.
-    if git("rev-parse", "--is-shallow-repository") != "false":
-        return False
-    for revision in (before, after):
-        git("cat-file", "-e", revision + "^{commit}")
-    git("merge-base", "--is-ancestor", before, after)
-    certificate = ".github/diagnostics/issue203-capture-public.pem"
-    if (git("ls-tree", before, "--", certificate)
-            or git("log", "-1", "--full-history", "--format=%H", before, "--", certificate)):
-        # Removal followed by re-addition must not re-arm this diagnostic.
-        return False
-    expected = f"100644 blob {PRIVATE_CAPTURE_CERT_BLOB}\t{certificate}"
-    return (git("ls-tree", after, "--", certificate) == expected
-            and git("hash-object", "--no-filters", certificate) == PRIVATE_CAPTURE_CERT_BLOB)
-
-
-def capture_private_rejection(value, route, payload):
-    """Encrypt only one selected response's errors string; never persist plaintext."""
-    if (os.environ.get("ISSUE203_PRIVATE_CAPTURE") != "one-shot"
-            or os.environ.get("GITHUB_EVENT_NAME") != "push"
-            or os.environ.get("GITHUB_RUN_ATTEMPT") != "1"
-            or os.environ.get("GITHUB_REPOSITORY") != "InferMatrixLab/InferRSI"
-            or route != f"statuses/{PRIVATE_CAPTURE_HEAD}"
-            or not isinstance(payload, dict) or payload.get("context") != CONTEXT
-            or payload.get("state") != "pending" or not isinstance(value, str)):
-        return
-    try:
-        event = json.loads(Path(os.environ["GITHUB_EVENT_PATH"]).read_text(encoding="utf-8"))
-        if (event.get("ref") != "refs/heads/main"
-                or event.get("repository", {}).get("full_name") != "InferMatrixLab/InferRSI"
-                or not capture_certificate_introduced(event)):
-            return
-        directory = Path(os.environ["RUNNER_TEMP"])
-        if not directory.is_absolute() or not directory.is_dir() or directory.is_symlink():
-            raise ValueError("Unsafe diagnostic destination")
-        # A zero-byte exclusive marker prevents another process/retry in this run from
-        # collecting again, including when encryption fails. It is never uploaded.
-        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | os.O_NOFOLLOW
-        try:
-            marker = os.open(directory / "issue203-capture-attempted", flags, 0o600)
-        except FileExistsError:
-            return
-        os.close(marker)
-        certificate = ROOT / ".github/diagnostics/issue203-capture-public.pem"
-        if certificate.is_symlink() or not certificate.is_file():
-            raise ValueError("Unavailable diagnostic public certificate")
-        encrypted = subprocess.run(
-            ["/usr/bin/openssl", "cms", "-encrypt", "-binary", "-aes-256-cbc",
-             "-outform", "DER", str(certificate)], input=value.encode("utf-8"),
-            stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, check=True, timeout=10,
-            env={"PATH": "/usr/bin:/bin", "LANG": "C", "OPENSSL_CONF": "/dev/null"}).stdout
-        if not encrypted:
-            raise ValueError("Empty encrypted diagnostic")
-        # Encryption completes in memory before any content file is opened. Refuse
-        # preexisting files/symlinks; no plaintext, headers, token or full body is stored.
-        destination = os.open(directory / PRIVATE_CAPTURE_FILE, flags, 0o600)
-        with os.fdopen(destination, "wb") as stream:
-            stream.write(encrypted)
-        step_output = os.environ.get("GITHUB_OUTPUT")
-        if step_output:
-            with Path(step_output).open("a", encoding="utf-8") as stream:
-                stream.write("private_capture=encrypted\n")
-        print('{"private_capture":"encrypted"}')
-    except (OSError, ValueError, TypeError, KeyError, AttributeError, subprocess.SubprocessError):
-        # Never echo exception text: transport/encryption failures may contain inputs.
-        print('{"private_capture":"unavailable"}')
-
-
 class GitHubHTTPError(OSError):
     """An allowlisted diagnostic, never a raw response body or credential-bearing URL."""
 
-    def __init__(self, error, capture=None):
+    def __init__(self, error):
         self.code = error.code
         headers = error.headers or {}
         self.delay = None
@@ -447,12 +351,13 @@ class GitHubHTTPError(OSError):
             # HTTP 422, an arbitrary validation message, or the locally counted history.
             capacity_message = "this sha and context has reached the maximum number of statuses."
             errors = body.get("errors", []) if isinstance(body, dict) else []
-            if capture is not None and isinstance(errors, str):
-                capture(errors)
             # GitHub may return the same capacity diagnostic directly as `errors`
             # rather than in a Status/custom array. Match only this fixed full text.
+            # The verified service response can include this exact validation prefix.
+            # Do not accept arbitrary prefixes/suffixes or substring matches.
+            capacity_strings = {capacity_message, "validation failed: " + capacity_message}
             capacity = (isinstance(errors, str) and
-                        errors.strip().lower() == capacity_message) or (
+                        errors.strip().lower() in capacity_strings) or (
                 isinstance(errors, list) and any(
                     isinstance(item, dict) and item.get("resource") == "Status"
                     and item.get("code") == "custom"
@@ -529,8 +434,7 @@ class GitHub:
                 with urlopen(request, timeout=max(0.001, deadline - time.monotonic())) as response:
                     return json.load(response), response.headers.get("Link", "")
             except HTTPError as error:
-                failure = GitHubHTTPError(
-                    error, capture=lambda value: capture_private_rejection(value, route, payload))
+                failure = GitHubHTTPError(error)
                 # Retry reads only, once, with explicit rate timing and within the existing
                 # request budget. Never replay a status POST or guess a delay from HTTP 403.
                 if (attempt == 0 and payload is None and failure.category == "rate-limit"
@@ -1194,14 +1098,48 @@ def admission_route(api, event, event_name, policy, policy_sha, repository, grap
     """Select only proven affected targets; ambiguous evidence keeps the full sweep."""
     full = {"mode": "full-sweep", "reason": "event-requires-refresh"}
     is_close = event_name == "pull_request_target" and event.get("action") == "closed"
-    if event_name != "push" and not is_close:
+    is_pr = event_name == "pull_request_target" and not is_close
+    is_comment = event_name == "issue_comment"
+    if event_name != "push" and not (is_close or is_pr or is_comment):
         return None, full, None
     try:
         if policy["base_branch"] != "main" or event["repository"]["full_name"] != repository:
             raise ValueError("Routing repository or branch mismatch")
         prs = api.pages("pulls?state=open")
         snapshot = routing_snapshot(prs)
-        if is_close:
+        if is_pr or is_comment:
+            if is_pr:
+                if event["action"] not in {"opened", "synchronize", "reopened", "edited",
+                                           "ready_for_review"}:
+                    raise ValueError("Unverified PR action")
+                trigger = event["number"]
+                captured = event["pull_request"]
+                if captured["number"] != trigger:
+                    raise ValueError("Inconsistent PR event identity")
+                heads = {captured["head"]["sha"]}
+                if event["action"] == "synchronize":
+                    # The old head can still belong to another open PR. Missing old-head
+                    # evidence cannot justify dropping that peer's ownership refresh.
+                    heads.add(event["before"])
+            else:
+                if (event["action"] not in {"created", "edited", "deleted"}
+                        or "pull_request" not in event["issue"]):
+                    raise ValueError("Unverified PR comment event")
+                trigger = event["issue"]["number"]
+                heads = set()
+            if type(trigger) is not int or trigger <= 0:
+                raise ValueError("Invalid trigger PR number")
+            live = api.get(f"pulls/{trigger}")
+            if live["number"] != trigger or live["state"] not in {"open", "closed"}:
+                raise ValueError("Unverified current PR identity")
+            heads.add(live["head"]["sha"])
+            if any(not isinstance(head, str) or not SHA.fullmatch(head)
+                   or head == "0" * 40 for head in heads):
+                raise ValueError("Unverified affected head")
+            numbers = sorted({trigger, *(pr["number"] for pr in prs
+                                        if pr["head"]["sha"] in heads and addressable(pr, policy))})
+            route = {"mode": "pr-impact", "reason": "trigger-and-head-peers", "targets": numbers}
+        elif is_close:
             trigger = event["number"]
             live = api.get(f"pulls/{trigger}")
             captured = event["pull_request"]
@@ -1323,7 +1261,7 @@ def report_exit(path, binding, sweep_exit):
                     and not result["errors"] and SHA.fullmatch(result["head_sha"])):
                 conclusion = 0
     routing = report.get("routing", {"mode": "full-sweep"})
-    if routing.get("mode") not in {"full-sweep", "push-impact", "closed-impact"}:
+    if routing.get("mode") not in {"full-sweep", "push-impact", "closed-impact", "pr-impact"}:
         raise ValueError("Invalid routing scope")
     impact = routing["mode"] != "full-sweep"
     summary = {"scope": ("trigger-pr" if trigger is not None else

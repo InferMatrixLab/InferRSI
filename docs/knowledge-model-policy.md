@@ -326,8 +326,9 @@ The workflow handles PR open/reopen/close/commits/body-or-base edits on any targ
 branch (a PR against another base can share a main PR's head), approval-comment
 creation/edit/deletion, every main push and manual dispatch. All eligible triggers
 share one serialized status writer. Ordinary main pushes and closed-PR events use
-the bounded impact routing below; policy changes, manual dispatch and other
-eligible events retain the full open main-target PR refresh. It checks out `main`,
+the bounded impact routing below; PR and approval-comment events select the
+trigger and affected head peers. Policy changes, manual dispatch and unverified
+routing evidence retain the full open main-target PR refresh. It checks out `main`,
 executes only trusted code, installs no PR
 dependencies and treats PR text/files as API data. Permissions are limited to
 contents/PR/issues read and commit-status write. Statuses explicitly target the
@@ -378,7 +379,10 @@ terminal only for the current runner invocation: `status-rejected` remains an
 execution error, not declaration noncompliance or a successful invalidation.
 An explicit recognized status-capacity response is `budget-saturated`: the fixed
 full capacity message is recognized either directly in the `errors` string or in
-a structured `Status`/`custom` array entry. An arbitrary string, substring match,
+a structured `Status`/`custom` array entry. The exact string variant with the
+`Validation failed: ` prefix is also recognized, based on the verified #203 sample;
+this classification does not restore status capacity or replace an old remote status.
+An arbitrary string, substring match,
 count of 900, or unknown 422 is not capacity proof. Other transient write failures retain
 the bounded outer retries. A fresh invocation may retry after remediation.
 The previous remote status may remain green or pending when a write is rejected;
@@ -387,7 +391,7 @@ do not repair permissions, restore capacity, identify every unknown validation
 cause, or guarantee that historical red checks clear.
 
 
-### Bounded impact routing for merge events
+### Bounded impact routing for main and PR events
 
 An ordinary main push compares the event's `before` SHA to the **current fetched
 main SHA**, not merely the event's `after`. A changed trusted input forces a full
@@ -405,10 +409,18 @@ base selects the PR; unchanged policy JSON alone is not enough, because another
 merge can change the protected paths bound by an exception approval.
 
 All open PRs, including other base branches, remain in the ownership scan. A shared
-head is never skipped. A closed-PR event selects the closed trigger (reported N/A,
-no new status) plus remaining open main-target peers on that same head. Other PR
-and approval-comment events still perform full refreshes. This is deliberately not
-a general event router or persistent admission cache.
+head is never skipped by push-impact analysis. A closed-PR event selects the closed
+trigger (reported N/A, no new status) plus remaining open main-target peers on that
+same head. Other PR events select the trigger and open main-target peers sharing
+its event head, current head, or (for synchronize) previous head. Missing previous
+head evidence falls back to a full refresh. Approval-comment create/edit/delete
+events select the trigger and current-head peers; edits and revocations remain
+eligible. Retargeting outside main still refreshes main-target peers. The evaluator
+continues checking ownership against all open PRs, including other base branches.
+Unrelated PRs receive no history scan or status POST. This reduces duplicate writes;
+it is not a persistent cache or deduplication of repeated events on the same PR.
+Every selected PR still invalidates pending before assessment, and known saturated
+heads remain blocked until a supported recovery changes the underlying condition.
 
 Missing objects, shallow/incomplete history, force pushes, malformed collections,
 repository/branch mismatches, fetch timeouts and unverified impact fall back to a
@@ -473,27 +485,3 @@ python tools/check_knowledge_model_policy.py --repository <owner/repo> --pull-re
 publishing statuses. It does not show the main workflow is operational. Production
 uses runtime-injected `GITHUB_TOKEN`; never pass tokens as CLI arguments. The
 existing ready lane runs unit tests on Python 3.10 and 3.11 in its full suite.
-
-
-
-### Temporary owner-authorized encrypted diagnostic (#203)
-
-The one-shot opt-in captures only the selected pending-status POST's HTTP 422
-`errors` string, from the response already being processed. It adds no request.
-Activation requires the first run attempt of the main push that introduces the
-exact owner-held public certificate blob, repository and exact head. Both commit
-objects must be readable; the certificate must be absent in `before`, match the
-pinned blob in `after`, and match the checked-out certificate. Complete ancestry
-must prove `before` is an ancestor of `after` and that this certificate path never
-existed before; removing and readding it cannot re-arm capture. This uses existing
-Git objects only, with a ten-second aggregate bound; temporary full-depth trusted
-main checkout supplies that ancestry without depending on a PR-head fetch. Missing/shallow objects or
-force pushes disable collection. Other events and later pushes are disabled. An exclusive marker
-prevents a second capture even if encryption fails. The string is passed in memory
-to OpenSSL CMS using a temporary public certificate and a credential-free child
-environment. Only ciphertext is written and uploaded, after a successful-capture
-step output, with one-day artifact retention. The decryption key stays outside
-GitHub. Neither plaintext, full response bodies, headers nor tokens are recorded.
-Capture failure uses a fixed diagnostic and never changes the admission verdict.
-Remove the opt-in, capture hook and public certificate after the authorized sample
-is collected; this diagnostic is not a permanent telemetry channel or a 422 fix.

@@ -63,6 +63,32 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertEqual(policy.summarize([result])["execution"], "failed")
         self.assertEqual(policy.summarize([result])["noncompliant_pull_requests"], [])
 
+    def test_verified_prefixed_capacity_string_is_terminal_not_compliance(self):
+        message = ("Validation failed: This SHA and context has reached the maximum "
+                   "number of statuses.")
+        body = {"message": "Validation Failed", "errors": message}
+        failure = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                                io.BytesIO(json.dumps(body).encode())))
+        self.assertEqual(failure.reason, "status-capacity")
+        self.assertNotIn(message, str(failure))
+        result = policy.status_write_failure(failure, {"description": "fixture"})
+        result.update(pull_request=1, rerun=result["kind"] in policy.RERUN_KINDS)
+        self.assertEqual(result["kind"], "budget-saturated")
+        self.assertEqual(result["state"], "failure")
+        self.assertFalse(result["rerun"])
+        self.assertEqual(policy.exit_code([result]), policy.EXIT_NONCOMPLIANT)
+        self.assertEqual(policy.summarize([result])["noncompliant_pull_requests"], [])
+        for changed in (message + " FAKE_SECRET", "FAKE_SECRET " + message,
+                        message.replace("Validation failed:", "Validation error:"),
+                        message[:-1]):
+            with self.subTest(changed=changed):
+                body["errors"] = changed
+                rejected = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                    io.BytesIO(json.dumps(body).encode())))
+                self.assertEqual(rejected.reason, "unknown")
+                self.assertNotIn("FAKE_SECRET", str(rejected))
+                self.assertNotIn("This SHA", str(rejected))
+
     def test_capacity_string_near_misses_remain_unknown_and_redacted(self):
         capacity = "This SHA and context has reached the maximum number of statuses."
         for errors in ("FAKE_SECRET", capacity + " FAKE_SECRET", "FAKE_SECRET " + capacity,
