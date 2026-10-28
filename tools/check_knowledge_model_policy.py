@@ -350,12 +350,16 @@ class GitHubHTTPError(OSError):
             # HTTP 422, an arbitrary validation message, or the locally counted history.
             capacity_message = "this sha and context has reached the maximum number of statuses."
             errors = body.get("errors", []) if isinstance(body, dict) else []
-            capacity = isinstance(errors, list) and any(
-                isinstance(item, dict) and item.get("resource") == "Status"
-                and item.get("code") == "custom"
-                and isinstance(item.get("message"), str)
-                and item["message"].strip().lower() == capacity_message
-                for item in errors)
+            # GitHub may return the same capacity diagnostic directly as `errors`
+            # rather than in a Status/custom array. Match only this fixed full text.
+            capacity = (isinstance(errors, str) and
+                        errors.strip().lower() == capacity_message) or (
+                isinstance(errors, list) and any(
+                    isinstance(item, dict) and item.get("resource") == "Status"
+                    and item.get("code") == "custom"
+                    and isinstance(item.get("message"), str)
+                    and item["message"].strip().lower() == capacity_message
+                    for item in errors))
             self.reason = "status-capacity" if capacity else "unknown"
             detail["reason"] = self.reason
             # Structural telemetry only: fixed types/booleans and counts bounded to
