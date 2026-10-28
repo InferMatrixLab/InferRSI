@@ -770,8 +770,18 @@ def publish_retained(api, output, source_run, writer_run, now):
                       and run["display_title"] == run_title(plan["pr"], fingerprint(plan)))
     trusted_source |= (run["event"] == "pull_request_target"
                        and run["display_title"] == f"skill-eval plan or publish PR {plan['pr']}")
+    if not trusted_source:
+        raise ValueError("Untrusted or mismatched execution workflow")
+    repository = api.request("GET", "")
+    # Actions run head_sha names the PR head for pull_request_target, not the
+    # trusted checkout. Its immutable source plan authenticates version separately.
+    expected_sha = plan["head"] if run["event"] == "pull_request_target" else plan["version"]
     if (run["id"] != source_run or run["path"] != WORKFLOW or not trusted_source
-            or run["head_sha"] != plan["version"]
+            or repository.get("full_name") != plan["repository"]
+            or type(repository.get("id")) is not int
+            or run.get("repository", {}).get("id") != repository["id"]
+            or run.get("repository", {}).get("full_name") != plan["repository"]
+            or run["head_sha"] != expected_sha
             or run["status"] != "completed" and source_run != writer_run):
         raise ValueError("Untrusted or mismatched execution workflow")
     evidence_state = "available"
@@ -861,7 +871,7 @@ def main():
             else:
                 try:
                     from tools.skill_eval_auto import eligible, ledger_store
-                    eligible(plan, config)
+                    eligible(api, plan, config)
                     live_label(api, plan, config)
                     store, key = ledger_store(api, config, pr)
                     store.read_verified(key)

@@ -142,7 +142,6 @@ src/inferrsi/
     repo_packs/             Contribution descriptors and versioned tuning knowledge
     knowledge_packs/        Dependency and peer knowledge, preserving existing tiers
     skill_library/          Complete categorized English skills and resources
-    platform_packs/         Backend metadata and qualification context
   execution.py              Compatibility entrypoint -> harness.runner
   evaluation.py             Compatibility exports -> harness.evaluation
   inspection.py             Compatibility entrypoint -> infra.inspection
@@ -157,7 +156,7 @@ tests/fixtures/legacy/      Frozen historical validation dependencies for regres
 | --- | --- | --- |
 | Model or scenario | `model/protocols`, `model/validators`, `harness/scenarios` | Frozen request and metric contract; model-specific quality coverage |
 | Repository | `infra/targets`, a composed scenario, `data/repo_packs` | Stable source identity; command/result contract; environment isolation |
-| Hardware | `infra/platforms`, `data/platform_packs` | Device selection, process exclusivity and independent backend/model evidence |
+| Hardware | `infra/platforms` | Device selection, process exclusivity and independent backend/model evidence; a backend is registered in `infra/platforms/__init__.py` and its probe command is defined in the implementing module under `infra/platforms/`, not in package data |
 
 The acceptance rule is: **a new model or hardware adapter must reuse the common
 AB/BA loop, process cleanup and performance adjudication.** The extension
@@ -228,12 +227,14 @@ the default control package continues to require only the standard library.
 ### Add a platform or repository
 
 Register a device probe in `infra.platforms.PLATFORM_PROBES`; supply the selected
-IDs, device model and bounded command runner. New backend names also need a
-catalog/CLI descriptor and a platform pack. Adding a device SKU within a backend
-is a parameter/configuration change. CUDA qualification takes an explicit device
-count and model; it contains no B300 or four-device default. ROCm and Ascend
-currently expose raw tool facts and require independent qualification. Discovery
-is not compatibility or performance certification.
+IDs, device model and bounded command runner. A new backend name additionally
+needs an entry in `catalog.BACKENDS`, which supplies the CLI `--backend` choices
+and the accepted knowledge and skill backends; no package-data descriptor is
+required. Adding a device SKU within a backend is a parameter/configuration
+change. CUDA qualification takes an explicit device count and model; it contains
+no B300 or four-device default. ROCm and Ascend currently expose raw tool facts
+and require independent qualification. Discovery is not compatibility or
+performance certification.
 
 For a new repository, start with the Git target adapter if applicable, add the
 repository descriptor/knowledge pack and compose its benchmark scenario. Update
@@ -273,11 +274,12 @@ Package data is the canonical source for noneditable installations:
 inferrsi/data/repo_packs/REPO/knowledge/
   README.md                       Organization and navigation only
   BACKEND/COMPONENT/ENTRY.json     One canonical reusable experience
+inferrsi/data/repo_packs/inferrsi/knowledge/
+                                  Generated from data/skill_library/, never hand-edited
 inferrsi/data/knowledge_packs/
   README.md                       Three-tier source navigation
   dependency/REPO/BACKEND/COMPONENT/ENTRY.json
   peer/REPO/BACKEND/COMPONENT/ENTRY.json
-inferrsi/data/platform_packs/BACKEND/pack.json
 ```
 
 JSON owns applicability, claims, recommendations, validation and limitations;

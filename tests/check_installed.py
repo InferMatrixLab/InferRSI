@@ -41,7 +41,6 @@ for record in mlx_records:
     assert mlx_reader.resource(
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
-assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
 assert len(skill_index) == 72, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)

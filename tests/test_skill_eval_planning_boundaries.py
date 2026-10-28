@@ -83,7 +83,7 @@ def test_two_mapped_skills_without_label_or_anchor_keep_free_advisory(
     assert "Paid execution blocked" in api.comments[0]["body"]
     assert not any("/git/" in path or "/collaborators/" in path for path in api.reads)
     with pytest.raises(ValueError, match="Planning-only"):
-        auto.eligible(plan, config)
+        auto.eligible(api, plan, config)
     with pytest.raises(ValueError, match="Planning-only"):
         pr.execute(output, {}, client=Mock())
     with pytest.raises(ValueError, match="Planning-only"):

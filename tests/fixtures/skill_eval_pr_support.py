@@ -61,7 +61,8 @@ class SimulatedGitHub(integration.GitHub):
         self.run = {"id": run_id, "path": integration.WORKFLOW, "event": "workflow_dispatch",
                     "display_title": integration.run_title(plan["pr"],
                                                           integration.fingerprint(plan)),
-                    "head_sha": plan["version"], "status": "completed"}
+                    "head_sha": plan["version"], "status": "completed",
+                    "repository": {"id": 123, "full_name": plan["repository"]}}
         self.artifact = {"id": 90, "name": "skill-eval-results", "expired": False,
                          "expires_at": "2030-01-01T00:00:00Z", "size_in_bytes": len(data)}
         self.data = envelope(data)
@@ -76,6 +77,8 @@ class SimulatedGitHub(integration.GitHub):
     def request(self, method, path, data=None, *, binary=False):
         if method == "GET":
             self.reads.append(path)
+            if not path:
+                return {"id": 123, "full_name": self.repository}
             if path.startswith("/pulls/"):
                 return {"state": "open", **{key: {"sha": value}
                                            for key, value in self.current.items()}}
