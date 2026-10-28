@@ -376,8 +376,10 @@ deadline for reading the response.
 Status POSTs are never retried by the transport. An HTTP 422 status rejection is
 terminal only for the current runner invocation: `status-rejected` remains an
 execution error, not declaration noncompliance or a successful invalidation.
-An explicit recognized status-capacity response is `budget-saturated`; a count of
-900 or an unknown 422 is not capacity proof. Other transient write failures retain
+An explicit recognized status-capacity response is `budget-saturated`: the fixed
+full capacity message is recognized either directly in the `errors` string or in
+a structured `Status`/`custom` array entry. An arbitrary string, substring match,
+count of 900, or unknown 422 is not capacity proof. Other transient write failures retain
 the bounded outer retries. A fresh invocation may retry after remediation.
 The previous remote status may remain green or pending when a write is rejected;
 no failure status is claimed to have been published. Diagnostics and retry control
