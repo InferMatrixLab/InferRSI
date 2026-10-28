@@ -284,6 +284,10 @@
     "mlc-llm": {
       "path": "repositories/mlc-llm",
       "backend": "common"
+    },
+    "audit-h3-metal-fasth3-semantics": {
+      "path": "repositories/h3-metal/audit-h3-metal-fasth3-semantics",
+      "backend": "common"
     }
   }
 }
