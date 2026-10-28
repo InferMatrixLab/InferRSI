@@ -88,11 +88,26 @@ Author-reported means from three requests after two warmups; not independently v
 
 [Ascend measurements and rejected rounds →](docs/qwen-image-2.1-turbo-ascend.md) · [Upstream NPU patch](https://github.com/vllm-project/vllm-omni/pull/8729)
 
-### Standalone inference engines
+### Standalone video/audio engines
 
 [h3-metal](https://github.com/zuiho-kai/h3-metal) provides Metal-native FastH3 and MiniMax-H3 text-to-video/audio inference on Apple GPUs.
 
-Speech-engine concurrency 1 (C1) results reported by each project. Values are **engine / vLLM-Omni / SGLang-Omni**; compare within a row, since workloads and audio-frame definitions differ.
+Author-reported results on **Apple M5 Max (40-core GPU), 128 GB, macOS 27**, at **768×448, 49 frames, seed 0**, using real weights with one engine running at a time.
+
+| Engine | Steps | Cold latency (s) ↓ | Warm latency (s) ↓ |
+| --- | --- | --- | --- |
+| **h3-metal — FastH3 + block-sparse attention** | 4 | **48.23** | **18.20** |
+| **h3-metal — original H3** | 20 | **54.29** | **29.89** |
+| antirez/h3.c — default preset | 20 | 67.6 | 73.3 |
+| PipeNetwork/minimax-h3-mlx — 4-bit | 20 | 153.1 | 134.6 |
+
+Cold includes the first clip's weight loading, text encoding and preparation; warm reuses loaded weights and prepared state. FastH3 uses a distilled 4-step checkpoint, unlike the 20-step configurations. Warm values average clips 2–4 for the 20-step rows and two A/B/B/A warm runs for FastH3.
+
+[Author's report and reproduction →](https://github.com/zuiho-kai/h3-metal/blob/53b7fa5d88e2497ab427ab9c7155535f7e6e6817/README.md#performance). These external results were not rerun in InferRSI.
+
+### Standalone speech engines
+
+Concurrency 1 (C1) results reported by each project. Values are **engine / vLLM-Omni / SGLang-Omni**; compare within a row, since workloads and audio-frame definitions differ.
 
 | Project | Device | Throughput (frames/s) ↑ | TTFA p50 (ms) ↓ | Report and status |
 | --- | --- | --- | --- | --- |
