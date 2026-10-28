@@ -1,16 +1,17 @@
 # Skill PR planning and feedback
 
-The report-only [Skill PR workflow](../.github/workflows/skill-eval-pr.yml) connects
+The advisory [Skill PR workflow](../.github/workflows/skill-eval-pr.yml) connects
 skill changes to the existing [comparison command](skill-eval-comparison.md).
 It does not add an execution engine or a required efficacy gate. Refs #101; parent #88.
 
 ```mermaid
 flowchart LR
     A["PR Git objects"] --> B["Trusted mapping → frozen plan"]
-    B --> C["Authorized operator: versions + hash + budget"]
+    B --> C["Trusted label actor + exact plan + cumulative PR reservation"]
     C --> D["Existing comparison client; no publication credentials"]
     D --> E["Retained results: 30 days"]
-    E --> F["Trusted publisher → one PR summary"]
+    E --> F["Trusted publisher → exact-plan advisory + explicit gaps"]
+    F --> G["Independent review; separate merge authority"]
 ```
 
 ## Automatic planning
@@ -62,10 +63,9 @@ also rejects `action=plan` with its authorize, execute or pack CLI modes.
 Supplying execution fields or a `source_run` to this action does not authorize
 execution or import earlier results.
 
-Only `action=execute` schedules authorization and execution. Its five approval
-fields remain mandatory in the controller, although optional in the shared
-dispatch form. `action=publish` still requires a validated original execution
-run; a planning-only run is not a supported source for retained results.
+Legacy `action=execute` is now explicitly blocked. Automatic paid execution uses
+the trusted opt-in label controller described below. `action=publish` requires a
+validated original source run and never schedules model execution.
 
 A new trusted implementation or changed PR inputs creates a new plan identity;
 old hashes and approvals cannot authorize it. A plan dispatch has a non-execution
@@ -78,51 +78,26 @@ automatic PR planning can also exercise that publisher. Retain the safe HTTP
 diagnostic or successful summary receipt. Neither entry repairs a permission
 denial. This verifies publication only, not evaluation.
 
-## Explicit execution authorization
+## Execution authorization and environment
 
-Planning grants no execution budget. An operator with repository `write`,
-`maintain` or `admin` permission dispatches **Skill PR evaluation** on **main**:
+Planning grants no execution budget. The trusted deployment configuration,
+latest authorized label-add event and current actor permission are required;
+PR text and dispatch inputs cannot supply that authority. Automatic execution
+uses the existing frozen provider plans and enforces their complete worst-case
+reservation against USD 200 cumulatively per PR. The non-provider default mapping
+remains useful for offline planning, but cannot execute as a paid PR fallback.
 
-| Dispatch input | Required approval |
-| --- | --- |
-| `action=execute`, `pr` | The PR being evaluated |
-| `plan_sha256` | The exact PR plan hash displayed in its summary |
-| `version` | The full trusted implementation SHA from that summary |
-| `base`, `head` | Both full compared revisions |
-| `budget` | The complete displayed Budget JSON, including limits per comparison and total estimated calls |
+The bounded [issue 215 deployment record](skill-eval-deployment-215.md) supplies
+the reviewed configuration for PR159/160 only. It creates no provider credential
+or execution label. A historical successful run does not establish current
+credentials, permission, provider readiness or remaining budget. See the
+deployment checklist below before enabling the switch.
 
-The authenticated dispatch actor's current collaborator permission is queried;
-knowledge of a hash or a PR comment is insufficient. The explicit inputs must
-match the newly reconstructed plan exactly. Authorization and current revisions
-are rechecked in the execution job immediately before starting the existing
-comparison command. No shell evaluates user-provided inputs.
-
-The selected model is **`gpt-6.1-sol`, effort `xhigh`**, requested by the owner.
-Each selected comparison schedules **2 task calls**: one absent/old and one new arm,
-one case, one repeat. Limits are 180 seconds per trial, 600 seconds per comparison,
-and an observed-token stop threshold of 20,000. This stops new trials; it is not
-a provider token or monetary hard cap. One trial can cross the threshold, and
-unreported usage/cost remain unknown. Selecting both mapped owners schedules four
-calls. Mapping more skills increases the total;
-the exact total is shown in the plan and requires renewed authorization.
-
-### Execution environment prerequisite
-
-Execution reuses `CodexClient` and the current process cleanup path. The existing
-client executable and separately authorized model access must already be
-available in that job's environment. The repository currently has **no such
-hosted-job model provisioning**. The workflow fails its `codex --version` preflight
-when the client is absent; it never substitutes fixed outputs for real execution.
-This delivery adds no runner, model credential, secret or repository security
-setting. Real-agent end-to-end acceptance remains blocked on owner-approved
-access to the selected client in the execution environment. Do not dispatch a
-paid trial until that prerequisite and its budget are separately authorized.
-
-The execute job has read-only repository permissions, no publication token in
-its model step, and checkout uses `persist-credentials: false`. The privileged
-publisher is a separate fresh job. Model access must not also grant PR publishing.
-Only the publish job requests `pull-requests: write`, alongside its existing
-`issues: write`; planning and execution retain read-only repository permissions.
+The controller alone has owner-approved `contents: write` for the dedicated Git
+budget ledger. Its existing model executor runs in a sanitized child process with
+no GitHub/Actions write tokens. Checkout uses `persist-credentials: false`.
+The publisher remains a separate fresh job and alone requests PR/issue comment
+write permissions. Planning and publication have read-only repository contents.
 In the controlled fork [baseline](https://github.com/Dong1017/OmniRSI/actions/runs/40455073055),
 the same Actions job could create/update an ordinary Issue comment but received
 permission HTTP403 for a PR conversation comment with PullRequests read.
@@ -141,26 +116,17 @@ duplicate attempts.
 
 ## Duplicate prevention and interrupted execution
 
-Actions records the authorization dispatch as
-`skill-eval execute PR <number> plan <SHA-256>`. Under the shared concurrency
-group, only the earliest matching execution run may proceed. Every status is
-considered, including queued, failed and cancelled runs. Attempts other than
-`run_attempt=1` cannot execute. An exclusive local claim file additionally prevents
-two callers sharing the same retained directory from entering the comparison.
+The durable Git ledger, not expiring artifacts or Actions titles, binds each
+frozen plan to one workflow run/attempt. All revisions of one PR share the same
+USD 200 ceiling. Reservation and claim are separate compare-and-swap transitions;
+an ambiguous write, duplicate plan, exhausted allowance or missing/corrupt history
+blocks execution. Claims are deliberately non-idempotent. Interrupted requests
+retain their full conservative reservations, including when no cost receipt was
+produced. No takeover, automatic paid retry, refund or reset is provided.
 
-The Actions run is the durable execution tombstone, not the expiring artifact.
-An interrupted or failed attempt is consumed even if it might have stopped
-before any paid work. There is no automatic paid retry/resume. Do not delete
-execution workflow runs; inaccessible/incomplete run history fails closed.
-Authorization requires a stable integer `total_count`, exactly that many unique
-run IDs and no overlapping pages. GitHub's filtered workflow-run searches have a
-[1,000-result limit](https://docs.github.com/en/rest/actions/workflow-runs?apiVersion=2022-11-28#list-workflow-runs-for-a-workflow).
-Reaching that limit is ambiguous, so a reported total of 1,000 or more blocks
-execution immediately. Missing/changing totals or an early short/empty page
-also block execution; a short page alone never proves complete history.
-Deleting this coordination history removes duplicate-prevention evidence and
-requires human reconciliation before any further execution of the same plan.
-Workflow reruns may republish results but must not rerun evaluation.
+An exclusive local claim file also prevents duplicate execution in one retained
+directory. Attempts other than `run_attempt=1` cannot execute. Publication-only
+retry makes no new model calls and consumes no new reservation.
 
 ## Publication and retention
 
@@ -172,7 +138,15 @@ and updates the same marked bot comment instead of creating another summary.
 
 The publisher reconstructs trusted inputs from Git and the maintained mapping.
 It requires the source run's workflow path, event, trusted revision and exact
-plan identity. It downloads only that run's uniquely named result artifact.
+plan identity. Automatic runs have only a PR-number title, so before downloading
+results the publisher reads that source run's unique `skill-eval-plan` artifact
+through the authenticated Actions API and requires its original `pr-plan.json`
+fingerprint to equal the complete freshly reconstructed plan. This binds both
+initial publication and publish-only retries to the actually planned PR head,
+even when main and skill bytes stayed unchanged. Missing, expired, ambiguous or
+invalid source plans cannot substantiate results; artifact files are never
+executed. Dispatch sources retain their exact plan-hash title requirement.
+It then downloads only that run's uniquely named result artifact.
 ZIP members must be bounded, unique, regular files at explicitly scheduled
 result paths; traversal, symlinks, executable scripts and replacement plans or
 Markdown are rejected before extraction. GitHub authorization is stripped on
@@ -231,9 +205,132 @@ inconclusive and missing pair, a single simulated PR summary, and retained
 evidence. They validate integration behavior only. The summary's example GitHub
 link is simulated; inspect the corresponding local `publication/` evidence.
 
-The workflow becomes active after this implementation is on main. Draft PR CI
-tests its offline behavior; it does not activate an unmerged privileged workflow.
-#101/#88 remain open until one **real addition** and one **real update** complete
-the separately authorized agent execution and automatic PR feedback path.
-Neutral/negative outcomes are valid. Neither fixed outputs nor green CI establish
-skill efficacy, authorize paid trials, merge a PR or close either issue.
+The workflow is already on main. The bounded #88/#101 addition/update acceptance
+established the existing real-agent execution and feedback path, including a
+valid neutral update; it did not establish whole-library efficacy or subject-PR
+merge readiness. #215's advisory behavior still needs revision-scoped real-PR
+demonstration and independent review. Offline controls are not that demonstration.
+Neither fixed outputs nor green CI authorize paid trials, merge or issue closure.
+
+## Reading the advisory guidance
+
+The existing summary derives one advisory from trusted regenerated comparisons,
+not an aggregate score. Its applicability is exactly the displayed base/head,
+trusted implementation and PR plan hash (which binds each comparison and exam).
+The publisher reconstructs these inputs and checks live PR revisions before
+writing; an old execution cannot be republished against a new plan. No background
+monitor updates an already-posted comment when inputs change or artifacts expire.
+Check the current PR and artifact availability before relying on a saved comment.
+
+| Evidence | Advisory / next action |
+| --- | --- |
+| Any current, verified regression | Address observed regression; fixes elsewhere never cancel it |
+| PLANNED, missing/expired/invalid evidence, incomplete execution or pairs | Obtain missing evidence; do not infer quality from preparation or a green job |
+| Uncovered/unsupported changes, no selected cases | Obtain relevant evidence or an explicit reviewer disposition of the boundary |
+| Unchanged-incorrect | Existing failure remains visible; fix or explicitly disposition it |
+| Complete covered fixes and/or unchanged-correct pairs | Covered evidence supports proceeding to independent review, not approval |
+
+Per-case outcomes remain visible, including simultaneous fixes, regressions and
+gaps; discovery does not replace paired holdouts. Correct→correct is valid neutral
+evidence, never incremental benefit. A coverage gap is not a requirement to test
+every changed file: a reviewer can explicitly disposition navigation, unsupported
+content or another boundary. The automated report does not invent that decision
+or silently count the gap as passed. Content/source review, authorship admission,
+and merge authority remain independent.
+
+Knowledge-only changes under `src/inferrsi/data/repo_packs/**/knowledge/**` and
+`src/inferrsi/data/knowledge_packs/**` now trigger bounded automatic planning.
+Unmapped paths remain uncovered, select no paid work, and publish insufficient
+evidence rather than a pass. Other repository-pack paths can use the existing
+**plan-only dispatch** for an explicit scope report. No unrelated audit grader
+is introduced for knowledge content.
+
+### Relevant #179 integrity reconciliation
+
+The current comparison loader checks schedule/task/repeat consistency, limit
+shape, exported bundle resources and frozen exam hashes. The report regrades
+retained default-audit answers with trusted code; custom graders are unverified.
+The PR adapter validates mapping IDs before creating paths, reconstructs the
+exact PR plan, checks run provenance and regrades again. The checkpoint now
+requires completed execution before recommending accepted reporting. These are
+existing corrections, not newly repaired historical defects in this slice.
+
+Limits remain: semantic consistency and unkeyed receipts do not attest a hostile
+executor, the actual model/hardware used, or consistently fabricated retained
+answers. Standalone freeze fields are not all independently authenticated.
+The PR path's trusted reconstruction narrows that boundary; it does not create
+cryptographic provenance. Review guidance is advisory evidence interpretation,
+not execution attestation or skill-efficacy certification. Unrelated harness
+lifecycle/Windows contention work remains outside this slice and under #179.
+
+## Label-gated cumulative paid execution (deployment prerequisite)
+
+The trusted controller extends the existing prepare/execute/pack/publish pipeline;
+it is not another runner. It uses only the existing Yibuapi Messages agent and
+frozen comparisons. Automatic execution is opt-in, advisory and never a merge
+approval. The bounded skill/knowledge path filters remain; label addition,
+removal, closing and revision events are included. A removal or closure stops
+subsequent requests through a live GitHub check, independently of whether a
+path-filtered notification starts another workflow. Already in-flight calls
+cannot be revoked. Closed events never start preparation or paid work.
+
+**Not activated by this change.** An owner must separately review and deploy
+`tools/skill_eval_auto_config.json` in trusted main. No working config, label,
+credential or ledger genesis is created by this implementation. The config is
+strictly shaped as:
+
+- `schema_version: 1`, immutable `repository_id`, dedicated `label`, and explicit
+  owner-authorized GitHub logins in `operators`;
+- finite Unix `expires_at` and `review_evidence` identifying the owner review;
+- complete `provider` (existing provider-config schema) and its canonical JSON
+  `provider_sha256`. Only Yibuapi `claude-opus-5-5`, USD 8 input / 40 output / 0.4
+  cache-read per million are accepted. Cache-write, request fees, effective group,
+  full-context input bound, output/request limits, and current rate-evidence
+  comment must **also** be explicitly reviewed. No unknown rate defaults to zero;
+- `anchors`, keyed by PR number string: each entry contains `ref`,
+  `genesis_commit`, and `checkpoint_commit`, referencing the separately audited
+  per-PR Git ledger described in [the budget contract](skill-eval-budget-core.md).
+  Unknown historical spending is a blocker, never an empty zero-cost ledger.
+
+Every eligible plan reserves its entire enforceable worst case against the same
+repository-ID + PR-number USD 200 ceiling, then wins a one-shot durable claim
+before any provider request. Duplicate events, attempts, label re-additions and
+changed heads cannot replenish the allowance. Reservations are deliberately never
+refunded automatically: a successful, interrupted or uncertain run retains its
+full bound. The report separates known/legacy spending, conservative unresolved
+reservations and remaining capacity. Unknown accounting is explicitly blocked.
+
+The latest applicable label-add action must belong to an allowlisted operator
+who **currently** retains repository write/maintain/admin permission. Merely
+having the label, being the PR author, or supplying dispatch text does not grant
+authority. Each provider request rechecks live label event identity, open/non-draft
+state, exact head/base, operator permission, configuration expiry and durable
+claim. A revision produces a fresh frozen binding against the original PR ledger.
+
+Only the trusted controller job has `contents: write`. Its executor child gets an
+allowlisted environment, a short-lived local request-gate capability and the
+provider key, not the GitHub/Actions write tokens. PR content remains data, not
+executed code. The separate publisher never makes model calls. Publication-only
+retry remains supported via the original source run and exact current plan;
+legacy paid `workflow_dispatch execute` is explicitly blocked instead of bypassing
+the cumulative ledger. Existing credential-free injected-client tests still work.
+
+Live acceptance remains pending until the owner-reviewed provider configuration,
+explicit label/operator policy, current pricing evidence and audited historical
+spend/genesis anchors exist, followed by an authorized real run and publication.
+Offline controller tests do not establish provider charges or skill efficacy.
+
+### Free planning remains available when execution is blocked
+
+The full changed-skill scope is planned before paid admission. If the combined
+reservation exceeds the approved total, the report retains every comparison and
+marks paid execution blocked; it neither increases the cap nor splits the plan
+to bypass it. Missing labels or audited anchors also do not suppress free advice.
+
+Expired trusted configuration or pricing remains usable only as frozen planning
+identity; live paid checks still reject it. Missing, unreadable or corrupt trusted
+configuration produces an explicit mapping-only scope report with an unconfigured
+model, no provider selection and no executable comparison freezes. It never
+silently falls back to another model/provider. These blocked plans are rejected
+by PR authorization and execution as well as the automatic controller. Direct
+standalone comparison-harness behavior is unchanged.

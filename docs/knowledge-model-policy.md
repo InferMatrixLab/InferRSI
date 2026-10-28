@@ -326,8 +326,9 @@ The workflow handles PR open/reopen/close/commits/body-or-base edits on any targ
 branch (a PR against another base can share a main PR's head), approval-comment
 creation/edit/deletion, every main push and manual dispatch. All eligible triggers
 share one serialized status writer. Ordinary main pushes and closed-PR events use
-the bounded impact routing below; policy changes, manual dispatch and other
-eligible events retain the full open main-target PR refresh. It checks out `main`,
+the bounded impact routing below; PR and approval-comment events select the
+trigger and affected head peers. Policy changes, manual dispatch and unverified
+routing evidence retain the full open main-target PR refresh. It checks out `main`,
 executes only trusted code, installs no PR
 dependencies and treats PR text/files as API data. Permissions are limited to
 contents/PR/issues read and commit-status write. Statuses explicitly target the
@@ -378,7 +379,10 @@ terminal only for the current runner invocation: `status-rejected` remains an
 execution error, not declaration noncompliance or a successful invalidation.
 An explicit recognized status-capacity response is `budget-saturated`: the fixed
 full capacity message is recognized either directly in the `errors` string or in
-a structured `Status`/`custom` array entry. An arbitrary string, substring match,
+a structured `Status`/`custom` array entry. The exact string variant with the
+`Validation failed: ` prefix is also recognized, based on the verified #203 sample;
+this classification does not restore status capacity or replace an old remote status.
+An arbitrary string, substring match,
 count of 900, or unknown 422 is not capacity proof. Other transient write failures retain
 the bounded outer retries. A fresh invocation may retry after remediation.
 The previous remote status may remain green or pending when a write is rejected;
@@ -387,7 +391,7 @@ do not repair permissions, restore capacity, identify every unknown validation
 cause, or guarantee that historical red checks clear.
 
 
-### Bounded impact routing for merge events
+### Bounded impact routing for main and PR events
 
 An ordinary main push compares the event's `before` SHA to the **current fetched
 main SHA**, not merely the event's `after`. A changed trusted input forces a full
@@ -405,10 +409,18 @@ base selects the PR; unchanged policy JSON alone is not enough, because another
 merge can change the protected paths bound by an exception approval.
 
 All open PRs, including other base branches, remain in the ownership scan. A shared
-head is never skipped. A closed-PR event selects the closed trigger (reported N/A,
-no new status) plus remaining open main-target peers on that same head. Other PR
-and approval-comment events still perform full refreshes. This is deliberately not
-a general event router or persistent admission cache.
+head is never skipped by push-impact analysis. A closed-PR event selects the closed
+trigger (reported N/A, no new status) plus remaining open main-target peers on that
+same head. Other PR events select the trigger and open main-target peers sharing
+its event head, current head, or (for synchronize) previous head. Missing previous
+head evidence falls back to a full refresh. Approval-comment create/edit/delete
+events select the trigger and current-head peers; edits and revocations remain
+eligible. Retargeting outside main still refreshes main-target peers. The evaluator
+continues checking ownership against all open PRs, including other base branches.
+Unrelated PRs receive no history scan or status POST. This reduces duplicate writes;
+it is not a persistent cache or deduplication of repeated events on the same PR.
+Every selected PR still invalidates pending before assessment, and known saturated
+heads remain blocked until a supported recovery changes the underlying condition.
 
 Missing objects, shallow/incomplete history, force pushes, malformed collections,
 repository/branch mismatches, fetch timeouts and unverified impact fall back to a
@@ -438,8 +450,34 @@ trigger PR, unavailable evidence, status-publication failure, capacity failure,
 advanced head, or missing target still fails its own job. A freshly checked
 closed/non-policy-branch target is explicitly **not applicable**, not an admission
 or acceptance PASS. It is added to the sweep even when absent from the open list.
-Push-to-main and manual workflow-dispatch jobs continue to report global execution
-health. Explicit CLI `--pull-request` and dry-run behavior is unchanged.
+Push-to-main jobs report reconciliation execution for the explicitly displayed
+scope, separately from unresolved PR admissions. A complete, verified push report
+may finish **complete-with-findings** when its only problems are confirmed status
+capacity (`budget-exhausted` or `budget-saturated`) or noncompliant declarations.
+This is not admission success or a claim that a PR is blocked from merging: an
+older remote success can remain visible when capacity prevents replacement.
+Per-PR statuses and raw sweep errors remain unchanged, with unresolved PR numbers,
+kind counts and a warning in the final summary. Impact scopes are not global health
+assessments; policy-input changes still reconcile the full open-PR set.
+
+```mermaid
+flowchart LR
+  A[Serialized final attempt] --> B[Per-head admission statuses unchanged]
+  A --> C[Bound report and complete target enumeration]
+  C --> D[Push reconciliation execution]
+  D --> E[Capacity findings visible, not admission success]
+  C --> F[PR own result or manual global result unchanged]
+```
+
+Capacity is established only by a complete history read or a recognized GitHub
+status-capacity response, with typed provenance retained through retries. A prior
+history, authorization, network or evaluator error cannot be hidden by a later
+capacity rejection. Unknown 422 responses and all other execution errors still
+fail the push job. Projection requires complete enumeration and one result for
+each selected target; newly appearing full-sweep targets, incomplete enumeration,
+missing provenance and missing/stale/malformed reports cannot yield success.
+Manual workflow-dispatch, explicit CLI `--pull-request`, dry-run and trigger-PR
+semantics are unchanged, including their capacity failures.
 
 The runner deletes the report before each attempt. The checker atomically writes
 a report bound to repository, event digest/type, policy SHA and attempt identifier;
@@ -473,27 +511,3 @@ python tools/check_knowledge_model_policy.py --repository <owner/repo> --pull-re
 publishing statuses. It does not show the main workflow is operational. Production
 uses runtime-injected `GITHUB_TOKEN`; never pass tokens as CLI arguments. The
 existing ready lane runs unit tests on Python 3.10 and 3.11 in its full suite.
-
-
-
-### Temporary owner-authorized encrypted diagnostic (#203)
-
-The one-shot opt-in captures only the selected pending-status POST's HTTP 422
-`errors` string, from the response already being processed. It adds no request.
-Activation requires the first run attempt of the main push that introduces the
-exact owner-held public certificate blob, repository and exact head. Both commit
-objects must be readable; the certificate must be absent in `before`, match the
-pinned blob in `after`, and match the checked-out certificate. Complete ancestry
-must prove `before` is an ancestor of `after` and that this certificate path never
-existed before; removing and readding it cannot re-arm capture. This uses existing
-Git objects only, with a ten-second aggregate bound; temporary full-depth trusted
-main checkout supplies that ancestry without depending on a PR-head fetch. Missing/shallow objects or
-force pushes disable collection. Other events and later pushes are disabled. An exclusive marker
-prevents a second capture even if encryption fails. The string is passed in memory
-to OpenSSL CMS using a temporary public certificate and a credential-free child
-environment. Only ciphertext is written and uploaded, after a successful-capture
-step output, with one-day artifact retention. The decryption key stays outside
-GitHub. Neither plaintext, full response bodies, headers nor tokens are recorded.
-Capture failure uses a fixed diagnostic and never changes the admission verdict.
-Remove the opt-in, capture hook and public certificate after the authorized sample
-is collected; this diagnostic is not a permanent telemetry channel or a 422 fix.

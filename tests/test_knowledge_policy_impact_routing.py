@@ -183,7 +183,8 @@ def test_no_impact_report_never_claims_global_health(tmp_path, capsys):
     binding = {"trigger": None, "event_name": "push", "expected_head": None,
                "policy_sha": CURRENT}
     path = tmp_path / "report.json"
-    policy.write_report(path, binding, [], {"mode": "push-impact", "targets": []})
+    policy.write_report(path, binding, [], {"mode": "push-impact", "targets": []},
+                        {"complete": True, "targets": []})
     assert policy.report_exit(path, binding, 0) == 0
     summary = json.loads(capsys.readouterr().out)
     assert summary["scope"] == "affected-admissions"
@@ -220,3 +221,69 @@ def test_graph_prepare_rejects_still_shallow_and_never_uses_candidate_remote(mon
     assert topology.git.call_args_list[1].args == (
         "fetch", "--quiet", "--no-tags", "--unshallow",
         "https://github.com/example/repository.git", BEFORE, CURRENT, HEAD)
+
+
+def lifecycle_client(prs, live):
+    client = api(prs)
+    client.get.side_effect = lambda path: ({"object": {"sha": CURRENT}}
+                                          if path.startswith("git/ref/") else live)
+    return client
+
+
+def pr_event(action, head=HEAD):
+    return {"repository": {"full_name": REPOSITORY}, "number": 1, "action": action,
+            "pull_request": pr(head=head)}
+
+
+def test_synchronize_selects_old_event_and_live_head_peers_only():
+    old, new, latest = "d" * 40, "e" * 40, "f" * 40
+    prs = [pr(1, latest), pr(2, old), pr(3, new), pr(4, latest), pr(5, HEAD)]
+    client = lifecycle_client(prs, prs[0])
+    payload = {**pr_event("synchronize", new), "before": old}
+    numbers, routing, _ = route(client, payload, name="pull_request_target")
+    assert numbers == [1, 2, 3, 4]
+    assert routing["mode"] == "pr-impact"
+    client.history.assert_not_called()
+    client.status.assert_not_called()
+
+
+@pytest.mark.parametrize("action", ["opened", "edited", "reopened", "ready_for_review"])
+def test_body_or_lifecycle_edit_routes_trigger_and_shared_other_base_ownership(action):
+    prs = [pr(), pr(2, base="release"), pr(3, head="d" * 40)]
+    client = lifecycle_client(prs, prs[0])
+    assert route(client, pr_event(action), name="pull_request_target")[0] == [1]
+    # The unrelated-base peer stays in the ownership collection used by the actual evaluator.
+    assert policy.head_owner(prs, 1, HEAD) is not None
+
+
+def test_retargeting_trigger_outside_main_still_refreshes_main_head_peer():
+    prs = [pr(base="release"), pr(2), pr(3, head="d" * 40)]
+    client = lifecycle_client(prs, prs[0])
+    assert route(client, pr_event("edited"), name="pull_request_target")[0] == [1, 2]
+
+
+@pytest.mark.parametrize("action", ["created", "edited", "deleted"])
+def test_approval_comments_refresh_trigger_and_current_head_peer(action):
+    prs = [pr(), pr(2), pr(3, head="d" * 40)]
+    client = lifecycle_client(prs, prs[0])
+    payload = {"repository": {"full_name": REPOSITORY}, "action": action,
+               "issue": {"number": 1, "pull_request": {}}}
+    assert route(client, payload, name="issue_comment")[0] == [1, 2]
+
+
+@pytest.mark.parametrize("before", [None, "bad", "0" * 40])
+def test_synchronize_missing_or_invalid_old_head_keeps_conservative_full_sweep(before):
+    client = lifecycle_client([pr()], pr())
+    payload = pr_event("synchronize")
+    if before is not None:
+        payload["before"] = before
+    assert route(client, payload, name="pull_request_target")[0] is None
+
+
+def test_pr_event_identity_mismatch_and_head_race_fall_back():
+    client = lifecycle_client([pr()], pr())
+    payload = pr_event("edited")
+    payload["pull_request"]["number"] = 2
+    assert route(client, payload, name="pull_request_target")[0] is None
+    client.pages.side_effect = [[pr()], [pr(head="d" * 40)]]
+    assert route(client, pr_event("edited"), name="pull_request_target")[0] is None

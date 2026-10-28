@@ -220,7 +220,7 @@ def test_paid_path_stops_on_unknown_usage_and_never_retries(tmp_path, monkeypatc
     assert len(calls) == 1
 
 
-def test_secret_only_exists_on_conditional_model_execution_step():
+def test_secret_only_exists_on_conditional_trusted_controller_step():
     workflow = yaml.safe_load((compare.ROOT / integration.WORKFLOW).read_text(encoding="utf-8"))
     grants = []
     for job, definition in workflow["jobs"].items():
@@ -228,14 +228,15 @@ def test_secret_only_exists_on_conditional_model_execution_step():
             if agent.KEY_ENV in step.get("env", {}):
                 grants.append((job, step))
     assert len(grants) == 1 and grants[0][0] == "execute"
+    job = workflow["jobs"]["execute"]
+    assert "github.event_name == 'pull_request_target'" in job["if"]
+    assert "needs.plan.outputs.auto_candidate == 'true'" in job["if"]
     step = grants[0][1]
-    assert agent.KIND in step["if"] and "skill_eval_pr execute" in step["run"]
-    assert set(step["env"]) == {agent.KEY_ENV}
+    assert step["run"] == "python -m tools.skill_eval_pr control --output prepared"
+    assert set(step["env"]) == {agent.KEY_ENV, "GITHUB_TOKEN"}
     assert "secrets.SKILL_EVAL_YIBUAPI_KEY" in step["env"][agent.KEY_ENV]
-    assert agent.KEY_ENV not in workflow.get("env", {}) and "GITHUB_TOKEN" not in step["env"]
-    codex = next(s for s in workflow["jobs"]["execute"]["steps"]
-                 if s.get("run") == "codex --version")
-    assert "codex" in codex["if"]
+    assert agent.KEY_ENV not in workflow.get("env", {})
+    assert not any("skill_eval_pr execute" in s.get("run", "") for s in job["steps"])
 
 
 def test_thinking_blocks_are_preserved_opaquely_in_tool_round_trip(tmp_path):

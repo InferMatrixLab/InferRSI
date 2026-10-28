@@ -478,6 +478,34 @@ OS-control qualification; local journal files do not establish SSD performance.
 The existing five resource rows and all prior source/evidence boundaries remain
 unchanged.
 
+## Project Maya model-specific source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM / SSD | Diagnose / plan: family/representation guards, physical-pool ownership, expert tiers, private state and scratch overlap | `project-maya`: [model-runtime](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/model-runtime/SKILL.md) | Source plus bounded host arithmetic/simulation; not actual accelerator allocation, pressure, tensor payload or residency performance. |
+| Host / Accelerator / service boundary | Diagnose / verify: API snapshots versus native slots, parallel state, completion, speculative retained state, calibration controls and quality evidence | `project-maya`: [serving-state](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/serving-state/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/qualification/SKILL.md) | Required CUDA/HIP/model/parallel restore/cancellation evidence remains unavailable. HTTP procedure adds no measured Network/OS or service-gain coverage. Qwen deep state/kernels remain unmined. |
+
+## vLLM Metal selected source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM / SSD | Diagnose / configure: lazy KV capacity versus resident commitment, one physical unified pool, host/disk ownership, transfer/sleep/reuse and identity | `vllm-metal`: [cache-lifecycle](../src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/cache-lifecycle/SKILL.md) | Selected substantive source/test assertions plus dense-uniform arithmetic only; real transfers/pressure/sleep/model/backend evidence blocked. No measured memory-fit or IO gain. |
+| Accelerator / host control boundary | Diagnose / verify: native ABI/backend/runner pairing, GDN state and deferred output ownership, executed dispatch versus selector, serving evidence | `vllm-metal`: [platform-config](../src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/platform-config/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/SKILL.md) | Installed pure API and selected parser/default tests do not qualify Apple/native/model/quality/service. No new Network/OS control or green resource coverage. |
+
+## mistral.rs Metal paged-attention source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / RAM | Diagnose / configure: HND/packed cache/scale/GQA contracts, instantaneous scratch versus capacity and prefill output/metadata reservation | `mistral-rs`: [decode-contract](../src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/SKILL.md) and [prefill-contract](../src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/SKILL.md) | Source-derived byte/metadata support only; no actual storage/allocator/pressure/parity or physical fit. No measured resource coverage. |
+| Accelerator / host control boundary | Diagnose / verify: absolute positions/masks/ranges and actual-model warmup/pipeline cache versus executed native test evidence | `mistral-rs`: [qualification](../src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/SKILL.md) | Compiler and native backend not_run; shape inventory is not GPU simulation or dispatch. No new SSD/Network/OS control, quality/service or performance qualification. |
+
+## MLX Swift LM ownership and recurrent Metal source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Host control / accelerator lifetime | Diagnose / verify: exclusive async access, Sendable transfer, lookahead/cancellation/finalization/default-stream sync versus task join | `mlx-swift-lm`: [generation-lifecycle](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/generation-lifecycle/SKILL.md) | Caller evidence declarations only; no actual task/device execution, native cleanup, backgrounding or safe shared-cache proof. No measured resource coverage. |
+| Accelerator / RAM | Diagnose / configure: recurrent FP32 state/layout, Dk tails, public kernel/ops gate, source mask discrepancy and dispatch/parity evidence | `mlx-swift-lm`: [gated-delta-contract](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/sub-skills/gated-delta-contract/SKILL.md) | Static source/declared bytes only; no actual provider stride/allocator/dispatch/numerical or physical-fit qualification. No new SSD/Network/OS control, quality/service or performance result. |
+
 ## Flare preparation and complete-session source contracts
 
 | Resource | Stage / mechanism | Canonical owner | Evidence boundary |
@@ -493,9 +521,3 @@ behavior. The source-derived candidates remain empirical **not_run**; the
 [bounded evaluation plan](reviews/issue148-flare-source-distillation.md) is
 **not evaluated**.
 
-## Project Maya model-specific source contracts
-
-| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
-| --- | --- | --- | --- |
-| Accelerator / RAM / SSD | Diagnose / plan: family/representation guards, physical-pool ownership, expert tiers, private state and scratch overlap | `project-maya`: [model-runtime](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/model-runtime/SKILL.md) | Source plus bounded host arithmetic/simulation; not actual accelerator allocation, pressure, tensor payload or residency performance. |
-| Host / Accelerator / service boundary | Diagnose / verify: API snapshots versus native slots, parallel state, completion, speculative retained state, calibration controls and quality evidence | `project-maya`: [serving-state](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/serving-state/SKILL.md) and [qualification](../src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/qualification/SKILL.md) | Required CUDA/HIP/model/parallel restore/cancellation evidence remains unavailable. HTTP procedure adds no measured Network/OS or service-gain coverage. Qwen deep state/kernels remain unmined. |

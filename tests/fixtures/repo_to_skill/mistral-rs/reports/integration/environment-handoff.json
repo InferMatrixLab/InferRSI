@@ -1,0 +1,24 @@
+{
+  "schema_version": 1,
+  "readiness": "partial",
+  "host": {
+    "os": "Linux",
+    "architecture": "x86_64",
+    "python": "3.12.14"
+  },
+  "available_support": "Existing private Python pytest/ruff/PyYAML environment read-only reused for offline support/scaffold checks",
+  "unavailable": [
+    "cargo",
+    "rustc",
+    "Swift",
+    "Apple SDK",
+    "actual Metal device"
+  ],
+  "rust_package_installation": "not_run; native Rust source adaptation, no Python package installation masquerading as Rust readiness",
+  "compiler_check": "not_run",
+  "native_source_tests": "not_run",
+  "required_backend_status": "BLOCKED_REQUIRED_BACKEND",
+  "full_backend_verification": false,
+  "auto_import_eligible": false,
+  "authorization_boundary": "User accepted source/CPU-supported candidate repository delivery with native gaps preserved; no toolchain/model/GPU/paid/service installation or execution."
+}

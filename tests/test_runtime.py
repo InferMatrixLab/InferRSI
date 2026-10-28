@@ -9,6 +9,7 @@ import unittest
 from dataclasses import replace
 from functools import partial
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from inferrsi.contracts import RunSpec
@@ -16,6 +17,7 @@ from inferrsi.execution import repository_identity, run_experiment
 from inferrsi.harness.evaluation import _summary, evaluate
 from inferrsi.harness.runner import run_experiment as run_with_adapters
 from inferrsi.harness.scenarios.external import execute_trial
+from inferrsi.infra.environment import storage_locations
 from inferrsi.reporting import write_report
 
 
@@ -263,6 +265,223 @@ class RuntimeTests(unittest.TestCase):
     def test_outputs_inside_repo_do_not_create_false_source_changes(self):
         _, evaluation = self.run_spec(output_dir=str(self.repo / "runs"))
         self.assertEqual(evaluation["verdict"], "PASS")
+
+    def git_at(self, repo, *args):
+        return subprocess.run(
+            ["git", "-C", str(repo), *args],
+            check=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+    def make_superproject(self):
+        """A superproject whose only content is a submodule with a tracked file."""
+        origin = self.root / "sub-origin"
+        origin.mkdir()
+        self.git_at(origin, "init", "--quiet")
+        (origin / "vendor.py").write_bytes(b"original\n")
+        self.git_at(origin, "add", "vendor.py")
+        self.git_at(
+            origin,
+            "-c",
+            "user.name=InferRSI test",
+            "-c",
+            "user.email=test@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-s",
+            "-m",
+            "submodule",
+        )
+        superproject = self.root / "super"
+        superproject.mkdir()
+        self.git_at(superproject, "init", "--quiet")
+        self.git_at(
+            superproject,
+            "-c",
+            "protocol.file.allow=always",
+            "submodule",
+            "add",
+            "--quiet",
+            str(origin),
+            "sub",
+        )
+        self.git_at(
+            superproject,
+            "-c",
+            "user.name=InferRSI test",
+            "-c",
+            "user.email=test@example.invalid",
+            "-c",
+            "commit.gpgsign=false",
+            "commit",
+            "--quiet",
+            "-s",
+            "-m",
+            "super",
+        )
+        return superproject
+
+    def test_submodule_local_edit_changes_snapshot_hash(self):
+        # The parent diff records only "<commit>-dirty", so two distinct edits
+        # inside a submodule must not share one snapshot hash.
+        superproject = self.make_superproject()
+        vendor = superproject / "sub" / "vendor.py"
+        vendor.write_bytes(b"first edit\n")
+        first = repository_identity(superproject)["snapshot_hash"]
+        vendor.write_bytes(b"second edit\n")
+        second = repository_identity(superproject)["snapshot_hash"]
+        self.assertNotEqual(first, second)
+        self.assertTrue(repository_identity(superproject)["dirty"])
+        vendor.write_bytes(b"original\n")
+        self.assertFalse(repository_identity(superproject)["dirty"])
+
+    def test_untracked_nested_repository_is_hashed_not_unavailable(self):
+        # Git reports an untracked nested repository as one directory entry;
+        # opening that entry as a file used to make identity unavailable.
+        nested = self.repo / "nested"
+        nested.mkdir()
+        self.git_at(nested, "init", "--quiet")
+        (nested / "inner.txt").write_bytes(b"inner\n")
+        identity = repository_identity(self.repo)
+        self.assertTrue(identity["available"], identity.get("error"))
+        self.assertEqual(identity["untracked"][0]["path"], "nested/")
+        before = identity["snapshot_hash"]
+        (nested / "inner.txt").write_bytes(b"changed\n")
+        self.assertNotEqual(repository_identity(self.repo)["snapshot_hash"], before)
+
+    def test_non_utf8_untracked_name_reports_the_path(self):
+        # A name that is not UTF-8 must name the file instead of surfacing a
+        # bare codec offset, and must not reach the artifact writer as a surrogate.
+        real_run = subprocess.run
+
+        def ls_files_only(argv, **kwargs):
+            if "ls-files" in argv:
+                return subprocess.CompletedProcess(
+                    argv, 0, stdout=b"source.txt\x00bad-\xff.txt\x00", stderr=b""
+                )
+            return real_run(argv, **kwargs)
+
+        with patch("subprocess.run", side_effect=ls_files_only):
+            identity = repository_identity(self.repo)
+        self.assertFalse(identity["available"])
+        self.assertIn("bad-", identity["error"])
+        self.assertIn("not valid UTF-8", identity["error"])
+
+    def test_non_utf8_name_does_not_cost_a_complete_run_its_artifacts(self):
+        # snapshot() runs inside run_experiment's finally block, so an
+        # unrepresentable name must not destroy an otherwise complete run.
+        (self.repo / "odd\udcff.txt").write_bytes(b"x")
+        path, evaluation = self.run_spec(repetitions=1)
+        self.assertTrue((path / "evaluation.json").is_file())
+        self.assertTrue((path / "report.html").is_file())
+        self.assertEqual(json.loads((path / "status.json").read_text())["state"], "completed")
+        self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
+        self.assertFalse(evaluation["source_integrity"]["verified"])
+
+    def test_unreadable_submodule_identity_names_the_path_instead_of_a_key_error(self):
+        # repository_identity returns only path/available/error on failure, so
+        # reading snapshot_hash raised KeyError inside the run's finally block.
+        superproject = self.make_superproject()
+        submodule = (superproject / "sub").resolve()
+        real_run = subprocess.run
+
+        def ls_files_only(argv, **kwargs):
+            if "ls-files" in argv and "--others" in argv:
+                target = Path(argv[argv.index("-C") + 1]).resolve()
+                stdout = b"bad-\xff.txt\x00" if target == submodule else b""
+                return subprocess.CompletedProcess(argv, 0, stdout=stdout, stderr=b"")
+            return real_run(argv, **kwargs)
+
+        with patch("subprocess.run", side_effect=ls_files_only):
+            identity = repository_identity(superproject)
+        self.assertFalse(identity["available"])
+        self.assertIn("Submodule sub", identity["error"])
+        self.assertIn("not valid UTF-8", identity["error"])
+
+    def test_unreadable_submodule_identity_keeps_run_artifacts(self):
+        superproject = self.make_superproject()
+        submodule = (superproject / "sub").resolve()
+        real_run = subprocess.run
+
+        def ls_files_only(argv, **kwargs):
+            if "ls-files" in argv and "--others" in argv:
+                target = Path(argv[argv.index("-C") + 1]).resolve()
+                stdout = b"bad-\xff.txt\x00" if target == submodule else b""
+                return subprocess.CompletedProcess(argv, 0, stdout=stdout, stderr=b"")
+            return real_run(argv, **kwargs)
+
+        with patch("subprocess.run", side_effect=ls_files_only):
+            path, evaluation = self.run_spec(candidate_repo=str(superproject), repetitions=1)
+        self.assertTrue((path / "evaluation.json").is_file())
+        self.assertTrue((path / "report.html").is_file())
+        self.assertEqual(json.loads((path / "status.json").read_text())["state"], "completed")
+        self.assertEqual(evaluation["verdict"], "INCONCLUSIVE")
+        self.assertFalse(evaluation["source_integrity"]["verified"])
+        repositories = json.loads((path / "repositories.lock.json").read_text())
+        self.assertIn("Submodule sub", repositories["candidate"]["error"])
+
+    def test_identical_symlink_recreation_keeps_the_directory_digest(self):
+        # Two links to the same target must hash the same regardless of the order
+        # the filesystem happens to enumerate them in. Unlinking and recreating a
+        # link with an identical target is not a source change.
+        from inferrsi.infra.targets.git import _directory_digest
+
+        nested = self.repo / "nested"
+        nested.mkdir()
+        target = nested / "shared"
+        target.mkdir()
+        (target / "module.py").write_bytes(b"shared\n")
+        links = [nested / "a", nested / "b"]
+        for link in links:
+            try:
+                link.symlink_to(target, target_is_directory=True)
+            except OSError as exc:
+                self.skipTest(f"Symlinks unavailable: {exc}")
+        before = _directory_digest(nested)
+        first = links[0]
+        first.unlink()
+        first.symlink_to(target, target_is_directory=True)
+        self.assertEqual(_directory_digest(nested), before)
+
+    def test_directory_symlink_retarget_changes_directory_digest(self):
+        # os.walk does not descend symlinked directories, so an unrecorded link
+        # let a dependency swap leave the nested-repository hash unchanged.
+        from inferrsi.infra.targets.git import _directory_digest
+
+        nested = self.repo / "nested"
+        (nested / "package").mkdir(parents=True)
+        for name, body in (("a", b"dependency-A\n"), ("b", b"dependency-B\n")):
+            dependency = nested / name
+            dependency.mkdir()
+            (dependency / "module.py").write_bytes(body)
+        package = nested / "package"
+        package.rmdir()
+        try:
+            package.symlink_to(nested / "a", target_is_directory=True)
+        except OSError as exc:
+            self.skipTest(f"Symlinks unavailable: {exc}")
+        before = _directory_digest(nested)
+        package.unlink()
+        package.symlink_to(nested / "b", target_is_directory=True)
+        self.assertNotEqual(_directory_digest(nested), before)
+
+    def test_tilde_cache_path_cannot_hide_inside_the_source_checkout(self):
+        # A cache configured as "~/..." must be compared after expansion; the
+        # literal path resolves to <cwd>/~ and would pass the guard.
+        home = self.repo / "home"
+        home.mkdir()
+        args = SimpleNamespace(source_repo=str(self.repo), cache_root=str(self.root / "cache"))
+        with (
+            patch.dict(
+                os.environ, {"HOME": str(home), "USERPROFILE": str(home), "HF_HOME": "~/hf-cache"}
+            ),
+            self.assertRaisesRegex(ValueError, "HF_HOME"),
+        ):
+            storage_locations(args, self.root / "trial", require_source=False)
+        self.assertFalse((home / "hf-cache").exists())
 
     def test_unique_runs_do_not_reuse_previous_metrics(self):
         first, _ = self.run_spec(repetitions=1)

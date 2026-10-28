@@ -1,0 +1,1 @@
+A 40-core Q32 GQA query reports eligibility for lengths[1,10752], but no worker dispatch was evaluated. The native binary is stale and I increased host offload to fix memory. Can I publish a GQA speedup from offline LLM throughput?

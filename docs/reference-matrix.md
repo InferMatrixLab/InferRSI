@@ -436,6 +436,30 @@ proposal. Provider storage internals, distributed leases, UI and the complete
 controller remain outside this extraction. Reading test assertions and packaging
 resources do not reproduce runtime behavior or promote the candidate.
 
+## Project Maya source and CPU-slice extraction
+
+| Source / revision | Inspected scope | Reuse and limits |
+| --- | --- | --- |
+| mw00/project-maya @ `249f9a87d1a9d72bec2b684d704b0aa9296b1c9c`, VERSION1.1.34; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Bounded GLM/DS4/MM3 model/residency/state/control and quality/calibration evidence, plus shallow new Qwen dispatch/format/guard/license map | [Complete candidate](../src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md),82-file source inventory, source MIT notices and3 offline helpers. Actual portable native-C++ adaptation with4 original pure host policy tests passed. Required GPU/model/state/vision/quality/service evidence remains blocked; no DisCo CLI/model run or automatic promotion. NO_LICENSE is the actual unavailable gh resolver fallback, not legal absence. |
+
+## vLLM Metal portable AREX source and CPU extraction
+
+| Source / revision | Inspected scope | Reuse and limits |
+| --- | --- | --- |
+| vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934`, package0.32.0; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected platform/config/ABI/loading, cache/offload owner-consumer and speculative/deferred/GQA measurement contracts; explicit analysis spans in the [readset](../src/inferrsi/data/skill_library/repositories/vllm-metal/references/source-identity.json) | [Candidate graph](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md), upstream Apache-2.0 notice and3 offline helpers. Installed pure Python API/parser checks only; dependency health failed and required Apple MLX/Metal/MPS/model/quality/service evidence remains blocked. Actual portable workflow adaptation, not DisCo CLI/model or managed import. NO_LICENSE is the actual unauthenticated resolver fallback. |
+
+## mistral.rs Metal paged-attention extraction
+
+| Source / revision | Inspected scope | Reuse and limits |
+| --- | --- | --- |
+| EricLBuehler/mistral.rs @ `9459891e7697238225885518119682ac8209a612`, workspace 0.9.5; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected Rust owner/native MSL consumer/test assertions for decode, prefill and actual-model preparation; [bounded readset](../src/inferrsi/data/skill_library/repositories/mistral-rs/references/source-identity.json). Candle `66a8cf184a5a519671454066b1b9efd446ec9f5c` is declared lineage, not a full dependency audit | [Candidate graph](../src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md), root MIT and component Apache-2.0/NOTICE, three offline helpers. Actual portable Rust/source adaptation; no Rust compilation, native Metal/kernel/model/quality/service or efficacy run. Required backend blocked; no DisCo CLI/model or managed import. NO_LICENSE is actual unauthenticated resolver fallback. |
+
+## MLX Swift LM lifecycle and recurrent Metal extraction
+
+| Source / revision | Inspected scope | Reuse and limits |
+| --- | --- | --- |
+| ml-explore/mlx-swift-lm @ `3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac`; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected actual container/mutex/iterator/worker/loop and embedded GatedDelta MSL/host/caller/test contracts; [bounded readset](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/references/source-identity.json). MLX Swift manifest range is not a resolved dependency pin | [Candidate graph](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md), retained MIT, two offline support helpers, source-only masked-output parity gap. Actual partial Swift/source adaptation; no compile/original host-control/native/Metal/model/quality/service or efficacy run. Required native blocked; no DisCo CLI/model/managed import. NO_LICENSE is actual unauthenticated resolver fallback. |
+
 ## Flare preparation and complete-session source knowledge
 
 | Source / revision | Inspected scope | Reuse, extraction and limits |
@@ -447,8 +471,3 @@ implied. [Construction and evaluation plan](reviews/issue148-flare-source-distil
 uses AREX methods with InferRSI's native registration/projections. This does not
 create a repo runtime descriptor, backend port or measured resource effect.
 
-## Project Maya source and CPU-slice extraction
-
-| Source / revision | Inspected scope | Reuse and limits |
-| --- | --- | --- |
-| mw00/project-maya @ `249f9a87d1a9d72bec2b684d704b0aa9296b1c9c`, VERSION1.1.34; AREX @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Bounded GLM/DS4/MM3 model/residency/state/control and quality/calibration evidence, plus shallow new Qwen dispatch/format/guard/license map | [Complete candidate](../src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md),82-file source inventory, source MIT notices and3 offline helpers. Actual portable native-C++ adaptation with4 original pure host policy tests passed. Required GPU/model/state/vision/quality/service evidence remains blocked; no DisCo CLI/model run or automatic promotion. NO_LICENSE is the actual unavailable gh resolver fallback, not legal absence. |

@@ -1,0 +1,21 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "prepared-inventory-not-parity",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mistralrs-paged-attn/src/metal/kernels/mod.rs",
+    "mistralrs-core/src/pipeline/metal_warmup.rs"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/prewarm-and-evidence.md",
+    "sub-skills/qualification/references/warmup-inventory.md"
+  ],
+  "assertions": [
+    "Boundary enumeration has7 batch values and17 context values;119 pairs are inventory, not119 executed requests.",
+    "Actual preparation derives model/device/layer/cache/limits and skips unsupported paths; artificial inventory omits those inputs.",
+    "Prewarm uses causal/range-free/right-none/chunk-none defaults; a prepared log does not cover every runtime feature combination.",
+    "Separate loaded pipelines from executed dispatch, parity, model quality and service measurements."
+  ]
+}

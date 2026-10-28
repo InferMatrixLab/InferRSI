@@ -8,15 +8,19 @@ from pathlib import Path
 
 
 def storage_locations(args, output_root, require_source=True):
-    source = Path(args.source_repo).resolve()
-    cache = Path(args.cache_root).resolve()
-    output_root = Path(output_root).resolve()
+    source = Path(args.source_repo).expanduser().resolve()
+    cache = Path(args.cache_root).expanduser().resolve()
+    output_root = Path(output_root).expanduser().resolve()
     if require_source and not source.is_dir():
         raise ValueError("source-repo must be an existing checkout")
     if cache.is_relative_to(source) or output_root.is_relative_to(source):
         raise ValueError("Cache and campaign output must be outside the source checkout")
     for key in ("HF_HOME", "HF_HUB_CACHE", "HUGGINGFACE_HUB_CACHE", "TRANSFORMERS_CACHE"):
-        if os.environ.get(key) and Path(os.environ[key]).resolve().is_relative_to(source):
+        # Caches honour "~"; comparing the unexpanded literal would miss a
+        # location that resolves inside the checkout.
+        if os.environ.get(key) and Path(os.environ[key]).expanduser().resolve().is_relative_to(
+            source
+        ):
             raise ValueError(f"{key} must be outside the source checkout")
     return source, cache, output_root
 
