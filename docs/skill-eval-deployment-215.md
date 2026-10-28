@@ -71,8 +71,10 @@ production guards.
 Deployment is not complete merely because this file exists. The trusted main
 controller, all blocking review fixes, authenticated Git-data non-force CAS,
 audited anchor readback and exact-head checks must pass before a label is added
-or any paid request is launched. This local preparation performs none of those
-external mutations, does not dispatch a run, and does not claim token/storage
-permissions have been live-tested. Keep existing protection/settings unchanged.
+or any paid request is launched. The historical local preparation performed none
+of those external mutations and did not dispatch a run or claim live-tested
+permissions. Subsequent bounded deployment and real-run verification are recorded
+in [the acceptance progress](https://github.com/InferMatrixLab/InferRSI/issues/215#issuecomment-6471044747);
+that record does not authorize additional paid runs. Keep existing protection/settings unchanged.
 Remove the label to revoke authorization before the next request; never delete
 or roll back a ledger to recover capacity. Retain all ambiguous reservations.

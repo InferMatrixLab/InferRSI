@@ -61,6 +61,10 @@
       "path": "repositories/flare-local-inference/audit-flare-session-lifecycle",
       "backend": "cuda"
     },
+    "audit-h3-metal-fasth3-semantics": {
+      "path": "repositories/h3-metal/audit-h3-metal-fasth3-semantics",
+      "backend": "common"
+    },
     "audit-h3-runtime-residency": {
       "path": "repositories/h3-c/audit-h3-runtime-residency",
       "backend": "common"

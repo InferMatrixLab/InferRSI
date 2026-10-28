@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 120, "Knowledge is missing from the installation"
+assert len(records) == 121, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -42,7 +42,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 72, "Missing installed skill abstracts"
+assert len(skill_index) == 73, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -81,6 +81,28 @@ for relative in (
     "references/minimax-h3-apple.md",
 ):
     assert h3_prefix + relative in h3_bundle.content
+h3_metal_identity = "inferrsi.common.skills.audit_h3_metal_fasth3_semantics"
+h3_metal_bundle = KnowledgeReader().read(h3_metal_identity)
+h3_metal_prefix = (
+    "data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/"
+)
+h3_metal_metadata = json.loads(h3_metal_bundle.content[h3_metal_prefix + "metadata.json"])
+assert h3_metal_metadata["status"] == "candidate"
+assert h3_metal_metadata["empirical_validation"] == "not_run"
+assert h3_metal_metadata["sources"][0]["commit"] == "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8"
+for relative in (
+    "SKILL.md", "metadata.json", "LICENSE", "references/source-identity.json",
+    "references/source-notes.md", "references/semantic-contracts.md", "references/preflight.md",
+    "references/troubleshooting.md", "references/repo-provenance.md",
+    "references/THIRD_PARTY_NOTICES.md", "scripts/audit_fasth3.py",
+):
+    assert h3_metal_prefix + relative in h3_metal_bundle.content
+h3_metal_namespace = {"__name__": "installed_h3_metal_audit"}
+exec(compile(h3_metal_bundle.content[h3_metal_prefix + "scripts/audit_fasth3.py"],
+             "audit_fasth3.py", "exec"), h3_metal_namespace)
+h3_metal_audit = h3_metal_namespace["audit"](h3_metal_namespace["example"]())
+assert h3_metal_audit["layout"]["topk_double"] == 12
+assert h3_metal_audit["native_execution"] == "not_run"
 afd_identity = "inferrsi.cuda.skills.audit_afd_p2p_exchanges"
 assert any(item["id"] == afd_identity for item in search_knowledge(
     "AFD", repo="inferrsi", backend="cuda", limit=100
@@ -168,7 +190,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 72
+assert len(registry) == 73
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
