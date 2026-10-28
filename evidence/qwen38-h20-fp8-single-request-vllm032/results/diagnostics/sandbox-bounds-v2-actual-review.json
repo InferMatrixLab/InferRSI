@@ -1,0 +1,21 @@
+{
+  "reviewer": "Codex independent review agent /root/review_fp8_graph",
+  "archive_sha256": "82fe92b12abd7700d8b14273ad11aede3d7b515dcb3120cc548f80e5ce8d82e5",
+  "archive_bytes": 8888320,
+  "blocking_findings": [],
+  "recommendation": "Publish scoped successful trusted diagnostic; no generated-code qualification, task-quality acceptance or E2E PASS.",
+  "checked": [
+    "Slurm COMPLETED0:0/114seconds/4CPU/0GPU and released allocation",
+    "four executed source hashes match reviewed versions",
+    "all11 case report/output/status hashes and init/launcher/registered-descendant exit evidence",
+    "rejected startup cases have no payload output",
+    "1011serialized evaluator bytes match SHA and parsed four-case result and input hashes",
+    "25241entry before/after inventory,97packages,43EvalPlus Python sources and old frozen files",
+    "all10postflight checks zero"
+  ],
+  "limitations": [
+    "Two killed-launcher modes have no final bubblewrap JSON exit record; exit conclusions rely on pidfd and owned-launcher reaping.",
+    "Thread RuntimeError kernel cause remains unclassified.",
+    "Fixed trusted diagnostics do not qualify general generated-code execution or model quality."
+  ]
+}

@@ -19,10 +19,12 @@ The current WIP develops three connected objectives:
    delivery and owner review; neither that analysis nor paper methodology
    implements or verifies an autonomous development pipeline.
 3. **Skill System:** reusable candidate skills, knowledge and cases, the
-   [Reference Matrix](reference-matrix.md) and
-   [SearchSpace Matrix](searchspace-matrix.md), and explicit read-only access.
+   [Reference Matrix](reference-matrix.md),
+   [SearchSpace Matrix](searchspace-matrix.md) and the generated
+   [Skill Coverage View](skill-coverage.md), and explicit read-only access.
    The two matrices describe evidence and coverage; they do not drive an
-   automatic router or execution loop.
+   automatic router or execution loop. The coverage view reads them from the
+   skill outward and owns no fact of its own.
 
 This framing is presentation and delivery traceability, not a third primary
 matrix. Dot owns source extraction, the owner approves sources and reviews

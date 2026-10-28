@@ -47,6 +47,36 @@ class DiagnosticsTests(unittest.TestCase):
         self.assertIn('"reason": "status-capacity"', str(error))
         self.assertNotIn("This SHA", str(error))
 
+    def test_exact_string_capacity_is_recognized_but_remains_execution_failure(self):
+        body = {"message": "Validation Failed", "errors":
+                "This SHA and context has reached the maximum number of statuses."}
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(json.dumps(body).encode())))
+        self.assertEqual(error.reason, "status-capacity")
+        self.assertNotIn(body["errors"], str(error))
+        result = policy.status_write_failure(error, {"description": "fixture"})
+        result.update(pull_request=1, rerun=result["kind"] in policy.RERUN_KINDS)
+        self.assertEqual(result["kind"], "budget-saturated")
+        self.assertEqual(result["state"], "failure")
+        self.assertFalse(result["rerun"])
+        self.assertEqual(policy.exit_code([result]), policy.EXIT_NONCOMPLIANT)
+        self.assertEqual(policy.summarize([result])["execution"], "failed")
+        self.assertEqual(policy.summarize([result])["noncompliant_pull_requests"], [])
+
+    def test_capacity_string_near_misses_remain_unknown_and_redacted(self):
+        capacity = "This SHA and context has reached the maximum number of statuses."
+        for errors in ("FAKE_SECRET", capacity + " FAKE_SECRET", "FAKE_SECRET " + capacity,
+                       capacity.replace("maximum", "minimum"), capacity[:-1]):
+            with self.subTest(errors=errors):
+                body = {"message": capacity, "errors": errors}
+                error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                                      io.BytesIO(json.dumps(body).encode())))
+                self.assertEqual(error.reason, "unknown")
+                self.assertNotIn("FAKE_SECRET", str(error))
+                self.assertNotIn("This SHA", str(error))
+                self.assertEqual(policy.status_write_failure(
+                    error, {"description": "fixture"})["kind"], "status-rejected")
+
     def test_unknown_validation_is_redacted_and_not_inferred_as_capacity(self):
         capacity = "This SHA and context has reached the maximum number of statuses."
         for item in ({"resource": "Status", "code": "custom", "message": "FAKE_SECRET"},
@@ -62,6 +92,87 @@ class DiagnosticsTests(unittest.TestCase):
                 self.assertIn('"reason": "unknown"', str(error))
                 self.assertNotIn("status-capacity", str(error))
                 self.assertNotIn("FAKE_SECRET", str(error))
+
+    def test_validation_fields_are_bounded_fixed_vocabulary(self):
+        body = {"message": "FAKE_SECRET", "errors": [
+            {"resource": "Status", "field": "target_url", "code": "invalid",
+             "value": "FAKE_SECRET", "message": "FAKE_SECRET"},
+            {"resource": "FAKE_SECRET", "field": "FAKE_SECRET", "code": "FAKE_SECRET"},
+        ] * 100}
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(json.dumps(body).encode())))
+        # Use a small response for the positive case; oversized/truncated JSON fails safe.
+        self.assertNotIn("FAKE_SECRET", str(error))
+        body["errors"] = body["errors"][:2]
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(json.dumps(body).encode())))
+        self.assertIn('"field": "target_url"', str(error))
+        self.assertIn('"code": "invalid"', str(error))
+        self.assertNotIn("FAKE_SECRET", str(error))
+        self.assertEqual(error.reason, "unknown")
+
+    def shape(self, raw):
+        error = policy.GitHubHTTPError(HTTPError("https://example.invalid", 422, "", {},
+                                              io.BytesIO(raw)))
+        self.assertNotIn("FAKE_SECRET", str(error))
+        self.assertEqual(error.reason, "unknown")
+        return json.loads(str(error).removeprefix("GitHub API "))["response_shape"]
+
+    def test_response_shape_distinguishes_missing_wrong_type_and_redacted_entries(self):
+        cases = [({}, "absent", False), ({"errors": None}, "null", True),
+                 ({"errors": "FAKE_SECRET"}, "string", True),
+                 ({"errors": {"FAKE_SECRET": "FAKE_SECRET"}}, "object", True)]
+        for body, kind, present in cases:
+            with self.subTest(kind=kind):
+                shape = self.shape(json.dumps(body).encode())
+                self.assertEqual(shape["body_parse"], "ok")
+                self.assertEqual(shape["body_type"], "object")
+                self.assertEqual(shape["errors_type"], kind)
+                self.assertEqual(shape["errors_present"], present)
+                self.assertEqual(shape["errors_sample_count"], 0)
+        shape = self.shape(json.dumps({"errors": [
+            {"FAKE_SECRET": "FAKE_SECRET"}, "FAKE_SECRET", None, 12, True,
+            {"resource": "Status", "code": "invalid"}]}).encode())
+        self.assertEqual(shape["errors_sample_count"], 6)
+        self.assertEqual(shape["object_entries"], 2)
+        self.assertEqual(shape["string_entries"], 1)
+        self.assertEqual(shape["other_entries"], 3)
+        self.assertEqual(shape["allowlisted_detail_count"], 1)
+
+    def test_response_shape_nonobject_and_invalid_json_are_distinct(self):
+        for value, kind in [(None, "null"), (True, "boolean"), (3, "number"),
+                            (["FAKE_SECRET"], "array"), ("FAKE_SECRET", "string")]:
+            with self.subTest(kind=kind):
+                shape = self.shape(json.dumps(value).encode())
+                self.assertEqual(shape["body_parse"], "ok")
+                self.assertEqual(shape["body_type"], kind)
+                self.assertFalse(shape["errors_present"])
+        shape = self.shape(b"not json FAKE_SECRET")
+        self.assertEqual(shape["body_parse"], "invalid-json")
+        self.assertEqual(shape["body_type"], "unavailable")
+        self.assertFalse(shape["read_limit_reached"])
+
+    def test_response_shape_bounds_counts_and_separates_read_limit_from_truncation(self):
+        shape = self.shape(json.dumps({"errors": ["FAKE_SECRET"] * 100}).encode())
+        self.assertEqual(shape["errors_sample_count"], 20)
+        self.assertEqual(shape["string_entries"], 20)
+        self.assertTrue(shape["errors_sample_truncated"])
+        shape = self.shape(b"{}" + b" " * 8190)
+        self.assertEqual(shape["body_parse"], "ok")
+        self.assertTrue(shape["read_limit_reached"])
+        shape = self.shape(b"x" * 9000)
+        self.assertEqual(shape["body_parse"], "invalid-json")
+        self.assertTrue(shape["read_limit_reached"])
+
+    def test_response_shape_read_error_is_not_json_parse_error(self):
+        original = HTTPError("https://example.invalid", 422, "", {}, io.BytesIO())
+        with patch.object(original, "read", side_effect=OSError("FAKE_SECRET")):
+            error = policy.GitHubHTTPError(original)
+        self.assertNotIn("FAKE_SECRET", str(error))
+        shape = json.loads(str(error).removeprefix("GitHub API "))["response_shape"]
+        self.assertEqual(shape["body_parse"], "read-error")
+        self.assertEqual(shape["body_type"], "unavailable")
+        self.assertIsNone(shape["read_limit_reached"])
 
     def test_body_read_is_bounded_and_invalid_json_is_safe(self):
         body = io.BytesIO(b"x" * 20000)

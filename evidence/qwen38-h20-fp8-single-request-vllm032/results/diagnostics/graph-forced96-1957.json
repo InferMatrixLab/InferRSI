@@ -1,0 +1,99 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "fixed_history_numerical_diagnostic_not_quality_or_performance_acceptance",
+  "job": 1957,
+  "exit_code": 0,
+  "allocated_gpu_seconds": 65,
+  "readiness_total_gpu_seconds": 904,
+  "readiness_remaining_gpu_seconds": 6296,
+  "separate_initial_gpu_seconds": 147,
+  "observer_sha256": "6e759f732793f9410efa9afc9173d110a5a5a36705a18f0cc5a81ff0d744ec48",
+  "observations_sha256": "18fe5c4fc2f5d920af20a3f41dd1ff8dbdadd1d7952892428439b6b9fbd567bb",
+  "steps": 96,
+  "buffered_graph_logits_exact_steps": 96,
+  "buffered_graph_live_state_exact_steps": 96,
+  "compact_buffered_first_logit_difference": 23,
+  "compact_buffered_argmax_differences": [
+    81
+  ],
+  "history_reproduction": {
+    "phase": "complete",
+    "verdict": "INCONCLUSIVE",
+    "compact_history_matches": true,
+    "graph_original_prefix_matches": true,
+    "compact_history_mismatches": [],
+    "graph_prefix_mismatches": [],
+    "seconds": 57.72265838296153,
+    "scope": "numerical_diagnostic_not_task_quality_or_service_acceptance"
+  },
+  "index81": {
+    "phase": "step",
+    "index": 81,
+    "position": 229,
+    "teacher_token": 10471,
+    "compact": {
+      "ids": [
+        264,
+        220,
+        393,
+        1010,
+        4945
+      ],
+      "logits": [
+        25.625,
+        25.625,
+        21.0,
+        18.75,
+        18.125
+      ],
+      "margin": 0.0,
+      "argmax": 220
+    },
+    "buffered": {
+      "ids": [
+        264,
+        220,
+        393,
+        1010,
+        4945
+      ],
+      "logits": [
+        25.75,
+        25.625,
+        21.0,
+        18.5,
+        18.125
+      ],
+      "margin": 0.125,
+      "argmax": 264
+    },
+    "graph": {
+      "ids": [
+        264,
+        220,
+        393,
+        1010,
+        4945
+      ],
+      "logits": [
+        25.75,
+        25.625,
+        21.0,
+        18.5,
+        18.125
+      ],
+      "margin": 0.125,
+      "argmax": 264
+    },
+    "compact_buffered": {
+      "exact": false,
+      "max_abs": 0.328125,
+      "nrmse": 0.020043984055519104
+    },
+    "buffered_graph": {
+      "exact": true,
+      "max_abs": 0.0,
+      "nrmse": 0.0
+    }
+  }
+}

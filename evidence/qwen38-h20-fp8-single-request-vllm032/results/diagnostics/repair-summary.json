@@ -1,0 +1,13 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "bounded_graph_correctness_diagnostic",
+  "prefill_cases": 3,
+  "prefill_compact_buffered_exact": 3,
+  "steps": 48,
+  "decode_compact_buffered_exact": 35,
+  "decode_buffered_graph_exact": 48,
+  "graph_state_exact": 48,
+  "top1_all_equal": 48,
+  "complete": true,
+  "raw_sha256": "5f8c16f6899d8f8f22426a1466a3afe7a7685a349d0bf2fd1fb26aae542404d6"
+}
