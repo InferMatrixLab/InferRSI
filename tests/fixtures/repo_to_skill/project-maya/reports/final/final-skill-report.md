@@ -12,8 +12,8 @@ BLOCKED_REQUIRED_BACKEND, so AREX native runner correctly exits1. These passes
 cover policy arithmetic, simulations and victim selection, not inference, GPU
 state/restore/cancellation, model/vision, quality, service/performance or efficacy.
 
-Actual lane helper fixtures:46+16+60 checks passed, with exact input/result logs
-in verification reports. Later style-only formatting preserves AST; fixture
+Actual lane helper fixtures:46+16+60 checks passed, with named check results and
+available CLI observations in verification reports. Later style-only formatting preserves AST; fixture
 hashes and final source hashes are both retained rather than claiming a rerun.
 Ten cases/75 assertions cover reasoning; all expected paths are checked, not
 blanket agent efficacy. Independent review, scaffold/wheel and exact-head CI
