@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 66 registered skills in `data/skill_library/`.
+Generated abstracts for all 67 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [7a7b34c9dc3f64726c54fac63f5322238caf047e](https://github.com/InferMatrixLab/InferRSI/tree/7a7b34c9dc3f64726c54fac63f5322238caf047e/src/inferrsi/data/skill_library).
+Source snapshot: [ca201c99455200a5a3d0007aca6a2963f01be17d](https://github.com/InferMatrixLab/InferRSI/tree/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 7a7b34c9dc3f64726c54fac63f5322238caf047e --check
+python tools/build_skill_index.py --source-revision ca201c99455200a5a3d0007aca6a2963f01be17d --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -92,6 +92,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
 | [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | common | candidate |
 | [plan-activation-residency](common/skills/plan-activation-residency.json) | common | candidate |
+| [project-maya](common/skills/project-maya.json) | common | candidate |
 | [reason-hopper-kernels](cuda/skills/reason-hopper-kernels.json) | cuda | candidate |
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | unspecified |

@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7a7b34c9dc3f64726c54fac63f5322238caf047e/src/inferrsi/data/skill_library/hardware/ascend/ascend-optimization-casebook/SKILL.md",
-      "commit": "7a7b34c9dc3f64726c54fac63f5322238caf047e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library/hardware/ascend/ascend-optimization-casebook/SKILL.md",
+      "commit": "ca201c99455200a5a3d0007aca6a2963f01be17d",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-optimization-casebook/metadata.json",
@@ -40,7 +40,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-optimization-casebook/SKILL.md": "647f5e9a288f2c4e1617ba53df59d9d827df749eb4fe86182d21a9c41175caf8",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-optimization-casebook/metadata.json": "f425f7c1abbd616387273e8932c6bd02f4b1da012f099286ad4171e0f6037b22",
-    "src/inferrsi/data/skill_library/skill-index.json": "f5b52c963bac4017453ff92baed69b6cbac4aa96b1599970a6416e4d13cd9143"
+    "src/inferrsi/data/skill_library/skill-index.json": "11ce84e1e514eb39a0982cd104ed2321f34b786e522f41cc71d331788eba772b"
   },
   "skill_metadata": {
     "name": "ascend-optimization-casebook",
