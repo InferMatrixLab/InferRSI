@@ -450,8 +450,34 @@ trigger PR, unavailable evidence, status-publication failure, capacity failure,
 advanced head, or missing target still fails its own job. A freshly checked
 closed/non-policy-branch target is explicitly **not applicable**, not an admission
 or acceptance PASS. It is added to the sweep even when absent from the open list.
-Push-to-main and manual workflow-dispatch jobs continue to report global execution
-health. Explicit CLI `--pull-request` and dry-run behavior is unchanged.
+Push-to-main jobs report reconciliation execution for the explicitly displayed
+scope, separately from unresolved PR admissions. A complete, verified push report
+may finish **complete-with-findings** when its only problems are confirmed status
+capacity (`budget-exhausted` or `budget-saturated`) or noncompliant declarations.
+This is not admission success or a claim that a PR is blocked from merging: an
+older remote success can remain visible when capacity prevents replacement.
+Per-PR statuses and raw sweep errors remain unchanged, with unresolved PR numbers,
+kind counts and a warning in the final summary. Impact scopes are not global health
+assessments; policy-input changes still reconcile the full open-PR set.
+
+```mermaid
+flowchart LR
+  A[Serialized final attempt] --> B[Per-head admission statuses unchanged]
+  A --> C[Bound report and complete target enumeration]
+  C --> D[Push reconciliation execution]
+  D --> E[Capacity findings visible, not admission success]
+  C --> F[PR own result or manual global result unchanged]
+```
+
+Capacity is established only by a complete history read or a recognized GitHub
+status-capacity response, with typed provenance retained through retries. A prior
+history, authorization, network or evaluator error cannot be hidden by a later
+capacity rejection. Unknown 422 responses and all other execution errors still
+fail the push job. Projection requires complete enumeration and one result for
+each selected target; newly appearing full-sweep targets, incomplete enumeration,
+missing provenance and missing/stale/malformed reports cannot yield success.
+Manual workflow-dispatch, explicit CLI `--pull-request`, dry-run and trigger-PR
+semantics are unchanged, including their capacity failures.
 
 The runner deletes the report before each attempt. The checker atomically writes
 a report bound to repository, event digest/type, policy SHA and attempt identifier;

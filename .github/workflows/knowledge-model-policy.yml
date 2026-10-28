@@ -48,7 +48,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Evaluate declarations with trusted main code
+      # Push jobs report reconciliation execution, not admission success for every PR.
+      # Capacity findings remain explicit in the final summary and per-head statuses.
+      - name: Reconcile declarations with trusted main code
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: bash tools/run_knowledge_model_policy.sh

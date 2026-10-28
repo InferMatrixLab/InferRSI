@@ -183,7 +183,8 @@ def test_no_impact_report_never_claims_global_health(tmp_path, capsys):
     binding = {"trigger": None, "event_name": "push", "expected_head": None,
                "policy_sha": CURRENT}
     path = tmp_path / "report.json"
-    policy.write_report(path, binding, [], {"mode": "push-impact", "targets": []})
+    policy.write_report(path, binding, [], {"mode": "push-impact", "targets": []},
+                        {"complete": True, "targets": []})
     assert policy.report_exit(path, binding, 0) == 0
     summary = json.loads(capsys.readouterr().out)
     assert summary["scope"] == "affected-admissions"

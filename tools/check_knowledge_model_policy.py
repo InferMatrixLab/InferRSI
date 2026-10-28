@@ -649,6 +649,21 @@ def recorded_budget_failure(entries):
     return newest.get("state") == "failure" and newest.get("description") == BUDGET_DESCRIPTION
 
 
+def confirmed_capacity(result):
+    """Typed provenance, never diagnostic text, distinguishes capacity from execution errors."""
+    evidence = result.get("capacity_evidence")
+    if not isinstance(evidence, dict) or set(evidence) != {
+            "source", "prior_kind", "prior_execution_error"}:
+        return False
+    prior = evidence["prior_kind"]
+    return (result["kind"] in {"budget-exhausted", "budget-saturated"}
+            and evidence["source"] in {"complete-history", "status-capacity-response"}
+            and evidence["prior_execution_error"] is False
+            and (prior is None or prior in {"compliant", "noncompliant",
+                                             "budget-exhausted", "budget-saturated"})
+            and (evidence["source"] != "complete-history" or prior is None))
+
+
 def status_write_failure(error, result, kind="publication-failed"):
     """A rejected POST is not a declaration verdict or proof of remote invalidation.
 
@@ -657,12 +672,23 @@ def status_write_failure(error, result, kind="publication-failed"):
     rejected write three times or turn a stale remote success into local compliance.
     """
     description = result["description"]
+    provenance = {}
+    if isinstance(error, GitHubHTTPError) and error.reason == "status-capacity":
+        prior_kind = result.get("kind")
+        prior = result.get("capacity_evidence", {})
+        provenance["capacity_evidence"] = {
+            "source": "status-capacity-response", "prior_kind": prior_kind,
+            "prior_execution_error": (prior_kind in ERROR_KINDS -
+                                      {"budget-exhausted", "budget-saturated"}
+                                      or prior.get("prior_execution_error", False)
+                                      or (prior_kind in {"budget-exhausted", "budget-saturated"}
+                                          and not confirmed_capacity(result)))}
     if isinstance(error, GitHubHTTPError) and error.code == 422:
         kind = "budget-saturated" if error.reason == "status-capacity" else "status-rejected"
         description = ("Status capacity rejected; a new head is required"
                        if error.reason == "status-capacity" else
                        "Status write rejected; inspect validation diagnostics")
-    return {**result, "state": "failure", "kind": kind, "description": description,
+    return {**result, **provenance, "state": "failure", "kind": kind, "description": description,
             "errors": [*result.get("errors", []), evaluation_failure(error)["errors"][0]]}
 
 
@@ -697,11 +723,15 @@ def invalidated(api, head, dry_run, deadline):
         # cannot be replaced by this checker; a new head is the only recovery.
         return {"state": "failure", "kind": "budget-saturated",
                 "description": "Status history is full; a new head is required",
+                "capacity_evidence": {"source": "complete-history", "prior_kind": None,
+                                      "prior_execution_error": False},
                 "errors": [f"{len(entries)} statuses recorded for this head and context "
                            f"(limit {STATUS_LIMIT}); no further status can be written"]}, False
     if not within_budget(len(entries)):
         result = {"state": "failure", "kind": "budget-exhausted",
                   "description": BUDGET_DESCRIPTION,
+                  "capacity_evidence": {"source": "complete-history", "prior_kind": None,
+                                        "prior_execution_error": False},
                   "errors": [f"{len(entries)} statuses recorded for this head and context "
                              f"(limit {STATUS_LIMIT}); no success is published"]}
         if recorded_budget_failure(entries):
@@ -803,9 +833,12 @@ def still_current(api, number, entry, policy, open_prs, scan_error):
 
 
 def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger=None,
-              report_scope=False):
+              report_scope=False, reconciliation=None):
     # The sweep deadline bounds the whole evaluation pass and keeps publication time free; each
     # target's read is bounded separately by its share of what remains.
+    full_sweep = numbers is None
+    if reconciliation is not None:
+        reconciliation.update(complete=False, targets=[])
     deadline = time.monotonic() + SWEEP_SECONDS
     scan_error = None
     try:
@@ -823,6 +856,13 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
         # A close/base-change event must receive a fresh explicit N/A result as well.
         if trigger is not None:
             numbers = [trigger, *(number for number in numbers if number != trigger)]
+    enumerated = sorted(numbers)
+    initial_scan_complete = scan_error is None
+    if reconciliation is not None:
+        try:
+            routing_snapshot(open_prs)
+        except API_ERRORS:
+            initial_scan_complete = False
     # Work another attempt already settled is not repeated: re-running it would spend the same
     # bounded time and, in a later attempt's exhausted tail, replace a published verdict with a
     # failure. A carried target is trusted only after its own premise is re-confirmed here.
@@ -1002,7 +1042,8 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
                     "head": head_value, "snapshot": snapshot_value,
                     "comments": comments_value, "ownership": ownership_value,
                     "result": {key: item[key] for key in
-                               ("state", "kind", "description", "errors")}}
+                               ("state", "kind", "description", "errors", "capacity_evidence")
+                               if key in item}}
     results = []
     for number in sorted(published):
         item = published[number]
@@ -1010,12 +1051,30 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
                         "policy_sha": policy_sha, "dry_run": dry_run,
                         "rerun": item["rerun"], "state": item["state"],
                         "kind": item["kind"], "description": item["description"],
-                        "errors": item["errors"]})
+                        "errors": item["errors"],
+                        **({"capacity_evidence": item["capacity_evidence"]}
+                           if "capacity_evidence" in item else {})})
     if report_scope and scan_error is not None:
         results.append({"pull_request": 0, "head_sha": "", "policy_sha": policy_sha,
                         "dry_run": dry_run, "rerun": True, "state": "failure",
                         "kind": "unverified", "description": "Lifecycle metadata unavailable",
                         "errors": [evaluation_failure(scan_error)["errors"][0]]})
+    if reconciliation is not None:
+        try:
+            routing_snapshot(open_prs)
+        except API_ERRORS:
+            initial_scan_complete = False
+        final_targets = {pr["number"] for pr in open_prs if addressable(pr, policy)}
+        final_prs = {pr["number"]: pr for pr in open_prs}
+        carried_current = all(
+            number in final_prs
+            and admission_snapshot(final_prs[number]) == tuple(entry["snapshot"])
+            and head_owner(open_prs, number, entry["head"]) == entry["ownership"]
+            for number, entry in carried.items())
+        reconciliation.update(
+            complete=(initial_scan_complete and scan_error is None and carried_current
+                      and (not full_sweep or final_targets <= set(enumerated))),
+            targets=enumerated)
     return results
 
 
@@ -1204,13 +1263,15 @@ def report_binding(repository, event_name, event_path, policy_sha, report_id):
             "policy_sha": policy_sha, "report_id": report_id, "expected_head": expected_head}
 
 
-def write_report(path, binding, results, routing=None):
+def write_report(path, binding, results, routing=None, reconciliation=None):
     if path is None:
         return
     report = {"schema_version": 1, "binding": binding, "results": results,
               "sweep_exit": exit_code(results), "summary": summarize(results)}
     if routing is not None:
         report["routing"] = routing
+    if reconciliation is not None:
+        report["reconciliation"] = reconciliation
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=True, sort_keys=True), encoding="utf-8")
     temporary.replace(path)
@@ -1250,8 +1311,25 @@ def report_exit(path, binding, sweep_exit):
     own = [result for result in results if result["pull_request"] == trigger]
     stale_event = bool(own and binding["event_name"] == "pull_request_target"
                        and own[0]["head_sha"] != binding["expected_head"])
+    execution_health = None
     if trigger is None:
         conclusion = int(sweep_exit != 0)
+        if binding["event_name"] == "push":
+            reconciliation = report.get("reconciliation", {})
+            targets = reconciliation.get("targets")
+            complete = (reconciliation.get("complete") is True
+                        and isinstance(targets, list)
+                        and all(type(number) is int and number > 0 for number in targets)
+                        and targets == sorted(seen) and 0 not in seen)
+            safe = all(not row["rerun"] and SHA.fullmatch(row["head_sha"])
+                       and ((row["kind"] in {"compliant", "closed"}
+                             and row["state"] == "success" and not row["errors"])
+                            or (row["kind"] == "noncompliant" and row["state"] == "failure")
+                            or (row["state"] == "failure" and confirmed_capacity(row)))
+                       for row in results)
+            conclusion = int(not (complete and safe))
+            if complete and safe and any(row["kind"] in FAILING_KINDS for row in results):
+                execution_health = "complete-with-findings"
     else:
         conclusion = 1
         if 0 not in seen and len(own) == 1 and not stale_event:
@@ -1263,6 +1341,11 @@ def report_exit(path, binding, sweep_exit):
     routing = report.get("routing", {"mode": "full-sweep"})
     if routing.get("mode") not in {"full-sweep", "push-impact", "closed-impact", "pr-impact"}:
         raise ValueError("Invalid routing scope")
+    if binding["event_name"] == "push" and (
+            routing["mode"] not in {"full-sweep", "push-impact"}
+            or (routing["mode"] == "push-impact"
+                and routing.get("targets") != sorted(seen))):
+        raise ValueError("Invalid push routing scope")
     impact = routing["mode"] != "full-sweep"
     summary = {"scope": ("trigger-pr" if trigger is not None else
                          "affected-admissions" if impact else "global-sweep"),
@@ -1271,8 +1354,16 @@ def report_exit(path, binding, sweep_exit):
                               if impact and not results else
                               "Only selected admissions assessed" if impact else "Full sweep"),
                "trigger": trigger, "job_exit": conclusion,
+               "execution_health": execution_health,
+               "admission_note": ("Execution completion is not admission success or merge "
+                                  "eligibility; old success may remain on saturated heads"),
+               "unresolved_admissions": [
+                   row["pull_request"] for row in results
+                   if row["kind"] in {"budget-exhausted", "budget-saturated"}],
                "target_kind": own[0]["kind"] if own else None,
-               "projection_reason": "stale-event-head" if stale_event else "final-target-result",
+               "projection_reason": ("stale-event-head" if stale_event else
+                                     "push-reconciliation" if execution_health else
+                                     "final-target-result"),
                "expected_head": binding["expected_head"],
                "evaluated_head": own[0]["head_sha"] if own else None,
                "target_applicability": ("not-applicable" if own and own[0]["kind"] == "closed"
@@ -1280,7 +1371,14 @@ def report_exit(path, binding, sweep_exit):
                "global_summary": None if impact else report["summary"],
                "scope_summary": report["summary"], "policy_sha": binding["policy_sha"]}
     print(json.dumps(summary, ensure_ascii=True))
-    if sweep_exit:
+    if execution_health and summary["unresolved_admissions"]:
+        print("::warning::Push reconciliation completed with capacity findings, not admission "
+              "success. Unresolved PR admissions require a new head; an old success may remain "
+              "visible. This does not establish that a PR is blocked from merging.")
+    elif execution_health:
+        print("::warning::Push reconciliation completed with noncompliant declarations; "
+              "completion is not admission success. See per-PR results.")
+    elif sweep_exit or (binding["event_name"] == "push" and conclusion):
         print("::warning::Admission work in the reported scope remains incomplete or failed; "
               "see structured results. Trigger-PR conclusion does not clear other PRs.")
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
@@ -1336,9 +1434,10 @@ def main(argv=None):
             numbers, routing, route_snapshot = admission_route(
                 api, event, event_name, policy, args.policy_sha, args.repository or "")
     plan = plan_file(args.plan, args.policy_sha)
+    reconciliation = {}
     results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan,
                         trigger=binding["trigger"] if binding else None,
-                        report_scope=binding is not None)
+                        report_scope=binding is not None, reconciliation=reconciliation)
     if route_snapshot is not None:
         try:
             current = routing_current(api, args.policy_sha, route_snapshot)
@@ -1354,7 +1453,7 @@ def main(argv=None):
     for result in results:
         print(json.dumps(result, ensure_ascii=True))
     print(json.dumps(summarize(results), ensure_ascii=True))
-    write_report(args.report, binding, results, routing)
+    write_report(args.report, binding, results, routing, reconciliation)
     return exit_code(results)
 
 
