@@ -1,0 +1,215 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.mistral_rs",
+  "title": "mistral-rs",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Investigate mistral.rs Metal paged-attention decode layouts, prefill coordinates and workspace, actual-model prewarm and native test evidence without treating static metadata or prepared pipelines as executed GPU correctness or performance.",
+  "tags": [
+    "mistral-rs",
+    "metal",
+    "candle",
+    "paged-attention",
+    "cache-layout",
+    "prefill-metadata",
+    "workspace",
+    "prewarm",
+    "native-evidence"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f03c19659f319213b9ab75ca60d3cb9d896e2e5c/src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
+      "commit": "f03c19659f319213b9ab75ca60d3cb9d896e2e5c",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/references/apache-component-license.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/references/paged-component-notice.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/references/repo-routing-metadata.json",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/references/scope-and-notices.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/references/source-identity.json",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/helper-contract.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/warmup-inventory.md",
+        "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "8917b30fb86437dea7508275ccce1992194d6e0c4858d537a410bf1f900953d0"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/mistral-rs/SKILL.md"
+  },
+  "checkout_ref": "checkout:mistral-rs",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/LICENSE": "b40bb09c7b3b6f697a8920cf9d2cb3ff8cfcf77a0fcb6d264a92842b43c4dcae",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md": "8917b30fb86437dea7508275ccce1992194d6e0c4858d537a410bf1f900953d0",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/metadata.json": "5e88e2ca64b848b8177336351e03d1fbcb5c495fd54217daa83710ef6faccff0",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/references/apache-component-license.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/references/paged-component-notice.md": "a1718d8c5a25f15e61bea98a158880e96faa5b7174e82c4e1470fbacb23a3559",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/references/repo-provenance.md": "fab87dacbe0a7298e42137cab7409f443ece0dfefba60961040031e36d96adc8",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/references/repo-routing-metadata.json": "0debda77a8f6b1b1c06176e3c2447767c1953b9fe7e4c84ef01b3ac90735df70",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/references/scope-and-notices.md": "938203995f5e58cd6cefa278225b2d5a3ea7dc7f07cae86201f9fc71553ac020",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/references/source-identity.json": "6a8c0b0834228b3a298e7e548c9d8cb774c00f661135f51c12ee613efe1decf3",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/SKILL.md": "73620deb4efad4681da10a07bb982e180423bd69fec3572d16ab556c530b89ec",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/helper-contract.md": "802d8af65343eeb29b0950d3c305d0f24cb7a4298628ade5f7cdcf4358c9e228",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/layout-and-features.md": "6804a771ed0dd2d8d60613d52ef87d4297af2a6445b4fe61d08adeab4be331aa",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/troubleshooting.md": "a6de920f174d6918a72093921d344c700108b0c01e1f0d09f2b9051800b1fa7d",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/references/workspace-and-evidence.md": "7ac5028be6fd48f9c6cf067bf832efc8edd681195f2fece67ea119211bdac106",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/decode-contract/scripts/audit_decode_metadata.py": "de28f586f27278fee25f6c96f1e00ee63528cdf746f57c83bdf367c31c0f6e6b",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/SKILL.md": "21015790789933e106f6ea929fd1778d862315520b55425213c679e9b7a44e95",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/references/helper-contract.md": "607449105bf3bcbcfe785dc9448a7a587c7daeb528ca63e0cd959b074a9bc409",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/references/prefill-and-metadata.md": "e8a738a668a23068b8ff1907d521a3a26f7090e7a791f3a715efdb6001338dc0",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/references/troubleshooting.md": "f584a02528e2249f5d12f223d8933e9d40212e5aba8dbe545261164b00ed6f8b",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/prefill-contract/scripts/screen_prefill_metadata.py": "769366c19d621ec1b42c722ed224fa154a63c3410a0cffc9072a13abd9c71bbd",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/SKILL.md": "745d88dbf6c764f64f8b31763e57bef720788830ddf17b518456323000325fbb",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/prewarm-and-evidence.md": "6b72ae4b4599018ce2da5c54d0c28fadcafb7ce75b81ce4c18c06a440aab6056",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/troubleshooting.md": "d933bea6e9e493faa8cd0f4103ea33197ace7f7f901359f8cf0d6bab2edcdb4d",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/warmup-inventory.md": "1e7af7d63c6853ede4232b5a12cf68aba6597c4a305015366f1c2c917e3caf01",
+    "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py": "6aa920ca1cb534dec41f5dd2d833c3e760b234ab2c6439b6c4250b8a30b74055",
+    "src/inferrsi/data/skill_library/skill-index.json": "4d654ddea97feff5cc452c4d1cbe810ac5c4c259e005e055f663aaa168ccccd8"
+  },
+  "skill_metadata": {
+    "name": "mistral-rs",
+    "description": "Investigate mistral.rs Metal paged-attention decode layouts, prefill coordinates and workspace, actual-model prewarm and native test evidence without treating static metadata or prepared pipelines as executed GPU correctness or performance.",
+    "license": "NO_LICENSE",
+    "disable-model-invocation": true,
+    "metadata": {
+      "disco-role": "operating"
+    },
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "tags": [
+      "mistral-rs",
+      "metal",
+      "candle",
+      "paged-attention",
+      "cache-layout",
+      "prefill-metadata",
+      "workspace",
+      "prewarm",
+      "native-evidence"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/EricLBuehler/mistral.rs",
+        "commit": "9459891e7697238225885518119682ac8209a612",
+        "version": "0.9.5",
+        "license": "MIT root; identified paged attention portions Apache-2.0 with NOTICE",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".github/workflows/ci.yml",
+          "AGENTS.md",
+          "Cargo.lock",
+          "Cargo.toml",
+          "LICENSE",
+          "README.md",
+          "docs/src/content/docs/guides/perf/paged-attention.mdx",
+          "examples/python/paged_attention.py",
+          "mistralrs-core/src/paged_attention/cache_engine.rs",
+          "mistralrs-core/src/paged_attention/metal_hnd_tests.rs",
+          "mistralrs-core/src/paged_attention/mod.rs",
+          "mistralrs-core/src/pipeline/metal_warmup.rs",
+          "mistralrs-paged-attn/Cargo.toml",
+          "mistralrs-paged-attn/LICENSE-APACHE",
+          "mistralrs-paged-attn/NOTICE",
+          "mistralrs-paged-attn/build.rs",
+          "mistralrs-paged-attn/src/metal/backend/mod.rs",
+          "mistralrs-paged-attn/src/metal/backend/paged_attention.rs",
+          "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+          "mistralrs-paged-attn/src/metal/kernels/mod.rs",
+          "mistralrs-paged-attn/src/metal/kernels/paged_decode_hnd.metal",
+          "mistralrs-paged-attn/src/metal/kernels/paged_prefill.metal",
+          "mistralrs-paged-attn/src/metal/mod.rs",
+          "mistralrs-paged-attn/tests/metal_prefill.rs"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/workflow-authoring",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill"
+        ],
+        "scope": "Portable compatible-agent native Rust/source adaptation; no DisCo CLI/model execution or managed import."
+      }
+    ],
+    "construction": {
+      "anchor_kind": "source",
+      "distillation_form": "repository-operating-graph",
+      "strategy": "arex-portable-meta-skills",
+      "status": "partial-candidate",
+      "native_import": "not-run",
+      "method": "Stable-ID bounded decode/prefill/qualification author lanes, whole-graph reconciliation, hard cases and offline helper/static/scaffold/wheel checks; compiler and actual Apple evidence not_run."
+    },
+    "applicability": {
+      "scope": "Selected native Metal paged decode/prefill layout/metadata/workspace and preparation/evidence investigation. Common catalog categorization is not CPU inference or hardware certification."
+    },
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: actual Rust/Candle/Apple Metal compilation, native tensor/cache/dispatch/parity/model/quality/service/performance evidence not_run.",
+      "Cargo/rustc and compatible Apple SDK/device unavailable; no Rust package/toolchain or native dependency installation, live Rust API inspection or source test execution claimed.",
+      "Offline helpers screen caller declarations, source byte formulas or boundary enumeration only; no tensor authentication, GPU simulation, native eligibility, scratch-capacity or physical-fit proof.",
+      "Generic model/loading/quantization/server/agentic/distributed/CUDA paths and unmined specialized kernels remain explicit long-tail gaps; broad skill efficacy unmeasured.",
+      "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; root MIT and identified component Apache-2.0/NOTICE retained independently."
+    ],
+    "provenance_readsets": [
+      "references/repo-provenance.md",
+      "references/source-identity.json"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Selected native Metal paged decode/prefill layout/metadata/workspace and preparation/evidence investigation. Common catalog categorization is not CPU inference or hardware certification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "BLOCKED_REQUIRED_BACKEND: actual Rust/Candle/Apple Metal compilation, native tensor/cache/dispatch/parity/model/quality/service/performance evidence not_run.",
+    "Cargo/rustc and compatible Apple SDK/device unavailable; no Rust package/toolchain or native dependency installation, live Rust API inspection or source test execution claimed.",
+    "Offline helpers screen caller declarations, source byte formulas or boundary enumeration only; no tensor authentication, GPU simulation, native eligibility, scratch-capacity or physical-fit proof.",
+    "Generic model/loading/quantization/server/agentic/distributed/CUDA paths and unmined specialized kernels remain explicit long-tail gaps; broad skill efficacy unmeasured.",
+    "NO_LICENSE is the actual unauthenticated gh resolver fallback, not legal absence; root MIT and identified component Apache-2.0/NOTICE retained independently."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
