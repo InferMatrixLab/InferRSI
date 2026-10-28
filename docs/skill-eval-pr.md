@@ -10,7 +10,8 @@ flowchart LR
     B --> C["Authorized operator: versions + hash + budget"]
     C --> D["Existing comparison client; no publication credentials"]
     D --> E["Retained results: 30 days"]
-    E --> F["Trusted publisher → one PR summary"]
+    E --> F["Trusted publisher → exact-plan advisory + explicit gaps"]
+    F --> G["Independent review; separate merge authority"]
 ```
 
 ## Automatic planning
@@ -108,15 +109,14 @@ the exact total is shown in the plan and requires renewed authorization.
 
 ### Execution environment prerequisite
 
-Execution reuses `CodexClient` and the current process cleanup path. The existing
-client executable and separately authorized model access must already be
-available in that job's environment. The repository currently has **no such
-hosted-job model provisioning**. The workflow fails its `codex --version` preflight
-when the client is absent; it never substitutes fixed outputs for real execution.
-This delivery adds no runner, model credential, secret or repository security
-setting. Real-agent end-to-end acceptance remains blocked on owner-approved
-access to the selected client in the execution environment. Do not dispatch a
-paid trial until that prerequisite and its budget are separately authorized.
+Execution reuses the configured comparison client and cleanup path. The client
+and separately authorized model access must already be available in that job's
+environment; the Codex path checks `codex --version` and never substitutes fixed
+outputs. The optional provider configuration has its own readiness checks and
+reservation contract. A historical successful run does not establish current
+credential availability, permission, provider readiness or remaining budget.
+Do not dispatch paid work without current exact-plan authorization. This guide
+and an issue/label proposal do not activate paid execution or provision secrets.
 
 The execute job has read-only repository permissions, no publication token in
 its model step, and checkout uses `persist-credentials: false`. The privileged
@@ -231,9 +231,60 @@ inconclusive and missing pair, a single simulated PR summary, and retained
 evidence. They validate integration behavior only. The summary's example GitHub
 link is simulated; inspect the corresponding local `publication/` evidence.
 
-The workflow becomes active after this implementation is on main. Draft PR CI
-tests its offline behavior; it does not activate an unmerged privileged workflow.
-#101/#88 remain open until one **real addition** and one **real update** complete
-the separately authorized agent execution and automatic PR feedback path.
-Neutral/negative outcomes are valid. Neither fixed outputs nor green CI establish
-skill efficacy, authorize paid trials, merge a PR or close either issue.
+The workflow is already on main. The bounded #88/#101 addition/update acceptance
+established the existing real-agent execution and feedback path, including a
+valid neutral update; it did not establish whole-library efficacy or subject-PR
+merge readiness. #215's advisory behavior still needs revision-scoped real-PR
+demonstration and independent review. Offline controls are not that demonstration.
+Neither fixed outputs nor green CI authorize paid trials, merge or issue closure.
+
+## Reading the advisory guidance
+
+The existing summary derives one advisory from trusted regenerated comparisons,
+not an aggregate score. Its applicability is exactly the displayed base/head,
+trusted implementation and PR plan hash (which binds each comparison and exam).
+The publisher reconstructs these inputs and checks live PR revisions before
+writing; an old execution cannot be republished against a new plan. No background
+monitor updates an already-posted comment when inputs change or artifacts expire.
+Check the current PR and artifact availability before relying on a saved comment.
+
+| Evidence | Advisory / next action |
+| --- | --- |
+| Any current, verified regression | Address observed regression; fixes elsewhere never cancel it |
+| PLANNED, missing/expired/invalid evidence, incomplete execution or pairs | Obtain missing evidence; do not infer quality from preparation or a green job |
+| Uncovered/unsupported changes, no selected cases | Obtain relevant evidence or an explicit reviewer disposition of the boundary |
+| Unchanged-incorrect | Existing failure remains visible; fix or explicitly disposition it |
+| Complete covered fixes and/or unchanged-correct pairs | Covered evidence supports proceeding to independent review, not approval |
+
+Per-case outcomes remain visible, including simultaneous fixes, regressions and
+gaps; discovery does not replace paired holdouts. Correct→correct is valid neutral
+evidence, never incremental benefit. A coverage gap is not a requirement to test
+every changed file: a reviewer can explicitly disposition navigation, unsupported
+content or another boundary. The automated report does not invent that decision
+or silently count the gap as passed. Content/source review, authorship admission,
+and merge authority remain independent.
+
+Knowledge-only changes under `src/inferrsi/data/repo_packs/**` or
+`src/inferrsi/data/knowledge_packs/**` are outside the current automatic path
+filter. Use the existing **plan-only dispatch** for an explicit scope report;
+unmapped paths remain uncovered and select no paid work. Absence of a triggered
+workflow is not an evaluation pass. This slice does not expand automatic paths
+or introduce an unrelated audit grader for knowledge content.
+
+### Relevant #179 integrity reconciliation
+
+The current comparison loader checks schedule/task/repeat consistency, limit
+shape, exported bundle resources and frozen exam hashes. The report regrades
+retained default-audit answers with trusted code; custom graders are unverified.
+The PR adapter validates mapping IDs before creating paths, reconstructs the
+exact PR plan, checks run provenance and regrades again. The checkpoint now
+requires completed execution before recommending accepted reporting. These are
+existing corrections, not newly repaired historical defects in this slice.
+
+Limits remain: semantic consistency and unkeyed receipts do not attest a hostile
+executor, the actual model/hardware used, or consistently fabricated retained
+answers. Standalone freeze fields are not all independently authenticated.
+The PR path's trusted reconstruction narrows that boundary; it does not create
+cryptographic provenance. Review guidance is advisory evidence interpretation,
+not execution attestation or skill-efficacy certification. Unrelated harness
+lifecycle/Windows contention work remains outside this slice and under #179.

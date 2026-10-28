@@ -5,6 +5,7 @@ import io
 import json
 import os
 import re
+import shutil
 import stat
 import subprocess
 import time
@@ -272,6 +273,14 @@ def import_results(data, output):
             path = PurePosixPath(member.filename)
             if path.is_absolute() or ".." in path.parts or "\\" in member.filename:
                 raise ValueError("Unsafe result path")
+        # Retry imports are snapshots, not overlays: omitted files must remain missing,
+        # never inherited from a previous successful download in the same directory.
+        for item in plan["comparisons"]:
+            if "plan_sha256" in item:
+                folder = output / item["skill"] / "results"
+                if folder.exists():
+                    shutil.rmtree(folder)
+                folder.mkdir()
         for member in members:
             target = output / member.filename
             target.parent.mkdir(parents=True, exist_ok=True)
@@ -293,6 +302,9 @@ def reports(output):
                         or type(record.get("inputs_unchanged")) is not bool):
                     raise ValueError("Untrusted input-integrity flag must be a boolean")
         result = compare.report(directory)
+        status = result.get("status")
+        if not isinstance(status, dict) or not isinstance(status.get("execution_state"), str):
+            raise ValueError("Invalid retained execution status shape")
         tasks = {t["id"]: t for t in compare.read_json(directory / "plan/tasks.json")}
         for trial in [p[r] for p in result["pairs"] for r in compare.ROLES] + result["discovery"]:
             if trial["verdict"] in ("PASS", "FAIL"):
@@ -304,13 +316,96 @@ def reports(output):
     return results
 
 
-def summary(plan, results, evidence_url, expires_at, now):
+def review_guidance(plan, results, *, evidence_state):
+    """Advisory only, over trusted regenerated reports for this exact plan.
+
+    Counts are presentation, not authority: inspect every scheduled pair and
+    comparison binding so neither a fix nor another comparison hides a gap.
+    """
+    reasons, observations = [], []
+    selected = [item for item in plan["comparisons"] if "plan_sha256" in item]
+    if evidence_state != "available":
+        reasons.append("Retained evidence is " + evidence_state + ".")
+    if not selected:
+        reasons.append("No supported comparison cases were selected.")
+    gaps = [entry for entry in plan["coverage"] if entry["coverage"] != "covered"]
+    if gaps:
+        reasons.append("Uncovered/unsupported scope needs a case or explicit reviewer disposition.")
+    regression = False
+    seen = set()
+    for item in selected if evidence_state == "available" else []:
+        matches = [result for result in results if result.get("skill") == item["skill"]]
+        if len(matches) != 1:
+            reasons.append(item["skill"] + ": missing or ambiguous comparison report.")
+            continue
+        result = matches[0]
+        seen.add(item["skill"])
+        bound = (result.get("plan_sha256") == item["plan_sha256"]
+                 and result.get("exam") == item["exam"]
+                 and all(result.get("arms", {}).get(role, {}).get("git_revision") == plan[key]
+                         for role, key in (("baseline", "base"), ("candidate", "head"))))
+        if not bound or evidence_state != "available":
+            if not bound:
+                reasons.append(item["skill"] + ": stale or mismatched revision/plan/exam.")
+            continue
+        status = result.get("status")
+        if not isinstance(status, dict) or status.get("execution_state") != "completed":
+            reasons.append(item["skill"] + ": execution is incomplete or unverified.")
+        expected = {(case["id"], repeat) for case in item["cases"]
+                    if case["split"] != "discovery"
+                    for repeat in range(1, plan["limits"]["repeats"] + 1)}
+        pairs = result.get("pairs", [])
+        actual = [(pair["case_id"], pair["repeat"]) for pair in pairs]
+        if not expected or set(actual) != expected or len(actual) != len(expected):
+            reasons.append(item["skill"] + ": incomplete paired-case coverage.")
+        for pair in pairs:
+            outcome = pair["outcome"]
+            observations.append({"skill": item["skill"], "case": pair["case_id"],
+                                 "repeat": pair["repeat"], "outcome": outcome})
+            if outcome == "regression":
+                regression = True
+            elif outcome in ("missing_pair", "inconclusive"):
+                reasons.append(item["skill"] + ": " + outcome + "; obtain valid paired evidence.")
+            elif outcome == "unchanged_incorrect":
+                reasons.append(item["skill"]
+                               + ": existing failure remains; fix or explicitly disposition it.")
+            elif outcome not in ("fix", "unchanged_correct"):
+                reasons.append(item["skill"] + ": unsupported outcome.")
+        if any(trial.get("verdict") not in ("PASS", "FAIL")
+               for trial in result.get("discovery", [])):
+            reasons.append(item["skill"] + ": discovery evidence is incomplete or erroneous.")
+    if evidence_state == "available" and len(results) != len(seen):
+        reasons.append("Unexpected or duplicate comparison reports cannot support guidance.")
+    disposition = ("address observed regression" if regression else
+                   "obtain missing evidence" if reasons else
+                   "covered evidence supports proceeding to independent review")
+    if regression:
+        reasons.insert(0, "Fixes do not cancel observed regressions; "
+                       "correct the failing candidate cases.")
+    return {"disposition": disposition, "reasons": list(dict.fromkeys(reasons)),
+            "observations": observations,
+            "evidence_state": evidence_state, "plan_sha256": fingerprint(plan)}
+
+
+def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None):
     expired = now >= expires_at
-    lines = [MARKER, "## Skill evaluation", ""]
+    evidence_state = ("expired" if expired else evidence_state or
+                      ("available" if results else "planned / unexecuted"))
+    guidance = review_guidance(plan, results, evidence_state=evidence_state)
+    lines = [MARKER, "## Skill evaluation"]
+    lines += ["### Advisory: " + guidance["disposition"],
+              "Retained evidence availability: **" + evidence_state + "**. "
+              "No approval or merge authorization is issued."]
+    lines.extend("- " + reason for reason in guidance["reasons"][:6])
+    if len(guidance["reasons"]) > 6:
+        lines += [f"- {len(guidance['reasons']) - 6} additional reasons in details below."]
+    lines += [""]
     counts = {k: 0 for k in ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
                              "inconclusive", "missing_pair")}
     if expired:
         lines += ["**EXPIRED: retained evidence is no longer verifiable.**"]
+    elif evidence_state in ("missing", "invalid"):
+        lines += ["**INSUFFICIENT EVIDENCE: retained artifacts are " + evidence_state + ".**"]
     elif results:
         for result in results:
             for key in counts:
@@ -330,15 +425,26 @@ def summary(plan, results, evidence_url, expires_at, now):
               f"**{plan['estimated_calls']}**.",
               f"Uncovered/unsupported changes: **{len(gaps)}**. Gaps never count as passes.", "",
               "Applicable only while these revisions and inputs match the current PR.",
-              "Execution requires exact plan, versions and budget approval; a hash alone "
-              "does not authorize it.",
-              "Token usage stops new trials; it is not a hard provider token or monetary cap.",
-              "Cost remains unknown.", "",
+              "Execution requires exact plan, versions and budget approval; "
+              "not a hard provider token or monetary cap. Cost remains unknown.",
+              "Pipeline evidence only; offline fixed outputs do not establish skill efficacy.",
               f"[Evidence and logs]({evidence_url}) · Retention: {RETENTION_DAYS} days.",
               f"Outcomes are historical; verifiable only before Unix time `{int(expires_at)}` "
               "while the linked artifact is available. Expired evidence is unverified.", "",
-              "Pipeline evidence only; offline fixed outputs do not establish skill efficacy.",
-              "", "<details>", "<summary>Plan bindings, budget and frozen exam</summary>", "",
+              "<details>",
+              "<summary>Plan bindings, budget, frozen exam and advisory details</summary>", "",
+              "Unchanged-correct is valid neutral evidence, not incremental benefit.",
+              "Content/source review and authorship admission remain separate.",
+              "Trusted regrading checks retained answers, not model/hardware provenance or "
+              "a hostile executor; this is not an efficacy certification.",
+              *["- " + reason for reason in guidance["reasons"][6:]],
+              "", "Per-case outcomes (discovery excluded; regressions and gaps first):",
+              "```json", canonical(sorted(guidance["observations"], key=lambda item:
+                  (item["outcome"] not in ("regression", "inconclusive", "missing_pair",
+                                           "unchanged_incorrect"), item["skill"]))[:20]), "```",
+              f"Showing at most 20 of {len(guidance['observations'])} pairs; "
+              "the evidence link contains all outcomes, including omitted regressions/gaps.",
+              "",
               f"Plan SHA-256: `{fingerprint(plan)}`",
               f"Base: `{plan['base']}` · Head: `{plan['head']}`",
               f"Trusted implementation: `{plan['version']}`", "",
@@ -559,11 +665,17 @@ class ArtifactRedirect(urllib.request.HTTPRedirectHandler):
         return redirected
 
 
+class MissingEvidence(ValueError):
+    """A known absent artifact, not an API access or integrity failure."""
+
+
 def artifact_zip(api, run_id, name, now):
     artifacts = api.pages(f"/actions/runs/{run_id}/artifacts", "artifacts")
     selected = [a for a in artifacts if a["name"] == name]
+    if not selected:
+        raise MissingEvidence("Evidence artifact missing")
     if len(selected) != 1:
-        raise ValueError("Evidence artifact missing or ambiguous")
+        raise ValueError("Evidence artifact ambiguous")
     artifact = selected[0]
     if artifact["size_in_bytes"] > MAX_ARCHIVE:
         raise ValueError("Artifact too large")
@@ -590,13 +702,22 @@ def publish_retained(api, output, source_run, writer_run, now):
             or run["head_sha"] != plan["version"]
             or run["status"] != "completed" and source_run != writer_run):
         raise ValueError("Untrusted or mismatched execution workflow")
-    data, expires = artifact_zip(api, source_run, "skill-eval-results", now)
+    evidence_state = "available"
+    try:
+        data, expires = artifact_zip(api, source_run, "skill-eval-results", now)
+    except MissingEvidence:
+        data, expires, evidence_state = None, now + RETENTION_DAYS * 86400, "missing"
     results = []
     if data is not None:
-        import_results(data, output)
-        results = reports(output)
+        try:
+            import_results(data, output)
+            results = reports(output)
+        except (ValueError, KeyError, TypeError, OSError, zipfile.BadZipFile):
+            # Never expose artifact-controlled exception text or reuse old counts.
+            evidence_state = "invalid"
     url = f"https://github.com/{plan['repository']}/actions/runs/{source_run}"
-    return api.publish(plan, summary(plan, results, url, expires, now), writer_run)
+    return api.publish(plan, summary(plan, results, url, expires, now,
+                                     evidence_state=evidence_state), writer_run)
 
 
 def main():

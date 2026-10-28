@@ -457,9 +457,10 @@ def test_artifact_envelope_and_run_provenance_are_validated(tmp_path):
             integration.publish_retained(api, output, 10, 11, 1)
         api.run[field] = original
     api.data = envelope(b"not a zip")
-    with pytest.raises(zipfile.BadZipFile):
-        integration.publish_retained(api, output, 10, 11, 1)
-    assert api.writes == []
+    integration.publish_retained(api, output, 10, 11, 1)
+    assert "artifacts are invalid" in api.comments[0]["body"]
+    assert "obtain missing evidence" in api.comments[0]["body"]
+    assert len(api.writes) == 1
 
 
 def test_workflow_separates_execution_and_publication_credentials():
