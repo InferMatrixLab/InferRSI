@@ -474,3 +474,19 @@ publishing statuses. It does not show the main workflow is operational. Producti
 uses runtime-injected `GITHUB_TOKEN`; never pass tokens as CLI arguments. The
 existing ready lane runs unit tests on Python 3.10 and 3.11 in its full suite.
 
+
+
+### Temporary owner-authorized encrypted diagnostic (#203)
+
+The one-shot opt-in captures only the selected pending-status POST's HTTP 422
+`errors` string, from the response already being processed. It adds no request.
+Activation requires the pinned main-push `before`, first run attempt, repository
+and exact head; other events and later pushes are disabled. An exclusive marker
+prevents a second capture even if encryption fails. The string is passed in memory
+to OpenSSL CMS using a temporary public certificate and a credential-free child
+environment. Only ciphertext is written and uploaded, after a successful-capture
+step output, with one-day artifact retention. The decryption key stays outside
+GitHub. Neither plaintext, full response bodies, headers nor tokens are recorded.
+Capture failure uses a fixed diagnostic and never changes the admission verdict.
+Remove the opt-in, capture hook and public certificate after the authorized sample
+is collected; this diagnostic is not a permanent telemetry channel or a 422 fix.
