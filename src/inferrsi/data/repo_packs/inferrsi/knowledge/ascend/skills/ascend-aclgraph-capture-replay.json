@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "commit": "ca201c99455200a5a3d0007aca6a2963f01be17d",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json",
@@ -39,9 +39,9 @@
   "checkout_ref": "checkout:ascend-aclgraph-capture-replay",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md": "d494fc7e539cbb7388189bd7b3f04bb5c4983fdd7a82484348aad1cee7f741f2",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "e4c02d4ae85e473947e024c38aed121ca8e5cfbfe1091c5792ce58a349248187",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/metadata.json": "71c68431663ed2336cccc985a354adab6b13b4cfd6123a18a5d8d53c28268509",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/references/source-notes.md": "6ffbfb68cc7e04923b4fbca2a73a7555b7c3b45a6f40819bb5f3213ef05cf88d",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "11ce84e1e514eb39a0982cd104ed2321f34b786e522f41cc71d331788eba772b"
   },
   "skill_metadata": {
     "name": "ascend-aclgraph-capture-replay",
@@ -60,10 +60,6 @@
     "origin": [
       "external"
     ],
-    "sources": [],
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -71,12 +67,9 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

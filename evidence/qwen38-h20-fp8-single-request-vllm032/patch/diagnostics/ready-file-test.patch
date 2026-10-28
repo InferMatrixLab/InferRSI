@@ -1,0 +1,24 @@
+diff --git a/tests/test_qwen38_service.py b/tests/test_qwen38_service.py
+index fd2555a..ced2243 100644
+--- a/tests/test_qwen38_service.py
++++ b/tests/test_qwen38_service.py
+@@ -449,9 +449,16 @@ main()
+     process = subprocess.Popen([sys.executable, "-c", source, str(ready), str(final)], env=environment)
+     try:
+         deadline = time.monotonic() + 3
+-        while not ready.exists() and process.poll() is None and time.monotonic() < deadline:
+-            time.sleep(0.01)
+-        address = json.loads(ready.read_text())["address"]
++        # The producer opens the file before serializing its health report.
++        # Existence alone can expose an empty/partial JSON document.
++        while process.poll() is None and time.monotonic() < deadline:
++            try:
++                address = json.loads(ready.read_text())["address"]
++                break
++            except (FileNotFoundError, json.JSONDecodeError):
++                time.sleep(0.01)
++        else:
++            raise AssertionError("server did not publish complete readiness JSON")
+         connection, response = stream(address, request_id="signal-active")
+         idle = socket.create_connection(address)
+         idle.sendall(b"POST /v1/completions HTTP/1.1\r\nHost: localhost\r\nContent-Length: 1000\r\n\r\n{")

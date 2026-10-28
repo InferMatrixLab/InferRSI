@@ -8,7 +8,11 @@ from ..runspec import RunSpec
 
 
 def _summary(trials: list[dict]) -> dict | None:
-    values = [trial["metric"] for trial in trials if trial.get("metric") is not None]
+    # Only a completed trial recorded a measurement. A timed-out or failed trial
+    # may still have written a result file, but its metric is not a datapoint;
+    # `evaluate` reports the exclusion in `reasons` instead of dropping it silently.
+    measured = [trial for trial in trials if trial.get("status") == "completed"]
+    values = [trial["metric"] for trial in measured if trial.get("metric") is not None]
     if not values:
         return None
     ordered = sorted(values)
@@ -25,6 +29,7 @@ def _summary(trials: list[dict]) -> dict | None:
         "min": min(values),
         "max": max(values),
         "range_pct_of_median": spread if math.isfinite(spread) else None,
+        "excluded_trials": len(trials) - len(values),
     }
 
 
@@ -43,7 +48,10 @@ def evaluate(
             )
         for index, trial in enumerate(trials, 1):
             if trial.get("status") != "completed":
-                incomplete.append(f"{label} trial {index}: {trial.get('status')}")
+                incomplete.append(
+                    f"{label} trial {index}: {trial.get('status')} trial excluded from "
+                    "the recorded measurements"
+                )
             if trial.get("metric") is None:
                 incomplete.append(
                     f"{label} trial {index}: {trial.get('metric_error') or 'metric missing'}"

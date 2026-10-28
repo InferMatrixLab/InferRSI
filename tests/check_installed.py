@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 108, "Knowledge is missing from the installation"
+assert len(records) == 115, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -43,10 +43,17 @@ for record in mlx_records:
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 assert files("inferrsi").joinpath("data/platform_packs/mlx/pack.json").is_file()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 60, "Missing installed skill abstracts"
+assert len(skill_index) == 67, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
+video_diffusion = KnowledgeReader().read(
+    "inferrsi.ascend.skills.ascend_video_diffusion_optimization"
+)
+assert (
+    "data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md"
+    in video_diffusion.content
+)
 case_path = (
     "data/skill_library/methods/inference-optimization-casebook/"
     "cases/admission-drain-occupancy.md"
@@ -108,6 +115,25 @@ for relative in (
     "references/licenses/cutlass-bsd.md",
 ):
     assert hopper_prefix + relative in hopper_bundle.content
+# Check installed RLT resources without importing the upstream backend.
+rlt_identity = "inferrsi.common.skills.audit_recurrent_kv_finalization"
+rlt_bundle = KnowledgeReader().read(rlt_identity)
+rlt_prefix = "data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/"
+for relative in (
+    "SKILL.md", "metadata.json", "LICENSE", "references/NOTICE.md",
+    "references/source-notes.md", "references/source-identity.json",
+):
+    assert rlt_prefix + relative in rlt_bundle.content
+rlt_metadata = json.loads(rlt_bundle.content[rlt_prefix + "metadata.json"])
+assert rlt_metadata["status"] == "candidate"
+assert rlt_metadata["empirical_validation"] == "not_run"
+assert rlt_metadata["sources"][0]["commit"] == "4a350344027960a48384626aa646f1765fda6d4f"
+rlt_sources = json.loads(rlt_bundle.content[rlt_prefix + "references/source-identity.json"])
+rlt_source_hashes = {item["path"]: item["content_sha256"] for item in rlt_sources["files"]}
+for upstream, relative in (("LICENSE", "LICENSE"), ("NOTICE", "references/NOTICE.md")):
+    actual = hashlib.sha256(rlt_bundle.content[rlt_prefix + relative]).hexdigest()
+    assert actual == rlt_source_hashes[upstream]
+
 assert "yaml" not in sys.modules, "Installed metadata reads must not require the skills extra"
 selection_reader = KnowledgeReader()
 selection = selection_reader.collect(
@@ -143,7 +169,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 60
+assert len(registry) == 67
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
@@ -187,6 +213,15 @@ helper = strata.joinpath("scripts", "summarize_trials.py")
 assert helper.is_file()
 with as_file(helper) as path:
     compile(path.read_text(encoding="utf-8"), str(path), "exec")
+ceiling = library.joinpath("methods", "performance-ceiling-analysis")
+ceiling_namespace = {}
+exec(compile(ceiling.joinpath("scripts", "roofline.py").read_text(encoding="utf-8"),
+             "roofline.py", "exec"), ceiling_namespace)
+ceiling_example = json.loads(
+    ceiling.joinpath("references", "roofline-example.json").read_text(encoding="utf-8")
+)
+assert ceiling_namespace["analyze"](**ceiling_example)["conditional_roof_flop_per_s"] == 60
+assert ceiling.joinpath("references", "roofline-contract.md").is_file()
 inference_modules = {"torch", "vllm", "sglang", "sglang_omni", "vllm_omni", "transformers", "mlx"}
 assert not inference_modules & sys.modules.keys()
 ascend_image = search_knowledge(
@@ -244,3 +279,21 @@ assert set(research["profile"]["knowledge_ids"]) <= {
 }
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
+
+splash_notices = files("inferrsi").joinpath(
+    "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES"
+)
+assert splash_notices.is_file(), "Splash third-party notices are missing from the wheel"
+assert "The ggml authors" in splash_notices.read_text(encoding="utf-8")
+
+# Document-only candidate remains available without implying native verification.
+husky = library.joinpath("repositories", "husky")
+assert husky.joinpath("references", "source-availability.json").is_file()
+assert husky.joinpath("scripts", "audit_evidence_card.py").is_file()
+assert json.loads(husky.joinpath("metadata.json").read_text())["status"] == "candidate"
+
+# Maya retains safe support and unverified-native candidate state in the wheel.
+maya = library.joinpath("repositories", "project-maya")
+assert maya.joinpath("LICENSE").is_file()
+assert maya.joinpath("sub-skills", "model-runtime", "scripts", "audit_runtime_plan.py").is_file()
+assert json.loads(maya.joinpath("metadata.json").read_text())["status"] == "candidate"

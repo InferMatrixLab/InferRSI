@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "commit": "ca201c99455200a5a3d0007aca6a2963f01be17d",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json",
@@ -42,11 +42,11 @@
   "checkout_ref": "checkout:diffusers-invocation-state",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "7581b56336d07213a87d01477793ae1a8acf0b7cf876fce36c9a761ee32c1ff4",
-    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "a50b84089c98d81aad9feb8d00321ab2ccae360c9a4aa3b4b348b6f429e1fea2",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "68ac7f64b7ab947fc2db664bc3990f102c1cc5539b42350aa5818d0bbf17d86c",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/skill-index.json": "11ce84e1e514eb39a0982cd104ed2321f34b786e522f41cc71d331788eba772b"
   },
   "skill_metadata": {
     "name": "diffusers-invocation-state",
@@ -94,7 +94,6 @@
     "provenance_readsets": [
       "references/source-map.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

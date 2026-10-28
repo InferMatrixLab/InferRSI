@@ -37,6 +37,10 @@
       "path": "hardware/ascend/ascend-performance-analysis",
       "backend": "ascend"
     },
+    "ascend-video-diffusion-optimization": {
+      "path": "hardware/ascend/ascend-video-diffusion-optimization",
+      "backend": "ascend"
+    },
     "ascendc-tiling-design": {
       "path": "hardware/ascend/ascendc-tiling-design",
       "backend": "ascend"
@@ -240,6 +244,30 @@
     "reason-hopper-kernels": {
       "path": "hardware/cuda/reason-hopper-kernels",
       "backend": "cuda"
+    },
+    "dwarfstar": {
+      "path": "repositories/dwarfstar",
+      "backend": "common"
+    },
+    "splash": {
+      "path": "repositories/splash",
+      "backend": "common"
+    },
+    "lily": {
+      "path": "repositories/lily",
+      "backend": "common"
+    },
+    "husky": {
+      "path": "repositories/husky",
+      "backend": "common"
+    },
+    "audit-recurrent-kv-finalization": {
+      "path": "repositories/vllm-rlt/audit-recurrent-kv-finalization",
+      "backend": "common"
+    },
+    "project-maya": {
+      "path": "repositories/project-maya",
+      "backend": "common"
     }
   }
 }

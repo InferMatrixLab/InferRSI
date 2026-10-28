@@ -5,14 +5,24 @@ import math
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import time
 from pathlib import Path
 
-from inferrsi.harness.skill_evaluation import CodexClient, export_bundle, run_trial, summarize
+from inferrsi.harness.skill_evaluation import (
+    CodexClient,
+    export_bundle,
+    normalize_usage,
+    run_trial,
+    summarize,
+)
 from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
+from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
+from inferrsi.model.anthropic_agent import AnthropicAgentClient, validate_schema, validate_spec
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
+from tools.skill_eval_verifier import verify
 
 ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("baseline", "candidate")
@@ -159,7 +169,7 @@ def validate_default_audit(task: dict) -> None:
 
 def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) -> None:
     if set(config) - {"mode", "skill", "skill_root", "cases", "schema", "grader",
-                      "snapshots", "model", "limits"}:
+                      "snapshots", "model", "limits", "client", "pricing", "spend_limit"}:
         raise ValueError("Unknown configuration field")
     if config["mode"] not in ("addition", "update"):
         raise ValueError("mode must be addition or update")
@@ -179,6 +189,10 @@ def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) ->
         raise ValueError("model supports name and effort only")
     if not all(isinstance(v, str) and v for v in config["model"].values()):
         raise ValueError("model name and effort are required")
+    if "client" in config:
+        validate_spec(config["model"], config["client"])
+    elif "pricing" in config or "spend_limit" in config:
+        raise ValueError("Provider pricing requires an explicit client")
     limits = config["limits"]
     if set(limits) != {"repeats", "max_task_calls", "timeout_seconds", "campaign_seconds",
                        "token_stop_new_trials"}:
@@ -280,6 +294,8 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         grader.read_bytes() == (ROOT / "tools/skill_eval_verifier.py").read_bytes()))
     require_git_version(subprocess.check_output(("git", "--version"), cwd=repo, text=True))
     schema = read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA
+    if "client" in config:
+        validate_schema(schema)
     output.mkdir(parents=True, exist_ok=False)
     for name in ("plan", "validator", "results"):
         (output / name).mkdir()
@@ -328,6 +344,18 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         "CodexClient disables global skills, plugins, apps, memories and web. "
         "Controlled exposure is not OS read confinement.",
     }
+    if "client" in config:
+        client = AnthropicAgentClient(config["model"]["name"], config["client"],
+                                      config["limits"]["timeout_seconds"],
+                                      config.get("pricing"), config.get("spend_limit"))
+        plan["client"] = client.frozen_identity()
+        plan["controllers"][AGENT_SOURCE] = sha256(ROOT / AGENT_SOURCE)
+        plan["max_api_requests"] = len(plan["schedule"]) * config["client"]["max_requests"]
+        if "pricing" in config or "spend_limit" in config:
+            plan["reservation"] = client.require_live_readiness(len(plan["schedule"]), now=0)
+        plan["isolation"] = ("Fresh workspaces; read/submit tools expose selected files only. "
+                             "No shell, network tool, external agent CLI or global config. "
+                             "Provider worker and verifier use separate filtered environments.")
     write_json(output / "plan/freeze.json", plan)
     return sha256(output / "plan/freeze.json")
 
@@ -345,6 +373,58 @@ def load_plan(output: Path) -> dict:
               for p in folder.rglob("*") if p.is_file()}
     if actual != set(plan["files"]) | {"plan/freeze.json"}:
         raise ValueError("Frozen input file set changed")
+    # The freeze hash covers every byte of freeze.json, so an edited copy can
+    # always carry a matching hash. Re-derive what the frozen inputs determine
+    # instead of trusting the fields that merely state it.
+    limits = plan["limits"]
+    if set(limits) != {"repeats", "max_task_calls", "timeout_seconds", "campaign_seconds",
+                       "token_stop_new_trials"}:
+        raise ValueError("Frozen execution limits changed shape")
+    for name in limits:
+        if type(limits[name]) is not int or limits[name] <= 0:
+            raise ValueError(f"Frozen limit {name} must be a positive integer")
+    tasks = read_json(output / "plan/tasks.json")
+    if plan["schedule"] != build_schedule(tasks, limits["repeats"]):
+        raise ValueError("Frozen schedule disagrees with the frozen tasks and repeats")
+    if len(plan["schedule"]) > limits["max_task_calls"]:
+        raise ValueError("Frozen schedule exceeds max_task_calls")
+    if set(plan["model"]) != {"name", "effort"} or not all(
+            isinstance(value, str) and value for value in plan["model"].values()):
+        raise ValueError("Frozen model settings changed shape")
+    for role in ROLES:
+        # Bundle bytes are covered by `files` above; the arm only names the commit.
+        arm = plan["arms"][role]
+        if set(arm) != {"git_revision", "bundle"} or not re.fullmatch(
+                r"[0-9a-f]{40}", arm["git_revision"]):
+            raise ValueError("Frozen arm does not identify a Git commit")
+    before = plan["arms"]["baseline"]["bundle"]
+    after = plan["arms"]["candidate"]["bundle"]
+    if plan["mode"] == "addition" and before is not None:
+        raise ValueError("Addition baseline must not carry a bundle revision")
+    if after is None:
+        raise ValueError("Candidate arm requires an exported bundle")
+    # The arm's bundle metadata states a revision and its resources; the exported
+    # bytes are the in-tree authority for those resources. Compare them so an
+    # edited arm cannot claim identical skill content that the export contradicts.
+    for role in ROLES:
+        bundle = plan["arms"][role]["bundle"]
+        if bundle is None:
+            continue
+        export = output / "plan/bundles" / role
+        actual = {path.relative_to(export).as_posix(): sha256(path)
+                  for path in sorted(export.rglob("*")) if path.is_file()}
+        if actual != bundle["resources"]:
+            raise ValueError(f"Exported bundle bytes disagree with the frozen {role} arm")
+    same_bundle = before is not None and before["revision"] == after["revision"]
+    if plan["same_bundle"] != same_bundle:
+        raise ValueError("Frozen identical-bundle flag disagrees with the frozen arms")
+    if same_bundle and before["resources"] != after["resources"]:
+        raise ValueError("Frozen identical-bundle claim disagrees with the exported bytes")
+    frozen_exam = {"cases": "plan/tasks.json", "schema": "plan/schema.json",
+                   "grader": "validator/verify.py"}
+    for name, path in frozen_exam.items():
+        if plan["exam"].get(name) != plan["files"].get(path):
+            raise ValueError(f"Frozen exam hash disagrees with the frozen file list: {name}")
     return plan
 
 
@@ -355,6 +435,12 @@ def trial_directory(output: Path, entry: dict) -> Path:
 def resolve_client(client):
     runtime = {"implementation": type(client).__module__ + "." + type(client).__qualname__,
                "executable": None, "executable_sha256": None, "version": None}
+    if isinstance(client, AnthropicAgentClient):
+        client.require_live_readiness()
+        runtime.update(version=sys.version.split()[0], client_kind=client.spec["kind"],
+                       executable=Path(sys.executable).name,
+                       executable_sha256=sha256(Path(sys.executable)),
+                       source_sha256=sha256(ROOT / AGENT_SOURCE))
     if isinstance(client, CodexClient):
         executable = shutil.which(client.executable)
         if executable is None:
@@ -384,12 +470,32 @@ def receipt_error(raw_record: bytes, receipt_path: Path, label: str) -> str | No
     return None
 
 
-def execute(output: Path, authorization: str, *, client=None) -> dict:
+def provider_client(plan):
+    identity = plan["client"]
+    client = AnthropicAgentClient(plan["model"]["name"], identity["settings"],
+                                  plan["limits"]["timeout_seconds"], identity.get("pricing"),
+                                  identity.get("spend_limit"))
+    if identity != client.frozen_identity():
+        raise ValueError("Frozen provider identity no longer matches runtime")
+    return client
+
+
+def execute(output: Path, authorization: str, *, client=None,
+            campaign_deadline: float | None = None,
+            stop_on_unknown_usage: bool = True) -> dict:
     if authorization != sha256(output / "plan/freeze.json"):
         raise ValueError("Execution requires authorization for this exact plan SHA-256")
     plan = load_plan(output)
     if any((output / "results").iterdir()):
         raise ValueError("Execution requires fresh results; prepare a new output directory")
+    if "client" in plan:
+        configured = provider_client(plan)
+        configured.require_live_readiness(len(plan["schedule"]))
+        if client is not None:
+            raise ValueError("A paid provider plan cannot substitute an injected client")
+        configured.environment()  # Missing keys fail before start/trial evidence.
+        client = configured
+        stop_on_unknown_usage = True
     if client is None:
         client = CodexClient(plan["model"]["name"], plan["model"]["effort"],
                              plan["limits"]["timeout_seconds"])
@@ -398,10 +504,22 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
                {"started_at": time.time(), "client_runtime": runtime})
     tasks = {task["id"]: task for task in read_json(output / "plan/tasks.json")}
     deadline = time.monotonic() + plan["limits"]["campaign_seconds"]
+    if campaign_deadline is not None:
+        deadline = min(deadline, campaign_deadline)
     tokens, completed, stop_reason = 0, 0, None
+    budget_unknown = False
     for entry in plan["schedule"]:
-        if time.monotonic() >= deadline or tokens >= plan["limits"]["token_stop_new_trials"]:
-            stop_reason = "time_budget" if time.monotonic() >= deadline else "token_budget"
+        if time.monotonic() >= deadline:
+            stop_reason = "time_budget"
+            break
+        if tokens >= plan["limits"]["token_stop_new_trials"]:
+            stop_reason = "token_budget"
+            break
+        if budget_unknown and stop_on_unknown_usage:
+            # An unknown budget cannot be shown to be within the authorized
+            # limit, so no further trial is started. Checked before the next
+            # trial, not after the last one, so a finished schedule stays finished.
+            stop_reason = "unknown_usage"
             break
         task = tasks[entry["task_id"]]
         role = entry["condition"]
@@ -418,7 +536,8 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
             directory = trial_directory(output, entry)
             result = run_trial(client, task, role, entry["repeat"], workspace,
                                directory, output / "plan/schema.json",
-                               output / "validator/verify.py", prompt, deadline)
+                               output / "validator/verify.py", prompt, deadline,
+                               timeout_seconds=plan["limits"]["timeout_seconds"])
             result["evidence_sha256"] = {name: sha256(directory / name) for name in EVIDENCE
                                          if (directory / name).is_file()}
             atomic_write_json(directory / "result.json", result)
@@ -429,6 +548,9 @@ def execute(output: Path, authorization: str, *, client=None) -> dict:
         if result["execution_state"] != "completed":
             stop_reason = "client_" + result["execution_state"]
             break
+        usage = normalize_usage(result["observations"]["usage"])
+        budget_unknown = usage is None or any(
+            usage.get(key) is None for key in ("input_tokens", "output_tokens"))
     status = {"client_runtime": runtime,
               "recorded_trials": completed, "expected_trials": len(plan["schedule"]),
               "observed_tokens": tokens, "stop_reason": stop_reason,
@@ -473,8 +595,16 @@ def retained_trial(output: Path, entry: dict) -> dict:
     # Select report fields; raw commands and private workspace paths stay in local artifacts.
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
                 "verdict", "checks", "elapsed_seconds", "observations", "inputs_unchanged")}
-    selected["observations"] = {"usage": record["observations"]["usage"]}
+    selected["observations"] = {
+        "usage": normalize_usage(record["observations"]["usage"]),
+        "tool_calls": len(record["observations"]["commands"])
+        if isinstance(record["observations"].get("commands"), list) else None,
+    }
     error = record.get("evaluation_error")
+    if record["observations"].get("client_kind"):
+        selected["observations"].update({
+            key: record["observations"].get(key) for key in
+            ("client_kind", "provider_model", "api_requests", "usage_complete", "observed_usage")})
     if data is None:
         error = error or "missing_retained_output"
     elif actual_hash != record["output_sha256"]:
@@ -513,7 +643,7 @@ def condition_summary(trials: list[dict]) -> dict:
         group["expected_trials"] = len(selected)
         group["missing_trials"] = sum(t["missing"] for t in selected)
         for metric in ("input_tokens", "output_tokens"):
-            usage = [t["observations"]["usage"] for t in selected]
+            usage = [normalize_usage(t["observations"]["usage"]) for t in selected]
             group[metric] = sum(u[metric] for u in usage) if all(
                 u is not None and u.get(metric) is not None for u in usage
             ) and usage else None
@@ -523,6 +653,12 @@ def condition_summary(trials: list[dict]) -> dict:
 def read_report(output: Path) -> dict:
     plan = load_plan(output)
     trials = [retained_trial(output, entry) for entry in plan["schedule"]]
+    # A receipt is an unkeyed hash: a rewritten tree can carry a consistent one.
+    # Re-grading retained answers with trusted code is what makes a PASS/FAIL
+    # verdict independent of the artifact copy the agent could reach. This runs
+    # before pairs are formed so an unverifiable grade cannot become an outcome.
+    verify_retained_grader(plan, [t for t in trials if not t["missing"]],
+                           {task["id"]: task for task in read_json(output / "plan/tasks.json")})
     index = {(t["task_id"], t["repeat"], t["condition"]): t for t in trials}
     pairs = []
     for entry in plan["schedule"]:
@@ -569,7 +705,41 @@ def read_report(output: Path) -> dict:
         "claim": "Pipeline results only; fixed-output offline clients do not establish "
         "skill efficacy. Discovery is separate. Unknown usage and cost remain unknown.",
     }
+    if "client" in plan:
+        result["client"] = plan["client"]
+        result["max_api_requests"] = plan["max_api_requests"]
+        result["reservation"] = plan.get("reservation")
     return result
+
+
+def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
+    """Re-derive every positive verdict with trusted code, not the frozen copy.
+
+    `validator/verify.py` lives beside the agent's workspace and the agent runs
+    first, so those bytes cannot establish a grade on their own. When the frozen
+    exam is the repository verifier, its verdict is computed here again from the
+    retained answer. A custom grader has no in-tree authority to re-derive from;
+    that exam is reported as unverified rather than silently trusted.
+    """
+    if plan["exam"]["grader"] != sha256(ROOT / "tools/skill_eval_verifier.py"):
+        for trial in trials:
+            if trial["verdict"] in ("PASS", "FAIL"):
+                # No in-tree authority can re-derive this grade, and the retained
+                # record is writable by the graded agent, so the stated outcome is
+                # not evidence. Keep the raw verdict visible under its own field,
+                # but do not let it count as a fix, regression or unchanged pair.
+                trial["stated_verdict"] = trial["verdict"]
+                trial["verdict"] = "INCONCLUSIVE"
+                trial["grader_trust"] = "unverified"
+                trial["evaluation_error"] = "unverified_custom_grader"
+        return
+    for trial in trials:
+        if trial["verdict"] not in ("PASS", "FAIL"):
+            continue
+        checks = verify(tasks[trial["task_id"]], json.loads(trial["output"]))
+        if checks != trial["checks"] or checks["passed"] != (trial["verdict"] == "PASS"):
+            raise ValueError("Untrusted grading disagrees with the trusted grader")
+        trial["grader_trust"] = "reverified"
 
 
 def report(output: Path) -> dict:
@@ -588,6 +758,11 @@ def markdown(result: dict) -> str:
         bundle = arm["bundle"]
         lines.append(f"| {role} | `{arm['git_revision']}` | "
                      + (f"`{bundle['revision']}`" if bundle else "absent") + " |")
+    if "client" in result:
+        lines += ["", "Client/provider identity: `"
+                  + json.dumps(result["client"], sort_keys=True) + "`",
+                  "Maximum API requests across both arms: "
+                  + str(result["max_api_requests"]) + "."]
     lines += ["", "Shared model/settings: `" + json.dumps(result["model"], sort_keys=True) + "`",
               "", "Execution limits: `" + json.dumps(result["limits"], sort_keys=True) + "`",
               "", "Execution status/client runtime: `"

@@ -11,9 +11,12 @@ import time
 import urllib.request
 import zipfile
 from pathlib import Path, PurePosixPath
+from urllib.error import HTTPError
 
 from inferrsi.infra.artifacts import sha256, write_json
+from inferrsi.model.anthropic_agent import KIND, money, reservation
 from tools import skill_eval_compare as compare
+from tools.check_knowledge_model_policy import GitHubHTTPError
 from tools.skill_eval_verifier import verify
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,12 +50,27 @@ def blob_exists(repo, revision, path):
     return bool(git(repo, "ls-tree", revision, "--", path).strip())
 
 
-def prepare(repo, mapping_path, identity, output):
+def prepare(repo, mapping_path, identity, output, *, provider=None):
     # Read only trusted configuration and raw Git objects, never PR Python or graders.
     for key in ("base", "head", "version"):
         if not re.fullmatch(SHA, identity[key]):
             raise ValueError("Expected immutable revision: " + key)
     mapping = compare.read_json(mapping_path)
+    if provider is not None:
+        required = {"model", "client", "pricing", "spend_limit"}
+        if (not isinstance(provider, dict) or not required <= provider.keys()
+                or provider.keys() - required - {"limits"}):
+            raise ValueError("Unknown or incomplete provider configuration")
+        overrides = provider.get("limits", {})
+        if "limits" in provider and (
+                not isinstance(overrides, dict) or set(overrides) != {"token_stop_new_trials"}
+                or type(overrides["token_stop_new_trials"]) is not int
+                or overrides["token_stop_new_trials"] <= 0):
+            raise ValueError("Provider limits support one positive integer token_stop_new_trials")
+        reservation(provider["model"]["name"], provider["client"], provider["pricing"],
+                    provider["spend_limit"], 1, now=0)
+        mapping.update({key: provider[key] for key in required})
+        mapping["limits"] = {**mapping["limits"], **overrides}
     changes = changed_files(repo, identity["base"], identity["head"])
     output.mkdir(parents=True, exist_ok=False)
     coverage, selected = [], set()
@@ -70,6 +88,10 @@ def prepare(repo, mapping_path, identity, output):
     for item in mapping["skills"]:
         if item["skill"] not in selected:
             continue
+        # The mapping is trusted repository data, but a path is a path: apply the
+        # safe-ID rule here, before building any output path from it.
+        if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", item["skill"]):
+            raise ValueError("Unsafe skill ID in the PR case mapping")
         entrypoint = mapping["skill_root"] + "/" + item["entrypoint"]
         if not blob_exists(repo, identity["head"], entrypoint):
             for entry in coverage:
@@ -83,6 +105,8 @@ def prepare(repo, mapping_path, identity, output):
                   "snapshots": {"baseline": {"git_revision": identity["base"]},
                                 "candidate": {"git_revision": identity["head"]}},
                   "model": mapping["model"], "limits": mapping["limits"]}
+        if provider is not None:
+            config.update({key: provider[key] for key in ("client", "pricing", "spend_limit")})
         config_path = output / (item["skill"] + ".json")
         write_json(config_path, config)
         destination = output / item["skill"]
@@ -109,13 +133,35 @@ def prepare(repo, mapping_path, identity, output):
             "comparisons": comparisons, "model": mapping["model"], "limits": mapping["limits"],
             "estimated_calls": sum(c.get("calls", 0) for c in comparisons),
             "retention_days": RETENTION_DAYS}
+    if provider is not None:
+        plan["provider_config"] = provider
+        plan["reservation"] = provider_reservation(plan, now=0)
     write_json(output / "pr-plan.json", plan)
     return plan
 
 
+def provider_reservation(plan, *, now=None):
+    provider = plan["provider_config"]
+    selected = [c for c in plan["comparisons"] if "plan_sha256" in c]
+    if sum(c["calls"] for c in selected) != plan["estimated_calls"] or not selected:
+        raise ValueError("Provider plan requires supported paired trials")
+    allocated = [reservation(provider["model"]["name"], provider["client"],
+                              provider["pricing"], provider["spend_limit"], c["calls"], now=now)
+                 for c in selected]
+    amount = sum(money(c["amount"]) for c in allocated)
+    if amount > money(provider["spend_limit"]["amount"]):
+        raise ValueError("All-comparison reservation exceeds approved total")
+    return {**allocated[0], "amount": str(amount),
+            "requests": sum(c["requests"] for c in allocated)}
+
+
 def budget(plan):
-    return {"estimated_calls": plan["estimated_calls"], "limits_per_comparison": plan["limits"],
-            "comparisons": sum("plan_sha256" in c for c in plan["comparisons"])}
+    value = {"estimated_calls": plan["estimated_calls"], "limits_per_comparison": plan["limits"],
+             "comparisons": sum("plan_sha256" in c for c in plan["comparisons"])}
+    if "provider_config" in plan:
+        value.update(reservation=plan["reservation"],
+                     provider_config_sha256=fingerprint(plan["provider_config"]))
+    return value
 
 
 def execution_id(plan):
@@ -137,6 +183,8 @@ def authorize(plan, request, actor, permission, current):
         raise ValueError("PR changed; prepare and authorize a new plan")
     if not plan["estimated_calls"]:
         raise ValueError("No supported comparisons selected")
+    if "provider_config" in plan and provider_reservation(plan) != plan["reservation"]:
+        raise ValueError("Provider reservation changed")
     return {**expected, "actor": actor, "execution_id": execution_id(plan)}
 
 
@@ -157,6 +205,17 @@ def execute(output, approval, *, client=None):
     plan = compare.read_json(output / "pr-plan.json")
     if approval["execution_id"] != execution_id(plan):
         raise ValueError("Approval belongs to another plan")
+    if "provider_config" in plan:
+        if client is not None:
+            raise ValueError("A paid provider plan cannot substitute an injected client")
+        if provider_reservation(plan) != plan["reservation"]:
+            raise ValueError("Provider reservation changed")
+        for item in plan["comparisons"]:
+            if "plan_sha256" in item:
+                frozen = compare.load_plan(output / item["skill"])
+                provider = compare.provider_client(frozen)
+                provider.require_live_readiness(len(frozen["schedule"]))
+                provider.environment()  # Before the exclusive local consumption record.
     # Exclusive creation also protects local/offline callers sharing retained storage.
     with (output / "execution-claim.json").open("x", encoding="utf-8") as handle:
         handle.write(canonical(approval))
@@ -164,7 +223,10 @@ def execute(output, approval, *, client=None):
         if "plan_sha256" in item:
             # Artifact downloads omit empty directories required by the executor.
             (output / item["skill"] / "results").mkdir(exist_ok=True)
-            compare.execute(output / item["skill"], item["plan_sha256"], client=client)
+            result = compare.execute(output / item["skill"], item["plan_sha256"], client=client,
+                                     stop_on_unknown_usage="provider_config" in plan)
+            if "provider_config" in plan and result["status"]["execution_state"] != "completed":
+                break
 
 
 def result_archive(output):
@@ -244,15 +306,46 @@ def reports(output):
 
 def summary(plan, results, evidence_url, expires_at, now):
     expired = now >= expires_at
-    lines = [MARKER, "## Skill evaluation", "", f"Plan SHA-256: `{fingerprint(plan)}`",
-             f"Base: `{plan['base']}` · Head: `{plan['head']}`",
-             f"Trusted implementation: `{plan['version']}`", "",
-             "Applicable only while these revisions and inputs match the current PR.", "",
-             "Model/settings: `" + canonical(plan["model"]) + "`",
-             "Budget: `" + canonical(budget(plan)) + "`", "",
-             "Token usage stops new trials; it is not a hard provider token or monetary cap.",
-             "Cost remains unknown.", "", "| Skill | Comparison | Cases | Estimated calls |",
-             "| --- | --- | --- | --- |"]
+    lines = [MARKER, "## Skill evaluation", ""]
+    counts = {k: 0 for k in ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
+                             "inconclusive", "missing_pair")}
+    if expired:
+        lines += ["**EXPIRED: retained evidence is no longer verifiable.**"]
+    elif results:
+        for result in results:
+            for key in counts:
+                counts[key] += result["counts"][key]
+        lines += ["**RETAINED RESULTS**", "", "Outcomes: `" + canonical(counts) + "`",
+                  "Discovery is reported separately in retained evidence."]
+    else:
+        counts["missing_pair"] = sum(
+            sum(c["split"] != "discovery" for c in item["cases"]) * plan["limits"]["repeats"]
+            for item in plan["comparisons"] if "plan_sha256" in item)
+        lines += ["**PLANNED: execution is not authorized by knowing this hash.**",
+                  "Outcomes: `" + canonical(counts) + "`",
+                  "Earlier revision results are stale for this plan."]
+    gaps = [c for c in plan["coverage"] if c["coverage"] != "covered"]
+    selected = sum("plan_sha256" in item for item in plan["comparisons"])
+    lines += ["", f"Selected comparisons: **{selected}** · Estimated task calls: "
+              f"**{plan['estimated_calls']}**.",
+              f"Uncovered/unsupported changes: **{len(gaps)}**. Gaps never count as passes.", "",
+              "Applicable only while these revisions and inputs match the current PR.",
+              "Execution requires exact plan, versions and budget approval; a hash alone "
+              "does not authorize it.",
+              "Token usage stops new trials; it is not a hard provider token or monetary cap.",
+              "Cost remains unknown.", "",
+              f"[Evidence and logs]({evidence_url}) · Retention: {RETENTION_DAYS} days.",
+              f"Outcomes are historical; verifiable only before Unix time `{int(expires_at)}` "
+              "while the linked artifact is available. Expired evidence is unverified.", "",
+              "Pipeline evidence only; offline fixed outputs do not establish skill efficacy.",
+              "", "<details>", "<summary>Plan bindings, budget and frozen exam</summary>", "",
+              f"Plan SHA-256: `{fingerprint(plan)}`",
+              f"Base: `{plan['base']}` · Head: `{plan['head']}`",
+              f"Trusted implementation: `{plan['version']}`", "",
+              "Model/settings: `" + canonical(plan["model"]) + "`",
+              "Budget: `" + canonical(budget(plan)) + "`", "",
+              "| Skill | Comparison | Cases | Estimated calls |",
+              "| --- | --- | --- | --- |"]
     for item in plan["comparisons"]:
         if "plan_sha256" in item:
             cases = ", ".join(c["id"] + " (" + c["split"] + ")" for c in item["cases"])
@@ -260,35 +353,121 @@ def summary(plan, results, evidence_url, expires_at, now):
             lines.append("\nFrozen exam hashes: `" + canonical(item["exam"]) + "`\n")
         else:
             lines.append(f"| {item['skill']} | unsupported snapshot | — | 0 |")
-    counts = {k: 0 for k in ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
-                             "inconclusive", "missing_pair")}
-    if expired:
-        lines += ["", "**EXPIRED: retained evidence is no longer verifiable.**"]
-    elif results:
-        for result in results:
-            for key in counts:
-                counts[key] += result["counts"][key]
-        lines += ["", "Outcomes: `" + canonical(counts) + "`", "",
-                  "Discovery is reported separately in retained evidence."]
-    else:
-        counts["missing_pair"] = sum(
-            sum(c["split"] != "discovery" for c in item["cases"]) * plan["limits"]["repeats"]
-            for item in plan["comparisons"] if "plan_sha256" in item)
-        lines += ["", "**PLANNED: execution is not authorized by knowing this hash.**",
-                  "Outcomes: `" + canonical(counts) + "`",
-                  "Earlier revision results are stale for this plan."]
-    gaps = [c for c in plan["coverage"] if c["coverage"] != "covered"]
-    lines += ["", f"Uncovered/unsupported changes: **{len(gaps)}**. "
-              "Gaps never count as passes.", ""]
-    # Encode untrusted Git paths as data, so Markdown/mentions cannot escape into the comment.
+    if "provider_config" in plan:
+        lines += ["", "Provider/settings: `" + canonical(plan["provider_config"]) + "`"]
+    lines += ["", "</details>", "", "<details>",
+              f"<summary>Uncovered / unsupported paths ({len(gaps)})</summary>", ""]
+    # A collapsed HTML container still requires data escaping for untrusted Git paths.
     for gap in gaps:
         lines.append("- " + gap["coverage"] + ": <code>"
                      + html.escape(canonical(gap["path"])).replace("@", "&#64;") + "</code>")
-    lines += ["", f"[Evidence and logs]({evidence_url}) · Retention: {RETENTION_DAYS} days.",
-              f"Outcomes are historical; verifiable only before Unix time `{int(expires_at)}` "
-              "while the linked artifact is available. Expired evidence is unverified.",
-              "", "Pipeline evidence only; offline fixed outputs do not establish skill efficacy."]
+    if not gaps:
+        lines.append("(none)")
+    lines += ["", "</details>"]
     return "\n".join(lines)
+
+
+def comment_permission_requirements(headers):
+    """Parse bounded server-advertised requirements, never granted permissions."""
+    if headers is None:
+        return {"status": "absent"}
+    name = "X-Accepted-GitHub-Permissions"
+    get_all = getattr(headers, "get_all", None)
+    if callable(get_all):
+        values = get_all(name, [])
+        if type(values) is not list:
+            return {"status": "unavailable"}
+        if not values:
+            return {"status": "absent"}
+        if len(values) != 1:
+            return {"status": "unavailable"}
+        raw = values[0]
+    else:
+        missing = object()
+        raw = headers.get(name, missing)
+        if raw is missing:
+            return {"status": "absent"}
+    # ASCII makes the character bound a byte bound. Never parse a truncated prefix.
+    if type(raw) is not str or len(raw) > 256 or not raw.isascii():
+        return {"status": "unavailable"}
+    # Commas join requirements; semicolons separate alternative permission sets.
+    alternatives = raw.split(";")
+    if len(alternatives) > 4:
+        return {"status": "unavailable"}
+    allowed = {"issues": ("read", "write"), "pull_requests": ("read", "write"),
+               "contents": ("read", "write"), "metadata": ("read",)}
+    sets, seen = [], set()
+    for alternative in alternatives:
+        entries = alternative.split(",")
+        if len(entries) > 4:
+            return {"status": "unavailable"}
+        group = {}
+        for entry in entries:
+            match = re.fullmatch(r"[ \t]*([a-z_]+)[ \t]*=[ \t]*(read|write)[ \t]*", entry)
+            if not match:
+                return {"status": "unavailable"}
+            permission, level = match.groups()
+            if (permission not in allowed or level not in allowed[permission]
+                    or permission in group):
+                return {"status": "unavailable"}
+            group[permission] = level
+        identity = tuple(sorted(group.items()))
+        if identity in seen:
+            return {"status": "unavailable"}
+        seen.add(identity)
+        sets.append(group)
+    return {"status": "available", "sets": sets}
+
+
+def publication_http_error(error, method, path):
+    """Reuse the existing allowlist formatter, without its client's retry behavior."""
+    code = error.code if type(error.code) is int and 100 <= error.code <= 599 else 0
+    routes = (
+        (r"/pulls/[0-9]+", "/pulls/{number}"),
+        (r"/issues/[0-9]+/comments", "/issues/{number}/comments"),
+        (r"/issues/comments/[0-9]+", "/issues/comments/{id}"),
+        (r"/actions/runs/[0-9]+", "/actions/runs/{id}"),
+        (r"/actions/runs/[0-9]+/artifacts", "/actions/runs/{id}/artifacts"),
+        (r"/actions/artifacts/[0-9]+/zip", "/actions/artifacts/{id}/zip"),
+        (r"/actions/workflows/skill-eval-pr[.]yml/runs", "/actions/workflows/{workflow}/runs"),
+        (r"/collaborators/[A-Za-z0-9_-]+/permission", "/collaborators/{actor}/permission"),
+    )
+    endpoint = next((label for pattern, label in routes
+                     if re.fullmatch(pattern, path.split("?", 1)[0])), "<redacted>")
+    context = {"method": method if method in ("GET", "POST", "PATCH") else "UNKNOWN",
+               "endpoint": endpoint}
+    try:
+        try:
+            # An extra byte detects truncation: a valid JSON prefix of an oversized body
+            # must not establish a cause. Neither this body nor error URL/reason is logged.
+            raw = error.read(8193)
+            if not isinstance(raw, bytes) or len(raw) > 8192:
+                raw = b""
+        except Exception:
+            raw = b""
+        try:
+            safe = HTTPError("", code, "", error.headers, io.BytesIO(raw))
+            failure = GitHubHTTPError(safe)
+        except Exception:
+            # Diagnostics are best effort, including hostile headers and malformed JSON.
+            # Always retain the original HTTP failure instead of failing in the formatter.
+            failure = OSError("GitHub API " + json.dumps(
+                {"http_status": code, "category": "unknown"}, sort_keys=True))
+        permissions = ""
+        if (method, endpoint) in (("POST", "/issues/{number}/comments"),
+                                  ("PATCH", "/issues/comments/{id}")):
+            try:
+                permissions = " accepted_permissions=" + canonical(
+                    comment_permission_requirements(error.headers))
+            except Exception:
+                permissions = ' accepted_permissions={"status":"unavailable"}'
+        failure.args = (str(failure) + " request=" + canonical(context) + permissions,)
+        return failure
+    finally:
+        try:
+            error.close()
+        except Exception:
+            pass
 
 
 class GitHub:
@@ -303,8 +482,14 @@ class GitHub:
             "Authorization": "Bearer " + self.token, "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28", "Content-Type": "application/json"},
             data=None if data is None else canonical(data).encode())
-        with urllib.request.build_opener(ArtifactRedirect()).open(request, timeout=60) as response:
-            raw = response.read(MAX_ARCHIVE + 1)
+        try:
+            opener = urllib.request.build_opener(ArtifactRedirect())
+            with opener.open(request, timeout=60) as response:
+                raw = response.read(MAX_ARCHIVE + 1)
+        except HTTPError as error:
+            # Suppress the unsafe urllib reason/redirect URL in rendered tracebacks, while
+            # retaining the original exception as context for in-process inspection.
+            raise publication_http_error(error, method, path) from None
         return raw if binary else json.loads(raw)
 
     def pages(self, path, key=None, *, require_complete=False):
@@ -422,6 +607,8 @@ def main():
     output = args.output.resolve()
     event = compare.read_json(Path(os.environ["GITHUB_EVENT_PATH"]))
     inputs = event.get("inputs", {})
+    if inputs.get("action") == "plan" and args.mode not in ("prepare", "publish"):
+        raise ValueError("Plan-only dispatch supports prepare and publish only")
     pr = int(inputs.get("pr") or event["pull_request"]["number"])
     repository = os.environ["GITHUB_REPOSITORY"]
     run_id = int(os.environ["GITHUB_RUN_ID"])
@@ -439,9 +626,12 @@ def main():
                         f"refs/pull/{pr}/head"], cwd=ROOT, check=True)
         version = git(ROOT, "rev-parse", "HEAD").decode().strip()
         plan = prepare(ROOT, MAPPING, {"repository": repository, "pr": pr,
-                       "version": version, **current}, output)
+                       "version": version, **current}, output,
+                       provider=json.loads(inputs["provider_config"])
+                       if inputs.get("provider_config") else None)
         with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
             handle.write(f"pr={pr}\nplan_sha256={fingerprint(plan)}\n")
+            handle.write("client_kind=" + (KIND if "provider_config" in plan else "codex") + "\n")
         return
     plan = compare.read_json(output / "pr-plan.json")
     if args.mode == "authorize":

@@ -1,0 +1,29 @@
+{
+  "scope": "CPU_only_transport_preflight",
+  "job": 1960,
+  "exit_code": 0,
+  "elapsed_seconds": 1,
+  "gpu_seconds": 0,
+  "outcomes": [
+    {
+      "kind": "artifact_directory",
+      "ok": false,
+      "errno": 95,
+      "endpoint_bytes": 92
+    },
+    {
+      "kind": "short_task_directory",
+      "ok": false,
+      "errno": 95,
+      "endpoint_bytes": 70
+    },
+    {
+      "kind": "linux_abstract",
+      "ok": true,
+      "endpoint_bytes": 59
+    }
+  ],
+  "ninja_on_corrected_path": true,
+  "nvcc_exists": true,
+  "allocations_released": true
+}

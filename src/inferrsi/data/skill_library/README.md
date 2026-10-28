@@ -1,14 +1,14 @@
 # InferRSI skill library
 
-The English-only library contains **81 skill documents**: 60 registered skills
-and 21 engine and research-router skills. Complete procedures, metadata,
-references, cases and source notices ship with the package.
+The English-only library contains **100 skill documents**: 67 registered roots,
+21 separately indexed engine/router documents and 12 AREX graph sub-skills.
+Complete procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
 
 | Directory | Content |
 | --- | --- |
-| [Hardware](hardware/) | Ascend (13 registered skills), CUDA (3) and host resource guidance (5) |
+| [Hardware](hardware/) | Ascend (14 registered skills), CUDA (3) and host resource guidance (5) |
 | [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 60 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 67 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -41,6 +41,13 @@ inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 An explicit `inferrsi skills --root <path>` selects a custom flat tree or a
 categorized library with `skill-index.json`. Backend scope does not certify
 device compatibility; readers do not execute helpers or promote candidates.
+
+For Goal-state authority, ordered next-action decisions and local quota receipt
+recovery, start with the existing [RSI evidence owner](workflows/rsi-evidence/SKILL.md#goal-authority-and-accounting-decisions)
+and its [LoopX source reference](workflows/rsi-evidence/references/loopx-goal-governance/README.md).
+The [search-policy route](methods/optimization-search-policy/SKILL.md#goal-admission-and-accounting-source-knowledge)
+reuses that owner. These are source-derived candidate additions, with runtime
+and agent efficacy unmeasured; no new skill or registry ID is added.
 
 ## vLLM-Ascend version and responsibility routing
 
@@ -118,7 +125,7 @@ guidance; it establishes no cross-pin implementation compatibility.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 60-ID registry.
+the links and catalog records below, separately from the 67-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -128,6 +135,7 @@ these imports and use generated abstracts rather than runtime repository packs.
 | stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
 | h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json) |
 | AFD plugin P2pNccl audit | CUDA eager dense-FFN rank namespaces and per-stage/per-peer payload ownership; source-derived candidate | [Skill](repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md) | `inferrsi.cuda.skills.audit_afd_p2p_exchanges` |
+| vLLM-RLT source audit | Synchronous early-exit KV propagation, later deeper attention and normal storage retirement; source-derived candidate | [Skill](repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-recurrent-kv-finalization.json) |
 | Strata | Heterogeneous MoE, placement, memory and speculative execution | [Skill](repositories/strata/SKILL.md) | [Records](../repo_packs/strata/knowledge/README.md) |
 | vLLM | Token scheduling, KV ownership and parallel execution | [Skill](repositories/vllm/SKILL.md) | [Records](../repo_packs/vllm/knowledge/README.md) |
 | SGLang | Radix/HiCache, prefill/decode, extensions and a separately pinned [diffusion lifetime candidate](repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | [Skill](repositories/sglang/SKILL.md) | [Records](../repo_packs/sglang/knowledge/README.md) |
@@ -227,3 +235,41 @@ separates mined mechanisms, unmined source headers and Blackwell-only recipes;
 [source/license qualifications](hardware/cuda/reason-hopper-kernels/references/sources.md)
 retain contradictions and distribution discrepancies. GPU execution and efficacy
 remain not_run.
+
+## DwarfStar portable AREX candidate
+
+[DwarfStar](repositories/dwarfstar/SKILL.md) routes memory/SSD, serving-state and
+qualification questions to one source-pinned operating graph. The portable AREX
+create/verify workflow was adapted to native C with the user-approved partial
+backend boundary. CPU checks do not qualify accelerated/model/service execution;
+required backend gaps remain explicit. Its generated catalog ID is
+`inferrsi.common.skills.dwarfstar`.
+## Splash portable AREX candidate
+
+[Splash](repositories/splash/SKILL.md) links source-pinned format/memory planning,
+serving/cache identity and DFlash2/Metal/ANE qualification guidance. The portable
+AREX workflow uses the user-approved native/source-module adaptation. CPU logic
+checks do not clear required native backend blocks. Catalog ID:
+`inferrsi.common.skills.splash`.
+## Lily portable AREX candidate
+
+[Lily](repositories/lily/SKILL.md) owns exact architecture/MLX-affine-Q4 runtime,
+strict text API/token-prefix state and native/benchmark qualification guidance.
+Its compiler/Metal/model gaps remain blocked; offline Python helpers are not
+Rust execution. Catalog ID: `inferrsi.common.skills.lily`.
+## Husky document-only research candidate
+
+[Husky](repositories/husky/SKILL.md) separates an attributed official-page report
+from implementation, reproduction and original research proposals. Repository,
+revision, source license and raw receipts remain unknown; its offline helper
+screens supplied metadata only. This is not complete repo-to-skill or native
+verification. Catalog ID: `inferrsi.common.skills.husky`.
+
+## Project Maya portable AREX candidate
+
+[Project Maya](repositories/project-maya/SKILL.md) owns model-family dispatch and
+physical residency planning, API versus native state, and speculation/calibration
+qualification. Selected direct-compiler CPU policies and safe offline helpers do
+not clear CUDA/HIP/model/state/quality/service gaps. New Qwen coverage is shallow
+routing/format/guard evidence, not deep kernel qualification. Catalog ID:
+`inferrsi.common.skills.project_maya`.

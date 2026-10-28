@@ -1,0 +1,21 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "prefix-safety-and-benchmark-attribution",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "DEVELOPMENT.md",
+    "runtime/engine/Cache.cpp",
+    "runtime/model/VerifyBudget.hpp"
+  ],
+  "expected_skill_files": [
+    "sub-skills/serving-cache/references/state-and-api.md",
+    "sub-skills/qualification/references/verification-contract.md"
+  ],
+  "assertions": [
+    "The answer separates process-local Responses history from persistent native prefixes.",
+    "The answer explains salted prompt-state miss can coexist with a global encoded-image hit.",
+    "The answer distinguishes verified/accepted counters from net service speed and initial admission queue.",
+    "The answer preserves required native/model/service verification gaps and does not start inference."
+  ]
+}

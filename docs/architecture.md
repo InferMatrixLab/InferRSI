@@ -11,18 +11,20 @@ The current WIP develops three connected objectives:
 
 1. **Roofline / Optimization Headroom:** source-grounded bounds, observed
    attainable limits, calibrated predictions and experiment selection. The
-   ceiling skill is guidance, not an automatic calculator; application results
-   require their own measurements.
+   ceiling skill provides guidance and pure conditional arithmetic for supplied
+   L1 inputs; application results require their own measurements.
 2. **Dense Commit Coordination:** ownership, concurrent work, review, testing,
    integration, release and feedback into later changes. The existing Magpie
    material is history analysis. A first-hand coordination case is pending Dot
    delivery and owner review; neither that analysis nor paper methodology
    implements or verifies an autonomous development pipeline.
 3. **Skill System:** reusable candidate skills, knowledge and cases, the
-   [Reference Matrix](reference-matrix.md) and
-   [SearchSpace Matrix](searchspace-matrix.md), and explicit read-only access.
+   [Reference Matrix](reference-matrix.md),
+   [SearchSpace Matrix](searchspace-matrix.md) and the generated
+   [Skill Coverage View](skill-coverage.md), and explicit read-only access.
    The two matrices describe evidence and coverage; they do not drive an
-   automatic router or execution loop.
+   automatic router or execution loop. The coverage view reads them from the
+   skill outward and owns no fact of its own.
 
 This framing is presentation and delivery traceability, not a third primary
 matrix. Dot owns source extraction, the owner approves sources and reviews
@@ -67,6 +69,32 @@ Local executor commands are noninteractive and receive EOF on standard input.
 Supply their inputs through command arguments or files rather than the caller's
 input stream.
 
+### Offline harness-improvement lane
+
+The [single-step offline controller](harness-improvement.md) adds a bounded policy
+above the existing Skill Eval comparator. Supplied declarative INV/DOM edits are
+materialized as immutable Git snapshots. Development grades select a successor;
+it must run again before freezing for one independent held-out accept/reject gate.
+The controller accounts for the entire loop; candidate execution cost is reported
+separately. It reuses `run_trial` and the local executor, including their inherited
+absolute deadline, rather than creating another execution backend.
+
+```mermaid
+flowchart LR
+    I["Frozen tasks, edits, policy and total budget"] --> C["Offline improvement controller"]
+    C --> S["Existing Skill Eval comparator / run_trial"]
+    S --> V["Independent grader + verified receipts"]
+    V --> C
+    C --> H["Freeze final candidate → one holdout gate"]
+    C --> X["Development-only experience; no Store write"]
+```
+
+The feedback arrow represents development evidence only. Holdout cannot select a
+different candidate or cause another edit. Real-client execution, autonomous
+proposal generation, external sandbox enforcement and Store/CAS reuse are outside
+this MVP. [PR skill evaluation](skill-eval-pr.md) is another existing consumer of
+the comparator; the engine AB/BA path retains its independent acceptance contract.
+
 ## Directory map
 
 ![Implemented modules mapped to directories](assets/modular-directory-map-en.svg)
@@ -79,7 +107,14 @@ src/inferrsi/
   skill_catalog.py          Packaged/default or custom skill metadata/body/resource resolution
   knowledge_operations.py   Normalized reads and bounded Collect (KnowledgeReader)
   knowledge_store.py        Authorized local store Create/Update (KnowledgeStore)
+  research.py               Read-only model-aware discovery joined over catalog queries
+  _skill_selection.py       Deterministic lexical skill ranking and context view
+  claim.py                  Campaign verdict labels PASS/FAIL/INCONCLUSIVE; rules only
+  evidence_paths.py         Per-campaign evidence tree: plan/results/patch/validator
+  summary_chart.py          Stdlib SVG gain chart (chain/branch) and report figure spec
   harness/
+    improvement.py          Offline quality-first selection and usage accounting
+    skill_evaluation.py     Skill trial/client interface and independent grading
     runner.py               One AB/BA loop; execute/snapshot adapter hooks
     evaluation.py           Performance/quality/source-integrity adjudication
     reporting.py            HTML evidence report
@@ -159,8 +194,18 @@ run_dir = run_experiment(
 The standard executor retains timeout, cancellation, logs, result paths and child
 cleanup. A custom `execute(command, cwd, trial_dir, deadline, metric_key)` must
 preserve that trial record contract. Prefer composing `execute_trial` over
-reimplementing process lifetime. Metric readers must preserve the finite,
-positive metric contract before returning a float.
+reimplementing process lifetime. Metric readers convert a result document into a
+float; `execute_trial` then applies the one finite, positive metric contract
+(`model.protocols.metrics.validate_metric`) to whatever the reader returns, so a
+reader that yields `0.0`, a `bool` or a non-finite value records a metric error
+rather than entering the evaluation.
+
+Run state is written by the termination path, never assumed. `status.json`
+reports `completed` only after the final artifacts were written;
+a run stopped by a command state keeps `timeout`, `failed` or `cancelled`; an
+exception outside the adapter error contract writes `crashed` and re-raises; and a
+failure while writing the terminal artifacts writes `termination_failed` with the
+original measurement error beside it.
 
 A new source adapter implements `snapshot(repo, excluded_run_dir)` and returns
 `available` plus a stable `snapshot_hash` and explanatory metadata. It must

@@ -3,6 +3,7 @@ import hashlib
 import json
 import os
 import re
+import subprocess
 import sys
 import time
 from fnmatch import fnmatchcase
@@ -43,23 +44,25 @@ HISTORY_RESERVE = 15
 # Outcome kinds, reported separately so evaluator noise is never read as a rejection.
 KINDS = ("compliant", "noncompliant", "evaluator-error", "unverified", "deferred", "closed",
          "advanced", "publication-failed", "invalidation-failed", "history-unavailable",
-         "budget-exhausted", "budget-saturated")
+         "budget-exhausted", "budget-saturated", "status-rejected")
 # Per-PR verdict: a rejection is this PR's red status, not a failure of the sweep.
 REJECTION_KINDS = {"noncompliant"}
 # Sweep execution problems, reported as errors and never as a per-PR verdict.
 ERROR_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publication-failed",
                "invalidation-failed", "history-unavailable", "budget-exhausted",
-               "budget-saturated"}
+               "budget-saturated", "status-rejected"}
 FAILING_KINDS = REJECTION_KINDS | ERROR_KINDS
 # Only the outer runner retries; these kinds ask it for a fresh trusted checkout. A head out of
 # status budget is not retryable: a rerun cannot add capacity, it would only consume the reserve.
+# Status validation rejections also settle only this invocation, not future workflow runs.
 RERUN_KINDS = {"evaluator-error", "unverified", "deferred", "advanced", "publication-failed",
                "invalidation-failed", "history-unavailable"}
 # A lifecycle kind forbids publication: the captured head is no longer the current target.
 NO_PUBLISH = {"closed", "advanced"}
 # Kinds that settle a target for this attempt. A later attempt trusts one only after re-checking
 # that the target is still open against the policy branch at the same head.
-COMPLETED_KINDS = {"compliant", "noncompliant", "closed", "budget-exhausted", "budget-saturated"}
+COMPLETED_KINDS = {"compliant", "noncompliant", "closed", "budget-exhausted", "budget-saturated",
+                   "status-rejected"}
 
 
 def summarize(results):
@@ -286,6 +289,21 @@ def assess(pr, paths, policy, comments=(), contributors=()):
     }
 
 
+def json_type(value):
+    """Fixed JSON shape vocabulary; never use a server-provided type or key name."""
+    if value is None:
+        return "null"
+    if isinstance(value, bool):
+        return "boolean"
+    if isinstance(value, dict):
+        return "object"
+    if isinstance(value, list):
+        return "array"
+    if isinstance(value, str):
+        return "string"
+    return "number"
+
+
 class GitHubHTTPError(OSError):
     """An allowlisted diagnostic, never a raw response body or credential-bearing URL."""
 
@@ -300,10 +318,17 @@ class GitHubHTTPError(OSError):
             self.delay = max(1, int(retry_after))
         elif remaining == "0" and re.fullmatch(r"[0-9]{1,10}", reset):
             self.delay = max(1, int(reset) - int(time.time()) + 1)
+        body = None
+        body_parse = "read-error"
+        read_limit_reached = None
         try:
-            body = json.loads(error.read(8192))
+            raw = error.read(8192)
+            read_limit_reached = len(raw) >= 8192
+            body_parse = "invalid-json"
+            body = json.loads(raw)
+            body_parse = "ok"
         except (ValueError, OSError, TypeError, AttributeError):
-            body = {}
+            pass
         error.close()
         message = body.get("message", "") if isinstance(body, dict) else ""
         message = message.lower() if isinstance(message, str) else ""
@@ -319,19 +344,62 @@ class GitHubHTTPError(OSError):
         else:
             category = "unknown"
         self.category = category
+        self.reason = "unknown"
         detail = {"http_status": self.code, "category": category}
         if self.code == 422:
             # Recognize only the explicit status-capacity response, never infer it from
             # HTTP 422, an arbitrary validation message, or the locally counted history.
             capacity_message = "this sha and context has reached the maximum number of statuses."
             errors = body.get("errors", []) if isinstance(body, dict) else []
-            capacity = isinstance(errors, list) and any(
-                isinstance(item, dict) and item.get("resource") == "Status"
-                and item.get("code") == "custom"
-                and isinstance(item.get("message"), str)
-                and item["message"].strip().lower() == capacity_message
-                for item in errors)
-            detail["reason"] = "status-capacity" if capacity else "unknown"
+            # GitHub may return the same capacity diagnostic directly as `errors`
+            # rather than in a Status/custom array. Match only this fixed full text.
+            # The verified service response can include this exact validation prefix.
+            # Do not accept arbitrary prefixes/suffixes or substring matches.
+            capacity_strings = {capacity_message, "validation failed: " + capacity_message}
+            capacity = (isinstance(errors, str) and
+                        errors.strip().lower() in capacity_strings) or (
+                isinstance(errors, list) and any(
+                    isinstance(item, dict) and item.get("resource") == "Status"
+                    and item.get("code") == "custom"
+                    and isinstance(item.get("message"), str)
+                    and item["message"].strip().lower() == capacity_message
+                    for item in errors))
+            self.reason = "status-capacity" if capacity else "unknown"
+            detail["reason"] = self.reason
+            # Structural telemetry only: fixed types/booleans and counts bounded to
+            # the first 20 entries. No response keys, values or message fragments.
+            present = isinstance(body, dict) and "errors" in body
+            sample = errors[:20] if isinstance(errors, list) else []
+            detail["response_shape"] = {
+                "body_parse": body_parse,
+                "body_type": json_type(body) if body_parse == "ok" else "unavailable",
+                # Reaching the read bound does not prove the response was truncated.
+                "read_limit_reached": read_limit_reached,
+                "errors_present": present,
+                "errors_type": json_type(errors) if present else "absent",
+                "errors_sample_count": len(sample),
+                "errors_sample_truncated": isinstance(errors, list) and len(errors) > 20,
+                "object_entries": sum(isinstance(item, dict) for item in sample),
+                "string_entries": sum(isinstance(item, str) for item in sample),
+                "other_entries": sum(not isinstance(item, (dict, str)) for item in sample),
+            }
+            # Retain only fixed vocabulary, never values or free-form server messages.
+            validation = []
+            if isinstance(errors, list):
+                for item in errors[:20]:
+                    if not isinstance(item, dict):
+                        continue
+                    safe = {key: item[key] for key, allowed in {
+                        "resource": {"Status"},
+                        "field": {"state", "context", "description", "target_url", "sha"},
+                        "code": {"missing", "missing_field", "invalid", "already_exists",
+                                 "unprocessable", "custom"},
+                    }.items() if isinstance(item.get(key), str) and item[key] in allowed}
+                    if safe and safe not in validation:
+                        validation.append(safe)
+            detail["response_shape"]["allowlisted_detail_count"] = len(validation)
+            if validation:
+                detail["validation"] = validation
         # Only numeric rate metadata and a bounded request ID are safe to retain. Response
         # messages/errors may echo user content, tokens or URLs, so they are never logged.
         for name in ("X-RateLimit-Remaining", "X-RateLimit-Reset", "Retry-After"):
@@ -581,6 +649,23 @@ def recorded_budget_failure(entries):
     return newest.get("state") == "failure" and newest.get("description") == BUDGET_DESCRIPTION
 
 
+def status_write_failure(error, result, kind="publication-failed"):
+    """A rejected POST is not a declaration verdict or proof of remote invalidation.
+
+    HTTP 422 has no evidenced transient recovery here. Settle it only in this runner's
+    plan; a fresh invocation can try again after remediation. Never replay the same
+    rejected write three times or turn a stale remote success into local compliance.
+    """
+    description = result["description"]
+    if isinstance(error, GitHubHTTPError) and error.code == 422:
+        kind = "budget-saturated" if error.reason == "status-capacity" else "status-rejected"
+        description = ("Status capacity rejected; a new head is required"
+                       if error.reason == "status-capacity" else
+                       "Status write rejected; inspect validation diagnostics")
+    return {**result, "state": "failure", "kind": kind, "description": description,
+            "errors": [*result.get("errors", []), evaluation_failure(error)["errors"][0]]}
+
+
 def invalidated(api, head, dry_run, deadline):
     # A verdict from an earlier run must not survive an evaluation that has produced no evidence
     # yet. Replacing it is itself a write, so it can fail; the caller then stops this target's
@@ -605,9 +690,7 @@ def invalidated(api, head, dry_run, deadline):
         try:
             api.status(head, result["state"], result["description"])
         except API_ERRORS as failure:
-            return {**result, "kind": "publication-failed",
-                    "errors": [*result["errors"],
-                               evaluation_failure(failure)["errors"][0]]}, False
+            return status_write_failure(failure, result), False
         return result, False
     if len(entries) >= STATUS_LIMIT:
         # GitHub rejects every write at the cap. The newest entry, possibly an old success,
@@ -628,18 +711,18 @@ def invalidated(api, head, dry_run, deadline):
             api.status(head, result["state"], result["description"])
         except API_ERRORS as error:
             # The reserved slot is free and the newest entry may still be an old success, so the
-            # write must be retried: `publication-failed` is retryable, unlike the settled
-            # `budget-exhausted`. A later sweep recognises a completed entry and writes nothing.
-            return {**result, "kind": "publication-failed",
-                    "errors": [*result["errors"],
-                               evaluation_failure(error)["errors"][0]]}, False
+            # transient write failures must be retried. A validation rejection instead settles
+            # this invocation as an error. A later sweep can retry after remediation.
+            return status_write_failure(error, result), False
         return result, False
     try:
         api.status(head, "pending", "Admission evaluation in progress")
     except API_ERRORS as error:
-        return {"state": "failure", "kind": "invalidation-failed",
-                "description": "Earlier admission result could not be invalidated",
-                "errors": [evaluation_failure(error)["errors"][0]]}, False
+        result = {"description": "Earlier admission result could not be invalidated",
+                  "errors": [f"Status POST pending failed after complete history read: "
+                             f"{len(entries)} entries for context {CONTEXT}; "
+                             "the previous remote status was not replaced"]}
+        return status_write_failure(error, result, "invalidation-failed"), False
     return None, True
 
 
@@ -780,11 +863,15 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
         failure, publish = invalidated(api, head, dry_run,
                                       target_deadline(deadline, len(numbers) - index))
         if failure is not None:
-            # Without a published invalidation an old success would still be the head's effective
-            # state, so this target gets no verdict and asks the runner for a fresh attempt.
-            records[number] = {"head": head, "snapshot": None, "comments": [],
-                               "ownership": None, "result": failure, "publish": publish,
-                               "pre": True}
+            # No admission verdict exists without invalidation. Terminal write errors can be
+            # carried only as errors within this invocation, after premise revalidation.
+            terminal = plan is not None and failure["kind"] in COMPLETED_KINDS
+            records[number] = {"head": head,
+                               "snapshot": admission_snapshot(pr) if terminal else None,
+                               "comments": [],
+                               "ownership": (None if scan_error is not None else
+                                             head_owner(open_prs or [pr], number, head)),
+                               "result": failure, "publish": publish, "pre": True}
             continue
         # An unreadable collection must not be mistaken for a shared head under an explicit
         # --pull-request target; the target itself is the only known peer in that case.
@@ -832,11 +919,9 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
                 try:
                     api.status(head, result["state"], result["description"])
                 except API_ERRORS as error:
-                    # The failure is still reported; a retry is harmless because a later sweep
-                    # re-reads the history and preserves or records the terminal verdict once.
-                    result = {**result, "kind": "publication-failed", "state": "failure",
-                              "errors": [*result["errors"],
-                                         evaluation_failure(error)["errors"][0]]}
+                    # Transient failures retry after re-reading history. Validation rejections
+                    # remain errors but are not identically replayed in this invocation.
+                    result = status_write_failure(error, result)
             published[number] = {**result, "head": head,
                                  "rerun": result["kind"] in RERUN_KINDS}
             continue
@@ -891,9 +976,7 @@ def check_prs(api, policy, policy_sha, dry_run, numbers=None, plan=None, trigger
             try:
                 api.status(head, result["state"], result["description"])
             except API_ERRORS as error:
-                result = {**result, "kind": "publication-failed", "state": "failure",
-                          "errors": [*result["errors"],
-                                     evaluation_failure(error)["errors"][0]]}
+                result = status_write_failure(error, result)
         published[number] = {**result, "head": head,
                              "rerun": result["kind"] in RERUN_KINDS}
     # Carried verdicts are reported as they were published by the earlier attempt. Nothing is
@@ -949,6 +1032,151 @@ def refresh_event(event, event_name):
 
 
 
+# Fixed dependencies, not merely the policy's self-declared path list.
+ROUTING_POLICY_INPUTS = {
+    ".github/knowledge-model-policy.json", "tools/check_knowledge_model_policy.py",
+    "tools/run_knowledge_model_policy.sh", ".github/workflows/knowledge-model-policy.yml",
+    "docs/knowledge-model-policy.md",
+}
+
+
+class AdmissionGraph:
+    """Read Git objects only; never check out or execute PR code. Bounded per plan."""
+
+    def __init__(self, repository):
+        if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository):
+            raise ValueError("Invalid repository")
+        self.repository = repository
+        self.deadline = time.monotonic() + 60
+
+    def git(self, *arguments):
+        remaining = self.deadline - time.monotonic()
+        if remaining <= 0:
+            raise ValueError("Routing graph deadline exhausted")
+        return subprocess.run(["git", "--no-replace-objects", *arguments], cwd=ROOT,
+                              check=True, capture_output=True, text=True,
+                              timeout=remaining).stdout.strip()
+
+    def prepare(self, shas):
+        if any(not SHA.fullmatch(sha) for sha in shas):
+            raise ValueError("Invalid graph revision")
+        shallow = self.git("rev-parse", "--is-shallow-repository")
+        # Fetch immutable objects from the trusted repository, not a PR-supplied URL.
+        options = ["--unshallow"] if shallow == "true" else []
+        self.git("fetch", "--quiet", "--no-tags", *options,
+                 f"https://github.com/{self.repository}.git", *sorted(set(shas)))
+        if self.git("rev-parse", "--is-shallow-repository") != "false":
+            raise ValueError("Incomplete routing graph")
+
+    def unchanged(self, before, current, head):
+        old = self.git("merge-base", "--all", before, head).splitlines()
+        new = self.git("merge-base", "--all", current, head).splitlines()
+        return len(old) == len(new) == 1 and old == new
+
+
+def routing_snapshot(prs):
+    seen = set()
+    snapshot = []
+    for pr in prs:
+        number = pr["number"]
+        if type(number) is not int or number <= 0 or number in seen:
+            raise ValueError("Invalid routing PR collection")
+        seen.add(number)
+        head = pr["head"]["sha"]
+        if not isinstance(head, str) or not SHA.fullmatch(head) or pr["state"] != "open":
+            raise ValueError("Invalid routing PR head or lifecycle")
+        snapshot.append((number, *admission_snapshot(pr)))
+    return sorted(snapshot)
+
+
+def routing_current(api, policy_sha, snapshot):
+    return (api.get("git/ref/heads/main")["object"]["sha"] == policy_sha
+            and routing_snapshot(api.pages("pulls?state=open")) == snapshot)
+
+
+def admission_route(api, event, event_name, policy, policy_sha, repository, graph=None):
+    """Select only proven affected targets; ambiguous evidence keeps the full sweep."""
+    full = {"mode": "full-sweep", "reason": "event-requires-refresh"}
+    is_close = event_name == "pull_request_target" and event.get("action") == "closed"
+    is_pr = event_name == "pull_request_target" and not is_close
+    is_comment = event_name == "issue_comment"
+    if event_name != "push" and not (is_close or is_pr or is_comment):
+        return None, full, None
+    try:
+        if policy["base_branch"] != "main" or event["repository"]["full_name"] != repository:
+            raise ValueError("Routing repository or branch mismatch")
+        prs = api.pages("pulls?state=open")
+        snapshot = routing_snapshot(prs)
+        if is_pr or is_comment:
+            if is_pr:
+                if event["action"] not in {"opened", "synchronize", "reopened", "edited",
+                                           "ready_for_review"}:
+                    raise ValueError("Unverified PR action")
+                trigger = event["number"]
+                captured = event["pull_request"]
+                if captured["number"] != trigger:
+                    raise ValueError("Inconsistent PR event identity")
+                heads = {captured["head"]["sha"]}
+                if event["action"] == "synchronize":
+                    # The old head can still belong to another open PR. Missing old-head
+                    # evidence cannot justify dropping that peer's ownership refresh.
+                    heads.add(event["before"])
+            else:
+                if (event["action"] not in {"created", "edited", "deleted"}
+                        or "pull_request" not in event["issue"]):
+                    raise ValueError("Unverified PR comment event")
+                trigger = event["issue"]["number"]
+                heads = set()
+            if type(trigger) is not int or trigger <= 0:
+                raise ValueError("Invalid trigger PR number")
+            live = api.get(f"pulls/{trigger}")
+            if live["number"] != trigger or live["state"] not in {"open", "closed"}:
+                raise ValueError("Unverified current PR identity")
+            heads.add(live["head"]["sha"])
+            if any(not isinstance(head, str) or not SHA.fullmatch(head)
+                   or head == "0" * 40 for head in heads):
+                raise ValueError("Unverified affected head")
+            numbers = sorted({trigger, *(pr["number"] for pr in prs
+                                        if pr["head"]["sha"] in heads and addressable(pr, policy))})
+            route = {"mode": "pr-impact", "reason": "trigger-and-head-peers", "targets": numbers}
+        elif is_close:
+            trigger = event["number"]
+            live = api.get(f"pulls/{trigger}")
+            captured = event["pull_request"]
+            head = captured["head"]["sha"]
+            if (live["state"] != "closed" or live["number"] != trigger
+                    or captured["number"] != trigger or live["head"]["sha"] != head
+                    or not isinstance(head, str) or not SHA.fullmatch(head)):
+                raise ValueError("Closed event no longer matches current lifecycle")
+            numbers = sorted({trigger, *(pr["number"] for pr in prs
+                                        if pr["head"]["sha"] == head and addressable(pr, policy))})
+            route = {"mode": "closed-impact", "reason": "closed-head-peers", "targets": numbers}
+        else:
+            before = event["before"]
+            if (event["ref"] != "refs/heads/main" or event.get("forced", False)
+                    or not isinstance(before, str) or not SHA.fullmatch(before)
+                    or before == "0" * 40):
+                raise ValueError("Push history cannot be proven")
+            graph = graph or AdmissionGraph(repository)
+            candidates = [pr for pr in prs if addressable(pr, policy)]
+            graph.prepare([before, policy_sha, *(pr["head"]["sha"] for pr in candidates)])
+            graph.git("merge-base", "--is-ancestor", before, policy_sha)
+            changed = set(graph.git("diff", "--no-renames", "--name-only",
+                                    before, policy_sha, "--").splitlines())
+            if changed & ROUTING_POLICY_INPUTS or matching(changed, policy["policy_paths"]):
+                return None, {"mode": "full-sweep", "reason": "policy-inputs-changed"}, None
+            numbers = [pr["number"] for pr in candidates
+                       if head_owner(prs, pr["number"], pr["head"]["sha"]) is not None
+                       or not graph.unchanged(before, policy_sha, pr["head"]["sha"])]
+            route = {"mode": "push-impact", "reason": "base-relative-impact",
+                     "targets": sorted(numbers)}
+        if not routing_current(api, policy_sha, snapshot):
+            raise ValueError("Routing premise advanced")
+        return numbers, route, snapshot
+    except (*API_ERRORS, subprocess.SubprocessError):
+        return None, {"mode": "full-sweep", "reason": "impact-unverified"}, None
+
+
 def report_binding(repository, event_name, event_path, policy_sha, report_id):
     """Bind a report to trusted runner inputs, not declaration text or an older attempt."""
     if not report_id or not repository:
@@ -976,11 +1204,13 @@ def report_binding(repository, event_name, event_path, policy_sha, report_id):
             "policy_sha": policy_sha, "report_id": report_id, "expected_head": expected_head}
 
 
-def write_report(path, binding, results):
+def write_report(path, binding, results, routing=None):
     if path is None:
         return
     report = {"schema_version": 1, "binding": binding, "results": results,
               "sweep_exit": exit_code(results), "summary": summarize(results)}
+    if routing is not None:
+        report["routing"] = routing
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(report, ensure_ascii=True, sort_keys=True), encoding="utf-8")
     temporary.replace(path)
@@ -1030,7 +1260,16 @@ def report_exit(path, binding, sweep_exit):
                     and result["state"] == "success" and not result["rerun"]
                     and not result["errors"] and SHA.fullmatch(result["head_sha"])):
                 conclusion = 0
-    summary = {"scope": "trigger-pr" if trigger is not None else "global-sweep",
+    routing = report.get("routing", {"mode": "full-sweep"})
+    if routing.get("mode") not in {"full-sweep", "push-impact", "closed-impact", "pr-impact"}:
+        raise ValueError("Invalid routing scope")
+    impact = routing["mode"] != "full-sweep"
+    summary = {"scope": ("trigger-pr" if trigger is not None else
+                         "affected-admissions" if impact else "global-sweep"),
+               "routing": routing,
+               "scope_note": ("No affected admissions; not a global health assessment"
+                              if impact and not results else
+                              "Only selected admissions assessed" if impact else "Full sweep"),
                "trigger": trigger, "job_exit": conclusion,
                "target_kind": own[0]["kind"] if own else None,
                "projection_reason": "stale-event-head" if stale_event else "final-target-result",
@@ -1038,10 +1277,11 @@ def report_exit(path, binding, sweep_exit):
                "evaluated_head": own[0]["head_sha"] if own else None,
                "target_applicability": ("not-applicable" if own and own[0]["kind"] == "closed"
                                         else "see-target-result"),
-               "global_summary": report["summary"], "policy_sha": binding["policy_sha"]}
+               "global_summary": None if impact else report["summary"],
+               "scope_summary": report["summary"], "policy_sha": binding["policy_sha"]}
     print(json.dumps(summary, ensure_ascii=True))
     if sweep_exit:
-        print("::warning::Global admission sweep remains incomplete or failed; "
+        print("::warning::Admission work in the reported scope remains incomplete or failed; "
               "see structured results. Trigger-PR conclusion does not clear other PRs.")
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
     if summary_path:
@@ -1082,23 +1322,39 @@ def main(argv=None):
     if policy["schema_version"] != 1:
         raise ValueError("Unsupported policy schema")
     api = GitHub(args.repository or "", token)
+    routing = {"mode": "full-sweep", "reason": "explicit-or-unrouted"}
+    route_snapshot = None
     if args.pull_request is not None:
         if args.pull_request <= 0:
             raise ValueError("PR number must be positive")
         numbers = [args.pull_request]
     else:
         event = json.loads(Path(args.event_path).read_text(encoding="utf-8"))
-        # Every trigger shares one writer, so a superseded queued event still covers all open PRs.
-        numbers = None if refresh_event(event, os.environ["GITHUB_EVENT_NAME"]) else []
+        event_name = os.environ["GITHUB_EVENT_NAME"]
+        numbers = None if refresh_event(event, event_name) else []
+        if numbers is None:
+            numbers, routing, route_snapshot = admission_route(
+                api, event, event_name, policy, args.policy_sha, args.repository or "")
     plan = plan_file(args.plan, args.policy_sha)
     results = check_prs(api, policy, args.policy_sha, args.dry_run, numbers, plan,
                         trigger=binding["trigger"] if binding else None,
                         report_scope=binding is not None)
+    if route_snapshot is not None:
+        try:
+            current = routing_current(api, args.policy_sha, route_snapshot)
+        except API_ERRORS:
+            current = False
+        if not current and not any(result["pull_request"] == 0 for result in results):
+            results.append({"pull_request": 0, "head_sha": "", "policy_sha": args.policy_sha,
+                            "dry_run": args.dry_run, "rerun": True, "state": "failure",
+                            "kind": "deferred", "description": "Routing premise advanced",
+                            "errors": ["Replan against current main and open PRs"]})
     write_plan(args.plan, plan)
+    print(json.dumps({"routing": routing}, ensure_ascii=True))
     for result in results:
         print(json.dumps(result, ensure_ascii=True))
     print(json.dumps(summarize(results), ensure_ascii=True))
-    write_report(args.report, binding, results)
+    write_report(args.report, binding, results, routing)
     return exit_code(results)
 
 

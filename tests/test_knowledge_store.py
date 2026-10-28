@@ -177,6 +177,22 @@ def test_database_rejection_rolls_back_complete_publication(tmp_path):
     assert len(store.history(LOCAL)) == 1
 
 
+def test_store_lock_exhaustion_is_a_domain_error(tmp_path):
+    # A held write lock must surface as a contention error, not a raw sqlite3 one.
+    store = store_at(tmp_path)
+    blocker = sqlite3.connect(store.database, isolation_level=None, timeout=1)
+    blocker.execute("BEGIN IMMEDIATE")
+    try:
+        started = time.monotonic()
+        with pytest.raises(RevisionConflict, match="locked by another writer"):
+            store.create(adaptation())
+        assert time.monotonic() - started >= 1
+    finally:
+        blocker.execute("ROLLBACK")
+        blocker.close()
+    assert store.identities() == []
+
+
 def test_incomplete_unsafe_and_promotion_writes_fail(tmp_path):
     store = store_at(tmp_path)
     original = adaptation()
@@ -232,6 +248,69 @@ def test_workspace_location_and_symlinks(tmp_path):
     (workspace / "knowledge.sqlite3").symlink_to(target / "elsewhere.sqlite3")
     with pytest.raises(ValueError, match="symlink"):
         store_at(workspace)
+
+
+EXPORT_CHECK = """
+import sys
+from pathlib import Path
+
+from inferrsi.knowledge_operations import Bundle
+from inferrsi.knowledge_store import KnowledgeStore
+
+export = Path(sys.argv[1])
+workspace = Path(sys.argv[2])
+assert not (export / ".git").exists()
+assert (export / "pyproject.toml").is_file()
+for skill_root in (export / "src/inferrsi/data/skill_library", None):
+    try:
+        KnowledgeStore(export / "evidence", skill_root=skill_root)
+    except ValueError as exc:
+        assert "outside read-only sources" in str(exc), exc
+    else:
+        raise AssertionError("exported source tree was accepted as a store workspace")
+store = KnowledgeStore(workspace, skill_root=None)
+metadata = {
+    "id": "export-candidate",
+    "kind": "skill",
+    "entrypoint": "export-candidate/SKILL.md",
+    "sources": [{"type": "unknown", "note": "export fixture"}],
+    "applicability": {},
+    "state": "candidate",
+    "limitations": [],
+    "attribution": [],
+    "required_resources": ["export-candidate/SKILL.md"],
+}
+store.create(Bundle(metadata, {"export-candidate/SKILL.md": b"Body"}, {}))
+assert store.identities() == ["export-candidate"]
+assert not any(path.suffix == ".sqlite3" for path in (export / "evidence").iterdir())
+"""
+
+
+def test_exported_tree_without_git_metadata_stays_protected(tmp_path):
+    # git archive and sdist layouts carry no .git entry; they are the snapshots in
+    # which someone is most likely to open a store next to the sources.
+    if not (REPO / ".git").exists():
+        pytest.skip("Git metadata is required to produce an export")
+    head = subprocess.run(
+        ["git", "-C", str(REPO), "rev-parse", "HEAD"], capture_output=True, text=True
+    )
+    if head.returncode != 0:
+        pytest.skip(f"git unavailable: {head.stderr}")
+    archive = subprocess.run(
+        ["git", "-C", str(REPO), "archive", "--format=tar", head.stdout.strip()],
+        capture_output=True,
+    )
+    export = tmp_path / "export"
+    export.mkdir()
+    subprocess.run(["tar", "-x", "-C", str(export)], input=archive.stdout, check=True)
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+    env = {**os.environ, "PYTHONPATH": str(export / "src"), "PYTHONUTF8": "1"}
+    result = subprocess.run(
+        [sys.executable, "-c", EXPORT_CHECK, str(export), str(workspace)],
+        cwd=tmp_path, env=env, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, result.stderr
 
 
 def test_real_shared_resource_bundle_keeps_old_dependency_bytes(tmp_path):

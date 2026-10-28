@@ -16,13 +16,20 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+      "commit": "ca201c99455200a5a3d0007aca6a2963f01be17d",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
-        "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md"
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/NOTICE.md",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/README.md",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/decision-cases.md",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/mechanisms.md",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/source-ledger.json"
       ],
-      "content_sha256": "a55610874b658b86a39a1a049efb4e4eab0140f6579ed74dd7718a4ca8cedaca"
+      "content_sha256": "08f76e12f6f8e8893f03bcdc8152a96c0c99442e7faecbc2a67a18c632fcb243"
     }
   ],
   "index_type": "packaged-skill",
@@ -31,8 +38,15 @@
   },
   "checkout_ref": "checkout:rsi-evidence",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1",
-    "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "a55610874b658b86a39a1a049efb4e4eab0140f6579ed74dd7718a4ca8cedaca"
+    "src/inferrsi/data/skill_library/skill-index.json": "11ce84e1e514eb39a0982cd104ed2321f34b786e522f41cc71d331788eba772b",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "08f76e12f6f8e8893f03bcdc8152a96c0c99442e7faecbc2a67a18c632fcb243",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/NOTICE.md": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/README.md": "c5802bb4d71fbf95e40a6a5282c0afcba594ab5b34d40bec97874928d8376a00",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/decision-cases.md": "c2c1d3d75c4fcb515dd36ff84d8dc940c25d54c5757a29a80d1af88eb8b66115",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/mechanisms.md": "4fa09099d362a8088fdb0e6a767f72aae6218b92fe5fd75b6fb78c2bb2a318fb",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/source-ledger.json": "60294951d702db924119300d89f4ed01d970a7036e214aa0d04c78f6842f92d9"
   },
   "skill_metadata": {
     "name": "rsi-evidence",

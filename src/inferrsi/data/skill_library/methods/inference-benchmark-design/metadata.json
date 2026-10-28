@@ -142,9 +142,6 @@
     }
   ],
   "empirical_validation": "not_run",
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",

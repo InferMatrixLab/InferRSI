@@ -134,8 +134,6 @@ def recommend(checkpoint: dict) -> Recommendation:
         return decision("stop_budget", "observed_token_limit_reached")
     if state == "stopped":
         return decision("prepare_new_plan", "attempt_stopped_no_resume")
-    if not checkpoint["remaining"] and not checkpoint["waiting"]:
-        return decision("report_accepted", "all_criteria_explicitly_accepted")
     if checkpoint["waiting"]:
         return decision("wait_dependency", *("dependency:" + d for d in checkpoint["waiting"]))
     if state == "completed":

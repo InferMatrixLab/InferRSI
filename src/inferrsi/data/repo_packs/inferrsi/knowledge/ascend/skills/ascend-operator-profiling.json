@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/933c3e31f2b6f4f7957216ac641bf5dbb63ba002/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
-      "commit": "933c3e31f2b6f4f7957216ac641bf5dbb63ba002",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ca201c99455200a5a3d0007aca6a2963f01be17d/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
+      "commit": "ca201c99455200a5a3d0007aca6a2963f01be17d",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json",
@@ -40,8 +40,8 @@
   "checkout_ref": "checkout:ascend-operator-profiling",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "e45210a4df7b1ee183f06573dbc36db5ede182f11ab1cfad5ae22f523b89c557",
-    "src/inferrsi/data/skill_library/skill-index.json": "8ce35e18f7629260d67a95617b9918eecff73ed8d9370dd3d4595c725ada9aa1"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "efd37bb23acb500dad4ec8ebe7ddfe5c3f196374052825f923ac85da8445f06b",
+    "src/inferrsi/data/skill_library/skill-index.json": "11ce84e1e514eb39a0982cd104ed2321f34b786e522f41cc71d331788eba772b"
   },
   "skill_metadata": {
     "name": "ascend-operator-profiling",
@@ -65,22 +65,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

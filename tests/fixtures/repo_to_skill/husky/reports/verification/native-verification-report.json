@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "status": "NOT_AVAILABLE",
+  "canonical_repository": null,
+  "implementation_revision": null,
+  "source_license": "UNKNOWN",
+  "raw_receipts": "not identified",
+  "native_execution": "not-run",
+  "required_backend": "not executed; unavailable implementation/model/device resources",
+  "offline_checks": "schema/links/frontmatter/cases only; no engine behavior or artifact authentication",
+  "automatic_import": "prohibited without separate informed candidate decision",
+  "full_repo_to_skill": "not completed; approved document-only adaptation"
+}

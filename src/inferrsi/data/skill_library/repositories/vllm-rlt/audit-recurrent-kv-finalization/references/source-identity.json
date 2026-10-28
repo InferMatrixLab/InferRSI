@@ -1,0 +1,471 @@
+{
+  "repository": "InferMatrixLab/vllm-rlt",
+  "repository_id": 1363830789,
+  "legacy_repository": "ThinkFlowLab/vllm-rlt",
+  "revision": "4a350344027960a48384626aa646f1765fda6d4f",
+  "tree": "4c2cab1f497513ea0590060eb53ee0b179a5bf70",
+  "license": "Apache-2.0",
+  "notice": "ByteDance/Ouro-1.4B model/configuration lineage; Qwen/Alibaba/HuggingFace attribution retained",
+  "scope": "synchronous native Ouro host KVMetadata finalization/next-attention/normal retirement; bounded source read, no upstream execution",
+  "files": [
+    {
+      "path": "README.md",
+      "blob": "b742543ff16ab36c7f0c7e26f9451f8e3c496f45",
+      "content_sha256": "a37582a0de0d1937b5a9a44d6dae607f72c177276bd5acc4b7ffb987f63573ee",
+      "bytes": 16611,
+      "ranges": [
+        [
+          70,
+          75
+        ]
+      ],
+      "evidence": "intake acquisition2026-10-23 carried; selected ranges reread and local blob identity checked for construction"
+    },
+    {
+      "path": "LICENSE",
+      "blob": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "content_sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358,
+      "ranges": [
+        [
+          1,
+          16
+        ]
+      ],
+      "evidence": "intake acquisition2026-10-23 carried; selected ranges reread and local blob identity checked for construction"
+    },
+    {
+      "path": "NOTICE",
+      "blob": "4e818fb84c79f6f8dee13c559765e516a1f0a58f",
+      "content_sha256": "cca794656897ecdc37f983f7f23c4cd12306dbe3c9cd2f54fece6340753ae4cf",
+      "bytes": 662,
+      "ranges": [
+        [
+          1,
+          14
+        ]
+      ],
+      "evidence": "intake acquisition2026-10-23 carried; selected ranges reread and local blob identity checked for construction"
+    },
+    {
+      "path": "vllm_rlt/core/kv_cache_manager.py",
+      "blob": "3bb6bf02ca0bdb65b3c709f6f82a8a1025faaa51",
+      "content_sha256": "38c97d7f087acd6d23ca4c2cfc9e2c035c48934b904b0012f74ebef228d0a515",
+      "bytes": 35108,
+      "ranges": [
+        [
+          17,
+          28
+        ],
+        [
+          32,
+          50
+        ],
+        [
+          88,
+          145
+        ],
+        [
+          191,
+          218
+        ],
+        [
+          358,
+          365
+        ],
+        [
+          427,
+          468
+        ],
+        [
+          513,
+          520
+        ],
+        [
+          565,
+          618
+        ],
+        [
+          643,
+          795
+        ]
+      ],
+      "evidence": "intake acquisition2026-10-23 carried; selected ranges reread and local blob identity checked for construction"
+    },
+    {
+      "path": "vllm_rlt/worker/model_runner.py",
+      "blob": "58e3414f1757f98bf5ebf3bb7b90fe3ecd9fdd22",
+      "content_sha256": "9bbd2a00a6d79d5a5e39d833e7aef4affc2b767bbf46e38925374d7175be138e",
+      "bytes": 60675,
+      "ranges": [
+        [
+          1,
+          24
+        ],
+        [
+          107,
+          149
+        ],
+        [
+          160,
+          198
+        ],
+        [
+          310,
+          357
+        ],
+        [
+          705,
+          811
+        ],
+        [
+          842,
+          931
+        ],
+        [
+          972,
+          1025
+        ],
+        [
+          1081,
+          1121
+        ],
+        [
+          1139,
+          1259
+        ],
+        [
+          1278,
+          1375
+        ]
+      ],
+      "evidence": "intake acquisition2026-10-23 carried; selected ranges reread and local blob identity checked for construction"
+    },
+    {
+      "path": "tests/test_kv_cache.py",
+      "blob": "d49c59f25b1e5cdc493cebaab56dda3cb90cee7e",
+      "content_sha256": "975a4bfe8c772e85b5ef8c97c4955f489aebf81f19e1b48f7a159c60e32608fd",
+      "bytes": 15192,
+      "ranges": [
+        [
+          1,
+          12
+        ],
+        [
+          38,
+          110
+        ],
+        [
+          116,
+          127
+        ],
+        [
+          168,
+          174
+        ],
+        [
+          216,
+          258
+        ]
+      ],
+      "evidence": "intake acquisition2026-10-23 carried; selected ranges reread and local blob identity checked for construction"
+    },
+    {
+      "path": "pyproject.toml",
+      "blob": "93a60a771e34d7b4a2b5d8339ea995e3084d2616",
+      "ranges": [
+        [
+          1,
+          46
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/pyproject.toml",
+      "bytes": 1276,
+      "content_sha256": "ebe2999a760158d24c84a24119597cd9ddbc5c5ea03dca322f0ace9bb173cdff",
+      "line_count": 52
+    },
+    {
+      "path": "vllm_rlt/config.py",
+      "blob": "f2ae9511be0a2bb02a448b150f464f0bb5aa19bf",
+      "ranges": [
+        [
+          11,
+          47
+        ],
+        [
+          84,
+          144
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/config.py",
+      "bytes": 6565,
+      "content_sha256": "90be05f4d3303dde526f9cbed14be8fb0cb41eabbc902caa4669a37cd6a134c5",
+      "line_count": 159
+    },
+    {
+      "path": "vllm_rlt/engine/stage_engine.py",
+      "blob": "7cf9f42dddcab3258c2e5dc0303724d1fedd9a42",
+      "ranges": [
+        [
+          34,
+          120
+        ],
+        [
+          118,
+          167
+        ],
+        [
+          170,
+          223
+        ],
+        [
+          392,
+          448
+        ],
+        [
+          602,
+          640
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/engine/stage_engine.py",
+      "bytes": 37086,
+      "content_sha256": "faf106a8106f2d8713e7d5d32586731607191d3061581919ad9a457977aec9ed",
+      "line_count": 806
+    },
+    {
+      "path": "vllm_rlt/core/scheduler.py",
+      "blob": "b2442d7b10c1edcf6459a5f57d038543e23be268",
+      "ranges": [
+        [
+          181,
+          199
+        ],
+        [
+          756,
+          787
+        ],
+        [
+          789,
+          879
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/core/scheduler.py",
+      "bytes": 45060,
+      "content_sha256": "a8c0ca3d3977f512b1d551876a4cb9a035ed1195299b11337089d1cea5e37002",
+      "line_count": 990
+    },
+    {
+      "path": "vllm_rlt/worker/executor.py",
+      "blob": "87ba27dff52b690de57f7cb297459d5b458b5bc6",
+      "ranges": [
+        [
+          7,
+          95
+        ],
+        [
+          132,
+          207
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/worker/executor.py",
+      "bytes": 9156,
+      "content_sha256": "b5349da4f766d7bb9fd88993718b177640eee2d1eebf44212725539358324161",
+      "line_count": 207
+    },
+    {
+      "path": "vllm_rlt/attention/__init__.py",
+      "blob": "ef7e7adcc73e2ae7147f3118eadf69ff2690be47",
+      "ranges": [
+        [
+          1,
+          29
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/attention/__init__.py",
+      "bytes": 693,
+      "content_sha256": "be826f33e112661b417c781e7b5589466814d6bf9cc5fec1a2b34b08cc041356",
+      "line_count": 29
+    },
+    {
+      "path": "vllm_rlt/attention/backend.py",
+      "blob": "01e2377243d1860d77c64c86696d1e33258328f6",
+      "ranges": [
+        [
+          1,
+          60
+        ],
+        [
+          63,
+          143
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/attention/backend.py",
+      "bytes": 5753,
+      "content_sha256": "898cf352ae22f7b133653719eb0e442c888f1b3aa2ae5db60c1c6d713729ae30",
+      "line_count": 143
+    },
+    {
+      "path": "vllm_rlt/models/ouro.py",
+      "blob": "eae29724484939136c40adc527a8383cccaf0cb6",
+      "ranges": [
+        [
+          1,
+          35
+        ],
+        [
+          36,
+          60
+        ],
+        [
+          153,
+          186
+        ],
+        [
+          210,
+          246
+        ],
+        [
+          257,
+          294
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/models/ouro.py",
+      "bytes": 16825,
+      "content_sha256": "40bf2a982cee75994af88ea4cbffa1ea7ccb1ab75e3db1bdd1af073273cc8996",
+      "line_count": 371
+    },
+    {
+      "path": "vllm_rlt/layers/__init__.py",
+      "blob": "1cb5b459c8ca4e00ba675a3c7e04278c02c529a8",
+      "ranges": [
+        [
+          1,
+          16
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/layers/__init__.py",
+      "bytes": 360,
+      "content_sha256": "3cd59909bb787a93fb6ee1bfc91278a547c31fb26f8efd32bf7745cac33448e5",
+      "line_count": 16
+    },
+    {
+      "path": "vllm_rlt/__init__.py",
+      "blob": "d0b346bcd632a2bca82a59aaab389080dfc1ec8a",
+      "ranges": [
+        [
+          1,
+          25
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/__init__.py",
+      "bytes": 573,
+      "content_sha256": "6182fa7a786e92456887ee2b9ebd2bf51b46beef0a4c62ce9871c3c3e4f7f849",
+      "line_count": 25
+    },
+    {
+      "path": "tests/conftest.py",
+      "blob": "fa5d6020e399d4f169df85da31d8b6cac6c043ea",
+      "ranges": [
+        [
+          1,
+          27
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/tests/conftest.py",
+      "bytes": 799,
+      "content_sha256": "fdabf08e0fe579ab7af6c1e8e50f68c3ddb2301bb253e1525ff037b7ae1374c7",
+      "line_count": 27
+    },
+    {
+      "path": "vllm_rlt/request.py",
+      "blob": "537e2bf118d34174fec5570489b6aba7c484496a",
+      "ranges": [
+        [
+          1,
+          67
+        ],
+        [
+          96,
+          129
+        ],
+        [
+          133,
+          190
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/request.py",
+      "bytes": 8295,
+      "content_sha256": "59bbf1c00497806883ea649b27ebf37509b29389379dae084948d285545f465f",
+      "line_count": 214
+    },
+    {
+      "path": "vllm_rlt/worker/metadata.py",
+      "blob": "c82a75cd02f5040a483f0ee08ae9dab12b8aae20",
+      "ranges": [
+        [
+          7,
+          15
+        ],
+        [
+          22,
+          68
+        ],
+        [
+          143,
+          238
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/worker/metadata.py",
+      "bytes": 11242,
+      "content_sha256": "4f66c49cb2981d3b2b895937c41720dde35c7a48d3205e57bfb31821ecbc82a4",
+      "line_count": 297
+    },
+    {
+      "path": "vllm_rlt/kernels/paged_attention.py",
+      "blob": "2d1f2428e09f0473aec93b8d0677c01bf7de3824",
+      "ranges": [
+        [
+          1,
+          54
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/kernels/paged_attention.py",
+      "bytes": 2157,
+      "content_sha256": "0b8426436c4e004fd748a5b3d2fbde09c3694688dec03a443884f0326cb9a6b1",
+      "line_count": 54
+    },
+    {
+      "path": "vllm_rlt/worker/buffers.py",
+      "blob": "7a2de728a094ed28d4d00affc68be9f68f4b77c7",
+      "ranges": [
+        [
+          3,
+          10
+        ],
+        [
+          148,
+          194
+        ]
+      ],
+      "evidence": "added fixed-tree caller/consumer/dependency read2026-10-23",
+      "url": "https://github.com/InferMatrixLab/vllm-rlt/blob/4a350344027960a48384626aa646f1765fda6d4f/vllm_rlt/worker/buffers.py",
+      "bytes": 15156,
+      "content_sha256": "819d6b18f103bc3d906dc2ce309e95bfadb33756f5af4ed783e343a37b9ecaca",
+      "line_count": 345
+    }
+  ]
+}

@@ -7,11 +7,15 @@ import sys
 import tempfile
 import unittest
 from dataclasses import replace
+from functools import partial
 from pathlib import Path
 from unittest.mock import patch
 
 from inferrsi.contracts import RunSpec
 from inferrsi.execution import repository_identity, run_experiment
+from inferrsi.harness.evaluation import _summary, evaluate
+from inferrsi.harness.runner import run_experiment as run_with_adapters
+from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.reporting import write_report
 
 
@@ -352,6 +356,195 @@ class RuntimeTests(unittest.TestCase):
             with self.subTest(changes=changes), self.assertRaises(ValueError):
                 run_experiment(replace(self.spec, **changes), {})
 
+    def latest_run(self):
+        return max((Path(self.root / "runs")).iterdir(), key=lambda path: path.name)
+
+    def test_hook_exception_is_recorded_as_crashed_and_reaches_the_caller(self):
+        # A KeyError is outside the documented adapter error contract, so it must
+        # not be absorbed. The run directory must not claim completion either.
+        def reader(document, key):
+            return document["metrics"]["latency"]
+
+        with self.assertRaises(KeyError):
+            run_with_adapters(
+                self.spec,
+                {"backend": "cpu", "test": True},
+                execute=partial(execute_trial, metric_reader=reader),
+            )
+        run = self.latest_run()
+        status = json.loads((run / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["state"], "crashed")
+        self.assertNotEqual(status["state"], "completed")
+        self.assertEqual(status["error"], "KeyError: 'latency'")
+        self.assertIsNone(status["verdict"])
+        self.assertFalse((run / "evaluation.json").exists())
+        events = [
+            json.loads(line)
+            for line in (run / "events.jsonl").read_text(encoding="utf-8").splitlines()
+        ]
+        self.assertEqual([event["phase"] for event in events][-1], "crashed")
+        self.assertNotIn("complete", [event["phase"] for event in events])
+
+    def test_reader_violating_the_metric_contract_keeps_the_evaluation(self):
+        # 0.0 is outside the finite-positive contract; before validation it reached
+        # _summary and raised ZeroDivisionError inside the termination path.
+        def reader(document, key):
+            return 0.0
+
+        path = run_with_adapters(
+            self.spec,
+            {"backend": "cpu", "test": True},
+            execute=partial(execute_trial, metric_reader=reader),
+        )
+        result = json.loads((path / "evaluation.json").read_text(encoding="utf-8"))
+        self.assertEqual(result["verdict"], "INCONCLUSIVE")
+        self.assertIsNone(result["baseline"])
+        self.assertIsNone(result["candidate"])
+        self.assertTrue(any("finite and positive" in reason for reason in result["reasons"]))
+        status = json.loads((path / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["state"], "completed")
+        trial = json.loads(
+            (path / "baseline/trial-001/execution.json").read_text(encoding="utf-8")
+        )
+        self.assertIsNone(trial["metric"])
+        self.assertIn("finite and positive", trial["metric_error"])
+
+    def test_snapshot_failure_terminates_with_a_named_state_and_retained_error(self):
+        # The second snapshot call fails inside the try block: the run records
+        # "failed". Cleanup needs another snapshot, so it fails too. The original
+        # error must survive that second failure rather than be replaced by it.
+        calls = []
+
+        def snapshot(path, exclude=None):
+            calls.append(path)
+            if len(calls) > 1:
+                raise OSError("snapshot backend unavailable")
+            return {"available": True, "snapshot_hash": "fixture", "path": str(path)}
+
+        with self.assertRaises(OSError):
+            run_with_adapters(
+                replace(self.spec, repetitions=1),
+                {"backend": "cpu", "test": True},
+                snapshot=snapshot,
+            )
+        run = self.latest_run()
+        status = json.loads((run / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["state"], "termination_failed")
+        self.assertEqual(status["phase"], "termination")
+        self.assertEqual(status["requested_state"], "failed")
+        self.assertEqual(status["error"], "snapshot backend unavailable")
+        self.assertIn("snapshot backend unavailable", status["termination_error"])
+        self.assertFalse((run / "evaluation.json").exists())
+        self.assertFalse((run / "report.html").exists())
+
+    def test_failed_trial_metric_is_excluded_and_named(self):
+        failure = (sys.executable, "-c", "import sys; sys.exit(7)")
+        _, evaluation = self.run_spec(validation_command=failure)
+        # A completed quality command that rejects its gate fails the run, but
+        # both measurement trials completed, so both remain measured.
+        self.assertEqual(evaluation["verdict"], "FAIL")
+        self.assertEqual(evaluation["baseline"]["values"], [100.0, 100.0])
+        self.assertEqual(evaluation["candidate"]["values"], [80.0, 80.0])
+        self.assertEqual(evaluation["candidate"]["excluded_trials"], 0)
+
+    def test_summary_ignores_a_timed_out_trial_metric(self):
+        summary = _summary(
+            [{"status": "completed", "metric": 10.0}, {"status": "timeout", "metric": 5.0}]
+        )
+        self.assertEqual(summary["values"], [10.0])
+        self.assertEqual(summary["excluded_trials"], 1)
+        spec = replace(self.spec, repetitions=2)
+        result = evaluate(
+            spec,
+            [{"status": "completed", "metric": 10.0}, {"status": "timeout", "metric": 5.0}],
+            [{"status": "completed", "metric": 8.0}, {"status": "completed", "metric": 8.0}],
+            {"status": "completed"},
+            {"verified": True},
+        )
+        # A timed-out trial's metric must not enter the baseline median.
+        self.assertEqual(result["baseline"]["values"], [10.0])
+        self.assertEqual(result["baseline"]["excluded_trials"], 1)
+        self.assertTrue(any("excluded from the recorded measurements" in reason
+                            for reason in result["reasons"]))
+
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TerminationTests(unittest.TestCase):
+    """A failure in the termination path must still leave a truthful status."""
+
+    def setUp(self):
+        self.temporary = tempfile.TemporaryDirectory()
+        self.addCleanup(self.temporary.cleanup)
+        self.root = Path(self.temporary.name)
+        self.repo = self.root / "repo"
+        self.repo.mkdir()
+        (self.repo / "source.txt").write_text("initial source\n", encoding="utf-8")
+        for args in (
+            ("init", "--quiet"),
+            ("add", "source.txt"),
+            ("-c", "user.name=InferRSI test", "-c", "user.email=test@example.invalid",
+             "-c", "commit.gpgsign=false", "commit", "--quiet", "-s", "-m", "fixture"),
+        ):
+            subprocess.run(["git", "-C", str(self.repo), *args], check=True,
+                           stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.spec = RunSpec(
+            repo=str(self.repo),
+            baseline_command=benchmark(100),
+            candidate_command=benchmark(80),
+            repetitions=1,
+            validation_command=(sys.executable, "-c", "print('ok')"),
+            output_dir=str(self.root / "runs"),
+            max_minutes=1,
+        )
+
+    def test_unexpected_termination_error_is_recorded_not_escaped(self):
+        # Report generation fails with an error outside the documented
+        # OSError/ValueError contract, after `completed` was already written.
+        # That failure must be persisted as the terminal state instead of
+        # escaping while `completed` remains the last recorded status.
+        with patch("inferrsi.harness.runner.write_report",
+                   side_effect=RuntimeError("report backend crashed")):
+            with self.assertRaises(RuntimeError):
+                run_with_adapters(self.spec, {"backend": "cpu", "test": True})
+        run = sorted((self.root / "runs").iterdir())[-1]
+        status = json.loads((run / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["state"], "termination_failed")
+        self.assertEqual(status["phase"], "termination")
+        self.assertEqual(status["requested_state"], "completed")
+        self.assertIn("report backend crashed", status["termination_error"])
+
+    def test_interruption_while_writing_the_report_is_recorded_as_termination(self):
+        # Ctrl-C inside terminate() is outside the caller's own KeyboardInterrupt
+        # handler. `completed` was already written, so the interruption must be
+        # persisted as a termination failure rather than left looking finished.
+        with patch("inferrsi.harness.runner.write_report", side_effect=KeyboardInterrupt):
+            with self.assertRaises(KeyboardInterrupt):
+                run_with_adapters(self.spec, {"backend": "cpu", "test": True})
+        run = sorted((self.root / "runs").iterdir())[-1]
+        status = json.loads((run / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["state"], "termination_failed")
+        self.assertEqual(status["phase"], "termination")
+        self.assertEqual(status["requested_state"], "completed")
+        self.assertIn("KeyboardInterrupt", status["termination_error"])
+
+    def test_interruption_during_final_snapshot_is_recorded_as_termination(self):
+        # The final snapshot runs inside terminate(). Interrupting it must not
+        # leave `running` as the last persisted state.
+        calls = []
+
+        def snapshot(path, exclude=None):
+            calls.append(path)
+            if len(calls) > 3:
+                raise KeyboardInterrupt
+            return {"available": True, "snapshot_hash": "fixture", "path": str(path)}
+
+        with self.assertRaises(KeyboardInterrupt):
+            run_with_adapters(self.spec, {"backend": "cpu", "test": True}, snapshot=snapshot)
+        run = sorted((self.root / "runs").iterdir())[-1]
+        status = json.loads((run / "status.json").read_text(encoding="utf-8"))
+        self.assertEqual(status["state"], "termination_failed")
+        self.assertEqual(status["phase"], "termination")
+        self.assertFalse((run / "evaluation.json").exists())
