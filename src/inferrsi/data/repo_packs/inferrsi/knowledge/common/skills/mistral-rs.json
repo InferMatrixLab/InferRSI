@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f03c19659f319213b9ab75ca60d3cb9d896e2e5c/src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
-      "commit": "f03c19659f319213b9ab75ca60d3cb9d896e2e5c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64ee0cffa76b22cbd31b8069e9c6f9e71b02d599/src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
+      "commit": "64ee0cffa76b22cbd31b8069e9c6f9e71b02d599",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mistral-rs/LICENSE",
         "src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md",
@@ -90,7 +90,7 @@
     "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/troubleshooting.md": "d933bea6e9e493faa8cd0f4103ea33197ace7f7f901359f8cf0d6bab2edcdb4d",
     "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/references/warmup-inventory.md": "1e7af7d63c6853ede4232b5a12cf68aba6597c4a305015366f1c2c917e3caf01",
     "src/inferrsi/data/skill_library/repositories/mistral-rs/sub-skills/qualification/scripts/warmup_shape_inventory.py": "6aa920ca1cb534dec41f5dd2d833c3e760b234ab2c6439b6c4250b8a30b74055",
-    "src/inferrsi/data/skill_library/skill-index.json": "4d654ddea97feff5cc452c4d1cbe810ac5c4c259e005e055f663aaa168ccccd8"
+    "src/inferrsi/data/skill_library/skill-index.json": "fe333373768022c4f3f3459abfd42b8136ccd4b40b523e6261966e0df02b486f"
   },
   "skill_metadata": {
     "name": "mistral-rs",

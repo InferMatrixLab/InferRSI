@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f03c19659f319213b9ab75ca60d3cb9d896e2e5c/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
-      "commit": "f03c19659f319213b9ab75ca60d3cb9d896e2e5c",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/64ee0cffa76b22cbd31b8069e9c6f9e71b02d599/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+      "commit": "64ee0cffa76b22cbd31b8069e9c6f9e71b02d599",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
@@ -38,7 +38,7 @@
   },
   "checkout_ref": "checkout:rsi-evidence",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "4d654ddea97feff5cc452c4d1cbe810ac5c4c259e005e055f663aaa168ccccd8",
+    "src/inferrsi/data/skill_library/skill-index.json": "fe333373768022c4f3f3459abfd42b8136ccd4b40b523e6261966e0df02b486f",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "08f76e12f6f8e8893f03bcdc8152a96c0c99442e7faecbc2a67a18c632fcb243",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",

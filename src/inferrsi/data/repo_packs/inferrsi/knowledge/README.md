@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 69 registered skills in `data/skill_library/`.
+Generated abstracts for all 70 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [f03c19659f319213b9ab75ca60d3cb9d896e2e5c](https://github.com/InferMatrixLab/InferRSI/tree/f03c19659f319213b9ab75ca60d3cb9d896e2e5c/src/inferrsi/data/skill_library).
+Source snapshot: [64ee0cffa76b22cbd31b8069e9c6f9e71b02d599](https://github.com/InferMatrixLab/InferRSI/tree/64ee0cffa76b22cbd31b8069e9c6f9e71b02d599/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision f03c19659f319213b9ab75ca60d3cb9d896e2e5c --check
+python tools/build_skill_index.py --source-revision 64ee0cffa76b22cbd31b8069e9c6f9e71b02d599 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -88,6 +88,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |
 | [lily](common/skills/lily.json) | common | candidate |
 | [mistral-rs](common/skills/mistral-rs.json) | common | candidate |
+| [mlx-swift-lm](common/skills/mlx-swift-lm.json) | common | candidate |
 | [npu-skill-factory](common/skills/npu-skill-factory.json) | common | candidate |
 | [optimization-search-policy](common/skills/optimization-search-policy.json) | common | candidate |
 | [os-process-placement](common/skills/os-process-placement.json) | common | candidate |
