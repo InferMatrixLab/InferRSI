@@ -1,8 +1,6 @@
 ---
 name: cache-lifecycle
-description: "Diagnose vllm-metal paged KV capacity, offload host and filesystem
-  tiers, transfer ordering, reuse identity and sleep/wake ownership without
-  mistaking a byte ledger for native memory-fit evidence."
+description: "Diagnose vllm-metal paged KV capacity, offload host and filesystem tiers, transfer ordering, reuse identity and sleep/wake ownership without mistaking a byte ledger for native memory-fit evidence."
 license: NO_LICENSE
 disable-model-invocation: true
 metadata:

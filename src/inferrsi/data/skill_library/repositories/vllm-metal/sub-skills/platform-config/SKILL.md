@@ -1,8 +1,6 @@
 ---
 name: platform-config
-description: "Diagnose vllm-metal platform registration, MLX versus PyTorch MPS
-  selection, configuration parsing, native artifact ABI, and model-loading
-  compatibility before an authorized Apple inference run."
+description: "Diagnose vllm-metal platform registration, MLX versus PyTorch MPS selection, configuration parsing, native artifact ABI, and model-loading compatibility before an authorized Apple inference run."
 license: NO_LICENSE
 disable-model-invocation: true
 metadata:

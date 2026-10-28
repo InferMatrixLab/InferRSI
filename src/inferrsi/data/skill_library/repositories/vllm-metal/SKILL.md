@@ -1,9 +1,6 @@
 ---
 name: vllm-metal
-description: "Investigate vllm-metal Apple inference through platform and
-  native-ABI selection, paged KV/offload ownership, speculative/deferred state
-  and actual dispatch/serving evidence without upgrading source or CPU checks to
-  backend qualification."
+description: "Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership, speculative/deferred state and actual dispatch/serving evidence without upgrading source or CPU checks to backend qualification."
 license: NO_LICENSE
 disable-model-invocation: true
 metadata:

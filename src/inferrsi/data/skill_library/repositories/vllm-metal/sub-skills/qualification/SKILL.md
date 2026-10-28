@@ -1,8 +1,6 @@
 ---
 name: qualification
-description: "Qualify vllm-metal speculative pairing, hybrid rollback, deferred
-  decode ownership and executed attention routes, then separate token
-  accounting, numerical parity, quality and actual HTTP serving performance."
+description: "Qualify vllm-metal speculative pairing, hybrid rollback, deferred decode ownership and executed attention routes, then separate token accounting, numerical parity, quality and actual HTTP serving performance."
 license: NO_LICENSE
 disable-model-invocation: true
 metadata:
