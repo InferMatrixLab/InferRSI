@@ -12,6 +12,9 @@ model-proposed patches. This page records what that work taught, including the
 directions that failed. Each row keeps observation, cause, action and source
 apart.
 
+Lessons that should transfer to other Metal or MLX engines are collected in
+the [Apple silicon playbook](apple-silicon-playbook.md).
+
 ## Sources and labels
 
 | Label | Meaning |

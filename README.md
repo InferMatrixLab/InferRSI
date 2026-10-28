@@ -209,6 +209,7 @@ performance evidence or an autonomous model-backed optimizer.
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
 | [h3-metal lessons](docs/h3-metal-apple-silicon-lessons.md) | MiniMax-H3 on Apple silicon: measurement pitfalls, gains, rejected directions and search-loop lessons |
+| [Apple silicon playbook](docs/apple-silicon-playbook.md) | Measured, engine-agnostic lessons for Metal/MLX engines: unified memory, Metal execution and benchmarking a shared Mac |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
 | [Skill catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable records linking categorized skills to full packaged procedures and resources |
 | [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |
