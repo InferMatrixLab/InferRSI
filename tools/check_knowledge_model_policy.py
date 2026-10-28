@@ -357,7 +357,7 @@ def capture_private_rejection(value, route, payload):
             with Path(step_output).open("a", encoding="utf-8") as stream:
                 stream.write("private_capture=encrypted\n")
         print('{"private_capture":"encrypted"}')
-    except (OSError, ValueError, TypeError, KeyError, subprocess.SubprocessError):
+    except (OSError, ValueError, TypeError, KeyError, AttributeError, subprocess.SubprocessError):
         # Never echo exception text: transport/encryption failures may contain inputs.
         print('{"private_capture":"unavailable"}')
 
