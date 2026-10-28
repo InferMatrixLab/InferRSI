@@ -360,7 +360,7 @@ def test_retained_results_publish_once_retry_without_model_and_reject_stale_jobs
     integration.prepare(repo, mapping, identity, publisher)
     api = SimulatedGitHub(plan, data)
     if event_name == "pull_request_target":
-        api.run.update(event=event_name,
+        api.run.update(event=event_name, head_sha=plan["head"],
                        display_title=f"skill-eval plan or publish PR {plan['pr']}")
     api.fail_response = True
     with pytest.raises(ConnectionError):
@@ -684,7 +684,8 @@ def test_automatic_source_plan_rejects_new_head_with_same_trusted_main(
     client = FixedOutputClient(tmp_path)
     integration.execute(execution, approval(old), client=client)
     api = SimulatedGitHub(old, integration.result_archive(execution).read_bytes())
-    api.run.update(event="pull_request_target", display_title="skill-eval plan or publish PR 7")
+    api.run.update(event="pull_request_target", head_sha=api.current["head"],
+                   display_title="skill-eval plan or publish PR 7")
     if prior_publication:
         integration.publish_retained(api, execution, 10, 11, 1)
         assert '"unchanged_correct":1' in api.comments[0]["body"]
@@ -700,6 +701,10 @@ def test_automatic_source_plan_rejects_new_head_with_same_trusted_main(
     api.current["head"] = new["head"]
     api.reads.clear()
     calls = len(client.calls)
+    with pytest.raises(ValueError, match="Untrusted"):
+        integration.publish_retained(api, publisher, 10, 12, 1)
+    # Even metadata matching the new head cannot rebind the old immutable plan.
+    api.run["head_sha"] = new["head"]
     integration.publish_retained(api, publisher, 10, 12, 1)
     body = api.comments[0]["body"]
     assert "artifacts are invalid" in body and "obtain missing evidence" in body
@@ -717,7 +722,8 @@ def test_automatic_missing_or_invalid_source_plan_never_imports_results(tmp_path
     output = tmp_path / "execution"
     plan = integration.prepare(repo, mapping, identity, output)
     api = SimulatedGitHub(plan)
-    api.run.update(event="pull_request_target", display_title="skill-eval plan or publish PR 7")
+    api.run.update(event="pull_request_target", head_sha=api.current["head"],
+                   display_title="skill-eval plan or publish PR 7")
     if damage == "missing":
         api.plan_artifact = None
     elif damage == "expired":
@@ -763,3 +769,65 @@ def test_source_plan_artifact_is_immutable_across_workflow_reruns():
                if step.get("uses") == "actions/upload-artifact@v4"]
     assert len(uploads) == 1 and uploads[0]["name"] == "skill-eval-plan"
     assert uploads[0].get("overwrite", False) is False
+
+
+@pytest.mark.parametrize("event", ["workflow_dispatch", "pull_request_target"])
+@pytest.mark.parametrize("damage", ["event", "path", "repository_id", "repository_name",
+                                     "head", "missing_repository"])
+def test_retained_source_identity_rejected_before_artifacts(tmp_path, event, damage):
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    identity["version"] = "e" * 40
+    output = tmp_path / "publisher"
+    plan = integration.prepare(repo, mapping, identity, output)
+    assert len({plan["version"], plan["base"], plan["head"]}) == 3
+    api = SimulatedGitHub(plan)
+    if event == "pull_request_target":
+        api.run.update(event=event, head_sha=plan["head"],
+                       display_title="skill-eval plan or publish PR 7")
+    if damage == "event":
+        api.run["event"] = "pull_request"
+    elif damage == "path":
+        api.run["path"] = ".github/workflows/untrusted.yml"
+    elif damage == "repository_id":
+        api.run["repository"]["id"] = 456
+    elif damage == "repository_name":
+        api.run["repository"]["full_name"] = "other/repo"
+    elif damage == "missing_repository":
+        del api.run["repository"]
+    else:
+        api.run["head_sha"] = plan["version"] if event == "pull_request_target" else plan["head"]
+    with pytest.raises(ValueError, match="Untrusted"):
+        integration.publish_retained(api, output, 10, 11, 1)
+    assert not any("/artifacts" in path for path in api.reads)
+    assert not api.writes
+
+
+@pytest.mark.parametrize("run_id", [40683638660, 40683653311])
+def test_observed_automatic_run_metadata_uses_pr_head_not_policy(tmp_path, monkeypatch, run_id):
+    # Real API metadata, synthetic plan/results: these runs skipped execution.
+    fixture = ROOT / "tests/fixtures/skill_eval_live_identity" / f"run-{run_id}.json"
+    run = compare.read_json(fixture)
+    observed_plan = compare.read_json(fixture.with_name(f"plan-identity-{run_id}.json"))
+    assert observed_plan["control_status"]["eligible"] is False
+    repo, mapping, identity = setup(tmp_path, ids=("one",))
+    output = tmp_path / "publisher"
+    plan = integration.prepare(repo, mapping, identity, output)
+    source_pr = run["pull_requests"][0]
+    plan.update(repository=run["repository"]["full_name"], pr=source_pr["number"],
+                base=source_pr["base"]["sha"], head=source_pr["head"]["sha"],
+                version=observed_plan["plan_identity"]["version"])
+    write_json(output / "pr-plan.json", plan)
+    assert len({plan["version"], plan["base"], plan["head"]}) == 3
+    api = SimulatedGitHub(plan, run_id=run_id)
+    api.run = run
+    original = api.request
+    api.request = lambda method, path, *a, **kw: (run["repository"] if not path else
+                                                original(method, path, *a, **kw))
+    from tools import skill_eval_auto
+    monkeypatch.setattr(skill_eval_auto, "report_control", lambda *a: {})
+    # Invalid synthetic results are harmless; reaching their download proves the
+    # observed event metadata and full source-plan fingerprint both passed.
+    integration.publish_retained(api, output, run_id, run_id + 1, 1)
+    assert api.reads.index("/actions/artifacts/91/zip") < api.reads.index(
+        "/actions/artifacts/90/zip")
+    assert len(api.writes) == 1

@@ -305,14 +305,23 @@ who **currently** retains repository write/maintain/admin permission. Merely
 having the label, being the PR author, or supplying dispatch text does not grant
 authority. Each provider request rechecks live label event identity, open/non-draft
 state, exact head/base, operator permission, configuration expiry and durable
-claim. A revision produces a fresh frozen binding against the original PR ledger.
+claim. Eligibility and every request also authenticate the repository ID and read
+`refs/heads/main`: its current commit must equal the plan implementation version.
+The historical PR comparison base is independently bound and need not equal that
+version. A main advance before preparation, reservation or a later request blocks
+paid execution. A revision produces a fresh frozen binding against the original PR ledger.
 
 Only the trusted controller job has `contents: write`. Its executor child gets an
 allowlisted environment, a short-lived local request-gate capability and the
 provider key, not the GitHub/Actions write tokens. PR content remains data, not
 executed code. The separate publisher never makes model calls. Publication-only
-retry remains supported via the original source run and exact current plan;
-legacy paid `workflow_dispatch execute` is explicitly blocked instead of bypassing
+retry remains supported via the original source run and exact current plan.
+For `pull_request_target`, authenticated run `head_sha` must equal the PR head;
+it is not the trusted implementation SHA. Publication verifies the workflow event,
+path and repository identity, then the complete immutable original source-plan
+fingerprint before downloading results. Manual dispatch retains its implementation
+SHA contract. Neither event metadata alone nor a result can rebind an old plan.
+Legacy paid `workflow_dispatch execute` is explicitly blocked instead of bypassing
 the cumulative ledger. Existing credential-free injected-client tests still work.
 
 Live acceptance remains pending until the owner-reviewed provider configuration,

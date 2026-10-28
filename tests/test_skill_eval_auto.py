@@ -36,7 +36,7 @@ def config():
 @pytest.fixture
 def plan(config):
     result = {"pr": 7, "repository": "example/repo", "base": "a" * 40, "head": "b" * 40,
-              "version": "a" * 40,
+              "version": "e" * 40,
               "estimated_calls": 2, "comparisons": [{"plan_sha256": "c" * 64, "calls": 2}],
               "coverage": [{"coverage": "covered"}], "provider_config": config["provider"]}
     result["reservation"] = pr.provider_reservation(result)
@@ -50,6 +50,7 @@ class API:
                         "head": {"sha": plan["head"]}, "labels": [{"name": config["label"]}]}
         self.events = [{"id": 1, "event": "labeled", "label": {"name": config["label"]},
                         "actor": {"login": "operator"}, "created_at": "2026-01-01T00:00:00Z"}]
+        self.main = plan["version"]
         self.permission = "write"
         self.calls = []
 
@@ -58,6 +59,8 @@ class API:
         self.calls.append(path)
         if not path:
             return {"id": 123}
+        if path == "/git/ref/heads/main":
+            return {"ref": "refs/heads/main", "object": {"type": "commit", "sha": self.main}}
         if path.startswith("/pulls/"):
             return copy.deepcopy(self.current)
         if path.startswith("/issues/"):
@@ -142,8 +145,9 @@ def test_missing_legacy_spend_audit_cannot_bootstrap(plan, config):
 
 @pytest.mark.parametrize("change", ["none", "unsupported", "provider", "stale_cost", "old_policy"])
 def test_eligibility_fails_closed(plan, config, change):
+    api = API(plan, config)
     if change == "old_policy":
-        plan["version"] = "e" * 40
+        api.main = "f" * 40
     elif change == "none":
         plan["estimated_calls"] = 0
     elif change == "unsupported":
@@ -153,7 +157,7 @@ def test_eligibility_fails_closed(plan, config, change):
     else:
         plan["reservation"]["amount"] = "0"
     with pytest.raises(ValueError):
-        auto.eligible(plan, config)
+        auto.eligible(api, plan, config)
 
 
 def test_workflow_is_opt_in_and_controller_is_only_budget_writer():
@@ -216,6 +220,10 @@ def test_claim_once_launch_scrubs_tokens_and_rechecks_every_request(
         assert env["SKILL_EVAL_YIBUAPI_KEY"] == "offline-only"
         assert store.ledger.entries[0].phase == "claimed"
         checks[0]()  # First provider call succeeds.
+        api.main = "f" * 40
+        with pytest.raises(ValueError, match="current trusted main"):
+            checks[0]()  # Main advanced after prepare/reservation: no next paid call.
+        api.main = plan["version"]
         api.current["labels"] = []
         with pytest.raises(ValueError, match="absent"):
             checks[0]()  # Next provider call cannot proceed.
@@ -254,7 +262,7 @@ def test_configured_unmapped_pr_prepares_without_paid_reservation(tmp_path, conf
     report = pr.summary(plan, [], "https://example.invalid/evidence", 100, 1)
     assert "obtain missing evidence" in report
     with pytest.raises(ValueError):
-        auto.eligible(plan, config)
+        auto.eligible(API(plan, config), plan, config)
 
 
 def test_missing_provider_key_does_not_reserve(plan, config, tmp_path, monkeypatch):
@@ -267,4 +275,41 @@ def test_missing_provider_key_does_not_reserve(plan, config, tmp_path, monkeypat
     with pytest.raises(ValueError, match="credential is unavailable"):
         auto.controlled_execute(API(plan, config), tmp_path, config_path=config_path,
                                 run_id=42, attempt=1, launch=Mock(side_effect=AssertionError))
+    ledger.assert_not_called()
+
+
+def test_policy_freshness_is_independent_of_historical_comparison(plan, config):
+    api = API(plan, config)
+    assert len({plan["version"], plan["base"], plan["head"]}) == 3
+    auto.eligible(api, plan, config)
+    auto.live_label(api, plan, config)
+    # Reproduce old-policy checkout before prepare: PR comparison base can remain
+    # identical to old policy while main has already advanced.
+    plan["version"] = plan["base"]
+    with pytest.raises(ValueError, match="current trusted main"):
+        auto.eligible(api, plan, config)
+
+
+@pytest.mark.parametrize("response", [None, {}, {"ref": "refs/heads/other"},
+    {"ref": "refs/heads/main", "object": {"type": "tag", "sha": "e" * 40}},
+    {"ref": "refs/heads/main", "object": {"type": "commit", "sha": "bad"}}])
+def test_invalid_main_response_fails_closed(plan, config, response):
+    api = API(plan, config)
+    request = api.request
+    api.request = lambda method, path: response if path == "/git/ref/heads/main" else request(
+        method, path)
+    with pytest.raises(ValueError):
+        auto.eligible(api, plan, config)
+
+
+def test_stale_policy_before_controller_never_reserves(plan, config, tmp_path, monkeypatch):
+    api = API(plan, config)
+    api.main = "f" * 40
+    (tmp_path / "pr-plan.json").write_text(json.dumps(plan))
+    path = tmp_path / "config.json"
+    path.write_text(json.dumps(config))
+    ledger = Mock(side_effect=AssertionError("No reservation for stale policy"))
+    monkeypatch.setattr(auto, "ledger_store", ledger)
+    with pytest.raises(ValueError, match="current trusted main"):
+        auto.controlled_execute(api, tmp_path, config_path=path, run_id=42, attempt=1)
     ledger.assert_not_called()

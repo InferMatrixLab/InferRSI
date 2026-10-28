@@ -127,11 +127,9 @@ def live_label(api, plan, config):
     return {"actor": actor, "label_event_id": event["id"]}
 
 
-def eligible(plan, config):
+def eligible(api, plan, config):
     if plan.get("execution_blocked"):
         raise ValueError("Planning-only plan is blocked from paid execution")
-    if plan.get("version") != plan["base"]:
-        raise ValueError("Automatic execution requires the current trusted main implementation")
     if not plan["estimated_calls"] or not plan["comparisons"]:
         raise ValueError("No meaningful mapped comparisons")
     if any(c.get("coverage") == "unsupported" for c in plan["coverage"]):
@@ -142,6 +140,17 @@ def eligible(plan, config):
         raise ValueError("Plan does not bind the trusted provider configuration")
     if pr.provider_reservation(plan) != plan["reservation"]:
         raise ValueError("Expired or changed plan reservation")
+    # PR base is the comparison snapshot, not the current policy revision. Read
+    # authenticated main on every check, including before reservation and each call.
+    if api.request("GET", "")["id"] != config["repository_id"]:
+        raise ValueError("Repository identity changed")
+    main = api.request("GET", "/git/ref/heads/main")
+    if (not isinstance(main, dict) or main.get("ref") != "refs/heads/main"
+            or not isinstance(main.get("object"), dict)
+            or main.get("object", {}).get("type") != "commit"
+            or not re.fullmatch(r"[0-9a-f]{40}", plan.get("version", ""))
+            or main["object"].get("sha") != plan["version"]):
+        raise ValueError("Automatic execution requires the current trusted main implementation")
 
 
 def status(api, plan, config):
@@ -158,7 +167,7 @@ def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, laun
 
     plan = pr.compare.read_json(output / "pr-plan.json")
     config = configuration(config_path)
-    eligible(plan, config)
+    eligible(api, plan, config)
     authorization = live_label(api, plan, config)
     if attempt != 1:
         raise ValueError("Execution reruns are blocked; publish retained evidence only")
@@ -179,7 +188,7 @@ def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, laun
         fresh = configuration(config_path)
         if fresh != config:
             raise ValueError("Trusted configuration changed")
-        eligible(plan, fresh)
+        eligible(api, plan, fresh)
         if live_label(api, plan, fresh) != authorization:
             raise ValueError("Label authorization changed")
         ledger = store.read_verified(key).ledger
@@ -215,7 +224,7 @@ def report_control(api, plan):
         result["reason"] = "Audited PR ledger missing, unavailable or unsafe"
         result.update(status(api, plan, config))
         result["reason"] = "Plan has no supported pairs or provider/bounds are stale"
-        eligible(plan, config)
+        eligible(api, plan, config)
         result["reason"] = "Current label, trusted operator permission or PR revision is invalid"
         live_label(api, plan, config)
         result.update(state="enabled", reason="Only an unconsumed reserved plan may execute")
