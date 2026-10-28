@@ -12,6 +12,11 @@ import pytest
 
 from tools.build_codex_plugin import PROJECT, _io_path, build_plugin
 
+try:
+    import tomllib
+except ModuleNotFoundError:  # Python 3.10: pytest supplies tomli.
+    import tomli as tomllib
+
 
 @pytest.fixture(scope="module")
 def distribution(tmp_path_factory):
@@ -42,6 +47,27 @@ def test_bundle_preserves_canonical_bytes_and_license(distribution):
     assert (plugin / "LICENSE").read_bytes() == (PROJECT / "LICENSE").read_bytes()
     assert (distribution / "LICENSE").read_bytes() == (PROJECT / "LICENSE").read_bytes()
     assert not list(plugin.rglob("*.pyc"))
+
+
+def test_bundle_contains_all_declared_package_data(distribution):
+    # The canonical packaging contract is the oracle, independent of both the
+    # builder's file filter and the manifest of files it happened to emit.
+    metadata = tomllib.loads((PROJECT / "pyproject.toml").read_text(encoding="utf-8"))
+    patterns = metadata["tool"]["setuptools"]["package-data"]["inferrsi"]
+    source = _io_path(PROJECT / "src/inferrsi")
+    expected = {
+        path.relative_to(source).as_posix()
+        for pattern in patterns for path in source.glob(pattern) if path.is_file()
+    }
+    assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
+    runtime = distribution / "plugins/inferrsi/runtime"
+    installed = {
+        path.relative_to(runtime / "inferrsi").as_posix()
+        for path in (runtime / "inferrsi/data").rglob("*") if path.is_file()
+    }
+    assert expected == installed
+    manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))
+    assert {f"inferrsi/{name}" for name in expected} <= manifest["files"].keys()
 
 
 def test_isolated_runtime_and_exact_knowledge_reads(distribution, tmp_path):

@@ -72,7 +72,7 @@ def build_plugin(
                 continue
             relative = path.relative_to(source)
             package_data = relative.parts[0] == "data" and (
-                path.suffix in (".md", ".json") or path.name == "LICENSE"
+                path.suffix in (".md", ".json") or path.name in ("LICENSE", "THIRD_PARTY_NOTICES")
             )
             if path.suffix != ".py" and not package_data:
                 continue
