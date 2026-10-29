@@ -124,6 +124,14 @@ blocks execution. Claims are deliberately non-idempotent. Interrupted requests
 retain their full conservative reservations, including when no cost receipt was
 produced. No takeover, automatic paid retry, refund or reset is provided.
 
+The per-request loopback gate waits at most the smaller of 60 seconds and the
+remaining trial allowance for fresh live authorization/history checks. That wait
+is debited before provider HTTP; it does not add time to the trial. A late, lost
+or invalid grant fails closed without retry, nonce reuse or reservation refund.
+The socket timeouts bound blocking operations, not a hard wall-clock cancellation;
+the existing trial deadline also rejects late results. This transport timing
+policy does not change provider payloads or establish provider API compatibility.
+
 An exclusive local claim file also prevents duplicate execution in one retained
 directory. Attempts other than `run_attempt=1` cannot execute. Publication-only
 retry makes no new model calls and consumes no new reservation.

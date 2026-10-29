@@ -271,10 +271,15 @@ def send_message(payload, spec, key, timeout, *, environment=None, require_autho
         "User-Agent": "inferrsi-anthropic-agent/1"})
     runtime = os.environ if environment is None else environment
     if require_authorization or any(k in runtime for k in _guard["ENV_KEYS"]):
+        deadline = time.monotonic() + timeout
         try:
             authorize_request(raw, environment=runtime, timeout=timeout)
         except Exception:
             raise AgentError("request_authorization_denied") from None
+        # Authorization and provider transport share the caller's remaining allowance.
+        timeout = deadline - time.monotonic()
+        if timeout <= 0:
+            raise AgentError("timeout")
     try:
         opener = urllib.request.build_opener(urllib.request.ProxyHandler({}), NoRedirect())
         with opener.open(request, timeout=timeout) as response:

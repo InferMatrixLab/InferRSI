@@ -10,10 +10,12 @@ import hashlib
 import hmac
 import http.client
 import json
+import math
 import os
 import re
 import secrets
 import threading
+import time
 from contextlib import contextmanager
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -36,8 +38,13 @@ def gate_environment(environment):
     return values
 
 
-def authorize_request(payload: bytes, *, environment=None, timeout=10):
+def authorize_request(payload: bytes, *, environment=None, timeout=60):
     """Consume one fresh grant immediately before a single real provider call."""
+    if not math.isfinite(timeout) or timeout <= 0:
+        raise AuthorizationError("request_authorization_denied")
+    # Live checks may exceed ten seconds, but cannot extend the trial allowance.
+    timeout = min(timeout, 60)
+    deadline = time.monotonic() + timeout
     env = gate_environment(os.environ if environment is None else environment)
     identity = secrets.token_hex(32)
     digest = hashlib.sha256(payload).hexdigest()
@@ -45,13 +52,13 @@ def authorize_request(payload: bytes, *, environment=None, timeout=10):
     body = json.dumps({"context": context, "request_id": identity,
                        "payload_sha256": digest}, separators=(",", ":")).encode()
     connection = http.client.HTTPConnection("127.0.0.1", int(env[ENV_KEYS[0]]),
-                                            timeout=min(timeout, 10))
+                                            timeout=timeout)
     try:
         connection.request("POST", "/authorize", body, {
             "Authorization": "Bearer " + env[ENV_KEYS[1]], "Content-Type": "application/json"})
         response = connection.getresponse()
         raw = response.read(1025)
-        if response.status != 200 or len(raw) > 1024:
+        if time.monotonic() >= deadline or response.status != 200 or len(raw) > 1024:
             raise ValueError("denied")
         expected = {"context": context, "request_id": identity, "payload_sha256": digest}
         if json.loads(raw) != expected:
@@ -126,8 +133,13 @@ def authorization_broker(check_callback, max_requests, *, context):
                 self.send_header("Content-Length", str(len(body)))
                 self.end_headers()
                 self.wfile.write(body)
+            except OSError:
+                pass  # Lost replies stay consumed; never send a second response.
             except Exception:
-                self.send_error(403)
+                try:
+                    self.send_error(403)
+                except OSError:
+                    pass  # A disconnected client receives no grant or retry.
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     server.daemon_threads = True
