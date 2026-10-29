@@ -88,7 +88,7 @@ jobs:
         shell: bash
         run: |
           python -m build --outdir "$RUNNER_TEMP/release-dist"
-          python -m twine check "$RUNNER_TEMP"/release-dist/*
+          python -m twine check "$RUNNER_TEMP"/release-dist/*.whl "$RUNNER_TEMP"/release-dist/*.tar.gz
           python tools/check_release.py sdist "$RUNNER_TEMP"/release-dist/*.tar.gz
           test -z "$(git status --porcelain)"
       - name: Check a clean wheel installation outside the checkout
@@ -102,9 +102,19 @@ jobs:
           env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
           env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_release.py \
             installed --tag "$RELEASE_TAG"
+      - name: Build and validate the installable Codex plugin ZIP
+        shell: bash
+        run: |
+          python tools/build_codex_plugin.py \
+            --output "$RUNNER_TEMP/plugin-build/inferrsi-codex-plugin-$RELEASE_TAG" \
+            --release-version "${RELEASE_TAG#v}"
+          cp "$RUNNER_TEMP/plugin-build/inferrsi-codex-plugin-$RELEASE_TAG.zip" "$RUNNER_TEMP/release-dist/"
+          python tools/check_release.py plugin \
+            "$RUNNER_TEMP/release-dist/inferrsi-codex-plugin-$RELEASE_TAG.zip" --tag "$RELEASE_TAG"
+          test -z "$(git status --porcelain)"
       - name: Generate checksums
         working-directory: ${{ runner.temp }}/release-dist
-        run: sha256sum *.whl *.tar.gz > SHA256SUMS
+        run: sha256sum *.whl *.tar.gz *.zip > SHA256SUMS
       - uses: actions/upload-artifact@v4
         with:
           name: release-distributions
@@ -174,11 +184,11 @@ jobs:
           notes+=$'\n\nThese notes describe software changes. Release builds and scaffold checks do not establish campaign PASS, model quality or service performance. Any such claim requires its acceptance issue and complete frozen evidence.'
           options=()
           if [[ -n "$PREVIOUS_TAG" ]]; then options+=(--notes-start-tag "$PREVIOUS_TAG"); fi
-          gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS \
+          gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/*.zip dist/SHA256SUMS \
             --verify-tag --draft --title "InferRSI $RELEASE_TAG" \
             --generate-notes --notes "$notes" "${options[@]}"
           assets=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')
-          for file in dist/*.whl dist/*.tar.gz dist/SHA256SUMS; do
+          for file in dist/*.whl dist/*.tar.gz dist/*.zip dist/SHA256SUMS; do
             grep -Fxq "$(basename "$file")" <<< "$assets"
           done
           sha=$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')

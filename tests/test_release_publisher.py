@@ -56,7 +56,12 @@ elif args[:3] == ["release", "create", tag]:
     if not state.get("tag_created") or "--draft" not in args or "--verify-tag" not in args:
         raise SystemExit("Release must be prepared as a draft on the existing tag")
     record("create_release")
-    state["assets"] = ["inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "SHA256SUMS"]
+    installer = "dist/inferrsi-codex-plugin-v1.2.3.zip"
+    if installer not in args:
+        raise SystemExit("Release upload must include the versioned Codex installer")
+    record("upload_plugin", name=Path(installer).name)
+    state["assets"] = ["inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "SHA256SUMS",
+                       Path(installer).name]
     if state.get("missing_asset"):
         state["assets"].pop()
     save()
@@ -103,7 +108,7 @@ def publisher(tmp_path):
     dist = tmp_path / "dist"
     dist.mkdir()
     checksums = []
-    for name in ("inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz"):
+    for name in ("inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "inferrsi-codex-plugin-v1.2.3.zip"):
         (dist / name).write_bytes(b"synthetic package")
         checksums.append(hashlib.sha256(b"synthetic package").hexdigest() + "  " + name)
     (dist / "SHA256SUMS").write_text("\n".join(checksums) + "\n", encoding="utf-8", newline="\n")
@@ -119,6 +124,10 @@ def publisher(tmp_path):
                       encoding="utf-8", newline="\n")
 
     def run(state=None, **inputs):
+        if state and state.get("corrupt_zip"):
+            (dist / "inferrsi-codex-plugin-v1.2.3.zip").write_bytes(b"changed installer")
+        if state and state.get("absent_zip"):
+            (dist / "inferrsi-codex-plugin-v1.2.3.zip").unlink()
         state_path, log_path = tmp_path / "state.json", tmp_path / "calls.jsonl"
         state_path.write_text(json.dumps(state or {}), encoding="utf-8")
         env = dict(os.environ)
@@ -143,7 +152,9 @@ def test_publisher_only_creates_a_tag_and_publishes_its_release(publisher):
     assert result.returncode == 0, result.stderr
     assert mutations == [
         {"operation": "create_tag", "ref": "refs/tags/v1.2.3", "sha": COMMIT},
-        {"operation": "create_release"}, {"operation": "publish_release"},
+        {"operation": "create_release"},
+        {"operation": "upload_plugin", "name": "inferrsi-codex-plugin-v1.2.3.zip"},
+        {"operation": "publish_release"},
     ]
 
 
@@ -161,6 +172,7 @@ def test_invalid_publication_inputs_cannot_write(publisher, inputs):
 
 @pytest.mark.parametrize("state", [
     {"existing": True}, {"ancestry": "diverged"}, {"resolved": "2" * 40},
+    {"corrupt_zip": True}, {"absent_zip": True},
 ])
 def test_conflicting_or_unverified_source_cannot_write(publisher, state):
     result, mutations = publisher(state)
@@ -172,4 +184,6 @@ def test_conflicting_or_unverified_source_cannot_write(publisher, state):
 def test_incomplete_or_retargeted_release_cannot_be_published(publisher, state):
     result, mutations = publisher(state)
     assert result.returncode != 0
-    assert [entry["operation"] for entry in mutations] == ["create_tag", "create_release"]
+    assert [entry["operation"] for entry in mutations] == [
+        "create_tag", "create_release", "upload_plugin",
+    ]

@@ -42,6 +42,14 @@ Codex client with plugin support, Python 3.10+ and Git.
 
 ## Install from a local archive
 
+The [daily release](releases.md) includes a versioned installer named
+`inferrsi-codex-plugin-vX.Y.Z.zip` in
+[GitHub Releases](https://github.com/InferMatrixLab/InferRSI/releases). Download
+it with `SHA256SUMS`, verify the checksum and extract it into a fresh directory.
+The enclosed `inferrsi-codex-plugin-vX.Y.Z/` directory is the marketplace root;
+its marketplace name is `inferrsi-local`. This installer bundles the same-version
+InferRSI runtime and knowledge, so it does not need a separate pip installation.
+
 Requires a local Codex client with plugin support and Python 3.10 or newer.
 Git is needed for target-repository inspection and experiment source provenance.
 The built plugin contains the same InferRSI core and knowledge bytes as its
@@ -108,6 +116,12 @@ This writes a fresh `dist/codex-plugin/` marketplace and
 `dist/codex-plugin.zip`. Use that marketplace directory in the install commands.
 To rebuild, choose a new `--output <directory>`; the builder refuses to replace
 an existing distribution/archive.
+
+For release builds, first build the runtime so SCM generates `_version.py`, then
+pass `--release-version <version>` and a versioned output directory. The builder
+requires that version to match the generated runtime, and stamps only the
+generated plugin manifest. The tracked source template remains unchanged.
+Unbuilt source previews use the runtime's explicit `0+unknown` fallback.
 
 For a separately named distribution, use `--marketplace-name inferrsi-preview`.
 Publish only the generated marketplace directory on its distribution branch;

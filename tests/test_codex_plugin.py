@@ -10,7 +10,8 @@ from pathlib import Path
 
 import pytest
 
-from tools.build_codex_plugin import PROJECT, _io_path, build_plugin
+from tools.build_codex_plugin import PROJECT, _io_path, _version, build_plugin
+from tools.check_release import check_plugin
 
 try:
     import tomllib
@@ -149,6 +150,64 @@ def test_named_marketplace_installs_the_same_bundled_runtime(tmp_path):
     assert info.returncode == 0, info.stderr
     manifest = json.loads((plugin / "runtime/manifest.json").read_text(encoding="utf-8"))
     assert json.loads(info.stdout)["content_sha256"] == manifest["content_sha256"]
+
+
+@pytest.fixture(scope="module")
+def release_distribution(tmp_path_factory):
+    root = tmp_path_factory.mktemp("codex-release")
+    project = root / "source"
+    for directory in ("src/inferrsi", "plugins/inferrsi"):
+        shutil.copytree(_io_path(PROJECT / directory), _io_path(project / directory),
+                        ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    (project / "docs").mkdir()
+    shutil.copyfile(PROJECT / "docs/codex-plugin.md", project / "docs/codex-plugin.md")
+    shutil.copyfile(PROJECT / "LICENSE", project / "LICENSE")
+    (project / "src/inferrsi/_version.py").write_text(
+        '__version__ = version = "0.2.0"\n', encoding="utf-8",
+    )
+    template = (project / "plugins/inferrsi/plugin.json").read_bytes()
+    result = build_plugin(root / "inferrsi-codex-plugin-v0.2.0", project=project,
+                          release_version="0.2.0")
+    return project, template, result
+
+
+def test_release_archive_is_installable_and_all_versions_match(release_distribution):
+    project, template, result = release_distribution
+    check_plugin(Path(result["archive"]), "v0.2.0")
+    assert (project / "plugins/inferrsi/plugin.json").read_bytes() == template
+    with zipfile.ZipFile(result["archive"]) as archive:
+        name = "inferrsi-codex-plugin-v0.2.0/plugins/inferrsi/plugin.json"
+        assert json.loads(archive.read(name))["version"] == "0.2.0"
+    with pytest.raises(ValueError, match="agree exactly"):
+        check_plugin(Path(result["archive"]), "v0.2.1")
+
+
+def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp_path):
+    original = release_distribution[2]["archive"]
+    changed = tmp_path / "changed.zip"
+    with zipfile.ZipFile(original) as source, zipfile.ZipFile(changed, "w") as destination:
+        for member in source.infolist():
+            data = source.read(member.filename)
+            if member.filename.endswith("runtime/inferrsi/__init__.py"):
+                data += b"\n"
+            destination.writestr(member, data)
+    with pytest.raises(ValueError, match="checksum mismatch"):
+        check_plugin(changed, "v0.2.0")
+
+
+def test_release_builder_rejects_mismatched_version_before_writing(release_distribution, tmp_path):
+    project = release_distribution[0]
+    output = tmp_path / "wrong-version"
+    with pytest.raises(ValueError, match="match the built runtime"):
+        build_plugin(output, project=project, release_version="0.2.1")
+    assert not output.exists() and not output.with_suffix(".zip").exists()
+
+
+def test_unbuilt_version_fallback_does_not_import_an_installed_runtime(tmp_path):
+    source = tmp_path / "__init__.py"
+    source.write_text('try:\n    from ._version import __version__\n'
+                      'except ImportError:\n    __version__ = "0+unknown"\n', encoding="utf-8")
+    assert _version(source) == "0+unknown"
 
 
 @pytest.mark.parametrize(("quality", "exit_code", "verdict"), [

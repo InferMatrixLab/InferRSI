@@ -32,16 +32,19 @@ def _json(path: Path, value: dict) -> None:
 
 
 def _version(path: Path) -> str:
-    for node in ast.parse(path.read_text(encoding="utf-8")).body:
+    for node in ast.walk(ast.parse(path.read_text(encoding="utf-8"))):
         if isinstance(node, ast.Assign) and any(
             isinstance(target, ast.Name) and target.id == "__version__" for target in node.targets
         ):
-            return ast.literal_eval(node.value)
+            value = ast.literal_eval(node.value)
+            if isinstance(value, str):
+                return value
     raise ValueError("Runtime __version__ is missing")
 
 
 def build_plugin(
     output: Path, *, project: Path = PROJECT, marketplace_name: str = "inferrsi-local",
+    release_version: str | None = None,
 ) -> dict:
     """Create a fresh distribution; never replace user configuration or earlier builds."""
     if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", marketplace_name):
@@ -57,6 +60,16 @@ def build_plugin(
 
     source = _io_path(project / "src" / "inferrsi")
     template = _io_path(project / "plugins" / "inferrsi")
+    generated = source / "_version.py"
+    runtime_version = _version(generated if generated.is_file() else source / "__init__.py")
+    if release_version is not None:
+        number = r"(?:0|[1-9][0-9]*)"
+        if not re.fullmatch(rf"{number}\.{number}\.{number}", release_version):
+            raise ValueError("Release version must have the numeric form MAJOR.MINOR.PATCH")
+        if release_version != runtime_version:
+            raise ValueError(
+                "Release version must match the built runtime; build the runtime first"
+            )
     _io_path(output.parent).mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="irsi-", dir=_io_path(output.parent)) as staging:
         stage = Path(staging) / output.name
@@ -87,10 +100,13 @@ def build_plugin(
             )
         identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
         metadata = json.loads((plugin / "plugin.json").read_text(encoding="utf-8"))
+        if release_version is not None:
+            metadata["version"] = release_version
+            _json(plugin / "plugin.json", metadata)
         _json(runtime / "manifest.json", {
             "schema_version": 1,
             "plugin_version": metadata["version"],
-            "runtime_version": _version(source / "__init__.py"),
+            "runtime_version": runtime_version,
             "content_sha256": hashlib.sha256(identity.encode("utf-8")).hexdigest(),
             "files": hashes,
         })
@@ -129,9 +145,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=PROJECT / "dist" / "codex-plugin")
     parser.add_argument("--marketplace-name", default="inferrsi-local")
+    parser.add_argument("--release-version",
+                        help="Require the built runtime version and stamp the ZIP")
     args = parser.parse_args()
     try:
-        result = build_plugin(args.output, marketplace_name=args.marketplace_name)
+        result = build_plugin(args.output, marketplace_name=args.marketplace_name,
+                              release_version=args.release_version)
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     print(json.dumps(result, indent=2))

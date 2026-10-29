@@ -1,11 +1,17 @@
 """Plan daily versioned releases and validate their packages without publishing."""
 
 import argparse
+import hashlib
 import json
+import os
 import re
+import stat
 import subprocess
+import sys
 import tarfile
-from pathlib import Path
+import tempfile
+import zipfile
+from pathlib import Path, PurePosixPath
 
 
 def release_version(tag: str) -> str:
@@ -84,6 +90,72 @@ def check_sdist(path: Path) -> None:
                 raise ValueError("Source distribution includes repository-only material")
 
 
+def check_plugin(path: Path, tag: str) -> None:
+    version = release_version(tag)
+    with zipfile.ZipFile(path) as archive:
+        names = archive.namelist()
+        roots = {PurePosixPath(name).parts[0] for name in names if name}
+        if len(roots) != 1 or len(names) != len(set(names)):
+            raise ValueError("Plugin ZIP must contain one unambiguous marketplace root")
+        for member in archive.infolist():
+            name = PurePosixPath(member.filename)
+            if (not name.parts or name.is_absolute() or ".." in name.parts
+                    or "\\" in member.filename or ":" in member.filename
+                    or stat.S_ISLNK(member.external_attr >> 16)):
+                raise ValueError("Unsafe plugin ZIP entry")
+        root = roots.pop()
+        plugin = f"{root}/plugins/inferrsi"
+        metadata = json.loads(archive.read(f"{plugin}/plugin.json"))
+        manifest = json.loads(archive.read(f"{plugin}/runtime/manifest.json"))
+        catalog = json.loads(archive.read(f"{root}/.agents/plugins/marketplace.json"))
+        expected = [("inferrsi", {"source": "local", "path": "./plugins/inferrsi"})]
+        if [(item["name"], item["source"]) for item in catalog["plugins"]] != expected:
+            raise ValueError("Plugin marketplace does not resolve the bundled plugin")
+        check_versions(tag, metadata["version"], manifest["runtime_version"])
+        if metadata["name"] != "inferrsi" or manifest["plugin_version"] != version:
+            raise ValueError("Plugin identity/version does not match the release")
+        prefix = f"{plugin}/runtime/"
+        actual = {name[len(prefix):] for name in names
+                  if name.startswith(prefix + "inferrsi/") and not name.endswith("/")}
+        hashes = manifest["files"]
+        if not hashes or set(hashes) != actual:
+            raise ValueError("Plugin manifest must cover every bundled runtime file")
+        for name, digest in hashes.items():
+            if hashlib.sha256(archive.read(prefix + name)).hexdigest() != digest:
+                raise ValueError("Plugin bundled runtime checksum mismatch")
+        identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
+        if hashlib.sha256(identity.encode("utf-8")).hexdigest() != manifest["content_sha256"]:
+            raise ValueError("Plugin content identity mismatch")
+        with tempfile.TemporaryDirectory(prefix="irsi-") as staging:
+            destination = Path(staging).resolve()
+            if os.name == "nt":
+                destination = Path("\\\\?\\" + str(destination))
+            archive.extractall(destination)
+            launcher = destination / plugin / "skills/inferrsi/scripts/inferrsi.py"
+            command = [sys.executable, "-I", "-S", "-X", "utf8", str(launcher)]
+
+            def invoke(*args):
+                try:
+                    result = subprocess.run(command + list(args), cwd=staging, check=True,
+                                            capture_output=True, text=True, encoding="utf-8",
+                                            timeout=45)
+                except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
+                    raise ValueError("Extracted Codex plugin failed isolated validation") from error
+                return json.loads(result.stdout)
+
+            info = invoke("--plugin-info")
+            check_versions(tag, info["plugin_version"], info["runtime_version"])
+            if info["runtime"] != "bundled" or info["content_sha256"] != manifest["content_sha256"]:
+                raise ValueError("Plugin launcher did not select the verified bundled runtime")
+            items = invoke("collect", "--limit", "1", "--json")["items"]
+            if not items:
+                raise ValueError("Plugin has no bundled knowledge")
+            item = items[0]
+            material = invoke("read", item["ref"], "--revision", item["revision"], "--material")
+            if material["revision"] != item["revision"]:
+                raise ValueError("Plugin knowledge read lost its revision identity")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     commands = parser.add_subparsers(dest="command", required=True)
@@ -94,6 +166,9 @@ def main() -> None:
     installed.add_argument("--tag", required=True)
     sdist = commands.add_parser("sdist")
     sdist.add_argument("path", type=Path)
+    plugin = commands.add_parser("plugin")
+    plugin.add_argument("path", type=Path)
+    plugin.add_argument("--tag", required=True)
     args = parser.parse_args()
     try:
         if args.command == "plan":
@@ -110,6 +185,8 @@ def main() -> None:
                 print(f"{key}={value}")
         elif args.command == "sdist":
             check_sdist(args.path)
+        elif args.command == "plugin":
+            check_plugin(args.path, args.tag)
         else:
             from importlib.metadata import version
 
@@ -117,7 +194,8 @@ def main() -> None:
 
             check_versions(args.tag, version("inferrsi"), __version__)
             print("Installed release versions agree")
-    except (ValueError, subprocess.CalledProcessError) as error:
+    except (ValueError, KeyError, OSError, zipfile.BadZipFile,
+            subprocess.CalledProcessError) as error:
         parser.exit(1, f"Release validation failed: {error}\n")
 
 
