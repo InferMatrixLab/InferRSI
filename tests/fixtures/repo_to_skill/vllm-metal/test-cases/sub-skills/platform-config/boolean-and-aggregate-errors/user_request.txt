@@ -1,1 +1,0 @@
-Check this vllm-metal plan without importing engines: VLLM_MLX_DEVICE=GPU, VLLM_METAL_SPEC_INGEST_CHUNK=1k, VLLM_METAL_BUILD_FROM_SOURCE=yes. Which inputs fail and which silently disables a feature?

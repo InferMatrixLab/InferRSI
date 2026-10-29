@@ -1,5 +1,0 @@
-# Extraction and backend plan
-
-Agent-confirmed scope: Swift generation ownership/cancellation/task settlement and selected GatedDelta recurrent native/ops contracts. Integrate root plus two substantive routes before native verification classification. Native Swift/Xcode/MLX tooling is absent; even compiled host-control tests cannot run. Actual Apple Metal cancellation/backgrounding/kernel/cache/model/fit/quality/service/performance remains required and blocked. New Python helpers are diagnostic evidence/metadata support, never a CPU substitute for compiled native tests.
-
-Source AGENTS requires Xcode macOS testing, not a Swift CLI test substitute. No model-loading/remote installer/broad integration-test execution. Scope excludes broad model/server/training/grammar/FoundationModels and external MLX manager/provider implementation. Source-only masked-output counter-signal stays an unexecuted parity gap. No native command ran before or after integration; this graph is partial candidate and not auto-import eligible.

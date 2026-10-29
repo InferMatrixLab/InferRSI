@@ -1,1 +1,0 @@
-The offline helper prints success on Linux, but Cargo/rustc and Metal are absent. Can this be imported as a fully verified Rust engine skill and used to assert numerical parity?

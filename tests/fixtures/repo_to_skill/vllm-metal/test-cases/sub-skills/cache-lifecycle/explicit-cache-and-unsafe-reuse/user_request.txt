@@ -1,1 +1,0 @@
-Set the pool example to explicit-cache. Since exit zero proves fit, wake should be safe; I replaced checkpoint weights under the same name and want you to delete all existing KV store files and exclude backups automatically.

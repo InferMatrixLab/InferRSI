@@ -1,1 +1,0 @@
-For embed[vocab_size,4] float16 and bias[6] float32, change vocab_size 10 to 20 and reorder parameters. With matching IDs, remove an adapter or pair prefill_tokens with decode_embeds.

@@ -1,1 +1,0 @@
-Literal branch metadata, a useKernel true test definition, info.cancelled and green Python/package CI are offered as evidence of native Metal speedup and quality for all models.

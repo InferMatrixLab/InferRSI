@@ -1,8 +1,0 @@
-* text=auto eol=lf
-
-# Preserve recorded evidence and historical validator bytes across checkouts.
-/evidence/** -text
-/tests/fixtures/legacy/** -text
-# Reusable guidance is editable text, not a frozen evidence bundle.
-/evidence/README.md text eol=lf
-/evidence/_template/** text eol=lf

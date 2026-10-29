@@ -1,1 +1,0 @@
-Decode declares q[1,8,128], packed K[16,2,16,32,8], V[16,2,128,32], bf16 q with FP8 cache, only a K scale and sliding window 128. Can the optimized HND path run?

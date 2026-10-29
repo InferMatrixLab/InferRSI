@@ -1,9 +1,0 @@
-day,phase,optimization,throughput,verdict,evidence
-0,System bring-up,Baseline,100,INCONCLUSIVE,
-1,System bring-up,Async scheduling,120,INCONCLUSIVE,
-2,Scheduling & memory,Continuous batching,140,INCONCLUSIVE,
-3,Scheduling & memory,Cache experiment,135,INCONCLUSIVE,
-5,Scheduling & memory,Transfer overlap,180,INCONCLUSIVE,
-7,Kernel optimization,Fused operators,210,INCONCLUSIVE,
-9,Kernel optimization,Graph replay,210,INCONCLUSIVE,
-11,Validation,Final configuration trial,240,INCONCLUSIVE,

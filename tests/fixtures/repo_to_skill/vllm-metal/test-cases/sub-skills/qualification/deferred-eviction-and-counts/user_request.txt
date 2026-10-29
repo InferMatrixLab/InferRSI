@@ -1,1 +1,0 @@
-A cached request left the runner dictionary while a sample token was pending, then another cached request re-entered next step. Can resolve reinsert the first request and carry the new one without a pending row? Also use SSE chunks as token counts.
