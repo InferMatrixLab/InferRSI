@@ -292,6 +292,15 @@ and [convention-expiry counterexample](../../workflows/npu-skill-factory/referen
 extend the existing temporal-split method. These methodology papers do not verify
 Magpie's actual development coordination or authorize another history scan.
 
+### Worked learning transition: RTK consumer PATH
+
+The [pinned RTK transition](references/rtk-consumer-path-transition.md) turns one
+already-cited Magpie change into a conditional lesson: manager discovery and
+hook enablement do not establish consumer name resolution. Read its
+unknown-PATH, binary-identity, diagnostic side-effect and platform qualifications
+before reuse. It is a learning example, not an independent heldout task;
+upstream tests were inspected, not executed. Candidate/not_run is unchanged.
+
 ## Constructing the capability evolution graph
 
 For a new repository, build the graph with this procedure:
