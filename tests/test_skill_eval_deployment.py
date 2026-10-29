@@ -1,5 +1,6 @@
 """Offline regression checks for the issue-scoped reviewed deployment configuration."""
 
+import copy
 import json
 from decimal import Decimal
 from unittest.mock import Mock
@@ -18,6 +19,16 @@ OBSERVED = 1793184828
 @pytest.fixture
 def deployed():
     return auto.configuration(now=OBSERVED)
+
+
+@pytest.fixture
+def legacy_deployed(deployed):
+    """Explicit pre-recovery six-request policy; never inferred from current config."""
+    value = copy.deepcopy(deployed)
+    value["provider"]["client"].update(
+        kind=agent.KIND, max_requests=6, max_request_bytes=131072)
+    value["provider_sha256"] = pr.fingerprint(value["provider"])
+    return value
 
 
 def test_deployment_identity_and_expiry_are_closed(deployed):
@@ -53,9 +64,10 @@ def test_deployment_uses_existing_client_and_no_secret_config(deployed):
     agent.validate_spec(provider["model"], provider["client"])
     assert provider["model"] == {"name": "claude-opus-5-5", "effort": "not_applicable"}
     assert provider["client"]["endpoint"] == agent.ENDPOINT
-    assert provider["client"]["max_requests"] == 6
+    assert provider["client"]["kind"] == agent.FULL_CONTEXT_KIND
+    assert provider["client"]["max_requests"] == 1
     assert provider["client"]["max_output_tokens"] == 4096
-    assert provider["client"]["max_request_bytes"] == 131072
+    assert provider["client"]["max_request_bytes"] == 262144
     assert provider["client"]["max_read_bytes"] == 32768
     assert provider["client"]["max_tool_calls"] == 12
     assert provider["limits"] == {"token_stop_new_trials": 200000}
@@ -67,7 +79,8 @@ def test_deployment_uses_existing_client_and_no_secret_config(deployed):
     assert "key" not in json.dumps(deployed).lower()
 
 
-def test_pair_reservation_fits_both_audited_residuals(deployed):
+def test_legacy_six_request_pair_reservation_fits_audited_residuals(legacy_deployed):
+    deployed = legacy_deployed
     value = pr.provider_reservation({"provider_config": deployed["provider"],
                                     "estimated_calls": 2,
                                     "comparisons": [{"plan_sha256": "a" * 64, "calls": 2}]},
@@ -90,6 +103,23 @@ def test_pair_reservation_fits_both_audited_residuals(deployed):
     assert total_remaining == 335790000 < 400000000
 
 
+def test_current_pair_preserves_prior_reservation_and_fits_remaining_budget(deployed):
+    value = pr.provider_reservation({"provider_config": deployed["provider"],
+                                    "estimated_calls": 2,
+                                    "comparisons": [{"plan_sha256": "a" * 64, "calls": 2}]},
+                                   now=OBSERVED)
+    assert value["per_request"] == "10.17"
+    assert value["requests"] == 2 and value["amount"] == "20.34"
+    _, key = auto.ledger_store(Mock(), deployed, 133)
+    # Keep the entire prior failed-pair reservation: no refund or reset.
+    ledger = Ledger(key, Genesis(deployed["review_evidence"], 122040000))
+    assert ledger.remaining == 77960000
+    charged = reserve(ledger, Binding("a" * 64, "offline.recovery", 20340000))
+    assert charged.remaining == 57620000
+    with pytest.raises(BudgetError, match="exhausted"):
+        reserve(charged, Binding("b" * 64, "offline.too-large", 77960000))
+
+
 @pytest.mark.parametrize("mode", ["addition", "update"])
 def test_deployment_provider_prepares_a_complete_pair_without_execution(tmp_path, deployed, mode):
     from tests.fixtures.skill_eval_pr_support import setup
@@ -98,7 +128,8 @@ def test_deployment_provider_prepares_a_complete_pair_without_execution(tmp_path
     plan = pr.prepare(repo, mapping, identity, tmp_path / "planned",
                       provider=deployed["provider"])
     assert plan["estimated_calls"] == 2
-    assert plan["reservation"]["amount"] == "122.04"
+    assert plan["reservation"]["amount"] == "20.34"
+    assert plan["reservation"]["requests"] == 2
     assert plan["limits"]["token_stop_new_trials"] == 200000
     assert plan["provider_config"] == deployed["provider"]
     assert plan["comparisons"][0]["mode"] == mode

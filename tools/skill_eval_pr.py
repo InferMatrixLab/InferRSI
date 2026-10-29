@@ -15,7 +15,7 @@ from pathlib import Path, PurePosixPath
 from urllib.error import HTTPError
 
 from inferrsi.infra.artifacts import sha256, write_json
-from inferrsi.model.anthropic_agent import KIND, money, reservation
+from inferrsi.model.anthropic_agent import money, reservation
 from tools import skill_eval_compare as compare
 from tools.check_knowledge_model_policy import GitHubHTTPError
 
@@ -887,7 +887,8 @@ def main():
         with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
             handle.write(f"auto_candidate={str(candidate).lower()}\n")
             handle.write(f"pr={pr}\nplan_sha256={fingerprint(plan)}\n")
-            handle.write("client_kind=" + (KIND if "provider_config" in plan else "codex") + "\n")
+            handle.write("client_kind=" + (plan["provider_config"]["client"]["kind"]
+                                         if "provider_config" in plan else "codex") + "\n")
         return
     plan = compare.read_json(output / "pr-plan.json")
     if args.mode == "authorize":

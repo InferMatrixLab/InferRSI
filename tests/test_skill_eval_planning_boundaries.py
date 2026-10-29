@@ -68,8 +68,14 @@ def config():
     return json.loads(auto.CONFIG.read_text())
 
 
-def test_two_mapped_skills_without_label_or_anchor_keep_free_advisory(
+def test_legacy_over_budget_two_skill_plan_keeps_free_advisory(
         tmp_path, monkeypatch, config):
+    # Preserve the original over-budget 24-request regression independently of
+    # the cheaper current full-context deployment.
+    config = copy.deepcopy(config)
+    config["provider"]["client"].update(
+        kind="anthropic-messages-agent-v1", max_requests=6, max_request_bytes=131072)
+    config["provider_sha256"] = pr.fingerprint(config["provider"])
     # PR7 has no configured anchor and the fixture supplies no label/permission API.
     plan, output, api = prepare_cli(tmp_path, monkeypatch, config, two_skills=True)
     assert plan["estimated_calls"] == 4 and len(plan["comparisons"]) == 2

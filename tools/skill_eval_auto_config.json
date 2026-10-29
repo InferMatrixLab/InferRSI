@@ -12,13 +12,13 @@
       "effort": "not_applicable"
     },
     "client": {
-      "kind": "anthropic-messages-agent-v1",
+      "kind": "anthropic-messages-full-context-v1",
       "provider": "yibuapi",
       "endpoint": "https://yibuapi.com/v1/messages",
       "api_version": "2023-06-01",
-      "max_requests": 6,
+      "max_requests": 1,
       "max_output_tokens": 4096,
-      "max_request_bytes": 131072,
+      "max_request_bytes": 262144,
       "max_read_bytes": 32768,
       "max_tool_calls": 12
     },
@@ -46,7 +46,7 @@
       "token_stop_new_trials": 200000
     }
   },
-  "provider_sha256": "253cf88a7ff04311fd1dae897cb68a8c986f136e837dd00dbe5f8872bd094b5f",
+  "provider_sha256": "b28d80f8194fbe0f5a9f01515efb24b218979fd45f702776560da276f4b30d04",
   "anchors": {
     "159": {
       "ref": "refs/heads/skill-eval-budget/1409534281/159",

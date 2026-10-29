@@ -1,5 +1,9 @@
 # Issue 215: bounded PR159/160 deployment record
 
+Historical deployment record: the later explicit full-context recovery condition
+and current byte/request bounds are documented in [full-context evaluation](skill-eval-full-context.md).
+The earlier reservations and failure evidence are retained, not reset.
+
 This is an owner-authorized, issue-scoped deployment configuration, not a portable
 provider default or a claim that live execution passed. Governing issue:
 [#215](https://github.com/InferMatrixLab/InferRSI/issues/215).
