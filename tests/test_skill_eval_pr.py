@@ -633,9 +633,10 @@ def test_publish_dispatch_rejects_planning_source_before_artifact_access(
     monkeypatch.setattr(integration, "GitHub", lambda repository, token: api)
     dispatch_event(monkeypatch, tmp_path, output,
                    {"action": "publish", "pr": "7", "source_run": "10"}, "publish")
-    with pytest.raises(ValueError, match="Untrusted or mismatched execution workflow"):
+    with pytest.raises(ValueError, match="Untrusted retained source workflow"):
         integration.main()
-    request.assert_called_once_with("GET", "/actions/runs/10")
+    assert request.call_args_list[0].args == ("GET", "/actions/runs/10")
+    assert not any("/artifacts" in call.args[1] for call in request.call_args_list)
     assert api.writes == [] and api.comments == []
 
 

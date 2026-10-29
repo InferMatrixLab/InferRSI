@@ -23,10 +23,11 @@
   },
   "applicability": {
     "scope": "Ascend NPU video diffusion inference and serving optimization",
-    "hardware": "Ascend NPU; procedures are hardware-agnostic apart from layout and profiler references",
+    "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in methods/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
     "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
   },
   "limitations": [
+    "Ascend specialization of the backend-agnostic methods/video-diffusion-optimization skeleton; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) is Ascend-specific and must be re-derived per backend.",
     "Candidate workflow guidance; not independently validated beyond the field notes.",
     "Field notes are non-reproducible as published and must not be cited as evidence.",
     "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped.",
@@ -34,6 +35,11 @@
   ],
   "provenance_readsets": [
     "references/field-notes-video-diffusion.md"
+  ],
+  "references": [
+    "../../../methods/video-diffusion-optimization/SKILL.md",
+    "../../../methods/video-diffusion-optimization/scripts/evaluate_target.py",
+    "../../../methods/video-diffusion-optimization/assets/campaign.template.json"
   ],
   "consumption_mode": "packaged"
 }

@@ -17,7 +17,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 122, "Knowledge is missing from the installation"
+assert len(records) == 124, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -42,7 +42,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 74, "Missing installed skill abstracts"
+assert len(skill_index) == 76, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -190,7 +190,7 @@ for record in skill_index:
         data = resource.read_bytes().replace(b"\r\n", b"\n")
         assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 74
+assert len(registry) == 76
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
 router = library.joinpath("workflows", "inference-engine-research")
@@ -403,3 +403,30 @@ for area, script in (
 mlc_bundle = KnowledgeReader().read("inferrsi.common.skills.mlc_llm")
 assert any("audit_kv_limit_declarations.py" in name for name in mlc_bundle.content)
 assert not (inference_modules | {"tvm", "tvm_ffi", "mlc_llm"}) & sys.modules.keys()
+
+# Local Dream is packaged source knowledge, not a native Android runtime.
+dream_bundle = KnowledgeReader().read("inferrsi.common.skills.local_dream")
+dream_prefix = "data/skill_library/repositories/local-dream/"
+dream_metadata = json.loads(dream_bundle.content[dream_prefix + "metadata.json"])
+assert dream_metadata["status"] == "candidate"
+assert dream_metadata["empirical_validation"] == "not_run"
+assert dream_metadata["license"] == "NOASSERTION"
+dream_identity = json.loads(dream_bundle.content[
+    dream_prefix + "references/source-identity.json"
+])
+assert dream_identity["license_resolution"]["pinned_license_identification"] == "CC-BY-NC-4.0"
+assert hashlib.sha256(dream_bundle.content[
+    dream_prefix + "references/upstream-license.md"
+]).hexdigest() == dream_identity["sources"][0]["files"]["LICENSE"]
+assert len([name for name in dream_bundle.content if name.startswith(dream_prefix)]) == 9
+for relative in ("SKILL.md", "references/android-lifecycle.md", "references/native-contracts.md",
+                 "references/packaging-and-abi.md", "references/repo-provenance.md"):
+    assert dream_prefix + relative in dream_bundle.content
+dream_namespace = {"__name__": "installed_local_dream_declarations"}
+exec(compile(dream_bundle.content[dream_prefix + "scripts/screen_declarations.py"],
+             "screen_declarations.py", "exec"), dream_namespace)
+dream_result = dream_namespace["audit"](dream_namespace["example"]())
+assert dream_result["native_execution"] == "not_run"
+assert dream_result["qualification"] == "INCONCLUSIVE"
+assert dream_result["running_process_proven"] is False
+assert not inference_modules & sys.modules.keys()

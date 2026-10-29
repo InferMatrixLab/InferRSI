@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **118 skill documents**: 74 registered roots,
+The English-only library contains **120 skill documents**: 76 registered roots,
 21 separately indexed engine/router documents and 23 AREX graph sub-skills.
 Complete procedures, metadata, references, cases and source notices ship with the package.
 
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 74 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 76 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -137,7 +137,7 @@ scheduling/placement proposals remain separate from both implementation pins.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 74-ID registry.
+the links and catalog records below, separately from the 76-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
@@ -302,3 +302,13 @@ The [mlx-swift-lm graph](repositories/mlx-swift-lm/SKILL.md) adds selected Swift
 ## MLC LLM compiled Metal source contracts
 
 The [mlc-llm candidate](repositories/mlc-llm/SKILL.md) covers opt-in artifact/schema/resource declarations, Apple target and pinned TVM module/storage/stream consumers, and compiled/runtime KV limits. Helpers authenticate no binary/weights/dispatch or memory fit; required native/model/quality/service evidence remains not_run.
+
+## Local Dream Android diffusion source contracts
+
+The [local-dream candidate](repositories/local-dream/SKILL.md) separates desired
+and serving process state, grace/restart/readiness and unauthenticated LAN
+exposure, MNN/QNN/Anima/DiT dispatch, shared cancellation/cache lifetimes and
+CPU-library versus DSP-skels/ABI packaging. One offline declaration screen is
+not native evidence. Android/Qualcomm/model/quality/fit/performance remain
+blocked/not_run. Source CC BY-NC 4.0 restrictions remain distinct from API
+`NOASSERTION`. Catalog ID: `inferrsi.common.skills.local_dream`.

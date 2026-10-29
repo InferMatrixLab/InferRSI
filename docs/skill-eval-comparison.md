@@ -259,3 +259,47 @@ python -m tests.fixtures.skill_eval_compare_demo --mode update --output <new-off
 The fixture creates real temporary Git snapshots and produces one fix, one
 regression, one inconclusive pair and one missing pair. It never constructs the
 real client. Its fixed answers are pipeline controls, not model measurements.
+
+### Synthetic KV admission diagnostic adapter
+
+The explicit comparison configuration `adapter: "kv-admission-diagnostic-v1"`
+selects a different typed input/answer contract, prompt and trusted verifier.
+Omitting `adapter` preserves the performance-report audit path. This adapter
+requires `mode: "update"`: freeze the PR's exact base and head as the baseline
+and candidate, and export the same selected skill with its dependencies in both
+arms. A no-skill baseline measures the whole bundle, not the PR's incremental
+contribution, and is rejected for this adapter. Custom schema/grader overrides
+are rejected. Retained answers are regraded with the trusted diagnostic verifier.
+
+Inputs contain synthetic observations at one decision boundary: cache lookup,
+receive state, KV identity match, and allocator result, each with a stable event
+ID. Missing observations remain absent, not guessed. Output contains a diagnosis,
+event citations, one read-only next check, and an explicit reuse authorization
+boolean. Citations must match the decisive observation set exactly (all available
+receive/identity/allocator observations for an insufficient-evidence answer,
+falling back to lookup only when no other event is available), so citing everything cannot
+pass a specific diagnosis. The finite-state oracle distinguishes readiness, capacity, invalid
+reuse and insufficient evidence. Failure/mismatch prohibits reuse; pending
+receive is not capacity proof; capacity needs completed matching KV and allocator
+denial. None of these blocked-request cases authorizes executing reuse.
+
+`tests/fixtures/skill_eval_diagnostic_cases.json` contains development and holdout
+counterfactual candidates, without expected answers. Expected responses and the
+oracle stay outside the model-visible workspace. Freeze the chosen cases before
+candidate trials, and use paired observations with unchanged model/settings.
+The fixture list is not a paid execution plan; choose a feasible frozen subset
+only after accounting for full bundle and request budget, without truncating the
+knowledge. Preserve raw responses, per-assertion results, and failures. Passing
+these synthetic cases establishes only small-case diagnostic utility, not skill
+coverage, engine correctness, production throughput or service efficacy.
+
+The reuse check is intentionally one-sided: every case is a blocked request.
+Always refusing reuse alone therefore earns no diagnostic success and does not
+establish balanced safe/unsafe execution discrimination.
+
+Selected snapshot closure follows existing KnowledgeReader semantics: the complete
+selected skill directory plus declared `metadata.references`. It does not recursively
+follow arbitrary cross-skill Markdown navigation links. The retained manifest records
+original Git paths, modes and blobs, including original index provenance and the
+projected index hash. Unsafe entries inside the selected closure are rejected rather
+than omitted; the existing whole-library snapshot guard is unchanged.

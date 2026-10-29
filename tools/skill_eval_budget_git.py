@@ -13,12 +13,17 @@ from dataclasses import dataclass
 
 from tools.skill_eval_budget import (
     BudgetError,
+    DailyKey,
+    DailySnapshot,
     Ledger,
     PRKey,
     Snapshot,
     WriteResult,
     decode,
+    decode_daily,
     encode,
+    encode_daily,
+    validate_daily_successor,
     validate_successor,
 )
 
@@ -63,8 +68,17 @@ class GitHubGitStore:
     No ref creation, deletion, force update, or settings endpoint is used.
     """
 
+    anchor_type = LedgerAnchor
+    snapshot_type = Snapshot
+    decode_state = staticmethod(decode)
+    encode_state = staticmethod(encode)
+    validate_transition = staticmethod(validate_successor)
+
+    def valid_genesis(self, ledger):
+        return ledger.revision == 0 and not ledger.entries
+
     def __init__(self, api, anchor: LedgerAnchor, *, max_history=10000):
-        if type(anchor) is not LedgerAnchor or type(max_history) is not int or max_history < 1:
+        if type(anchor) is not self.anchor_type or type(max_history) is not int or max_history < 1:
             raise BudgetError("Trusted anchor and bounded history are required")
         self.api, self.anchor, self.max_history = api, anchor, max_history
         self._observed = anchor.checkpoint_commit
@@ -109,7 +123,7 @@ class GitHubGitStore:
             raw = base64.b64decode("".join(blob["content"].split()), validate=True)
             if len(raw) > 4_000_000 or blob["size"] != len(raw):
                 raise ValueError("Invalid ledger size")
-            ledger = decode(raw.decode("utf-8"))
+            ledger = self.decode_state(raw.decode("utf-8"))
             if ledger.key != self.anchor.key:
                 raise ValueError("Wrong PR identity")
             return parents, ledger
@@ -131,7 +145,7 @@ class GitHubGitStore:
             parents, ledger = self._state(current)
             states.append(ledger)
             if current == self.anchor.genesis_commit:
-                if len(parents) > 1 or ledger.revision != 0 or ledger.entries:
+                if len(parents) > 1 or not self.valid_genesis(ledger):
                     raise BudgetError("Invalid audited genesis")
                 break
             if len(parents) != 1:
@@ -142,22 +156,22 @@ class GitHubGitStore:
         if self.anchor.checkpoint_commit not in seen or self._observed not in seen:
             raise BudgetError("Ledger rollback or divergent history detected")
         for before, after in zip(reversed(states[1:]), reversed(states[:-1])):
-            validate_successor(before, after)
+            self.validate_transition(before, after)
         # A racing writer is harmless, but do not label an already stale read current.
         if self._tip() != tip:
             raise BudgetError("Ledger changed during verification; retry a fresh read")
         self._observed = tip
-        return Snapshot(tip, states[0])
+        return self.snapshot_type(tip, states[0])
 
     def compare_and_swap(self, expected: Snapshot, successor: Ledger) -> WriteResult:
-        validate_successor(expected.ledger, successor)
+        self.validate_transition(expected.ledger, successor)
         verified = self.read_verified(self.anchor.key)
         if verified != expected:
             return WriteResult.CONFLICT
         try:
             tree = self.api.request("POST", "/git/trees", {"tree": [{
                 "path": "ledger.json", "mode": "100644", "type": "blob",
-                "content": encode(successor),
+                "content": self.encode_state(successor),
             }]})
             tree_sha = _sha(tree["sha"])
             commit = self.api.request("POST", "/git/commits", {
@@ -177,3 +191,40 @@ class GitHubGitStore:
             return WriteResult.UNKNOWN
         self._observed = commit_sha
         return WriteResult.COMMITTED
+
+
+@dataclass(frozen=True)
+class DailyLedgerAnchor:
+    """One independently pinned repository-wide ledger; never a per-day ref."""
+
+    key: DailyKey
+    ref: str
+    genesis_commit: str
+    checkpoint_commit: str
+
+    def __post_init__(self):
+        if type(self.key) is not DailyKey:
+            raise BudgetError("Invalid global ledger identity")
+        if self.ref != f"refs/heads/skill-eval-budget/{self.key.repository_id}/daily":
+            raise BudgetError("Global budget requires its single repository-wide ref")
+        _sha(self.genesis_commit)
+        _sha(self.checkpoint_commit)
+
+
+class GitHubDailyStore(GitHubGitStore):
+    """Reuse the same nonce-bearing Git CAS and full lineage verification.
+
+    Genesis is separately audited, including imported historical and outstanding
+    entries. This adapter never creates or resets it. Existing PR ledgers remain
+    independently mandatory; commit daily admission first, then PR admission,
+    then both one-shot claims before launching. Partial failures burn capacity.
+    """
+
+    anchor_type = DailyLedgerAnchor
+    snapshot_type = DailySnapshot
+    decode_state = staticmethod(decode_daily)
+    encode_state = staticmethod(encode_daily)
+    validate_transition = staticmethod(validate_daily_successor)
+
+    def valid_genesis(self, ledger):
+        return ledger.revision == 0

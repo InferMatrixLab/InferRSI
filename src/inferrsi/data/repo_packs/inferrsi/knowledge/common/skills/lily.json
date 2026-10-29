@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/fb8ced458c8dda6fa0614e35216e502365aea709/src/inferrsi/data/skill_library/repositories/lily/SKILL.md",
-      "commit": "fb8ced458c8dda6fa0614e35216e502365aea709",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/repositories/lily/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lily/LICENSE",
         "src/inferrsi/data/skill_library/repositories/lily/NOTICE.md",
@@ -77,7 +77,7 @@
     "src/inferrsi/data/skill_library/repositories/lily/sub-skills/serving-cache/references/api-and-session.md": "7262bb077c24f2f7549d450473ec7944829940d09cca89db9c12f37ac90d5db0",
     "src/inferrsi/data/skill_library/repositories/lily/sub-skills/serving-cache/references/troubleshooting.md": "6e2f36d2f7ab9eae665d87a676e34c0ebd2f46f3df6fa5f2e589a306749a87b5",
     "src/inferrsi/data/skill_library/repositories/lily/sub-skills/serving-cache/scripts/request_template.py": "d6b00c9f0b38c7fb0a0e52e396993a832542ea0aa6e2456026fabc0c39a4d33a",
-    "src/inferrsi/data/skill_library/skill-index.json": "6d5784993dc8702b2c299c2354c39f765299a6734f7c24db994a97efd3fdbed6"
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "lily",

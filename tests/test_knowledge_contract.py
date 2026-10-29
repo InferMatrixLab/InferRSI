@@ -31,7 +31,7 @@ def test_local_profiles_preserve_core_and_structured_ownership():
         assert metadata["kind"] == "skill"
         for readset in metadata["provenance_readsets"]:
             assert (sidecar.parent / readset).is_file()
-    assert len(normalized) == 59
+    assert len(normalized) == 60
 
 
 def test_local_sidecars_omit_fields_that_equal_reader_defaults():
@@ -58,7 +58,7 @@ def _case_records():
 
 def test_case_documents_cite_their_record_without_copying_digests():
     cases = list(_case_records())
-    assert len(cases) == 5
+    assert len(cases) == 6
     for path, record in cases:
         body = (path.parent / record["content"]).read_text(encoding="utf-8")
         # The JSON record is the single home for source identities and digests;

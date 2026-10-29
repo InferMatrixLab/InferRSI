@@ -272,3 +272,251 @@ def decode(payload: str) -> Ledger:
                       value["revision"], tuple(entries))
     except (TypeError, KeyError, ValueError, OverflowError, RecursionError) as exc:
         raise BudgetError("Missing, corrupt, or unsupported ledger") from exc
+
+
+DAILY_LIMIT_MICROUSD = 1_000_000_000
+
+
+def _day(value):
+    from datetime import date
+
+    try:
+        valid = type(value) is str and date.fromisoformat(value).isoformat() == value
+    except ValueError:
+        valid = False
+    if not valid:
+        raise BudgetError("Expected canonical calendar day")
+    return value
+
+
+def shanghai_day(now=None):
+    """Trusted aware wall clock only; a missing timezone database fails closed."""
+    from datetime import datetime, timezone
+    from zoneinfo import ZoneInfo
+
+    now = datetime.now(timezone.utc) if now is None else now
+    if not isinstance(now, datetime) or now.tzinfo is None or now.utcoffset() is None:
+        raise BudgetError("An aware trusted clock is required")
+    return now.astimezone(ZoneInfo("Asia/Shanghai")).date().isoformat()
+
+
+@dataclass(frozen=True)
+class DailyKey:
+    repository_id: int
+
+    def __post_init__(self):
+        _amount(self.repository_id, positive=True)
+
+
+@dataclass(frozen=True)
+class DailyEntry:
+    key: PRKey
+    binding: Binding
+    admitted_day: str
+    phase: str = "reserved"
+    closed_day: str | None = None
+    actual_cost: int | None = None
+
+    def __post_init__(self):
+        if type(self.key) is not PRKey:
+            raise BudgetError("Missing daily reservation PR identity")
+        Entry(self.binding, self.phase, self.actual_cost)
+        _day(self.admitted_day)
+        if self.phase in {"finished", "cancelled"}:
+            if _day(self.closed_day) < self.admitted_day:
+                raise BudgetError("Closing day precedes admission")
+        elif self.closed_day is not None:
+            raise BudgetError("Outstanding reservation cannot have a closing day")
+
+
+@dataclass(frozen=True)
+class DailyLedger:
+    """Repository-wide history, not one ref per date or per PR.
+
+    Audited genesis must import ALL historical daily charges and ALL outstanding
+    upper bounds, including legacy PR reservations. Unknown costs block genesis.
+    Outstanding work counts on every day from admission until trusted settlement.
+    Settlement retains the FULL bound on every day through closure, inclusive;
+    it never refunds prior days. A missing settlement safely reduces availability.
+    """
+
+    key: DailyKey
+    evidence: str
+    entries: tuple[DailyEntry, ...] = ()
+    revision: int = 0
+    quarantine: str | None = None
+
+    def __post_init__(self):
+        if type(self.key) is not DailyKey:
+            raise BudgetError("Missing daily ledger repository identity")
+        _text(self.evidence)
+        _amount(self.revision)
+        if self.quarantine is not None:
+            _text(self.quarantine)
+        if (type(self.entries) is not tuple
+                or any(type(e) is not DailyEntry or e.key.repository_id != self.key.repository_id
+                       for e in self.entries)):
+            raise BudgetError("Invalid daily ledger entries")
+        plans = [(e.key, e.binding.plan_digest) for e in self.entries]
+        runs = [e.binding.run_id for e in self.entries]
+        if len(set(plans)) != len(plans) or len(set(runs)) != len(runs):
+            raise BudgetError("Duplicate global plan or execution attempt")
+        # Charges can only increase at admissions; checking these boundaries
+        # proves the cap for the entire timeline, including open-ended entries.
+        if any(self.charged_on(e.admitted_day) > DAILY_LIMIT_MICROUSD for e in self.entries):
+            raise BudgetError("Global Shanghai daily budget exhausted")
+
+    def require_active(self):
+        if self.quarantine is not None:
+            raise BudgetError("Global budget quarantined; audited reconciliation required")
+
+    def charged_on(self, day):
+        _day(day)
+        return sum(e.binding.worst_case for e in self.entries
+                   if e.admitted_day <= day and (e.closed_day is None or day <= e.closed_day))
+
+    def remaining_on(self, day):
+        return DAILY_LIMIT_MICROUSD - self.charged_on(day)
+
+
+def daily_reserve(ledger, key, binding, day):
+    _day(day)
+    if type(ledger) is not DailyLedger or type(key) is not PRKey or type(binding) is not Binding:
+        raise BudgetError("Invalid global reservation")
+    ledger.require_active()
+    for entry in ledger.entries:
+        if entry.key == key and entry.binding == binding:
+            return ledger  # Across midnight too: never create another reservation.
+        if ((entry.key == key and entry.binding.plan_digest == binding.plan_digest)
+                or entry.binding.run_id == binding.run_id):
+            raise BudgetError("Global plan or run already bound differently")
+    if any(day < e.admitted_day or (e.closed_day is not None and day < e.closed_day)
+           for e in ledger.entries):
+        raise BudgetError("Daily ledger clock moved backwards")
+    return replace(ledger, revision=ledger.revision + 1,
+                   entries=ledger.entries + (DailyEntry(key, binding, day),))
+
+
+def daily_advance(ledger, key, binding, phase, day, *, actual_cost=None):
+    _day(day)
+    if type(ledger) is not DailyLedger:
+        raise BudgetError("Invalid global ledger")
+    ledger.require_active()
+    if any(day < e.admitted_day or (e.closed_day is not None and day < e.closed_day)
+           for e in ledger.entries):
+        raise BudgetError("Daily ledger clock moved backwards")
+    for i, entry in enumerate(ledger.entries):
+        if entry.key != key or entry.binding != binding:
+            continue
+        if phase == "claimed" and day != entry.admitted_day:
+            raise BudgetError("A reservation must be claimed on its admission day")
+        closed = day if phase in {"finished", "cancelled"} else None
+        updated = replace(entry, phase=phase, closed_day=closed, actual_cost=actual_cost)
+        if updated == entry and phase in {"finished", "cancelled"}:
+            return ledger
+        allowed = {"reserved": {"claimed", "cancelled"}, "claimed": {"finished"}}
+        if phase not in allowed.get(entry.phase, set()):
+            raise BudgetError("Unsafe or duplicate global execution transition")
+        return replace(ledger, revision=ledger.revision + 1,
+                       entries=ledger.entries[:i] + (updated,) + ledger.entries[i + 1:])
+    raise BudgetError("No exact global reservation")
+
+
+@dataclass(frozen=True)
+class DailySnapshot:
+    token: str
+    ledger: DailyLedger
+
+    def __post_init__(self):
+        _text(self.token)
+        if type(self.ledger) is not DailyLedger:
+            raise BudgetError("Missing global ledger")
+
+
+def daily_claim_once(store, key, binding, day):
+    snapshot = store.read_verified(DailyKey(key.repository_id))
+    if type(snapshot) is not DailySnapshot or snapshot.ledger.key != DailyKey(key.repository_id):
+        raise BudgetError("Storage returned wrong global ledger")
+    successor = daily_advance(snapshot.ledger, key, binding, "claimed", day)
+    if store.compare_and_swap(snapshot, successor) is not WriteResult.COMMITTED:
+        raise BudgetError("Global claim conflicted or outcome unknown")
+    return successor
+
+
+def daily_quarantine(ledger, evidence):
+    """Durably stop ALL global execution on unknown/over-bound exposure.
+
+    This is a one-way transition. There is deliberately no reset/reconciliation
+    writer. Record only bounded non-secret evidence; do not include credentials
+    or raw provider errors. Existing quarantine is sufficient and unchanged.
+    """
+    if type(ledger) is not DailyLedger:
+        raise BudgetError("Invalid global ledger")
+    _text(evidence)
+    if ledger.quarantine is not None:
+        return ledger
+    return replace(ledger, quarantine=evidence, revision=ledger.revision + 1)
+
+
+def validate_daily_successor(before, after):
+    if type(before) is not DailyLedger or type(after) is not DailyLedger:
+        raise BudgetError("Invalid global transition state")
+    if (before.key != after.key or before.evidence != after.evidence
+            or after.revision != before.revision + 1):
+        raise BudgetError("Global ledger reset or identity change forbidden")
+    if before.quarantine is not None:
+        raise BudgetError("Quarantine cannot be reset or edited")
+    if after.quarantine is not None:
+        if after != daily_quarantine(before, after.quarantine):
+            raise BudgetError("Quarantine must preserve all existing charges")
+        return
+    candidates = []
+    if len(after.entries) == len(before.entries) + 1:
+        new = after.entries[-1]
+        candidates.append(daily_reserve(before, new.key, new.binding, new.admitted_day))
+    elif len(after.entries) == len(before.entries):
+        for old, new in zip(before.entries, after.entries):
+            if old != new:
+                candidates.append(daily_advance(before, new.key, new.binding, new.phase,
+                                               new.closed_day or new.admitted_day,
+                                               actual_cost=new.actual_cost))
+    if after not in candidates:
+        raise BudgetError("Not a single monotonic global budget transition")
+
+
+def encode_daily(ledger):
+    if type(ledger) is not DailyLedger:
+        raise BudgetError("Invalid global ledger")
+    return json.dumps({"schema_version": 1, "kind": "shanghai_daily", **asdict(ledger)},
+                      sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def decode_daily(payload):
+    def unique(pairs):
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise BudgetError("Duplicate ledger JSON field")
+            result[key] = value
+        return result
+
+    try:
+        value = json.loads(payload, object_pairs_hook=unique)
+        if (type(value) is not dict
+                or set(value) != {"schema_version", "kind", "key", "evidence",
+                                  "entries", "revision", "quarantine"}
+                or type(value["schema_version"]) is not int or value["schema_version"] != 1
+                or value["kind"] != "shanghai_daily" or type(value["entries"]) is not list):
+            raise BudgetError("Unsupported global ledger schema")
+        entries = []
+        for entry in value["entries"]:
+            if type(entry) is not dict or set(entry) != {
+                "key", "binding", "admitted_day", "phase", "closed_day", "actual_cost"
+            }:
+                raise BudgetError("Invalid global reservation schema")
+            entries.append(DailyEntry(**{**entry, "key": PRKey(**entry["key"]),
+                                         "binding": Binding(**entry["binding"])}))
+        return DailyLedger(DailyKey(**value["key"]), value["evidence"],
+                           tuple(entries), value["revision"], value["quarantine"])
+    except (TypeError, KeyError, ValueError, OverflowError, RecursionError) as exc:
+        raise BudgetError("Missing, corrupt, or unsupported global ledger") from exc

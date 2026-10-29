@@ -15,10 +15,18 @@ from pathlib import Path, PurePosixPath
 from urllib.error import HTTPError
 
 from inferrsi.infra.artifacts import sha256, write_json
-from inferrsi.model.anthropic_agent import KIND, money, reservation
+from inferrsi.model.anthropic_agent import money, reservation
 from tools import skill_eval_compare as compare
 from tools.check_knowledge_model_policy import GitHubHTTPError
-from tools.skill_eval_verifier import verify
+from tools.skill_eval_feedback import (
+    bound_results,
+    code,
+    comparison_lines,
+    evidence_binding_lines,
+    json_for_code,
+    projection,
+    safe_text,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 MAPPING = ROOT / "tools/skill_eval_pr_cases.json"
@@ -110,6 +118,10 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
                   "snapshots": {"baseline": {"git_revision": identity["base"]},
                                 "candidate": {"git_revision": identity["head"]}},
                   "model": mapping["model"], "limits": mapping["limits"]}
+        if "adapter" in item:
+            # Trusted mapping chooses an explicit typed contract; compare validates it.
+            # Do not infer a diagnostic adapter from arbitrary PR file contents.
+            config["adapter"] = item["adapter"]
         if provider is not None:
             config.update({key: provider[key] for key in ("client", "pricing", "spend_limit")})
         config_path = output / (item["skill"] + ".json")
@@ -324,14 +336,78 @@ def reports(output):
         if not isinstance(status, dict) or not isinstance(status.get("execution_state"), str):
             raise ValueError("Invalid retained execution status shape")
         tasks = {t["id"]: t for t in compare.read_json(directory / "plan/tasks.json")}
-        for trial in [p[r] for p in result["pairs"] for r in compare.ROLES] + result["discovery"]:
-            if trial["verdict"] in ("PASS", "FAIL"):
-                # Recheck the supported grader using trusted code, not artifact verify.py.
-                checks = verify(tasks[trial["task_id"]], json.loads(trial["output"]))
-                if checks != trial["checks"] or checks["passed"] != (trial["verdict"] == "PASS"):
-                    raise ValueError("Untrusted grading disagrees with the trusted grader")
+        # Recheck the exact built-in adapter with trusted code, not artifact verify.py.
+        compare.verify_retained_grader(
+            compare.load_plan(directory),
+            [p[r] for p in result["pairs"] for r in compare.ROLES] + result["discovery"],
+            tasks)
+        frozen = compare.load_plan(directory)
+        attach_feedback(result, {"adapter": frozen.get("adapter", "audit"),
+                                 "tasks": tasks, "exam": frozen["exam"],
+                                 "schema": compare.read_json(directory / "plan/schema.json")})
         results.append(result)
     return results
+
+
+def attach_feedback(result, context):
+    """Project only an exact current builtin exam, including historical reports.
+
+    A historical report's trusted result remains intact when its grader has
+    changed; explanations are unavailable rather than inferred under new rules.
+    """
+    diagnostic = compare.diagnostic
+    adapter = context["adapter"]
+    if adapter == diagnostic.ADAPTER:
+        verifier, schema, path = diagnostic.verify, diagnostic.SCHEMA, Path(diagnostic.__file__)
+    elif adapter == "audit":
+        verifier, schema = compare.verify, compare.SCHEMA
+        path = ROOT / "tools/skill_eval_verifier.py"
+    else:
+        return
+    trials = [p[r] for p in result["pairs"] for r in compare.ROLES] + result["discovery"]
+    for trial in trials:
+        trial.pop("feedback", None)
+    if context["exam"]["grader"] != sha256(path) or context["schema"] != schema:
+        return
+    tasks = context["tasks"]
+    if isinstance(tasks, list):
+        tasks = {task["id"]: task for task in tasks}
+    for trial in trials:
+        if trial.get("grader_trust") != "reverified" or trial["verdict"] not in ("PASS", "FAIL"):
+            continue
+        answer = json.loads(trial["output"])
+        checks = verifier(tasks[trial["task_id"]], answer)
+        if checks != trial["checks"] or checks["passed"] != (trial["verdict"] == "PASS"):
+            raise ValueError("Historical grading disagrees with the current identical grader")
+        trial["feedback"] = projection(adapter, tasks[trial["task_id"]], answer, checks)
+
+
+def publish_historical(api, pr, source_run, writer_run, *, now, output=None):
+    """Explicit no-execution retry; retain the original plan's complete identity."""
+    from tools.skill_eval_retained import retained_reports
+
+    revision = git(ROOT, "rev-parse", "HEAD").decode().strip()
+    retained = retained_reports(api, pr, source_run, trusted_repo=ROOT,
+                                renderer_revision=revision, now=now)
+    plan, results = retained["plan"], retained["reports"]
+    for result in results:
+        attach_feedback(result, retained["contexts"][result["skill"]])
+    from tools.skill_eval_auto import report_control
+
+    body = summary(plan, results, retained["evidence_url"], retained["expires_at"], now,
+                   evidence_state="available", execution_control=report_control(api, plan))
+    body += ("\n\nPresentation implementation: `" + revision + "`. "
+             "Original execution plan and frozen verifier bindings are retained; "
+             "this report-only refresh starts no model execution or budget reservation.")
+    if output is not None:
+        write_json(output / "pr-plan.json", plan)
+        write_json(output / "report-renderer.json", {"renderer_revision": revision,
+                   "source_run": source_run, "original_plan_sha256": fingerprint(plan)})
+        for result in results:
+            directory = output / result["skill"]
+            write_json(directory / "report.json", result)
+            (directory / "report.md").write_text(body, encoding="utf-8")
+    return api.publish(plan, body, writer_run)
 
 
 def review_guidance(plan, results, *, evidence_state):
@@ -412,27 +488,29 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
                       ("available" if results else "planned / unexecuted"))
     guidance = review_guidance(plan, results, evidence_state=evidence_state)
     lines = [MARKER, "## Skill evaluation"]
+    lines += comparison_lines(plan, results, evidence_state)
     if plan.get("execution_blocked"):
-        lines += ["", "Paid execution blocked: " + plan["execution_blocked"] + ". "
-                  "This is free planning only; no alternate provider/model is selected."]
+        lines += ["", "Paid execution blocked: " + safe_text(plan["execution_blocked"]) + ". "
+                  "New execution only: this does not invalidate available retained results; "
+                  "no alternate provider/model is selected."]
     if execution_control is not None:
         lines += ["", "Automatic execution / cumulative PR budget: `"
                   + canonical(execution_control) + "`", ""]
     lines += ["### Advisory: " + guidance["disposition"],
               "Retained evidence availability: **" + evidence_state + "**. "
               "No approval or merge authorization is issued."]
-    lines.extend("- " + reason for reason in guidance["reasons"][:6])
+    lines.extend("- " + safe_text(reason) for reason in guidance["reasons"][:6])
     if len(guidance["reasons"]) > 6:
         lines += [f"- {len(guidance['reasons']) - 6} additional reasons in details below."]
     lines += [""]
     counts = {k: 0 for k in ("fix", "regression", "unchanged_correct", "unchanged_incorrect",
                              "inconclusive", "missing_pair")}
-    if expired:
+    if expired or evidence_state == "expired":
         lines += ["**EXPIRED: retained evidence is no longer verifiable.**"]
     elif evidence_state in ("missing", "invalid"):
         lines += ["**INSUFFICIENT EVIDENCE: retained artifacts are " + evidence_state + ".**"]
     elif results:
-        for result in results:
+        for _, result in bound_results(plan, results):
             for key in counts:
                 counts[key] += result["counts"][key]
         lines += ["**RETAINED RESULTS**", "", "Outcomes: `" + canonical(counts) + "`",
@@ -462,14 +540,15 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
               "Content/source review and authorship admission remain separate.",
               "Trusted regrading checks retained answers, not model/hardware provenance or "
               "a hostile executor; this is not an efficacy certification.",
-              *["- " + reason for reason in guidance["reasons"][6:]],
+              *["- " + safe_text(reason) for reason in guidance["reasons"][6:26]],
               "", "Per-case outcomes (discovery excluded; regressions and gaps first):",
-              "```json", canonical(sorted(guidance["observations"], key=lambda item:
+              "```json", json_for_code(sorted(guidance["observations"], key=lambda item:
                   (item["outcome"] not in ("regression", "inconclusive", "missing_pair",
                                            "unchanged_incorrect"), item["skill"]))[:20]), "```",
               f"Showing at most 20 of {len(guidance['observations'])} pairs; "
               "the evidence link contains all outcomes, including omitted regressions/gaps.",
               "",
+              *[line for line in evidence_binding_lines(plan, results, evidence_state)],
               f"Plan SHA-256: `{fingerprint(plan)}`",
               f"Base: `{plan['base']}` · Head: `{plan['head']}`",
               f"Trusted implementation: `{plan['version']}`", "",
@@ -477,21 +556,25 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
               "Budget: `" + canonical(budget(plan)) + "`", "",
               "| Skill | Comparison | Cases | Estimated calls |",
               "| --- | --- | --- | --- |"]
-    for item in plan["comparisons"]:
+    for item in plan["comparisons"][:50]:
         if "plan_sha256" in item:
-            cases = ", ".join(c["id"] + " (" + c["split"] + ")" for c in item["cases"])
-            lines.append(f"| {item['skill']} | {item['mode']} | {cases} | {item['calls']} |")
+            cases = ", ".join(safe_text(c["id"], 128) + " (" + safe_text(c["split"], 24) + ")"
+                              for c in item["cases"][:20])
+            lines.append(f"| {code(item['skill'])} | {code(item['mode'])} | {cases} | "
+                         f"{item['calls']} |")
             lines.append("\nFrozen exam hashes: `" + canonical(item["exam"]) + "`\n")
         else:
-            lines.append(f"| {item['skill']} | unsupported snapshot | — | 0 |")
+            lines.append(f"| {code(item['skill'])} | unsupported snapshot | — | 0 |")
     if "provider_config" in plan:
         lines += ["", "Provider/settings: `" + canonical(plan["provider_config"]) + "`"]
     lines += ["", "</details>", "", "<details>",
               f"<summary>Uncovered / unsupported paths ({len(gaps)})</summary>", ""]
     # A collapsed HTML container still requires data escaping for untrusted Git paths.
-    for gap in gaps:
-        lines.append("- " + gap["coverage"] + ": <code>"
-                     + html.escape(canonical(gap["path"])).replace("@", "&#64;") + "</code>")
+    for gap in gaps[:100]:
+        lines.append("- " + safe_text(gap["coverage"], 24) + ": <code>"
+                     + html.escape(canonical(gap["path"][:1024])).replace("@", "&#64;") + "</code>")
+    if len(gaps) > 100:
+        lines.append("Additional paths omitted; see retained evidence.")
     if not gaps:
         lines.append("(none)")
     lines += ["", "</details>"]
@@ -870,11 +953,13 @@ def main():
                 reason = "Trusted automatic configuration or pricing is expired or invalid"
             else:
                 try:
-                    from tools.skill_eval_auto import eligible, ledger_store
+                    from tools.skill_eval_auto import daily_store, eligible, ledger_store
                     eligible(api, plan, config)
                     live_label(api, plan, config)
                     store, key = ledger_store(api, config, pr)
                     store.read_verified(key)
+                    global_store, global_key = daily_store(api, config)
+                    global_store.read_verified(global_key).ledger.require_active()
                     candidate = True
                     reason = "Eligible; durable reservation required before execution"
                 except (ValueError, KeyError, TypeError):
@@ -883,7 +968,15 @@ def main():
         with Path(os.environ["GITHUB_OUTPUT"]).open("a", encoding="utf-8") as handle:
             handle.write(f"auto_candidate={str(candidate).lower()}\n")
             handle.write(f"pr={pr}\nplan_sha256={fingerprint(plan)}\n")
-            handle.write("client_kind=" + (KIND if "provider_config" in plan else "codex") + "\n")
+            handle.write("client_kind=" + (plan["provider_config"]["client"]["kind"]
+                                         if "provider_config" in plan else "codex") + "\n")
+        return
+    if args.mode == "publish" and inputs.get("action") == "publish":
+        if not inputs.get("source_run"):
+            raise ValueError("Publish-only retry requires the original execution run ID")
+        receipt = publish_historical(api, pr, int(inputs["source_run"]), run_id,
+                                     now=time.time(), output=output)
+        print(receipt["html_url"])
         return
     plan = compare.read_json(output / "pr-plan.json")
     if args.mode == "authorize":

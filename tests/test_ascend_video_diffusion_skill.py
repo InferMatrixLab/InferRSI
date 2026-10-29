@@ -11,44 +11,61 @@ ROOT = Path(__file__).resolve().parents[1]
 SKILL_ROOT = ROOT / "src/inferrsi/data/skill_library"
 SKILL_NAME = "ascend-video-diffusion-optimization"
 SKILL = SKILL_ROOT / "hardware/ascend" / SKILL_NAME
-TEMPLATE = SKILL / "assets/campaign.template.json"
-EVALUATOR = SKILL / "scripts/evaluate_target.py"
+COMMON_NAME = "video-diffusion-optimization"
+COMMON = SKILL_ROOT / "methods" / COMMON_NAME
+TEMPLATE = COMMON / "assets/campaign.template.json"
+EVALUATOR = COMMON / "scripts/evaluate_target.py"
 
 
-def test_skill_is_discoverable_and_resources_resolve():
+def test_skills_are_discoverable_and_resources_resolve():
     discovered = {record["name"] for record in skill_records(SKILL_ROOT)}
-    assert SKILL_NAME in discovered
+    assert {SKILL_NAME, COMMON_NAME} <= discovered
 
     record = get_skill(SKILL_ROOT, SKILL_NAME)
-
     assert record["name"] == SKILL_NAME
     assert record["status"] == "candidate"
     assert {"ascend", "video-diffusion", "performance"} <= set(record["tags"])
     assert set(record["resources"]) == {
-        "assets/campaign.template.json",
         "metadata.json",
         "references/field-notes-video-diffusion.md",
-        "scripts/evaluate_target.py",
     }
 
     description = record["description"]
     assert all(term in description for term in ("latency", "RTF", "throughput", "HBM"))
     assert "Not for text-only LLMs" in description
 
-    instructions = skill_instructions(SKILL_ROOT, SKILL_NAME)
-    for relative in (
+    common = get_skill(SKILL_ROOT, COMMON_NAME)
+    assert common["name"] == COMMON_NAME
+    assert common["status"] == "candidate"
+    assert set(common["resources"]) == {
         "assets/campaign.template.json",
-        "references/field-notes-video-diffusion.md",
+        "metadata.json",
         "scripts/evaluate_target.py",
-    ):
-        assert relative in instructions
-        assert (SKILL / relative).is_file()
+    }
+    assert common["description"]
+    assert "Not for text-only LLMs" in common["description"]
+
+    instructions = skill_instructions(SKILL_ROOT, SKILL_NAME)
+    assert "references/field-notes-video-diffusion.md" in instructions
+    assert (SKILL / "references/field-notes-video-diffusion.md").is_file()
+    # The Ascend skill delegates to the backend-agnostic common skeleton.
     for relative in (
+        "methods/video-diffusion-optimization/SKILL.md",
         "methods/inference-benchmark-design/SKILL.md",
         "workflows/rsi-evidence/SKILL.md",
     ):
         assert relative in instructions
         assert (SKILL_ROOT / relative).is_file()
+
+    common_instructions = skill_instructions(SKILL_ROOT, COMMON_NAME)
+    # The common skeleton links its sibling method and workflow with relative
+    # paths from methods/video-diffusion-optimization/.
+    for relative, target in (
+        ("../inference-benchmark-design/SKILL.md", "methods/inference-benchmark-design/SKILL.md"),
+        ("../../workflows/rsi-evidence/SKILL.md", "workflows/rsi-evidence/SKILL.md"),
+    ):
+        assert relative in common_instructions
+        assert (SKILL_ROOT / target).is_file()
 
 
 def campaign(case):

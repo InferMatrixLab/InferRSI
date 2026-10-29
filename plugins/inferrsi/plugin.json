@@ -1,0 +1,25 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "inferrsi",
+  "version": "0.1.0",
+  "description": "Research inference optimizations and prepare, run and inspect evidence-based comparisons.",
+  "author": {"name": "InferMatrixLab"},
+  "repository": "https://github.com/InferMatrixLab/InferRSI",
+  "license": "Apache-2.0",
+  "extensions": {
+    "com.openai": {
+      "requires_local_executor": true,
+      "onboardingSkill": "./skills/inferrsi/SKILL.md",
+      "interface": {
+        "displayName": "InferRSI",
+        "shortDescription": "Research and verify inference optimizations",
+        "developerName": "InferMatrixLab",
+        "category": "Productivity",
+        "defaultPrompt": [
+          "Use InferRSI to research an inference bottleneck in this repository.",
+          "Use InferRSI to prepare a comparison or inspect an existing run."
+        ]
+      }
+    }
+  }
+}

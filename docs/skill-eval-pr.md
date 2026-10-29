@@ -124,6 +124,14 @@ blocks execution. Claims are deliberately non-idempotent. Interrupted requests
 retain their full conservative reservations, including when no cost receipt was
 produced. No takeover, automatic paid retry, refund or reset is provided.
 
+The per-request loopback gate waits at most the smaller of 60 seconds and the
+remaining trial allowance for fresh live authorization/history checks. That wait
+is debited before provider HTTP; it does not add time to the trial. A late, lost
+or invalid grant fails closed without retry, nonce reuse or reservation refund.
+The socket timeouts bound blocking operations, not a hard wall-clock cancellation;
+the existing trial deadline also rejects late results. This transport timing
+policy does not change provider payloads or establish provider API compatibility.
+
 An exclusive local claim file also prevents duplicate execution in one retained
 directory. Attempts other than `run_attempt=1` cannot execute. Publication-only
 retry makes no new model calls and consumes no new reservation.
@@ -361,3 +369,46 @@ model, no provider selection and no executable comparison freezes. It never
 silently falls back to another model/provider. These blocked plans are rejected
 by PR authorization and execution as well as the automatic controller. Direct
 standalone comparison-harness behavior is unchanged.
+
+A trusted mapping item may explicitly set `adapter: "kv-admission-diagnostic-v1"`
+to use the synthetic diagnostic contract documented in
+[skill comparisons](skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
+This is not inferred from PR content. It requires an existing baseline bundle
+and preserves exact PR base/head comparisons; unknown adapters or an addition
+remain unsupported. Report regeneration rechecks the frozen built-in adapter,
+not a performance-audit grader applied to diagnostic answers.
+
+Mapping a skill's changed files selects the comparison; it does not establish
+that a small case covers every mechanism in those files. Unmapped generated
+projections, navigation documents and tests remain visible coverage gaps.
+Source-only review dispositions must be explicit and must not be represented as
+model-evaluated passes. The maintained mapping is not expanded automatically.
+
+## Retained-result explanations
+
+The automated comment leads with bounded baseline/candidate components, submitted
+finite diagnostic fields, and fixed failure reasons derived after trusted regrading.
+A component improvement does not change the frozen aggregate: a strict citation
+failure remains `FAIL` even when diagnosis and next-check components improve.
+Missing, invalid or unverified components are unavailable, not failures. No raw
+model explanation, hidden oracle answer or arbitrary answer field is published.
+Synthetic diagnostic coverage is not an engine benchmark or general efficacy claim.
+
+An explicit `publish` retry with the original `source_run` can refresh presentation
+without a new paid evaluation. It authenticates the original workflow, complete
+plan digest and verified ledger record, current PR base/head, retention and frozen
+inputs. Historical controller compatibility is established against the original
+trusted-main ancestor, not by relaxing hashes: an isolated report-only subprocess
+runs that Git source with no provider/GitHub environment and never executes
+artifact Python. The comment distinguishes the original execution implementation
+from the current presentation implementation. Current explanatory projection also
+requires the identical builtin grader and schema; otherwise components are unavailable.
+Failures stop the retry rather than replacing available evidence with a fabricated
+new result. New-run authorization/accounting and retained-result validity are separate.
+
+Use the existing workflow dispatch with `action=publish`, the current PR number
+and original `source_run`; do not request `execute` or provide a new approval.
+This bridge supports completed first-attempt automatic (`pull_request_target`)
+source runs with a verified ledger binding. Missing Git ancestry, mismatched live
+revisions, expired artifacts or unauthenticated provenance stop publication.
+The uploaded report contains the original plan and separate renderer metadata.
