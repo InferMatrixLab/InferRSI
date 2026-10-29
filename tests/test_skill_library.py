@@ -1,5 +1,3 @@
-"""Portable knowledge integration; these checks do not validate inference claims."""
-
 import json
 import re
 import subprocess

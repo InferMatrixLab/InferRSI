@@ -1,5 +1,3 @@
-"""Run outside the checkout after a noneditable [skills] install, PYTHONPATH unset."""
-
 import contextlib
 import hashlib
 import io

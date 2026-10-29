@@ -1,5 +1,3 @@
-"""The installed index preserves categorized skills and their complete resources."""
-
 import hashlib
 import json
 import subprocess
