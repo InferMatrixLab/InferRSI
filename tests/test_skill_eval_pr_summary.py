@@ -74,7 +74,15 @@ def test_planned_summary_keeps_visible_status_and_folds_full_approval_fields(pla
 
 
 def test_mixed_results_keep_all_aggregate_outcome_counts_visible(plan):
-    text = render(plan, [outcome(fix=1, inconclusive=2), outcome(regression=3, missing_pair=4)])
+    first = {**outcome(fix=1, inconclusive=2), "skill": "selected",
+             "plan_sha256": plan["comparisons"][0]["plan_sha256"],
+             "exam": plan["comparisons"][0]["exam"],
+             "arms": {"baseline": {"git_revision": plan["base"]},
+                      "candidate": {"git_revision": plan["head"]}}}
+    second = {**copy.deepcopy(first), **outcome(regression=3, missing_pair=4),
+              "skill": "another"}
+    plan["comparisons"].append({**copy.deepcopy(plan["comparisons"][0]), "skill": "another"})
+    text = render(plan, [first, second])
     assert_boundaries(text)
     main = visible(text)
     assert "**RETAINED RESULTS**" in main and "**PLANNED:" not in main

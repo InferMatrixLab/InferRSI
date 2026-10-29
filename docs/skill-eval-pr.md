@@ -383,3 +383,32 @@ that a small case covers every mechanism in those files. Unmapped generated
 projections, navigation documents and tests remain visible coverage gaps.
 Source-only review dispositions must be explicit and must not be represented as
 model-evaluated passes. The maintained mapping is not expanded automatically.
+
+## Retained-result explanations
+
+The automated comment leads with bounded baseline/candidate components, submitted
+finite diagnostic fields, and fixed failure reasons derived after trusted regrading.
+A component improvement does not change the frozen aggregate: a strict citation
+failure remains `FAIL` even when diagnosis and next-check components improve.
+Missing, invalid or unverified components are unavailable, not failures. No raw
+model explanation, hidden oracle answer or arbitrary answer field is published.
+Synthetic diagnostic coverage is not an engine benchmark or general efficacy claim.
+
+An explicit `publish` retry with the original `source_run` can refresh presentation
+without a new paid evaluation. It authenticates the original workflow, complete
+plan digest and verified ledger record, current PR base/head, retention and frozen
+inputs. Historical controller compatibility is established against the original
+trusted-main ancestor, not by relaxing hashes: an isolated report-only subprocess
+runs that Git source with no provider/GitHub environment and never executes
+artifact Python. The comment distinguishes the original execution implementation
+from the current presentation implementation. Current explanatory projection also
+requires the identical builtin grader and schema; otherwise components are unavailable.
+Failures stop the retry rather than replacing available evidence with a fabricated
+new result. New-run authorization/accounting and retained-result validity are separate.
+
+Use the existing workflow dispatch with `action=publish`, the current PR number
+and original `source_run`; do not request `execute` or provide a new approval.
+This bridge supports completed first-attempt automatic (`pull_request_target`)
+source runs with a verified ledger binding. Missing Git ancestry, mismatched live
+revisions, expired artifacts or unauthenticated provenance stop publication.
+The uploaded report contains the original plan and separate renderer metadata.
