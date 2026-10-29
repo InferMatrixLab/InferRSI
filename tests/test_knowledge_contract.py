@@ -58,7 +58,7 @@ def _case_records():
 
 def test_case_documents_cite_their_record_without_copying_digests():
     cases = list(_case_records())
-    assert len(cases) == 4
+    assert len(cases) == 5
     for path, record in cases:
         body = (path.parent / record["content"]).read_text(encoding="utf-8")
         # The JSON record is the single home for source identities and digests;

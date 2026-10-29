@@ -161,6 +161,16 @@ qualified by the CUDA fixture.
 
 ## Workflow: verify before benchmark
 
+### Qualify a stateful serving operator
+
+For vLLM Qwen3-Next GDN convolution/recurrence reuse, read the
+[pinned phase/state contract](references/vllm-gdn-causal-conv-contract.md) and
+[representative source cases](cases/vllm-gdn-source-contract.md). Trace the
+concrete caller, effective phase/backend, state-row mapping and in-place writes
+before choosing an operator. The in-tree vLLM wrappers do not establish a
+standalone-package or HF-worker binding. Source selection remains separate
+from executed correctness, hardware qualification and performance.
+
 **Phase 1: Write the kernel with a reference function**
 
 Every kernel must ship with three exports (used by companion verification and

@@ -541,3 +541,8 @@ behavior. The source-derived candidates remain empirical **not_run**; the
 [bounded evaluation plan](reviews/issue148-flare-source-distillation.md) is
 **not evaluated**.
 
+## vLLM GDN operator qualification
+
+| Resource | Stages and mechanism | Owner and evidence | Qualification boundary |
+|---|---|---|---|
+| Accelerator | Diagnose / Configure / Verify: concrete Qwen3-Next GDN caller, requested/effective prefill recurrence, separate in-tree conv fwd/update, mixed/speculative metadata, state-row and progress contract | [kernel-writing-guide reference](../src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md), [four source cases](../src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.md); vLLM @ `537a79f0fc5ba564d2bef43d54915b2f80f9f77d` | Source-derived candidate; native not_run, agent efficacy not_evaluated. HF caller binding, external implementation equivalence, physical allocation/recycling, target hardware and performance remain unqualified. |
