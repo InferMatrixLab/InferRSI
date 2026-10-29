@@ -42,7 +42,8 @@ Codex client with plugin support, Python 3.10+ and Git.
 
 ## Install from a local archive
 
-The [daily release](releases.md) includes a versioned installer named
+The [daily release guide](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/releases.md)
+describes the versioned installer named
 `inferrsi-codex-plugin-vX.Y.Z.zip` in
 [GitHub Releases](https://github.com/InferMatrixLab/InferRSI/releases). Download
 it with `SHA256SUMS`, verify the checksum and extract it into a fresh directory.

@@ -60,7 +60,7 @@ configuration does not silently change their access or existing branch rules.
    generate `SHA256SUMS`. `MANIFEST.in` limits sdist contents to package sources
    and build metadata; repository evidence/workflows are not release payload.
    Reuse `tools/build_codex_plugin.py` to build the self-contained
-   `inferrsi-codex-plugin-vX.Y.Z.zip` installer from the same runtime bytes.
+   `inferrsi-codex-plugin-vX.Y.Z.zip` installer from the same source revision.
    Its generated plugin metadata, bundled runtime and tag must have the same
    version. Verify every bundled runtime hash and exercise the extracted
    launcher/knowledge reads outside the checkout with isolated Python.
