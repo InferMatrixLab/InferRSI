@@ -94,15 +94,27 @@ def check_plugin(path: Path, tag: str) -> None:
     version = release_version(tag)
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
-        roots = {PurePosixPath(name).parts[0] for name in names if name}
-        if len(roots) != 1 or len(names) != len(set(names)):
+        if len(names) != len(set(names)):
             raise ValueError("Plugin ZIP must contain one unambiguous marketplace root")
+        roots = set()
+        destinations = set()
         for member in archive.infolist():
             name = PurePosixPath(member.filename)
+            canonical = name.as_posix() + ("/" if member.is_dir() else "")
             if (not name.parts or name.is_absolute() or ".." in name.parts
                     or "\\" in member.filename or ":" in member.filename
+                    or member.filename != canonical
+                    or name.as_posix().casefold() in destinations
+                    or any(part.endswith((".", " ")) or re.search(r'[<>"|?*]', part)
+                           or re.fullmatch(r"con|prn|aux|nul|com[1-9]|lpt[1-9]",
+                                           part.split(".")[0], re.IGNORECASE)
+                           for part in name.parts)
                     or stat.S_ISLNK(member.external_attr >> 16)):
                 raise ValueError("Unsafe plugin ZIP entry")
+            destinations.add(name.as_posix().casefold())
+            roots.add(name.parts[0])
+        if len(roots) != 1:
+            raise ValueError("Plugin ZIP must contain one unambiguous marketplace root")
         root = roots.pop()
         plugin = f"{root}/plugins/inferrsi"
         metadata = json.loads(archive.read(f"{plugin}/plugin.json"))
@@ -116,7 +128,10 @@ def check_plugin(path: Path, tag: str) -> None:
             raise ValueError("Plugin identity/version does not match the release")
         prefix = f"{plugin}/runtime/"
         actual = {name[len(prefix):] for name in names
-                  if name.startswith(prefix + "inferrsi/") and not name.endswith("/")}
+                  if name.startswith(prefix) and name != prefix + "manifest.json"
+                  and not name.endswith("/")}
+        if any(not name.startswith("inferrsi/") for name in actual):
+            raise ValueError("Unexpected file outside the bundled runtime package")
         hashes = manifest["files"]
         if not hashes or set(hashes) != actual:
             raise ValueError("Plugin manifest must cover every bundled runtime file")
@@ -129,7 +144,9 @@ def check_plugin(path: Path, tag: str) -> None:
         with tempfile.TemporaryDirectory(prefix="irsi-") as staging:
             destination = Path(staging).resolve()
             if os.name == "nt":
-                destination = Path("\\\\?\\" + str(destination))
+                value = str(destination)
+                destination = Path("\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\")
+                                   else "\\\\?\\" + value)
             archive.extractall(destination)
             launcher = destination / plugin / "skills/inferrsi/scripts/inferrsi.py"
             command = [sys.executable, "-I", "-S", "-X", "utf8", str(launcher)]

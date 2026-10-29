@@ -195,6 +195,39 @@ def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp
         check_plugin(changed, "v0.2.0")
 
 
+@pytest.mark.parametrize("replacement", [
+    "plugins//inferrsi/", "plugins/./inferrsi/", "plugins/Inferrsi/", "plugins./inferrsi/",
+])
+def test_release_archive_rejects_extraction_aliases(tmp_path, replacement):
+    changed = tmp_path / "aliased.zip"
+    name = "inferrsi-codex-plugin-v0.2.0/plugins/inferrsi/runtime/inferrsi/__init__.py"
+    alias = name.replace("plugins/inferrsi/", replacement)
+    with zipfile.ZipFile(changed, "w") as archive:
+        archive.writestr(name, b"pass")
+        archive.writestr(alias, b"raise RuntimeError('must not execute unverified alias')")
+    with pytest.raises(ValueError, match="Unsafe"):
+        check_plugin(changed, "v0.2.0")
+
+
+@pytest.mark.parametrize("name", [".", "../file", "/absolute", "root/CON.txt", "root/file. "])
+def test_release_archive_rejects_unsafe_names_before_metadata(tmp_path, name):
+    changed = tmp_path / "unsafe.zip"
+    with zipfile.ZipFile(changed, "w") as archive:
+        archive.writestr(name, b"")
+    with pytest.raises(ValueError, match="Unsafe"):
+        check_plugin(changed, "v0.2.0")
+
+
+def test_release_archive_rejects_unverified_runtime_modules(release_distribution, tmp_path):
+    original = release_distribution[2]["archive"]
+    changed = tmp_path / "shadow.zip"
+    shutil.copyfile(original, changed)
+    with zipfile.ZipFile(changed, "a") as archive:
+        archive.writestr("inferrsi-codex-plugin-v0.2.0/plugins/inferrsi/runtime/hashlib.py", b"")
+    with pytest.raises(ValueError, match="outside the bundled runtime"):
+        check_plugin(changed, "v0.2.0")
+
+
 def test_release_builder_rejects_mismatched_version_before_writing(release_distribution, tmp_path):
     project = release_distribution[0]
     output = tmp_path / "wrong-version"
