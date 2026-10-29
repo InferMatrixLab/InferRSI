@@ -83,6 +83,17 @@ class FeedbackTests(unittest.TestCase):
         self.assertLess(text.index('readiness'), text.index('Paid execution blocked'))
         self.assertIn('does not invalidate available retained results', text)
 
+    def test_bounded_block_reason_keeps_explicit_no_fallback_safety_clause(self):
+        plan, results = fixture()
+        plan["execution_blocked"] = "</details>@someone `unsafe` " * 1000
+        text = render(plan, results)
+        self.assertIn("no alternate provider/model is selected", text)
+        self.assertIn("does not invalidate available retained results", text)
+        self.assertEqual(text.count("</details>"), 2)
+        self.assertNotIn("@someone", text)
+        self.assertNotIn("`unsafe`", text)
+        self.assertLess(len(text), 10000)
+
     def test_unavailable_and_schema_failure_are_not_component_failures(self):
         for t in ({}, dict(verdict='INCONCLUSIVE', grader_trust='reverified'),
                   dict(verdict='FAIL', grader_trust='unverified')):

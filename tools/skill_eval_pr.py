@@ -491,8 +491,8 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
     lines += comparison_lines(plan, results, evidence_state)
     if plan.get("execution_blocked"):
         lines += ["", "Paid execution blocked: " + safe_text(plan["execution_blocked"]) + ". "
-                  "New execution only: this does not invalidate available retained results. "
-                  "No alternate provider/model is selected."]
+                  "New execution only: this does not invalidate available retained results; "
+                  "no alternate provider/model is selected."]
     if execution_control is not None:
         lines += ["", "Automatic execution / cumulative PR budget: `"
                   + canonical(execution_control) + "`", ""]
