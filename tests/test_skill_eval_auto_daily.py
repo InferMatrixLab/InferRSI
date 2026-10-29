@@ -185,6 +185,9 @@ class ControllerTests(unittest.TestCase):
 
     def test_configuration_migration_preserves_legacy_read_only(self):
         legacy = json.loads(auto.CONFIG.read_text())
+        legacy["schema_version"] = 1
+        legacy.pop("daily_budget", None)
+        legacy["anchors"].pop("133", None)
         path = self.output / "config.json"
         path.write_text(json.dumps(legacy))
         self.assertEqual(auto.configuration(path, now=0), legacy)

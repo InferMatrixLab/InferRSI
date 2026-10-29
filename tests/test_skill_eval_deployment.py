@@ -24,13 +24,21 @@ def test_deployment_identity_and_expiry_are_closed(deployed):
     assert deployed["repository_id"] == 1409534281
     assert deployed["operators"] == ["Dong1017"]
     assert deployed["label"] == "skill-eval:execute"
-    expected = {"159": "727d31e55f496c53fbf02cf4f624008487de27cb",
+    expected = {"133": "be3164546eb76d073ccd3ddd29cfd18794955bd0",
+                "159": "727d31e55f496c53fbf02cf4f624008487de27cb",
                 "160": "1fdbd8adc35e2df7439c3cd74780f869d2d6e668"}
     assert set(deployed["anchors"]) == set(expected)
     for number, sha in expected.items():
         assert deployed["anchors"][number] == {
             "ref": f"refs/heads/skill-eval-budget/1409534281/{number}",
             "genesis_commit": sha, "checkpoint_commit": sha}
+    assert deployed["schema_version"] == 2
+    assert deployed["daily_budget"] == {
+        "currency": "USD", "amount": "1000", "timezone": "Asia/Shanghai",
+        "anchor": {
+            "ref": "refs/heads/skill-eval-budget/1409534281/daily",
+            "genesis_commit": "1d3df4ea3924c2b4ce92f051becf566839d66c9c",
+            "checkpoint_commit": "1d3df4ea3924c2b4ce92f051becf566839d66c9c"}}
     assert deployed["expires_at"] == OBSERVED + 86400
     assert deployed["provider"]["pricing"]["expires_at"] == deployed["expires_at"]
     assert deployed["provider_sha256"] == pr.fingerprint(deployed["provider"])
