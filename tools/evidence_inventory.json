@@ -1,6 +1,10 @@
 {
   "version": 1,
   "bundles": {
+    "indexer-255-20261029": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity-manifest.json", "schema": "bundle-sha256"}]
+    },
     "_template": {"kind": "template", "manifests": []},
     "qwen38-h20-fp8-single-request-vllm032": {
       "kind": "campaign", "manifests": [

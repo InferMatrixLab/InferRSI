@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "baseline_sha": "ab03f3ffb8f2e5bc02c304828c5c41890eef673e",
+  "frozen_at_utc": "2026-10-29T12:32:20Z",
+  "purpose": "Independent, source-reviewed partial relevance labels for four diagnostic retrieval queries. Not a comprehensive gold set or downstream agent efficacy test. Created without running retrieval or inspecting ranks. Held out from candidate optimization until code freeze.",
+  "metric_contract": {
+    "positive_queries": "Report relevant Hit@5 and reciprocal rank of first listed relevant ID; other returned IDs are unjudged, not necessarily irrelevant. Do not calculate complete Recall or false-positive precision from these partial labels.",
+    "delivery": "For each retrieved labelled relevant item, verify its context carries the matching revision and all specified mandatory resource suffixes; missing retrieval and budget omission must be distinct.",
+    "judgment_limits": "Single assessor/source-grounded labels, four queries, candidate-only corpus, no human validation or production representativeness claim. No forbidden-ID labels are imposed: broader companion skills may also be useful."
+  },
+  "cases": [
+    {
+      "id": "heldout01",
+      "split": "heldout",
+      "intent_family": "host_copy_lifetime",
+      "query": "",
+      "relevance": "TorchNPU nonblocking transfer finished submitting but pinned RAM remains occupied; when may a CPU buffer be reused?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.ascend.skills.torchnpu_pinned_host_memory_lifecycle"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+        "hardware/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": "23e93ea7c98f99743509fdc04139d78ed2e7123c63e80b366c6beaba7eb70d0d"
+      },
+      "rationale": "The pinned-host allocator procedure distinguishes CPU ownership, pending copy events, active/cached RAM, and completion before reuse; device-HBM tuning is a separate domain."
+    },
+    {
+      "id": "heldout02",
+      "split": "heldout",
+      "intent_family": "storage_measurement",
+      "query": "",
+      "relevance": "Checkpoint loading got faster on the second run. Does high disk utilization prove the SSD is the bottleneck, or could cached reads explain it?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.storage_io_measurement"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "hardware/host/storage-io-measurement/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md": "63b883c10a8d3e7d918abfc7175b72e2b401ff1e02697f94b8382ec1c8f369b7"
+      },
+      "rationale": "The procedure requires a warm/cold/unknown cache ledger and corroborating queue/latency/workload evidence; utilization alone does not establish storage saturation."
+    },
+    {
+      "id": "heldout03",
+      "split": "heldout",
+      "intent_family": "snapshot_reuse",
+      "query": "",
+      "relevance": "After asynchronous training save staging completes, may the next checkpoint overwrite its cached CPU snapshot while the previous writer is still uploading?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.dcp_async_save_performance"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+        "frameworks/pytorch/dcp-async-save-performance/references/sources.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md": "645139ee0c88ec865cad952e24cda35f4648d4b777b732c9b7d274b6c7830845"
+      },
+      "rationale": "The DCP completion table separates source-mutation readiness after staging from cached-snapshot reuse only after previous upload completion."
+    },
+    {
+      "id": "heldout04",
+      "split": "heldout",
+      "intent_family": "diffusion_cancellation",
+      "query": "",
+      "relevance": "SGLang video generation request timed out and its job record was deleted. How can I tell whether the worker stopped computing and released its resident components?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.audit_sglang_diffusion_lifetimes"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+        "repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": "b0a4ba4751087126143ef86983798deb0ed00e24b6ff06bf6ef76a9df6e274f2"
+      },
+      "rationale": "The SGLang diffusion procedure distinguishes socket timeout/store deletion from worker/device completion and component-use residency; its source shows abort remains TODO."
+    }
+  ]
+}
