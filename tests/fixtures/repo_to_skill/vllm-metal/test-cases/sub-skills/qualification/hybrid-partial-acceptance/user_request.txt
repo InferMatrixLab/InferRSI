@@ -1,1 +1,0 @@
-Enable draft_model on a BF16 recurrent GDN cache with lazy kernels off. We got high draft acceptance once, so no partial-acceptance parity test is needed. Can this be promoted?

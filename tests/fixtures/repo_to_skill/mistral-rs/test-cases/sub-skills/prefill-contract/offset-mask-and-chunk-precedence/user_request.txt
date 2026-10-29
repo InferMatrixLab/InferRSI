@@ -1,1 +1,0 @@
-Default example qlens[3,5], contexts[17,65] now has explicit mask K offsets[2,4]. Is packed mask K extent 69 or 82? For qabs15 and kabs16 in multimodal range[0,32), chunk size16, does the range override the chunk?

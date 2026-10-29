@@ -1,1 +1,0 @@
-Use the source Gemma4 audio task with min_samples 161 and explicit prompt arrays. Then omit min_samples or prompt prefix, replace absent adapter/prompt with null, and permute mapping keys. Are raw JSON hashes equivalent?

@@ -1,1 +1,0 @@
-The consumer receives final info cancelled, immediately reuses its mutable cache and backgrounds the app. No task handle/join was retained. Prove that no GPU work or cleanup can remain.

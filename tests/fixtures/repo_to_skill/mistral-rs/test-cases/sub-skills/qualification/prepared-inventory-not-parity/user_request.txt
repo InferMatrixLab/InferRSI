@@ -1,1 +1,0 @@
-Warmup max batch32/context32768 lists119 shapes and a prepared log is present. Can that prove noncausal masks, historical multimodal ranges, right windows/chunks and numerical correctness?

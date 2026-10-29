@@ -1,1 +1,0 @@
-The caller compares workspace.bytes() after a tiny request to a planned batch and says memory is safe. qH=8 KVH=2 D=128 and context 513 are declared. Does the bounded helper prove split selection or fit?

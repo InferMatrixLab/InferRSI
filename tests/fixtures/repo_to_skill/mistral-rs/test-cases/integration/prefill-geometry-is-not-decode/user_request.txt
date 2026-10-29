@@ -1,1 +1,0 @@
-A primitive prefill case permits Kdim64/Vdim96 and block7. Copy the same cache into decode, assert no stride work because shapes fit, and choose the optimized path from a metadata helper.

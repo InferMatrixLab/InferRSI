@@ -1,1 +1,0 @@
-Our DwarfStar command tests pass using local socketpairs. I want to deploy two CUDA hosts with V4.1 DSpark, --ssd-streaming and --cuda-tensor-parallel, and label RDMA verified because the hosts ping each other. One guide says V4.1 DSpark works across two hosts and another says it does not. Review this plan without starting a service or changing the hosts.

@@ -1,1 +1,0 @@
-I enabled DSpark for a matched DwarfStar Flash target/support pair at temperature 1. The accepted drafts look good and the CPU sampling checks passed. Can I call the default mode distribution-preserving? If I add --mtp-exact-sampling, must the same seed reproduce every token of ordinary decoding? Give a correctness-first comparison plan; do not run or download anything.

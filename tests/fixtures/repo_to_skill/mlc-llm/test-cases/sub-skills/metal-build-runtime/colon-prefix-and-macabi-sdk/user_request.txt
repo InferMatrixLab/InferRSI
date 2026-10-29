@@ -1,1 +1,0 @@
-Compare explicit prefix for iphone and iphone:generic with static .tar; for macabi:generic choose x86_64 and assume its Metal SDK is iphoneos. Does a missing static prefix reject immediately?

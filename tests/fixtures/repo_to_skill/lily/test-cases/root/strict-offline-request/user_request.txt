@@ -1,1 +1,0 @@
-Prepare a tiny valid Lily request offline, without Rust, a model or network. My SDK normally includes temperature0 and streamtrue. Which fields must I remove, and can a JSON helper prove the actual token budget?

@@ -1,1 +1,0 @@
-I put every .so from Local Dream into the Android ARM64 JNI directory. libdit_engine loads but its DSP backend fails. Can matching ABI labels and APK minSdk prove compatibility? No builds or downloads allowed.

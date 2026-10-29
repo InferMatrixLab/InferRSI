@@ -1,1 +1,0 @@
-README documents 3.x and Package.swift says MLX Swift upToNextMinor 0.33.0, macOS 14 minimum. Can a future resolver be treated as exactly tag 0.33.0 and FoundationModels runtime support be declared from Linux lint?
