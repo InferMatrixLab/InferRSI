@@ -546,3 +546,16 @@ behavior. The source-derived candidates remain empirical **not_run**; the
 | Resource | Stages and mechanism | Owner and evidence | Qualification boundary |
 |---|---|---|---|
 | Accelerator | Diagnose / Configure / Verify: concrete Qwen3-Next GDN caller, requested/effective prefill recurrence, separate in-tree conv fwd/update, mixed/speculative metadata, state-row and progress contract | [kernel-writing-guide reference](../src/inferrsi/data/skill_library/methods/kernel-writing-guide/references/vllm-gdn-causal-conv-contract.md), [four source cases](../src/inferrsi/data/skill_library/methods/kernel-writing-guide/cases/vllm-gdn-source-contract.md); vLLM @ `537a79f0fc5ba564d2bef43d54915b2f80f9f77d` | Source-derived candidate; native not_run, agent efficacy not_evaluated. HF caller binding, external implementation equivalence, physical allocation/recycling, target hardware and performance remain unqualified. |
+
+## Local Dream Android diffusion source contracts
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Host control / accelerator lifetime | Diagnose / verify: desired versus serving full configuration, startup-only preferences, grace/restart, process-spawn versus health and actual shape | [local-dream](../src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md), [Android lifecycle](../src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md) | Static source and exact declaration comparison, not Android lifecycle execution, native readiness, tensor shape or safe reuse proof. |
+| Accelerator / RAM / persistent-cache boundary | Diagnose / configure: MNN/QNN/Anima/DiT dispatch, shared generation/upscale exclusion, callback cancellation, mode/layout versus model-revision cache identity | [local-dream native contracts](../src/inferrsi/data/skill_library/repositories/local-dream/references/native-contracts.md) | No actual allocations/cache parity/model/image quality/fit/thermal/performance result; not a measured SSD gain or universal cache-safety claim. |
+| Native packaging / remote exposure boundary | Diagnose / verify: core executable, CPU DiT library versus DSP skels, ABI and SDK provenance; unauthenticated LAN control versus readiness | [local-dream packaging](../src/inferrsi/data/skill_library/repositories/local-dream/references/packaging-and-abi.md), [host limits](../src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md) | Required native evidence BLOCKED_REQUIRED_BACKEND / not_run; no authorization to expose ports, Network transport optimization, OS control, native compatibility or service gain. |
+
+This source-derived candidate adds no measured/green resource coverage. Matching
+configuration/ABI/SDK declarations are not native execution; qualification remains
+INCONCLUSIVE. Upstream CC BY-NC 4.0 rights are retained separately from API
+NOASSERTION and InferRSI's repository license.

@@ -213,6 +213,10 @@
       "path": "repositories/lily",
       "backend": "common"
     },
+    "local-dream": {
+      "path": "repositories/local-dream",
+      "backend": "common"
+    },
     "mistral-rs": {
       "path": "repositories/mistral-rs",
       "backend": "common"
