@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/49335e0c388b84211364170daf3603525885eb28/src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
-      "commit": "49335e0c388b84211364170daf3603525885eb28",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/69bfe4207c49e57787f479f1b49a112f506c7795/src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
+      "commit": "69bfe4207c49e57787f479f1b49a112f506c7795",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json",
