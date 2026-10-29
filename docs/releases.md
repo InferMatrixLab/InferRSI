@@ -18,6 +18,30 @@ prereleases and does not mark them Latest. Changing to a stable channel is a
 separately reviewed configuration decision. Published previews count as
 successful releases for no-change detection; private drafts do not.
 
+## Authority boundary
+
+The bot's only repository mutations are creating a new `refs/tags/<version>`
+at an existing reviewed commit and creating/uploading/publishing that version's
+Release. It must not create code commits, edit repository files, create/update/
+delete code branches, create/approve/merge PRs or enable auto-merge. Configuration
+development and review are contributor work; they are not bot capabilities.
+
+Plan/build jobs have Contents read access. Only the publisher receives Contents
+write; Pull requests permission is explicitly none. The publisher validates its
+tag/SHA inputs and never checks out or executes repository code. Regression
+tests execute its actual shell commands against a recording GitHub mock that
+rejects non-publication writes.
+
+This is an enforced workflow behavior contract, not a tag-only token scope.
+GitHub's Contents write permission also authorizes
+[file commits](https://docs.github.com/en/rest/repos/contents#create-or-update-file-contents)
+and [PR merging](https://docs.github.com/en/rest/pulls/pulls#merge-a-pull-request);
+setting Pull requests to none does not remove those Contents capabilities.
+GitHub does not offer a separate tag/Release-only GITHUB_TOKEN permission.
+Server-side branch restrictions need a separately scoped repository-policy
+change: the GitHub Actions App identity is shared by other workflows, so this
+configuration does not silently change their access or existing branch rules.
+
 ## Publication flow
 
 1. Snapshot the default branch and inspect stable tags plus published Releases.
