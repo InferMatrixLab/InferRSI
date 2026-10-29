@@ -171,18 +171,18 @@ Complete procedures, sidecars, references and cases are packaged, with 13 Ascend
 repositories, methods or workflows. The 21 engine and research-router skills
 use the same ownership layout under `repositories/<engine>/` and
 `workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 118 `SKILL.md` files, all in English.
+The library contains 119 `SKILL.md` files, all in English.
 The collection overview, import notes and source manifest belong to the research
 workflow's references; Strata design-space analysis belongs to Strata. The library
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 74 registered skills into the contribution catalog. Its records
+projects the 75 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-74-ID registry; engine procedures remain available through library navigation
+75-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
 The registered [h3.c runtime audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
@@ -273,3 +273,12 @@ The [mlx-swift-lm candidate](../src/inferrsi/data/skill_library/repositories/mlx
 The [mlc-llm candidate](../src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md) separates artifact metadata, supported consumers, Apple targets, pinned TVM runnable/runtime boundaries and compiled/runtime KV configuration. Canonical hashes, serializable fallback or estimated limits are not native/model/quality/fit/service evidence.
 
 The registered [h3-metal FastH3 audit](../src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) supplements earlier h3.c residency with fork-specific effective configuration, tensor/schedule semantics and VSA eligibility/fallback. Its offline declaration arithmetic and label probes do not qualify native conversion, sparse attention, media, memory fit or performance; required Apple/model evidence remains blocked/not_run.
+
+The registered [local-dream candidate](../src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md)
+owns selected Android desired/serving/readiness and unauthenticated-host
+boundaries, native diffusion dispatch/cancellation/cache and DiT/QNN packaging
+contracts. Its helper compares declarations only; required Android/Qualcomm,
+model, image quality, fit and service/performance evidence remains
+`BLOCKED_REQUIRED_BACKEND / not_run`. This is portable AREX-informed candidate
+integration, not a fully verified DisCo import. Pinned CC BY-NC 4.0 source rights
+and machine SPDX `NOASSERTION` remain separate.

@@ -490,3 +490,9 @@ implied. [Construction and evaluation plan](reviews/issue148-flare-source-distil
 uses AREX methods with InferRSI's native registration/projections. This does not
 create a repo runtime descriptor, backend port or measured resource effect.
 
+
+## Local Dream Android diffusion boundary source
+
+| Reference (origin @ revision) | Inspected scope | Extraction and remaining limits |
+| --- | --- | --- |
+| xororz/local-dream @ `db162df4d9bb6efc6595250423d8df26241f4c27`; AREX-Skill @ `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` | Selected Android backend/host/generation consumers, native dispatch/shared-lock/cancellation/prompt-cache/selected residency, separate core/DiT packaging/ABI and host-test definitions; [bounded readset and rights](../src/inferrsi/data/skill_library/repositories/local-dream/references/repo-provenance.md), [exact identity ledger](../src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json). Dependency bodies, full app and guide site excluded | [local-dream candidate](../src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md) plus one declaration-only helper. Actual source CC BY-NC 4.0; API NOASSERTION is not permission or relicensing. Android/MNN/QNN/Hexagon/model/media/fit/thermal/service/performance and skill efficacy not_run. No measured resource cell or managed DisCo import. |

@@ -1,0 +1,198 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.local_dream",
+  "title": "local-dream",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit Local Dream Android desired-versus-serving process state, remote exposure, native backend and DiT packaging/ABI selection, shared generation cancellation and prompt-cache identity without mistaking declarations or source tests for on-device diffusion qualification.",
+  "tags": [
+    "local-dream",
+    "android",
+    "snapdragon",
+    "qnn",
+    "hexagon",
+    "mnn",
+    "diffusion",
+    "lifecycle",
+    "cancellation",
+    "prompt-cache",
+    "abi",
+    "lan-exposure"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e71d0631a1c0854c9616d8ef5e174d3a1e14af4b/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
+      "commit": "e71d0631a1c0854c9616d8ef5e174d3a1e14af4b",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md",
+        "src/inferrsi/data/skill_library/repositories/local-dream/references/native-contracts.md",
+        "src/inferrsi/data/skill_library/repositories/local-dream/references/packaging-and-abi.md",
+        "src/inferrsi/data/skill_library/repositories/local-dream/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json",
+        "src/inferrsi/data/skill_library/repositories/local-dream/references/upstream-license.md",
+        "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "e51fd3c71d693070abeba57ca67dcca82c7347cb94eb98f43e7c455bcacbaa46"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/local-dream/SKILL.md"
+  },
+  "checkout_ref": "checkout:local-dream",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md": "e51fd3c71d693070abeba57ca67dcca82c7347cb94eb98f43e7c455bcacbaa46",
+    "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json": "ab33602252d0f5bb0797c3e1f12466b55a82aeaff10cd24e42a99a5224c8e593",
+    "src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md": "f85e5fce39f5de5f88548fd8c21978240c810f899e03ff05ed72eb3508ee5e36",
+    "src/inferrsi/data/skill_library/repositories/local-dream/references/native-contracts.md": "40206892f5e421f9d8edf303870f5c4aefa3e87123537178d45f438f3d04b7ce",
+    "src/inferrsi/data/skill_library/repositories/local-dream/references/packaging-and-abi.md": "9a19bca59e19c3bfbfc1a15f5fc756c13d954ace367812aeb000551f4484ad06",
+    "src/inferrsi/data/skill_library/repositories/local-dream/references/repo-provenance.md": "0b848082c0ce893d8ae26d779c5b663d914d1a208cb2293c4a84668cdde86293",
+    "src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
+    "src/inferrsi/data/skill_library/repositories/local-dream/references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
+    "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932",
+    "src/inferrsi/data/skill_library/skill-index.json": "eaf446cb37baa90d40166119ca17cc0a434dbe3f77611423f648b0f225903f7c"
+  },
+  "skill_metadata": {
+    "name": "local-dream",
+    "description": "Audit Local Dream Android desired-versus-serving process state, remote exposure, native backend and DiT packaging/ABI selection, shared generation cancellation and prompt-cache identity without mistaking declarations or source tests for on-device diffusion qualification.",
+    "license": "NOASSERTION",
+    "disable-model-invocation": true,
+    "metadata": {
+      "disco-role": "operating"
+    },
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "tags": [
+      "local-dream",
+      "android",
+      "snapdragon",
+      "qnn",
+      "hexagon",
+      "mnn",
+      "diffusion",
+      "lifecycle",
+      "cancellation",
+      "prompt-cache",
+      "abi",
+      "lan-exposure"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/xororz/local-dream",
+        "commit": "db162df4d9bb6efc6595250423d8df26241f4c27",
+        "license": "CC-BY-NC-4.0; repository API SPDX NOASSERTION retained separately",
+        "readset": "references/source-identity.json",
+        "paths": [
+          ".gitmodules",
+          "LICENSE",
+          "README.md",
+          "app/build.gradle.kts",
+          "app/src/main/cpp/CMakeLists.txt",
+          "app/src/main/cpp/CMakePresets.json",
+          "app/src/main/cpp/build.sh",
+          "app/src/main/cpp/dit/CMakeLists.txt",
+          "app/src/main/cpp/dit/DitEngine.cpp",
+          "app/src/main/cpp/dit/build.sh",
+          "app/src/main/cpp/include/DitEngine.h",
+          "app/src/main/cpp/src/Config.hpp",
+          "app/src/main/cpp/src/Pipeline.hpp",
+          "app/src/main/cpp/src/PipelineAnima.hpp",
+          "app/src/main/cpp/src/PipelineDit.hpp",
+          "app/src/main/cpp/src/PipelineSd15Cpu.hpp",
+          "app/src/main/cpp/src/PipelineSd15Npu.hpp",
+          "app/src/main/cpp/src/PipelineSdxl.hpp",
+          "app/src/main/cpp/src/PipelineSdxlMnn.hpp",
+          "app/src/main/cpp/src/PromptCache.hpp",
+          "app/src/main/cpp/src/QnnRuntime.hpp",
+          "app/src/main/cpp/src/main.cpp",
+          "app/src/main/java/io/github/xororz/localdream/data/DitEngine.kt",
+          "app/src/main/java/io/github/xororz/localdream/data/DitResolution.kt",
+          "app/src/main/java/io/github/xororz/localdream/data/Model.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteApiClient.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteHostServer.kt",
+          "app/src/main/java/io/github/xororz/localdream/remote/RemoteProtocol.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/BackendService.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/BackgroundGenerationService.kt",
+          "app/src/main/java/io/github/xororz/localdream/service/RemoteHostService.kt",
+          "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunScreen.kt",
+          "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunSupport.kt",
+          "app/src/test/java/io/github/xororz/localdream/ExampleUnitTest.kt",
+          "app/src/test/java/io/github/xororz/localdream/ModelStorageTest.kt"
+        ]
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "readset": "references/source-identity.json",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/repository-evidence.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/input-output-and-structure.md",
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/planning-and-writing.md",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/SKILL.md",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/references/usability-test-cases.md"
+        ]
+      }
+    ],
+    "applicability": {
+      "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+    },
+    "limitations": [
+      "Source-derived candidate; required Android ARM64/MNN/QNN/Hexagon/model execution BLOCKED_REQUIRED_BACKEND / not_run; qualification INCONCLUSIVE.",
+      "Portable AREX-informed source analysis and InferRSI candidate integration, not DisCo CLI execution, managed import or full AREX verification.",
+      "Original upstream Gradle/JVM/native tests, APK build/sign/install, loader/device/model/media-quality/memory-fit/thermal/service/performance and agent-efficacy checks not_run.",
+      "Offline helper compares supplied exact configuration and ABI/SDK labels only; it does not authenticate process state, readiness, artifact bytes, cache correctness or runtime behavior.",
+      "LAN control is unauthenticated in the inspected implementation despite stale comments; audit guidance does not authorize enabling host mode or exposing ports.",
+      "NOASSERTION is machine metadata, not license absence or commercial permission. Pinned LICENSE is CC BY-NC 4.0; retain restriction and attribution; SDK/model/dependency rights separate.",
+      "Full UI/navigation/import/download/storage/history/scheduler/kernel/security review and external dependency bodies excluded."
+    ],
+    "provenance_readsets": [
+      "references/repo-provenance.md",
+      "references/source-identity.json"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; required Android ARM64/MNN/QNN/Hexagon/model execution BLOCKED_REQUIRED_BACKEND / not_run; qualification INCONCLUSIVE.",
+    "Portable AREX-informed source analysis and InferRSI candidate integration, not DisCo CLI execution, managed import or full AREX verification.",
+    "Original upstream Gradle/JVM/native tests, APK build/sign/install, loader/device/model/media-quality/memory-fit/thermal/service/performance and agent-efficacy checks not_run.",
+    "Offline helper compares supplied exact configuration and ABI/SDK labels only; it does not authenticate process state, readiness, artifact bytes, cache correctness or runtime behavior.",
+    "LAN control is unauthenticated in the inspected implementation despite stale comments; audit guidance does not authorize enabling host mode or exposing ports.",
+    "NOASSERTION is machine metadata, not license absence or commercial permission. Pinned LICENSE is CC BY-NC 4.0; retain restriction and attribution; SDK/model/dependency rights separate.",
+    "Full UI/navigation/import/download/storage/history/scheduler/kernel/security review and external dependency bodies excluded."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

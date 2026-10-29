@@ -1,0 +1,102 @@
+{
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NOASSERTION",
+  "tags": [
+    "local-dream",
+    "android",
+    "snapdragon",
+    "qnn",
+    "hexagon",
+    "mnn",
+    "diffusion",
+    "lifecycle",
+    "cancellation",
+    "prompt-cache",
+    "abi",
+    "lan-exposure"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/xororz/local-dream",
+      "commit": "db162df4d9bb6efc6595250423d8df26241f4c27",
+      "license": "CC-BY-NC-4.0; repository API SPDX NOASSERTION retained separately",
+      "readset": "references/source-identity.json",
+      "paths": [
+        ".gitmodules",
+        "LICENSE",
+        "README.md",
+        "app/build.gradle.kts",
+        "app/src/main/cpp/CMakeLists.txt",
+        "app/src/main/cpp/CMakePresets.json",
+        "app/src/main/cpp/build.sh",
+        "app/src/main/cpp/dit/CMakeLists.txt",
+        "app/src/main/cpp/dit/DitEngine.cpp",
+        "app/src/main/cpp/dit/build.sh",
+        "app/src/main/cpp/include/DitEngine.h",
+        "app/src/main/cpp/src/Config.hpp",
+        "app/src/main/cpp/src/Pipeline.hpp",
+        "app/src/main/cpp/src/PipelineAnima.hpp",
+        "app/src/main/cpp/src/PipelineDit.hpp",
+        "app/src/main/cpp/src/PipelineSd15Cpu.hpp",
+        "app/src/main/cpp/src/PipelineSd15Npu.hpp",
+        "app/src/main/cpp/src/PipelineSdxl.hpp",
+        "app/src/main/cpp/src/PipelineSdxlMnn.hpp",
+        "app/src/main/cpp/src/PromptCache.hpp",
+        "app/src/main/cpp/src/QnnRuntime.hpp",
+        "app/src/main/cpp/src/main.cpp",
+        "app/src/main/java/io/github/xororz/localdream/data/DitEngine.kt",
+        "app/src/main/java/io/github/xororz/localdream/data/DitResolution.kt",
+        "app/src/main/java/io/github/xororz/localdream/data/Model.kt",
+        "app/src/main/java/io/github/xororz/localdream/remote/RemoteApiClient.kt",
+        "app/src/main/java/io/github/xororz/localdream/remote/RemoteHostServer.kt",
+        "app/src/main/java/io/github/xororz/localdream/remote/RemoteProtocol.kt",
+        "app/src/main/java/io/github/xororz/localdream/service/BackendService.kt",
+        "app/src/main/java/io/github/xororz/localdream/service/BackgroundGenerationService.kt",
+        "app/src/main/java/io/github/xororz/localdream/service/RemoteHostService.kt",
+        "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunScreen.kt",
+        "app/src/main/java/io/github/xororz/localdream/ui/screens/ModelRunSupport.kt",
+        "app/src/test/java/io/github/xororz/localdream/ExampleUnitTest.kt",
+        "app/src/test/java/io/github/xororz/localdream/ModelStorageTest.kt"
+      ]
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+      "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+      "readset": "references/source-identity.json",
+      "paths": [
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill/SKILL.md",
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/repository-evidence.md",
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/input-output-and-structure.md",
+        "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/planning-and-writing.md",
+        "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env/SKILL.md",
+        "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/SKILL.md",
+        "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/references/usability-test-cases.md"
+      ]
+    }
+  ],
+  "applicability": {
+    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+  },
+  "limitations": [
+    "Source-derived candidate; required Android ARM64/MNN/QNN/Hexagon/model execution BLOCKED_REQUIRED_BACKEND / not_run; qualification INCONCLUSIVE.",
+    "Portable AREX-informed source analysis and InferRSI candidate integration, not DisCo CLI execution, managed import or full AREX verification.",
+    "Original upstream Gradle/JVM/native tests, APK build/sign/install, loader/device/model/media-quality/memory-fit/thermal/service/performance and agent-efficacy checks not_run.",
+    "Offline helper compares supplied exact configuration and ABI/SDK labels only; it does not authenticate process state, readiness, artifact bytes, cache correctness or runtime behavior.",
+    "LAN control is unauthenticated in the inspected implementation despite stale comments; audit guidance does not authorize enabling host mode or exposing ports.",
+    "NOASSERTION is machine metadata, not license absence or commercial permission. Pinned LICENSE is CC BY-NC 4.0; retain restriction and attribution; SDK/model/dependency rights separate.",
+    "Full UI/navigation/import/download/storage/history/scheduler/kernel/security review and external dependency bodies excluded."
+  ],
+  "provenance_readsets": [
+    "references/repo-provenance.md",
+    "references/source-identity.json"
+  ],
+  "consumption_mode": "packaged"
+}

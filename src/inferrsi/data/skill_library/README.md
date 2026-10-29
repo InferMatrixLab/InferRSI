@@ -302,3 +302,13 @@ The [mlx-swift-lm graph](repositories/mlx-swift-lm/SKILL.md) adds selected Swift
 ## MLC LLM compiled Metal source contracts
 
 The [mlc-llm candidate](repositories/mlc-llm/SKILL.md) covers opt-in artifact/schema/resource declarations, Apple target and pinned TVM module/storage/stream consumers, and compiled/runtime KV limits. Helpers authenticate no binary/weights/dispatch or memory fit; required native/model/quality/service evidence remains not_run.
+
+## Local Dream Android diffusion source contracts
+
+The [local-dream candidate](repositories/local-dream/SKILL.md) separates desired
+and serving process state, grace/restart/readiness and unauthenticated LAN
+exposure, MNN/QNN/Anima/DiT dispatch, shared cancellation/cache lifetimes and
+CPU-library versus DSP-skels/ABI packaging. One offline declaration screen is
+not native evidence. Android/Qualcomm/model/quality/fit/performance remain
+blocked/not_run. Source CC BY-NC 4.0 restrictions remain distinct from API
+`NOASSERTION`. Catalog ID: `inferrsi.common.skills.local_dream`.
