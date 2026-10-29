@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 76 registered skills in `data/skill_library/`.
+Generated abstracts for all 77 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [2f72a0ccabd87eefdc76223c9b82f7091c379da1](https://github.com/InferMatrixLab/InferRSI/tree/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library).
+Source snapshot: [26743abcfae48cd6223bd757e74f193d97e3e5a7](https://github.com/InferMatrixLab/InferRSI/tree/26743abcfae48cd6223bd757e74f193d97e3e5a7/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision 2f72a0ccabd87eefdc76223c9b82f7091c379da1 --check
+python tools/build_skill_index.py --source-revision 26743abcfae48cd6223bd757e74f193d97e3e5a7 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -90,6 +90,7 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [kv-tier-management](common/skills/kv-tier-management.json) | common | candidate |
 | [lazy-evaluation-stream-lifetimes](common/skills/lazy-evaluation-stream-lifetimes.json) | common | candidate |
 | [lily](common/skills/lily.json) | common | candidate |
+| [lithos-metal](common/skills/lithos-metal.json) | common | candidate |
 | [local-dream](common/skills/local-dream.json) | common | candidate |
 | [mistral-rs](common/skills/mistral-rs.json) | common | candidate |
 | [mlc-llm](common/skills/mlc-llm.json) | common | candidate |
