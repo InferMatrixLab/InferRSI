@@ -44,8 +44,12 @@ including limitations from failed attempts.
 Illustrative target workflow; no measured results. [Watch the MP4](docs/assets/inferrsi-loop.mp4).
 
 Knowledge retrieval is read-only; candidate storage is optional and separately
-authorized. Automatic search and automatic knowledge promotion remain planned. Missing
-or incomplete evidence stays `INCONCLUSIVE`.
+authorized. Automatic model-backed search and automatic knowledge promotion remain
+planned. Missing or incomplete evidence stays `INCONCLUSIVE`.
+
+The **offline harness-improvement MVP** adds a separate Skill Eval path for supplied
+declarative candidates. Its fixed-output experiments validate the controller;
+real-model gains remain unmeasured. [Flow, limits and reproduction →](docs/harness-improvement.md)
 
 ## Choose your starting path
 
@@ -84,6 +88,25 @@ Author-reported means from three requests after two warmups; not independently v
 
 [Ascend measurements and rejected rounds →](docs/qwen-image-2.1-turbo-ascend.md) · [Upstream NPU patch](https://github.com/vllm-project/vllm-omni/pull/8729)
 
+### Standalone video/audio engines
+
+[h3-metal](https://github.com/zuiho-kai/h3-metal) provides Metal-native FastH3 and MiniMax-H3 text-to-video/audio inference on Apple GPUs.
+
+Author-reported results on **Apple M5 Max (40-core GPU), 128 GB, macOS 27**, at **768×448, 49 frames, seed 0**, using real weights with one engine running at a time.
+
+| Engine | Device | Steps | Cold | Warm | vs. MLX (cold / warm) | vs. h3.c (cold / warm) |
+| --- | --- | --- | --- | --- | --- | --- |
+| `PipeNetwork/minimax-h3-mlx` (4-bit) | Apple M5 Max (40-core GPU) | 20 | 153.1 s | 134.6 s | 1.00× / 1.00× | 0.44× / 0.54× |
+| `antirez/h3.c`, default preset | Apple M5 Max (40-core GPU) | 20 | 67.6 s | 73.3 s | 2.26× / 1.84× | 1.00× / 1.00× |
+| **h3-metal**, original H3 | Apple M5 Max (40-core GPU) | 20 | **54.29 s** | **29.89 s** | **2.82× / 4.50×** | **1.25× / 2.45×** |
+| **h3-metal**, FastH3 4-step + block-sparse attention | Apple M5 Max (40-core GPU) | 4 ¹ | **48.23 s** | **18.20 s** | **3.17× / 7.40×** | **1.40× / 4.03×** |
+
+Cold includes the first clip's weight loading, text encoding and preparation; warm reuses loaded weights and prepared state.
+
+¹ FastH3 uses a distilled 4-step checkpoint, unlike the 20-step configurations. Warm values average clips 2–4 for the 20-step rows and two A/B/B/A warm runs for FastH3.
+
+[Author's report and reproduction →](https://github.com/zuiho-kai/h3-metal/blob/53b7fa5d88e2497ab427ab9c7155535f7e6e6817/README.md#performance). These external results were not rerun in InferRSI.
+
 ### Standalone speech engines
 
 Concurrency 1 (C1) results reported by each project. Values are **engine / vLLM-Omni / SGLang-Omni**; compare within a row, since workloads and audio-frame definitions differ.
@@ -100,7 +123,15 @@ MiniCPM's SGLang baseline returns a complete waveform, so its TTFA equals end-to
 
 ## 🚀 Quickstart
 
-Requires **Python 3.10+**. From this checkout:
+Requires **Python 3.10+**. Licensed under [Apache-2.0](LICENSE).
+
+**v0.1.0 is a planned Developer Preview (pre-release).** The `v0.1.0` tag is not published yet, this preview is not on PyPI, and there is no API stability promise. After the v0.1.0 tag is published, install that pre-release with:
+
+```bash
+pip install "git+https://github.com/InferMatrixLab/InferRSI.git@v0.1.0"
+```
+
+From this checkout:
 
 ```bash
 python -m venv .venv
@@ -141,6 +172,13 @@ not implemented. Process-cleanup behavior still needs platform-specific validati
 See the [source audit and proposed remedies](docs/reviews/source-audit-ac70272.md)
 for the 34 review points, qualifications and suggested acceptance checks.
 
+Alongside the engine loop, the [offline improvement controller](docs/harness-improvement.md)
+composes the existing Skill Eval comparator and independent verifier. Its selection
+policy lives in `harness/improvement.py`; the tool adapter freezes snapshots and
+carries the total budget across probes, rerun and holdout. The engine diagrams above
+continue to describe the engine path; this additional lane does not provide engine
+performance evidence or an autonomous model-backed optimizer.
+
 <details>
 <summary><strong>See the implemented modules</strong></summary>
 
@@ -167,8 +205,11 @@ for the 34 review points, qualifications and suggested acceptance checks.
 | [Quickstart](docs/quickstart.md) | Installation, real A/B experiments, and reports |
 | [Operation guide](docs/operations.md) | Every CLI/Python operation: entry point, effect class, boundary and example |
 | [Bounded skill evaluation](docs/skill-evaluation.md) | Real-client skill/task comparisons, independent outcomes and evidence limits |
+| [Offline harness improvement](docs/harness-improvement.md) | One INV/DOM step, quality/cost selection, held-out gate and reproducible controller experiments |
 | [Qwen B300](docs/qwen-image-2.1-turbo-b300.md) | Reproduction, profiling, optimization ledger and exact image checks |
 | [Qwen Ascend](docs/qwen-image-2.1-turbo-ascend.md) | NPU results, rejected rounds and verification scope |
+| [h3-metal lessons](docs/h3-metal-apple-silicon-lessons.md) | MiniMax-H3 on Apple silicon: measurement pitfalls, gains, rejected directions and search-loop lessons |
+| [Apple silicon playbook](docs/apple-silicon-playbook.md) | Measured, engine-agnostic lessons for Metal/MLX engines: unified memory, Metal execution and benchmarking a shared Mac |
 | [Knowledge base](src/inferrsi/data/knowledge_packs/README.md) | Three learning tiers: contribution, dependency impact and peer techniques |
 | [Skill catalog](src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md) | Searchable records linking categorized skills to full packaged procedures and resources |
 | [Source audit](docs/reviews/source-audit-ac70272.md) | 34 review points with proposed remedies, qualifications and validation criteria |

@@ -24,15 +24,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json",
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "8d38af7ee1cd08a99bc6981a4ed1891be6331a6a56ea2537364fc0a1b79702b9"
+      "content_sha256": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053"
     }
   ],
   "index_type": "packaged-skill",
@@ -41,10 +41,10 @@
   },
   "checkout_ref": "checkout:os-process-placement",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md": "8d38af7ee1cd08a99bc6981a4ed1891be6331a6a56ea2537364fc0a1b79702b9",
-    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "88cea21bc171c8ef89b73013672cca7c3af1e15eab00e388dd05b114368c1411",
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053",
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "ec02995c075f0a540921f57b4846f2cafe334eb90f44389f17c3c50457c3e9c5",
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "os-process-placement",
@@ -84,9 +84,6 @@
       }
     ],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
@@ -95,12 +92,9 @@
     "provenance_readsets": [
       "references/llama-numa-thread-readset.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

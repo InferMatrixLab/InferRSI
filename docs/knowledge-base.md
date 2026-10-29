@@ -14,7 +14,7 @@ separate work, not an implemented capability of this knowledge base.
 ```text
 src/inferrsi/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (59 skills)
+  skill-index.json                   Stable IDs → categorized paths/backend (77 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
   repositories/<repo>/              Engine entry, sub-skills and focused complete skills
@@ -65,13 +65,16 @@ metadata authority or maintained matrix.
 | Legacy sidecars | Existing keys retained unless explicitly normalized | Conflicting duplicate fields fail visibly; matching historical fields can be read |
 | Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Do not migrate it into local sidecars or relabel imported records |
 | Engine procedures/resources | Imported English library and source manifest | Preserve licenses, source relationships and installed access; catalog abstracts link the complete English procedures |
-| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results |
+| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results. Source identities and digests live only in the record; the document links it and cites the same source URLs. The record lists its own basename in `required_resources`, so that link resolves inside the read bundle |
 
 The 43 branch-added candidate headers were normalized without replacing their
 procedures. All structured frontmatter fields, including tags, synchronization
 lineage, unknown license and source-pack notes, are retained in sidecars. Existing
 sidecar name/status duplication agreed with the frontmatter; normalization found
-no contradictory values. Abbreviated historical repository pins remain explicitly
+no contradictory values. Sidecars omit fields equal to the reader defaults:
+empty `sources` and `references`, and the former shared placeholder
+`applicability`; absent sources still read as explicit unknown provenance.
+Abbreviated historical repository pins remain explicitly
 prefixes, not invented full SHAs. Legacy untyped source inventories remain marked
 incomplete, with their substantive procedure/readsets retained for inspection.
 
@@ -163,12 +166,12 @@ standalone export: retain the declared dependencies or the complete library.
 
 All 48 former root skills now have one canonical home under
 [`src/inferrsi/data/skill_library/`](../src/inferrsi/data/skill_library/README.md).
-Complete procedures, sidecars, references and cases are packaged, with 13 Ascend,
-2 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
+Complete procedures, sidecars, references and cases are packaged, with 14 Ascend,
+3 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
 repositories, methods or workflows. The 21 engine and research-router skills
 use the same ownership layout under `repositories/<engine>/` and
 `workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 83 `SKILL.md` files, all in English. The registered
+The library contains 124 `SKILL.md` files, all in English. The registered
 [Lithos Metal candidate](../src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md)
 adds three owner-local subskills for compiler/fusion, generation state and
 serving/cache contracts; it adds no executable repository target.
@@ -177,12 +180,12 @@ workflow's references; Strata design-space analysis belongs to Strata. The libra
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 59 registered skills into the contribution catalog. Its records
+projects the 77 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
-`cuda` for those hardware-specific scopes and `common` for the remaining skills.
+`cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-59-ID registry; engine procedures remain available through library navigation
+77-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
 
 The registered [h3.c runtime audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
@@ -204,6 +207,12 @@ provenance and unknown licenses. Its own `imported` state describes the catalog
 record, not promotion or verification of the source skill. Backend placement
 describes content scope; `common` and `skills.discovery` imply no cross-hardware
 qualification. `inferrsi` is a knowledge source, not an executable target.
+
+The CUDA-owned [Hopper kernel reasoning candidate](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md)
+adds pinned KDA/KernelWiki source screening, selected primary-code qualification
+and architecture-specific synchronization/resource/FP8 procedures. Its coverage
+inventory distinguishes inspected bodies from source headers and excluded SM100
+recipes; native execution and efficacy remain not_run.
 
 The complete library is the single content owner. Maintain stable paths and
 backend classifications in `skill-index.json`, then refresh generated records
@@ -257,3 +266,22 @@ ownership, source-linked references and scoped case pattern here. Its mandatory
 perf-loop, fixed skill count, global numeric policies and separate case registry
 are not imported. Exactly two primary matrices remain; HBM is not host RAM and
 H2D/IPC/team coordination do not establish Network coverage.
+
+The registered [vllm-metal candidate](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md) adds selected platform/ABI, KV/offload lifecycle and speculative/deferred/dispatch procedures. Installed pure API/parser evidence is partial; required Apple native/model/quality/service evidence remains blocked. It is portable AREX-informed repository integration, not DisCo CLI execution or managed import.
+
+The registered [mistral-rs candidate](../src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md) adds selected Metal paged-attention layout, metadata/workspace and preparation/evidence contracts. Rust tooling and required Apple native/model evidence are unavailable; offline helpers and source test definitions are not native execution or candidate promotion.
+
+The [mlx-swift-lm candidate](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md) owns selected Swift generation-lifetime and recurrent native/ops contracts, with source/observation limits preserved. No Swift compile, original native/host-control test, actual Metal/model/quality/service run is implied by its helpers or packaged discovery.
+
+The [mlc-llm candidate](../src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md) separates artifact metadata, supported consumers, Apple targets, pinned TVM runnable/runtime boundaries and compiled/runtime KV configuration. Canonical hashes, serializable fallback or estimated limits are not native/model/quality/fit/service evidence.
+
+The registered [h3-metal FastH3 audit](../src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) supplements earlier h3.c residency with fork-specific effective configuration, tensor/schedule semantics and VSA eligibility/fallback. Its offline declaration arithmetic and label probes do not qualify native conversion, sparse attention, media, memory fit or performance; required Apple/model evidence remains blocked/not_run.
+
+The registered [local-dream candidate](../src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md)
+owns selected Android desired/serving/readiness and unauthenticated-host
+boundaries, native diffusion dispatch/cancellation/cache and DiT/QNN packaging
+contracts. Its helper compares declarations only; required Android/Qualcomm,
+model, image quality, fit and service/performance evidence remains
+`BLOCKED_REQUIRED_BACKEND / not_run`. This is portable AREX-informed candidate
+integration, not a fully verified DisCo import. Pinned CC BY-NC 4.0 source rights
+and machine SPDX `NOASSERTION` remain separate.

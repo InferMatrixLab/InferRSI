@@ -34,9 +34,6 @@
     }
   ],
   "empirical_validation": "not_run",
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Only the existing llama.cpp NUMA/thread slice is normalized at 3e390af18de1131dda27913c00511725b4274c8a; other original sources remain unnormalized, with their identities and limits retained in the procedure/readsets.",
@@ -45,6 +42,5 @@
   "provenance_readsets": [
     "references/llama-numa-thread-readset.md"
   ],
-  "references": [],
   "consumption_mode": "packaged"
 }

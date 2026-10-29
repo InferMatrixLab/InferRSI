@@ -1,0 +1,21 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "prefill-contract",
+  "target_capability": "offset-mask-and-chunk-precedence",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mistralrs-paged-attn/src/metal/backend/paged_prefill.rs",
+    "mistralrs-paged-attn/src/metal/kernels/paged_prefill.metal"
+  ],
+  "expected_skill_files": [
+    "sub-skills/prefill-contract/SKILL.md",
+    "sub-skills/prefill-contract/references/prefill-and-metadata.md",
+    "sub-skills/prefill-contract/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Explicit offsets use max(offset+context)=69, not the default concatenated total82; query packed extent stays8.",
+    "K extent68 fails and70 is large enough; query extent9 is not the exact non-broadcast query dimension.",
+    "Chunk mismatch rejects before the multimodal causal/window override; range membership does not join chunks.",
+    "Helper does not numerically evaluate attention or authenticate native tensor strides/binding."
+  ]
+}

@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json",
@@ -40,9 +40,9 @@
   "checkout_ref": "checkout:host-overhead-optimization",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md": "36ef88826a32ac3147b869001004ded17a8d5a491e25bfe105005ba39ea9d1eb",
-    "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json": "90941490debf1ec9f02310fa033658ec294a8e968783d4bb9d004bcded0f73fe",
+    "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json": "ae71c389dfdb1a19d267feecb4c6f1fbb4c9afad501ff6d8fab7e38b29bcc37a",
     "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md": "f452bf40132c9195d739f1c86b3aa18857138c7ed0f1861af5853d93b9955924",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "host-overhead-optimization",
@@ -61,22 +61,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

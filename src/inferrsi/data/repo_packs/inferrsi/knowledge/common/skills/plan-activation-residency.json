@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json",
@@ -34,9 +34,9 @@
   "checkout_ref": "checkout:plan-activation-residency",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md": "542d8a1e6963f5019986e1fbd79d3a247a045a51487c09313026087ac457c15e",
-    "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json": "858fdd88c6bd2f118bd1d527bb37d47bcc2722cc6140d52ee4657e646cdce080",
+    "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json": "c6acae57d70190cea0e18c71c79127962181e58169e011df75d8635b3db4daa7",
     "src/inferrsi/data/skill_library/methods/plan-activation-residency/references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "plan-activation-residency",
@@ -49,10 +49,6 @@
     "origin": [
       "external"
     ],
-    "sources": [],
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -60,12 +56,9 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

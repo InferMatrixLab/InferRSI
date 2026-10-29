@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json",
@@ -41,8 +41,8 @@
   "checkout_ref": "checkout:kv-tier-management",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md": "e4b78f368d70c8abb74a935acb910414015f1aeec1b50f7a295e836822ec4b27",
-    "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json": "20f7989a27a438170e4f59eb6bf0691dec25bb3ea7bcb8cc3d364e48b9a698bd",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json": "c221189b8d85fac3bd41ef1c7cd560f1aebc8cfa0381c182d1d571a7169be829",
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "kv-tier-management",
@@ -63,22 +63,15 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

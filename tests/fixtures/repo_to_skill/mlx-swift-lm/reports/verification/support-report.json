@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "scope": "New Python support only, not Swift/MLX/native engine execution",
+  "author_checks": {
+    "gated_delta": {
+      "literal_gate_fixtures": 144,
+      "api_mutations": 255,
+      "invalid_targeted_plans": 10,
+      "cli_checks": 18,
+      "result": "passed"
+    },
+    "lifecycle": {
+      "independent_record_combinations": 2592,
+      "invalid_api_plans": 28,
+      "malformed_cli_inputs": 12,
+      "result": "passed"
+    },
+    "license_gate": {
+      "skill_documents": 3,
+      "valid": true,
+      "license_value": "NO_LICENSE",
+      "resolver_status": "unavailable"
+    },
+    "global_ruff": "passed before final source commit",
+    "integrated_pytest": {
+      "passed": 234,
+      "scope": "tests/test_mlx_swift_lm_repo_to_skill.py only"
+    },
+    "adversarial_readback": {
+      "api_probes": 545,
+      "cli_checks": 56,
+      "unexpected_exceptions": 0,
+      "private_diagnostic_leaks": 0,
+      "result": "passed"
+    }
+  },
+  "refinement_history": [
+    "GatedDelta author fixed two initial line-length errors before final Ruff pass.",
+    "Main reproduced argparse echo of an extra positional private-looking filename, replaced its error handler with fixed diagnostics, and requested adversarial readback before publication.",
+    "Main reviewed count-update diff and removed an overbroad draft replacement of an unrelated existing tensor-inventory constant before publication; only intended counts remain changed.",
+    "Clarified public generateLoopTask wrapper versus private collector overload; source SKILL reread in bounded outputs to confirm full 449-line scope.",
+    "Integrated test author fixed seven line-length errors before first focused pytest, which passed all 234 cases.",
+    "Main advanced by e52f0a4 Skill Eval budget/auth changes during drafting; path-level delta had no knowledge/source/count overlap, fast-forwarded before publication. No opt-in evaluator label or paid dispatch."
+  ],
+  "compiler_check": "not_run",
+  "original_source_tests": "not_run",
+  "native_backend": "BLOCKED_REQUIRED_BACKEND",
+  "engine_empirical_validation": "not_run",
+  "native_fit_correctness_model_quality_service_performance": "not_verified"
+}

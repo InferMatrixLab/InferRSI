@@ -7,6 +7,7 @@ name = "inferrsi"
 version = "0.1.0"
 description = "CLI-first reproducible inference experiments and source-grounded tuning knowledge"
 readme = "README.md"
+license = "Apache-2.0"
 requires-python = ">=3.10"
 dependencies = []
 
@@ -22,7 +23,7 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/scripts/*.py"]
+inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py"]
 
 [project.optional-dependencies]
 skills = ["PyYAML>=6.0"]

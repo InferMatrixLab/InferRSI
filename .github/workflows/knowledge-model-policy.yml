@@ -17,9 +17,26 @@ permissions:
 
 jobs:
   declarations:
-    if: github.event_name != 'issue_comment' || github.event.issue.pull_request
+    # Keep eligibility identical here and in the group: skipped comments must not
+    # replace a pending writer, regardless of GitHub's evaluation order.
+    if: >-
+      ${{ github.event_name != 'issue_comment' || !github.event.issue ||
+          !github.event.comment || !github.event.action ||
+          (github.event.issue.pull_request && (github.event.action != 'created' ||
+          !github.event.comment.body ||
+          contains(github.event.comment.body, 'knowledge-policy-approval'))) }}
     concurrency:
-      group: knowledge-policy-status-writer
+      group: >-
+        ${{ (github.event_name != 'issue_comment' || !github.event.issue ||
+            !github.event.comment || !github.event.action ||
+            (github.event.issue.pull_request && (github.event.action != 'created' ||
+            !github.event.comment.body ||
+            contains(github.event.comment.body, 'knowledge-policy-approval')))) &&
+            'knowledge-policy-status-writer' ||
+            format('knowledge-policy-skipped-{0}-{1}', github.run_id, github.run_attempt) }}
+      # Preserve the serialized writer without replacing the sole pending merge event.
+      # GitHub bounds this queue at 100; overflow can still cancel pending work.
+      queue: max
       cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -31,7 +48,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      - name: Evaluate declarations with trusted main code
+      # Push jobs report reconciliation execution, not admission success for every PR.
+      # Capacity findings remain explicit in the final summary and per-head statuses.
+      - name: Reconcile declarations with trusted main code
         env:
           GITHUB_TOKEN: ${{ github.token }}
         run: bash tools/run_knowledge_model_policy.sh

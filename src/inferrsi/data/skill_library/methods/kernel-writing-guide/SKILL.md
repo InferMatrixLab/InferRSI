@@ -40,6 +40,23 @@ Writing a kernel is expensive. Verify the bottleneck before starting.
 - The bottleneck is host-side scheduling: that is a Python/GIL problem, not a
   kernel problem. See `host-overhead-profiling`.
 
+## Qualify an existing causal convolution operator
+
+Before replacing or binding causal depthwise convolution, use the
+[causal-conv1d contract](references/causal-conv1d-contract.md) to choose a
+full-sequence forward call or an in-place state update. Check dtype, strides,
+packed boundaries, state rows and circular-buffer cursors before substitution.
+The [five decision cases](cases/causal-conv1d-dispatch-state.md) cover invalid
+layouts, continuation state and unproved dispatch. Build targets and import
+success do not establish the executing operator, numerical parity or a gain.
+
+For a concrete Transformers Qwen3.5 caller, first use the
+[two-version HF binding contract](references/hf-qwen35-gdn-binding.md) and
+[source cases](cases/hf-qwen35-gdn-binding.md). Resolve module versus instance
+binding, active forward overrides and cache state before substituting conv or
+GDN. A cache-free classification adapter does not establish generation-state
+support; package presence and matching names do not prove executed dispatch.
+
 ## Framework routing
 
 | Pattern | CUDA / Ampere+ | Ascend NPU |
@@ -150,6 +167,28 @@ later lowering, synchronization and numerics. CPU/NPU tail strategies are not
 qualified by the CUDA fixture.
 
 ## Workflow: verify before benchmark
+
+### Qualify a stateful serving operator
+
+For vLLM Qwen3-Next GDN convolution/recurrence reuse, read the
+[pinned phase/state contract](references/vllm-gdn-causal-conv-contract.md) and
+[representative source cases](cases/vllm-gdn-source-contract.md). Trace the
+concrete caller, effective phase/backend, state-row mapping and in-place writes
+before choosing an operator. The in-tree vLLM wrappers do not establish a
+standalone-package or HF-worker binding. Source selection remains separate
+from executed correctness, hardware qualification and performance.
+
+For SGLang Qwen3.5 or Qwen3-Next, use the separate
+[caller/backend contract](references/sglang-gdn-causal-conv-contract.md) and
+[four source cases](cases/sglang-gdn-source-contract.md). Resolve the model's
+linear layers, per-runner prefill/decode choices, architecture predicates,
+conv aliases and state-row metadata before proposing reuse. A GDN prefill flag
+does not select the convolution implementation. Keep one-shot classification
+prefill distinct from decode, cached continuation and delimiter-based scoring;
+source-derived transfer conditions are not an HF binding or execution result.
+The [worker/engine cross-map](references/sglang-gdn-causal-conv-contract.md#map-the-inspected-hf-workers-to-vllm-and-sglang)
+connects the inspected Clef/PPLX bindings to both engine operator contracts;
+its PPLX context follows the default GVA forward and the state-free adapter.
 
 **Phase 1: Write the kernel with a reference function**
 

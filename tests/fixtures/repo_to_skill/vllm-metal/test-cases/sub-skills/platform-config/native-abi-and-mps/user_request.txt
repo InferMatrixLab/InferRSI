@@ -1,0 +1,1 @@
+I upgraded MLX but kept the old paged_ops binary. Root import works. I also set the V2 runner on the MLX path; should I suppress the ABI check or force MPS with CPU fallback enabled?

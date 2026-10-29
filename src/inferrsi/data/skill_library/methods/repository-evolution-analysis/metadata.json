@@ -30,12 +30,50 @@
       ],
       "type": "git",
       "revision_precision": "prefix"
+    },
+    {
+      "url": "https://github.com/yetone/magpie",
+      "commit": "4b5d6d725fae3d8a263f6e43c707400e3765b84f",
+      "paths": [
+        "internal/library/rtk.go",
+        "internal/library/rtk_upgrade.go",
+        "internal/proc/path_other.go",
+        "internal/proc/path_windows.go",
+        "internal/provider/install_windows.go"
+      ],
+      "type": "git",
+      "revision_precision": "full"
+    },
+    {
+      "url": "https://github.com/yetone/magpie",
+      "commit": "9848a9062a65c49e074c09770dc7de73dd012bea",
+      "paths": [
+        "internal/library/rtk.go",
+        "internal/library/rtk_upgrade.go",
+        "internal/proc/path_other.go",
+        "internal/proc/path_windows.go",
+        "internal/provider/install_windows.go",
+        "internal/library/rtk_path.go",
+        "internal/library/rtk_path_other.go",
+        "internal/library/rtk_path_windows.go",
+        "internal/library/rtk_path_test.go",
+        "internal/library/rtk_test.go",
+        "internal/library/rtk_upgrade_test.go",
+        "internal/library/library_test.go",
+        "internal/gui/library.go",
+        "internal/gui/assets/library.js",
+        "internal/gui/tests/library-rtk-path.test.cjs",
+        "library_cli.go",
+        "LICENSE"
+      ],
+      "type": "git",
+      "revision_precision": "full"
     }
   ],
   "verification": {
     "locally_verified": false,
     "evidence_level": "source_grounded",
-    "note": "Carried LearningToCommit pipeline and Magpie history analysis, not causal evidence of development speed. The reviewed paper amendment is linked from SKILL.md; paper-to-code equivalence is not established. First-hand Magpie coordination research remains pending Dot delivery and owner review."
+    "note": "Carried LearningToCommit pipeline and Magpie history analysis, not causal evidence of development speed. The reviewed paper amendment is linked from SKILL.md; paper-to-code equivalence is not established. First-hand Magpie coordination research remains pending Dot delivery and owner review. The RTK worked transition is pinned static source/test inspection only; no upstream execution or heldout efficacy evaluation."
   },
   "applicability": {
     "scope": "any software repository with a recoverable git history",
@@ -54,9 +92,13 @@
   ],
   "empirical_validation": "not_run",
   "limitations": [
-    "Source-derived candidate; no local efficacy validation."
+    "Source-derived candidate; no local efficacy validation.",
+    "The RTK transition is a learning example, not an independent heldout task; upstream tests were inspected, not executed.",
+    "Existing audit and synthetic KV comparison adapters are not a generic historical coding-task evaluator."
   ],
   "provenance_readsets": [],
-  "references": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "references": [
+    "references/rtk-consumer-path-transition.md"
+  ]
 }

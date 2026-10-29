@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
         "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json",
@@ -41,10 +41,10 @@
   "checkout_ref": "checkout:checkpoint-recovery-consistency",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md": "6b7db1eb2780dec27858cb7aa0a3c093c5b5dfa4c30261aebfeaa255213ff688",
-    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json": "5c18a225cd3b88051c57cb29d3d9cca3dcf18826aff86cef1cec39f315a1fc1d",
+    "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/metadata.json": "4dc8659806539b4784ea9348a01d4194ac70d0bb297a916f90ff6419efa5c328",
     "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/dlrover-persistence-replicas.md": "055f4357f79026fcbcc766bbe77db610376ec353623f8898f5d14a30ee69e7bc",
     "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/references/sources.md": "9425b1aab963a2c8d35f3db897bd15ee69699bf5b0d0c8425c3c8bba3e9a0233",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "checkpoint-recovery-consistency",
@@ -63,11 +63,7 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -75,12 +71,9 @@
     "provenance_readsets": [
       "references/sources.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."

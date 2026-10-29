@@ -1,12 +1,3 @@
-#!/usr/bin/env python3
-"""Inspect installed lithos-metal software and optional tiny CPU contracts.
-
-Run: python <SKILL_DIR>/scripts/inspect_contract.py --check-contract
-Requires lithos-metal in the selected Python environment. No network, device,
-model, subprocess, file writes or original checkout is used. Output omits paths.
-This is an authored diagnostic around upstream contracts, not an upstream tool.
-"""
-
 from __future__ import annotations
 
 import argparse
@@ -91,7 +82,10 @@ def inspect_software(expected_version: str, check_contract: bool) -> tuple[dict,
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(
+        description="Inspect installed Lithos Metal software and optional tiny CPU contracts. "
+        "Never uses network, devices, models, subprocesses, file writes or the source checkout."
+    )
     parser.add_argument("--expected-version", default="0.1.2")
     parser.add_argument("--check-contract", action="store_true",
                         help="Run tiny CPU layout and dependency assertions; never create a device")

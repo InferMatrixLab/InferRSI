@@ -47,6 +47,33 @@ def test_trace_retains_unknown_usage_and_errors(tmp_path):
     assert trace["completed_turns"] == 0 and trace["errors"]
 
 
+@pytest.mark.parametrize("usage", ["malformed", [1]])
+def test_malformed_usage_is_unknown_in_trace_and_legacy_summary(tmp_path, usage):
+    path = tmp_path / "events.jsonl"
+    raw = json.dumps({"type": "turn.completed", "usage": usage}).encode() + b"\n"
+    path.write_bytes(raw)
+    trace = trace_metrics(path)
+    assert trace["usage"] is None and trace["completed_turns"] == 1
+    assert path.read_bytes() == raw
+    legacy = {"task_id": "one", "repeat": 1, "condition": "N", "verdict": "PASS",
+              "elapsed_seconds": 1, "observations": {"usage": usage}}
+    group = summarize([legacy])["conditions"]["N"]
+    assert group["input_tokens"] is None and group["output_tokens"] is None
+    # This is only the observed lower bound, never a claim of complete zero cost.
+    assert load_tool("skill_eval_pilot").observed_tokens(usage) == 0
+    assert legacy["observations"]["usage"] == usage
+
+
+@pytest.mark.parametrize("invalid", ["17", [17], True, -17, 1.5])
+def test_invalid_token_fields_keep_valid_partial_observations(tmp_path, invalid):
+    path = tmp_path / "events.jsonl"
+    path.write_text(json.dumps({"type": "turn.completed", "usage": {
+        "input_tokens": invalid, "output_tokens": 17, "cached_input_tokens": invalid}}))
+    usage = trace_metrics(path)["usage"]
+    assert usage == {"input_tokens": None, "output_tokens": 17, "cached_input_tokens": None}
+    assert load_tool("skill_eval_pilot").observed_tokens(usage) == 17
+
+
 @pytest.mark.parametrize("status", ["timeout", "error", "cancelled", "failed"])
 def test_incomplete_execution_never_passes(status):
     assert (

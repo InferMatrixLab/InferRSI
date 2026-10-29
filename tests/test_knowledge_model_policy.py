@@ -3,6 +3,8 @@ import json
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from threading import Thread
+from types import SimpleNamespace
+from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlsplit
 
 import pytest
@@ -12,7 +14,14 @@ from tools.check_knowledge_model_policy import (
     APPROVAL,
     DECLARATION,
     EXIT_COMPLIANT,
+    EXIT_NONCOMPLIANT,
     EXIT_RERUN,
+    HISTORY_PAGES,
+    HISTORY_RESERVE,
+    STATUS_LIMIT,
+    STATUS_RESERVE,
+    SWEEP_SECONDS,
+    TARGET_SECONDS,
     GitHub,
     approved,
     assemble_file_pages,
@@ -26,9 +35,12 @@ from tools.check_knowledge_model_policy import (
     json_block,
     matching,
     model_errors,
+    plan_file,
     refresh_event,
     snapshot,
     summarize,
+    target_deadline,
+    within_budget,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -317,9 +329,23 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     assert value["permissions"] == {"contents": "read", "pull-requests": "read",
                                     "issues": "read", "statuses": "write"}
     assert "concurrency" not in value
-    assert value["jobs"]["declarations"]["concurrency"] == {
-        "group": "knowledge-policy-status-writer", "cancel-in-progress": False,
-    }
+    job = value["jobs"]["declarations"]
+    eligibility = (
+        "github.event_name != 'issue_comment' || !github.event.issue || "
+        "!github.event.comment || !github.event.action || "
+        "(github.event.issue.pull_request && (github.event.action != 'created' || "
+        "!github.event.comment.body || "
+        "contains(github.event.comment.body, 'knowledge-policy-approval')))"
+    )
+    assert " ".join(job["if"].split()) == "${{ " + eligibility + " }}"
+    group = (
+        "${{ (" + eligibility + ") && 'knowledge-policy-status-writer' || "
+        "format('knowledge-policy-skipped-{0}-{1}', github.run_id, github.run_attempt) }}"
+    )
+    assert " ".join(job["concurrency"]["group"].split()) == group
+    assert job["concurrency"]["cancel-in-progress"] is False
+    assert set(job["concurrency"]) == {"group", "cancel-in-progress", "queue"}
+    assert job["concurrency"]["queue"] == "max"
     steps = value["jobs"]["declarations"]["steps"]
     assert steps[0]["with"] == {"ref": "main", "persist-credentials": False}
     assert all("pip install" not in step.get("run", "") for step in steps)
@@ -328,6 +354,11 @@ def test_workflow_never_executes_pr_code_and_refreshes_metadata_and_base():
     # The runner refetches trusted main and reruns only for the stale-base exit code.
     assert "git fetch --quiet origin main" in runner
     assert "--policy-sha" in runner and 'status" -ne 2' in runner
+    # Each attempt shares one plan file, so a retry inherits the targets an earlier attempt
+    # settled instead of re-publishing them and starving the tail.
+    assert '--plan "$plan"' in runner
+    # Three attempts, each bounded by the sweep plus one target's ceiling, still fit the job.
+    assert 3 * (SWEEP_SECONDS + TARGET_SECONDS) < 10 * 60
     assert "pull_request.head" not in json.dumps(value)
     assert "knowledge-model-policy" not in (
         ROOT / ".github/workflows/ci-ready.yml"
@@ -339,7 +370,7 @@ def api_fixture():
     # A local HTTP fixture drives the real GitHub adapter and records the shared status POSTs.
     state = {"prs": {123: pr()}, "comments": {}, "statuses": [], "requests": [],
              "before_request": None, "errors": [], "base": BASE, "fail": lambda route: False,
-             "pulls_scans": 0}
+             "fail_status": lambda route: False, "pulls_scans": 0}
 
     class Handler(BaseHTTPRequestHandler):
         def log_message(self, *args):
@@ -389,6 +420,14 @@ def api_fixture():
                 else:
                     state["errors"].append(route)
                     self.send_error(404)
+            elif route.startswith("commits/") and route.endswith("/statuses"):
+                sha = route.split("/")[1]
+                query = parse_qs(parsed.query)
+                page = int(query["page"][0])
+                history = [s for s in reversed(state["statuses"]) if s["sha"] == sha]
+                links = ('<http://fixture.invalid/next>; rel="next"'
+                         if len(history) > page * 100 else None)
+                self.respond(history[(page - 1) * 100:page * 100], links)
             elif route.startswith("issues/") and route.endswith("/comments"):
                 self.respond(state["comments"].get(int(route.split("/")[1]), []))
             else:
@@ -403,7 +442,19 @@ def api_fixture():
                 self.send_error(404)
                 return
             state["requests"].append(("POST", route))
-            state["statuses"].append({"sha": route.split("/")[1], **value})
+            if state["fail_status"](route):
+                self.send_error(503)
+                return
+            sha, context = route.split("/")[1], str(value.get("context") or "")
+            # GitHub rejects a write past the per-SHA/context cap instead of discarding it, and
+            # treats the context name case-insensitively.
+            recorded = sum(s["sha"] == sha
+                           and str(s["context"]).casefold() == context.casefold()
+                           for s in state["statuses"])
+            if recorded >= STATUS_LIMIT:
+                self.send_error(422)
+                return
+            state["statuses"].append({"sha": sha, **value})
             self.respond(value)
 
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
@@ -422,7 +473,8 @@ def api_fixture():
 
 def latest_status(state, head=HEAD):
     return next(s for s in reversed(state["statuses"])
-                if s["sha"] == head and s["context"] == "knowledge-model-policy")
+                if s["sha"] == head
+                and str(s["context"]).casefold() == DECLARATION.casefold())
 
 
 @pytest.mark.parametrize("order", [(123, 124), (124, 123)])
@@ -562,7 +614,8 @@ def test_api_merge_during_evaluation_publishes_nothing_to_the_merged_head(api_fi
     state["before_request"] = merge
     results = check_prs(api, policy, BASE, False, [123])
     assert [r["kind"] for r in results] == ["closed"]
-    assert state["statuses"] == []
+    # The evaluation-time invalidation is the only write; no verdict reaches the merged head.
+    assert [s["state"] for s in state["statuses"]] == ["pending"]
     assert exit_code(results) == EXIT_COMPLIANT
 
 
@@ -587,7 +640,9 @@ def test_api_closed_target_keeps_historical_status_and_reopen_reevaluates(api_fi
     state["prs"][123]["state"] = "closed"
     result = check_pr(api, 123, policy, BASE, False)
     assert result["kind"] == "closed"
-    assert len(state["statuses"]) == 1  # The earlier verdict is not rewritten.
+    # A closed target is not invalidated: the earlier verdict stands as history, and nothing is
+    # written to a head that is no longer part of the sweep.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success"]
     state["prs"][123]["state"] = "open"
     state["prs"][123]["body"] = None
     assert check_pr(api, 123, policy, BASE, False)["state"] == "failure"
@@ -627,7 +682,9 @@ def test_api_batch_separates_rejection_from_lifecycle_outcomes(api_fixture, poli
     assert summary == {"kind_counts": {"compliant": 1, "noncompliant": 1, "evaluator-error": 0,
                                        "unverified": 0, "deferred": 0, "closed": 1,
                                        "advanced": 0, "publication-failed": 0,
-                                       "invalidation-failed": 0},
+                                       "invalidation-failed": 0, "history-unavailable": 0,
+                                       "budget-exhausted": 0, "budget-saturated": 0,
+                                       "status-rejected": 0},
                        "results": 3, "failed": 1, "noncompliant_pull_requests": [124],
                        "execution": "ok", "rerun": False}
     # A per-PR rejection keeps that PR red; it does not fail the sweep.
@@ -664,9 +721,10 @@ def test_api_old_green_cannot_survive_a_broken_publication_read(api_fixture, pol
     results = check_prs(api, policy, BASE, False, [123])
     head = state["prs"][123]["head"]["sha"]
     if mutation == "head":
-        # The old head keeps its historical green; the new head has no verdict until a rerun.
+        # The superseded head was invalidated before evaluation, so its green is gone; the new
+        # head carries no verdict at all and needs the rerun, rather than inheriting either one.
         assert results[0]["kind"] == "deferred"
-        assert latest_status(state)["state"] == "success"
+        assert latest_status(state)["state"] == "pending"
         assert all(s["sha"] != head for s in state["statuses"])
         assert exit_code(results) == EXIT_RERUN
         return
@@ -844,8 +902,9 @@ def test_api_survivor_closing_during_reassessment_publishes_nothing(api_fixture,
     results = check_prs(api, policy, BASE, False, [123, 124])
     kinds = {r["pull_request"]: r["kind"] for r in results}
     assert kinds == {123: "closed", 124: "closed"}
-    # Nothing is published to the old shared head, including no failure.
-    assert state["statuses"] == []
+    # Each target was invalidated before evaluation; no verdict and no failure is published to
+    # the old shared head after it left the sweep.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "pending"]
 
 
 def test_api_head_change_during_reassessment_publishes_nothing(api_fixture, policy):
@@ -897,3 +956,696 @@ def test_api_historical_policy_change_comment_is_inert(api_fixture, policy):
     assert result["state"] == "failure"
     assert result["kind"] == "noncompliant"
     assert latest_status(state)["state"] == "failure"
+
+
+def test_api_declaration_change_on_unchanged_head_invalidates_the_old_green(
+        api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # A body-only edit on the same head deletes the declaration. The published history shows the
+    # superseded green was replaced before the new evidence was read, not after.
+    state["prs"][123]["body"] = None
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "noncompliant"
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success", "pending", "failure"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_revoked_exception_is_reassessed_without_the_previous_approval(
+        api_fixture, policy):
+    api, state = api_fixture
+    value = declared([attribution("unknown", "unknown")])
+    value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+    state["prs"][123] = pr(value)
+    state["comments"][123] = [approval({KNOWLEDGE})]
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    state["comments"][123] = [approval({KNOWLEDGE}, decision="revoke")]
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "noncompliant"
+    assert "Exception requires explicit independent owner approval" in result["errors"][0]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_invalidation_failure_stops_the_success_path(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # Only status POSTs fail: evaluation metadata is fully readable.
+    original = api.request
+
+    def request(route, payload=None, **kwargs):
+        if payload is not None and route.startswith("statuses/"):
+            raise HTTPError(route, 503, "Unavailable", {}, None)
+        return original(route, payload)
+
+    api.request = request
+    results = check_prs(api, policy, BASE, False, [123])
+    assert [r["kind"] for r in results] == ["invalidation-failed"]
+    assert results[0]["state"] == "failure"
+    assert results[0]["rerun"] is True
+    assert exit_code(results) == EXIT_RERUN
+    # The old green was never replaced, so the failure is visible in the record, not the status.
+    assert latest_status(state)["state"] == "success"
+
+
+def test_api_invalidation_failure_never_publishes_a_later_success(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    calls = {"posts": 0}
+    original = api.request
+
+    def request(route, payload=None, **kwargs):
+        if payload is not None and route.startswith("statuses/"):
+            calls["posts"] += 1
+            raise HTTPError(route, 503, "Unavailable", {}, None)
+        return original(route, payload)
+
+    api.request = request
+    for _ in range(3):
+        result = check_pr(api, 123, policy, BASE, False)
+        assert result["kind"] == "invalidation-failed"
+        assert result["rerun"] is True
+    # Every attempt stopped at invalidation: no evaluation success ever reached the head.
+    assert calls["posts"] == 3
+    assert latest_status(state)["state"] == "success"
+
+
+def test_api_compliant_pr_without_a_previous_verdict_still_invalidates_first(api_fixture, policy):
+    api, state = api_fixture
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "compliant"
+    # The invalidation precedes the verdict so a crash between them cannot leave an old green.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success"]
+
+
+def test_api_dry_run_writes_no_status_at_all(api_fixture, policy):
+    api, state = api_fixture
+    result = check_pr(api, 123, policy, BASE, True)
+    assert result["kind"] == "compliant"
+    # Neither the invalidation nor the verdict is published in a reporting-only run.
+    assert state["statuses"] == []
+    assert all(method == "GET" for method, _ in state["requests"])
+
+
+def test_api_invalidation_precedes_every_evidence_read(api_fixture, policy):
+    api, state = api_fixture
+    check_pr(api, 123, policy, BASE, False)
+    routes = [route for _, route in state["requests"]]
+    posted = routes.index(f"statuses/{HEAD}")
+    # The old result is replaced before the evidence that could reject it is fetched.
+    for evidence in ("pulls/123/files", "git/ref/heads/main"):
+        assert routes.index(evidence) > posted
+    # The verdict is the only other write, and it comes last.
+    posts = [route for method, route in state["requests"] if method == "POST"]
+    assert posts == [f"statuses/{HEAD}", f"statuses/{HEAD}"]
+
+
+def test_api_unreadable_collection_is_not_a_shared_head_rejection(api_fixture, policy):
+    api, state = api_fixture
+    state["fail"] = lambda route: route == "pulls"
+    result = check_pr(api, 123, policy, BASE, False)
+    # An unavailable listing is not evidence of a peer sharing the head.
+    assert result["kind"] != "noncompliant"
+    assert "shared heads" not in json.dumps(result["errors"])
+    assert result["rerun"] is True
+    assert latest_status(state)["state"] != "success"
+
+
+def test_api_target_entering_the_sweep_mid_run_is_never_published_uninvalidated(
+        api_fixture, policy):
+    api, state = api_fixture
+    state["prs"][123]["state"] = "closed"
+
+    def reopen(route):
+        # The first scan sees the target closed, so it stays out of the sweep; by the publication
+        # scan it is open and addressable again at the same head.
+        if route == "pulls" and state["pulls_scans"] == 1:
+            state["prs"][123]["state"] = "open"
+
+    state["before_request"] = reopen
+    results = check_prs(api, policy, BASE, False, [123])
+    # The target was read outside the sweep and was never invalidated, so the run defers it
+    # instead of publishing a verdict that skipped the invalidation.
+    assert [r["kind"] for r in results] == ["deferred"]
+    assert results[0]["rerun"] is True
+    assert state["statuses"] == []
+
+
+def seed_history(state, count, head=HEAD, context="knowledge-model-policy"):
+    # Simulate a long-lived head whose status history is close to the service's per-SHA limit.
+    state["statuses"].extend({"sha": head, "context": context, "state": "success"}
+                             for _ in range(count))
+
+
+def test_status_budget_boundary_reserves_capacity_for_a_failure():
+    # The last run that may still evaluate needs room for a pending plus its verdict.
+    assert within_budget(STATUS_LIMIT - STATUS_RESERVE - 2)
+    # Past that point the reserved slots can only hold a non-success verdict.
+    assert not within_budget(STATUS_LIMIT - STATUS_RESERVE - 1)
+    assert not within_budget(STATUS_LIMIT)
+    # A saturated head is a different state: no write is possible at all.
+    assert STATUS_LIMIT - STATUS_RESERVE < STATUS_LIMIT
+
+
+def test_api_head_near_the_status_budget_never_publishes_success(api_fixture, policy):
+    api, state = api_fixture
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1)
+    results = check_prs(api, policy, BASE, False, [123])
+    assert [r["kind"] for r in results] == ["budget-exhausted"]
+    assert results[0]["state"] == "failure"
+    # A rerun cannot add capacity, so the runner must not loop on this head.
+    assert results[0]["rerun"] is False
+    assert exit_code(results) == EXIT_NONCOMPLIANT
+    # One reserved write records the failure; the old success is not left as the newest entry.
+    assert [s["state"] for s in state["statuses"]][-2:] == ["success", "failure"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_exhausted_history_cannot_leave_a_success_newest(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # A head already at the cap cannot accept any write, so the earlier success stays the newest
+    # entry. The run must report that state as blocked, not claim it turned it red.
+    seed_history(state, STATUS_LIMIT - len(state["statuses"]))
+    for _ in range(3):
+        result = check_pr(api, 123, policy, BASE, False)
+        assert result["kind"] == "budget-saturated"
+        assert result["state"] == "failure"
+        assert result["rerun"] is False
+        assert exit_code([result]) == EXIT_NONCOMPLIANT
+    assert len(state["statuses"]) == STATUS_LIMIT
+    assert latest_status(state)["state"] == "success"
+
+
+def test_api_repeated_sweeps_keep_one_reserved_terminal_verdict(api_fixture, policy):
+    api, state = api_fixture
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1)
+    results = [check_pr(api, 123, policy, BASE, False) for _ in range(3)]
+    # The first sweep spends one reserved slot on the failure; later sweeps recognise that entry
+    # instead of appending another one, so a failing sweep does not loop and does not consume the
+    # whole reserve.
+    assert [r["kind"] for r in results] == ["budget-exhausted"] * 3
+    assert all(r["rerun"] is False for r in results)
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_failed_reserve_write_is_retried(api_fixture, policy):
+    api, state = api_fixture
+    # The reserve is already used up, so the outcome of this run is that one reserved write. It
+    # fails while the newest entry is still a success, so the result must ask for another run
+    # instead of settling terminally and leaving the green in place.
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE)
+    state["fail_status"] = lambda route: True
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "publication-failed"
+    assert result["state"] == "failure"
+    assert result["rerun"] is True
+    assert exit_code([result]) == EXIT_RERUN
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE
+    assert latest_status(state)["state"] == "success"
+    # The retry writes the reserved verdict once, and later sweeps recognise that entry.
+    state["fail_status"] = lambda route: False
+    assert check_pr(api, 123, policy, BASE, False)["kind"] == "budget-exhausted"
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE + 1
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_context_names_are_counted_case_insensitively(api_fixture, policy):
+    api, state = api_fixture
+    # GitHub treats the context as case-insensitive, so these entries count against the budget.
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1, context="Knowledge-Model-Policy")
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "budget-exhausted"
+    assert result["rerun"] is False
+    assert len(state["statuses"]) == STATUS_LIMIT - STATUS_RESERVE
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_budget_exhaustion_still_reports_a_declaration_rejection(api_fixture, policy):
+    api, state = api_fixture
+    seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1)
+    state["prs"][123]["body"] = None
+    result = check_pr(api, 123, policy, BASE, False)
+    # Without evaluation the specific rejection is unknown, but the head is never green.
+    assert result["state"] == "failure"
+    assert result["kind"] == "budget-exhausted"
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_unreadable_history_stops_the_success_path(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    state["fail"] = lambda route: route.endswith("/statuses")
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "history-unavailable"
+    assert result["state"] == "failure"
+    assert result["rerun"] is True
+    # An unreadable history cannot prove the capacity margin, so the old green is replaced by an
+    # explicit failure and the run retries with a fresh checkout.
+    assert [s["state"] for s in state["statuses"]] == ["pending", "success", "failure"]
+    assert latest_status(state)["state"] == "failure"
+    assert exit_code([result]) == EXIT_RERUN
+
+
+def test_api_history_failure_is_written_before_the_next_target(api_fixture, policy):
+    api, state = api_fixture
+    other = "c" * 40
+    state["prs"][124] = {**pr(), "number": 124, "head": {"sha": other}}
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    first = HEAD
+    state["requests"].clear()
+
+    def break_history(route):
+        if route.startswith(f"commits/{first}"):
+            raise OSError("connection reset")
+
+    state["before_request"] = break_history
+    # A genuinely uncaught interruption: the sweep dies on the second target instead of reaching
+    # the publication pass. A server-side failure would surface as an OSError that check_prs
+    # catches, so this one is raised by the adapter itself.
+    get = api.get
+
+    def interrupt(route):
+        if route == "pulls/124":
+            raise RuntimeError("sweep interrupted")
+        return get(route)
+
+    api.get = interrupt
+    with pytest.raises(RuntimeError):
+        check_prs(api, policy, BASE, False, [123, 124])
+    # The first target's failure must already be published, because the sweep never reached the
+    # publication pass. Deferring it would have left the earlier success as the newest entry.
+    posts = [route for method, route in state["requests"] if method == "POST"]
+    assert posts == [f"statuses/{first}"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_failed_history_failure_write_is_retried(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    state["fail"] = lambda route: route.endswith("/statuses")
+    state["fail_status"] = lambda route: True
+    result = check_pr(api, 123, policy, BASE, False)
+    # The failure could not be published, so the earlier green still describes the head: the run
+    # must stay retryable and must not claim the old result was cleared.
+    assert result["kind"] == "publication-failed"
+    assert result["rerun"] is True
+    assert exit_code([result]) == EXIT_RERUN
+    assert latest_status(state)["state"] == "success"
+    state["fail_status"] = lambda route: False
+    assert check_pr(api, 123, policy, BASE, False)["kind"] == "history-unavailable"
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_foreign_page_budget_still_publishes_the_failure(api_fixture, policy):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    # Other contexts can fill the head without ever matching this one, so the scan is bounded by
+    # pages. Exhausting that bound must still reach the failure publication.
+    seed_history(state, (HISTORY_PAGES + 5) * 100, context="other-ci")
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "history-unavailable"
+    assert result["rerun"] is True
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_slow_history_scan_stops_before_the_workflow_deadline(api_fixture, policy,
+                                                                  monkeypatch):
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    seed_history(state, 400, context="other-ci")
+    # A page cap does not bound elapsed time, so slow successful responses must trip the time
+    # budget on their own.
+    monkeypatch.setattr("tools.check_knowledge_model_policy.TARGET_SECONDS", 0)
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == "history-unavailable"
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_target_deadline_gives_each_target_an_equal_share(monkeypatch):
+    clock = {"now": 1000.0}
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+    deadline = clock["now"] + SWEEP_SECONDS
+    # The reserve is withheld once for publication, and the rest is split between the targets
+    # still to be evaluated rather than being available to whichever target runs first.
+    share = (SWEEP_SECONDS - HISTORY_RESERVE) / 4
+    assert share < TARGET_SECONDS
+    assert target_deadline(deadline, 4) == clock["now"] + share
+    # Fewer remaining targets get a larger share, but never more than the per-target ceiling.
+    assert target_deadline(deadline, 2) == clock["now"] + TARGET_SECONDS
+    assert target_deadline(deadline, 1) == clock["now"] + TARGET_SECONDS
+    # A spent sweep leaves no share, so the read fails closed rather than extending the run.
+    clock["now"] = deadline - HISTORY_RESERVE
+    assert target_deadline(deadline, 1) <= clock["now"]
+
+
+def test_api_a_slow_target_cannot_starve_the_next(api_fixture, policy, monkeypatch):
+    api, state = api_fixture
+    other = "c" * 40
+    state["prs"][124] = {**pr({**declared(), "head_sha": other}), "number": 124,
+                         "head": {"sha": other}}
+    # A multi-page read is needed for the target to outlive its own share: the check happens
+    # before each page, not after the whole scan.
+    seed_history(state, 400, context="other-ci")
+    clock = {"now": 1000.0}
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+
+    def slow(route):
+        # The read never completes within this target's own share, but the sweep itself still has
+        # time left, so the next target must be evaluated instead of inheriting a dead deadline.
+        if route.endswith("/statuses"):
+            clock["now"] += 20
+
+    state["before_request"] = slow
+    results = check_prs(api, policy, BASE, False, [123, 124])
+    assert [r["kind"] for r in results] == ["history-unavailable", "compliant"]
+    assert results[0]["rerun"] is True
+    assert [r["state"] for r in results] == ["failure", "success"]
+    # The slow target still fails closed: its earlier state cannot survive the sweep.
+    assert next(s for s in reversed(state["statuses"])
+                if s["sha"] == HEAD)["state"] == "failure"
+    assert next(s for s in reversed(state["statuses"])
+                if s["sha"] == other)["state"] == "success"
+
+
+def test_api_every_target_is_evaluated_past_the_former_shared_window(api_fixture, policy,
+                                                                   monkeypatch):
+    api, state = api_fixture
+    numbers = list(range(200, 218))
+    for number in numbers:
+        head = f"{number:040x}"
+        state["prs"][number] = {**pr({**declared(), "head_sha": head}), "number": number,
+                                "head": {"sha": head}}
+    clock = {"now": 1000.0}
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+
+    def ordinary(route):
+        # Four seconds of ordinary metadata work per target: well over the 45 seconds the former
+        # single deadline left for the whole sweep once its 15-second reserve was removed.
+        if route.endswith("/files"):
+            clock["now"] += 4
+
+    state["before_request"] = ordinary
+    results = check_prs(api, policy, BASE, False, numbers)
+    assert len(results) == len(numbers)
+    assert [r["kind"] for r in results] == ["compliant"] * len(numbers)
+    assert clock["now"] - 1000.0 > SWEEP_SECONDS / 2
+    for number in numbers:
+        assert next(s for s in reversed(state["statuses"])
+                    if s["sha"] == f"{number:040x}")["state"] == "success"
+
+
+def test_api_retries_keep_completed_targets_instead_of_rewriting_them(api_fixture, policy,
+                                                                     monkeypatch):
+    api, state = api_fixture
+    numbers = list(range(200, 218))
+    for number in numbers:
+        head = f"{number:040x}"
+        state["prs"][number] = {**pr({**declared(), "head_sha": head}), "number": number,
+                                "head": {"sha": head}}
+    clock = {"now": 1000.0}
+    monkeypatch.setattr("tools.check_knowledge_model_policy.time",
+                        SimpleNamespace(monotonic=lambda: clock["now"]))
+
+    def ordinary(route):
+        # Eight seconds of ordinary metadata work per target: one sweep can reach about 14 of the
+        # 18 targets before its effective window closes, so the tail needs another attempt.
+        if route.endswith("/files"):
+            clock["now"] += 8
+
+    state["before_request"] = ordinary
+    plan = {"policy_sha": BASE, "completed": {}}
+    attempts, posts = [], []
+    for _ in range(3):
+        state["requests"].clear()
+        results = check_prs(api, policy, BASE, False, numbers, plan)
+        attempts.append(results)
+        posts.append([route for method, route in state["requests"] if method == "POST"])
+        if exit_code(results) != EXIT_RERUN:
+            break
+        # The local runner loop restarts the clock for each attempt.
+        clock["now"] = 1000.0
+
+    # The first sweep starves its own tail; the second finishes exactly the work the first left.
+    assert len(attempts) == 2
+    assert [r["kind"] for r in attempts[0]].count("history-unavailable") > 0
+    # A later attempt spends its budget on the unfinished targets only; the earlier verdicts are
+    # reported from the plan and are never re-invalidated or rewritten.
+    assert not any(kind == "history-unavailable" for kind in
+                   [r["kind"] for r in attempts[1]])
+    for number in numbers:
+        assert next(s for s in reversed(state["statuses"])
+                    if s["sha"] == f"{number:040x}")["state"] == "success"
+    completed_first = [r["pull_request"] for r in attempts[0] if r["kind"] == "compliant"]
+    assert completed_first
+    # Those targets are neither re-invalidated nor rewritten by the second attempt.
+    assert not any(route.endswith(f"{number:040x}")
+                   for number in completed_first for route in posts[1])
+    # Every target is still reported once per attempt, including the carried ones.
+    assert [r["pull_request"] for r in attempts[1]] == numbers
+
+
+def test_api_a_carried_target_with_changed_premises_is_evaluated_again(api_fixture, policy):
+    api, state = api_fixture
+    first = check_pr(api, 123, policy, BASE, False)
+    assert first["kind"] == "compliant"
+    plan = {"policy_sha": BASE, "completed": {}}
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["compliant"]
+    # An edited declaration keeps the same head but invalidates the carried verdict.
+    state["prs"][123]["body"] = block(declared([attribution("unknown", "unknown")]))
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_a_revoked_approval_is_not_carried_as_a_settled_success(api_fixture, policy):
+    api, state = api_fixture
+    value = declared([attribution("unknown", "unknown")])
+    value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+    state["prs"][123] = pr(value)
+    state["comments"][123] = [approval({KNOWLEDGE})]
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # Unchanged premises are carried rather than re-evaluated.
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # The PR snapshot is untouched, but the approval that produced the verdict is revoked.
+    state["comments"][123] = [approval({KNOWLEDGE}, decision="revoke")]
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert results[0]["rerun"] is False
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_a_new_shared_head_peer_invalidates_a_carried_success(api_fixture, policy):
+    api, state = api_fixture
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # A peer on another base can share this head without ever entering the target list, so
+    # ownership has to be re-derived from the open-PR collection rather than from the target.
+    state["prs"][900] = {**pr(), "number": 900, "head": {"sha": HEAD},
+                         "base": {"sha": BASE, "ref": "release"}}
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert "shared heads are ineligible" in results[0]["errors"][0]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_a_reassessed_verdict_carries_the_premises_it_actually_used(api_fixture, policy):
+    api, state = api_fixture
+    value = declared([attribution("unknown", "unknown")])
+    value["exception"] = {"paths": [KNOWLEDGE], "reason": "Bounded exception"}
+    state["prs"][123] = pr(value)
+    plan = {"policy_sha": BASE, "completed": {}}
+    # Ordinary discussion but no valid approval at evaluation time, so evaluation refuses. The
+    # approval then appears before the publication pass, which revalidates the comments it read,
+    # reassesses once, and publishes success from the new approval.
+    discussion = {"id": 1, "user": {"login": "commenter"}, "body": "Discussing the change"}
+    state["comments"][123] = [discussion]
+    reads = {"comments": 0}
+    original = api.pages
+
+    def pending_approval(route):
+        if route == "issues/123/comments":
+            reads["comments"] += 1
+            if reads["comments"] > 1:
+                return [discussion, approval({KNOWLEDGE})]
+        return original(route)
+
+    api.pages = pending_approval
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    api.pages = original
+    assert [r["kind"] for r in results] == ["compliant"]
+    # The stored premise is the approval the reassessment actually used, not the empty list the
+    # earlier evaluation read.
+    assert plan["completed"]["123"]["comments"] == [discussion, approval({KNOWLEDGE})]
+    # The approval is removed again. The stored premise must be the one the reassessment used,
+    # so reverting to "no approval" is a change and the settled success cannot be carried.
+    state["comments"][123] = []
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert [r["kind"] for r in results] == ["noncompliant"]
+    assert latest_status(state)["state"] == "failure"
+
+
+def test_api_an_unreadable_collection_never_carries_a_settled_success(api_fixture, policy):
+    api, state = api_fixture
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert check_prs(api, policy, BASE, False, [123], plan)[0]["kind"] == "compliant"
+    # The open-PR listing is unreadable, so the target alone cannot prove unique ownership: the
+    # carry must be refused rather than treated as an unshared head.
+    state["fail"] = lambda route: route == "pulls"
+    results = check_prs(api, policy, BASE, False, [123], plan)
+    assert results[0]["kind"] == "unverified"
+    assert results[0]["rerun"] is True
+    assert exit_code(results) == EXIT_RERUN
+
+
+def test_api_carry_revalidation_tolerates_an_unreadable_target(api_fixture, policy):
+    api, state = api_fixture
+    state["prs"][124] = {**pr({**declared(), "head_sha": "c" * 40}), "number": 124,
+                         "head": {"sha": "c" * 40}}
+    plan = {"policy_sha": BASE, "completed": {}}
+    assert len(check_prs(api, policy, BASE, False, None, plan)) == 2
+    # One carried target cannot be read during revalidation. That is a fallback, not an
+    # invocation-level error, and the other targets must still be evaluated.
+    original = api.get
+
+    def unreadable(route):
+        if route == "pulls/123":
+            raise HTTPError(route, 503, "Unavailable", {}, None)
+        return original(route)
+
+    api.get = unreadable
+    results = check_prs(api, policy, BASE, False, None, plan)
+    assert len(results) == 2
+    assert {r["pull_request"] for r in results} == {123, 124}
+
+
+def test_plan_is_discarded_when_the_trusted_base_changes(tmp_path):
+    path = tmp_path / "plan.json"
+    path.write_text(json.dumps({"policy_sha": "a" * 40,
+                                "completed": {"123": {"head": "b" * 40}}}), encoding="utf-8")
+    # A different trusted base means different loaded code and policy, so no verdict carries over.
+    assert plan_file(path, "c" * 40) == {"policy_sha": "c" * 40, "completed": {}}
+    assert plan_file(path, "a" * 40)["completed"] == {"123": {"head": "b" * 40}}
+    # A corrupt or unreadable plan is treated the same way, never as completed work.
+    path.write_text("not json", encoding="utf-8")
+    assert plan_file(path, "a" * 40) == {"policy_sha": "a" * 40, "completed": {}}
+
+
+def test_runner_keeps_one_plan_across_attempts():
+    runner = (ROOT / "tools/run_knowledge_model_policy.sh").read_text(encoding="utf-8")
+    # The runner owns the retry loop and passes one plan file to every attempt.
+    assert '--plan "$plan"' in runner
+    assert "rm -f \"$plan\"" in runner
+
+
+def test_api_other_contexts_do_not_consume_the_budget(api_fixture, policy):
+    api, state = api_fixture
+    # A foreign context with a full history must not block this policy's evaluation.
+    seed_history(state, 400, context="other-ci")
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    assert latest_status(state)["state"] == "success"
+
+
+
+@pytest.mark.parametrize("capacity", [False, True])
+@pytest.mark.parametrize("stage", ["pending", "verdict", "reserve", "history-fallback"])
+def test_status_422_is_terminal_error_not_compliance(api_fixture, policy, capacity, stage):
+    from io import BytesIO
+
+    from tools.check_knowledge_model_policy import GitHubHTTPError
+
+    api, state = api_fixture
+    assert check_pr(api, 123, policy, BASE, False)["state"] == "success"
+    if stage == "reserve":
+        seed_history(state, STATUS_LIMIT - STATUS_RESERVE - 1 - len(state["statuses"]))
+    original = api.request
+    posts = []
+
+    def request(route, payload=None, **kwargs):
+        if stage == "history-fallback" and route.startswith("commits/"):
+            raise OSError("Synthetic unavailable history")
+        if payload is not None and route.startswith("statuses/"):
+            posts.append(payload["state"])
+            if stage != "verdict" or payload["state"] != "pending":
+                body = {"message": "FAKE_SECRET", "errors": [{"resource": "Status",
+                        "code": "custom", "message":
+                        "This SHA and context has reached the maximum number of statuses."
+                        if capacity else "FAKE_SECRET"}]}
+                raise GitHubHTTPError(HTTPError(route, 422, "", {},
+                                      BytesIO(json.dumps(body).encode())))
+        return original(route, payload, **kwargs)
+
+    api.request = request
+    result = check_pr(api, 123, policy, BASE, False)
+    assert result["kind"] == ("budget-saturated" if capacity else "status-rejected")
+    assert result["state"] == "failure"
+    assert result["rerun"] is False
+    assert exit_code([result]) == EXIT_NONCOMPLIANT
+    assert summarize([result])["noncompliant_pull_requests"] == []
+    assert "FAKE_SECRET" not in json.dumps(result)
+    # A failed write does not revoke the remote old success. A failed final verdict leaves
+    # pending instead. Neither is a claim that this run published a failure status.
+    assert latest_status(state)["state"] == ("pending" if stage == "verdict" else "success")
+    assert len(posts) == (2 if stage == "verdict" else 1)
+
+
+def test_status_422_settled_only_in_current_plan(api_fixture, policy):
+    from io import BytesIO
+
+    from tools.check_knowledge_model_policy import GitHubHTTPError
+
+    api, state = api_fixture
+    seed_history(state, 900)
+    original = api.request
+    posts = []
+
+    def request(route, payload=None, **kwargs):
+        if payload is not None:
+            posts.append(payload)
+            raise GitHubHTTPError(HTTPError(route, 422, "", {}, BytesIO(b'{}')))
+        return original(route, payload, **kwargs)
+
+    api.request = request
+    plan = {"completed": {}}
+    for _ in range(2):
+        results = check_prs(api, policy, BASE, False, [123], plan=plan)
+        assert results[0]["kind"] == "status-rejected"  # 900 is not capacity evidence.
+        assert exit_code(results) == EXIT_NONCOMPLIANT
+    assert len(posts) == 1
+    state["prs"][123]["head"]["sha"] = "c" * 40
+    check_prs(api, policy, BASE, False, [123], plan=plan)
+    assert len(posts) == 2  # A changed head invalidates the carried terminal error.
+    check_prs(api, policy, BASE, False, [123], plan={"completed": {}})
+    assert len(posts) == 3  # A new invocation can reassess after external remediation.
+
+
+@pytest.mark.parametrize("event_name", ["pull_request_target", "issue_comment"])
+def test_targeted_event_does_not_read_history_or_publish_to_unrelated_pr(
+        api_fixture, policy, event_name):
+    from tools.check_knowledge_model_policy import admission_route
+
+    api, state = api_fixture
+    other = copy.deepcopy(pr())
+    other.update(number=124, head={"sha": "c" * 40})
+    state["prs"][124] = other
+    event = {"repository": {"full_name": "example/repository"}, "action": "edited"}
+    if event_name == "pull_request_target":
+        event.update(number=123, pull_request=pr())
+    else:
+        event["issue"] = {"number": 123, "pull_request": {}}
+    numbers, routing, _ = admission_route(
+        api, event, event_name, policy, BASE, "example/repository")
+    assert numbers == [123]
+    assert routing["mode"] == "pr-impact"
+    results = check_prs(api, policy, BASE, False, numbers)
+    assert results[0]["kind"] == "compliant"
+    assert [item["state"] for item in state["statuses"]] == ["pending", "success"]
+    assert all(item["sha"] == HEAD for item in state["statuses"])
+    assert ("GET", "commits/" + "c" * 40 + "/statuses") not in state["requests"]
+    assert ("GET", "pulls/124/files") not in state["requests"]

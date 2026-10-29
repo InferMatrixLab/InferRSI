@@ -17,10 +17,15 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--repo-type", choices=REPO_TYPES, default="vllm_omni")
     parser.add_argument("--backend", choices=BACKENDS, default="cpu")
     parser.add_argument(
-        "--device-ids", default="", help="Comma-separated caller-assigned device IDs"
+        "--device-ids", default="",
+        help=(
+            "Comma-separated caller-assigned device IDs; "
+            "unsupported by MLX unified-memory discovery"
+        ),
     )
     parser.add_argument(
-        "--device-model", help="Expected CUDA device model; other probes retain raw output"
+        "--device-model",
+        help="Expected CUDA device model or Apple Silicon chip (case-insensitive match)",
     )
     parser.add_argument(
         "--python", default=sys.executable, help="Python used for target package inspection"
@@ -185,6 +190,11 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--limit", type=int, default=10)
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
+    collect.add_argument("--relevance", help="Opt-in lexical cue for packaged skill selection")
+    collect.add_argument(
+        "--context-bytes", type=int,
+        help="Opt-in context view; total UTF-8 resource-body byte budget",
+    )
     collect.add_argument(
         "--skill-root",
         type=Path,

@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.video_diffusion_optimization",
+  "title": "video-diffusion-optimization",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Run and verify goal-driven video diffusion optimization, backend-agnostic. Use when the user asks for latency, RTF, throughput, or memory targets across VLM, DiT, MoE, attention, or VAE, on any accelerator. Not for text-only LLMs.",
+  "tags": [
+    "video-diffusion",
+    "dit",
+    "moe",
+    "attention",
+    "vae",
+    "performance",
+    "profiling",
+    "serving",
+    "optimization"
+  ],
+  "origin": [
+    "first-party"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/methods/video-diffusion-optimization/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "paths": [
+        "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/SKILL.md",
+        "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/assets/campaign.template.json",
+        "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/metadata.json",
+        "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/scripts/evaluate_target.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "fc0e7baf9913ce7448247772a1e224a9cbd827492cf9459b1f17f492b9f67b70"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/methods/video-diffusion-optimization/SKILL.md"
+  },
+  "checkout_ref": "checkout:video-diffusion-optimization",
+  "source_files": {
+    "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/SKILL.md": "fc0e7baf9913ce7448247772a1e224a9cbd827492cf9459b1f17f492b9f67b70",
+    "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/assets/campaign.template.json": "1a37f1d136612143ddab8f0cbbf424c80433b4da5312edb18d07c0b9d87ef657",
+    "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/metadata.json": "b27d69142dfea5dd2820170475c2bf6cced2d5eefd1c43b3413c41849af0fd02",
+    "src/inferrsi/data/skill_library/methods/video-diffusion-optimization/scripts/evaluate_target.py": "9e84df051e03d567746fd73ae7243efb2f3c5ec806fef824d3c4d42a8eb9704c",
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
+  },
+  "skill_metadata": {
+    "name": "video-diffusion-optimization",
+    "description": "Run and verify goal-driven video diffusion optimization, backend-agnostic. Use when the user asks for latency, RTF, throughput, or memory targets across VLM, DiT, MoE, attention, or VAE, on any accelerator. Not for text-only LLMs.",
+    "schema_version": 1,
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "status": "candidate",
+    "origin": [
+      "first-party"
+    ],
+    "tags": [
+      "video-diffusion",
+      "dit",
+      "moe",
+      "attention",
+      "vae",
+      "performance",
+      "profiling",
+      "serving",
+      "optimization"
+    ],
+    "empirical_validation": "not_run",
+    "verification": {
+      "locally_verified": false,
+      "evidence_level": "guidance",
+      "note": "Procedure is first-hand workflow guidance. The linked field notes are not reproducible as published. No acceptance campaign under this repository's evidence contract backs this skill, and no public performance claim is made."
+    },
+    "applicability": {
+      "scope": "Backend-agnostic video diffusion inference and serving optimization",
+      "hardware": "Any accelerator (Ascend NPU, CUDA GPU, and others); operator names, memory layouts, and profiler references are re-derived per backend",
+      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+    },
+    "limitations": [
+      "Backend-agnostic skeleton only. The first-hand field notes are Ascend-specific and live in the ascend-video-diffusion-optimization skill; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) must be re-derived per backend.",
+      "Candidate workflow guidance; not independently validated.",
+      "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped."
+    ],
+    "provenance_readsets": [],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "Backend-agnostic video diffusion inference and serving optimization",
+    "hardware": "Any accelerator (Ascend NPU, CUDA GPU, and others); operator names, memory layouts, and profiler references are re-derived per backend",
+    "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Backend-agnostic skeleton only. The first-hand field notes are Ascend-specific and live in the ascend-video-diffusion-optimization skill; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) must be re-derived per backend.",
+    "Candidate workflow guidance; not independently validated.",
+    "Model identifiers, campaign revisions, and numeric gates are intentionally excluded and remain issue-scoped."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

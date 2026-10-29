@@ -21,15 +21,16 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json",
         "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/references/capability-presence-audit.md",
+        "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/references/rtk-consumer-path-transition.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "7e20d3390f2501263e5e298e026c47cac16c234f2397833131e15ae5d34c0b97"
+      "content_sha256": "61bc684d67d6c0876c4956057f11c88802cfc4b771553d00411634d8ea226b3d"
     }
   ],
   "index_type": "packaged-skill",
@@ -38,10 +39,11 @@
   },
   "checkout_ref": "checkout:repository-evolution-analysis",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md": "7e20d3390f2501263e5e298e026c47cac16c234f2397833131e15ae5d34c0b97",
-    "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json": "bbde3cec2545a2613653ec521053f972235742fb53b630badcffd9a61fa5f19f",
+    "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/SKILL.md": "61bc684d67d6c0876c4956057f11c88802cfc4b771553d00411634d8ea226b3d",
+    "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/metadata.json": "98ef753a0e74c46f59a69ae267bdc0a5d293761e6f27edc1822fa8bd4548c4d6",
     "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/references/capability-presence-audit.md": "c21eb4a6aabe811a49a6540a34c54dbcfdcf7efae3052a79b54034c7838026a5",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/methods/repository-evolution-analysis/references/rtk-consumer-path-transition.md": "a70b1d128fb5e0ac12292a290d624f218a0831d7581fe8980b62661473e0f2b7",
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "repository-evolution-analysis",
@@ -77,12 +79,50 @@
         ],
         "type": "git",
         "revision_precision": "prefix"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "4b5d6d725fae3d8a263f6e43c707400e3765b84f",
+        "paths": [
+          "internal/library/rtk.go",
+          "internal/library/rtk_upgrade.go",
+          "internal/proc/path_other.go",
+          "internal/proc/path_windows.go",
+          "internal/provider/install_windows.go"
+        ],
+        "type": "git",
+        "revision_precision": "full"
+      },
+      {
+        "url": "https://github.com/yetone/magpie",
+        "commit": "9848a9062a65c49e074c09770dc7de73dd012bea",
+        "paths": [
+          "internal/library/rtk.go",
+          "internal/library/rtk_upgrade.go",
+          "internal/proc/path_other.go",
+          "internal/proc/path_windows.go",
+          "internal/provider/install_windows.go",
+          "internal/library/rtk_path.go",
+          "internal/library/rtk_path_other.go",
+          "internal/library/rtk_path_windows.go",
+          "internal/library/rtk_path_test.go",
+          "internal/library/rtk_test.go",
+          "internal/library/rtk_upgrade_test.go",
+          "internal/library/library_test.go",
+          "internal/gui/library.go",
+          "internal/gui/assets/library.js",
+          "internal/gui/tests/library-rtk-path.test.cjs",
+          "library_cli.go",
+          "LICENSE"
+        ],
+        "type": "git",
+        "revision_precision": "full"
       }
     ],
     "verification": {
       "locally_verified": false,
       "evidence_level": "source_grounded",
-      "note": "Carried LearningToCommit pipeline and Magpie history analysis, not causal evidence of development speed. The reviewed paper amendment is linked from SKILL.md; paper-to-code equivalence is not established. First-hand Magpie coordination research remains pending Dot delivery and owner review."
+      "note": "Carried LearningToCommit pipeline and Magpie history analysis, not causal evidence of development speed. The reviewed paper amendment is linked from SKILL.md; paper-to-code equivalence is not established. First-hand Magpie coordination research remains pending Dot delivery and owner review. The RTK worked transition is pinned static source/test inspection only; no upstream execution or heldout efficacy evaluation."
     },
     "applicability": {
       "scope": "any software repository with a recoverable git history",
@@ -101,11 +141,15 @@
     ],
     "empirical_validation": "not_run",
     "limitations": [
-      "Source-derived candidate; no local efficacy validation."
+      "Source-derived candidate; no local efficacy validation.",
+      "The RTK transition is a learning example, not an independent heldout task; upstream tests were inspected, not executed.",
+      "Existing audit and synthetic KV comparison adapters are not a generic historical coding-task evaluator."
     ],
     "provenance_readsets": [],
-    "references": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "references": [
+      "references/rtk-consumer-path-transition.md"
+    ]
   },
   "applicability": {
     "scope": "any software repository with a recoverable git history",
@@ -120,7 +164,9 @@
     "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
-    "Source-derived candidate; no local efficacy validation."
+    "Source-derived candidate; no local efficacy validation.",
+    "The RTK transition is a learning example, not an independent heldout task; upstream tests were inspected, not executed.",
+    "Existing audit and synthetic KV comparison adapters are not a generic historical coding-task evaluator."
   ],
   "verification": {
     "locally_verified": false,

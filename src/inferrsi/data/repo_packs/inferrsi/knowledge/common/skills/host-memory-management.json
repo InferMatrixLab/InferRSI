@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
+  "summary": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Also route versioned Ascend native offload descriptor retention to its source case. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
   "tags": [
     "host",
     "cpu",
@@ -17,7 +17,9 @@
     "h2d",
     "gil",
     "numa",
-    "inference"
+    "inference",
+    "ascend",
+    "descriptor-pool"
   ],
   "origin": [
     "external"
@@ -25,14 +27,17 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f"
+      "content_sha256": "2c807f3df2da2f533d25183de5771f3d412058d16410994292ef8f48c49f9b3a"
     }
   ],
   "index_type": "packaged-skill",
@@ -41,13 +46,16 @@
   },
   "checkout_ref": "checkout:host-memory-management",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "f98060ed3c2ef815832eae549bfb21ca02811ff980a629bf995a5b8e7f48c7cd",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md": "2c807f3df2da2f533d25183de5771f3d412058d16410994292ef8f48c49f9b3a",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "9ac6af135f0b6d76a76bc201b6bbd8ac9afe5201dd1e2ea82c0ac4826de401da",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json": "cc6c2011be746002ba3ff96ccefab1809863748ddd17eb102b75e7b0e134fe55",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542",
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "host-memory-management",
-    "description": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
+    "description": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Also route versioned Ascend native offload descriptor retention to its source case. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
     "tags": [
       "host",
       "cpu",
@@ -56,7 +64,9 @@
       "h2d",
       "gil",
       "numa",
-      "inference"
+      "inference",
+      "ascend",
+      "descriptor-pool"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -65,22 +75,41 @@
     "origin": [
       "external"
     ],
-    "sources": [],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-ascend",
+        "commit": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf",
+        "paths": [
+          "LICENSE",
+          "requirements.txt",
+          "vllm_ascend/distributed/kv_transfer/__init__.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/npu.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/cpu_npu.py",
+          "csrc/torch_binding.cpp",
+          "tests/ut/kv_offload/test_native_cpu_offload.py"
+        ],
+        "readset": "references/vllm-ascend-native-offload-readset.json"
+      }
+    ],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+      "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified."
     ],
-    "provenance_readsets": [],
-    "references": [],
+    "provenance_readsets": [
+      "references/vllm-ascend-native-offload.md",
+      "references/vllm-ascend-native-offload-readset.json"
+    ],
+    "references": [
+      "references/vllm-ascend-native-offload.md",
+      "references/vllm-ascend-native-offload-readset.json",
+      "references/vllm-ascend-LICENSE.md"
+    ],
     "consumption_mode": "packaged"
   },
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
+  "applicability": {},
   "recommendations": [
     "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
     "Read the packaged references and owner-local cases alongside the procedure."
@@ -91,7 +120,8 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
+    "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified."
   ],
   "verification": {
     "locally_verified": false,

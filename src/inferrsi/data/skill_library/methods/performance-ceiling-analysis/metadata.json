@@ -46,7 +46,7 @@
   "verification": {
     "locally_verified": false,
     "evidence_level": "source_grounded",
-    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. No local accelerator measurements or automatic calculator."
+    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification."
   },
   "applicability": {
     "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -87,6 +87,5 @@
     "references/papers-20261015/references/vidur.md",
     "references/papers-20261015/STATIC_CHECKS.md"
   ],
-  "references": [],
   "consumption_mode": "packaged"
 }

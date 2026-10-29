@@ -8,7 +8,8 @@ from pathlib import Path
 from ..processes import _stop_tree, _WindowsJob
 
 
-def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadline: float) -> dict:
+def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadline: float, *,
+                    environment: dict | None = None) -> dict:
     trial_dir.mkdir(parents=True)
     result_path = trial_dir / "result.json"
     argv = [arg.replace("{result}", str(result_path)) for arg in command]
@@ -31,7 +32,7 @@ def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadli
                 status="timeout", error="whole-run deadline exhausted before command start"
             )
         else:
-            environment = os.environ.copy()
+            environment = os.environ.copy() if environment is None else environment.copy()
             environment["INFERRSI_RESULT_PATH"] = str(result_path)
             options = (
                 {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
@@ -48,6 +49,7 @@ def execute_command(command: tuple[str, ...], cwd: Path, trial_dir: Path, deadli
                     argv,
                     cwd=cwd,
                     env=environment,
+                    stdin=subprocess.DEVNULL,
                     stdout=stdout,
                     stderr=stderr,
                     shell=False,

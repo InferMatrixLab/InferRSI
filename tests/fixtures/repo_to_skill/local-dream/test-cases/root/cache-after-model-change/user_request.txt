@@ -1,0 +1,1 @@
+A shape-compatible Local Dream text encoder was replaced inside the same model directory. PromptCache header version/mode/dimensions still match and the prompt is unchanged. Does this authenticate the cache? What changes for textual inversion or DiT?

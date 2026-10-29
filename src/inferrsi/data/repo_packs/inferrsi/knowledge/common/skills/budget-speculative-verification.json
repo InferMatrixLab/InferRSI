@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9aec6317c9bb20cb7fd6eaf861257172bb1b4840/src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
-      "commit": "9aec6317c9bb20cb7fd6eaf861257172bb1b4840",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json",
@@ -42,10 +42,10 @@
   "checkout_ref": "checkout:budget-speculative-verification",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/SKILL.md": "f157562d1edc905cb4fc07246567e3c5b844efb9fbf5fe39f0d40553a1b1a307",
-    "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json": "d8f76d5a4294e3e951f095e5c5db6c48113a5f2fec12771209db0fb33ec631d9",
+    "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/metadata.json": "4d68bf4c1767eaee12ade963bbd551d0e61d1bcd81a984bb02fd3aae46965919",
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/source-notes.md": "6fa955022f16cd598f44fd6521901d1cb868b06cec545cabe2b82769a641b5d6",
     "src/inferrsi/data/skill_library/repositories/deepinfer/budget-speculative-verification/references/validation.md": "673d93f6700052974b340fab25b3438e0e6344960569ac9abec7d7720f662288",
-    "src/inferrsi/data/skill_library/skill-index.json": "652ff288bc30196fae4ef208c343ca7f2c8fd974c96a22a52531adcea2273dec"
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
   },
   "skill_metadata": {
     "name": "budget-speculative-verification",
@@ -103,7 +103,6 @@
       "references/source-notes.md",
       "references/validation.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {

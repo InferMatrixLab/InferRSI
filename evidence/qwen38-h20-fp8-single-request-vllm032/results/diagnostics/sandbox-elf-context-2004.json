@@ -1,0 +1,27 @@
+{
+  "job": 2004,
+  "slurm_state": "FAILED",
+  "exit_code": "1:0",
+  "allocated_seconds": 1,
+  "allocated_cpus": 2,
+  "allocated_gpus": 0,
+  "allocation_released": true,
+  "terminal": {
+    "completed": false,
+    "exit_code": 1,
+    "phase": "diagnostic",
+    "signal": "none",
+    "job_id": "2004"
+  },
+  "scope": "diagnostic_lexical_alias_failure",
+  "readelf_commands_completed": 1,
+  "ldd_executed": false,
+  "verdict": "INCONCLUSIVE",
+  "measured_e2e_effect": null,
+  "private_evidence_sha256": {
+    "scontrol-final.private.txt": "14b9f64b55f280ba0ff76476f94724745aa65433ba8c0dea62ce7247492ed4cb",
+    "squeue-final.private.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostic.private.log": "1cd1ca94ae6e984a2e03f6be82fe8bac768ab33ccabe76da4c86977676925e59",
+    "output.private.tar": "b16688906ea90d974b2e834e370f359ffe5fbda2a1dd9675c1063ec2503f1a08"
+  }
+}

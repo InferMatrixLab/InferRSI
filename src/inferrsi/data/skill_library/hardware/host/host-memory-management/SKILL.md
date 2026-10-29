@@ -1,6 +1,6 @@
 ---
 name: host-memory-management
-description: 'Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).
+description: 'Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Also route versioned Ascend native offload descriptor retention to its source case. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).
 
   '
 ---
@@ -24,6 +24,14 @@ When to use this skill:
 **Do not use this skill for:**
 - Profiling or root-cause analysis (use `host-overhead-profiling` instead)
 - Line-by-line optimization of Python hotspots (use `host-overhead-optimization` instead)
+
+---
+
+## Versioned Ascend native descriptor-pool case
+
+Use the [native single-tier source case](references/vllm-ascend-native-offload.md) when a vLLM-Ascend worker retains CPU pointer/size arrays after submission or a tracked-job wait. At the pinned implementation, normal pool reuse follows a successful queue-head end-event query; submission, event recording and wait do not perform that reclamation. The reference separates descriptor ownership from CPU KV payload mirrors, allocator caches and physical RAM release, and reports shutdown ordering without a stronger lifetime claim.
+
+This case is a source-derived candidate, with native validation not_run. The four historical mechanisms and CUDA examples below do not qualify Ascend APIs, thresholds, synchronization recipes or performance.
 
 ---
 
@@ -514,7 +522,7 @@ class OptimizedInferenceServer:
 
 ## Limitations
 
-**CUDA-specific**: Pinned memory, streams, and `torch.cuda` APIs are NVIDIA GPU–specific. For NPU (Ascend, etc.), use platform-specific alternatives (e.g., `torch_npu.cuda_stream`, `pin_memory` may not be available).
+**Historical CUDA examples**: The four mechanisms and serving example retain their CUDA/Python/NUMA scope. Their APIs, thresholds, synchronization advice and performance figures do not establish Ascend behavior. The [versioned native offload case](references/vllm-ascend-native-offload.md) covers a separate CPU descriptor-pool contract; it does not establish the historical `torch_npu.cuda_stream` spelling as a supported API or qualify a general NPU alternative.
 
 **Python GIL**: Free-threaded Python 3.13+ is experimental; production readiness and third-party library compatibility vary. Multiprocessing remains stable but has higher overhead.
 

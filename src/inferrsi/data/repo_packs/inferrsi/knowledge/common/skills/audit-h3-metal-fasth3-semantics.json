@@ -1,0 +1,191 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.audit_h3_metal_fasth3_semantics",
+  "title": "audit-h3-metal-fasth3-semantics",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit h3-metal FastH3 effective configuration, checkpoint tensor and schedule semantics, partial VSA tiles, sparse eligibility and dense-plus-coarse fallback without treating source or header checks as native parity.",
+  "tags": [
+    "h3-metal",
+    "FastH3",
+    "MiniMax-H3",
+    "apple-silicon",
+    "metal",
+    "qkv-layout",
+    "swiglu",
+    "bf16",
+    "vsa",
+    "sparse-attention",
+    "fallback",
+    "effective-configuration"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md",
+        "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "e5205de6eba52b3d1693666af755640697717e52ee7834e1ae30e4071b208d54"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md"
+  },
+  "checkout_ref": "checkout:audit-h3-metal-fasth3-semantics",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md": "e5205de6eba52b3d1693666af755640697717e52ee7834e1ae30e4071b208d54",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/metadata.json": "86a67bb56110c3a9e191e0ff576194162e960cbddca0a99c593ea7aef8df8a4e",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/preflight.md": "5cf745005914c74b18a09f127d1d02ce0cb64f6cd7899501ce3cb40938c42a4c",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/repo-provenance.md": "6a4c14207223dcc2584f7133bd14ff4590c2258fc2bd44f3721b6bf63e3e35cf",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/semantic-contracts.md": "3f518160e8a227272e698486e6c67acd364af0d74755103ffc868b2d66052c20",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-identity.json": "b0e63197725c6a1baa4888ca3c48ccd4926b6e6f0f8bf781ae76ac97ffd1ceb1",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/source-notes.md": "f9430103644eacd9c55ace6f84d8587fc0bc063bfcd9cb60e6045b139a9fee05",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/references/troubleshooting.md": "ed552d87f9fb9fb2c56de64df61f3fc6e2333cb049116cd0736f784c8a327612",
+    "src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/scripts/audit_fasth3.py": "05bfb9348cf88a76f4fba8bc8a600fe54246d83a98c1685bc4847ace28e2fbac",
+    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
+  },
+  "skill_metadata": {
+    "name": "audit-h3-metal-fasth3-semantics",
+    "description": "Audit h3-metal FastH3 effective configuration, checkpoint tensor and schedule semantics, partial VSA tiles, sparse eligibility and dense-plus-coarse fallback without treating source or header checks as native parity.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "license": "NO_LICENSE",
+    "tags": [
+      "h3-metal",
+      "FastH3",
+      "MiniMax-H3",
+      "apple-silicon",
+      "metal",
+      "qkv-layout",
+      "swiglu",
+      "bf16",
+      "vsa",
+      "sparse-attention",
+      "fallback",
+      "effective-configuration"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/zuiho-kai/h3-metal",
+        "commit": "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8",
+        "paths": [
+          "LICENSE",
+          "THIRD_PARTY_NOTICES.md",
+          "Makefile",
+          "README.md",
+          "docs/USAGE.md",
+          "h3.h",
+          "h3.c",
+          "main.c",
+          "h3_host.h",
+          "h3_host.c",
+          "h3_dit.c",
+          "h3_dit_schedule.c",
+          "h3_gpu.m",
+          "h3_shaders.metal",
+          "tests/test_h3.c",
+          "tests/test_vsa_coarse.c",
+          "tests/test_real_dit_schedule.c",
+          "tests/bench_dit.c",
+          "tools/fasth3_keymap.py",
+          "tools/fasth3_keymap.md",
+          "bench/run_fox2.sh"
+        ],
+        "readset": "references/source-notes.md",
+        "identity": "references/source-identity.json",
+        "license": "MIT; selected shader-derived components separately BSD-3-Clause",
+        "third_party_notices": "references/THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/VectorSpaceLab/AREX-Skill",
+        "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+        "paths": [
+          "cli/packages/coding-agent/src/disco/skills/create-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env",
+          "cli/packages/coding-agent/src/disco/skills/verify-repo-skill",
+          "cli/packages/coding-agent/src/disco/skills/extend-repo-skill"
+        ],
+        "scope": "Portable source/CPU-only preparation, extraction, safe-script disposition, difficult cases and verification adaptation to InferRSI ownership; no DisCo CLI/model run or managed import."
+      }
+    ],
+    "construction": {
+      "anchor_kind": "source",
+      "distillation_form": "capability-specific",
+      "strategy": "arex-portable-meta-skills",
+      "status": "partial-candidate",
+      "native_import": "not-run",
+      "method": "Bounded fork-specific source audit, bundled selected-declaration helper and assertion-backed cases. Native Apple/Metal/model evidence remains blocked; no numerical/performance/skill-efficacy claim."
+    },
+    "applicability": {
+      "scope": "h3-metal FastH3 requested/effective configuration, checkpoint transformation and schedule/RoPE semantics, VSA prefix/partial tiles and dispatch/fallback audit. Common catalog placement is discovery, not CPU inference or Apple qualification."
+    },
+    "limitations": [
+      "BLOCKED_REQUIRED_BACKEND: native Apple/Metal, actual FastH3 checkpoint/schedule/sparse parity, audio/video quality, target memory fit, performance and service evidence not_run.",
+      "Offline helper audits caller declarations and selected arithmetic only, not engine parameter validity, payload/dtype/conversion equivalence, attention numerics, actual environment or dispatch.",
+      "Bounded file/range readset only; full kernels, model/config/weights, encoders/VAEs, device/runtime behavior and external FastVideo conformance are not established.",
+      "Native coarse VSA and original-H3 schedule test definitions do not cover sparse fine or FastH3 BF16 schedule execution; no native tests were run.",
+      "Key-map and benchmark source scripts are excluded from execution; checked-in reports, source comments and existing measurement documents are not new local evidence.",
+      "NO_LICENSE is the actual unauthenticated machine-resolver fallback, not absence of licensing. Inspected MIT source and BSD-3-Clause notices are retained; model rights remain separate/unverified."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md",
+      "references/source-identity.json",
+      "references/repo-provenance.md"
+    ],
+    "consumption_mode": "packaged"
+  },
+  "applicability": {
+    "scope": "h3-metal FastH3 requested/effective configuration, checkpoint transformation and schedule/RoPE semantics, VSA prefix/partial tiles and dispatch/fallback audit. Common catalog placement is discovery, not CPU inference or Apple qualification."
+  },
+  "recommendations": [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "BLOCKED_REQUIRED_BACKEND: native Apple/Metal, actual FastH3 checkpoint/schedule/sparse parity, audio/video quality, target memory fit, performance and service evidence not_run.",
+    "Offline helper audits caller declarations and selected arithmetic only, not engine parameter validity, payload/dtype/conversion equivalence, attention numerics, actual environment or dispatch.",
+    "Bounded file/range readset only; full kernels, model/config/weights, encoders/VAEs, device/runtime behavior and external FastVideo conformance are not established.",
+    "Native coarse VSA and original-H3 schedule test definitions do not cover sparse fine or FastH3 BF16 schedule execution; no native tests were run.",
+    "Key-map and benchmark source scripts are excluded from execution; checked-in reports, source comments and existing measurement documents are not new local evidence.",
+    "NO_LICENSE is the actual unauthenticated machine-resolver fallback, not absence of licensing. Inspected MIT source and BSD-3-Clause notices are retained; model rights remain separate/unverified."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

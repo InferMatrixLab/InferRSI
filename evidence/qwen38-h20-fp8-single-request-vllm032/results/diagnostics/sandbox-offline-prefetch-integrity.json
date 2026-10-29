@@ -1,0 +1,9 @@
+{
+  "patch/diagnostics/sandbox-offline-prefetch-v1/check_prefetch.py": "c26a158dde94107c1c7333aec288468571c5e03d6f7cb5de88b0d9b0408b0ecd",
+  "patch/diagnostics/sandbox-offline-prefetch-v1/policy.json": "268a2ddb2d2afd5ef8c8af1165a8d17f3fbc5e99c9a7d5ec92f745c367d52e63",
+  "patch/diagnostics/sandbox-offline-prefetch-v1/prefetch.py": "2dcfbb4a1be99a86c119354b20c5bdc47a5a0bd71207f2e62f9602dbe6d18ae9",
+  "results/diagnostics/sandbox-offline-prefetch-controls.json": "2065cf8b9a2296f380bf73b1a5bd8d14108f6ea35cb08cf9fb995fcec217949f",
+  "results/diagnostics/sandbox-offline-prefetch-impact.md": "abe0411155a1220bcdba0995ec079354a45635af304ced94a9816c27dd8f3810",
+  "results/diagnostics/sandbox-offline-prefetch-report.json": "23a38dda781f24cc944c7ef8f113a641dc027abbf32ebfe6849eebf170d3d14b",
+  "results/diagnostics/sandbox-offline-prefetch-wheel-records.json": "3e69dc951f3c0a9989b20e55e75f21129c9463d3d2ec139b34480e4ba382d88a"
+}

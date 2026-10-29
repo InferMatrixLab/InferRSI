@@ -1,0 +1,1 @@
+Use example B=1/T=40/Hk=2/Hv=4/Dv=16 but Dk=48. Carry a previously rounded BF16 state and call useKernel true; declare CPU execution and exact recovered state because entry casts to FP32.

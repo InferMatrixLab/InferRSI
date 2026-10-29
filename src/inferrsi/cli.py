@@ -192,6 +192,8 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
                 max_bytes=args.max_bytes,
                 material=args.material,
+                relevance=args.relevance,
+                context_bytes=args.context_bytes,
             )
             if args.json:
                 _print(result)
@@ -218,6 +220,19 @@ def main(argv: list[str] | None = None) -> int:
                         print(f"--- begin content {item['ref']} @ {item['revision']} ---")
                         print(item["content"], end="" if item["content"].endswith("\n") else "\n")
                         print(f"--- end content {item['ref']} ---")
+                for context in result.get("contexts", []):
+                    for resource in context["resources"]:
+                        print(
+                            f"--- begin context {context['ref']} @ {context['revision']} "
+                            f"{resource['path']} ---"
+                        )
+                        print(resource["content"], end="" if resource["content"].endswith("\n")
+                              else "\n")
+                        print(f"--- end context {resource['path']} ---")
+                    for omission in context["omissions"]:
+                        print(f"{omission['path']}\tcontext_omitted\t{omission['reason']}")
+                for omission in result.get("context_omissions", []):
+                    print(f"{omission['ref']}\tcontext_omitted\t{omission['reason']}")
                 for omission in result["omissions"]:
                     detail = f"\t{_tsv(omission['detail'])}" if "detail" in omission else ""
                     print(f"{_tsv(omission['id'])}\tomitted\t{omission['reason']}{detail}")
@@ -275,11 +290,12 @@ def main(argv: list[str] | None = None) -> int:
         environment["invocation"] = argv if argv is not None else sys.argv[1:]
         if args.command == "doctor":
             _print(environment)
-            healthy = environment["repository"].get("available", False) and environment[
+            device = environment["device"]
+            known = device["status"] == "available" and device.get("selection_verified", True)
+            available = environment["repository"].get("available", False) and environment[
                 "target_python"
             ].get("environment")
-            available = environment["device"]["status"] in ("available", "tool_available")
-            return 0 if healthy and available else 1
+            return 0 if available and known else 1
 
         spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
@@ -294,8 +310,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if not environment["repository"].get("available"):
             raise ValueError("The baseline must be a readable Git checkout for source provenance")
-        if environment["device"]["status"] not in ("available", "tool_available"):
+        if environment["device"]["status"] != "available":
             raise ValueError(f"Backend inspection failed: {environment['device']['status']}")
+        if not environment["device"].get("selection_verified", True):
+            raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
 

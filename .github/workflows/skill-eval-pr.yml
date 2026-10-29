@@ -1,0 +1,168 @@
+name: Skill PR evaluation
+run-name: >-
+  ${{ github.event_name == 'workflow_dispatch' && inputs.action == 'execute'
+      && format('skill-eval execute PR {0} plan {1}', inputs.pr, inputs.plan_sha256)
+      || format('skill-eval plan or publish PR {0}', inputs.pr || github.event.pull_request.number) }}
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled, closed]
+    paths:
+      - src/inferrsi/data/skill_library/**
+      - src/inferrsi/data/knowledge_packs/**
+      - src/inferrsi/data/repo_packs/**/knowledge/**
+      - tools/skill_eval_*
+      - docs/examples/skill-comparison/**
+      - .github/workflows/skill-eval-pr.yml
+  workflow_dispatch:
+    inputs:
+      action:
+        type: choice
+        options: [plan, execute, publish]
+        required: true
+        description: Plan prepares and publishes without execution; execute consumes approval once
+      pr:
+        required: true
+        description: PR number
+      plan_sha256:
+        required: false
+        description: Required for execute; exact PR plan SHA-256 shown by planning
+      version:
+        required: false
+        description: Required for execute; exact trusted implementation SHA in the plan
+      base:
+        required: false
+        description: Required for execute; exact compared base SHA
+      head:
+        required: false
+        description: Required for execute; exact compared head SHA
+      budget:
+        required: false
+        description: Required for execute; approval of the complete Budget JSON in the plan
+      provider_config:
+        required: false
+        description: Optional exact public model/client/pricing/spend-limit JSON; never credentials
+      source_run:
+        description: Execution workflow run ID, required for publish-only retries
+
+permissions: {}
+
+# Every writer and execution for a PR is serialized; never cancel paid work.
+concurrency:
+  group: skill-eval-pr-${{ inputs.pr || github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  PYTHONPATH: src
+
+jobs:
+  plan:
+    outputs:
+      client_kind: ${{ steps.prepare.outputs.client_kind }}
+      auto_candidate: ${{ steps.prepare.outputs.auto_candidate }}
+    if: github.ref == 'refs/heads/main' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: read
+      actions: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install '.[skills]'
+      - name: Prepare from trusted code and raw PR Git objects
+        id: prepare
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.skill_eval_pr prepare --output prepared
+      - uses: actions/upload-artifact@v4
+        with:
+          name: skill-eval-plan
+          path: prepared
+          include-hidden-files: true
+          retention-days: 30
+
+  execute:
+    if: github.event_name == 'pull_request_target' && needs.plan.outputs.auto_candidate == 'true'
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install '.[skills]'
+      - uses: actions/download-artifact@v4
+        with:
+          name: skill-eval-plan
+          path: prepared
+      - name: Trusted cumulative-budget controller (never executes PR code)
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          SKILL_EVAL_YIBUAPI_KEY: ${{ secrets.SKILL_EVAL_YIBUAPI_KEY }}
+        run: python -m tools.skill_eval_pr control --output prepared
+      - name: Package retained results even after interruption
+        if: always()
+        run: python -m tools.skill_eval_pr pack --output prepared
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skill-eval-results
+          path: prepared/results.zip
+          retention-days: 30
+
+  publish:
+    if: always() && needs.plan.result == 'success'
+    needs: [plan, execute]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+      pull-requests: write
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.workflow_sha }}
+          # Report-only retries authenticate the original verifier as a main ancestor.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - run: python -m pip install '.[skills]'
+      - name: Rebuild trusted inputs; never execute artifact code
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.skill_eval_pr prepare --output prepared
+      - name: Update the single revision-bound summary from retained data
+        env:
+          SKILL_EVAL_AUTO_SOURCE: ${{ github.event_name == 'pull_request_target' && needs.plan.outputs.auto_candidate == 'true' }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: python -m tools.skill_eval_pr publish --output prepared
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: skill-eval-report
+          path: |
+            prepared/pr-plan.json
+            prepared/report-renderer.json
+            prepared/*/report.json
+            prepared/*/report.md
+          retention-days: 30

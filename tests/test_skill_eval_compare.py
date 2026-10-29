@@ -125,6 +125,29 @@ def test_budget_stops_leave_missing_sides_and_unknown_usage(tmp_path):
     assert result["pairs"][1]["baseline"]["missing"] is True
 
 
+@pytest.mark.parametrize("usage", ["malformed", [1]])
+def test_legacy_malformed_usage_report_stays_unknown_without_rewriting_evidence(tmp_path, usage):
+    config, repo = configuration(tmp_path, ids=("one",))
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path)
+    original = compare.execute(output, authorization, client=client)
+    path = output / original["pairs"][0]["candidate"]["evidence"]["result.json"]
+    record = compare.read_json(path)
+    # Model a legacy controller that retained raw provider usage with a valid receipt.
+    record["observations"]["usage"] = usage
+    write_json(path, record)
+    receipt = path.parent / "receipt.json"
+    write_json(receipt, {"result_sha256": sha256(path)})
+    saved = path.read_bytes(), receipt.read_bytes()
+    result = compare.report(output)
+    assert result["pairs"][0]["candidate"]["observations"]["usage"] is None
+    assert result["conditions"]["candidate"]["input_tokens"] is None
+    assert result["conditions"]["candidate"]["output_tokens"] is None
+    assert len(client.calls) == 2
+    assert saved == (path.read_bytes(), receipt.read_bytes())
+
+
 def test_run_status_receipt_rejects_changed_completion_and_budget_fields(tmp_path):
     config, repo = configuration(tmp_path, ids=("one",), token_stop_new_trials=1)
     output = tmp_path / "run"
@@ -671,6 +694,93 @@ def test_required_execution_case_fields_are_validated_before_freeze(tmp_path):
         assert not output.exists()
 
 
+def test_edited_freeze_semantics_cannot_pass_with_a_recomputed_hash(tmp_path):
+    # The authorization hash is taken over freeze.json, so anyone who edits it can
+    # recompute that hash. The fields it states must agree with the frozen inputs.
+    config, repo = configuration(tmp_path, ids=("one", "two"), repeats=1)
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    plan = compare.load_plan(output)
+    assert len(plan["schedule"]) == 4
+    freeze = output / "plan/freeze.json"
+    original = freeze.read_bytes()
+    for field, mutate in (
+        ("schedule", lambda value: value.__setitem__("schedule", value["schedule"][:2])),
+        ("limits", lambda value: value["limits"].__setitem__("repeats", 2)),
+        ("same_bundle", lambda value: value.__setitem__(
+            "same_bundle", not value["same_bundle"])),
+        ("exam", lambda value: value["exam"].__setitem__("grader", "0" * 64)),
+    ):
+        with pytest.raises(ValueError, match="Frozen"):
+            value = json.loads(original)
+            mutate(value)
+            write_json(freeze, value)
+            forged = sha256(freeze)
+            assert forged != authorization
+            compare.execute(output, forged, client=FixedOutputClient(tmp_path))
+        assert not (output / "results/start.json").exists()
+        with pytest.raises(ValueError, match="Frozen"):
+            compare.report(output)
+        freeze.write_bytes(original)
+        assert compare.load_plan(output) == plan
+
+
+def test_rewritten_result_and_receipt_is_regraded_by_the_trusted_verifier(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",))
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path, {("one", role): "incorrect" for role in compare.ROLES})
+    original = compare.execute(output, authorization, client=client)
+    assert original["counts"]["unchanged_incorrect"] == 1
+    directory = output / "results" / "one-baseline-1"
+    saved = (directory / "result.json").read_bytes()
+    record = json.loads(saved)
+    record.update(verdict="PASS", checks={"passed": True, "assertions": {"fabricated": True}})
+    write_json(directory / "result.json", record)
+    # A rewritten tree can also carry a consistent receipt; that alone proves nothing.
+    write_json(directory / "receipt.json", {"result_sha256": sha256(directory / "result.json")})
+    entry = {"task_id": "one", "condition": "baseline", "repeat": 1, "split": "holdout"}
+    assert compare.retained_trial(output, entry)["verdict"] == "PASS"
+    with pytest.raises(ValueError, match="trusted grader"):
+        compare.report(output)
+    # Restoring the record does not restore the grade: the receipt is proof of bytes only.
+    (directory / "result.json").write_bytes(saved)
+    downgraded = compare.report(output)
+    trial = downgraded["pairs"][0]["baseline"]
+    assert trial["verdict"] == "INCONCLUSIVE"
+    assert trial["evaluation_error"] == "retained_trial_record_hash_mismatch"
+    assert downgraded["counts"]["unchanged_incorrect"] == 0
+    write_json(directory / "receipt.json", {"result_sha256": sha256(directory / "result.json")})
+    assert compare.report(output) == original
+
+
+def test_partial_usage_stops_the_schedule_when_the_next_trial_would_be_unauthorized(tmp_path):
+    # token_stop_new_trials bounds a budget that is unknown, so no further trial
+    # may start once a call reports usage the controller cannot account for.
+    config, repo = configuration(tmp_path, ids=("one", "two"), repeats=1)
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path, {("one", "baseline"): "unknown_usage"})
+    result = compare.execute(output, authorization, client=client)
+    assert len(client.calls) == 1
+    assert result["status"]["stop_reason"] == "unknown_usage"
+    assert result["status"]["execution_state"] == "stopped"
+    assert result["status"]["recorded_trials"] == 1
+    assert result["status"]["observed_tokens"] == 0
+    assert result["counts"]["missing_pair"] == 2
+
+
+def test_full_known_usage_schedule_still_runs_to_completion(tmp_path):
+    config, repo = configuration(tmp_path, ids=("one",), repeats=2)
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    client = FixedOutputClient(tmp_path)
+    result = compare.execute(output, authorization, client=client)
+    assert len(client.calls) == 4
+    assert result["status"]["stop_reason"] is None
+    assert result["status"]["execution_state"] == "completed"
+
+
 def test_modified_trial_verdicts_and_checks_cannot_override_retained_grades(tmp_path):
     config, repo = configuration(tmp_path, ids=("one",))
     output = tmp_path / "run"
@@ -934,3 +1044,52 @@ def test_answer_keys_are_rejected_by_supported_input_shape(tmp_path, extra):
     with pytest.raises(ValueError, match="input"):
         compare.prepare(config, repo, output)
     assert not output.exists()
+
+
+def test_unverifiable_custom_grader_cannot_produce_a_pair_outcome(tmp_path):
+    # A custom grader has no in-tree authority to re-derive from, and the retained
+    # record is writable by the graded agent. Its stated PASS/FAIL must not become
+    # a fix, regression or unchanged outcome.
+    config, repo = configuration(tmp_path, ids=("one",))
+    raw = json.loads(config.read_text())
+    # Same contract, different bytes: the in-tree verifier cannot be identified
+    # by hash, so this exam has no trusted re-derivation.
+    grader = tmp_path / "custom_verifier.py"
+    grader.write_text(
+        (ROOT / "tools/skill_eval_verifier.py").read_text(encoding="utf-8")
+        + "\n# custom exam marker\n",
+        encoding="utf-8",
+    )
+    raw["grader"] = grader.name
+    write_json(config, raw)
+    output = tmp_path / "run"
+    authorization = compare.prepare(config, repo, output)
+    result = compare.execute(output, authorization, client=FixedOutputClient(tmp_path))
+    trial = result["pairs"][0]["baseline"]
+    assert result["counts"]["inconclusive"] == 1
+    assert result["counts"]["unchanged_correct"] == 0
+    assert trial["verdict"] == "INCONCLUSIVE"
+    assert trial["stated_verdict"] in ("PASS", "FAIL")
+    assert trial["grader_trust"] == "unverified"
+    assert trial["evaluation_error"] == "unverified_custom_grader"
+
+
+def test_forged_identical_bundle_claim_is_rejected_against_exported_bytes(tmp_path):
+    # Both sides of the identical-bundle invariant come from mutable freeze
+    # metadata. Retargeting only the candidate revision must not make two
+    # different exported bundles read as the same skill content.
+    config, repo = configuration(tmp_path, mode="update", ids=("one",))
+    output = tmp_path / "run"
+    compare.prepare(config, repo, output)
+    plan = compare.load_plan(output)
+    assert plan["same_bundle"] is False
+    assert plan["arms"]["baseline"]["bundle"]["revision"] != (
+        plan["arms"]["candidate"]["bundle"]["revision"])
+    freeze = output / "plan/freeze.json"
+    forged = json.loads(freeze.read_text(encoding="utf-8"))
+    forged["arms"]["candidate"]["bundle"]["revision"] = (
+        forged["arms"]["baseline"]["bundle"]["revision"])
+    forged["same_bundle"] = True
+    write_json(freeze, forged)
+    with pytest.raises(ValueError, match="identical-bundle"):
+        compare.load_plan(output)

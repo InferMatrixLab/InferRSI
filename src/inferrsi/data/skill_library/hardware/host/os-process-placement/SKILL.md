@@ -107,6 +107,10 @@ threads are decoupled from inference threads; (3) parallel-slot count (=
 server concurrency) drives memory pool sizing, so thread/slot decisions are
 also memory-placement decisions.
 
+Use the [llama.cpp owner map](../../../repositories/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope)
+to distinguish this placement scope from loading modes and runtime-state diagnosis,
+with each owner's source pin and readset.
+
 ## 2. Thread-count environment discipline
 
 Default values observed across sources:
