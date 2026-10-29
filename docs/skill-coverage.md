@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:d571fcf293b013914ba5d7c2ba982635a86ffcebff16a7734e245515ebe94891`
+- Input digest: `sha256:fd1e4822b396b36d797ca8fddddf183aa320b00b751db3530bc8de0d9e3929d3`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
