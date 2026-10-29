@@ -28,6 +28,7 @@ jobs:
     outputs:
       release: ${{ steps.plan.outputs.release }}
       tag: ${{ steps.plan.outputs.tag }}
+      version: ${{ steps.plan.outputs.version }}
       commit: ${{ steps.plan.outputs.commit }}
       previous_tag: ${{ steps.plan.outputs.previous_tag }}
     steps:
@@ -59,6 +60,8 @@ jobs:
     env:
       RELEASE_TAG: ${{ needs.plan.outputs.tag }}
       RELEASE_COMMIT: ${{ needs.plan.outputs.commit }}
+      # Multiple reserved tags can share a commit after failed publication.
+      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI: ${{ needs.plan.outputs.version }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -78,12 +81,14 @@ jobs:
           python -m pip install -e ".[dev]" build twine
           ruff check src tests tools
           pytest
+          test -z "$(git status --porcelain)"
       - name: Build and check distributables
         shell: bash
         run: |
           python -m build --outdir "$RUNNER_TEMP/release-dist"
           python -m twine check "$RUNNER_TEMP"/release-dist/*
           python tools/check_release.py sdist "$RUNNER_TEMP"/release-dist/*.tar.gz
+          test -z "$(git status --porcelain)"
       - name: Check a clean wheel installation outside the checkout
         shell: bash
         run: |

@@ -57,7 +57,8 @@ def change_source(git):
 def test_bootstrap_without_existing_tags(release_repo):
     plan = plan_release("main", [], "0.1.0")
     assert plan == {"release": "true", "tag": "v0.1.0",
-                    "commit": release_repo("rev-parse", "HEAD"), "previous_tag": ""}
+                    "version": "0.1.0", "commit": release_repo("rev-parse", "HEAD"),
+                    "previous_tag": ""}
 
 
 @pytest.mark.parametrize("empty_commit", [False, True])
@@ -92,6 +93,8 @@ def test_first_attempt_failure_allocates_new_version_instead_of_overwriting(rele
     release_repo("tag", "v0.1.0")
     plan = plan_release("main", [published(draft=True)], "0.1.0")
     assert plan["tag"] == "v0.1.1" and plan["previous_tag"] == ""
+    assert plan["version"] == "0.1.1"
+    assert plan["commit"] == release_repo("rev-parse", "refs/tags/v0.1.0")
 
 
 def test_draft_without_a_remote_tag_still_reserves_its_version(release_repo):

@@ -57,6 +57,7 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
     else:
         version = initial
     return {"release": "true", "tag": "v" + ".".join(map(str, version)),
+            "version": ".".join(map(str, version)),
             "commit": source, "previous_tag": previous_tag}
 
 

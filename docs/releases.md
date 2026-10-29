@@ -19,7 +19,10 @@ releases need a separately reviewed change to that initial-version floor.
    source trees and reject a published source outside the default branch's
    history rather than silently release a rollback.
 2. Create a local tag in a read-only build job. `setuptools-scm` derives both
-   distribution and runtime versions from that tag. Tags point directly at the
+   distribution and runtime versions from that tag. The build pins SCM's
+   package-specific version override to the validated plan, avoiding ambiguous
+   Git version discovery when failed reservations share a source commit.
+   Tags point directly at the
    reviewed source commit; the bot does not write version commits to `main`.
 3. Run CPU tests/lint, build the sdist and a wheel from the sdist, check metadata
    with `twine`, and run the complete installed-package checker in a clean wheel
@@ -62,7 +65,9 @@ gh workflow run release.yml --repo InferMatrixLab/InferRSI --ref <default-branch
 Actions artifacts are retained for seven days. Package versions come from Git
 tags/build-generated `_version.py`; plain unbuilt source imports report
 `0+unknown`. Build from a full checkout or the supplied sdist. Git archives use
-the exported `.git_archival.txt`; development builds without a stable tag may
+the exported `.git_archival.txt`; when multiple tags share a commit, use the
+uploaded wheel/sdist or explicitly select the SCM build version. Development
+builds without a stable tag may
 have a development version and are not stable releases.
 
 ## Failure and concurrency behavior
