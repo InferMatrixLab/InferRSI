@@ -13,11 +13,24 @@ from urllib.parse import quote
 
 from inferrsi.infra.artifacts import write_json
 from tools import skill_eval_pr as pr
-from tools.skill_eval_budget import (Binding, BudgetError, DailyKey, PRKey, WriteResult,
-                                    claim_once, daily_claim_once, daily_reserve, reserve,
-                                    shanghai_day)
-from tools.skill_eval_budget_git import (DailyLedgerAnchor, GitHubDailyStore, GitHubGitStore,
-                                        LedgerAnchor)
+from tools.skill_eval_budget import (
+    Binding,
+    BudgetError,
+    DailyKey,
+    PRKey,
+    WriteResult,
+    claim_once,
+    daily_claim_once,
+    daily_reserve,
+    reserve,
+    shanghai_day,
+)
+from tools.skill_eval_budget_git import (
+    DailyLedgerAnchor,
+    GitHubDailyStore,
+    GitHubGitStore,
+    LedgerAnchor,
+)
 
 CONFIG = pr.ROOT / "tools/skill_eval_auto_config.json"
 
@@ -187,7 +200,8 @@ def status(api, plan, config):
     daily.require_active()
     day = shanghai_day()
     actual = ledger.genesis.legacy_charge + sum(e.actual_cost or 0 for e in ledger.entries)
-    return {"daily_day": day, "daily_remaining_usd": str(Decimal(daily.remaining_on(day)) / 1000000),
+    return {"daily_day": day,
+            "daily_remaining_usd": str(Decimal(daily.remaining_on(day)) / 1000000),
             "label": config["label"], "spent_or_legacy_usd": str(Decimal(actual) / 1000000),
             "reserved_or_unresolved_usd": str(Decimal(ledger.charged - actual) / 1000000),
             "remaining_usd": str(Decimal(ledger.remaining) / 1000000)}
@@ -217,7 +231,8 @@ def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, laun
     if (global_successor == global_snapshot.ledger
             or global_store.compare_and_swap(global_snapshot, global_successor)
             is not WriteResult.COMMITTED):
-        raise BudgetError("Duplicate, conflicted or uncertain global reservation; no paid execution")
+        raise BudgetError(
+            "Duplicate, conflicted or uncertain global reservation; no paid execution")
     successor = reserve(snapshot.ledger, binding)
     if (successor == snapshot.ledger
             or store.compare_and_swap(snapshot, successor) is not WriteResult.COMMITTED):
@@ -298,7 +313,8 @@ def report_control(api, plan):
               "remaining_usd": "unknown"}
     try:
         config = configuration()
-        result["reason"] = "Audited PR/global daily ledger missing, unavailable, quarantined or unsafe"
+        result["reason"] = (
+            "Audited PR/global daily ledger missing, unavailable, quarantined or unsafe")
         result.update(status(api, plan, config))
         result["reason"] = "Plan has no supported pairs or provider/bounds are stale"
         eligible(api, plan, config)
