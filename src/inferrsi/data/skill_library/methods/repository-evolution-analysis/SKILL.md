@@ -166,69 +166,115 @@ capability model above: it answers presence and wiring, not speed.
 
 ## Temporal-split benchmark construction (LearningToCommit method)
 
-For skill evaluation, construct historical tasks with a hard temporal cutoff.
+Use historical tasks to separate earlier onboarding evidence from later test
+changes. Keep three evidence classes distinct: the pinned public implementation
+below, the paper's reported method/results, and proposed InferRSI safeguards.
 
-**Key pipeline stages** (source: `LearningToCommit` @ 7e5a1d77):
+### Observed public implementation
 
-1. Scan commits (`s1_scan_commits.py`): extract commit metadata, diffs, and
-   affected files. Filter to commits that change a non-trivial number of files
-   with a clear intent signal.
+The following is a source inspection of
+[LearningToCommit at `7e5a1d770eb9eb58e614db45f40b1b911529c6e7`](https://github.com/LearningToCommit/LearningToCommit/tree/7e5a1d770eb9eb58e614db45f40b1b911529c6e7),
+not an executed benchmark or a claim of equivalence with every paper version.
 
-2. Cluster (`s2_cluster.py`): group commits by affected subsystem and change
-   type. Clusters become task categories.
-
-3. Tag (`s3_tag.py`): tag each commit with the cutoff date. The cutoff is
-   enforced by the tag, not by filtering the log — the agent's provided snapshot
-   is built from the repository at the cutoff revision, not the current HEAD.
-
-4. Sample (`s4_sample.py`): stratified sampling by cluster to balance categories.
-
-5. Build benchmark (`s5_build.py`): for each sampled commit, create a task
-   record with fields:
+1. **Scan and split**
+   ([`s1_scan_commits.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s1_scan_commits.py),
+   [`utils.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/utils.py)):
+   parse non-merge commit metadata/numstat, prefilter tiny or housekeeping
+   changes, sort retained commits by the recorded date, keep the most recent
+   requested count, then assign the oldest fraction to `learning` and the
+   remainder to `test`. An LLM suitability scan follows that split; unavailable
+   or oversized diffs are marked unsuitable. This stage, not S3, assigns the
+   chronological split.
+2. **Derive categories**
+   ([`s2_cluster.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s2_cluster.py)):
+   ask a model to derive development categories from a sample of suitable
+   commits' suitability rationales. This is not direct file-coupling clustering.
+3. **Tag categories**
+   ([`s3_tag.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s3_tag.py)):
+   classify each suitable commit using the categories, subject, rationale and
+   diff; retain the existing split. The tag is a category, not a cutoff date.
+4. **Sample separately**
+   ([`s4_sample.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s4_sample.py)):
+   perform category-proportional sampling within the learning and test pools,
+   excluding unsuitable and uncategorized commits. This does not promise equal
+   category counts or coverage when the requested sample is too small.
+5. **Build tasks**
+   ([`s5_build.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/data_construction/s5_build.py)):
+   export each sampled change's oracle diff and parent-revision source archive;
+   synthesize an issue-style query from subject, body and diff. The emitted
+   `benchmark_tasks.jsonl` top-level fields are:
+   ```text
+   id, repo, category, synthetic_query, oracle_diff, snapshot_path,
+   learning_commits
    ```
-   task_id, repo, base_commit (= parent of the sampled commit),
-   problem (synthesised from commit message + diff context),
-   expected_capability, tier (A = CPU/static, B = device/runtime),
-   verification (argv for the validator), validator (frozen Python file),
-   oracle (private merged reference)
-   ```
-   Source: `data/learning_to_commit_benchmark.jsonl` field schema (observed,
-   7e5a1d77).
+   Each learning record contains `sha, repo, title, category, synthetic_query,
+   diff_path, snapshot_path`. Mode `all` shares all sampled learning commits
+   with each test task; `by_category` selects the matching category. No
+   `tier`, frozen `validator` or verification-command field is emitted here.
 
-**Temporal cutoff enforcement:**
-The agent receives a source archive built from `base_commit` (the commit just
-before the sampled change). The archive excludes the `.git` directory and any
-path listed in `hidden_paths`. The agent must not have access to any file that
-postdates the cutoff. Verification uses a frozen validator file stored outside
-the editable workspace.
-Source: `LearningToCommit/modules/agent.py`, `skill_distill.py` `snapshot()`
-function (observed in sibling workstream @ 82218b4).
+**Snapshot and access boundary.** S5's helper uses `git archive` at the sampled
+commit's parent. [`modules/sandbox.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/modules/sandbox.py)
+extracts that archive and initializes a new Git repository with a base commit;
+it does not give the agent the target repository's original history. These
+inspected paths do not implement a `hidden_paths` filter or frozen external
+validator. The phase directory is explicitly **not a security sandbox**:
+agent tools run with host-user permissions. A parent snapshot alone does not
+establish isolation from later source, oracle data or other host files.
 
-**Skill conditioning:**
-The agent receives the skill document injected before the task context. The
-`solve_with_skill.txt` prompt template places the skill before the problem
-statement; `solve_baseline.txt` omits it. All other parameters (model, harness,
-tools, timeout, budget) are held constant.
-Source: `LearningToCommit/system_prompts/solve_with_skill.txt`,
-`modules/prompt_builder.py`.
+**Skill conditioning.**
+[`workflow/phases.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/workflow/phases.py)
+copies learned skill files into the phase's separate skills directory for the
+with-skill solve; the baseline receives no skill directory.
+[`modules/prompt_builder.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/modules/prompt_builder.py)
+substitutes workspace/skills paths and describes that directory in the user
+context. The [with-skill template](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/system_prompts/solve_with_skill.txt)
+points to it; the environment context asks the agent to read `SKILL.md` first.
+This is directory-based access, not verbatim insertion of the skill body.
 
-**Evaluation:**
-- Programmatic: does the frozen validator pass? (exit 0 = success, 1 = task
-  failure, other = inconclusive). Source: `evaluation/programmatic_metrics.py`.
-- Pairwise judge: LLM comparison of agent trajectory against oracle trajectory.
-  Used only when programmatic check is ambiguous.
-  Source: `evaluation/pairwise_judge.py`.
+**Evaluation, not a correctness oracle.**
 
-**Portability to NPU/kernel repositories:**
-The temporal split and stratified sampling transfer directly. What must change:
-- Task synthesis: kernel repo commits rarely have prose issue descriptions;
-  problem statements must come from the commit message and diff context, not
-  issue trackers.
-- Validation: success criteria for kernel tasks involve compiler correctness
-  + performance regression tests, not just test-pass/fail.
-- Agent tools: kernel tasks require a compiler and profiler in the sandbox, not
-  just Bash/Read/Write.
-Source: inferred from LearningToCommit design; not empirically tested on kernel repos.
+- [`evaluation/programmatic_metrics.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/evaluation/programmatic_metrics.py)
+  computes changed-file IoU, tool-using assistant-message counts from the
+  trajectory, and signed/absolute line-count deviation from the oracle patch.
+  It does not run a frozen validator or map validator exit codes to task
+  correctness.
+- [`evaluation/pairwise_judge.py`](https://github.com/LearningToCommit/LearningToCommit/blob/7e5a1d770eb9eb58e614db45f40b1b911529c6e7/evaluation/pairwise_judge.py)
+  compares the with-skill and baseline **patches**, shown with the task query
+  and oracle diff, on scope alignment, logic similarity, redundancy/hallucination
+  and code style. Its default four rounds use ABBA presentation order. It is
+  not an oracle-trajectory comparison or a fallback gated on ambiguous
+  programmatic results. Patch similarity and judge preference do not establish
+  functional correctness.
+
+### Paper claims and version boundary
+
+The [existing Learning to Commit paper ledger](../../workflows/npu-skill-factory/references/papers-20261015/references/learning-to-commit.md)
+records the v1 method, author-reported pilot outcomes and limitations. Those
+paper claims are separate from the public-code observations above; this source
+reconciliation does not reproduce them or establish paper-to-code equivalence.
+Do not combine versions or promote this candidate on the basis of reported
+localization, patch-size or judge outcomes.
+
+### Proposed InferRSI safeguards and portability questions
+
+These are adaptations to evaluate, **not mechanisms attributed to the pinned
+upstream implementation**:
+
+- Freeze the learning inputs and skill revision before held-out evaluation;
+  audit synthetic-query answer leakage independently of the chronological split.
+- Enforce source/oracle separation in an actually isolated, least-privilege
+  execution environment. If paths must be hidden, specify and verify that policy
+  rather than assuming that an archive or phase directory enforces it.
+- Define and freeze task-specific correctness/integrity validators outside the
+  editable workspace, with explicit failure and incomplete-evidence handling.
+  Report correctness separately from localization, style, patch size and cost.
+- For NPU/kernel tasks, first check whether commit context supports an intent-only
+  query and a reproducible parent environment. Compiler/runtime availability,
+  numerical checks, profiler access and performance-regression gates require
+  task-specific qualification; temporal sampling alone does not transfer them.
+- Compare with-skill and baseline under declared matched model, harness, tool and
+  budget controls, retaining failed attempts and deviations. No kernel-repository
+  portability, agent-efficacy or performance result is established by this guide.
 
 ## Scoped historical lessons
 
