@@ -361,3 +361,17 @@ model, no provider selection and no executable comparison freezes. It never
 silently falls back to another model/provider. These blocked plans are rejected
 by PR authorization and execution as well as the automatic controller. Direct
 standalone comparison-harness behavior is unchanged.
+
+A trusted mapping item may explicitly set `adapter: "kv-admission-diagnostic-v1"`
+to use the synthetic diagnostic contract documented in
+[skill comparisons](skill-eval-comparison.md#synthetic-kv-admission-diagnostic-adapter).
+This is not inferred from PR content. It requires an existing baseline bundle
+and preserves exact PR base/head comparisons; unknown adapters or an addition
+remain unsupported. Report regeneration rechecks the frozen built-in adapter,
+not a performance-audit grader applied to diagnostic answers.
+
+Mapping a skill's changed files selects the comparison; it does not establish
+that a small case covers every mechanism in those files. Unmapped generated
+projections, navigation documents and tests remain visible coverage gaps.
+Source-only review dispositions must be explicit and must not be represented as
+model-evaluated passes. The maintained mapping is not expanded automatically.

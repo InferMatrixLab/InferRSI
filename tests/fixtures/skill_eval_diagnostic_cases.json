@@ -1,0 +1,242 @@
+[
+  {
+    "id": "case-01",
+    "split": "development",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "pending"
+      },
+      {
+        "id": "E3",
+        "kind": "allocator",
+        "value": "not_attempted"
+      }
+    ]
+  },
+  {
+    "id": "case-02",
+    "split": "development",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "complete"
+      },
+      {
+        "id": "E3",
+        "kind": "identity",
+        "value": "match"
+      },
+      {
+        "id": "E4",
+        "kind": "allocator",
+        "value": "denied"
+      }
+    ]
+  },
+  {
+    "id": "case-03",
+    "split": "development",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "failed"
+      }
+    ]
+  },
+  {
+    "id": "case-04",
+    "split": "development",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      }
+    ]
+  },
+  {
+    "id": "case-05",
+    "split": "holdout",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "pending"
+      },
+      {
+        "id": "E3",
+        "kind": "identity",
+        "value": "match"
+      },
+      {
+        "id": "E4",
+        "kind": "allocator",
+        "value": "denied"
+      }
+    ]
+  },
+  {
+    "id": "case-06",
+    "split": "holdout",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "miss"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "complete"
+      },
+      {
+        "id": "E3",
+        "kind": "identity",
+        "value": "match"
+      },
+      {
+        "id": "E4",
+        "kind": "allocator",
+        "value": "denied"
+      }
+    ]
+  },
+  {
+    "id": "case-07",
+    "split": "holdout",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "complete"
+      },
+      {
+        "id": "E3",
+        "kind": "identity",
+        "value": "mismatch"
+      },
+      {
+        "id": "E4",
+        "kind": "allocator",
+        "value": "denied"
+      }
+    ]
+  },
+  {
+    "id": "case-08",
+    "split": "holdout",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "complete"
+      },
+      {
+        "id": "E3",
+        "kind": "allocator",
+        "value": "denied"
+      }
+    ]
+  },
+  {
+    "id": "case-09",
+    "split": "holdout",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "complete"
+      },
+      {
+        "id": "E3",
+        "kind": "identity",
+        "value": "match"
+      }
+    ]
+  },
+  {
+    "id": "case-10",
+    "split": "holdout",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "failed"
+      },
+      {
+        "id": "E3",
+        "kind": "identity",
+        "value": "match"
+      },
+      {
+        "id": "E4",
+        "kind": "allocator",
+        "value": "granted"
+      }
+    ]
+  }
+]

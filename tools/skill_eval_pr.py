@@ -18,7 +18,6 @@ from inferrsi.infra.artifacts import sha256, write_json
 from inferrsi.model.anthropic_agent import KIND, money, reservation
 from tools import skill_eval_compare as compare
 from tools.check_knowledge_model_policy import GitHubHTTPError
-from tools.skill_eval_verifier import verify
 
 ROOT = Path(__file__).resolve().parents[1]
 MAPPING = ROOT / "tools/skill_eval_pr_cases.json"
@@ -110,6 +109,10 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
                   "snapshots": {"baseline": {"git_revision": identity["base"]},
                                 "candidate": {"git_revision": identity["head"]}},
                   "model": mapping["model"], "limits": mapping["limits"]}
+        if "adapter" in item:
+            # Trusted mapping chooses an explicit typed contract; compare validates it.
+            # Do not infer a diagnostic adapter from arbitrary PR file contents.
+            config["adapter"] = item["adapter"]
         if provider is not None:
             config.update({key: provider[key] for key in ("client", "pricing", "spend_limit")})
         config_path = output / (item["skill"] + ".json")
@@ -324,12 +327,11 @@ def reports(output):
         if not isinstance(status, dict) or not isinstance(status.get("execution_state"), str):
             raise ValueError("Invalid retained execution status shape")
         tasks = {t["id"]: t for t in compare.read_json(directory / "plan/tasks.json")}
-        for trial in [p[r] for p in result["pairs"] for r in compare.ROLES] + result["discovery"]:
-            if trial["verdict"] in ("PASS", "FAIL"):
-                # Recheck the supported grader using trusted code, not artifact verify.py.
-                checks = verify(tasks[trial["task_id"]], json.loads(trial["output"]))
-                if checks != trial["checks"] or checks["passed"] != (trial["verdict"] == "PASS"):
-                    raise ValueError("Untrusted grading disagrees with the trusted grader")
+        # Recheck the exact built-in adapter with trusted code, not artifact verify.py.
+        compare.verify_retained_grader(
+            compare.load_plan(directory),
+            [p[r] for p in result["pairs"] for r in compare.ROLES] + result["discovery"],
+            tasks)
         results.append(result)
     return results
 
@@ -870,11 +872,13 @@ def main():
                 reason = "Trusted automatic configuration or pricing is expired or invalid"
             else:
                 try:
-                    from tools.skill_eval_auto import eligible, ledger_store
+                    from tools.skill_eval_auto import daily_store, eligible, ledger_store
                     eligible(api, plan, config)
                     live_label(api, plan, config)
                     store, key = ledger_store(api, config, pr)
                     store.read_verified(key)
+                    global_store, global_key = daily_store(api, config)
+                    global_store.read_verified(global_key).ledger.require_active()
                     candidate = True
                     reason = "Eligible; durable reservation required before execution"
                 except (ValueError, KeyError, TypeError):

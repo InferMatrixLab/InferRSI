@@ -11,6 +11,7 @@ import time
 from dataclasses import replace
 from pathlib import Path
 
+from inferrsi.harness import skill_eval_diagnostic as diagnostic
 from inferrsi.harness.skill_evaluation import (
     CodexClient,
     export_bundle,
@@ -24,6 +25,7 @@ from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
 from inferrsi.model.anthropic_agent import AnthropicAgentClient, validate_schema, validate_spec
 from inferrsi.model.request_guard import SOURCE as GUARD_SOURCE
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
+from tools.skill_eval_snapshot import selected_snapshot
 from tools.skill_eval_verifier import verify
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -31,6 +33,7 @@ ROLES = ("baseline", "candidate")
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
                "src/inferrsi/harness/skill_evaluation.py",
+               "src/inferrsi/harness/skill_eval_diagnostic.py", "tools/skill_eval_snapshot.py",
                "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py",
                "src/inferrsi/infra/artifacts.py")
 EVIDENCE = ("execution.json", "agent/stdout.log", "agent/stderr.log",
@@ -171,8 +174,17 @@ def validate_default_audit(task: dict) -> None:
 
 def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) -> None:
     if set(config) - {"mode", "skill", "skill_root", "cases", "schema", "grader",
-                      "snapshots", "model", "limits", "client", "pricing", "spend_limit"}:
+                      "snapshots", "model", "limits", "client", "pricing", "spend_limit",
+                      "adapter"}:
         raise ValueError("Unknown configuration field")
+    adapter = config.get("adapter", "audit")
+    if adapter not in ("audit", diagnostic.ADAPTER):
+        raise ValueError("Unknown experiment adapter")
+    if adapter == diagnostic.ADAPTER:
+        if config["mode"] != "update":
+            raise ValueError("Diagnostic comparisons require paired old/new bundles (update mode)")
+        if "grader" in config or "schema" in config:
+            raise ValueError("Diagnostic adapter owns its frozen schema and verifier")
     if config["mode"] not in ("addition", "update"):
         raise ValueError("mode must be addition or update")
     if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", config["skill"]):
@@ -206,8 +218,11 @@ def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) ->
     if not tasks:
         raise ValueError("cases must be nonempty with unique IDs")
     for task in tasks:
-        validate_input(task, CASE_INPUT)
-        validate_audit_values(task)
+        if adapter == diagnostic.ADAPTER:
+            diagnostic.validate_task(task)
+        else:
+            validate_input(task, CASE_INPUT)
+            validate_audit_values(task)
         missing = {"id", "split", "request"} - task.keys()
         if missing:
             raise ValueError("Missing required case fields: " + ", ".join(sorted(missing)))
@@ -215,7 +230,7 @@ def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) ->
             raise ValueError("case IDs must be safe path components")
         if task["split"] not in ("development", "holdout", "discovery"):
             raise ValueError("Unknown case split")
-        if default_grader:
+        if default_grader and adapter == "audit":
             validate_default_audit(task)
     if len({task["id"] for task in tasks}) != len(tasks):
         raise ValueError("cases must be nonempty with unique IDs")
@@ -289,13 +304,17 @@ def require_git_version(version: str) -> None:
 def prepare(config_path: Path, repo: Path, output: Path) -> str:
     config = read_json(config_path)
     tasks = read_json(config_path.parent / config["cases"])
-    grader = config_path.parent / config["grader"] if "grader" in config else (
-        ROOT / "tools/skill_eval_verifier.py"
+    is_diagnostic = config.get("adapter") == diagnostic.ADAPTER
+    grader = Path(diagnostic.__file__) if is_diagnostic else (
+        config_path.parent / config["grader"] if "grader" in config else (
+            ROOT / "tools/skill_eval_verifier.py"
+        )
     )
     validate(config, tasks, default_grader=(
         grader.read_bytes() == (ROOT / "tools/skill_eval_verifier.py").read_bytes()))
     require_git_version(subprocess.check_output(("git", "--version"), cwd=repo, text=True))
-    schema = read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA
+    schema = diagnostic.SCHEMA if is_diagnostic else (
+        read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA)
     if "client" in config:
         validate_schema(schema)
     output.mkdir(parents=True, exist_ok=False)
@@ -308,9 +327,17 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
     with tempfile.TemporaryDirectory(prefix="se-") as temporary:
         for role, short in zip(ROLES, ("b", "c")):
             selected = config["snapshots"][role]
-            root = snapshot(repo, selected["git_revision"], config["skill_root"],
-                            Path(temporary) / short,
-                            allow_empty=role == "baseline" and config["mode"] == "addition")
+            if is_diagnostic:
+                closure = selected_snapshot(
+                    repo, selected["git_revision"], config["skill_root"], config["skill"],
+                    Path(temporary) / short, bundle_revision=selected.get("bundle_revision"))
+                root = closure["root"]
+                write_json(output / "plan/snapshots" / f"{role}.json",
+                           {key: value for key, value in closure.items() if key != "root"})
+            else:
+                root = snapshot(repo, selected["git_revision"], config["skill_root"],
+                                Path(temporary) / short,
+                                allow_empty=role == "baseline" and config["mode"] == "addition")
             bundle = None
             if role == "candidate" or config["mode"] == "update":
                 reader = KnowledgeReader(skill_root=root)
@@ -339,13 +366,15 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         "exam": {"cases": files["plan/tasks.json"], "schema": files["plan/schema.json"],
                  "grader": files["validator/verify.py"]},
         "same_bundle": before is not None and before["revision"] == after["revision"],
-        "prompt": PROMPT, "files": files,
+        "prompt": diagnostic.PROMPT if is_diagnostic else PROMPT, "files": files,
         "controllers": {name: sha256(ROOT / name) for name in CONTROLLERS},
         "retry_policy": "none", "cost": None,
         "isolation": "Fresh sessions and workspaces; selected bundle only. "
         "CodexClient disables global skills, plugins, apps, memories and web. "
         "Controlled exposure is not OS read confinement.",
     }
+    if is_diagnostic:
+        plan["adapter"] = diagnostic.ADAPTER
     if "client" in config:
         client = AnthropicAgentClient(config["model"]["name"], config["client"],
                                       config["limits"]["timeout_seconds"],
@@ -728,7 +757,11 @@ def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
     retained answer. A custom grader has no in-tree authority to re-derive from;
     that exam is reported as unverified rather than silently trusted.
     """
-    if plan["exam"]["grader"] != sha256(ROOT / "tools/skill_eval_verifier.py"):
+    trusted_verifier = {
+        sha256(ROOT / "tools/skill_eval_verifier.py"): verify,
+        sha256(Path(diagnostic.__file__)): diagnostic.verify,
+    }.get(plan["exam"]["grader"])
+    if trusted_verifier is None:
         for trial in trials:
             if trial["verdict"] in ("PASS", "FAIL"):
                 # No in-tree authority can re-derive this grade, and the retained
@@ -743,7 +776,7 @@ def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
     for trial in trials:
         if trial["verdict"] not in ("PASS", "FAIL"):
             continue
-        checks = verify(tasks[trial["task_id"]], json.loads(trial["output"]))
+        checks = trusted_verifier(tasks[trial["task_id"]], json.loads(trial["output"]))
         if checks != trial["checks"] or checks["passed"] != (trial["verdict"] == "PASS"):
             raise ValueError("Untrusted grading disagrees with the trusted grader")
         trial["grader_trust"] = "reverified"

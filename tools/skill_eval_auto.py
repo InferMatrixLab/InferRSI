@@ -13,8 +13,11 @@ from urllib.parse import quote
 
 from inferrsi.infra.artifacts import write_json
 from tools import skill_eval_pr as pr
-from tools.skill_eval_budget import Binding, BudgetError, PRKey, WriteResult, claim_once, reserve
-from tools.skill_eval_budget_git import GitHubGitStore, LedgerAnchor
+from tools.skill_eval_budget import (Binding, BudgetError, DailyKey, PRKey, WriteResult,
+                                    claim_once, daily_claim_once, daily_reserve, reserve,
+                                    shanghai_day)
+from tools.skill_eval_budget_git import (DailyLedgerAnchor, GitHubDailyStore, GitHubGitStore,
+                                        LedgerAnchor)
 
 CONFIG = pr.ROOT / "tools/skill_eval_auto_config.json"
 
@@ -24,9 +27,11 @@ def configuration(path=None, *, now=None):
     value = json.loads(Path(CONFIG if path is None else path).read_text(encoding="utf-8"))
     fields = {"schema_version", "repository_id", "label", "operators", "expires_at",
               "provider", "provider_sha256", "anchors", "review_evidence"}
+    if isinstance(value, dict) and value.get("schema_version") == 2:
+        fields.add("daily_budget")
     if not isinstance(value, dict) or set(value) != fields:
         raise ValueError("Incomplete trusted automatic-execution configuration")
-    if (type(value["schema_version"]) is not int or value["schema_version"] != 1
+    if (type(value["schema_version"]) is not int or value["schema_version"] not in {1, 2}
             or type(value["repository_id"]) is not int
             or value["repository_id"] <= 0 or not isinstance(value["label"], str)
             or not value["label"] or not isinstance(value["operators"], list)
@@ -44,6 +49,8 @@ def configuration(path=None, *, now=None):
                 or set(anchor) != {"ref", "genesis_commit", "checkpoint_commit"}):
             raise ValueError("Invalid trusted ledger anchor configuration")
         LedgerAnchor(key=PRKey(value["repository_id"], int(number)), **anchor)
+    if value["schema_version"] == 2:
+        daily_anchor(value)
     provider = value["provider"]
     required = {"model", "client", "pricing", "spend_limit"}
     if (not isinstance(provider, dict) or not required <= provider.keys()
@@ -70,6 +77,24 @@ def configuration(path=None, *, now=None):
     pr.reservation(provider["model"]["name"], provider["client"], pricing,
                    provider["spend_limit"], 1, now=now)
     return value
+
+
+def daily_anchor(config):
+    """v1 remains readable for retained evidence/planning, never paid admission."""
+    budget = config.get("daily_budget")
+    if (config.get("schema_version") != 2 or not isinstance(budget, dict)
+            or set(budget) != {"currency", "amount", "timezone", "anchor"}
+            or budget["currency"] != "USD" or budget["amount"] != "1000"
+            or budget["timezone"] != "Asia/Shanghai"
+            or not isinstance(budget["anchor"], dict)
+            or set(budget["anchor"]) != {"ref", "genesis_commit", "checkpoint_commit"}):
+        raise BudgetError("Audited global daily genesis and USD 1000 configuration required")
+    return DailyLedgerAnchor(key=DailyKey(config["repository_id"]), **budget["anchor"])
+
+
+def daily_store(api, config):
+    anchor = daily_anchor(config)
+    return GitHubDailyStore(api, anchor), anchor.key
 
 
 def ledger_store(api, config, number):
@@ -130,6 +155,7 @@ def live_label(api, plan, config):
 def eligible(api, plan, config):
     if plan.get("execution_blocked"):
         raise ValueError("Planning-only plan is blocked from paid execution")
+    daily_anchor(config)
     if not plan["estimated_calls"] or not plan["comparisons"]:
         raise ValueError("No meaningful mapped comparisons")
     if any(c.get("coverage") == "unsupported" for c in plan["coverage"]):
@@ -156,8 +182,13 @@ def eligible(api, plan, config):
 def status(api, plan, config):
     store, key = ledger_store(api, config, plan["pr"])
     ledger = store.read_verified(key).ledger
+    global_store, global_key = daily_store(api, config)
+    daily = global_store.read_verified(global_key).ledger
+    daily.require_active()
+    day = shanghai_day()
     actual = ledger.genesis.legacy_charge + sum(e.actual_cost or 0 for e in ledger.entries)
-    return {"label": config["label"], "spent_or_legacy_usd": str(Decimal(actual) / 1000000),
+    return {"daily_day": day, "daily_remaining_usd": str(Decimal(daily.remaining_on(day)) / 1000000),
+            "label": config["label"], "spent_or_legacy_usd": str(Decimal(actual) / 1000000),
             "reserved_or_unresolved_usd": str(Decimal(ledger.charged - actual) / 1000000),
             "remaining_usd": str(Decimal(ledger.remaining) / 1000000)}
 
@@ -177,11 +208,21 @@ def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, laun
     amount = Decimal(plan["reservation"]["amount"]) * 1000000
     binding = Binding(pr.fingerprint(plan), f"{run_id}.{attempt}",
                       int(amount.to_integral_value(rounding=ROUND_CEILING)))
+    global_store, global_key = daily_store(api, config)
+    # Pre-read both: no genesis creation, missing history never means zero spend.
     snapshot = store.read_verified(key)
+    global_snapshot = global_store.read_verified(global_key)
+    admitted_day = shanghai_day()
+    global_successor = daily_reserve(global_snapshot.ledger, key, binding, admitted_day)
+    if (global_successor == global_snapshot.ledger
+            or global_store.compare_and_swap(global_snapshot, global_successor)
+            is not WriteResult.COMMITTED):
+        raise BudgetError("Duplicate, conflicted or uncertain global reservation; no paid execution")
     successor = reserve(snapshot.ledger, binding)
     if (successor == snapshot.ledger
             or store.compare_and_swap(snapshot, successor) is not WriteResult.COMMITTED):
         raise BudgetError("Duplicate, conflicted or uncertain reservation; no paid execution")
+    daily_claim_once(global_store, key, binding, shanghai_day())
     claim_once(store, key, binding)  # Not transferable: launch once in this process only.
 
     def check():
@@ -194,7 +235,16 @@ def controlled_execute(api, output, *, config_path=CONFIG, run_id, attempt, laun
         ledger = store.read_verified(key).ledger
         if not any(e.binding == binding and e.phase == "claimed" for e in ledger.entries):
             raise ValueError("Live ledger claim missing")
+        daily = global_store.read_verified(global_key).ledger
+        daily.require_active()
+        if not any(e.key == key and e.binding == binding and e.phase == "claimed"
+                   and e.admitted_day == admitted_day for e in daily.entries):
+            raise BudgetError("Live global claim missing")
+        # Check AFTER live reads as well: no stale admission-day grant at midnight.
+        if shanghai_day() != admitted_day:
+            raise BudgetError("Shanghai admission day ended; no cross-day paid requests")
 
+    check()  # Both durable claims and the current day must still hold before launch.
     write_json(output / "approval.json", {"execution_id": pr.execution_id(plan), **authorization})
     context = f"{binding.plan_digest}:{binding.run_id}"
     with authorization_broker(check, plan["reservation"]["requests"],
@@ -248,7 +298,7 @@ def report_control(api, plan):
               "remaining_usd": "unknown"}
     try:
         config = configuration()
-        result["reason"] = "Audited PR ledger missing, unavailable or unsafe"
+        result["reason"] = "Audited PR/global daily ledger missing, unavailable, quarantined or unsafe"
         result.update(status(api, plan, config))
         result["reason"] = "Plan has no supported pairs or provider/bounds are stale"
         eligible(api, plan, config)

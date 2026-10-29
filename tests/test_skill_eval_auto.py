@@ -27,10 +27,14 @@ def config():
                     "rate_evidence": "https://github.com/example/repo/issues/1#issuecomment-1",
                     "expires_at": 4102444800},
         "spend_limit": {"currency": "USD", "amount": "200"}}
-    return {"schema_version": 1, "repository_id": 123, "label": "skill-eval:execute",
+    return {"schema_version": 2, "repository_id": 123, "label": "skill-eval:execute",
             "operators": ["operator"], "expires_at": 4102444800, "provider": provider,
             "provider_sha256": pr.fingerprint(provider), "review_evidence": "offline fixture",
-            "anchors": {}}
+            "anchors": {},
+            "daily_budget": {"currency": "USD", "amount": "1000",
+                             "timezone": "Asia/Shanghai", "anchor": {
+                                 "ref": "refs/heads/skill-eval-budget/123/daily",
+                                 "genesis_commit": "a" * 40, "checkpoint_commit": "a" * 40}}}
 
 
 @pytest.fixture
@@ -195,7 +199,19 @@ def test_claim_once_launch_scrubs_tokens_and_rechecks_every_request(
             self.ledger = after
             return WriteResult.COMMITTED
 
+    from tools.skill_eval_budget import DailyKey, DailyLedger, DailySnapshot
+
+    class GlobalStore(Store):
+        def __init__(self):
+            self.ledger = DailyLedger(DailyKey(123), "audited offline history")
+
+        def read_verified(self, key):
+            assert key == self.ledger.key
+            return DailySnapshot(str(self.ledger.revision), self.ledger)
+
     store, api = Store(), API(plan, config)
+    global_store = GlobalStore()
+    monkeypatch.setattr(auto, "daily_store", lambda *args: (global_store, global_store.ledger.key))
     config_path = tmp_path / "config.json"
     config_path.write_text(json.dumps(config))
     (tmp_path / "pr-plan.json").write_text(json.dumps(plan))
