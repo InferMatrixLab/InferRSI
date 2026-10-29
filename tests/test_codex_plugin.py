@@ -218,6 +218,15 @@ def test_release_archive_rejects_unsafe_names_before_metadata(tmp_path, name):
         check_plugin(changed, "v0.2.0")
 
 
+def test_release_archive_rejects_new_modules_under_case_aliased_directories(tmp_path):
+    changed = tmp_path / "directory-alias.zip"
+    with zipfile.ZipFile(changed, "w") as archive:
+        archive.writestr("root/plugins/inferrsi/runtime/inferrsi/__init__.py", b"pass")
+        archive.writestr("root/Plugins/inferrsi/runtime/hashlib.py", b"must not execute")
+    with pytest.raises(ValueError, match="Unsafe"):
+        check_plugin(changed, "v0.2.0")
+
+
 def test_release_archive_rejects_unverified_runtime_modules(release_distribution, tmp_path):
     original = release_distribution[2]["archive"]
     changed = tmp_path / "shadow.zip"

@@ -98,6 +98,7 @@ def check_plugin(path: Path, tag: str) -> None:
             raise ValueError("Plugin ZIP must contain one unambiguous marketplace root")
         roots = set()
         destinations = set()
+        spellings = {}
         for member in archive.infolist():
             name = PurePosixPath(member.filename)
             canonical = name.as_posix() + ("/" if member.is_dir() else "")
@@ -112,6 +113,10 @@ def check_plugin(path: Path, tag: str) -> None:
                     or stat.S_ISLNK(member.external_attr >> 16)):
                 raise ValueError("Unsafe plugin ZIP entry")
             destinations.add(name.as_posix().casefold())
+            for depth in range(1, len(name.parts) + 1):
+                prefix = "/".join(name.parts[:depth])
+                if spellings.setdefault(prefix.casefold(), prefix) != prefix:
+                    raise ValueError("Unsafe plugin ZIP directory alias")
             roots.add(name.parts[0])
         if len(roots) != 1:
             raise ValueError("Plugin ZIP must contain one unambiguous marketplace root")
