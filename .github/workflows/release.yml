@@ -1,0 +1,131 @@
+name: Release bot
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing stable version tag (vMAJOR.MINOR.PATCH)
+        required: true
+        type: string
+      dry_run:
+        description: Build and validate only; do not create a Release draft
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      tag: ${{ steps.ref.outputs.tag }}
+      commit: ${{ steps.ref.outputs.commit }}
+    env:
+      RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      EXPECTED_COMMIT: ${{ github.event_name == 'push' && github.sha || '' }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate the existing tag and default-branch ancestry
+        id: ref
+        shell: bash
+        run: |
+          python tools/check_release.py ref --tag "$RELEASE_TAG" \
+            --default-branch "$DEFAULT_BRANCH" --expected-commit "$EXPECTED_COMMIT" >> "$GITHUB_OUTPUT"
+          cp tools/check_release.py "$RUNNER_TEMP/check_release.py"
+      - name: Check out exactly the validated release commit
+        env:
+          RELEASE_COMMIT: ${{ steps.ref.outputs.commit }}
+        run: git checkout --detach "$RELEASE_COMMIT"
+      - name: Build and check distributables
+        run: |
+          python -m pip install build twine
+          python -m build --outdir "$RUNNER_TEMP/release-dist"
+          python -m twine check "$RUNNER_TEMP"/release-dist/*
+      - name: Check a clean wheel installation outside the checkout
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-env"
+          wheels=("$RUNNER_TEMP"/release-dist/*.whl)
+          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
+          cp tests/check_installed.py "$RUNNER_TEMP/check_installed.py"
+          cd "$RUNNER_TEMP"
+          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_release.py \
+            installed --tag "$RELEASE_TAG"
+      - name: Generate checksums
+        working-directory: ${{ runner.temp }}/release-dist
+        run: sha256sum *.whl *.tar.gz > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-distributions
+          path: ${{ runner.temp }}/release-dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  draft:
+    needs: build
+    if: github.event_name == 'push' || !inputs.dry_run
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ needs.build.outputs.tag }}
+      RELEASE_COMMIT: ${{ needs.build.outputs.commit }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      # Do not check out or execute repository/build code with the write token.
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-distributions
+          path: dist
+      - name: Recheck the remote tag and ancestry before writing
+        shell: bash
+        run: |
+          object=$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object')
+          for attempt in {1..10}; do
+            kind=$(jq -r '.type' <<< "$object")
+            sha=$(jq -r '.sha' <<< "$object")
+            if [[ "$kind" == commit ]]; then break; fi
+            [[ "$kind" == tag ]] || exit 1
+            object=$(gh api "repos/$GH_REPO/git/tags/$sha" --jq '.object')
+          done
+          [[ "$kind" == commit && "$sha" == "$RELEASE_COMMIT" ]]
+          status=$(gh api "repos/$GH_REPO/compare/$RELEASE_COMMIT...$DEFAULT_BRANCH" --jq '.status')
+          [[ "$status" == ahead || "$status" == identical ]]
+      - name: Refuse an existing draft or published Release
+        shell: bash
+        run: |
+          tags=$(gh api --paginate "repos/$GH_REPO/releases?per_page=100" --jq '.[].tag_name')
+          if grep -Fxq "$RELEASE_TAG" <<< "$tags"; then
+            echo "::error::Release already exists; inspect it before any manual recovery."
+            exit 1
+          fi
+      - name: Verify downloaded checksums
+        working-directory: dist
+        run: sha256sum --check SHA256SUMS
+      - name: Create a draft with generated release notes
+        shell: bash
+        run: |
+          notes="Source: https://github.com/$GH_REPO/tree/$RELEASE_COMMIT"
+          notes+=$'\n\nThese notes describe software changes. Release builds and scaffold checks do not establish campaign PASS, model quality or service performance. Any such claim requires its acceptance issue and complete frozen evidence.'
+          gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/SHA256SUMS \
+            --verify-tag --draft --title "InferRSI $RELEASE_TAG" \
+            --generate-notes --notes "$notes"

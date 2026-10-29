@@ -87,6 +87,10 @@ licenses, local links and reads from a noneditable wheel installation.
 
 ## Acceptance checklist
 
+For software packaging and bot-created Release drafts, follow the
+[release guide](releases.md). Release preparation is separate from campaign
+acceptance and the four CI lanes.
+
 Open an issue using the [acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml)
 before claiming a result. Record:
 
