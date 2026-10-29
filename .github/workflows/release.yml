@@ -29,6 +29,7 @@ jobs:
       release: ${{ steps.plan.outputs.release }}
       tag: ${{ steps.plan.outputs.tag }}
       version: ${{ steps.plan.outputs.version }}
+      prerelease: ${{ steps.plan.outputs.prerelease }}
       commit: ${{ steps.plan.outputs.commit }}
       previous_tag: ${{ steps.plan.outputs.previous_tag }}
     steps:
@@ -125,6 +126,7 @@ jobs:
       RELEASE_TAG: ${{ needs.plan.outputs.tag }}
       RELEASE_COMMIT: ${{ needs.plan.outputs.commit }}
       PREVIOUS_TAG: ${{ needs.plan.outputs.previous_tag }}
+      PRERELEASE: ${{ needs.plan.outputs.prerelease }}
       DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
     steps:
       # The write job never checks out or executes repository/build code.
@@ -146,7 +148,7 @@ jobs:
             echo "::error::Release already exists; no tags or assets will be overwritten."
             exit 1
           fi
-          published=$(jq -r '.[][] | select(.draft == false and .prerelease == false) | .tag_name | select(test("^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"))' <<< "$releases")
+          published=$(jq -r '.[][] | select(.draft == false) | .tag_name | select(test("^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"))' <<< "$releases")
           latest=$(printf '%s\n' "$published" | sort -V | tail -n 1)
           [[ "$latest" == "$PREVIOUS_TAG" ]]
       - name: Create the remote tag, upload packages, then publish
@@ -167,4 +169,9 @@ jobs:
           done
           sha=$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')
           [[ "$sha" == "$RELEASE_COMMIT" ]]
-          gh release edit "$RELEASE_TAG" --draft=false --latest
+          if [[ "$PRERELEASE" == true ]]; then
+            gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+          else
+            [[ "$PRERELEASE" == false ]]
+            gh release edit "$RELEASE_TAG" --draft=false --prerelease=false --latest
+          fi

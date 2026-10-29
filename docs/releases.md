@@ -2,20 +2,26 @@
 
 The [release bot](../.github/workflows/release.yml) runs every day at **02:00
 Asia/Shanghai** (18:00 UTC). GitHub schedules can be delayed. If the default
-branch's source tree is unchanged from the highest successfully published stable
+branch's source tree is unchanged from the highest successfully published numeric
 version, it skips the release. Empty commits do not cause a release.
 
 When changed, the bot chooses a version, builds and checks the packages, creates
 the tag and publishes the GitHub Release as `github-actions[bot]`. There is no
 manual version bump, tag push or draft publication step. The first release uses
 `tool.inferrsi.release.initial_version` in `pyproject.toml` (initially `0.1.0`);
-subsequent releases allocate the next unused stable patch version. Major/minor
+subsequent releases allocate the next unused numeric patch version. Major/minor
 releases need a separately reviewed change to that initial-version floor.
+
+The existing **Developer Preview** classification is preserved:
+`tool.inferrsi.release.prerelease = true` marks automatic releases as GitHub
+prereleases and does not mark them Latest. Changing to a stable channel is a
+separately reviewed configuration decision. Published previews count as
+successful releases for no-change detection; private drafts do not.
 
 ## Publication flow
 
 1. Snapshot the default branch and inspect stable tags plus published Releases.
-   Drafts and prereleases are not successful-release baselines. Compare exact
+   Private drafts are not successful-release baselines. Compare exact
    source trees and reject a published source outside the default branch's
    history rather than silently release a rollback.
 2. Create a local tag in a read-only build job. `setuptools-scm` derives both

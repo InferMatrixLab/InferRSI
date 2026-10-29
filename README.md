@@ -125,10 +125,13 @@ MiniCPM's SGLang baseline returns a complete waveform, so its TTFA equals end-to
 
 Requires **Python 3.10+**. Licensed under [Apache-2.0](LICENSE).
 
-**v0.1.0 is a planned Developer Preview (pre-release).** The `v0.1.0` tag is not published yet, this preview is not on PyPI, and there is no API stability promise. After the v0.1.0 tag is published, install that pre-release with:
+**InferRSI is a Developer Preview (pre-release), with no API stability promise.**
+The [daily release bot](docs/releases.md) publishes a version when the default
+branch changes. This preview is not on PyPI. Choose an existing tag from
+[Releases](https://github.com/InferMatrixLab/InferRSI/releases), then install:
 
 ```bash
-pip install "git+https://github.com/InferMatrixLab/InferRSI.git@v0.1.0"
+pip install "git+https://github.com/InferMatrixLab/InferRSI.git@<version-tag>"
 ```
 
 From this checkout:

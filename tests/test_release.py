@@ -57,7 +57,8 @@ def change_source(git):
 def test_bootstrap_without_existing_tags(release_repo):
     plan = plan_release("main", [], "0.1.0")
     assert plan == {"release": "true", "tag": "v0.1.0",
-                    "version": "0.1.0", "commit": release_repo("rev-parse", "HEAD"),
+                    "version": "0.1.0", "prerelease": "true",
+                    "commit": release_repo("rev-parse", "HEAD"),
                     "previous_tag": ""}
 
 
@@ -101,10 +102,18 @@ def test_draft_without_a_remote_tag_still_reserves_its_version(release_repo):
     assert plan_release("main", [published(draft=True)], "0.1.0")["tag"] == "v0.1.1"
 
 
-def test_manual_version_floor_and_prerelease_not_a_success_baseline(release_repo):
+def test_published_developer_preview_is_a_successful_no_change_baseline(release_repo):
     release_repo("tag", "v0.1.0")
+    assert plan_release("main", [published(prerelease=True)], "0.1.0") == {"release": "false"}
+    change_source(release_repo)
     plan = plan_release("main", [published(prerelease=True)], "0.2.0")
-    assert plan["tag"] == "v0.2.0" and plan["previous_tag"] == ""
+    assert plan["tag"] == "v0.2.0" and plan["previous_tag"] == "v0.1.0"
+
+
+def test_explicit_stable_channel_and_invalid_channel_configuration(release_repo):
+    assert plan_release("main", [], "1.0.0", False)["prerelease"] == "false"
+    with pytest.raises(ValueError, match="boolean"):
+        plan_release("main", [], "1.0.0", "false")
 
 
 def test_missing_published_tag_fails_instead_of_publishing_unverified_source(release_repo):

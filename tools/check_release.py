@@ -1,4 +1,4 @@
-"""Plan daily stable releases and validate their packages without publishing."""
+"""Plan daily versioned releases and validate their packages without publishing."""
 
 import argparse
 import json
@@ -23,7 +23,10 @@ def git(*args: str) -> str:
     return subprocess.check_output(["git", *args], text=True, stderr=subprocess.PIPE).strip()
 
 
-def plan_release(default_branch: str, releases: list[dict], initial_version: str) -> dict:
+def plan_release(default_branch: str, releases: list[dict], initial_version: str,
+                 prerelease: bool = True) -> dict:
+    if type(prerelease) is not bool:
+        raise ValueError("Release prerelease setting must be a boolean")
     initial = version_tuple(f"v{initial_version}")
     source = git("rev-parse", "--verify", f"refs/remotes/origin/{default_branch}^{{commit}}")
     stable = {}
@@ -41,7 +44,7 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
         except ValueError:
             continue
         reserved.append(value)
-        if release["draft"] is False and release["prerelease"] is False:
+        if release["draft"] is False:
             published.append((value, tag))
     previous_tag = max(published)[1] if published else ""
     if previous_tag:
@@ -58,6 +61,7 @@ def plan_release(default_branch: str, releases: list[dict], initial_version: str
         version = initial
     return {"release": "true", "tag": "v" + ".".join(map(str, version)),
             "version": ".".join(map(str, version)),
+            "prerelease": str(prerelease).lower(),
             "commit": source, "previous_tag": previous_tag}
 
 
@@ -99,8 +103,9 @@ def main() -> None:
             config = tomllib.loads(Path("pyproject.toml").read_text(encoding="utf-8"))
             pages = json.loads(args.releases.read_text(encoding="utf-8"))
             releases = [release for page in pages for release in page]
+            settings = config["tool"]["inferrsi"]["release"]
             result = plan_release(args.default_branch, releases,
-                                  config["tool"]["inferrsi"]["release"]["initial_version"])
+                                  settings["initial_version"], settings["prerelease"])
             for key, value in result.items():
                 print(f"{key}={value}")
         elif args.command == "sdist":
