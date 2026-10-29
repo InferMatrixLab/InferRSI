@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "repository_id": 1409534281,
   "label": "skill-eval:execute",
   "operators": [
@@ -57,7 +57,22 @@
       "ref": "refs/heads/skill-eval-budget/1409534281/160",
       "genesis_commit": "1fdbd8adc35e2df7439c3cd74780f869d2d6e668",
       "checkpoint_commit": "1fdbd8adc35e2df7439c3cd74780f869d2d6e668"
+    },
+    "133": {
+      "ref": "refs/heads/skill-eval-budget/1409534281/133",
+      "genesis_commit": "be3164546eb76d073ccd3ddd29cfd18794955bd0",
+      "checkpoint_commit": "be3164546eb76d073ccd3ddd29cfd18794955bd0"
     }
   },
-  "review_evidence": "https://github.com/InferMatrixLab/InferRSI/issues/215#issuecomment-6467531341"
+  "review_evidence": "https://github.com/InferMatrixLab/InferRSI/issues/235#issuecomment-6486272232",
+  "daily_budget": {
+    "currency": "USD",
+    "amount": "1000",
+    "timezone": "Asia/Shanghai",
+    "anchor": {
+      "ref": "refs/heads/skill-eval-budget/1409534281/daily",
+      "genesis_commit": "1d3df4ea3924c2b4ce92f051becf566839d66c9c",
+      "checkpoint_commit": "1d3df4ea3924c2b4ce92f051becf566839d66c9c"
+    }
+  }
 }

@@ -1,0 +1,30 @@
+[
+  {
+    "id": "case-05",
+    "split": "holdout",
+    "request": "Diagnose this blocked request at the recorded decision boundary; propose the next read-only check.",
+    "provenance": "Synthetic finite-state observations; not a production trace or engine benchmark.",
+    "events": [
+      {
+        "id": "E1",
+        "kind": "cache_lookup",
+        "value": "hit"
+      },
+      {
+        "id": "E2",
+        "kind": "receive",
+        "value": "pending"
+      },
+      {
+        "id": "E3",
+        "kind": "identity",
+        "value": "match"
+      },
+      {
+        "id": "E4",
+        "kind": "allocator",
+        "value": "denied"
+      }
+    ]
+  }
+]
