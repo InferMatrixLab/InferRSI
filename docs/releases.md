@@ -1,100 +1,95 @@
-# Releases
+# Automatic daily releases
 
-The [release bot](../.github/workflows/release.yml) builds a stable version tag
-and creates a **draft** GitHub Release as `github-actions[bot]`. It uploads a
-wheel, source distribution and `SHA256SUMS`, and generates notes from merged PRs.
-The [notes configuration](../.github/release.yml) uses existing `enhancement`,
-`bug` and `documentation` labels, with a catch-all for other PRs.
+The [release bot](../.github/workflows/release.yml) runs every day at **02:00
+Asia/Shanghai** (18:00 UTC). GitHub schedules can be delayed. If the default
+branch's source tree is unchanged from the highest successfully published stable
+version, it skips the release. Empty commits do not cause a release.
 
-This is release automation, separate from the four CI lanes. It does not bump
-versions, merge changes, publish the draft, upload to PyPI or run accelerator
-experiments. Building a release does not establish campaign `PASS`.
+When changed, the bot chooses a version, builds and checks the packages, creates
+the tag and publishes the GitHub Release as `github-actions[bot]`. There is no
+manual version bump, tag push or draft publication step. The first release uses
+`tool.inferrsi.release.initial_version` in `pyproject.toml` (initially `0.1.0`);
+subsequent releases allocate the next unused stable patch version. Major/minor
+releases need a separately reviewed change to that initial-version floor.
 
-## Setup
+## Publication flow
 
-Merge the release configuration into the default branch. GitHub Actions must be
-enabled and organization policy must allow the listed GitHub-owned actions and
-the publisher job's `contents: write` permission. No additional secret, PAT,
-GitHub App or repository-wide write-token default is needed. Build jobs have
-read-only access; only the draft job receives write access, without executing
-repository code.
+1. Snapshot the default branch and inspect stable tags plus published Releases.
+   Drafts and prereleases are not successful-release baselines. Compare exact
+   source trees and reject a published source outside the default branch's
+   history rather than silently release a rollback.
+2. Create a local tag in a read-only build job. `setuptools-scm` derives both
+   distribution and runtime versions from that tag. Tags point directly at the
+   reviewed source commit; the bot does not write version commits to `main`.
+3. Run CPU tests/lint, build the sdist and a wheel from the sdist, check metadata
+   with `twine`, and run the complete installed-package checker in a clean wheel
+   environment outside the checkout. Check tag/distribution/runtime parity and
+   generate `SHA256SUMS`. `MANIFEST.in` limits sdist contents to package sources
+   and build metadata; repository evidence/workflows are not release payload.
+4. A separate write job verifies the artifacts, source ancestry and release
+   state again. It creates the remote tag only after validation, creates an
+   internal draft, uploads wheel/sdist/checksums and automatically publishes
+   after confirming the attachments and tag identity. It does not execute
+   repository code. These operations stay in the same workflow: tag events
+   created with `GITHUB_TOKEN` do not trigger another workflow.
 
-The initial bot supports stable tags `vMAJOR.MINOR.PATCH` only. Pre-release and
-local-version tags are rejected. Release commits must be reachable from the
-default branch. Use tags containing this release tooling and the corresponding
-installed-package checker; this is not a retroactive publisher for older tags.
+All source-tree changes, including documentation, are eligible. The
+[notes configuration](../.github/release.yml) groups existing `enhancement`,
+`bug` and `documentation` labels and includes other merged PRs. Notes use the
+previous published tag rather than incomplete reserved tags. A release describes
+software changes; CPU/package checks do not establish campaign `PASS`, model
+quality or service performance. Such claims retain the acceptance and evidence
+requirements in [contributing](contributing.md#evidence-and-claims).
 
-## Prepare a version
+## Setup and manual checks
 
-1. Choose the version and scope in the governing release Issue. Update both
-   `project.version` in `pyproject.toml` and `__version__` in
-   `src/inferrsi/__init__.py` in a reviewed PR. No version is chosen or bumped by
-   this configuration change.
-2. Complete the applicable CI/review checks and merge the version PR. The bot
-   rebuilds and checks package installation, but does not replace PR validation.
-3. Fetch the default branch and create an annotated tag at the intended merged
-   revision. Substitute the selected tag and commit below; `<remote>` is the
-   canonical repository remote, which may differ from a contributor's fork.
+Merge the configuration into the default branch. GitHub Actions and the listed
+actions must be allowed by organization policy, and the publisher needs
+`contents: write`. No extra secret, PAT, GitHub App or repository-wide write
+default is needed. The workflow guards the canonical repository and default
+branch; copies must deliberately update that repository guard.
 
-   ```bash
-   git fetch <remote> <default-branch> --tags
-   git tag -a <version-tag> <release-commit> -m "InferRSI <version-tag>"
-   git push <remote> refs/tags/<version-tag>
-   ```
-
-Pushing the tag starts the bot. It resolves the exact tag ref, checks default
-branch ancestry and the push-event commit, builds the sdist and a wheel from
-that sdist, runs `twine check`, and reuses `tests/check_installed.py` from a
-clean wheel installation outside the checkout. Distribution metadata and the
-installed runtime version must both equal the tag's version.
-
-The bot rechecks the remote tag and ancestry before creating the draft. Avoid
-moving/deleting release tags, including during a run; these checks are not a
-server-side lock against concurrent tag changes. Tag protection can be managed
-separately by repository owners.
-
-## Dry run and retry
-
-Under **Actions → Release bot → Run workflow**, select the default branch,
-enter an existing version tag and leave **dry_run** checked. This runs the
-read-only build and uploads the package/checksum Actions artifact for seven
-days. It skips the write job and creates no Release. Clearing **dry_run**
-requests a draft for that existing tag. The equivalent CLI is:
+Under **Actions → Release bot → Run workflow**, select the default branch and
+leave **dry_run** checked. It plans and builds the next release without creating
+a remote tag or Release; unchanged trees skip here too. Clearing **dry_run**
+runs the same automatic publication immediately. It takes no version/tag input.
 
 ```bash
 gh workflow run release.yml --repo InferMatrixLab/InferRSI --ref <default-branch> \
-  -f tag=<version-tag> -F dry_run=true
+  -F dry_run=true
 ```
 
-Same-tag runs are serialized. A failure before draft creation can be retried.
-An existing draft or published Release stops creation; the bot never overwrites
-notes/assets or uses `--clobber`. If an upload left an incomplete draft, inspect
-its tag/source and assets first. An authorized maintainer may remove only that
-unpublished incomplete draft and rerun, or recover it manually. Published
-release corrections require a new version and a separate release decision.
+Actions artifacts are retained for seven days. Package versions come from Git
+tags/build-generated `_version.py`; plain unbuilt source imports report
+`0+unknown`. Build from a full checkout or the supplied sdist. Git archives use
+the exported `.git_archival.txt`; development builds without a stable tag may
+have a development version and are not stable releases.
 
-## Review and publish
+## Failure and concurrency behavior
 
-Inspect the draft notes, source revision and all three attachments. Verify the
-downloaded package hashes with `sha256sum --check SHA256SUMS`. Review generated
-PR titles and any performance/quality claims: such claims need the acceptance
-Issue, pinned experimental revisions and complete frozen evidence described in
-[contributing](contributing.md#evidence-and-claims). Preserve failed and
-inconclusive results; a software version does not qualify hardware or models.
-Then publish the draft through GitHub under the maintainer's release authority.
+Runs are serialized across schedule and manual dispatch. A failed build creates
+no remote tag or Release. A later tag/upload/publication failure can leave an
+unused tag or private incomplete draft. The bot never moves tags, overwrites
+notes/assets or uses `--clobber`. On a later eligible run it allocates the next
+unused patch version, so failures may leave gaps in version numbers. Failed
+attempts do not advance the successful-release baseline or suppress retry of
+unreleased source. Old drafts remain for an authorized maintainer to inspect.
 
-The first release may include many historical PRs. Review and edit its generated
-notes before publishing; later releases use GitHub's previous-release selection.
+Tag creation and public publication are separate GitHub operations. Client
+checks cannot lock out concurrent owner actions; manage tag protection/immutable
+releases separately if needed. Public release corrections use a new version.
+No PyPI upload, native installer, automatic merge, hardware experiment or new CI
+lane is added. The existing four lanes remain unchanged.
 
-## Reference and limits
+## Sources and verification limits
 
 [JiuwenSwarm v0.2.7](https://github.com/openJiuwen-ai/jiuwenswarm/releases/tag/v0.2.7)
-demonstrates bot-authored releases with release notes and downloadable packages.
-Its publisher is a [private GitHub App](https://github.com/apps/openjiuwen-release-bot);
-the publishing workflow is not present in the inspected public source. InferRSI
-implements its own flow using the built-in token, following GitHub's
-[token permissions](https://docs.github.com/en/actions/tutorials/authenticate-with-github_token),
-[generated notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes)
-and [draft-release CLI](https://cli.github.com/manual/gh_release_create) contracts.
-Remote release execution is verified only by an actual Actions run; local
-checks alone do not establish that repository/organization policies permit it.
+shows bot-authored release notes and downloadable packages. Its publisher is a
+[private GitHub App](https://github.com/apps/openjiuwen-release-bot); its pipeline
+is not public. InferRSI uses its own built-in-token workflow following GitHub's
+[token/trigger rules](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/trigger-a-workflow),
+[generated notes](https://docs.github.com/en/repositories/releasing-projects-on-github/automatically-generated-release-notes),
+and [publication CLI](https://cli.github.com/manual/gh_release_edit), plus the
+[setuptools-scm build/archive contract](https://setuptools-scm.readthedocs.io/latest/usage/).
+Remote scheduled execution, repository policy and actual publication remain
+unverified until observed in an actual release run.

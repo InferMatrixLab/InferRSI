@@ -1,8 +1,10 @@
+import io
 import subprocess
+import tarfile
 
 import pytest
 
-from tools.check_release import check_versions, release_version, resolve_release
+from tools.check_release import check_sdist, check_versions, plan_release, release_version
 
 
 @pytest.mark.parametrize("tag", ["v0.1.0", "v1.2.3", "v10.20.30"])
@@ -39,30 +41,94 @@ def release_repo(tmp_path, monkeypatch):
     return git
 
 
-@pytest.mark.parametrize("annotated", [False, True])
-def test_resolve_lightweight_and_annotated_tags(release_repo, annotated):
-    git = release_repo
-    args = ("-a", "-m", "release") if annotated else ()
-    git("tag", *args, "v1.2.3")
-    commit = git("rev-parse", "HEAD")
-    assert resolve_release("v1.2.3", "main", commit) == commit
+def published(tag="v0.1.0", draft=False, prerelease=False):
+    return {"tag_name": tag, "draft": draft, "prerelease": prerelease}
 
 
-def test_branch_with_same_name_does_not_replace_a_missing_tag(release_repo):
-    release_repo("branch", "v1.2.3")
-    with pytest.raises(ValueError, match="existing tag"):
-        resolve_release("v1.2.3", "main")
+def change_source(git):
+    from pathlib import Path
+
+    Path("source.txt").write_text("changed", encoding="utf-8")
+    git("add", "source.txt")
+    git("commit", "-m", "change")
+    git("update-ref", "refs/remotes/origin/main", "HEAD")
 
 
-def test_reject_tag_outside_default_branch(release_repo):
-    release_repo("checkout", "-b", "feature")
+def test_bootstrap_without_existing_tags(release_repo):
+    plan = plan_release("main", [], "0.1.0")
+    assert plan == {"release": "true", "tag": "v0.1.0",
+                    "commit": release_repo("rev-parse", "HEAD"), "previous_tag": ""}
+
+
+@pytest.mark.parametrize("empty_commit", [False, True])
+def test_unchanged_tree_skips_even_with_new_commit(release_repo, empty_commit):
+    release_repo("tag", "v0.1.0")
+    if empty_commit:
+        release_repo("commit", "--allow-empty", "-m", "empty")
+        release_repo("update-ref", "refs/remotes/origin/main", "HEAD")
+    assert plan_release("main", [published()], "0.1.0") == {"release": "false"}
+
+
+def test_changed_tree_uses_semantic_patch_order_and_ignores_nonstable_tags(release_repo):
+    release_repo("tag", "v0.1.9")
+    release_repo("tag", "v0.1.10")
+    release_repo("tag", "v9.0.0rc1")
+    release_repo("tag", "arbitrary")
+    change_source(release_repo)
+    plan = plan_release("main", [published("v0.1.9"), published("v0.1.10")], "0.1.0")
+    assert plan["tag"] == "v0.1.11"
+    assert plan["previous_tag"] == "v0.1.10"
+
+
+def test_failed_reserved_tag_or_draft_does_not_suppress_retry(release_repo):
+    release_repo("tag", "v0.1.0")
+    release_repo("tag", "v0.1.1")
+    change_source(release_repo)
+    releases = [published(), published("v0.1.1", draft=True)]
+    assert plan_release("main", releases, "0.1.0")["tag"] == "v0.1.2"
+
+
+def test_first_attempt_failure_allocates_new_version_instead_of_overwriting(release_repo):
+    release_repo("tag", "v0.1.0")
+    plan = plan_release("main", [published(draft=True)], "0.1.0")
+    assert plan["tag"] == "v0.1.1" and plan["previous_tag"] == ""
+
+
+def test_draft_without_a_remote_tag_still_reserves_its_version(release_repo):
+    assert plan_release("main", [published(draft=True)], "0.1.0")["tag"] == "v0.1.1"
+
+
+def test_manual_version_floor_and_prerelease_not_a_success_baseline(release_repo):
+    release_repo("tag", "v0.1.0")
+    plan = plan_release("main", [published(prerelease=True)], "0.2.0")
+    assert plan["tag"] == "v0.2.0" and plan["previous_tag"] == ""
+
+
+def test_missing_published_tag_fails_instead_of_publishing_unverified_source(release_repo):
+    with pytest.raises(subprocess.CalledProcessError):
+        plan_release("main", [published()], "0.1.0")
+
+
+def test_reject_published_source_outside_default_history(release_repo):
+    release_repo("checkout", "-b", "unmerged")
     release_repo("commit", "--allow-empty", "-m", "unmerged")
-    release_repo("tag", "v1.2.3")
-    with pytest.raises(ValueError, match="reachable"):
-        resolve_release("v1.2.3", "main")
+    release_repo("tag", "v0.1.0")
+    with pytest.raises(subprocess.CalledProcessError):
+        plan_release("main", [published()], "0.1.0")
 
 
-def test_reject_tag_moved_after_push_event(release_repo):
-    release_repo("tag", "v1.2.3")
-    with pytest.raises(ValueError, match="triggering commit"):
-        resolve_release("v1.2.3", "main", "0" * 40)
+@pytest.mark.parametrize("name,allowed", [
+    ("src/inferrsi/data/example.json", True), ("README.md", True),
+    ("evidence/run/results.json", False), (".github/workflows/release.yml", False),
+    ("../outside", False),
+])
+def test_sdist_boundary(tmp_path, name, allowed):
+    path = tmp_path / "package.tar.gz"
+    with tarfile.open(path, "w:gz") as archive:
+        entry = tarfile.TarInfo("inferrsi-0.1.0/" + name)
+        archive.addfile(entry, io.BytesIO(b""))
+    if allowed:
+        check_sdist(path)
+    else:
+        with pytest.raises(ValueError):
+            check_sdist(path)
