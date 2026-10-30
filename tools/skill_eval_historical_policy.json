@@ -11,7 +11,7 @@
   "max_requests": 2,
   "currency": "USD",
   "amount": "20.34",
-  "approval_evidence": "https://github.com/InferMatrixLab/InferRSI/pull/267",
+  "approval_evidence": "https://github.com/InferMatrixLab/InferRSI/pull/269",
   "effective_group_attestation": "Owner-attested existing credential uses default or the equal-price claude-code/claude-code-pro group; public ratios for these three groups are 2. This is not an independently verified account invoice. Stop if that attestation or applicable rates change.",
   "qualification_run": 41017219756
 }
