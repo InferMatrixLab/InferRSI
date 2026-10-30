@@ -649,7 +649,8 @@ def execute(output: Path, authorization: str, *, client=None,
     atomic_write_json(output / "results/status.json", status)
     atomic_write_json(output / "results/status.receipt.json",
                       {"result_sha256": sha256(output / "results/status.json")})
-    return report(output)
+    return report(output, replay_artifacts=(
+        plan.get("execution_mode") != engineering.GENERATION_MODE))
 
 
 def retained_trial(output: Path, entry: dict, expected_adapter=None, execution_mode=None) -> dict:
@@ -794,7 +795,7 @@ def condition_summary(trials: list[dict]) -> dict:
     return groups
 
 
-def read_report(output: Path) -> dict:
+def read_report(output: Path, *, replay_artifacts: bool = True) -> dict:
     plan = load_plan(output)
     trials = [retained_trial(output, entry, plan.get("adapter"), plan.get("execution_mode"))
               for entry in plan["schedule"]]
@@ -802,8 +803,9 @@ def read_report(output: Path) -> dict:
     # Re-grading retained answers with trusted code is what makes a PASS/FAIL
     # verdict independent of the artifact copy the agent could reach. This runs
     # before pairs are formed so an unverifiable grade cannot become an outcome.
-    verify_retained_grader(plan, [t for t in trials if not t["missing"]],
-                           {task["id"]: task for task in read_json(output / "plan/tasks.json")})
+    if replay_artifacts:
+        verify_retained_grader(plan, [t for t in trials if not t["missing"]],
+                               {task["id"]: task for task in read_json(output / "plan/tasks.json")})
     index = {(t["task_id"], t["repeat"], t["condition"]): t for t in trials}
     pairs = []
     for entry in plan["schedule"]:
@@ -930,8 +932,13 @@ def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
             trusted_verifier is engineering.verify
             and plan.get("execution_mode") == engineering.GENERATION_MODE
             and trial.get("execution_mode") == engineering.GENERATION_MODE
-            and trial.get("evaluation_error") in (None, "artifact_sandbox_unavailable"))
+            and trial.get("evaluation_error") in (None, "artifact_sandbox_unavailable",
+                                                    "artifact_verification_deferred"))
         replay_artifact = manual_artifact or generated_artifact
+        if replay_artifact:
+            trial["artifact_verdict"] = None
+            trial.pop("artifact_checks", None)
+            trial.pop("artifact_replay_error", None)
         if trial["verdict"] not in ("PASS", "FAIL") and not replay_artifact:
             continue
         try:
@@ -939,11 +946,15 @@ def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
         except engineering.SandboxUnavailable:
             trial["verdict"] = "INCONCLUSIVE"
             trial["grader_trust"] = "unverified"
-            trial["evaluation_error"] = "artifact_sandbox_unavailable"
+            if generated_artifact:
+                trial["artifact_replay_error"] = "artifact_sandbox_unavailable"
+            else:
+                trial["evaluation_error"] = "artifact_sandbox_unavailable"
             continue
         replay_after_blocked_capture = (
             replay_artifact and trial["checks"] is None
-            and trial["evaluation_error"] == "artifact_sandbox_unavailable")
+            and trial["evaluation_error"] in ("artifact_sandbox_unavailable",
+                                               "artifact_verification_deferred"))
         if not replay_after_blocked_capture and (
                 checks != trial["checks"] or (trial["verdict"] in ("PASS", "FAIL")
                 and checks["passed"] != (trial["verdict"] == "PASS"))):
@@ -956,8 +967,8 @@ def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
         trial["grader_trust"] = "reverified"
 
 
-def report(output: Path) -> dict:
-    result = read_report(output)
+def report(output: Path, *, replay_artifacts: bool = True) -> dict:
+    result = read_report(output, replay_artifacts=replay_artifacts)
     write_json(output / "report.json", result)
     (output / "report.md").write_text(markdown(result), encoding="utf-8")
     return result

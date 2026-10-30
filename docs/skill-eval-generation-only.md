@@ -34,8 +34,9 @@ per-request reservations, PR lifetime/day accounting and the precise experiment
 identity must be independently authorized and frozen. A new accounting PR must
 not be represented as the historical skill revisions being compared.
 
-When the controller cannot start bubblewrap, the original trial remains
-`INCONCLUSIVE` with `artifact_sandbox_unavailable`. A separately qualified Linux
+Generation never invokes the artifact verifier, even on a capable host. The
+original trial remains `INCONCLUSIVE` with `artifact_verification_deferred`. Its
+capture report is also non-executing. A separately qualified Linux
 reviewer may replay the retained artifact after frozen-input/source integrity
 checks. The report preserves that original result and separately exposes
 `artifact_verdict`, the 19 artifact checks and `replayed_artifact_outcome`.

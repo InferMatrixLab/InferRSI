@@ -273,14 +273,19 @@ def run_trial(
                 verification_dir.mkdir()
                 (verification_dir / "stdout.log").write_text("", encoding="utf-8")
                 (verification_dir / "stderr.log").write_text("", encoding="utf-8")
-                try:
-                    checks = engineering.verify(task, output)
-                except engineering.SandboxUnavailable:
-                    evaluation_error = "artifact_sandbox_unavailable"
+                if generation_only:
+                    # The generation process may carry provider credentials. Even
+                    # a capable host must not execute generated source in this phase.
+                    evaluation_error = "artifact_verification_deferred"
                 else:
-                    atomic_write_json(verification_dir / "result.json", checks)
-                    verification = {"status": "completed" if checks["passed"] else "failed",
-                                    "returncode": 0 if checks["passed"] else 1}
+                    try:
+                        checks = engineering.verify(task, output)
+                    except engineering.SandboxUnavailable:
+                        evaluation_error = "artifact_sandbox_unavailable"
+                    else:
+                        atomic_write_json(verification_dir / "result.json", checks)
+                        verification = {"status": "completed" if checks["passed"] else "failed",
+                                        "returncode": 0 if checks["passed"] else 1}
     if evaluation_error is None and not engineering_artifact:
         verifier_environment = getattr(client, "verifier_environment", None)
         options = {"environment": verifier_environment()} if verifier_environment else {}

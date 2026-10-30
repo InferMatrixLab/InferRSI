@@ -152,27 +152,31 @@ def test_trial_retains_real_source_without_executing_it_on_host(tmp_path, sandbo
         record = harness.run_trial(OfflineClient(), TASK, "baseline", 1, root, trial,
                                    tmp_path / "schema", tmp_path / "verifier", "prompt",
                                    float("inf"), engineering_artifact=True, generation_only=True)
-    assert verify.call_args.args[1]["artifact_source"] == SOURCE
+    verify.assert_not_called()
     assert (trial / "parser.py").read_bytes() == SOURCE.encode()
     assert record["execution_mode"] == engineering.GENERATION_MODE
     assert record["inputs_unchanged"]
-    assert record["verdict"] == ("FAIL" if sandbox_available else "INCONCLUSIVE")
-    assert record["evaluation_error"] == (None if sandbox_available else
-                                           "artifact_sandbox_unavailable")
+    assert record["verdict"] == "INCONCLUSIVE"
+    assert record["evaluation_error"] == "artifact_verification_deferred"
 
 
 def test_remote_replay_preserves_generation_failure_and_adds_artifact_verdict():
     plan = {"execution_mode": engineering.GENERATION_MODE,
             "exam": {"grader": sha256(Path(engineering.__file__))}}
     trial = {"task_id": "parser", "execution_mode": engineering.GENERATION_MODE,
-             "verdict": "INCONCLUSIVE", "evaluation_error": "artifact_sandbox_unavailable",
+             "verdict": "INCONCLUSIVE", "evaluation_error": "artifact_verification_deferred",
              "checks": None, "output": json.dumps(ANSWER)}
     checks = {"passed": True, "assertions": {"fixture": True}}
     with mock.patch.object(engineering, "verify", return_value=checks):
         compare.verify_retained_grader(plan, [trial], {"parser": TASK})
     assert trial["verdict"] == "INCONCLUSIVE"
-    assert trial["evaluation_error"] == "artifact_sandbox_unavailable"
+    assert trial["evaluation_error"] == "artifact_verification_deferred"
     assert trial["artifact_verdict"] == "PASS"
+    with mock.patch.object(engineering, "verify", side_effect=engineering.SandboxUnavailable()):
+        compare.verify_retained_grader(plan, [trial], {"parser": TASK})
+    assert trial["evaluation_error"] == "artifact_verification_deferred"
+    assert trial["artifact_replay_error"] == "artifact_sandbox_unavailable"
+    assert trial["artifact_verdict"] is None
 
 
 def test_generation_execute_requires_request_broker_even_without_cli_flag(tmp_path):
@@ -205,8 +209,10 @@ def test_cloud_capture_to_remote_report_preserves_error_and_shows_comparison(tmp
          mock.patch.object(agent.AnthropicAgentClient, "environment", return_value={}), \
          mock.patch.object(agent.AnthropicAgentClient, "trace_metrics", return_value=trace), \
          mock.patch.object(harness, "execute_command", side_effect=execute), \
-         mock.patch.object(engineering, "verify", side_effect=engineering.SandboxUnavailable()):
+         mock.patch.object(engineering, "verify",
+                           side_effect=AssertionError("must not execute")) as verifier:
         initial = compare.execute(output, digest)
+    verifier.assert_not_called()
     assert initial["status"]["recorded_trials"] == 2
     assert initial["pairs"][0]["outcome"] == "inconclusive"
     assert initial["pairs"][0]["replayed_artifact_outcome"] == "inconclusive"
@@ -223,7 +229,7 @@ def test_cloud_capture_to_remote_report_preserves_error_and_shows_comparison(tmp
     assert pair["replayed_artifact_outcome"] == "artifact_improved"
     assert pair["baseline"]["artifact_verdict"] == "FAIL"
     assert pair["candidate"]["artifact_verdict"] == "PASS"
-    assert all(pair[role]["evaluation_error"] == "artifact_sandbox_unavailable"
+    assert all(pair[role]["evaluation_error"] == "artifact_verification_deferred"
                for role in compare.ROLES)
     assert "artifact_improved" in (output / "report.md").read_text()
     from tools.skill_eval_cloud_export import export

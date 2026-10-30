@@ -33,7 +33,8 @@ def export(output: Path, protocol: Path) -> dict:
         trial = compare.retained_trial(output, entry, engineering.ADAPTER,
                                        engineering.GENERATION_MODE)
         if (trial.get("missing") or trial.get("execution_mode") != engineering.GENERATION_MODE
-                or trial.get("evaluation_error") not in (None, "artifact_sandbox_unavailable")
+                or trial.get("evaluation_error") not in (None, "artifact_sandbox_unavailable",
+                                                         "artifact_verification_deferred")
                 or trial.get("observations", {}).get("usage_complete") is not True):
             raise ValueError("Incomplete or invalid retained generation evidence")
         data = engineering.read_regular(compare.trial_directory(output, entry) / "parser.py",
