@@ -1,0 +1,87 @@
+name: Bounded KV editing feasibility (manual, inactive)
+
+on:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: kv-reclamation-one-pair
+  cancel-in-progress: false
+
+jobs:
+  execute:
+    if: github.repository == 'InferMatrixLab/InferRSI' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && github.actor == 'Dong1017' && github.triggering_actor == 'Dong1017'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      actions: read
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Same qualified system Python and distribution sandbox, no credentials
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bubblewrap
+      - name: Exact freeze and same-host preflight, before credentials
+        env:
+          PYTHONPATH: src
+        run: /usr/bin/python3 -m tools.kv_live_job prepare --output "$RUNNER_TEMP/kv-live"
+      - name: Fixed bounded execution (deployment disabled)
+        env:
+          PYTHONPATH: src
+        # Runtime credential bindings intentionally absent. The committed locator
+        # is disabled too. Neither an inactive template nor CI grants paid execution.
+        run: /usr/bin/python3 -m tools.kv_live_job execute --output "$RUNNER_TEMP/kv-live"
+      - name: Data-only public projection
+        if: always()
+        run: |
+          env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \
+            /usr/bin/python3 -m tools.kv_live_job package --output "$RUNNER_TEMP/kv-live"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: kv-live-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kv-live/public
+          if-no-files-found: error
+          retention-days: 30
+  grade:
+    needs: execute
+    if: always() && github.repository == 'InferMatrixLab/InferRSI' && github.ref == 'refs/heads/main' && github.run_attempt == 1 && github.actor == 'Dong1017' && github.triggering_actor == 'Dong1017'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install fixed secret-free grader dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bubblewrap
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # verified v4
+        with:
+          name: kv-live-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kv-final-input
+      - name: Final grader (authorization locator remains disabled)
+        if: always()
+        run: |
+          env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \
+            GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            /usr/bin/python3 -m tools.kv_live_job grade --bundle "$RUNNER_TEMP/kv-final-input" \
+            --output "$RUNNER_TEMP/kv-grade"
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: always()
+        with:
+          name: kv-final-grade-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/kv-grade/grade.json
+          if-no-files-found: error
+          retention-days: 30
