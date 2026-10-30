@@ -1,0 +1,631 @@
+{
+  "schema_version": 1,
+  "purpose": "Static navigation over retained hardware-owner provenance; not a registry, normalized source authority, coverage matrix or validation result.",
+  "local_inventory_review_date": "2026-10-30",
+  "upstream_reads_performed_for_this_inventory": false,
+  "scope": {
+    "registered_hardware_owners": 22,
+    "by_directory": {
+      "ascend": 14,
+      "cuda": 3,
+      "host": 5
+    },
+    "registered_library_roots": 77,
+    "library_skill_documents": 124,
+    "basis": "Local SKILL.md, metadata.json and retained owner references; library routing and the Reference Matrix only where the local entry omits historical provenance."
+  },
+  "conventions": {
+    "paths": "owner is relative to this hardware directory; evidence paths are relative to that owner. Every owner has SKILL.md and metadata.json.",
+    "source_depth": "Channel and depth describe each retained source slice separately. A source repository, mirror or supplied pack can contain documents or implementation; none implies a whole-repository audit.",
+    "dates": "inspection_date is the source reading date recorded in the cited evidence, not this inventory review, a commit date or a sync date. null means not recorded.",
+    "identity": "Historical prefixes, release tags and rolling URLs remain distinct from full Git revisions; resolution alone is not a semantic reread.",
+    "license": "License notes report the retained declarations and their scope, including UNKNOWN or absent declarations. They do not grant rights or relicense mixed-source owners.",
+    "validation": "All 22 owner sidecars remain candidate with empirical_validation=not_run. Static source, packaging and link checks do not establish hardware compatibility, numerical quality, performance or agent efficacy.",
+    "maintenance": "Update the affected row when its owner evidence changes; full source paths, ranges, hashes and notices stay with the linked owner. This file adds no skill ID or runtime interface."
+  },
+  "owners": [
+    {
+      "id": "ascend-aclgraph-capture-replay",
+      "owner": "ascend/ascend-aclgraph-capture-replay",
+      "source_slices": [
+        {
+          "source": "vllm-project/vllm-ascend",
+          "channel": "supplied implementation pack",
+          "depth": "Supplier's bounded implementation, graph documentation and mocked-test assertion readset; upstream reads not repeated during local integration.",
+          "identity": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf (full Git commit)",
+          "inspection_date": "2026-10-15",
+          "license_note": "Apache-2.0 headers and vLLM contributor attribution recorded for selected wrapper/test files; original paraphrase, no implementation copied.",
+          "evidence": [
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Wrapper/input/replay contract only; caller ownership, allocator internals, TorchAir implementation and cross-pin compatibility are unresolved."
+      ]
+    },
+    {
+      "id": "ascend-device-health",
+      "owner": "ascend/ascend-device-health",
+      "source_slices": [
+        {
+          "source": "Ascend/MindIE-SD",
+          "channel": "upstream skill-document import",
+          "depth": "dit-parallel-opt and perf-gate instructions and reported environment observations; no device/driver implementation readset.",
+          "identity": "8481d39b (historical Git prefix)",
+          "inspection_date": null,
+          "license_note": "Not recorded for this source in the local owner.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        },
+        {
+          "source": "ascend-ai-coding/awesome-ascend-skills",
+          "channel": "upstream skill-document import",
+          "depth": "Operator-profiling warmup guidance cited by the device-health procedure.",
+          "identity": "75ec89ce (historical Git prefix)",
+          "inspection_date": null,
+          "license_note": "No source-specific license established here; related mirrored profiling owner retains UNKNOWN.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "No bundled source ledger; topology, health and residual-state heuristics remain source/environment-specific and locally unverified."
+      ]
+    },
+    {
+      "id": "ascend-distributed-parallel",
+      "owner": "ascend/ascend-distributed-parallel",
+      "source_slices": [
+        {
+          "source": "Ascend/MindIE-SD and inherited framework guidance",
+          "channel": "upstream skill-document import",
+          "depth": "Topology/strategy/overlap procedure; inherited vLLM-Omni probes and offload advice have no separately pinned owner readset.",
+          "identity": "MindIE-SD 8481d39 (Reference Matrix prefix); inherited procedure does not identify a full implementation revision.",
+          "inspection_date": null,
+          "license_note": "Not recorded for the inherited strategy material in the local owner.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        },
+        {
+          "source": "ascend-ai-coding/awesome-ascend-skills",
+          "channel": "direct repository read retained",
+          "depth": "Selected quick verifier, parser and torch.distributed benchmark wrapper implementation plus supported-ops documentation; not the native collective backend.",
+          "identity": "75ec89ce9d401be8ac95980e1c3f42f8d4315057 (full Git commit)",
+          "inspection_date": "2026-10-23",
+          "license_note": "README declares MIT, copyright 2024 Ascend AI Coding. This does not replace the separate cannbot-import UNKNOWN declaration.",
+          "evidence": [
+            "references/awesome-ascend-communication-tests.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Only the wrapper-test increment is normalized. Native HCCL/TorchNPU implementation and transport algorithms were not read in this retained slice; no operation correctness, overlap or in-model gain is established."
+      ]
+    },
+    {
+      "id": "ascend-graph-mode",
+      "owner": "ascend/ascend-graph-mode",
+      "source_slices": [
+        {
+          "source": "awesome-ascend-skills external/cannbot/graph/torch-npugraph-ex-knowledge",
+          "channel": "GitCode skill mirror import",
+          "depth": "Upstream SKILL.md configuration guidance and links to TorchAir docs; no local TorchAir implementation ledger at this inventory state.",
+          "identity": "75ec89ce (historical Git prefix); GitCode origin revision not recorded in this owner.",
+          "inspection_date": null,
+          "license_note": "UNKNOWN, explicitly retained for the GitCode-synced material.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Configuration names and behavior are inherited guidance requiring the target version's documentation; linked TorchAir pages are not a retained implementation audit."
+      ]
+    },
+    {
+      "id": "ascend-model-adaptation",
+      "owner": "ascend/ascend-model-adaptation",
+      "source_slices": [
+        {
+          "source": "vllm-project/vllm-ascend",
+          "channel": "upstream skill-document import",
+          "depth": "Model-adapter lesson documents under .agents/skills/vllm-ascend-model-adapter/references; runtime loader/graph implementation not inspected by this entry.",
+          "identity": "bc8115ed (historical prefix); library routing records resolution to bc8115ed7fdc7e500320b5de70742ef049b4c1a2 as Git identity only.",
+          "inspection_date": null,
+          "license_note": "Not recorded for the historical lesson-document slice in this owner.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "No bundled owner readset or original inspection date; identity resolution and the separate ACLGraph source slice do not revalidate these lessons or prove stack compatibility."
+      ]
+    },
+    {
+      "id": "ascend-operator-profiling",
+      "owner": "ascend/ascend-operator-profiling",
+      "source_slices": [
+        {
+          "source": "cann/cannbot-skills external/cannbot/ops/ops-profiling, via awesome-ascend-skills",
+          "channel": "GitCode skill mirror import",
+          "depth": "Imported operator-profiling procedure; references a perf_summary.py helper that is not bundled in this owner.",
+          "identity": "synced-commit ac5bbd2b4cf427d011874e11f8d1e8b1bef66eda (full Git commit); metadata synced-date 2026-05-26 is not an inspection date.",
+          "inspection_date": null,
+          "license_note": "UNKNOWN in metadata and procedure; the procedure calls awesome-ascend-skills its source while synced-from names cannbot-skills.",
+          "evidence": [
+            "SKILL.md",
+            "metadata.json"
+          ]
+        }
+      ],
+      "limits": [
+        "Preserve the two attribution descriptions. No normalized source readset, native profiler/CSV implementation audit or executed benchmark supports the inherited numerical heuristics."
+      ]
+    },
+    {
+      "id": "ascend-operator-tuning",
+      "owner": "ascend/ascend-operator-tuning",
+      "source_slices": [
+        {
+          "source": "awesome-ascend-skills pypto-op-perf-tune and cannbot-skills origin",
+          "channel": "GitCode skill mirror import",
+          "depth": "Orchestrator/analyzer/frontend/swimlane/in-core skill distillation, including reported analyzer behavior and limitations; no separately retained implementation ledger.",
+          "identity": "75ec89c and mirror-origin ac5bbd2b (historical Git prefixes)",
+          "inspection_date": null,
+          "license_note": "UNKNOWN, explicitly retained for the mirrored source.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Source-reported cases and tuning constants are not independent measurements; external model-case references were unverified. Do not upgrade analyzer observations into a complete PyPTO implementation audit."
+      ]
+    },
+    {
+      "id": "ascend-optimization-casebook",
+      "owner": "ascend/ascend-optimization-casebook",
+      "source_slices": [
+        {
+          "source": "Ascend/MindIE-SD and vllm-project/vllm-ascend",
+          "channel": "upstream skill-document import",
+          "depth": "Imported profiling/adaptation cases and inferred diagnostic patterns.",
+          "identity": "8481d39b and bc8115ed (historical Git prefixes)",
+          "inspection_date": null,
+          "license_note": "Not recorded for these historical source slices in the local owner.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        },
+        {
+          "source": "awesome-ascend-skills and NVIDIA/TensorRT-LLM",
+          "channel": "upstream skill-document import",
+          "depth": "Graph-mode and host-analysis guidance cited by cases.",
+          "identity": "75ec89ce and f33e0e5f (historical Git prefixes)",
+          "inspection_date": null,
+          "license_note": "No per-source license recorded here; mirrored graph-mode material separately retains UNKNOWN.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Cases have no local reruns or independent implementation readset. Author-reported observations and derived advice are not reusable campaign PASS evidence."
+      ]
+    },
+    {
+      "id": "ascend-performance-analysis",
+      "owner": "ascend/ascend-performance-analysis",
+      "source_slices": [
+        {
+          "source": "Ascend/MindIE-SD",
+          "channel": "upstream skill-document import",
+          "depth": "profiling-analyze, dit-parallel-opt and perf-gate instructions and reported profiler observations.",
+          "identity": "8481d39b (historical Git prefix)",
+          "inspection_date": null,
+          "license_note": "Not recorded for the inherited MindIE-SD slice.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        },
+        {
+          "source": "cann/cannbot official model-infer-optimize plugin",
+          "channel": "direct repository read retained",
+          "depth": "Fixed-stage role/workflow instructions plus selected registered callback and archive-helper implementation; dependency skills/recipes not inspected.",
+          "identity": "c0e2ad23ee1a73e3c0f84c8df1cc459e2aae3110 (full Git commit)",
+          "inspection_date": "2026-10-23",
+          "license_note": "Selected official plugin CANN-2.0 with Huawei notices and retained agreement; purpose/distribution restrictions remain in its ledger. Not a license for historical cannbot-skills.",
+          "evidence": [
+            "references/cannbot-stage-evidence.md",
+            "references/cannbot-CANN-2.0-LICENSE.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Only the official fixed-stage increment is normalized. Lexical callback completion is not numerical validation; agent-host integration and NPU execution remain unverified."
+      ]
+    },
+    {
+      "id": "ascend-video-diffusion-optimization",
+      "owner": "ascend/ascend-video-diffusion-optimization",
+      "source_slices": [
+        {
+          "source": "First-hand Ascend video-diffusion field notes",
+          "channel": "first-hand supplied notes",
+          "depth": "Workflow guidance and coarsened recollections, linked to the existing generic method; no reproducible implementation or experiment source bundle.",
+          "identity": "No published campaign/source revision; identifying campaign details intentionally excluded.",
+          "inspection_date": null,
+          "license_note": "No separate source license recorded; metadata origin is first-party.",
+          "evidence": [
+            "SKILL.md",
+            "references/field-notes-video-diffusion.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Field notes are explicitly non-reproducible and must not be cited as evidence. Recollected figures and accepted configurations do not validate this candidate."
+      ]
+    },
+    {
+      "id": "ascendc-tiling-design",
+      "owner": "ascend/ascendc-tiling-design",
+      "source_slices": [
+        {
+          "source": "awesome-ascend-skills ascendc-tiling-design and cannbot-skills origin",
+          "channel": "GitCode skill mirror import",
+          "depth": "Distillation of upstream SKILL.md and 23 reference documents; formulas/routing heuristics, not native kernel execution.",
+          "identity": "75ec89c and mirror-origin ac5bbd2b (historical Git prefixes)",
+          "inspection_date": null,
+          "license_note": "UNKNOWN, explicitly retained for the mirrored source.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "No bundled original 23-document readset; linked API/template/architecture dependencies were unverified. Unwritten operator classes and chip-specific examples are not implementation coverage."
+      ]
+    },
+    {
+      "id": "cann-attribution-overlap",
+      "owner": "ascend/cann-attribution-overlap",
+      "source_slices": [
+        {
+          "source": "cann/oam-tools and jinyingqi source lineage",
+          "channel": "supplied CANN pack",
+          "depth": "Skill/reference instructions plus selected script behavior retained through the supplied pack; original repositories were not independently corroborated.",
+          "identity": "Import 8440935f; PR head a86ab510; later master f3cf4115 and SKILL_en.md change 5f42532 (all historical prefixes, separate roles).",
+          "inspection_date": "2026-10-15",
+          "license_note": "Imported script headers declare Apache-2.0; a blanket license for every pack/document is not established.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Original jinyingqi SHAs and import byte equivalence unknown; copies are one lineage. Import and later V2 claims remain separate; metric/threshold conflicts unresolved; no owner-local exact source ledger."
+      ]
+    },
+    {
+      "id": "torchnpu-device-memory-lifecycle",
+      "owner": "ascend/torchnpu-device-memory-lifecycle",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch (TorchNPU)",
+          "channel": "supplied implementation pack",
+          "depth": "Supplier's bounded NPUCachingAllocator, config/caller, documentation and test-assertion readset; upstream reads not repeated during local integration.",
+          "identity": "67511c53cd4c88014f6123de7097677e60e85faa (full Git commit)",
+          "inspection_date": "2026-10-15",
+          "license_note": "Pinned LICENSE/attribution links credit Huawei and inherited PyTorch contributors; no blanket SPDX label supplied by this owner.",
+          "evidence": [
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Device-HBM scope only; custom/IPC/graph-pool destruction and matched base-PyTorch/CANN/HDK behavior remain outside the bounded read. Tests were inspected, not run."
+      ]
+    },
+    {
+      "id": "torchnpu-pinned-host-memory-lifecycle",
+      "owner": "ascend/torchnpu-pinned-host-memory-lifecycle",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch (TorchNPU)",
+          "channel": "supplied implementation pack",
+          "depth": "Supplier's bounded CachingHostAllocator/copy/config/binding, documentation and test-assertion readset; upstream reads not repeated during local integration.",
+          "identity": "67511c53cd4c88014f6123de7097677e60e85faa (full Git commit)",
+          "inspection_date": "2026-10-15",
+          "license_note": "Pinned LICENSE/attribution links credit Huawei and inherited PyTorch contributors; no blanket SPDX label supplied by this owner.",
+          "evidence": [
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Host RAM is separate from device HBM. Base-ATen threshold/background-worker internals, external registration, release/error behavior and installed stack remain incompletely qualified; same upstream as device-memory owner, not independent corroboration."
+      ]
+    },
+    {
+      "id": "diagnose-attention-bottlenecks",
+      "owner": "cuda/diagnose-attention-bottlenecks",
+      "source_slices": [
+        {
+          "source": "FlashAttention, FlashAttention-2 and FlashAttention-3",
+          "channel": "supplied paper pack",
+          "depth": "Supplier's versioned PDF/text and selected rendered-table/figure reads; no linked implementation opened.",
+          "identity": "arXiv 2205.14135v2; 2307.08691v1; 2407.08608v2, with separate PDF hashes in source ledger.",
+          "inspection_date": "2026-10-15",
+          "license_note": "Attributed paraphrases; original PDFs are not packaged. Upstream code licenses are not assumed to cover paper text.",
+          "evidence": [
+            "references/sources.md",
+            "references/mechanisms.md",
+            "references/papers-20261015/README.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Three decision cases are paper-derived, not independent local experiments. Pseudocode/SASS claims, synthetic FP8 error and hardware-specific instructions do not qualify libraries, NPU portability or application quality."
+      ]
+    },
+    {
+      "id": "host-overhead-profiling",
+      "owner": "cuda/host-overhead-profiling",
+      "source_slices": [
+        {
+          "source": "NVIDIA/TensorRT-LLM .claude/skills/perf-host-analysis",
+          "channel": "upstream skill-document import",
+          "depth": "nsys/NVTX diagnostic methodology and source-reported examples; no retained TensorRT-LLM runtime or profiling-helper implementation readset.",
+          "identity": "f33e0e5f / f33e0e5fd (historical prefixes retained in library routing / Reference Matrix).",
+          "inspection_date": null,
+          "license_note": "TensorRT-LLM Apache-2.0 attribution appears in the companion placement owner; no separate license/readset is retained here.",
+          "evidence": [
+            "SKILL.md",
+            "../../../README.md",
+            "../../host/os-process-placement/SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "The named scripts/detect_host_overhead.py, scripts/analyze_host_overhead.py and iteration-isolation reference are not bundled here. Numeric thresholds/examples remain inherited guidance, not local measurements or universal acceptance bars."
+      ]
+    },
+    {
+      "id": "reason-hopper-kernels",
+      "owner": "cuda/reason-hopper-kernels",
+      "source_slices": [
+        {
+          "source": "NVlabs/kda -> mit-han-lab/KernelWiki",
+          "channel": "direct repository/document screening retained",
+          "depth": "KDA gitlink/license provenance, KernelWiki headers and selected synthesis/summary bodies; most underlying source bodies and PR implementations remain unmined.",
+          "identity": "KDA acdd79343c5e9d0c7cb96289f26fd3f1051ce785 -> KernelWiki 76d27b56f804e7e7295d4c570e1e5d7eef4b0a75 (full commits); corpus cutoff 2026-04-27.",
+          "inspection_date": "2026-10-23",
+          "license_note": "KernelWiki UNKNOWN at its pin; KDA's MIT assertion and sanitized-distribution discrepancy remain qualified. KDA first-party CC-BY-4.0/Apache-2.0 does not relicense third-party payloads.",
+          "evidence": [
+            "references/sources.md",
+            "references/source-inventory.json",
+            "references/notices.md"
+          ]
+        },
+        {
+          "source": "deepseek-ai/DeepGEMM and NVIDIA/cutlass",
+          "channel": "direct repository read retained",
+          "depth": "Selected SM90 mainloop/helper/scheduler and CUTLASS example/collective/ping-pong implementation; selected bytes matched to KernelWiki copies.",
+          "identity": "DeepGEMM 891d57b4db1071624b5c8fa0d1e51cb317fa709f; CUTLASS ca4fdbea708ad940c905359788372b8add9f85e0 (full Git commits).",
+          "inspection_date": "2026-10-23",
+          "license_note": "DeepGEMM MIT and selected CUTLASS BSD-3-Clause notices retained; not blanket terms for CuTe DSL/helper artifacts.",
+          "evidence": [
+            "references/source-inventory.json",
+            "references/licenses/deepgemm-mit.md",
+            "references/licenses/cutlass-bsd.md"
+          ]
+        },
+        {
+          "source": "NVIDIA CUDA documentation",
+          "channel": "direct versioned document read retained",
+          "depth": "Selected PTX ISA and Hopper tuning sections; version/hash identity, not Git source or GPU execution.",
+          "identity": "CUDA 12.8.0 Hopper Tuning Guide and PTX ISA 8.7; HTML hashes in owner inventory.",
+          "inspection_date": "2026-10-23",
+          "license_note": "Paraphrased reference material; no blanket license reassignment or packaged HTML.",
+          "evidence": [
+            "references/source-inventory.json"
+          ]
+        }
+      ],
+      "limits": [
+        "48 synthesis headers and 2,217 source headers screened, 171 SM90 headers retained; header screening is not implementation coverage. KDA runtime, most PR code, full dispatch/integration and native execution unqualified; no tested combined source stack."
+      ]
+    },
+    {
+      "id": "cgroup-resource-controls",
+      "owner": "host/cgroup-resource-controls",
+      "source_slices": [
+        {
+          "source": "Linux cgroup v2 documentation",
+          "channel": "supplied documentation pack",
+          "depth": "Targeted core/CPU/Memory/IO/Cpuset documentation facts and proposed control procedures; no kernel implementation readset.",
+          "identity": "kernel.org rolling page retrieved 2026-10-15, revision unidentified; Linux v6.12 Documentation/admin-guide/cgroup-v2.rst baseline (release tag, no full commit/hash retained).",
+          "inspection_date": "2026-10-15",
+          "license_note": "Not recorded in the local owner; no license inferred from repository association.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "No separate bundled source ledger. Deployment kernel/backports, available counters, delegation and hierarchy remain unknown; documentation conflicts retained. No resource setting or workload validation performed."
+      ]
+    },
+    {
+      "id": "host-memory-management",
+      "owner": "host/host-memory-management",
+      "source_slices": [
+        {
+          "source": "pytorch/pytorch",
+          "channel": "direct repository read retained",
+          "depth": "Selected eager CPU/CUDA copy and pinned host allocator implementation, stream API/documentation and limited graph boundaries; exact ranges and file identities retained.",
+          "identity": "ba56102387ef21a3b04b357e5b183d48f0afefc7 (full Git commit; v2.8.0)",
+          "inspection_date": "2026-10-30",
+          "license_note": "BSD-3-Clause and PyTorch contributor notices retained for this source slice.",
+          "evidence": [
+            "references/pytorch-host-copy-readset.json",
+            "references/pytorch-host-copy.md",
+            "references/pytorch-LICENSE.md"
+          ]
+        },
+        {
+          "source": "python/cpython",
+          "channel": "direct official document read retained",
+          "depth": "Free-threading build/runtime GIL detection and extension/thread-safety documentation; no CPython implementation audit.",
+          "identity": "60403a5409ff2c3f3b07dd2ca91a7a3e096839c7 (full Git commit; v3.13.0)",
+          "inspection_date": "2026-10-30",
+          "license_note": "PSF-2.0 retained; readset distinguishes documentation-code Zero-Clause BSD terms.",
+          "evidence": [
+            "references/cpython-free-threading-readset.json",
+            "references/cpython-PSF-LICENSE.md"
+          ]
+        },
+        {
+          "source": "vllm-project/vllm-ascend",
+          "channel": "direct repository read retained",
+          "depth": "Selected native single-tier descriptor pool/queue, C++ copy consumer and mocked-test protocol boundaries.",
+          "identity": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf (full Git commit)",
+          "inspection_date": "2026-10-23",
+          "license_note": "Apache-2.0 retained with selected vLLM-Ascend/Huawei notices.",
+          "evidence": [
+            "references/vllm-ascend-native-offload-readset.json",
+            "references/vllm-ascend-native-offload.md",
+            "references/vllm-ascend-LICENSE.md"
+          ]
+        },
+        {
+          "source": "Historical PyTorch/CUDA/Python/NUMA web links",
+          "channel": "retained unpinned links",
+          "depth": "Lineage only; explicitly not asserted as inspected/immutable evidence by the current owner update.",
+          "identity": "Mixed live/version-labeled URLs; no new commit, content hash or access date assigned.",
+          "inspection_date": null,
+          "license_note": "Unknown per-link license/access history retained; new source licenses do not relicense the old collection.",
+          "evidence": [
+            "references/legacy-source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Fresh 2026-10-30 PyTorch/CPython reads stay separate from the older Ascend slice and legacy links. CUDA graph implementations, driver/NUMA behavior, external allocators, free-threaded inference compatibility and Ascend teardown/ABI remain unqualified; eager example and hardware recipe are proposed/not_run."
+      ]
+    },
+    {
+      "id": "host-overhead-optimization",
+      "owner": "host/host-overhead-optimization",
+      "source_slices": [
+        {
+          "source": "NVIDIA/TensorRT-LLM .claude/skills/perf-host-optimization",
+          "channel": "upstream skill-document import",
+          "depth": "Line-profiler workflow and optimization patterns; no retained TensorRT-LLM runtime audit.",
+          "identity": "f33e0e5f / f33e0e5fd (historical prefixes retained in library routing / Reference Matrix).",
+          "inspection_date": null,
+          "license_note": "Apache-2.0 attribution retained in companion placement owner; source terms do not cover unrelated added material.",
+          "evidence": [
+            "SKILL.md",
+            "../../../README.md",
+            "../os-process-placement/SKILL.md"
+          ]
+        },
+        {
+          "source": "deepseek-ai/DeepInfer",
+          "channel": "direct repository read retained",
+          "depth": "Bounded worker/engine/scheduler/remap/constructor/synchronization implementation cited in the local scheduling case.",
+          "identity": "8b16149741a4935e1dec8cea27853f273b374c5b (full Git commit)",
+          "inspection_date": null,
+          "license_note": "Apache-2.0 stated by the source case.",
+          "evidence": [
+            "references/deepinfer-zero-overhead-scheduling.md"
+          ]
+        },
+        {
+          "source": "FlashVector and cross-layer procedure",
+          "channel": "cross-owner supplied paper reference",
+          "depth": "Existing method-owned paper audit and proposed cross-layer procedure; no code/deployment inspection or new independent evidence here.",
+          "identity": "FlashVector arXiv 2609.17391v1; additional source identities remain with the linked method readset.",
+          "inspection_date": null,
+          "license_note": "Attributed paper paraphrase; no source-code license assumed for paper text.",
+          "evidence": [
+            "../../../methods/performance-ceiling-analysis/references/papers-20261015/references/flashvector.md",
+            "../../../methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md"
+          ]
+        }
+      ],
+      "limits": [
+        "metadata.provenance_readsets is empty despite the linked local DeepInfer case; this inventory does not normalize the sidecar. DeepInfer inspection date is not recorded in that case; preemption safety and service gains remain unresolved, not known defects/results."
+      ]
+    },
+    {
+      "id": "os-process-placement",
+      "owner": "host/os-process-placement",
+      "source_slices": [
+        {
+          "source": "NVIDIA/TensorRT-LLM, awesome-ascend-skills and vllm-ascend",
+          "channel": "upstream skill-document/configuration import",
+          "depth": "Historical affinity/environment/preflight instructions and Dockerfile shipping-default observations; not OS/driver implementation proof.",
+          "identity": "f33e0e5f and 75ec89c in procedure; bc8115ed for vllm-ascend defaults in library routing / Reference Matrix (historical prefixes).",
+          "inspection_date": null,
+          "license_note": "Procedure retains TensorRT-LLM Apache-2.0 and awesome-ascend-skills UNKNOWN; no blanket license for the mixed-source owner.",
+          "evidence": [
+            "SKILL.md",
+            "../../../README.md"
+          ]
+        },
+        {
+          "source": "ggml-org/llama.cpp",
+          "channel": "direct repository read retained",
+          "depth": "Selected CLI -> CPU backend -> topology/worker affinity and mmap/threadpool consumers; source-help claims remain documentation facts.",
+          "identity": "3e390af historical prefix resolved/read as 3e390af18de1131dda27913c00511725b4274c8a (full Git commit), separate from the runtime owner's 707616 pin.",
+          "inspection_date": "2026-10-22",
+          "license_note": "MIT; ggml author attribution and source license link retained.",
+          "evidence": [
+            "references/llama-numa-thread-readset.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Only llama.cpp NUMA/thread provenance is normalized. No optimal count, mixed-affinity guarantee, cache drop, device cleanup or system change was established/executed; other historical sources remain unnormalized."
+      ]
+    },
+    {
+      "id": "storage-io-measurement",
+      "owner": "host/storage-io-measurement",
+      "source_slices": [
+        {
+          "source": "axboe/fio",
+          "channel": "supplied documentation pack",
+          "depth": "Targeted HOWTO.rst sections plus examples/aio-read.fio job description; not fio engine implementation.",
+          "identity": "acb7a302 (historical Git prefix)",
+          "inspection_date": "2026-10-15",
+          "license_note": "Not recorded in the local owner.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        },
+        {
+          "source": "sysstat/sysstat",
+          "channel": "supplied documentation pack",
+          "depth": "man/iostat.in and man/pidstat.1 semantics; not sysstat implementation.",
+          "identity": "efd0c445 (historical Git prefix)",
+          "inspection_date": "2026-10-15",
+          "license_note": "Not recorded in the local owner.",
+          "evidence": [
+            "SKILL.md"
+          ]
+        }
+      ],
+      "limits": [
+        "No separate bundled readset, full SHA or source-byte receipt. Tool/device counters do not prove application bottlenecks, cold caches, loader behavior or gains; no benchmark/cache manipulation was performed."
+      ]
+    }
+  ]
+}

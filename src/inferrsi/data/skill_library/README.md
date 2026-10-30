@@ -8,7 +8,7 @@ Complete procedures, metadata, references, cases and source notices ship with th
 
 | Directory | Content |
 | --- | --- |
-| [Hardware](hardware/) | Ascend (14 registered skills), CUDA (3) and host resource guidance (5) |
+| [Hardware](hardware/README.md) | Ascend (14 registered skills), CUDA (3) and host resource guidance (5), with retained source-depth navigation |
 | [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
