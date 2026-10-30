@@ -566,6 +566,11 @@ class KnowledgeReader:
 
         def select(reference: str, bundle: Bundle, view: dict) -> None:
             nonlocal used, context_used
+            # Normal Bundle views were serialized while computing their revision.
+            # Preserve custom subclasses' serialization/error behavior below.
+            if type(bundle) is Bundle and len(selected) >= limit:
+                omitted.append({"id": reference, "reason": "output_limit"})
+                return
             size = len(_json(view))
             if len(selected) >= limit or (max_bytes is not None and used + size > max_bytes):
                 omitted.append({"id": reference, "reason": "output_limit"})

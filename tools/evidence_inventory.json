@@ -1,6 +1,10 @@
 {
   "version": 1,
   "bundles": {
+    "indexer-255-limit-sizing-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
+    },
     "indexer-255-token-v3-20261030": {
       "kind": "campaign",
       "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
