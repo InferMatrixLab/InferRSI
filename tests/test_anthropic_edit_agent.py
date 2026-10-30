@@ -451,6 +451,35 @@ def test_no_actions_before_task_read_feedback_roundtrip(fixture, bad):
         run(fixture, [bad])
 
 
+@pytest.mark.parametrize("position", [0, 1, 2])
+def test_redundant_task_read_preserves_completed_roundtrip(fixture, position):
+    source = "# edited after an earlier task-read round trip\n"
+    later = work(source)
+    later["content"].insert(position, call("read_file", {"path": "task.json"}, "reread"))
+    answer, requests, _, observations, _, pool = run(
+        fixture, [read_task(), later, submit()])
+    assert answer["artifact_source"] == source and answer["revision"] == 1
+    assert [entry[:2] for entry in observations] == [
+        ("check", source.encode()), ("benchmark", source.encode())]
+    assert len(requests) == 3 and pool.usage() == {"A2": 3, "A3": 0}
+    assert requests[1]["messages"][-1]["content"][0]["tool_use_id"] == "read-task"
+
+
+@pytest.mark.parametrize("action", [
+    call("write_candidate", {"source": "# must not be written\n"}),
+    call("run_visible_checks"), call("run_visible_benchmark"), call("submit_candidate"),
+])
+def test_first_task_read_cannot_authorize_actions_in_same_response(fixture, action):
+    initial = (fixture[0] / "candidate.py").read_bytes()
+    events = []
+    with pytest.raises(provider.AgentError, match="task_not_read"):
+        run(fixture, [response(call("read_file", {"path": "task.json"}), action)],
+            events=events, checks=lambda *_: pytest.fail("no check before read round trip"),
+            benchmark=lambda *_: pytest.fail("no measurement before read round trip"))
+    assert (fixture[0] / "candidate.py").read_bytes() == initial
+    assert [e["revision"] for e in events if e["type"] == "edit.artifact"] == [0]
+
+
 def test_reused_tool_id_rejected_across_requests(fixture):
     with pytest.raises(provider.AgentError, match="invalid_tool_call"):
         run(fixture, [read_task(), read_task()])

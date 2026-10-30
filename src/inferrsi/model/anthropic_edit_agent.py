@@ -486,7 +486,8 @@ def run_edit_agent(workspace, plan, prompt, model, spec, deadline, emit, *, arm,
                 state.verify()
                 if name == "read_file":
                     value = state.read(args["path"])
-                    if args["path"] == "task.json":
+                    if args["path"] == "task.json" and task_read_at is None:
+                        # A later redundant read cannot revoke an earlier round trip.
                         task_read_at = number
                 elif name == "write_candidate":
                     value = state.write(args["source"])
