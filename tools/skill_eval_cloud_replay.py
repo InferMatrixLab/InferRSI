@@ -7,6 +7,7 @@ import urllib.request
 from pathlib import Path
 
 from inferrsi.harness import skill_eval_engineering as engineering
+from tools import skill_eval_artifact_guidance as artifact_guidance
 from tools.skill_eval_qualify import qualify
 
 SCHEMA = "engineering-cloud-replay-v1"
@@ -132,9 +133,12 @@ def main():
         # Never log exception text that may include input/source; preserve a failure category only.
         receipt = {"schema_version": SCHEMA, "verdict": "INCONCLUSIVE",
                    "error_category": type(error).__name__}
+    receipt["guidance"] = artifact_guidance.replay(receipt)
     receipt["evidence_commit"] = args.evidence_commit
     receipt["controller_revision"] = args.revision
     (args.output / "replay.json").write_text(json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
+    (args.output / "replay.md").write_text(artifact_guidance.markdown(receipt["guidance"]),
+                                         encoding="utf-8")
     print(receipt["verdict"])
     return 0 if receipt["verdict"] == "PASS" else 1
 
