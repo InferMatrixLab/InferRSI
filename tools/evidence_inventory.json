@@ -1,6 +1,10 @@
 {
   "version": 1,
   "bundles": {
+    "indexer-255-token-v2-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}]
+    },
     "indexer-255-20261029": {
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity-manifest.json", "schema": "bundle-sha256"}]

@@ -1,0 +1,45 @@
+.........................................                                [100%]
+==================================== PASSES ====================================
+=========================== short test summary info ============================
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev01]
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev02]
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev03]
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev04]
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev05]
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev06]
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev07]
+PASSED tests/test_collect_token_selection.py::test_frozen_token_contract[token-dev08]
+PASSED tests/test_collect_token_selection.py::test_default_and_explicit_default_identical
+PASSED tests/test_collect_token_selection.py::test_opt_in_validation
+PASSED tests/test_collect_token_selection.py::test_explicit_selection_resources_and_budget_unchanged
+PASSED tests/test_collect_token_selection.py::test_token_operational_controls_and_substring_query
+PASSED tests/test_collect_token_selection.py::test_token_ties_use_qualified_identity_order
+PASSED tests/test_collect_token_selection.py::test_cli_token_method
+PASSED tests/test_collect_selection.py::test_frozen_offline_pilot[cgroupv2--inferrsi.common.skills.cgroup_resource_controls-True]
+PASSED tests/test_collect_selection.py::test_frozen_offline_pilot[MiniMax-H3 AdaLN SSD--inferrsi.common.skills.audit_h3_runtime_residency-False]
+PASSED tests/test_collect_selection.py::test_frozen_offline_pilot[P2pNccl--inferrsi.cuda.skills.audit_afd_p2p_exchanges-True]
+PASSED tests/test_collect_selection.py::test_frozen_offline_pilot[DLRover replica recovery--inferrsi.common.skills.checkpoint_recovery_consistency-False]
+PASSED tests/test_collect_selection.py::test_frozen_offline_pilot[cgroupv2-cpu.stat.local-inferrsi.common.skills.cgroup_resource_controls-False]
+PASSED tests/test_collect_selection.py::test_no_match_and_query_remains_token_and_substring_matching
+PASSED tests/test_collect_selection.py::test_existing_item_payload_and_material_accounting_are_unchanged
+PASSED tests/test_collect_selection.py::test_explicit_membership_order_aliases_and_revisions_are_preserved
+PASSED tests/test_collect_selection.py::test_filters_stay_package_only_and_precede_ranking
+PASSED tests/test_collect_selection.py::test_weighted_presence_and_identity_ties_are_deterministic
+PASSED tests/test_collect_selection.py::test_context_keeps_complete_core_prerequisites_provenance_and_exact_bytes
+PASSED tests/test_collect_selection.py::test_both_budgets_skip_oversized_items_and_fit_later_smaller_items
+PASSED tests/test_collect_selection.py::test_source_drift_and_cross_owner_mapping_never_fall_back
+PASSED tests/test_collect_selection.py::test_store_delegates_but_copied_package_metadata_cannot_gain_context
+PASSED tests/test_collect_selection.py::test_h3_readsets_are_mandatory_even_without_lexical_overlap
+PASSED tests/test_collect_selection.py::test_parent_owner_license_is_mandatory_and_budgeted_for_cross_skill_references
+PASSED tests/test_collect_selection.py::test_retained_legal_resources_ignore_relevance_and_use_atomic_budget[inferrsi.cuda.skills.audit_afd_p2p_exchanges-P2pNccl-data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md]
+PASSED tests/test_collect_selection.py::test_retained_legal_resources_ignore_relevance_and_use_atomic_budget[inferrsi.common.skills.audit_h3_runtime_residency-orchid-data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/THIRD_PARTY_NOTICES.md]
+PASSED tests/test_collect_selection.py::test_missing_declared_notice_is_explicitly_unavailable
+PASSED tests/test_collect_selection.py::test_optimized_request_preserves_identity_collisions
+PASSED tests/test_collect_selection.py::test_invalid_opt_ins_fail_at_request_boundary[options0]
+PASSED tests/test_collect_selection.py::test_invalid_opt_ins_fail_at_request_boundary[options1]
+PASSED tests/test_collect_selection.py::test_invalid_opt_ins_fail_at_request_boundary[options2]
+PASSED tests/test_collect_selection.py::test_invalid_opt_ins_fail_at_request_boundary[options3]
+PASSED tests/test_collect_selection.py::test_invalid_opt_ins_fail_at_request_boundary[options4]
+PASSED tests/test_collect_selection.py::test_invalid_opt_ins_fail_at_request_boundary[options5]
+PASSED tests/test_collect_selection.py::test_cli_exposes_context_in_json_and_text
+41 passed in 20.02s
