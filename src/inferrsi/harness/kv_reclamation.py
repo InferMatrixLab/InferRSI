@@ -12,7 +12,7 @@ import tempfile
 import time
 from pathlib import Path
 
-from ..infra.artifacts import write_json
+from ..infra.artifacts import atomic_write_json, write_json
 from ..infra.executors.local import execute_command
 from .skill_eval_engineering import SandboxUnavailable, read_regular, sandbox_command
 
@@ -145,6 +145,11 @@ def invoke(source: bytes, payload: dict, output: Path, deadline: float) -> tuple
             tuple(sandbox_command(work)), work, output, deadline,
             environment=environment,
         )
+        # Retain the original outcome before readiness/output checks can return or raise.
+        # Closed projection only: no host paths, arbitrary error text or environment.
+        atomic_write_json(output / "execution.json", {
+            name: record.get(name) for name in ("status", "returncode", "elapsed_seconds")
+        })
     if record["status"] in {"timeout", "error", "cancelled"}:
         return record, None
     marker = Path(record["stderr_path"]).read_bytes()[:128]
