@@ -49,7 +49,7 @@ def fake_executor(command, cwd, output, deadline, *, environment):
     output.mkdir(parents=True)
     (output / "stdout.log").write_text(json.dumps({"observations": [], "pending": []}))
     (output / "stderr.log").write_text("INFERRSI_KV_READY\n")
-    return {"status": "completed", "elapsed_seconds": 0.5,
+    return {"status": "completed", "returncode": 0, "elapsed_seconds": 0.5,
             "stdout_path": str(output / "stdout.log"),
             "stderr_path": str(output / "stderr.log")}
 
@@ -61,6 +61,83 @@ def test_candidate_receives_only_inputs_not_answers_or_knowledge(tmp_path):
                                   tmp_path / "output", time.monotonic() + 1)
     assert record["elapsed_seconds"] == 0.5
     assert value == {"observations": [], "pending": []}
+    assert json.loads((tmp_path / "output/execution.json").read_text()) == {
+        "status": "completed", "returncode": 0, "elapsed_seconds": 0.5}
+
+
+@pytest.mark.parametrize("status,returncode,output_kind,expected", [
+    ("completed", 0, "valid", "value"),
+    ("completed", 0, "invalid_json", None),
+    ("completed", 0, "empty", None),
+    ("failed", 1, "valid", None),
+    ("failed", -9, "valid", None),
+    ("timeout", -9, "no_logs", None),
+    ("cancelled", -15, "no_logs", None),
+    ("error", None, "no_logs", None),
+    ("completed", 0, "no_marker", kv.SandboxUnavailable),
+    ("completed", 0, "missing_stdout", None),
+    ("completed", 0, "missing_stderr", FileNotFoundError),
+])
+def test_invoke_retains_closed_original_execution_before_all_output_paths(
+    tmp_path, status, returncode, output_kind, expected
+):
+    output = tmp_path / "run"
+    actual = {"observations": [], "pending": []}
+    original = {"status": status, "returncode": returncode, "elapsed_seconds": 0.125,
+                "stdout_path": str(output / "stdout.log"),
+                "stderr_path": str(output / "stderr.log"), "metric": 123,
+                "argv": ["private-canary"], "cwd": "private-canary",
+                "error": "private-canary", "environment": {"KEY": "private-canary"},
+                "pid": 12345, "extra": "private-canary"}
+
+    def execute(*args, **kwargs):
+        output.mkdir()
+        if output_kind not in {"no_logs", "missing_stdout"}:
+            data = "invalid JSON" if output_kind == "invalid_json" else (
+                "" if output_kind == "empty" else json.dumps(actual))
+            (output / "stdout.log").write_text(data)
+        if output_kind not in {"no_logs", "missing_stderr"}:
+            (output / "stderr.log").write_text(
+                "" if output_kind == "no_marker" else "INFERRSI_KV_READY\n")
+        return original
+
+    before = dict(original)
+    with patch.object(kv, "sandbox_command", return_value=["sandbox"]), \
+         patch.object(kv, "execute_command", side_effect=execute) as launch:
+        if isinstance(expected, type):
+            with pytest.raises(expected):
+                kv.invoke(b"# source", {}, output, time.monotonic() + 1)
+        else:
+            record, value = kv.invoke(b"# source", {}, output, time.monotonic() + 1)
+            assert record is original
+            assert value == (actual if expected == "value" else None)
+        launch.assert_called_once()
+    assert original == before  # Preserve elapsed/metric and all existing return semantics.
+    raw = (output / "execution.json").read_text()
+    assert json.loads(raw) == {"status": status, "returncode": returncode,
+                               "elapsed_seconds": 0.125}
+    assert "private-canary" not in raw and str(tmp_path) not in raw
+
+
+def test_execution_retention_failure_stops_before_output_check_without_retry(tmp_path):
+    with patch.object(kv, "sandbox_command", return_value=["sandbox"]), \
+         patch.object(kv, "execute_command", side_effect=fake_executor) as launch, \
+         patch.object(kv, "atomic_write_json", side_effect=OSError("storage unavailable")), \
+         patch.object(kv, "read_regular") as read:
+        with pytest.raises(OSError, match="storage unavailable"):
+            kv.invoke(b"# source", {}, tmp_path / "run", time.monotonic() + 1)
+        launch.assert_called_once()
+        read.assert_not_called()
+    assert not (tmp_path / "run/execution.json").exists()
+
+
+def test_executor_did_not_return_has_no_invented_execution_record(tmp_path):
+    with patch.object(kv, "sandbox_command", return_value=["sandbox"]), \
+         patch.object(kv, "execute_command", side_effect=KeyboardInterrupt) as launch:
+        with pytest.raises(KeyboardInterrupt):
+            kv.invoke(b"# source", {}, tmp_path / "run", time.monotonic() + 1)
+        launch.assert_called_once()
+    assert not (tmp_path / "run/execution.json").exists()
 
 
 def test_no_sandbox_has_no_host_fallback(tmp_path):
@@ -115,6 +192,9 @@ def test_real_executor_expired_before_launch_needs_no_output_files(tmp_path):
                                   tmp_path / "run", time.monotonic() - 1)
     assert record["status"] == "timeout" and value is None
     assert not (tmp_path / "run/stderr.log").exists()
+    assert json.loads((tmp_path / "run/execution.json").read_text()) == {
+        "status": "timeout", "returncode": None,
+        "elapsed_seconds": record["elapsed_seconds"]}
 
 
 def test_driver_snapshots_mutable_return_buffers():

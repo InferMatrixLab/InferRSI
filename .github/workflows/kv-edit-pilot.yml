@@ -78,10 +78,17 @@ jobs:
             GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
             /usr/bin/python3 -m tools.kv_live_job grade --bundle "$RUNNER_TEMP/kv-final-input" \
             --output "$RUNNER_TEMP/kv-grade"
+      - name: Retain first grader outputs even after interruption, never rerun
+        if: always()
+        run: |
+          env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \
+            GITHUB_SHA="$GITHUB_SHA" GITHUB_RUN_ID="$GITHUB_RUN_ID" \
+            /usr/bin/python3 -m tools.kv_live_job package-grade \
+            --bundle "$RUNNER_TEMP/kv-final-input" --output "$RUNNER_TEMP/kv-grade"
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: kv-final-grade-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/kv-grade/grade.json
+          path: ${{ runner.temp }}/kv-grade/public
           if-no-files-found: error
           retention-days: 30

@@ -239,6 +239,12 @@ def test_workflow_manual_no_inputs_no_credential_binding_and_separate_pinned_gra
     download = next(s for s in grade["steps"] if s.get("uses", "").startswith("actions/download"))
     assert set(download["with"]) == {"name", "path"}  # Current-run only; no URL/run-id input.
     assert download["with"]["name"] == "kv-live-${{ github.run_id }}-${{ github.run_attempt }}"
+    projection = next(s for s in grade["steps"] if "package-grade" in s.get("run", ""))
+    assert projection["if"] == "always()" and "env -i" in projection["run"]
+    upload = next(s for s in grade["steps"] if s.get("uses", "").startswith("actions/upload"))
+    assert upload["with"]["path"] == "${{ runner.temp }}/kv-grade/public"
+    operations = (path.parents[2] / "docs/operations.md").read_text()
+    assert "`package-grade` never reruns candidates or models" in operations
 
 
 def test_same_host_preflight_uses_real_scoped_scripted_loop_with_fake_sandbox(staged, monkeypatch):
@@ -396,3 +402,306 @@ def test_same_host_runtime_must_match_actual_qualified_profile(tmp_path, monkeyp
     else:
         with pytest.raises(ValueError, match="runtime/profile"):
             job.runtime_preflight(tmp_path, time.monotonic() + 30, {})
+
+
+def retained_fake_sandbox(source, payload, output, deadline):
+    record, actual = fake_sandbox(source, payload, output, deadline)
+    # Mimic the real executor's fixed filenames, including deliberately excluded text.
+    (output / "stdout.log").write_bytes(provider.canonical(actual).encode())
+    (output / "stderr.log").write_text("OFFLINE-PRIVATE-CANARY")
+    (output / "unrequested.json").write_text('"OFFLINE-PRIVATE-CANARY"')
+    atomic_write_json(output / "execution.json", {"status": record["status"],
+        "returncode": 0, "elapsed_seconds": record["elapsed_seconds"]})
+    return {**record, "returncode": 0, "argv": ["OFFLINE-PRIVATE-CANARY"],
+            "cwd": "OFFLINE-PRIVATE-CANARY", "error": "OFFLINE-PRIVATE-CANARY"}, actual
+
+
+def test_final_artifact_reconstructs_original_semantics_and_abba_samples(staged, monkeypatch):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    job.package(staged.output)
+    monkeypatch.delenv(provider.KEY_ENV)
+    monkeypatch.setattr(kv, "invoke", retained_fake_sandbox)
+    result = job.grade(staged.output / "public", staged.output / "grade")
+    public = staged.output / "grade/public"
+    manifest = policy.read_json(public / "evidence.json")
+    assert manifest["execution"]["run_id"] == "123"
+    assert policy.read_json(public / "authorization.json")["body"].startswith("offline")
+    assert policy.read_json(public / "grade.json") == result
+    for arm in ("A2", "A3"):
+        evidence = manifest["arms"][arm]
+        assert evidence["raw_outputs_complete"]
+        assert len(evidence["semantics"]) == 1 and len(evidence["performance"]) == 17
+        assert evidence["semantics"][0]["check"] is True
+        assert evidence["semantics"][0]["execution"] == {
+            "status": "completed", "returncode": 0, "elapsed_seconds": 1.0}
+        for row in evidence["semantics"] + evidence["performance"]:
+            raw = (public / row["output"]["path"]).read_bytes()
+            assert policy.sha(raw) == row["output"]["sha256"]
+            assert len(raw) == row["output"]["bytes"]
+            assert policy.fingerprint(json.loads(raw)) == row["output"]["data_sha256"]
+        assert [r["side"] for r in evidence["performance"][:4]] == [
+            "baseline", "candidate", "candidate", "baseline"]
+        for side in ("baseline", "candidate"):
+            observed = [r["execution"]["metric"] for r in evidence["performance"]
+                        if r["side"] == side and r["phase"] == "measurement"]
+            assert observed == result["arms"][arm]["performance"][side + "_values"]
+        assert all(r["source_verified"] and r["execution"]["returncode"] == 0
+                   for r in evidence["performance"])
+        assert all(r["output"]["data_sha256"] == r["expected_sha256"]
+                   for r in evidence["performance"])
+    published = b"".join(p.read_bytes() for p in public.rglob("*") if p.is_file())
+    assert b"OFFLINE-PRIVATE-CANARY" not in published
+    assert b"OFFLINE-FAKE-PROVIDER-KEY" not in published
+    assert str(staged.output).encode() not in published
+    assert not list(public.rglob("*.log"))
+
+
+@pytest.mark.parametrize("bad", [b'not JSON OFFLINE-PRIVATE-CANARY',
+    b'{"observations":[],"pending":[],"extra":"OFFLINE-PRIVATE-CANARY"}',
+    b'{"observations":[],"pending":[["OFFLINE-PRIVATE-CANARY",0,[]]]}',
+    b'{"observations":[],"pending":[],"pending":[]}',
+    b'{"observations":[],"pending":[[[],0,[]]]}'])
+def test_raw_projection_never_uploads_arbitrary_or_malformed_output(tmp_path, bad):
+    source, target = tmp_path / "raw", tmp_path / "published.json"
+    source.write_bytes(bad)
+    result = job._raw_kv_output(source, target, [], verify=True, remaining=[1024])
+    assert result["status"] == "redacted_invalid_output"
+    assert not target.exists()
+    assert result["sha256"] == policy.sha(bad) and result["bytes"] == len(bad)
+    assert result["truncated"] is False
+    assert "OFFLINE-PRIVATE-CANARY" not in provider.canonical(result)
+
+
+@pytest.mark.parametrize("unsafe", ["symlink", "oversize", "whole_budget"])
+def test_raw_projection_file_and_total_limits(tmp_path, unsafe):
+    source, target = tmp_path / "raw", tmp_path / "published.json"
+    good = b'{"observations":[],"pending":[]}'
+    if unsafe == "symlink":
+        (tmp_path / "other").write_bytes(good)
+        source.symlink_to(tmp_path / "other")
+    else:
+        source.write_bytes(good if unsafe == "whole_budget" else b" " * (4 * policy.MAX_JSON + 1))
+    result = job._raw_kv_output(source, target, [], verify=True, remaining=[1])
+    assert result["status"] != "retained" and not target.exists()
+
+
+def test_all_frozen_hidden_expected_outputs_fit_public_projection(tmp_path):
+    # Real frozen DATA only; this does not execute a candidate or re-author the oracle.
+    root = Path(__file__).parents[1]
+    frozen = policy.read_json(root / (
+        "evidence/kv-reclamation-20261030/validator/independent/fixtures.json"))
+    traces = [t for t in frozen["traces"] if t["split"] == "grader"]
+    assert len(traces) == 77
+    remaining = [32 * policy.MAX_JSON]
+    for index, trace in enumerate(traces):
+        expected = {"observations": trace["expected"],
+                    "pending": trace["expected"][-1]["pending"] if trace["expected"] else []}
+        raw = provider.canonical(expected).encode()
+        source, target = tmp_path / "source", tmp_path / f"trace-{index:03d}.json"
+        source.write_bytes(raw)
+        result = job._raw_kv_output(source, target, trace["events"],
+                                    verify=True, remaining=remaining)
+        assert result["status"] == "retained", trace["id"]
+        assert target.read_bytes() == raw
+
+
+def test_partial_preflight_retains_failed_stage_without_exception_text(staged, monkeypatch):
+    monkeypatch.delenv(provider.KEY_ENV)
+    monkeypatch.setattr(policy, "fetch_comment", lambda _: {"id": 123, "body": "offline",
+        "issue_url": "https://example.invalid/public", "user": {"login": "owner", "type": "User"}})
+    def frozen(*, fetch=None, **kwargs):
+        if fetch is not None:
+            fetch(123)
+        return staged.authorization, {"offline": True}
+    monkeypatch.setattr(policy, "frozen_authorization", frozen)
+    monkeypatch.setattr(kv, "probe_isolation",
+                        Mock(side_effect=ValueError("OFFLINE-PRIVATE-CANARY")))
+    fresh = staged.output.parent / "failed-prepare"
+    with pytest.raises(ValueError):
+        job.prepare(fresh)
+    job.package(fresh)
+    proof = policy.read_json(fresh / "public/preflight.json")
+    assert proof["status"] == "partial" and proof["stages"]["stage"] == "completed"
+    assert proof["stages"]["isolation"] == "failed_or_interrupted"
+    assert proof["stages"]["cleanup"] == "not_started"
+    assert "OFFLINE-PRIVATE-CANARY" not in provider.canonical(proof)
+
+
+def test_preflight_projection_excludes_arbitrary_nested_text(staged):
+    path = staged.output / "prepared.json"
+    value = policy.read_json(path)
+    value["runtime_profile"].update(inventory_sha256="a" * 64,
+        error="OFFLINE-PRIVATE-CANARY", environment={"KEY": "OFFLINE-PRIVATE-CANARY"},
+        probe={"network_blocked": True, "inaccessible": [True, False],
+               "unexpected": "OFFLINE-PRIVATE-CANARY"})
+    value["cleanup"]["cases"] = {mode: {"verdict": "FAIL", "surviving_descendants": 1,
+        "error": "OFFLINE-PRIVATE-CANARY"} for mode in ("normal", "timeout", "cancel")}
+    atomic_write_json(path, value)
+    job.package(staged.output)
+    proof = policy.read_json(staged.output / "public/preflight.json")
+    assert proof["proofs"]["runtime_profile"]["probe"]["inaccessible"] == [True, False]
+    assert proof["proofs"]["cleanup"]["cases"]["normal"]["surviving_descendants"] == 1
+    assert "OFFLINE-PRIVATE-CANARY" not in provider.canonical(proof)
+
+
+def test_interrupted_grader_keeps_first_outputs_and_explicit_unstarted_arm(staged, monkeypatch):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    job.package(staged.output)
+    monkeypatch.delenv(provider.KEY_ENV)
+    monkeypatch.setattr(kv, "invoke", retained_fake_sandbox)
+    original = job.workbench.grade_final
+    def interrupted(*args):
+        original(*args)
+        raise KeyboardInterrupt
+    monkeypatch.setattr(job.workbench, "grade_final", interrupted)
+    with pytest.raises(KeyboardInterrupt):
+        job.grade(staged.output / "public", staged.output / "grade")
+    public = staged.output / "grade/public"
+    result = policy.read_json(public / "grade.json")
+    assert result["arms"]["A2"]["reason"] == "grading_interrupted"
+    assert result["arms"]["A3"]["reason"] == "not_evaluated"
+    evidence = policy.read_json(public / "evidence.json")["arms"]
+    assert evidence["A2"]["semantics"][0]["output"]["status"] == "retained"
+    assert not evidence["A3"]["raw_outputs_complete"]
+
+
+def test_always_projection_recovers_failed_projection_without_any_reexecution(staged, monkeypatch):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    job.package(staged.output)
+    monkeypatch.delenv(provider.KEY_ENV)
+    monkeypatch.setattr(kv, "invoke", retained_fake_sandbox)
+    original = job._raw_kv_output
+    monkeypatch.setattr(job, "_raw_kv_output",
+                        Mock(side_effect=RuntimeError("projection interrupted")))
+    with pytest.raises(RuntimeError, match="projection interrupted"):
+        job.grade(staged.output / "public", staged.output / "grade")
+    public = staged.output / "grade/public"
+    assert policy.read_json(public / "projection.json")["status"] == "failed_or_interrupted"
+    first = (staged.output / "grade/A2/semantics/trace-000/stdout.log").read_bytes()
+    monkeypatch.setattr(job, "_raw_kv_output", original)
+    monkeypatch.setattr(kv, "invoke", Mock(side_effect=AssertionError("no candidate rerun")))
+    result = job.package_grade(staged.output / "public", staged.output / "grade")
+    assert all(arm["raw_outputs_complete"] for arm in result["arms"].values())
+    assert (public / "A2/semantics/trace-000.json").read_bytes() == first
+    assert policy.read_json(public / "projection.json")["status"] == "completed"
+    grade = policy.read_json(public / "grade.json")
+    assert grade["arms"]["A2"]["semantic"]["verdict"] == "PASS"
+    assert "verdict" not in grade["arms"]["A2"]  # No invented aggregate verdict.
+
+
+def test_always_projection_keeps_raw_partial_output_without_finally(staged, monkeypatch):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    job.package(staged.output)
+    monkeypatch.delenv(provider.KEY_ENV)
+    grade = staged.output / "grade"
+    retained_fake_sandbox(BASELINE, {"mode": "verify", "events": []},
+                         grade / "A2/semantics/trace-000", time.monotonic() + 10)
+    monkeypatch.setattr(kv, "invoke", Mock(side_effect=AssertionError("no candidate rerun")))
+    manifest = job.package_grade(staged.output / "public", grade)
+    assert manifest["arms"]["A2"]["semantics"][0]["output"]["status"] == "retained"
+    assert manifest["arms"]["A2"]["semantics"][0]["check"] is None
+    assert not manifest["arms"]["A2"]["raw_outputs_complete"]
+    assert all(arm["verdict"] == "INCONCLUSIVE"
+               for arm in policy.read_json(grade / "public/grade.json")["arms"].values())
+
+
+def test_grade_projection_retains_failed_and_skipped_timing_rows(staged, monkeypatch):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    job.package(staged.output)
+    monkeypatch.delenv(provider.KEY_ENV)
+    def failed(source, payload, output, deadline):
+        record, actual = retained_fake_sandbox(source, payload, output, deadline)
+        if payload["mode"] == "benchmark":
+            record.update(status="timeout", returncode=-9)
+        return record, actual
+    monkeypatch.setattr(kv, "invoke", failed)
+    result = job.grade(staged.output / "public", staged.output / "grade")
+    assert result["arms"]["A2"]["performance"]["verdict"] == "INCONCLUSIVE"
+    rows = policy.read_json(staged.output / "grade/public/evidence.json")["arms"]["A2"]
+    assert len(rows["performance"]) == 17
+    assert rows["performance"][0]["execution"]["status"] == "timeout"
+    assert rows["performance"][0]["execution"]["returncode"] == -9
+    assert all(row["execution"]["status"] == "unavailable" for row in rows["performance"][1:])
+    assert not rows["raw_outputs_complete"]
+
+
+@pytest.mark.parametrize("corruption", ["run", "locator", "workspace"])
+def test_preflight_projection_rejects_unbound_or_private_prepared_fields(staged, corruption):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    path = staged.output / "prepared.json"
+    value = policy.read_json(path)
+    if corruption == "run":
+        value["run_id"] = "9999"
+    elif corruption == "locator":
+        value["locator_sha256"] = "0" * 64
+    else:
+        value["inputs"]["A2/workspace/task.json"] = "OFFLINE-PRIVATE-CANARY"
+    atomic_write_json(path, value)
+    job.package(staged.output)
+    projected = policy.read_json(staged.output / "public/preflight.json")
+    assert projected["status"] != "prepared"
+    assert "OFFLINE-PRIVATE-CANARY" not in provider.canonical(projected)
+
+
+def test_always_projection_rejects_corrupt_grade_text_and_false_pass(staged, monkeypatch):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    job.package(staged.output)
+    monkeypatch.delenv(provider.KEY_ENV)
+    output = staged.output / "grade"
+    output.mkdir()
+    atomic_write_json(output / "grade.json", {"schema": "kv-live-final-grade-v1",
+        "plan_sha256": staged.authorization["plan_sha256"], "scope": "OFFLINE-PRIVATE-CANARY",
+        "arms": {a: {"reason": "OFFLINE-PRIVATE-CANARY", "semantic": {
+            "verdict": "PASS", "checks": {TRACE["id"]: False}, "artifact_sha256": "a" * 64,
+            "environment": "OFFLINE-PRIVATE-CANARY"}} for a in ("A2", "A3")}})
+    monkeypatch.setattr(kv, "invoke", Mock(side_effect=AssertionError("no candidate rerun")))
+    job.package_grade(staged.output / "public", output)
+    raw = (output / "public/grade.json").read_bytes()
+    assert b"OFFLINE-PRIVATE-CANARY" not in raw
+    assert all(a["verdict"] == "INCONCLUSIVE" for a in json.loads(raw)["arms"].values())
+
+
+@pytest.mark.parametrize("credential", [provider.KEY_ENV, "GITHUB_TOKEN"])
+def test_always_projection_rejects_injected_secrets(tmp_path, monkeypatch, credential):
+    monkeypatch.setenv(credential, "OFFLINE-FAKE")
+    with pytest.raises(ValueError, match="without injected"):
+        job.package_grade(tmp_path / "bundle", tmp_path / "output")
+
+
+@pytest.mark.parametrize("receipt", ["failed", "absent", "unexpected_fields"])
+def test_trace_exit_failure_cannot_be_upgraded_by_correct_stdout(staged, monkeypatch, receipt):
+    job.execute(staged.output, api=SimpleNamespace(), stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([read_task(), work(CANDIDATE), submit()], []))
+    job.package(staged.output)
+    monkeypatch.delenv(provider.KEY_ENV)
+    def failure(source, payload, output, deadline):
+        record, actual = retained_fake_sandbox(source, payload, output, deadline)
+        if payload["mode"] != "verify":
+            return record, actual
+        record.update(status="failed", returncode=1)
+        path = output / "execution.json"
+        if receipt == "failed":
+            atomic_write_json(path, {k: record[k] for k in
+                ("status", "returncode", "elapsed_seconds")})
+        elif receipt == "absent":
+            path.unlink()  # Process loss before first receipt cannot imply successful exit.
+        else:
+            atomic_write_json(path, {**record, "secret": "OFFLINE-PRIVATE-CANARY"})
+        return record, None  # Real invoke rejects a nonzero exit even with valid JSON.
+    monkeypatch.setattr(kv, "invoke", failure)
+    result = job.grade(staged.output / "public", staged.output / "grade")
+    assert result["arms"]["A2"]["semantic"]["verdict"] == "FAIL"
+    row = policy.read_json(staged.output / "grade/public/evidence.json")[
+        "arms"]["A2"]["semantics"][0]
+    assert row["output"]["status"] == "retained" and row["check"] is False
+    assert row["execution"]["status"] == ("failed" if receipt == "failed" else "unavailable")
+    if receipt == "failed":
+        assert row["execution"]["returncode"] == 1
+    assert "OFFLINE-PRIVATE-CANARY" not in provider.canonical(row)

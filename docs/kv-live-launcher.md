@@ -37,6 +37,49 @@ ledgers and synthetic keys only.
    without deleting already retained no-spend grading evidence.
    Missing results remain INCONCLUSIVE and never become actor feedback or retries.
 
+## First-run evidence, including interruptions
+
+The execution artifact contains the exact verified public authorization, a bounded
+projection of preparation progress, staged workspace hashes and the actual
+isolation/runtime/cleanup/replay receipts. Each preparation stage records its
+start before running. Missing, failed or interrupted stages are explicit; no
+exception text, process command, environment or arbitrary log is published.
+
+The grader uploads only its dedicated `public/` projection, not its working
+directory. `evidence.json` enumerates every assigned hidden trace and the fixed
+alternating AB/BA timing trials plus quality validation. It binds the original
+candidate, frozen trace/workload hashes, actual raw task-JSON hashes, measured
+values, execution status/exit code and before/after source hashes where available.
+The shared executor now records only status, return code and elapsed seconds
+immediately after a candidate process returns, before any verifier early return
+or JSON parsing. The projection accepts that exact three-field receipt. A process
+killed before receipt persistence still has explicitly unavailable status; it is
+never inferred from stdout or a PASS. Activation requires fresh model-free
+qualification of this changed shared dependency, not the earlier receipt.
+
+Only exact raw JSON conforming to the fixed KV result schema is copied. Its
+strings must be known task request IDs or the fixed `ValueError` marker. Each
+output is at most 4 MiB, the whole two-arm projection at most 32 MiB, with at most
+256 semantic traces per arm. Arbitrary/malformed candidate-only stdout is withheld
+with observed byte count, content hash, parsing/schema failure and truncation
+status; oversized/unsafe files remain unhashed/unavailable. These diagnostics are
+not a sanitizer for private inputs or provider logs. No claim is made to preserve
+all arbitrary raw bytes. Failed and missing trials are never upgraded to PASS.
+Projection completion is not full-evidence acceptance: every arm's
+`raw_outputs_complete` and unavailable execution fields must be inspected even
+when a retained grading summary says PASS.
+
+`package-grade --bundle <same-run-bundle> --output <existing-grade-output>` runs in
+a separate `always()` environment-cleared workflow step. It validates the same
+captured authorization and run identity, then packages **only already generated
+first-run evidence**; it cannot execute candidates, call a model or retry grading.
+This covers a grader process interrupted before its final cleanup. It also leaves
+`projection.json` with started/completed/failed-or-interrupted state and final
+manifest hashes. A workflow/host loss that prevents even the always-step or upload
+cannot guarantee artifact retention; missing evidence remains INCONCLUSIVE, not
+a reason to rerun the paid trial. Both Actions artifacts have 30-day retention;
+long-term public archive publication remains a separately approved action.
+
 ## Hosted qualification provenance
 
 The frozen `qualification` record contains `run_id`, `run_attempt`, `head`
