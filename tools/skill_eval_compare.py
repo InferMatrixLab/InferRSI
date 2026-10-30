@@ -31,6 +31,7 @@ from inferrsi.model.anthropic_agent import (
 )
 from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
 from inferrsi.model.request_guard import SOURCE as GUARD_SOURCE
+from tools import skill_eval_artifact_guidance as artifact_guidance
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 from tools.skill_eval_snapshot import selected_snapshot
 from tools.skill_eval_verifier import verify
@@ -39,6 +40,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("baseline", "candidate")
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
+               "tools/skill_eval_artifact_guidance.py",
                "src/inferrsi/harness/skill_evaluation.py",
                "src/inferrsi/harness/skill_eval_diagnostic.py",
                "src/inferrsi/harness/skill_eval_engineering.py", "tools/skill_eval_snapshot.py",
@@ -893,6 +895,8 @@ def read_report(output: Path, *, replay_artifacts: bool = True) -> dict:
         result["client"] = plan["client"]
         result["max_api_requests"] = plan["max_api_requests"]
         result["reservation"] = plan.get("reservation")
+    if plan.get("adapter") == engineering.ADAPTER:
+        result["guidance"] = artifact_guidance.comparison(result)
     return result
 
 
@@ -1030,7 +1034,10 @@ def markdown(result: dict) -> str:
     rendered = "\n".join(lines)
     if result.get("adapter") != engineering.ADAPTER:
         return rendered
-    summary = ["# Local engineering artifact evidence", "", result["claim"], "",
+    summary = ["# Local engineering artifact evidence", "",
+               artifact_guidance.markdown(result.get("guidance")
+                                          or artifact_guidance.comparison(result)),
+               result["claim"], "",
                "**Merge implication:** artifact checks inform review; they do not authorize merge. "
                "Verify current head, source fidelity, author-run controls and remaining PR scope.",
                "",

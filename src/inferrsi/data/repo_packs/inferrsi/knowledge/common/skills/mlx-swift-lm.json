@@ -27,8 +27,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f05ab7b583c66a9c34cb9f9e8a2c15b2ccfc0db3/src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
-      "commit": "f05ab7b583c66a9c34cb9f9e8a2c15b2ccfc0db3",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/LICENSE",
         "src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md",

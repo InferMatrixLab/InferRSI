@@ -1,7 +1,8 @@
 # Cross-resource reference evidence
 
-Inspected 2026-10-15. No hardware, dependency installation, benchmark or
-checkpoint implementation investigation was performed.
+Initial scoped inspection: 2026-10-15. CR5 historical-source follow-up:
+2026-10-30. No hardware, dependency installation, benchmark or checkpoint
+implementation investigation was performed.
 
 ## CR1 — DeepSpeed
 
@@ -35,15 +36,26 @@ Compute/network scripts were identified but not fetched or executed.
 
 ## CR5 — MindSpeed
 
-Historical original GitCode `core_r0.8.0` documentation; short history ID
-`53193db8`, full immutable revision unresolved. The case is linked directly
-from SKILL.md. Implementation, current compatibility and historical document
-license remain unresolved. Only an independently written mechanism/evidence
-account is included; no implementation text or headline percentage is copied.
+The 2026-10-15 inspection was historical GitCode documentation only, with short
+history ID `53193db8` and unresolved full pin/license. The 2026-10-30 follow-up
+resolved `53193db8bf5def407c4041a9beb3f4c9e9773daf` through the original commit
+link and official Ascend/MindSpeed GitHub source. Its root LICENSE supplies
+default BSD-3-Clause terms with identified third-party exceptions; no later
+documentation license replaces that historical evidence.
+
+The [historical case](mindspeed-historical.md) preserves the original date and
+HTML hash. The [new bounded readset](mindspeed-source-readset.md) supports
+selection versus validation, allocator/callback ownership, eligible shared-storage
+rescue, explicit autograd-wrapper integration and conditional CPU-affinity
+prerequisites. Complete search/cache behavior, current compatibility, numerical
+correctness and measured benefit remain unqualified. Only independent mechanism
+paraphrases are included; no upstream implementation or headline percentage is
+copied.
 
 ## Evidence distinctions
 
 DeepSpeed configuration is source code plus matched field documentation.
-Stas material is attributed expert methodology. MindSpeed is a historical
-author-described case. None is a measured InferRSI gain, a runtime qualification
-or an automatic authorization to execute the original runbooks.
+Stas material is attributed expert methodology. MindSpeed combines a historical
+author-described case with bounded source observations at the recovered pin.
+None is a measured InferRSI gain, a runtime qualification or an automatic
+authorization to execute the original runbooks.

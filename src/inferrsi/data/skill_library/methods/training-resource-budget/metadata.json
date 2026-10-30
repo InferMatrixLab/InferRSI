@@ -21,6 +21,7 @@
   ],
   "provenance_readsets": [
     "references/mindspeed-historical.md",
+    "references/mindspeed-source-readset.md",
     "references/papers-20261015/cases/paper-grounded-cases.md",
     "references/papers-20261015/INTEGRATION_NOTES.md",
     "references/papers-20261015/knowledge/offload-delta.md",

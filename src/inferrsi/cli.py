@@ -193,6 +193,7 @@ def main(argv: list[str] | None = None) -> int:
                 max_bytes=args.max_bytes,
                 material=args.material,
                 relevance=args.relevance,
+                relevance_method=args.relevance_method,
                 context_bytes=args.context_bytes,
             )
             if args.json:
