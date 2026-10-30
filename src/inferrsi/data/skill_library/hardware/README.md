@@ -26,10 +26,10 @@ reading date is not a fresh local reread.
 This inventory reviews local records on 2026-10-30 and performs no new upstream
 reads. Historical prefixes, unknown dates/licenses and independent source
 versions remain explicit. A resolved full SHA or a whole-file hash proves
-identity, not full semantic inspection. The 2026-10-30 PyTorch/CPython readsets
-under host memory are distinct from that owner's older Ascend readset and
-unrevalidated historical links. Source and package checks establish no measured
-gain, compatible combined stack or new empirical coverage.
+identity, not full semantic inspection. The 2026-10-30 PyTorch/CPython, TorchAir
+and native HCCL readsets are distinct from older supplier/Ascend evidence,
+mirrored imports and unrevalidated links. Source and package checks establish no
+measured gain, compatible combined stack or new empirical coverage.
 
 ## Ascend
 
@@ -37,8 +37,8 @@ gain, compatible combined stack or new empirical coverage.
 | --- | --- |
 | [ACLGraph capture/replay](ascend/ascend-aclgraph-capture-replay/SKILL.md) | Supplied bounded vLLM-Ascend wrapper/docs/test readset; caller ownership and other runtime owners remain separate |
 | [Device health](ascend/ascend-device-health/SKILL.md) | MindIE-SD and profiling skill guidance; environment observations are not a driver audit |
-| [Distributed parallelism](ascend/ascend-distributed-parallel/SKILL.md) | Inherited strategy documents plus directly read communication-test wrappers; native collective/transport code not covered by that wrapper slice |
-| [Graph-mode configuration](ascend/ascend-graph-mode/SKILL.md) | GitCode-mirrored skill documentation; no retained TorchAir implementation ledger in this state |
+| [Distributed parallelism](ascend/ascend-distributed-parallel/SKILL.md) | Inherited strategy documents and wrapper tests, plus a separate direct HCCL multi-rank AICPU mesh AllReduce read; HCOMM/ACL transport/runtime bodies and other routes uninspected |
+| [Graph-mode configuration](ascend/ascend-graph-mode/SKILL.md) | Direct pinned TorchAir Python config-to-capture/replay and input/output lifetime readset; historical mirror retained separately, native TorchNPU/CANN bodies uninspected |
 | [Model adaptation](ascend/ascend-model-adaptation/SKILL.md) | Historical vLLM-Ascend lesson documents; separate from the newer ACLGraph wrapper pin |
 | [Operator profiling](ascend/ascend-operator-profiling/SKILL.md) | Imported mirrored profiling procedure; named summary helper is not bundled |
 | [Operator tuning](ascend/ascend-operator-tuning/SKILL.md) | Mirrored PyPTO skill/playbook distillation; reported analyzer behavior and cases are not native validation |
@@ -72,6 +72,20 @@ Directory placement describes ownership, not portability. Host RAM and device
 HBM are different domains; H2D, IPC and local stream ordering do not establish
 Network coverage. Read mixed-source licenses per slice: an outer README license
 does not clear a mirrored UNKNOWN declaration or a third-party payload.
+
+## Related evidence with other owners
+
+Hardware questions can cross framework, dependency and repository boundaries.
+Follow the existing owner below for its complete procedure, pinned evidence and
+validation limits. These links add no owner, source read or compatibility result
+to the 22-owner inventory.
+
+| Need | Existing owner and retained boundary |
+| --- | --- |
+| PyTorch compiler graphs or distributed checkpoint staging | [Compiler/DCP scope routing](../README.md#pytorch-compiler-and-checkpoint-scope-routing) keeps the compiler dependency card and [DCP async-save procedure](../frameworks/pytorch/dcp-async-save-performance/SKILL.md) at separate pins. Their graph-output and staging/upload lifetimes do not substitute for the host-copy owner above. |
+| FlashInfer paged-decode dispatch and graph buffers | [FlashInfer dependency card](../../knowledge_packs/dependency/flashinfer/cuda/llm/paged-decode-dispatch.json) retains a bounded README/`decode.py` extraction, imported and locally unverified. It establishes no full kernel audit or diffusion/NPU support. |
+| Triton fused-softmax resource limits or kernel implementation practice | [Triton dependency card](../../knowledge_packs/dependency/triton/common/kernel/bandwidth-fusion-resource-limits.json) retains one tutorial extraction; [kernel-writing-guide](../methods/kernel-writing-guide/SKILL.md) owns the separate writing/verification procedure and caller-specific source cases. Neither is whole-compiler or native-backend qualification. |
+| Apple Metal and MLX execution, caches or model paths | [MLX evaluation/lifetimes](../frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md), [vLLM Metal](../repositories/vllm-metal/SKILL.md), [Lithos Metal](../repositories/lithos-metal/SKILL.md) and [H3 Metal](../repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) retain their own source and model boundaries. Unified memory does not merge host/device ownership or establish a compatible combined stack; native/model/service checks remain owner-specific. |
 
 ## Maintain this view
 

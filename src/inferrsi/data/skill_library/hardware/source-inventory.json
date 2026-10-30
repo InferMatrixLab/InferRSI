@@ -100,10 +100,23 @@
           "evidence": [
             "references/awesome-ascend-communication-tests.md"
           ]
+        },
+        {
+          "source": "cann/hccl",
+          "channel": "direct official repository read retained",
+          "depth": "Selected native positive-count multi-rank AICPU mesh one-shot AllReduce: API/device gate, cost selection, scratch-bounded chunking, peer writes, thread synchronization and local reduction. Simulator semantic test definitions are separate from execution.",
+          "identity": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b (full Git commit)",
+          "inspection_date": "2026-10-30",
+          "license_note": "CANN Open Software License Agreement Version 2.0 retained for this HCCL source snapshot; inherited wrapper/strategy license qualifications stay separate.",
+          "evidence": [
+            "references/hccl-allreduce.md",
+            "references/hccl-allreduce-readset.json",
+            "references/hccl-LICENSE.md"
+          ]
         }
       ],
       "limits": [
-        "Only the wrapper-test increment is normalized. Native HCCL/TorchNPU implementation and transport algorithms were not read in this retained slice; no operation correctness, overlap or in-model gain is established."
+        "The wrapper-test slice does not establish its native backend. The separate HCCL read follows one selected cache-disabled OPBASE AICPU mesh AllReduce path and stops at HCOMM/ACL calls; legacy routes, other collectives/engines, physical transport, numerical correctness, memory/bandwidth and model/service gains remain unqualified. No source simulator/native test was executed."
       ]
     },
     {
@@ -113,17 +126,30 @@
         {
           "source": "awesome-ascend-skills external/cannbot/graph/torch-npugraph-ex-knowledge",
           "channel": "GitCode skill mirror import",
-          "depth": "Upstream SKILL.md configuration guidance and links to TorchAir docs; no local TorchAir implementation ledger at this inventory state.",
+          "depth": "Historical upstream SKILL.md configuration guidance and TorchAir documentation links; retained as lineage, not a fresh implementation read.",
           "identity": "75ec89ce (historical Git prefix); GitCode origin revision not recorded in this owner.",
           "inspection_date": null,
           "license_note": "UNKNOWN, explicitly retained for the GitCode-synced material.",
           "evidence": [
-            "SKILL.md"
+            "references/legacy-source-notes.md"
+          ]
+        },
+        {
+          "source": "Ascend/torchair",
+          "channel": "direct repository/document read retained",
+          "depth": "Selected Python configuration, AOT/backend dispatch, generated ACL graph runner, capture key/fallback, input staging, replay/update call order and output lifetime; documentation and stub/native test definitions are separately labeled.",
+          "identity": "e1118e8b0fc1b95190ab53b732c0872989550e20 (full Git commit)",
+          "inspection_date": "2026-10-30",
+          "license_note": "BSD-3-Clause and upstream contributor notices retained for the selected TorchAir snapshot; historical cannbot UNKNOWN is unchanged.",
+          "evidence": [
+            "references/torchair-graph-readset.json",
+            "references/torchair-graph-path.md",
+            "references/torchair-LICENSE.md"
           ]
         }
       ],
       "limits": [
-        "Configuration names and behavior are inherited guidance requiring the target version's documentation; linked TorchAir pages are not a retained implementation audit."
+        "The official TorchAir read is a Python execution-path slice; TorchNPU/CANN native graph, event, task-update and allocator bodies, GE executor, FX/static-kernel implementations and native collectives remain uninspected. Source test definitions were not executed and no compatible stack, numerical or performance result is established."
       ]
     },
     {
