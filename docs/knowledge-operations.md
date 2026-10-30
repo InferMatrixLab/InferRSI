@@ -92,6 +92,20 @@ order regardless of the cue; `selection.ranking_applied` is false for those call
 Ordinary collection of other authorities and records remains available without
 the relevance opt-in. `KnowledgeStore.collect` delegates these same options.
 
+The default `relevance_method="weighted-lexical-v1"` searches the JSON
+representation of every field, including strings. Explicitly select
+`relevance_method="weighted-raw-string-v1"` (CLI:
+`--relevance-method weighted-raw-string-v1`) to match original string values
+instead: an actual newline or tab no longer creates a literal `n` or `t` match
+from its JSON escape. Literal backslash-letter text remains searchable.
+Nonstring fields, including the combined tags/applicability value, retain their
+legacy JSON representation. Both methods keep the same substring matching,
+distinct cue words, weights, positive-score admission and identity tie order.
+The nondefault method requires `relevance`; unsupported methods are rejected.
+Explicit IDs still bypass ranking. This option changes only owner discovery
+ranking, not query matching or optional context-resource scoring. It is a
+lexical-presence contract option, not evidence of general retrieval quality.
+
 `context_bytes` requests a separate context view for returned generated packaged
 skills. It requires an explicit positive integer budget, with no token estimate
 or default. It can be used without `relevance`; optional resources then match the

@@ -4,6 +4,8 @@ import json
 import posixpath
 import re
 
+RELEVANCE_METHODS = ("weighted-lexical-v1", "weighted-raw-string-v1")
+
 
 class SkillIndexError(ValueError):
     pass
@@ -19,6 +21,16 @@ def lexical_score(cue: str, fields: list[tuple[int, object]]) -> int:
         weight * sum(token in json.dumps(value, ensure_ascii=False).casefold() for token in tokens)
         for weight, value in fields
     )
+
+
+def raw_string_lexical_score(cue: str, fields: list[tuple[int, object]]) -> int:
+    """Match original strings; retain legacy JSON matching for nonstring fields."""
+    tokens = words(cue)
+    score = 0
+    for weight, value in fields:
+        text = value if isinstance(value, str) else json.dumps(value, ensure_ascii=False)
+        score += weight * sum(token in text.casefold() for token in tokens)
+    return score
 
 
 def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
@@ -82,8 +94,13 @@ def indexed_skill(record: dict, view: dict, content: dict[str, bytes]) -> tuple:
     return core, required, optional
 
 
-def skill_score(cue: str, record: dict, core: bytes) -> int:
-    return lexical_score(cue, [
+def skill_score(
+    cue: str, record: dict, core: bytes, *, method: str = "weighted-lexical-v1"
+) -> int:
+    if method not in RELEVANCE_METHODS:
+        raise ValueError("Unknown relevance method")
+    scorer = raw_string_lexical_score if method == "weighted-raw-string-v1" else lexical_score
+    return scorer(cue, [
         (4, record["title"]),
         (3, record["summary"]),
         (2, [record.get("tags", []), record.get("applicability", {})]),
