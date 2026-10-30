@@ -18,6 +18,7 @@ import tempfile
 from pathlib import Path
 
 ADAPTER = "engineering-artifact-v1"
+GENERATION_MODE = "provider-generation-only-v1"
 MAX_SOURCE_BYTES = 65536
 STARTER = (
     'def evaluate(status, frames, requested_tokens):\n'
@@ -38,6 +39,47 @@ PROMPT = (
     "commits or publication. Return artifact='parser.py' and a concise summary, not a verdict. "
     "The controller retains the actual file and independently checks its behavior."
 )
+GENERATION_SCHEMA = {
+    **SCHEMA,
+    "required": ["artifact", "summary", "artifact_source"],
+    "properties": {**SCHEMA["properties"], "artifact_source": {"type": "string"}},
+}
+GENERATION_PROMPT = (
+    "Read the supplied task.json, parser.py starter and assigned knowledge. Generate the "
+    "complete repaired parser.py source as artifact_source in submit_answer. "
+    "Implement evaluate(status, frames, requested_tokens) under the public task contract. "
+    "You have no shell, execution, file-writing, network or test tool. Do not claim to "
+    "have run tests. Return artifact='parser.py', a concise summary and artifact_source; "
+    "do not return a verdict. A trusted controller writes only parser.py from the source "
+    "string and an independent isolated verifier checks its behavior later."
+)
+
+
+def materialize_generated_artifact(workspace: Path, answer: dict) -> dict:
+    """Convert a bounded provider response to one artifact; never execute its source.
+
+    The provider is a structured-output service, not a process with workspace access.
+    Fresh workspace ownership and the unchanged starter are required before writing.
+    """
+    if (not isinstance(answer, dict)
+            or set(answer) != {"artifact", "summary", "artifact_source"}
+            or answer["artifact"] != "parser.py"
+            or not isinstance(answer["summary"], str)
+            or not isinstance(answer["artifact_source"], str)):
+        raise ValueError("Invalid generated artifact answer")
+    try:
+        source = answer["artifact_source"].encode("utf-8")
+    except UnicodeError:
+        raise ValueError("Generated artifact must be UTF-8") from None
+    if not 0 < len(source) <= MAX_SOURCE_BYTES:
+        raise ValueError("Generated artifact exceeds source bounds")
+    artifact = workspace / "parser.py"
+    if read_regular(artifact, MAX_SOURCE_BYTES) != STARTER.encode("utf-8"):
+        raise ValueError("Generated artifact requires the unchanged frozen starter")
+    artifact.write_bytes(source)
+    return {"artifact": "parser.py", "summary": answer["summary"]}
+
+
 REQUEST = (
     "Repair parser.py: evaluate(status, frames, requested_tokens) returns exactly "
     "{success: bool, reason: str}. Inputs are an integer HTTP status, decoded frames, "
