@@ -1,5 +1,6 @@
 """Offline admission/orchestration controls; no provider, ledger or network calls."""
 import copy
+import hashlib
 import json
 from types import SimpleNamespace
 from unittest.mock import Mock
@@ -13,17 +14,38 @@ from tools import skill_eval_historical_job as job
 
 @pytest.fixture
 def case(tmp_path, monkeypatch):
-    policy = copy.deepcopy(job.read(job.POLICY))
     config = copy.deepcopy(job.read(job.CONFIG))
-    policy["expires_at"] = config["expires_at"] = 4102444800
-    config["provider"]["pricing"]["expires_at"] = 4102444800
+    config["expires_at"] = config["provider"]["pricing"]["expires_at"] = 4102444800
     config["provider_sha256"] = job.pr.fingerprint(config["provider"])
-    policy_path, config_path = tmp_path / "policy.json", tmp_path / "config.json"
-    write_json(policy_path, policy)
+    policy = {"schema_version": 1, "experiment_id": "offline-fixture", "repository_id":
+              config["repository_id"], "issue": 9, "charge_pr": 7, "charge_head": "b" * 40,
+              "baseline": "c" * 40, "candidate": "d" * 40, "expires_at": 4102444800,
+              "max_requests": 2, "currency": "USD", "amount": "20.34",
+              "qualification_run": 456, "qualification_head": "e" * 40,
+              "limits": {"repeats": 1, "max_task_calls": 2, "timeout_seconds": 180,
+                         "campaign_seconds": 600, "token_stop_new_trials": 200000},
+              "skill": "selected", "skill_root": "skills", "task_id": "fixture",
+              "approval_evidence": "https://github.com/example/repo/issues/9",
+              "effective_group_attestation": "Offline synthetic attestation",
+              "scope_note": "Offline prospective test only"}
+    config["anchors"] = {"7": {"ref": f"refs/heads/skill-eval-budget/{config['repository_id']}/7",
+                               "genesis_commit": "a" * 40, "checkpoint_commit": "a" * 40}}
+    locator_path, config_path = tmp_path / "locator.json", tmp_path / "config.json"
+    body = job.AUTH_PREFIX + json.dumps(policy) + "\n```"
+    locator = {"schema_version": 1, "repository_id": config["repository_id"], "issue": 9,
+               "comment_id": 99, "author_login": "Dong1017",
+               "body_sha256": hashlib.sha256(body.encode()).hexdigest()}
+    comment = {"id": 99, "body": body,
+               "issue_url": f"https://api.github.com/repos/{job.REPOSITORY}/issues/9",
+               "user": {"login": "Dong1017", "type": "User"}}
+    write_json(locator_path, locator)
     write_json(config_path, config)
-    monkeypatch.setattr(job, "POLICY", policy_path)
+    monkeypatch.setattr(job, "AUTHORIZATION", locator_path)
     monkeypatch.setattr(job, "CONFIG", config_path)
+    monkeypatch.setattr(job, "fetch_comment", lambda comment_id: comment)
     monkeypatch.setattr(job.subprocess, "check_output", lambda *a, **k: "a" * 40)
+    fetch = Mock()
+    monkeypatch.setattr(job.subprocess, "check_call", fetch)
     monkeypatch.delenv("SKILL_EVAL_YIBUAPI_KEY", raising=False)
     for key, value in {"GITHUB_EVENT_NAME": "workflow_dispatch", "GITHUB_REF": "refs/heads/main",
                        "GITHUB_REPOSITORY": job.REPOSITORY, "GITHUB_RUN_ATTEMPT": "1",
@@ -43,9 +65,9 @@ def case(tmp_path, monkeypatch):
     monkeypatch.setattr(job.compare, "prepare", prepare)
     run = {"event": "workflow_dispatch", "head_branch": "main", "head_sha": "a" * 40,
            "run_attempt": 1, "status": "in_progress", "path": job.WORKFLOW,
-           "repository": {"id": job.FIXED["repository_id"]},
+           "repository": {"id": config["repository_id"]},
            "actor": {"login": "Dong1017"}, "triggering_actor": {"login": "Dong1017"}}
-    qualification = {"head_sha": job.QUALIFICATION_HEAD,
+    qualification = {"head_sha": policy["qualification_head"],
                      "path": ".github/workflows/skill-eval-qualify.yml",
                      "status": "completed", "conclusion": "success"}
     api = SimpleNamespace(request=lambda method, path: run if path.endswith("/123")
@@ -54,14 +76,15 @@ def case(tmp_path, monkeypatch):
     launch = Mock()
     monkeypatch.setattr(job.accounting, "controlled_execute", launch)
     return SimpleNamespace(output=tmp_path / "prepared", policy=policy, config=config,
-                           run=run, qualification=qualification, launch=launch, api=api)
+                           run=run, qualification=qualification, launch=launch, api=api,
+                           comment=comment, locator=locator, fetch=fetch)
 
 
 def test_presecret_freeze_then_exact_bounded_admission(case, monkeypatch):
     manifest = job.prepare(case.output)
     assert manifest["approval_sha256"] == sha256(case.output / "approval.json")
     approval = job.read(case.output / "approval.json")
-    assert approval["charge_pr"] == 267
+    assert approval["charge_pr"] == 7
     assert approval["candidate"] != approval["charge_head"]
     assert approval["implementation_sha"] == "a" * 40
     assert approval["protocol_sha256"] == sha256(case.output / "protocol.json")
@@ -95,12 +118,14 @@ def test_runtime_rejects_scope_and_retry_changes(case, monkeypatch, key, value):
 
 
 @pytest.mark.parametrize("key,value", [
-    ("candidate", "b" * 40), ("max_requests", 3), ("amount", "20.35"),
-    ("charge_pr", 133), ("expires_at", 1), ("effective_group_attestation", ""),
+    ("candidate", "not-a-sha"), ("max_requests", 3), ("amount", "20.35"),
+    ("charge_pr", 8), ("expires_at", 1), ("effective_group_attestation", ""),
 ])
 def test_reviewed_policy_is_not_dispatch_scope(case, key, value):
     case.policy[key] = value
-    write_json(job.POLICY, case.policy)
+    case.comment["body"] = job.AUTH_PREFIX + json.dumps(case.policy) + "\n```"
+    case.locator["body_sha256"] = hashlib.sha256(case.comment["body"].encode()).hexdigest()
+    write_json(job.AUTHORIZATION, case.locator)
     with pytest.raises(ValueError):
         job.prepare(case.output)
 
@@ -158,3 +183,42 @@ def test_workflow_has_no_inputs_and_only_one_secret_consumer():
     assert "execute" in steps[4]["run"]
     assert "env -i" in steps[5]["run"]
     assert "replay" not in steps[4]["run"]
+
+
+@pytest.mark.parametrize("field", ["body", "issue_url", "author", "id"])
+def test_issue_artifact_identity_and_hash_are_not_interchangeable(case, field):
+    if field == "author":
+        case.comment["user"]["login"] = "other"
+    elif field == "id":
+        case.comment["id"] = 100
+    else:
+        case.comment[field] += "changed"
+    with pytest.raises(ValueError, match="authorization identity"):
+        job.prepare(case.output)
+    assert not case.fetch.called
+
+
+def test_duplicate_authorization_keys_rejected_even_if_hash_matches(case):
+    case.comment["body"] = job.AUTH_PREFIX + '{"schema_version":1,"schema_version":1}' + "\n```"
+    case.locator["body_sha256"] = hashlib.sha256(case.comment["body"].encode()).hexdigest()
+    write_json(job.AUTHORIZATION, case.locator)
+    with pytest.raises(ValueError, match="Duplicate"):
+        job.prepare(case.output)
+
+
+def test_comment_is_revalidated_by_request_gate(case, monkeypatch):
+    job.prepare(case.output)
+    monkeypatch.setenv("GITHUB_TOKEN", "offline-canary")
+    job.execute(case.output)
+    check = case.launch.call_args.kwargs["live_authorization_check"]
+    check()
+    case.comment["body"] += " "
+    with pytest.raises(ValueError, match="authorization identity"):
+        check()
+
+
+def test_git_fetch_uses_only_validated_argv_before_secrets(case):
+    job.prepare(case.output)
+    args = case.fetch.call_args.args[0]
+    assert args[-2:] == [case.policy["baseline"], case.policy["candidate"]]
+    assert "shell" not in case.fetch.call_args.kwargs

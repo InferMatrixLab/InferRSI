@@ -106,7 +106,7 @@ def validate(api, output, approval, config, protocol_path):
 
 
 def controlled_execute(api, output, *, config_path, approval_path, approval_sha256,
-                       protocol_path, run_id, attempt, launch=None):
+                       protocol_path, run_id, attempt, launch=None, live_authorization_check=None):
     """Trusted orchestration only. No paid operation is reachable without two ledgers."""
     output = Path(output)
     if attempt != 1:
@@ -118,6 +118,8 @@ def controlled_execute(api, output, *, config_path, approval_path, approval_sha2
         raise ValueError("Historical execution requires fresh results")
     if not os.environ.get("SKILL_EVAL_YIBUAPI_KEY"):
         raise ValueError("Provider credential unavailable; no reservation created")
+    if live_authorization_check is not None:
+        live_authorization_check()
     store, key = auto.ledger_store(api, config, approval["charge_pr"])
     global_store, global_key = auto.daily_store(api, config)
     # The digest binds every approved byte, including the exact frozen plan. The
@@ -140,6 +142,8 @@ def controlled_execute(api, output, *, config_path, approval_path, approval_sha2
     claim_once(store, key, binding)
 
     def check():
+        if live_authorization_check is not None:
+            live_authorization_check()
         fresh = auto.configuration(config_path)
         if fresh != config or receipt(approval_path, approval_sha256) != approval:
             raise ValueError("Historical authorization changed")

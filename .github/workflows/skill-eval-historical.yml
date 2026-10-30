@@ -6,7 +6,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: skill-eval-historical-issue253
+  group: skill-eval-historical
   cancel-in-progress: false
 
 jobs:
@@ -32,12 +32,7 @@ jobs:
       - name: Freeze fixed inputs, protocol and accounting approval before calls
         env:
           PYTHONPATH: src
-        run: |
-          git -c credential.helper= -c core.hooksPath=/dev/null fetch --no-tags \
-            https://github.com/InferMatrixLab/InferRSI.git \
-            a1ee3266466194c16f4e2159ab845b758ed9561b \
-            86f003364804d116b3202c4d807cc898a3a02ade
-          python -m tools.skill_eval_historical_job prepare --output "$RUNNER_TEMP/historical"
+        run: python -m tools.skill_eval_historical_job prepare --output "$RUNNER_TEMP/historical"
       - name: Generate two bounded sources through durable admission
         env:
           PYTHONPATH: src

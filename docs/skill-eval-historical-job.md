@@ -7,23 +7,30 @@ independent secret-free artifact replay.
 
 ## Authority and freeze
 
-There are no dispatch inputs. The reviewed main policy fixes one experiment ID,
-accounting PR #267, historical baseline/candidate revisions, two requests, no
-retry and a USD 20.34 upper bound. The dedicated configuration retains the
+There are no dispatch inputs. Main retains only a reviewed issue-comment locator
+(issue, comment ID, author and complete body SHA256). The acceptance Issue owns
+the experiment ID, accounting identity, historical revisions, limits and
+qualification identity. Shared workflows/controllers contain no campaign pins.
+The generic admission ceiling remains two requests and USD 20.34; no retry is
+permitted. The dedicated configuration retains the
 existing daily ledger and the audited empty #267 genesis; it does not reset
 prior daily reservations. Its pricing group is an owner attestation, not an
 independent invoice audit. Unknown/changed pricing or expired configuration
 blocks execution.
 
-The first step checks main/manual/operator/first-attempt identities and builds
-both arms from raw pinned Git objects. It freezes the task, starter, full-context
+The first step checks main/manual/operator/first-attempt identities, fetches the
+exact public issue comment from the fixed repository API without redirects, and
+verifies its issue, author, full body hash and strict JSON schema (including
+duplicate-key rejection). Only validated hexadecimal revisions are passed as
+Git argv, never interpolated into a shell; both arms use raw pinned Git objects. It freezes the task, starter, full-context
 client configuration, skill manifests, protocol and approval receipt before
 provider-secret injection. The receipt adds the actual immutable main revision
 and deterministic plan/protocol hashes; it is not supplied by a PR, a dispatch
-input or a model. Its authority comes from the reviewed fixed main policy and
-trusted prepare-to-execute path, **not from possession of a self-generated hash**.
+input or a model. Its authority comes from the reviewed main selection of the issue-scoped
+authorization and the trusted prepare-to-execute path, **not from possession of a self-generated hash**.
 
-The execution step rechecks every frozen digest, current main, live Actions run
+The execution step rechecks the pinned issue comment before admission and each
+request grant, as well as every frozen digest, current main, live Actions run
 identity, operator, qualification run, provider pricing and both durable ledgers.
 A stable logical experiment identity prevents a new run ID or replacement receipt
 from replenishing the experiment. Workflow reruns and attempt > 1 are rejected.
@@ -54,7 +61,10 @@ replay workflow still requalifies its own host and receives no model secret.
 
 After current-head review and CI, a qualified operator manually dispatches
 `.github/workflows/skill-eval-historical.yml` on main. It cannot be used for a
-new experiment or expanded budget by changing dispatch parameters. Inspect the
+new experiment or expanded budget by changing dispatch parameters. Changing the
+issue record invalidates its pinned body hash until a separately reviewed main
+selection is made; deletion, unknown author, transport failure or mismatched
+bytes fail closed. Inspect the
 retained `historical-generation-<run>-1` artifact, reconcile the frozen plan and
 source hashes, then use the separate fixed-data replay path. Neither a successful
 job nor two passing parsers establishes skill benefit or closes #253.

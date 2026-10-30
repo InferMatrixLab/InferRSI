@@ -181,3 +181,20 @@ def test_real_ledger_claims_preserve_prior_day_and_pre_request_receipt(case, mon
     with pytest.raises(BudgetError):
         historical.controlled_execute(case.api, case.output, **args)
     assert len(launched) == 1
+
+
+def test_changed_issue_authorization_stops_before_reservation(case, monkeypatch):
+    monkeypatch.setattr(historical.auto, "configuration", lambda p: case.config)
+    monkeypatch.setattr(historical, "receipt", lambda *a: case.approval)
+    monkeypatch.setattr(historical, "validate", lambda *a: case.plan)
+    monkeypatch.setenv("SKILL_EVAL_YIBUAPI_KEY", "offline-fixture-not-a-credential")
+    reached = []
+    monkeypatch.setattr(historical.auto, "ledger_store", lambda *a: reached.append("ledger"))
+    def revoked():
+        raise ValueError("Issue authorization changed")
+    with pytest.raises(ValueError, match="authorization changed"):
+        historical.controlled_execute(case.api, case.output, config_path="unused",
+                                      approval_path="unused", approval_sha256="c" * 64,
+                                      protocol_path="unused", run_id="offline", attempt=1,
+                                      live_authorization_check=revoked)
+    assert reached == []
