@@ -1,11 +1,59 @@
 ---
 name: ascend-distributed-parallel
-description: 'Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround, HCCL bandwidth verification and source-scoped communication-test selection, timing and correctness-check coverage.
+description: 'Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers native HCCL multi-rank AllReduce dispatch, scratch and synchronization boundaries, AlltoAllV defect workaround, and source-scoped communication-test timing and correctness coverage.
 
   '
 ---
 
 # Selecting and validating distributed parallelism
+
+Status: **candidate**; empirical validation: **not_run**. Source inspection,
+upstream test definitions, wrapper output and native measurements are different
+evidence. The retained diffusion strategy observations below are conditional on
+their original workload and stack; they are not universal HCCL eligibility rules.
+
+## Native HCCL AllReduce qualification
+
+Use the [pinned native AllReduce procedure](references/hccl-allreduce.md) and
+[exact source readset](references/hccl-allreduce-readset.json) when the question
+is how a collective is selected and executed. It follows one positive-count,
+multi-rank OPBASE path through `AicpuAllReduceSoleMeshOneShot`, AICPU
+orchestration, peer writes, synchronization and local reduction. It does not
+qualify every HCCL algorithm, device generation or the external HCOMM runtime.
+
+1. **Establish the entry route.** Record the loaded HCCL/HCOMM build, CANN/ACL,
+   device generation, communicator rank/device map, topology, count, dtype,
+   reduction, stream mode and engine/cache/plugin settings. This source's open
+   route has version/device gates. Empty and rank-one calls bypass the
+   multi-rank mechanism and cannot validate it.
+2. **Confirm the final dispatch.** At the pin, ordinary `MESH_1D` uses a cost
+   selector with topology/executor filtering and possible tuner influence.
+   A size threshold in another selector, a requested environment setting or an
+   upstream test name is insufficient. Inspect the final algorithm/engine after
+   resource or cached fallback and match it to the source before tuning.
+3. **Budget scratch and preserve dependencies.** This one-shot template uses
+   one chunk-sized scratch slot per rank, exchanges full chunks with peers and
+   locally reduces after notifications join the work. Its executor can split
+   a payload into scratch-bounded loops and a tail. Rank count, buffer size and
+   dispatch changes can alter both work and memory; source accounting is not a
+   measured footprint. Do not remove peer/thread waits based on enqueue timing.
+4. **Check data on every rank.** Use distinct rank/position inputs, an
+   operation-correct reference, explicit completion and predeclared numeric
+   tolerances. Retain error logs: the inspected template logs rather than
+   propagates a `PostLocalReduce` failure at one call site. Cover count one,
+   odd/tail counts, reuse, application rank maps and
+   observed dispatch/loop boundaries. The inspected upstream tests check
+   simulated task-graph semantics; they neither compare real NPU tensors nor
+   assert that their `1shot` case names selected this algorithm.
+5. **Measure the relevant boundary.** Separate host enqueue, completed
+   collective latency and application-stage latency; retain all ranks and the
+   slowest participant for collective completion. A ring-derived bandwidth
+   formula is not measured traffic for this all-peer implementation. Require
+   a producer/consumer timeline for overlap and application evidence for gains.
+
+The reference supplies exact implementation/test lines, counter-signals and an
+unrun target-validation recipe. Native numerical, topology, transport,
+performance and model/service qualification remain **not_run**.
 
 ## Communication-test evidence
 
@@ -15,19 +63,24 @@ before treating a tool's PASS or bandwidth field as evidence. It distinguishes
 native HCCL-test wrappers from PyTorch/HCCL call paths, maps tensor shape to
 payload, and checks the actual validator and timing boundary. Its source is
 awesome-ascend-skills `75ec89ce9d401be8ac95980e1c3f42f8d4315057`;
-underlying collective implementations and local backends were not validated.
+that wrapper extraction did not inspect the underlying collective implementation.
+The separate native source slice above adds bounded implementation evidence;
+local backends and hardware behavior remain unvalidated.
 Keep the existing topology, strategy-activation and in-model attribution gates
 below: a completed isolated test does not establish a parallelism or service gain.
 
-## Card-group topology rules (required prerequisite)
+## Card-group topology in the inherited diffusion setup
 
-Every multi-card run must satisfy topology constraints based on the interconnect domains reported by `npu-smi info -t topo`.
+The following two/four/eight-card restrictions belong to the inherited diffusion
+setup. For that setup, use the interconnect domains reported by
+`npu-smi info -t topo`; for another device/topology, derive eligibility from its
+runtime and selected collective rather than transferring these restrictions.
 
 - **Valid card groups:**
   - 2 cards: one adjacent pair in the same UB/HCCS domain
   - 4 cards: one complete same-domain group
   - 8 cards: all cards
-  - Cross-domain combinations are **invalid**. If card health forces a cross-domain group, explicitly label it "different interconnect domains, suboptimal bandwidth".
+  - Cross-domain combinations were treated as **invalid for the original local comparison**. If a separately qualified comparison uses a cross-domain group, label the changed interconnect domains and remeasure bandwidth instead of mixing it with the original same-domain anchor.
 
 - **Execution requirements** (including a mandatory four-step smoke check):
   1. Before selecting cards, use `npu-smi info -t topo` to confirm UB connectivity within the target group.
