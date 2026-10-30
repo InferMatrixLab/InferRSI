@@ -98,13 +98,15 @@ def stage(output: Path, authorization: str, task_id: str, condition: str, repeat
     if output.resolve() in workspace.resolve().parents:
         raise ValueError("Stage workspace outside the evidence tree")
     workspace.mkdir(parents=True)
-    write_json(workspace / "task.json", task)
+    # Frozen inputs are LF bytes on every host; never apply platform translation.
+    (workspace / "task.json").write_bytes(
+        (json.dumps(task, ensure_ascii=False, indent=2, allow_nan=False) + "\n").encode("utf-8"))
     shutil.copyfile(output / "plan/starter/parser.py", workspace / "parser.py")
     bundle = plan["arms"][condition]["bundle"]
     prompt = _prompt(plan, task, condition)
     if bundle:
         shutil.copytree(output / "plan/bundles" / condition, workspace / "knowledge")
-    (workspace / "INSTRUCTIONS.txt").write_text(prompt, encoding="utf-8")
+    (workspace / "INSTRUCTIONS.txt").write_bytes(prompt.encode("utf-8"))
     directory.mkdir(parents=True)
     write_json(directory / "local-stage.json", {
         "plan_sha256": authorization, "entry": entry, "input_hashes": _hashes(workspace),

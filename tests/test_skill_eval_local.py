@@ -247,3 +247,32 @@ def test_report_replays_artifact_after_blocked_capture_without_rewriting_attempt
     assert trial["verdict"] == "INCONCLUSIVE"
     assert result["pairs"][0]["comparability"] == "unverified_author_reported"
     assert (directory / "result.json").read_bytes() == retained_record
+
+
+@pytest.mark.parametrize("tamper", [False, True])
+def test_stage_frozen_inputs_ignore_host_newline_translation(tmp_path, monkeypatch, tamper):
+    """Simulate Windows text writes; this is not native Windows sandbox coverage."""
+    from pathlib import Path
+
+    output, digest, head = prepared(tmp_path)
+    logs = submission(tmp_path, output)
+    original_write_text = Path.write_text
+
+    def crlf_write_text(self, data, encoding=None, errors=None, newline=None):
+        return original_write_text(self, data, encoding=encoding, errors=errors,
+                                   newline="\r\n" if newline is None else newline)
+
+    monkeypatch.setattr(Path, "write_text", crlf_write_text)
+    monkeypatch.setattr(engineering, "verify", fake_verify)
+    workspace = tmp_path / "baseline"
+    local.stage(output, digest, "parser", "baseline", 1, workspace, head)
+    for name in ("task.json", "INSTRUCTIONS.txt"):
+        assert b"\r\n" not in (workspace / name).read_bytes()
+    if tamper:
+        path = workspace / "INSTRUCTIONS.txt"
+        path.write_bytes(path.read_bytes() + b"tampered\n")
+    (workspace / "parser.py").write_bytes(b"# authored correct fixture\n")
+    result = local.capture(output, digest, "parser", "baseline", 1, workspace, head, logs)
+    trial = result["pairs"][0]["baseline"]
+    assert trial["evaluation_error"] == ("inputs_changed" if tamper else None)
+    assert trial["verdict"] == ("INCONCLUSIVE" if tamper else "PASS")
