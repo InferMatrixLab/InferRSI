@@ -57,7 +57,7 @@ jobs:
     # Bounded software-control qualification; not a branch-protection or efficacy gate.
     if: github.event.pull_request.draft == false
     runs-on: ubuntu-22.04
-    timeout-minutes: 10
+    timeout-minutes: 20
     permissions:
       contents: read
     steps:
@@ -84,5 +84,23 @@ jobs:
           path: |
             ${{ runner.temp }}/kv-qualification/qualification.json
             ${{ runner.temp }}/kv-qualification/raw-evidence.zip
+          if-no-files-found: error
+          retention-days: 14
+      - name: Scripted actor and descendant qualification (no provider or credentials)
+        if: always()
+        shell: bash
+        run: |
+          env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \
+            /usr/bin/python3 -m tools.qualify_kv_edit_actor \
+            --plan evidence/kv-actor-qualification-20261030/plan/qualification-plan.json \
+            --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/kv-actor-qualification"
+      - name: Retain separate scripted actor receipt including failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: kv-actor-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/kv-actor-qualification/qualification.json
+            ${{ runner.temp }}/kv-actor-qualification/raw-evidence.zip
           if-no-files-found: error
           retention-days: 14

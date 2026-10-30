@@ -1,6 +1,11 @@
 {
   "version": 1,
   "bundles": {
+    "kv-actor-qualification-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Exact-revision hosted actor receipts are retained as separate CI artifacts; no paid result is committed."]
+    },
     "kv-reclamation-20261030": {
       "kind": "campaign",
       "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
