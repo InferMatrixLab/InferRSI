@@ -238,7 +238,7 @@ def _invoke(work, arguments=None, *, probe=False):
             return None
         try:
             return json.loads(raw)
-        except (ValueError, UnicodeDecodeError):
+        except (ValueError, UnicodeDecodeError, RecursionError):
             return None
 
 

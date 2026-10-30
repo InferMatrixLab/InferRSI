@@ -254,3 +254,20 @@ def test_worker_startup_failure_differs_from_artifact_crash(ready):
         else:
             with pytest.raises(engineering.SandboxUnavailable, match="trusted boundary"):
                 engineering._invoke(Path("/unused"), [])
+
+
+def test_deeply_nested_artifact_json_is_a_failed_response_not_controller_crash():
+    # Bounded, syntactically valid JSON can exceed the host decoder's recursion
+    # limit. Mock the sandbox output only; do not execute submitted code.
+    raw = b"[" * 10000 + b"0" + b"]" * 10000
+    assert len(raw) < 65536
+    process = mock.Mock(returncode=0)
+
+    def start(*args, **kwargs):
+        kwargs["stderr"].write(b"INFERRSI_ARTIFACT_READY\n")
+        kwargs["stdout"].write(raw)
+        return process
+
+    with mock.patch.object(engineering, "sandbox_command", return_value=["sandbox"]), \
+         mock.patch.object(engineering.subprocess, "Popen", side_effect=start):
+        assert engineering._invoke(Path("/unused"), []) is None
