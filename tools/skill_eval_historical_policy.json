@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "experiment_id": "issue253-generation-only-20261030",
+  "repository_id": 1409534281,
+  "issue": 253,
+  "charge_pr": 267,
+  "charge_head": "f77f73539d4a5dc781ab1a956d60c49565d676bc",
+  "baseline": "a1ee3266466194c16f4e2159ab845b758ed9561b",
+  "candidate": "86f003364804d116b3202c4d807cc898a3a02ade",
+  "expires_at": 1793376000,
+  "max_requests": 2,
+  "currency": "USD",
+  "amount": "20.34",
+  "approval_evidence": "https://github.com/InferMatrixLab/InferRSI/pull/267",
+  "effective_group_attestation": "Owner-attested existing credential uses default or the equal-price claude-code/claude-code-pro group; public ratios for these three groups are 2. This is not an independently verified account invoice. Stop if that attestation or applicable rates change.",
+  "qualification_run": 41017219756
+}
