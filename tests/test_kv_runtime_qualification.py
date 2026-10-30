@@ -1,5 +1,6 @@
 """Metadata/runtime probes only: no submitted artifact is run by these unit tests."""
 
+import importlib.metadata
 import json
 import time
 from pathlib import Path
@@ -166,3 +167,126 @@ def test_inventory_deadline_and_node_limit_fail_closed(tmp_path, monkeypatch):
     monkeypatch.setattr(runtime, "MAX_NODES", 1)
     with pytest.raises(ValueError, match="inventory limit"):
         runtime.inventory([(mount, Path("/runtime"))], [sensitive], time.monotonic() + 5)
+
+
+def package(directory):
+    directory.mkdir(parents=True)
+    (directory / "__init__.py").write_text("# synthetic package\n")
+    (directory / "data").mkdir()
+    (directory / "data/private.json").write_text('{"synthetic_sensitive_copy": true}\n')
+    return directory
+
+
+def installed_distribution(metadata, *, record=None, source_list=None, direct_url=None):
+    metadata.mkdir(parents=True)
+    (metadata / ("PKG-INFO" if metadata.suffix == ".egg-info" else "METADATA")).write_text(
+        "Metadata-Version: 2.1\nName: inferrsi\nVersion: 0.1.0\n"
+    )
+    for name, value in (("RECORD", record), ("SOURCES.txt", source_list),
+                        ("direct_url.json", direct_url)):
+        if value is not None:
+            (metadata / name).write_text(value)
+    return importlib.metadata.PathDistribution(metadata)
+
+
+def installed_files(distribution, monkeypatch):
+    from tools import qualify_kv_reclamation as task
+
+    monkeypatch.setattr(runtime.importlib.metadata, "distributions", lambda: [distribution])
+    return runtime.sensitive_files(
+        task.ROOT, task.INDEPENDENT, task.FIXTURES,
+        task.ROOT / "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes",
+        time.monotonic() + 10,
+    )
+
+
+def test_source_egg_info_inventories_actual_tree_not_source_archive_paths(tmp_path, monkeypatch):
+    actual = package(tmp_path / "project/src/inferrsi")
+    distribution = installed_distribution(
+        tmp_path / "project/src/inferrsi.egg-info",
+        source_list="src/inferrsi/__init__.py\nsrc/inferrsi/data/private.json\n",
+    )
+    # This is the real PathDistribution mismatch seen on Python 3.10/3.11 CI.
+    assert not distribution.locate_file("src/inferrsi/__init__.py").exists()
+    files = installed_files(distribution, monkeypatch)
+    assert actual / "__init__.py" in files and actual / "data/private.json" in files
+
+
+def test_installed_wheel_copy_includes_all_actual_package_nodes(tmp_path, monkeypatch):
+    actual = package(tmp_path / "site/inferrsi")
+    distribution = installed_distribution(
+        tmp_path / "site/inferrsi-0.1.0.dist-info", record="inferrsi/__init__.py,,\n"
+    )
+    files = installed_files(distribution, monkeypatch)
+    assert actual / "__init__.py" in files and actual / "data/private.json" in files
+
+
+@pytest.mark.parametrize("variant", ["missing", "symlink", "absolute", "traversal"])
+def test_raw_record_does_not_filter_missing_or_unsafe_installed_nodes(
+    tmp_path, monkeypatch, variant
+):
+    actual = package(tmp_path / "site/inferrsi")
+    entry = "inferrsi/missing.py"
+    if variant == "symlink":
+        (actual / "alias.py").symlink_to(actual / "__init__.py")
+        entry = "inferrsi/alias.py"
+    elif variant == "absolute":
+        entry = str(actual / "missing.py")
+    elif variant == "traversal":
+        entry = "inferrsi/../missing.py"
+    distribution = installed_distribution(
+        tmp_path / "site/inferrsi-0.1.0.dist-info", record=f"inferrsi/__init__.py,,\n{entry},,\n"
+    )
+
+    class FilteredFilesDistribution:
+        # Newer importlib.metadata filters missing paths from .files; never use
+        # that lossy view to decide completeness of the authoritative RECORD.
+        files = []
+        metadata = distribution.metadata
+        read_text = distribution.read_text
+        locate_file = distribution.locate_file
+
+    with pytest.raises(ValueError, match="package (inventory incomplete|RECORD)"):
+        installed_files(FilteredFilesDistribution(), monkeypatch)
+
+
+@pytest.mark.parametrize("layout", ["src", "flat"])
+def test_editable_record_maps_independent_source_copy(tmp_path, monkeypatch, layout):
+    source = tmp_path / "project"
+    actual = package(source / ("src/inferrsi" if layout == "src" else "inferrsi"))
+    distribution = installed_distribution(
+        tmp_path / "site/inferrsi-0.1.0.dist-info",
+        record="__editable__.inferrsi.pth,,\n",
+        direct_url=json.dumps({"url": source.as_uri(), "dir_info": {"editable": True}}),
+    )
+    files = installed_files(distribution, monkeypatch)
+    assert actual / "__init__.py" in files and actual / "data/private.json" in files
+
+
+@pytest.mark.parametrize("variant", ["missing", "ambiguous", "symlink", "remote"])
+def test_unknown_editable_layout_never_silently_drops_installed_copy(
+    tmp_path, monkeypatch, variant
+):
+    source = tmp_path / "project"
+    source.mkdir()
+    if variant in {"ambiguous", "remote"}:
+        package(source / "src/inferrsi")
+    if variant == "ambiguous":
+        package(source / "inferrsi")
+    if variant == "symlink":
+        actual = package(tmp_path / "other/inferrsi")
+        (source / "inferrsi").symlink_to(actual, target_is_directory=True)
+    url = "https://example.invalid/source" if variant == "remote" else source.as_uri()
+    distribution = installed_distribution(
+        tmp_path / "site/inferrsi-0.1.0.dist-info", record="__editable__.inferrsi.pth,,\n",
+        direct_url=json.dumps({"url": url, "dir_info": {"editable": True}}),
+    )
+    with pytest.raises(ValueError):
+        installed_files(distribution, monkeypatch)
+
+
+def test_missing_installed_record_is_not_treated_as_source_egg_info(tmp_path, monkeypatch):
+    package(tmp_path / "site/inferrsi")
+    distribution = installed_distribution(tmp_path / "site/inferrsi-0.1.0.dist-info")
+    with pytest.raises(ValueError, match="inventory metadata"):
+        installed_files(distribution, monkeypatch)

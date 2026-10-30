@@ -4,13 +4,18 @@ This is a trusted software-control check, not a candidate execution alternative.
 No environment values or raw absolute inventory paths are retained.
 """
 
+import csv
 import hashlib
 import importlib.metadata
 import importlib.util
+import io
+import json
 import os
 import stat
 import time
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 
 from inferrsi.harness import kv_reclamation as kv
 from inferrsi.harness.skill_eval_engineering import sandbox_command
@@ -23,6 +28,26 @@ MAX_SENSITIVE = 20000
 MAX_DISTRIBUTIONS = 2000
 MAX_HASH_BYTES = 128 * 1024 * 1024
 MAX_SENSITIVE_BYTES = 32 * 1024 * 1024
+
+
+def _distribution_package(distribution):
+    """Resolve one declared package, never interpret SOURCES.txt as installed paths."""
+    direct = distribution.read_text("direct_url.json")
+    direct = {} if direct is None else json.loads(direct)
+    if direct.get("dir_info", {}).get("editable") is True:
+        parsed = urlsplit(direct["url"])
+        if (parsed.scheme != "file" or parsed.netloc not in {"", "localhost"}
+                or parsed.query or parsed.fragment):
+            raise ValueError("Unsupported editable source mapping")
+        source = Path(url2pathname(parsed.path))
+        if not source.is_absolute():
+            raise ValueError("Editable source must be absolute")
+        candidates = [source / "src/inferrsi", source / "inferrsi"]
+        candidates = [p for p in candidates if p.is_dir()]
+        if len(candidates) != 1:
+            raise ValueError("Editable package layout is missing or ambiguous")
+        return candidates[0]
+    return Path(distribution.locate_file("inferrsi"))
 
 
 def runtime_mounts(work):
@@ -70,6 +95,15 @@ def sensitive_files(root, independent, fixtures, knowledge_root, deadline):
                     if len(paths) + len(stack) >= MAX_SENSITIVE:
                         raise ValueError("Sensitive-file inventory limit")
 
+    def add_package(directory):
+        if (any(p.is_symlink() for p in (directory, *directory.parents))
+                or (directory / "__init__.py").is_symlink()
+                or (directory / "data").is_symlink()
+                or not (directory / "__init__.py").is_file()
+                or not (directory / "data").is_dir()):
+            raise ValueError("Actual package source anchors incomplete")
+        add_tree(directory)
+
     add_tree(independent)
     add_tree(knowledge_root)
     spec = importlib.util.find_spec("inferrsi")
@@ -77,20 +111,40 @@ def sensitive_files(root, independent, fixtures, knowledge_root, deadline):
         raise ValueError("Cannot locate actual imported package")
     paths.append(Path(spec.origin))
     for directory in spec.submodule_search_locations or ():
-        add_tree(Path(directory) / "data")
+        add_package(Path(directory))
     # Discover installed copies independently of the source checkout import path.
     for index, distribution in enumerate(importlib.metadata.distributions()):
         if index >= MAX_DISTRIBUTIONS or time.monotonic() >= deadline:
             raise ValueError("Installed distribution inventory limit")
         if distribution.metadata.get("Name", "").lower().replace("_", "-") == "inferrsi":
-            for entry in distribution.files or ():
-                if len(paths) >= MAX_SENSITIVE or time.monotonic() >= deadline:
-                    raise ValueError("Installed package inventory limit")
-                if "inferrsi" in entry.parts:
-                    path = Path(distribution.locate_file(entry))
-                    if not path.is_file() or path.is_symlink():
-                        raise ValueError("Installed package inventory incomplete")
-                    paths.append(path)
+            record = distribution.read_text("RECORD")
+            if record is not None:
+                # .files may silently filter missing nodes on newer Python.
+                # RECORD is the installed-file authority; parse its raw rows.
+                for row_number, row in enumerate(csv.reader(io.StringIO(record), strict=True)):
+                    if (row_number >= MAX_SENSITIVE or len(paths) >= MAX_SENSITIVE
+                            or time.monotonic() >= deadline):
+                        raise ValueError("Installed package inventory limit")
+                    if len(row) != 3 or not row[0]:
+                        raise ValueError("Malformed installed package RECORD")
+                    entry = PurePosixPath(row[0])
+                    if entry.parts[0] == "inferrsi":
+                        if ".." in entry.parts or str(entry) != row[0]:
+                            raise ValueError("Unsafe installed package RECORD path")
+                        path = Path(distribution.locate_file(entry))
+                        if (any(p.is_symlink() for p in (path, *path.parents))
+                                or not path.is_file()):
+                            raise ValueError("Installed package inventory incomplete")
+                        paths.append(path)
+                    elif "inferrsi" in entry.parts and entry.name != "inferrsi":
+                        raise ValueError("Unsupported installed package RECORD mapping")
+            elif (distribution.read_text("PKG-INFO") is None
+                    or distribution.read_text("installed-files.txt") is not None):
+                raise ValueError("Unsupported installed package inventory metadata")
+            # Editable/source egg-info SOURCES.txt lists source-archive paths,
+            # not installed nodes. Inventory the actual anchored package tree;
+            # retain independently installed wheel/editable copies as well.
+            add_package(_distribution_package(distribution))
     result = sorted({p.resolve(strict=True) for p in paths})
     if not result:
         raise ValueError("No sensitive package/data inventory")
