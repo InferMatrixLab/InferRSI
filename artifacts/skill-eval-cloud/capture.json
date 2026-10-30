@@ -1,0 +1,36 @@
+{
+  "state": "retained",
+  "trials": [
+    {
+      "task_id": "serving-parser",
+      "condition": "baseline",
+      "repeat": 1,
+      "verdict": "INCONCLUSIVE",
+      "evaluation_error": "artifact_verification_deferred",
+      "missing": false,
+      "usage": {
+        "input_tokens": 12875,
+        "output_tokens": 1883,
+        "cached_input_tokens": 0
+      },
+      "api_requests": 1,
+      "usage_complete": true
+    },
+    {
+      "task_id": "serving-parser",
+      "condition": "candidate",
+      "repeat": 1,
+      "verdict": "INCONCLUSIVE",
+      "evaluation_error": "artifact_verification_deferred",
+      "missing": false,
+      "usage": {
+        "input_tokens": 17488,
+        "output_tokens": 1995,
+        "cached_input_tokens": 0
+      },
+      "api_requests": 1,
+      "usage_complete": true
+    }
+  ],
+  "scope": "Original capture only; independent artifact replay still required"
+}
