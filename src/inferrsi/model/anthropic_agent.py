@@ -265,10 +265,11 @@ def send_message(payload, spec, key, timeout, *, environment=None, require_autho
     validate_spec({"name": payload.get("model"), "effort": "not_applicable"}, spec)
     if not isinstance(key, str) or not key or not key.isascii() or any(c.isspace() for c in key):
         raise AgentError("invalid_credential_shape")
+    encoded_key = canonical(key)[1:-1]  # Match substrings in the same JSON encoding.
     raw = canonical(payload).encode()
     if len(raw) > spec["max_request_bytes"]:
         raise AgentError("request_bytes_limit")
-    if key in raw.decode():
+    if encoded_key in raw.decode():
         raise AgentError("credential_in_payload")
     request = urllib.request.Request(spec["endpoint"], data=raw, method="POST", headers={
         "x-api-key": key, "anthropic-version": spec["api_version"],
@@ -300,7 +301,7 @@ def send_message(payload, spec, key, timeout, *, environment=None, require_autho
     try:
         result = json.loads(data, object_pairs_hook=unique_object,
                             parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
-        if key in canonical(result):
+        if encoded_key in canonical(result):
             raise AgentError("credential_echo")
         return result
     except AgentError:
