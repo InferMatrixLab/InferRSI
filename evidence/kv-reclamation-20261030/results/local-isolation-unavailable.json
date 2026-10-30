@@ -1,0 +1,22 @@
+{
+  "schema": "kv-reclamation-qualification-v1",
+  "revision": "3902e4abcbe8806a683ab06caf4b9f09743c20cf",
+  "snapshot_hash": "2f1026ac283b1b61e2341233ce93ce63b8b765e1fe57ec628ab20d42e838311f",
+  "dirty": true,
+  "plan_sha256": "60cc479686aa2ba3772f627cc5179a3c0dc6d215c0fdeb57547fd58dc30859ed",
+  "verifier_freeze_sha256": "163c21134a8155da2a6469d9dbddb6ea71cb162e14f53e1c4266fe8ce75126f7",
+  "controller_sha256": "938b0215030ed72b4b9371271070b8ebb24e7197e7fdbf1fc40010b44a5fbc62",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "verdict": "INCONCLUSIVE",
+  "software_checks_passed": false,
+  "controls": {},
+  "measurements": {},
+  "model_calls": 0,
+  "provider_charges_usd": 0,
+  "scope": "Synthetic model-free artifact qualification; actor isolation NOT qualified",
+  "chronology": "Independent and plan local freeze preceded reference; public plan posting followed reference authorship and preceded all timing",
+  "error": "KV replay did not establish its sandbox boundary",
+  "source_unchanged": true,
+  "elapsed_seconds": 0.04773361200932413
+}

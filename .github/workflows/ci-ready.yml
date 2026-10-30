@@ -52,3 +52,37 @@ jobs:
         run: ruff check src tests tools
       - name: Tests (smoke + unit)
         run: pytest
+
+  kv-task-qualification:
+    # Bounded software-control qualification; not a branch-protection or efficacy gate.
+    if: github.event.pull_request.draft == false
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install distribution bubblewrap without changing security policy
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bubblewrap
+      - name: Synthetic CPU controls (no model, secret or submitted artifact)
+        shell: bash
+        run: |
+          env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \
+            /usr/bin/python3 -m tools.qualify_kv_reclamation \
+            --plan evidence/kv-reclamation-20261030/plan/qualification-plan.json \
+            --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/kv-qualification"
+      - name: Retain privacy-safe qualification receipt including failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: kv-qualification-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/kv-qualification/qualification.json
+            ${{ runner.temp }}/kv-qualification/raw-evidence.zip
+          if-no-files-found: error
+          retention-days: 14
