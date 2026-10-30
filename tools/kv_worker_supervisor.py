@@ -111,15 +111,15 @@ def supervise(config, plan, inputs, workspace, output, deadline, *, checkout,
                 complete()
             except ValueError:
                 pass
-        # The executor returns cancellation/timeout records instead of raising.
-        # A missing response/cleanup outcome cannot authorize the following arm.
+        # Worker JSON cannot upgrade a failed or unknown outer execution outcome.
+        # Only explicit successful execution can authorize the following arm.
         try:
             worker = _read_json(output / "worker/result.json", 1024 * 1024)
         except (ValueError, OSError):
             worker = {"status": "missing", "reason": "worker_result_unavailable"}
         returncode = record.get("returncode")
-        if (record.get("status") in {"cancelled", "timeout", "error"}
-                or (type(returncode) is int and returncode < 0)
+        if (record.get("status") != "completed"
+                or type(returncode) is not int or returncode != 0
                 or type(worker) is not dict or worker.get("status") not in {
                     "completed", "failed", "inconclusive"}):
             failed = True
