@@ -1,0 +1,53 @@
+[
+  {
+    "options": {},
+    "sha256": "cb428aabd177dd08b34caff4b247d4b11cfaa17308a6186f16f33e53b21f8ea6",
+    "bytes": 506405
+  },
+  {
+    "options": {
+      "relevance": "cgroupv2",
+      "context_bytes": 262144
+    },
+    "sha256": "c7b5eaee511ee846327c77ebf2891f1fa49f7472a4be9b2a648e6c326088e6bc",
+    "bytes": 163686
+  },
+  {
+    "options": {
+      "query": "stat.loc",
+      "relevance": "cgroupv2"
+    },
+    "sha256": "b4ad59650fdf7f163efd0b172ede4050979245bfeff17aa37bb792db90ae5570",
+    "bytes": 153255
+  },
+  {
+    "options": {
+      "relevance": "gpu",
+      "backend": "ascend"
+    },
+    "sha256": "ee60651afda9a7d06e16b480476ae504147d4fe768fa6a644ee50b02a60531d7",
+    "bytes": 1547320
+  },
+  {
+    "options": {
+      "ids": [
+        "inferrsi.common.skills.cgroup_resource_controls"
+      ],
+      "relevance": "ram",
+      "context_bytes": 262144
+    },
+    "sha256": "c8c9c2fd165f74998536a45ed2cd339c5a71abe1fce808de4ac0d98fdf3dc236",
+    "bytes": 163682
+  },
+  {
+    "options": {
+      "ids": [
+        "inferrsi.common.skills.cgroup_resource_controls"
+      ],
+      "relevance": "ram",
+      "context_bytes": 1
+    },
+    "sha256": "fc5d0f6b100d652e37fc5b59568ad8bcaca6d1b8e6dba577107638dac5830732",
+    "bytes": 153583
+  }
+]
