@@ -337,3 +337,12 @@ the existing voice-reference audio. Every case needs its own matched dense
 output and the unchanged media gates. These are additional coverage checks,
 not an independent benchmark dataset or semantic-quality certification; their
 latencies must not be pooled with the original performance workload.
+
+The [warmed audio code-A/B baseline arm](results/audio-ab-baseline.json) completed
+two warmups (325.26/256.12 s) and three unprofiled MC2 measured requests
+(196.55/197.14/196.31 s). Mean was 196.67 s; the 0.43 s sample standard deviation
+is within one server, not independent-process uncertainty. All eight actual
+worker exit codes were zero, with no forced signals and server/container exit
+zero, under the explicitly diagnostic 60-second baseline grace. This is not
+baseline production-lifecycle qualification. Candidate and per-output quality
+results remain pending; no code speedup is accepted from this arm alone.
