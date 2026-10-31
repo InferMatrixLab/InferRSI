@@ -1,4 +1,4 @@
-name: Bounded KV editing feasibility (manual, inactive)
+name: Bounded KV editing feasibility (manual, one pair)
 
 on:
   workflow_dispatch:
@@ -32,11 +32,13 @@ jobs:
         env:
           PYTHONPATH: src
         run: /usr/bin/python3 -m tools.kv_live_job prepare --output "$RUNNER_TEMP/kv-live"
-      - name: Fixed bounded execution (deployment disabled)
+      - name: Fixed bounded execution after exact public freeze and preflight
         env:
           PYTHONPATH: src
-        # Runtime credential bindings intentionally absent. The committed locator
-        # is disabled too. Neither an inactive template nor CI grants paid execution.
+          GITHUB_TOKEN: ${{ github.token }}
+          SKILL_EVAL_YIBUAPI_KEY: ${{ secrets.SKILL_EVAL_YIBUAPI_KEY }}
+        # Existing credentials enter only this trusted controller step. Admission
+        # still requires the exact public locator, qualification and both ledgers.
         run: /usr/bin/python3 -m tools.kv_live_job execute --output "$RUNNER_TEMP/kv-live"
       - name: Data-only public projection
         if: always()
@@ -71,7 +73,7 @@ jobs:
         with:
           name: kv-live-${{ github.run_id }}-${{ github.run_attempt }}
           path: ${{ runner.temp }}/kv-final-input
-      - name: Final grader (authorization locator remains disabled)
+      - name: Final grader of the exact captured public authorization
         if: always()
         run: |
           env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \

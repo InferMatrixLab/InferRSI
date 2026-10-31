@@ -1,4 +1,9 @@
 {
-  "schema": "kv-live-authorization-locator-v1",
-  "enabled": false
+  "author_login": "Dong1017",
+  "body_sha256": "e6cd65a8dc417be3ebec277d7a5c4e2a8f3fd4e7f32647b8c04dc3f8bcd835b0",
+  "comment_id": 6537438741,
+  "enabled": true,
+  "issue": 248,
+  "repository_id": 1409534281,
+  "schema": "kv-live-authorization-locator-v1"
 }

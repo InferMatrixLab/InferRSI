@@ -1,6 +1,11 @@
 {
   "version": 1,
   "bundles": {
+    "kv-live-pilot-20261031": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Prospective one-pair plan/source data only; no paid execution or efficacy result exists. First-run result retention remains required."]
+    },
     "kv-actor-qualification-20261030": {
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],

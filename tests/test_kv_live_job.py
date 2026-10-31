@@ -215,20 +215,34 @@ def test_controller_api_rejects_scope_before_http(method, path, data):
     opener.open.assert_not_called()
 
 
-def test_workflow_manual_no_inputs_no_credential_binding_and_separate_pinned_grade():
+def test_workflow_manual_no_inputs_execute_only_credentials_and_separate_pinned_grade():
     path = Path(__file__).parents[1] / ".github/workflows/kv-edit-pilot.yml"
     text = path.read_text()
     value = yaml.load(text, Loader=yaml.BaseLoader)
     assert value["on"] == {"workflow_dispatch": ""}
     assert value["permissions"] == {}
     assert value["concurrency"]["cancel-in-progress"] == "false"
-    assert "secrets." not in text
+    assert text.count("secrets.") == 1
+    assert "env" not in value
+    execution = value["jobs"]["execute"]
+    bound = [s for s in execution["steps"] if " execute --output " in s.get("run", "")]
+    assert len(bound) == 1
+    assert bound[0]["env"] == {
+        "PYTHONPATH": "src", "GITHUB_TOKEN": "${{ github.token }}",
+        "SKILL_EVAL_YIBUAPI_KEY": "${{ secrets.SKILL_EVAL_YIBUAPI_KEY }}",
+    }
+    prepare = next(s for s in execution["steps"] if " prepare --output " in s.get("run", ""))
+    assert execution["steps"].index(prepare) < execution["steps"].index(bound[0])
     for name, job_value in value["jobs"].items():
+        assert "env" not in job_value
         condition = job_value["if"]
         for guard in ("github.repository", "github.ref", "github.run_attempt", "github.actor",
                       "github.triggering_actor"):
             assert guard in condition
         for step in job_value["steps"]:
+            if step is not bound[0]:
+                assert not {"GITHUB_TOKEN", provider.KEY_ENV} & set(step.get("env", {}))
+                assert "secrets." not in provider.canonical(step)
             if "uses" in step:
                 assert policy._hex(step["uses"].split("@")[1], 40)
             if step.get("uses", "").startswith("actions/checkout@"):
