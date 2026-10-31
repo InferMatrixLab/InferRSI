@@ -1,0 +1,80 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Profile-enabled single-sample screening; no final speedup acceptance",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "diagnostic_shutdown_grace_s": 60.0,
+    "arm": "int8",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--enable-diffusion-pipeline-profiler",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--diffusion-quantization-config",
+      "{\"transformer\":{\"method\":\"int8\"}}"
+    ]
+  },
+  "samples": [
+    {
+      "label": "measured-5-0",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 411450.68702381104,
+      "bytes": 7130173,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-a6ea161a2389c6f3",
+        "X-Inference-Time-S": "411.384",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":6.258049041964114,\"MiniMaxH3Pipeline._encode_local_media\":8.446553904563189,\"MiniMaxH3Pipeline.diffuse\":347.7372694350779,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.5282347025349736,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":0.9122442258521914,\"MiniMaxH3Pipeline.decode\":7.489379900507629,\"queue_wait_ms\":0.5335742607712746,\"stage_0_gen_ms\":410406.3546657562}",
+        "X-Peak-Memory-MB": "19148.000"
+      },
+      "valid": true,
+      "output_sha256": "106a8ceb13eb3daa073650086d280db2e2fab0e15e404cdafc278c87e980094b"
+    },
+    {
+      "label": "warmup-5",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 557179.5244468376,
+      "bytes": 7133753,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-bfce302f70e6e88b",
+        "X-Inference-Time-S": "557.086",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":12.34728015679866,\"MiniMaxH3Pipeline._encode_local_media\":78.67133998777717,\"MiniMaxH3Pipeline.diffuse\":348.5625052936375,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.7786940839141607,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":71.32954525388777,\"MiniMaxH3Pipeline.decode\":77.77903631608933,\"queue_wait_ms\":0.4091104492545128,\"stage_0_gen_ms\":556136.342048645}",
+        "X-Peak-Memory-MB": "19148.000"
+      },
+      "valid": true,
+      "output_sha256": "1e6f3332fc11df0ab830775c144bbc036b117b85c988f1619c5ccf2931994d58"
+    }
+  ],
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 0,
+    "worker_kill_count": 0,
+    "client_complete_to_container_exit_s": 28.957173
+  },
+  "raw_log_sha256": "a88945433e9b0f148dbd939a13f984e0d1c18df084cf74add485a1aa34de2bc0",
+  "sampled_peak_mib_any_device": 24222,
+  "memory_scope": "10-second driver HBM samples across startup, requests and cleanup; not an exact active-tensor peak",
+  "cache_summaries_in_request_order": [],
+  "quality_result": "int8-quality.json",
+  "verification_limits": "Raw logs and generated media are private campaign artifacts. Single-workload quality does not establish held-out quality. Diagnostic shutdown grace does not establish clean exit with production defaults. Final unprofiled independent AB/BA remains required."
+}

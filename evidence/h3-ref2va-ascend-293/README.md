@@ -244,3 +244,27 @@ pins the installed source and probe hashes and records exit 0. This is a narrow
 counter observation, not a full policy-correctness verdict or performance test.
 No backend patch was applied. Preserve both configured values and actual hit
 indices rather than treating the profile name as proof of a strict skip limit.
+
+The request field `quality=lossless` disables H3's request-owned Cache-DiT;
+it does not undo startup INT8 quantization or reference KV reuse. See the pinned
+[`MiniMaxH3QualityPolicy.resolve`](https://github.com/vllm-project/vllm-omni/blob/1e6d88ad44d3acede515896968ce54935883c919/vllm_omni/diffusion/models/minimax_h3/quality_policy.py).
+Numerical fidelity is established by the frozen media validator and the full
+runtime configuration, not by this request label.
+
+INT8 completed the same profiled, single-warmup screening cell. Its
+[receipt](results/int8-screening.json) records 557.18 s warmup and 411.45 s
+measured E2E, with 347.74 s measured denoising. This is not an accepted E2E
+gain: the sample still includes peer cold-work tail, and no repeated matched
+comparison has qualified it. The driver-sampled whole-run HBM peak was
+24,222 MiB; the response's allocator metric was 19,148 MiB. These metrics have
+different scopes and must not be compared as equivalent peaks.
+
+[Matched INT8 media quality](results/int8-quality.json) passed with SSIM
+0.976901, PSNR 35.44922 dB, LPIPS 0.03322, audio spectral cosine 0.98986 and
+RMS ratio 1.18767; the scoring container exited 0. PSNR has limited margin
+above the frozen 34 dB threshold. Combining INT8 with caches requires fresh
+output validation. Both server and container exited 0, with no terminate/kill
+under the diagnostic 60-second grace; individual worker exit codes were not
+captured. Cleanup took 28.96 s. This does not qualify production cleanup.
+INT8 uses the existing [PR #5706](https://github.com/vllm-project/vllm-omni/pull/5706)
+path; no new quantization implementation or isolated speedup is claimed.
