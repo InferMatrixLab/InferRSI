@@ -1,25 +1,59 @@
 {
- "id": "case.qwen38-silent-capacity-and-error-failures",
- "kind": "case",
- "origin": ["first_party"],
- "state": "historical_observation",
- "content": "qwen38-silent-capacity-and-error-failures.md",
- "sources": [
-  {
-   "type": "local",
-   "note": "Qwen3.8 dedicated-engine campaign, serving-layer debug rounds",
-   "paths": ["evidence/"]
-  }
- ],
- "applicability": [
-  "OpenAI-compatible HTTP wrapper over a custom inference engine",
-  "Bucketed CUDA Graph decode with a headroom-selected bucket"
- ],
- "tags": ["serving", "error-handling", "observability", "capacity", "silent-failure"],
- "limitations": [
-  "One engine, one card",
-  "Behaviour past capacity not characterised beyond the failure itself",
-  "No concurrency or multi-client qualification"
- ],
- "attribution": "Dedicated-engine campaign; each symptom reproduced and fixed"
+  "id": "case.qwen38-silent-capacity-and-error-failures",
+  "kind": "case",
+  "origin": ["first_party"],
+  "state": "historical_observation",
+  "content": "qwen38-silent-capacity-and-error-failures.md",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/jiangkuaixue123/nano-vllm/blob/f2d1adc96a7e25e2e61425f5fa97a8f7a7225e77/nanovllm/qwen38/server.py",
+      "commit": "f2d1adc96a7e25e2e61425f5fa97a8f7a7225e77",
+      "paths": ["nanovllm/qwen38/server.py"],
+      "content_sha256": "6a9c8c60f688705a722c1f269ea5aad7ede9d4a38f0251e580f24773846780cb",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "note": "handle_error and log_message are no-ops. The file comment is the sentence quoted in the case. This blob does not contain a captured HTTP 400 body."
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/jiangkuaixue123/nano-vllm/blob/3f7516a7b4a2c0a34871a453c294bc23b1b6c67c/nanovllm/qwen38/runner.py",
+      "commit": "3f7516a7b4a2c0a34871a453c294bc23b1b6c67c",
+      "paths": ["nanovllm/qwen38/runner.py"],
+      "content_sha256": "3b99c999c887f6acc2f2b6aa957c01680246fe424fb3da961322c06dacf857a0",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "note": "graph_headroom = 256 and bucket_for(prompt length + headroom)."
+    },
+    {
+      "type": "document",
+      "url": "https://github.com/jiangkuaixue123/nano-vllm/pull/8",
+      "version": "2026-10-22T17:05:30Z",
+      "sha256": "b4c5b6c2c3681976df2ccc7ea41c9b5c245aa0769d2c82e91e26f4eca8cc1684",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "run": "1951",
+      "note": "Merged PR body: the official client reports success=true for the streamed error; job 1951 errored after 876 tokens at the graph capacity boundary. Digest is that body retrieved 2026-10-31."
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d5e17195280249cd0bbd5ef87d79d8654cce7056/evidence/qwen38-h20-fp8-single-request-vllm032/results/full-context-graph/preparation.md",
+      "commit": "d5e17195280249cd0bbd5ef87d79d8654cce7056",
+      "paths": ["evidence/qwen38-h20-fp8-single-request-vllm032/results/full-context-graph/preparation.md"],
+      "content_sha256": "1f186a3eb8e2ee6c20026848799c1801d7a15c91088724d2f86bcc18a61d95a6",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "note": "Retained on main: prompt+256 headroom demotes an 8192-input/2048-output request after its reserved decode window. Campaign acceptance remains INCONCLUSIVE."
+    }
+  ],
+  "applicability": [
+    "OpenAI-compatible HTTP wrapper over a custom inference engine",
+    "Bucketed CUDA Graph decode with a headroom-selected bucket"
+  ],
+  "tags": ["serving", "error-handling", "observability", "capacity", "silent-failure"],
+  "limitations": [
+    "One engine, one card",
+    "Behaviour past capacity not characterised beyond the failure itself",
+    "No concurrency or multi-client qualification",
+    "The located public artifacts do not contain the literal failure index 993; the retained capacity-boundary run is job 1951 at 876 tokens",
+    "The empty-log mechanism is the cited server.py; a captured HTTP 400 empty body was not in that blob",
+    "preparation.md is a later retained note of the headroom rule, not a new measurement for this case"
+  ],
+  "attribution": "nano-vllm server.py at f2d1adc96a7e25e2e61425f5fa97a8f7a7225e77, runner.py at 3f7516a7b4a2c0a34871a453c294bc23b1b6c67c, nano-vllm PR 8, and InferRSI evidence preparation.md at d5e17195280249cd0bbd5ef87d79d8654cce7056"
 }

@@ -1,26 +1,52 @@
 {
- "id": "case.qwen38-upstream-fp8-kernels-vs-own-triton",
- "kind": "case",
- "origin": ["first_party"],
- "state": "historical_observation",
- "content": "qwen38-upstream-fp8-kernels-vs-own-triton.md",
- "sources": [
-  {
-   "type": "local",
-   "note": "Qwen3.8 dedicated-engine campaign, FP8 kernel microbenchmarks",
-   "paths": ["evidence/"]
-  }
- ],
- "applicability": [
-  "SM90-class accelerator, FP8 e4m3 with 128x128 block scales",
-  "M in the thousands (prefill), batch size 1 decode measured separately",
-  "torch 2.14 engine environment"
- ],
- "tags": ["fp8", "gemm", "build-vs-borrow", "microbenchmark", "licensing"],
- "limitations": [
-  "Single card; numbers are microbenchmarks, not end-to-end",
-  "Thresholds registered for one shape family and one device",
-  "Upstream versions may change both performance and licensing"
- ],
- "attribution": "Dedicated-engine campaign; measurements taken on the target card"
+  "id": "case.qwen38-upstream-fp8-kernels-vs-own-triton",
+  "kind": "case",
+  "origin": ["first_party"],
+  "state": "historical_observation",
+  "content": "qwen38-upstream-fp8-kernels-vs-own-triton.md",
+  "sources": [
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "run": "issuecomment-6336720892",
+      "artifact": "https://github.com/InferMatrixLab/InferRSI/issues/67#issuecomment-6336720892",
+      "version": "2026-10-22T08:50:35Z",
+      "sha256": "37b84900b48fc5da201792c280519969514d2bbed0afe75a3c4ef56329077201",
+      "integrity_status": "issue_comment_body_sha256",
+      "note": "Ledger v7: own Triton 2.8 TFLOPS, FlashInfer 273 TFLOPS and 3273 GB/s at M=1, DeepGEMM 279 TFLOPS, go line 280, 2.5% shortfall, 18 KB deep_gemm placeholder, vendored extension pinned to a torch minor. Digest is the comment body retrieved 2026-10-31."
+    },
+    {
+      "type": "document",
+      "url": "https://github.com/jiangkuaixue123/nano-vllm/pull/3",
+      "version": "2026-10-23T07:20:41Z",
+      "sha256": "172d437e2772a4e5aefff1f9a03a4fd381f6b11e0c12e0821eb2541c5c568c34",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "note": "Unmerged PR body: native block-FP8 kernel 2.8 TFLOPS at M=8192 and 8K prefill 145 s. Digest is the body retrieved 2026-10-31. The ledger later marks 145.3 s as including first-call JIT."
+    },
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "run": "issuecomment-6336567189",
+      "artifact": "https://github.com/InferMatrixLab/InferRSI/issues/67#issuecomment-6336567189",
+      "version": "2026-10-22T08:42:07Z",
+      "sha256": "aedccaca1c8fbdb8c09eac5a79f9a48f43ec960ce33f4513822648c10b98a3dd",
+      "integrity_status": "issue_comment_body_sha256",
+      "note": "Pre-registered go line 280 TFLOPS against a 279 measurement (0.36%). The following ledger comment supersedes the adoption decision with FlashInfer at 273."
+    }
+  ],
+  "applicability": [
+    "SM90-class accelerator, FP8 e4m3 with 128x128 block scales",
+    "M in the thousands (prefill), batch size 1 decode measured separately",
+    "torch 2.14 engine environment"
+  ],
+  "tags": ["fp8", "gemm", "build-vs-borrow", "microbenchmark", "licensing"],
+  "limitations": [
+    "Single card; numbers are microbenchmarks, not end-to-end",
+    "Thresholds registered for one shape family and one device",
+    "Upstream versions may change both performance and licensing",
+    "The located ledger records go >=280 TFLOPS and does not contain an abandon-below-250 threshold",
+    "145 s is in the unmerged PR body; the same day's ledger withdraws 145.3 s as evidence because it includes first-call JIT",
+    "No raw microbenchmark file for these TFLOPS figures was in the retained evidence tree; the digests above are the public ledger bodies"
+  ],
+  "attribution": "Issue #67 comments 6336720892 and 6336567189, and nano-vllm pull request 3; microbenchmarks, not an end-to-end claim"
 }

@@ -1,26 +1,53 @@
 {
- "id": "case.qwen38-cuda-graph-state-not-accumulating",
- "kind": "case",
- "origin": ["first_party"],
- "state": "historical_observation",
- "content": "qwen38-cuda-graph-state-not-accumulating.md",
- "sources": [
-  {
-   "type": "local",
-   "note": "Qwen3.8 dedicated-engine campaign, run records for the CUDA Graph round",
-   "paths": ["evidence/"]
-  }
- ],
- "applicability": [
-  "Single device, batch size 1",
-  "Hybrid linear-attention model (48 DeltaNet + 16 full-attention layers)",
-  "PyTorch CUDA Graph capture of one decode step"
- ],
- "tags": ["cuda-graph", "correctness-gate", "state-management", "silent-wrong-result"],
- "limitations": [
-  "One H20-3e card, one workload; no concurrency",
-  "Graph path acceptance recorded INCONCLUSIVE after the timing run",
-  "Does not establish behaviour for multi-request or paged-state graphs"
- ],
- "attribution": "Dedicated-engine campaign; defect and fix verified by per-step logits comparison"
+  "id": "case.qwen38-cuda-graph-state-not-accumulating",
+  "kind": "case",
+  "origin": ["first_party"],
+  "state": "historical_observation",
+  "content": "qwen38-cuda-graph-state-not-accumulating.md",
+  "sources": [
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "run": "issuecomment-6337245823",
+      "artifact": "https://github.com/InferMatrixLab/InferRSI/issues/67#issuecomment-6337245823",
+      "version": "2026-10-22T09:18:18Z",
+      "sha256": "de68a42eb35593b850c63e9bdc29f6896775d8f15fa34fdc8f8be8a6866a7f3f",
+      "integrity_status": "issue_comment_body_sha256",
+      "note": "Issue #67 ledger: v11 state did not accumulate; greedy ids matched while logits differed by 0.70 (67 ULP). Digest is the comment body retrieved 2026-10-31."
+    },
+    {
+      "type": "internal",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "run": "store:case.qwen38-graph-state-not-accumulating-cand",
+      "artifact": "https://github.com/InferMatrixLab/InferRSI/issues/67#issuecomment-6331682106",
+      "version": "2026-10-22T03:06:13Z",
+      "sha256": "9f7d7085e4d4508712fa5f5a1022111092ad897703663c697773e20bcccd0663",
+      "integrity_status": "issue_comment_body_sha256",
+      "note": "Names the store candidate and records a v11 tiny-fixture bitwise pass. The public prefix 5c7700d is described there as a whitelist checkout, not an object in the public engine repository. The comment body does not contain the literal 0.00e+00."
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/jiangkuaixue123/nano-vllm/blob/3f7516a7b4a2c0a34871a453c294bc23b1b6c67c/nanovllm/qwen38/graph.py",
+      "commit": "3f7516a7b4a2c0a34871a453c294bc23b1b6c67c",
+      "paths": ["nanovllm/qwen38/graph.py"],
+      "content_sha256": "d4213aa68599564a01ced3b990993c9b17482615c154120bc4180f78a5da6098",
+      "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+      "note": "Public engine tree named by the same ledger. Dedicated capture pool and in-place KV, convolution and recurrent buffers. This is the fix disposition, not the 0.70 measurement."
+    }
+  ],
+  "applicability": [
+    "Single device, batch size 1",
+    "Hybrid linear-attention model (48 DeltaNet + 16 full-attention layers)",
+    "PyTorch CUDA Graph capture of one decode step"
+  ],
+  "tags": ["cuda-graph", "correctness-gate", "state-management", "silent-wrong-result"],
+  "limitations": [
+    "One H20-3e card, one workload; no concurrency",
+    "Graph path acceptance recorded INCONCLUSIVE after the timing run",
+    "Does not establish behaviour for multi-request or paged-state graphs",
+    "The 0.70 figure is the Issue #67 comment body above; raw logits were not rehashed for this binding",
+    "The tiny-fixture pass is recorded as bitwise in that ledger; the literal 0.00e+00 is this case's notation for that pass",
+    "Prefix 5c7700d was not resolved to a public 40-character commit"
+  ],
+  "attribution": "Issue #67 ledger comments 6337245823 and 6331682106, plus nano-vllm graph.py at 3f7516a7b4a2c0a34871a453c294bc23b1b6c67c"
 }
