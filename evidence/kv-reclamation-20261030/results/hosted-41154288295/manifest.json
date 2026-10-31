@@ -1,0 +1,64 @@
+{
+  "artifact_id": 13024147055,
+  "artifact_name": "kv-qualification-41154288295-1",
+  "base_sha": "19c3df8311f55ab9efbcd6fa60e29a4bbce95dd1",
+  "costs": {
+    "model_calls": 0,
+    "provider_charges_usd": 0,
+    "scope": "this model-free hosted run only; no PR/day ledger attestation",
+    "source": "original qualification.json"
+  },
+  "files": {
+    "README.md": {
+      "sha256": "422916422e602196199c9a132671be1953b2a329607610c550fad1e4f5fab011",
+      "size_bytes": 3256
+    },
+    "qualification-artifact.zip": {
+      "sha256": "93bae0bd006b359b0bf2f92042d367dcd17ec2889f217400223acb7c950fbfda",
+      "size_bytes": 158801
+    },
+    "qualification.json": {
+      "sha256": "91c7e2e71634e579f8a7f17c7d96f011c1b6277b7176295578af4bd88a291584",
+      "size_bytes": 175901
+    }
+  },
+  "head_sha": "68fa4f405c6b010c0626a4e4c9d000906673e739",
+  "kind": "task",
+  "nested_raw_archive": {
+    "path": "raw-evidence.zip inside qualification-artifact.zip",
+    "sha256": "2b9147775b481184bdf09f8955783e9811370e9a22444c175be7040f9c12db15",
+    "size_bytes": 1038537
+  },
+  "original_expiry": "2026-11-14T01:16:10Z",
+  "prior_results": "unchanged, never overwritten or reattributed",
+  "pull_request": 276,
+  "repository": "InferMatrixLab/InferRSI",
+  "run_attempt": 1,
+  "run_id": 41154288295,
+  "schema": "kv-hosted-retention-v1",
+  "source_commit": "ffb77f9a168ba1cb22f7ba261f289d24dbb6698f",
+  "source_hashes": {
+    "benchmark_expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+    "benchmark_input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+    "benchmark_oracle_sha256": "c9fd5bdb12ad82ea4bdf9b1cace13e56053d7294eceb9d9357ffdae304984c69",
+    "benchmark_supplement_sha256": "717d7c1a4327f3bcaa9755c9b343a142e0223a651996893d7de3e4065cf6b6f0",
+    "control_source_sha256": {
+      "empty_answers": "b5ad40256f35f664a921e3509e6a0261d72d7fb96484f3fd7de5f9d044420d7b",
+      "ignore_fence": "eb8470fb52316dfbefea0d9c55ba93360baaa6cae5dbcde0ba8d185b7cd678d0",
+      "ignore_generation": "3a5475ae2105a02faa08dd78d8b3ede83b48c63bf9d01ffff99a638ddf4faeec",
+      "ignore_save": "39ea0cbf3cd953f6fdcdaccb5dd6cf31c497e4a10ad9e33a366ab7347462ccc5",
+      "missing_output": "0e0e7eaed7cbb486356c6101499ffe3dfbb88d49e884aaa1d604f970fb8c214c",
+      "reference": "8f09b110eef6e493df39b5f3c5db9546fa292257056cb39a4ddb742ff1474316",
+      "skip_events": "2cb26b3f05381f2c6e761701978943bbbd6d1b1653f14ac619e00e2833d32e12",
+      "spoof_output": "daf0d1fd947d7cb61ea13f4440cce7aece5b8a55c630339bc83eea3c911c28f6",
+      "starter": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d"
+    },
+    "controller_sha256": "56878c4d1bdda096ac681cadf2d99377bec59d47839802fdf94cfbd9066dc8b9",
+    "plan_sha256": "60cc479686aa2ba3772f627cc5179a3c0dc6d215c0fdeb57547fd58dc30859ed",
+    "qualifier_sha256": "b53efb547ff6dec04492d08f41b9479afee5d07bbee964911a264f453e620815",
+    "verifier_freeze_sha256": "163c21134a8155da2a6469d9dbddb6ea71cb162e14f53e1c4266fe8ce75126f7"
+  },
+  "source_tree": "059d3023fa5f02513f2bb0dcbb7f1a50229f5c48",
+  "test_merge_sha": "01e2d6f35b67cb32c2cf3bcaec1664984f1ef037",
+  "verification_scope": "archive integrity/source/protocol binding and bounded privacy inspection; no execution or semantic/timing recomputation during retention"
+}
