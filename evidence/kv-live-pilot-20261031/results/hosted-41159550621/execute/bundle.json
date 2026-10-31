@@ -1,0 +1,65 @@
+{
+  "schema": "kv-live-bundle-v1",
+  "execution": {
+    "schema": "kv-live-execution-v1",
+    "implementation_sha": "3ece458ceaa92c5dad8d8e0b1e782a6961400b96",
+    "run_id": "41159550621",
+    "plan_sha256": "b66130352cce6fb6201561d3a026a7a78d800ac0f84ecb899f57a0906ffa4767",
+    "execution_id": "kv-reclamation-one-pair-1",
+    "charge_pr": 275,
+    "charge_head": "5af3553683137582d624379d26c2c5f7cc9e2785",
+    "reservation_upper_bound_usd": "162.72",
+    "reserved_usd": "162.72",
+    "admission_outcome": "granted",
+    "actual_cost_usd": null,
+    "arms": {
+      "A2": {
+        "status": "failed",
+        "request_completion_known": false,
+        "slots_consumed": 1
+      },
+      "A3": {
+        "status": "not_started",
+        "request_completion_known": false,
+        "slots_consumed": 0
+      }
+    }
+  },
+  "artifacts": {
+    "A2": {
+      "status": "missing_or_invalid"
+    },
+    "A3": {
+      "status": "missing_or_invalid"
+    }
+  },
+  "requests": {
+    "A2": [
+      {
+        "slot": 1,
+        "request_sha256": "320dc8d05a29f9d8f969b268d93706c57cb0003f1456b2f77e68a952ba39a06e",
+        "status": "unresolved",
+        "usage": null
+      }
+    ],
+    "A3": []
+  },
+  "evidence": {
+    "A2": {
+      "revisions": [
+        {
+          "revision": 0,
+          "sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d"
+        }
+      ],
+      "feedback": [],
+      "status": "incomplete"
+    },
+    "A3": {
+      "revisions": [],
+      "feedback": [],
+      "status": "incomplete"
+    }
+  },
+  "preflight_status": "prepared"
+}

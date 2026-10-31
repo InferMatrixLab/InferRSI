@@ -1,0 +1,108 @@
+{
+  "schema": "kv-live-cost-retention-v1",
+  "run_id": 41159550621,
+  "run_attempt": 1,
+  "implementation_sha": "3ece458ceaa92c5dad8d8e0b1e782a6961400b96",
+  "charge_pr": 275,
+  "charge_head": "5af3553683137582d624379d26c2c5f7cc9e2785",
+  "currency": "USD",
+  "reserved_ceiling_usd": "162.72",
+  "actual_cost_usd": null,
+  "actual_cost_status": "unknown; no authoritative usage or billing receipt retained",
+  "http_delivery": "unknown; a consumed slot does not establish per-request gate authorization or HTTP delivery",
+  "ledger_digest_domain": "The ledger binding plan_digest is the admission cost-plan digest, not the full authorization plan_sha256.",
+  "ledger_binding_digest": "1f7051e0872e8b790c8d1a7c0aa1e03a6bcd08385af510c3d0b1621f54adac6c",
+  "authorization_plan_sha256": "b66130352cce6fb6201561d3a026a7a78d800ac0f84ecb899f57a0906ffa4767",
+  "accounting_rule": "Retain the full claimed reservation. No release, settlement, refund, retry or relaunch is authorized or performed by this archive.",
+  "ledgers": [
+    {
+      "scope": "PR lifetime",
+      "ref": "refs/heads/skill-eval-budget/1409534281/275",
+      "commit": "23bae89818a0eb4f1ed9ccda2361d10cbf3908ed",
+      "tree": "59962366ea7cb843c96d54b598c7ce53cd972e71",
+      "blob": "0546f3d531069126685493304c1285da6f31a999",
+      "path": "ledger.json",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/23bae89818a0eb4f1ed9ccda2361d10cbf3908ed/ledger.json",
+      "entry": {
+        "actual_cost": null,
+        "binding": {
+          "plan_digest": "1f7051e0872e8b790c8d1a7c0aa1e03a6bcd08385af510c3d0b1621f54adac6c",
+          "run_id": "kv-reclamation-one-pair-v1:kv-reclamation-feasibility-20261031",
+          "worst_case": 162720000
+        },
+        "phase": "claimed"
+      },
+      "history": [
+        {
+          "phase": "claimed",
+          "commit": "23bae89818a0eb4f1ed9ccda2361d10cbf3908ed",
+          "url": "https://github.com/InferMatrixLab/InferRSI/blob/23bae89818a0eb4f1ed9ccda2361d10cbf3908ed/ledger.json"
+        },
+        {
+          "phase": "reserved",
+          "commit": "1ef34013afcdc8261943e52e43105a45bcbce11c",
+          "url": "https://github.com/InferMatrixLab/InferRSI/blob/1ef34013afcdc8261943e52e43105a45bcbce11c/ledger.json"
+        },
+        {
+          "phase": "anchored_checkpoint",
+          "commit": "6ab781845dbbb9c5f566a83134b201d75075821f",
+          "url": "https://github.com/InferMatrixLab/InferRSI/blob/6ab781845dbbb9c5f566a83134b201d75075821f/ledger.json"
+        }
+      ]
+    },
+    {
+      "scope": "Asia/Shanghai daily",
+      "ref": "refs/heads/skill-eval-budget/1409534281/daily",
+      "commit": "936569a520083cb359a375d3d474a2391a15edae",
+      "tree": "2823a4c6282fcceb4febafbcfabaae469a40c3f7",
+      "blob": "1537ada5b74951cc71401a09ffeaca283ce5314c",
+      "path": "ledger.json",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/936569a520083cb359a375d3d474a2391a15edae/ledger.json",
+      "entry": {
+        "actual_cost": null,
+        "admitted_day": "2026-10-31",
+        "binding": {
+          "plan_digest": "1f7051e0872e8b790c8d1a7c0aa1e03a6bcd08385af510c3d0b1621f54adac6c",
+          "run_id": "kv-reclamation-one-pair-v1:kv-reclamation-feasibility-20261031",
+          "worst_case": 162720000
+        },
+        "closed_day": null,
+        "key": {
+          "pr_number": 275,
+          "repository_id": 1409534281
+        },
+        "phase": "claimed"
+      },
+      "history": [
+        {
+          "phase": "claimed",
+          "commit": "936569a520083cb359a375d3d474a2391a15edae",
+          "url": "https://github.com/InferMatrixLab/InferRSI/blob/936569a520083cb359a375d3d474a2391a15edae/ledger.json"
+        },
+        {
+          "phase": "reserved",
+          "commit": "39a21771df3941fa1822a0a9bce3a431f4c6d09e",
+          "url": "https://github.com/InferMatrixLab/InferRSI/blob/39a21771df3941fa1822a0a9bce3a431f4c6d09e/ledger.json"
+        },
+        {
+          "phase": "anchored_checkpoint",
+          "commit": "bde0bd429b8bf2f4f4fe785bc51cfaed1818acb6",
+          "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde0bd429b8bf2f4f4fe785bc51cfaed1818acb6/ledger.json"
+        }
+      ]
+    }
+  ],
+  "limits": "Selected records describe this attempt only. They are not a complete account invoice, a fresh daily-balance permission or proof of model delivery.",
+  "independent_ledger_audit": {
+    "result": "PASS",
+    "observation_interval_utc": [
+      "2026-10-31T02:23:39Z",
+      "2026-10-31T02:24:35Z"
+    ],
+    "method": "Unchanged GitHubGitStore/GitHubDailyStore.read_verified over fresh post-run connector GET objects/refs plus previously audited immutable baseline. Exact blob/tree hashes checked. Initial/final refs identical. GET-only replay, no Python network client.",
+    "same_binding_in_both": true,
+    "settlement_or_refund_observed": false,
+    "original_validation_sha256": "ba44a5ff25f73c6f705f5d90af9c681a790dd097c7b2a3b4f61917d4fca1b577",
+    "scope": "Read-only binding and complete-chain verification; not a provider invoice or fresh spending authorization."
+  }
+}

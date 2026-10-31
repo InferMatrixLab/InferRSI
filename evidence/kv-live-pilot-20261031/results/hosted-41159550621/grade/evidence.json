@@ -1,0 +1,3005 @@
+{
+  "schema": "kv-live-grade-evidence-v1",
+  "plan_sha256": "b66130352cce6fb6201561d3a026a7a78d800ac0f84ecb899f57a0906ffa4767",
+  "arms": {
+    "A2": {
+      "status": "recorded",
+      "semantics": [
+        {
+          "trace_id": "grader_cross_request",
+          "trace_sha256": "fb7d51b05a6617f71438f79bdf0426c33a5d1f8f735476ee43b36d1130308280",
+          "output": {
+            "path": "A2/semantics/trace-000.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_unknown_preallocation",
+          "trace_sha256": "2e9ba1795728ca7d5cb7980624901777ae9ed9a5fe45ece4ddf8b6f6fa6b48d4",
+          "output": {
+            "path": "A2/semantics/trace-001.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_reused_blocks",
+          "trace_sha256": "2282bdd7bcba42b692ab9799ced08ec4cd410a3519991b002c162d20ee45e79d",
+          "output": {
+            "path": "A2/semantics/trace-002.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_generation_rules",
+          "trace_sha256": "5ea6b47edad28235aba64e444a4ec6fd6ebe7ae4ce8cbca2771b3d8fa9efba79",
+          "output": {
+            "path": "A2/semantics/trace-003.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_atomic_block_history",
+          "trace_sha256": "851c11c49c30068c78a0b55f300eae5a5c6d5d1e0ef2dc88a83fea68331d7230",
+          "output": {
+            "path": "A2/semantics/trace-004.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_stable_survivors",
+          "trace_sha256": "010d649ed8730ede968f8fc3685b7c4b564adb7021e9dcde284f3337d78dd8ed",
+          "output": {
+            "path": "A2/semantics/trace-005.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_empty_id_and_large_values",
+          "trace_sha256": "d85ccd1900e2e5891a7b016bb0cfcc2228436994c1b0355c8cdcea7d86ddba9b",
+          "output": {
+            "path": "A2/semantics/trace-006.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_frontier_atomic",
+          "trace_sha256": "70cc816bfa699b9f34f1f60d1f10aeb1a6d5d67c9640f93212b73d6ef2e6a918",
+          "output": {
+            "path": "A2/semantics/trace-007.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_00",
+          "trace_sha256": "7fa38b46ae6937ac682a30bee328a0dbcb47e8199c70f4813e1bdfddb23bf981",
+          "output": {
+            "path": "A2/semantics/trace-008.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_01",
+          "trace_sha256": "3630e42081fb483f6f5ae6beab251e793a869d4b912a5e191e2cb877078ecd00",
+          "output": {
+            "path": "A2/semantics/trace-009.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_02",
+          "trace_sha256": "335dd0dcbb415ed5326d00e5066f230fdf1d2a7282c06ae833a0f07b2a70e719",
+          "output": {
+            "path": "A2/semantics/trace-010.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_03",
+          "trace_sha256": "384edf1353ff0297a7d38284f0c87c5565a217eda714ee8084efda6a3ed10053",
+          "output": {
+            "path": "A2/semantics/trace-011.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_04",
+          "trace_sha256": "fba3e924889618c09d3a47954e7993bc9631a15cff8f2f38124f785173571af3",
+          "output": {
+            "path": "A2/semantics/trace-012.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_05",
+          "trace_sha256": "91346a37e1b0a4ee2b6db507602843fedc773b78095f1412c23cf1cefd759966",
+          "output": {
+            "path": "A2/semantics/trace-013.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_06",
+          "trace_sha256": "956d200e1f393718754ee738db71afaa1dcf0a3179849c4b638f5c889d5e32ca",
+          "output": {
+            "path": "A2/semantics/trace-014.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_07",
+          "trace_sha256": "e975919f84ddb20334e1ccd7829d204c2327b59bc998c6a5fb6da87dd9c493e4",
+          "output": {
+            "path": "A2/semantics/trace-015.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_08",
+          "trace_sha256": "79fcac2536c0d6533099a3ab03a748cfbb285f00cb9ab442005762bd0326c92a",
+          "output": {
+            "path": "A2/semantics/trace-016.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_09",
+          "trace_sha256": "635e4cce84f0ce0b4280f3c0a19eb64798f2c983f462f8f5f260b1739e2e2623",
+          "output": {
+            "path": "A2/semantics/trace-017.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_10",
+          "trace_sha256": "94c7076f1f31d61fb9f1982f8ff19fadba76bcd98c857329ade14167090ec325",
+          "output": {
+            "path": "A2/semantics/trace-018.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_11",
+          "trace_sha256": "e1bd56e6e7d7da9f4878df5c731ab67b1e8519d4f0c936a7abc2df4700d223ed",
+          "output": {
+            "path": "A2/semantics/trace-019.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_12",
+          "trace_sha256": "0b44388d6d74ca9126ec4d8c9a13afdc3c7b74b1ea6442a1677c9049c07ab800",
+          "output": {
+            "path": "A2/semantics/trace-020.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_13",
+          "trace_sha256": "26c33302bfa109e0754dbd151e72ece34e1c62833b3c68804663066ba0932df1",
+          "output": {
+            "path": "A2/semantics/trace-021.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_14",
+          "trace_sha256": "6068cf7771d61c34fae263333a677d8b7b20bae831423c3c7c5f2e9c092ecf67",
+          "output": {
+            "path": "A2/semantics/trace-022.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_15",
+          "trace_sha256": "44fa6d1e7c70ebcae68d388821cb93ad487d75043f31a5c02b0f0307f43278a6",
+          "output": {
+            "path": "A2/semantics/trace-023.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_16",
+          "trace_sha256": "36da8c64ace712c66b2d6af0ed0abb6ea6de0ab6c30c551e301bb8c6782abf76",
+          "output": {
+            "path": "A2/semantics/trace-024.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_17",
+          "trace_sha256": "42ea3ef45b61365d2a4b2923cc439f1e1fd8fa04512d6fda9773af68b79cd562",
+          "output": {
+            "path": "A2/semantics/trace-025.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_18",
+          "trace_sha256": "776306895b3cbe7cff26c63cd0aa8d81605a13defa38421ded879041f978be98",
+          "output": {
+            "path": "A2/semantics/trace-026.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_19",
+          "trace_sha256": "be1311980782a1faef1b83fdd8fd8d1e80d0ddb7849687ad031fa092dc630e1e",
+          "output": {
+            "path": "A2/semantics/trace-027.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_20",
+          "trace_sha256": "d8f88feb7821600400e57ebd815da6e0311d20e3ca56b1e83f61206d9533585f",
+          "output": {
+            "path": "A2/semantics/trace-028.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_21",
+          "trace_sha256": "f19cc428db2a227540e9a64c02835be75c259cd4a727317764bc01434c89c538",
+          "output": {
+            "path": "A2/semantics/trace-029.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_22",
+          "trace_sha256": "d009f54be4dc7252449679278373407870aec844f1dfe8618cb1c788e05c9d58",
+          "output": {
+            "path": "A2/semantics/trace-030.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_23",
+          "trace_sha256": "c409cd9c97862ddf338d041ee52ecb284fa5776ec08226f483b9d95195121192",
+          "output": {
+            "path": "A2/semantics/trace-031.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_24",
+          "trace_sha256": "ab00947ae7443278c4c359ed3eb096cca4c0e7e30b0006e8484c82f02c92af57",
+          "output": {
+            "path": "A2/semantics/trace-032.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_25",
+          "trace_sha256": "e6d6ae3cc14a14c8a55c7ea54e8b5c4c00bd8da65bc8a2ac4779ffc6f1bdf83c",
+          "output": {
+            "path": "A2/semantics/trace-033.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_26",
+          "trace_sha256": "c965fcdc9152f6da940096f0307b047df7dc5072cefc06aa2e1172a936aca638",
+          "output": {
+            "path": "A2/semantics/trace-034.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_27",
+          "trace_sha256": "6883df5cddd83a080899249c935b0cb2e718c4db563088fc1492441c98bda341",
+          "output": {
+            "path": "A2/semantics/trace-035.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_28",
+          "trace_sha256": "1c86fd02a44c45cbd95adde054808e3d3ee3181463e877f25f9f96fd31ec4b61",
+          "output": {
+            "path": "A2/semantics/trace-036.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_29",
+          "trace_sha256": "4b67c07608075309946ccd022d0c4d261ac2a624e295a045d189699ca1fe6db4",
+          "output": {
+            "path": "A2/semantics/trace-037.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_30",
+          "trace_sha256": "aa91e208153f902039767e654870714d234b0b9784a5e0f6ad67cb06d9e49c6e",
+          "output": {
+            "path": "A2/semantics/trace-038.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_31",
+          "trace_sha256": "ebf145d87a7f64b58214b211ebe87d430b87baf7724f1c1e187f5a61a534a0a6",
+          "output": {
+            "path": "A2/semantics/trace-039.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_32",
+          "trace_sha256": "d61e4a2c45fbc10efdcf08bde83d4bacb91518690fb546027bbffa3f1b4141e6",
+          "output": {
+            "path": "A2/semantics/trace-040.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_33",
+          "trace_sha256": "27a2551e0d174d6ca96e5337e82cfe987224bff62a7044d9b9879b52c548f1f2",
+          "output": {
+            "path": "A2/semantics/trace-041.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_34",
+          "trace_sha256": "485056f096439ec35e7efc6308863c78bc6b785be69fb78d190d553865752324",
+          "output": {
+            "path": "A2/semantics/trace-042.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_35",
+          "trace_sha256": "eb9a4c6e084db8a57aab1f86c2f0ba3137f53ab13c26b676e54200ae26be7f97",
+          "output": {
+            "path": "A2/semantics/trace-043.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_36",
+          "trace_sha256": "eb843a737beb7f1bd88b4d4052685d4106098f9730dbeaaa935ee357cf63050b",
+          "output": {
+            "path": "A2/semantics/trace-044.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_37",
+          "trace_sha256": "6f3a552e165a1757ba4342d2304ff28e10f6cf865a2c01d9202e94e54a71bb9e",
+          "output": {
+            "path": "A2/semantics/trace-045.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_38",
+          "trace_sha256": "e6ec3d2b40afc22279f73ce3339c326008f9aeea22f9fd0347621ba6148fba8f",
+          "output": {
+            "path": "A2/semantics/trace-046.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_39",
+          "trace_sha256": "300cdedec2c2680ab2e334ecaec7ed0a82eab040dcb6e031a2c5d78a45ec3a58",
+          "output": {
+            "path": "A2/semantics/trace-047.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_40",
+          "trace_sha256": "40f58508f0c05e81b3f33080269b8ea1cdbe37e6309425bf2e977aa1a1947a53",
+          "output": {
+            "path": "A2/semantics/trace-048.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_41",
+          "trace_sha256": "447fedbb2d7da07aff6be449cdf21c5887bd0bda4780a25f8fa6c295f9aa9bb7",
+          "output": {
+            "path": "A2/semantics/trace-049.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_42",
+          "trace_sha256": "6fa55bae9f6618ca8807685e7df8acffa98b4d7140d74add02964da359b6e986",
+          "output": {
+            "path": "A2/semantics/trace-050.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_43",
+          "trace_sha256": "0f0e3c18103f9a31e3941b4e56786e3d2e6fb4f7ced5594c16da793673be9598",
+          "output": {
+            "path": "A2/semantics/trace-051.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_44",
+          "trace_sha256": "3861e2ec593b9a3bc179cca87c47af45f67fb7df5cd1a51123b080a92754c7b1",
+          "output": {
+            "path": "A2/semantics/trace-052.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_45",
+          "trace_sha256": "ae69f66162b3b60c1ed74d7e478dd1af6455fc5bc5f52c553a53683cc9d7ccce",
+          "output": {
+            "path": "A2/semantics/trace-053.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_46",
+          "trace_sha256": "f7a62c05d66754e718ce755000afc07edd800549713eb56c02cc5234afcedadf",
+          "output": {
+            "path": "A2/semantics/trace-054.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_47",
+          "trace_sha256": "d928b70d6f94929b720135b9ed177e21071d7e7d2f90e43617b34fbdaad0f3b4",
+          "output": {
+            "path": "A2/semantics/trace-055.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_48",
+          "trace_sha256": "421f542c8f6da42c73f34d560309d7b92bf7dc8195b3d46330da4d5f2f10740c",
+          "output": {
+            "path": "A2/semantics/trace-056.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_49",
+          "trace_sha256": "1af940efc95fdf0a0e07c5f4600f7d81bc09e652c235475df75df566f7a1ee2e",
+          "output": {
+            "path": "A2/semantics/trace-057.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_50",
+          "trace_sha256": "953d817de1d677711607a6856949188a68b2eac018c5c6e444c6f9875bc202fa",
+          "output": {
+            "path": "A2/semantics/trace-058.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_51",
+          "trace_sha256": "8cb3f28dfca59756b5721e1cc6907c41cecedd8ab0a7e33b7f3ad1d6974552df",
+          "output": {
+            "path": "A2/semantics/trace-059.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_52",
+          "trace_sha256": "19bb95b3c1a511093f763d8833f6cea323f3df643beb47dfe6797be1be483046",
+          "output": {
+            "path": "A2/semantics/trace-060.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_53",
+          "trace_sha256": "00439bce5aa64babe8145bf9cade5fe4045bf26b72a4f5e0e31cf95092304ead",
+          "output": {
+            "path": "A2/semantics/trace-061.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_54",
+          "trace_sha256": "c1e0115d9aad3faefc7fea94d90669ddbb906148992dcea1bd92a7f749007e6a",
+          "output": {
+            "path": "A2/semantics/trace-062.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_55",
+          "trace_sha256": "462229ecd73e9a46d02018960ef76a95d9009864fa263ac789af56d55ffa12d7",
+          "output": {
+            "path": "A2/semantics/trace-063.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_56",
+          "trace_sha256": "3c3973dfc498783b563db6cb2fc4ebe84a4b158f313994f9efce1e7d736f736d",
+          "output": {
+            "path": "A2/semantics/trace-064.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_57",
+          "trace_sha256": "96a1b0190d55a45a2da0f125ce0936be1fa794e01ff229cca933399b2adb94fa",
+          "output": {
+            "path": "A2/semantics/trace-065.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_58",
+          "trace_sha256": "3337e875c5e181860df4f9071190607c28a5c34009f56c7e1317e23c7e97881a",
+          "output": {
+            "path": "A2/semantics/trace-066.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_59",
+          "trace_sha256": "e3bea5b0a55a8ba3aabbed64cb59d8138f7dfb3d86ac056aec8fe97f0833b98f",
+          "output": {
+            "path": "A2/semantics/trace-067.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_60",
+          "trace_sha256": "61431807f2ee42c20292de6c2fcd8b8d687e4d4ed65757d3f5ce538850ae949a",
+          "output": {
+            "path": "A2/semantics/trace-068.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_61",
+          "trace_sha256": "7edeed280843f26260174f51563181ab4f92f886dac90a76bf430e3df7b9137c",
+          "output": {
+            "path": "A2/semantics/trace-069.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_62",
+          "trace_sha256": "f0210c9659196c1edd8db01390d04d647e26941848a2fda56e60abf6e233d2d8",
+          "output": {
+            "path": "A2/semantics/trace-070.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_37",
+          "trace_sha256": "4e4e0aafa7f611fa17bb70824d9ae4e63c29656e7e7a74ae49e173a8a36065f5",
+          "output": {
+            "path": "A2/semantics/trace-071.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_53",
+          "trace_sha256": "1ad44eaa4b12bc6382271ab86ea1bcb114201cc786a2d0f241db1cfaaae3f2c8",
+          "output": {
+            "path": "A2/semantics/trace-072.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_71",
+          "trace_sha256": "c37fc4725810ab84a3b622d9ff91ff22b5c92870ab17fff48b2403e181bf5981",
+          "output": {
+            "path": "A2/semantics/trace-073.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_89",
+          "trace_sha256": "5c1a3ce0d54946a1438bef98112c585e6143e7b221b3de989c007f3aaab14033",
+          "output": {
+            "path": "A2/semantics/trace-074.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_107",
+          "trace_sha256": "5d0c6129cbde253075d5536b43fba179a43218107aff84b304b100d828cbec9d",
+          "output": {
+            "path": "A2/semantics/trace-075.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_127",
+          "trace_sha256": "a9dc22d58302e17060009dfb507d1345bb2784980917de93fabdda1ead8b0c64",
+          "output": {
+            "path": "A2/semantics/trace-076.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        }
+      ],
+      "performance": [
+        {
+          "side": "baseline",
+          "trial": 1,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 1,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 2,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 2,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 3,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 3,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 4,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 4,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 5,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 5,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 6,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 6,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 7,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 7,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 8,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 8,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": null,
+          "phase": "quality",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        }
+      ],
+      "artifact_sha256": null,
+      "raw_outputs_complete": false
+    },
+    "A3": {
+      "status": "recorded",
+      "semantics": [
+        {
+          "trace_id": "grader_cross_request",
+          "trace_sha256": "fb7d51b05a6617f71438f79bdf0426c33a5d1f8f735476ee43b36d1130308280",
+          "output": {
+            "path": "A3/semantics/trace-000.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_unknown_preallocation",
+          "trace_sha256": "2e9ba1795728ca7d5cb7980624901777ae9ed9a5fe45ece4ddf8b6f6fa6b48d4",
+          "output": {
+            "path": "A3/semantics/trace-001.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_reused_blocks",
+          "trace_sha256": "2282bdd7bcba42b692ab9799ced08ec4cd410a3519991b002c162d20ee45e79d",
+          "output": {
+            "path": "A3/semantics/trace-002.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_generation_rules",
+          "trace_sha256": "5ea6b47edad28235aba64e444a4ec6fd6ebe7ae4ce8cbca2771b3d8fa9efba79",
+          "output": {
+            "path": "A3/semantics/trace-003.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_atomic_block_history",
+          "trace_sha256": "851c11c49c30068c78a0b55f300eae5a5c6d5d1e0ef2dc88a83fea68331d7230",
+          "output": {
+            "path": "A3/semantics/trace-004.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_stable_survivors",
+          "trace_sha256": "010d649ed8730ede968f8fc3685b7c4b564adb7021e9dcde284f3337d78dd8ed",
+          "output": {
+            "path": "A3/semantics/trace-005.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_empty_id_and_large_values",
+          "trace_sha256": "d85ccd1900e2e5891a7b016bb0cfcc2228436994c1b0355c8cdcea7d86ddba9b",
+          "output": {
+            "path": "A3/semantics/trace-006.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_frontier_atomic",
+          "trace_sha256": "70cc816bfa699b9f34f1f60d1f10aeb1a6d5d67c9640f93212b73d6ef2e6a918",
+          "output": {
+            "path": "A3/semantics/trace-007.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_00",
+          "trace_sha256": "7fa38b46ae6937ac682a30bee328a0dbcb47e8199c70f4813e1bdfddb23bf981",
+          "output": {
+            "path": "A3/semantics/trace-008.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_01",
+          "trace_sha256": "3630e42081fb483f6f5ae6beab251e793a869d4b912a5e191e2cb877078ecd00",
+          "output": {
+            "path": "A3/semantics/trace-009.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_02",
+          "trace_sha256": "335dd0dcbb415ed5326d00e5066f230fdf1d2a7282c06ae833a0f07b2a70e719",
+          "output": {
+            "path": "A3/semantics/trace-010.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_03",
+          "trace_sha256": "384edf1353ff0297a7d38284f0c87c5565a217eda714ee8084efda6a3ed10053",
+          "output": {
+            "path": "A3/semantics/trace-011.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_04",
+          "trace_sha256": "fba3e924889618c09d3a47954e7993bc9631a15cff8f2f38124f785173571af3",
+          "output": {
+            "path": "A3/semantics/trace-012.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_05",
+          "trace_sha256": "91346a37e1b0a4ee2b6db507602843fedc773b78095f1412c23cf1cefd759966",
+          "output": {
+            "path": "A3/semantics/trace-013.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_06",
+          "trace_sha256": "956d200e1f393718754ee738db71afaa1dcf0a3179849c4b638f5c889d5e32ca",
+          "output": {
+            "path": "A3/semantics/trace-014.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_07",
+          "trace_sha256": "e975919f84ddb20334e1ccd7829d204c2327b59bc998c6a5fb6da87dd9c493e4",
+          "output": {
+            "path": "A3/semantics/trace-015.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_08",
+          "trace_sha256": "79fcac2536c0d6533099a3ab03a748cfbb285f00cb9ab442005762bd0326c92a",
+          "output": {
+            "path": "A3/semantics/trace-016.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_09",
+          "trace_sha256": "635e4cce84f0ce0b4280f3c0a19eb64798f2c983f462f8f5f260b1739e2e2623",
+          "output": {
+            "path": "A3/semantics/trace-017.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_10",
+          "trace_sha256": "94c7076f1f31d61fb9f1982f8ff19fadba76bcd98c857329ade14167090ec325",
+          "output": {
+            "path": "A3/semantics/trace-018.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_11",
+          "trace_sha256": "e1bd56e6e7d7da9f4878df5c731ab67b1e8519d4f0c936a7abc2df4700d223ed",
+          "output": {
+            "path": "A3/semantics/trace-019.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_12",
+          "trace_sha256": "0b44388d6d74ca9126ec4d8c9a13afdc3c7b74b1ea6442a1677c9049c07ab800",
+          "output": {
+            "path": "A3/semantics/trace-020.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_13",
+          "trace_sha256": "26c33302bfa109e0754dbd151e72ece34e1c62833b3c68804663066ba0932df1",
+          "output": {
+            "path": "A3/semantics/trace-021.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_14",
+          "trace_sha256": "6068cf7771d61c34fae263333a677d8b7b20bae831423c3c7c5f2e9c092ecf67",
+          "output": {
+            "path": "A3/semantics/trace-022.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_15",
+          "trace_sha256": "44fa6d1e7c70ebcae68d388821cb93ad487d75043f31a5c02b0f0307f43278a6",
+          "output": {
+            "path": "A3/semantics/trace-023.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_16",
+          "trace_sha256": "36da8c64ace712c66b2d6af0ed0abb6ea6de0ab6c30c551e301bb8c6782abf76",
+          "output": {
+            "path": "A3/semantics/trace-024.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_17",
+          "trace_sha256": "42ea3ef45b61365d2a4b2923cc439f1e1fd8fa04512d6fda9773af68b79cd562",
+          "output": {
+            "path": "A3/semantics/trace-025.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_18",
+          "trace_sha256": "776306895b3cbe7cff26c63cd0aa8d81605a13defa38421ded879041f978be98",
+          "output": {
+            "path": "A3/semantics/trace-026.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_19",
+          "trace_sha256": "be1311980782a1faef1b83fdd8fd8d1e80d0ddb7849687ad031fa092dc630e1e",
+          "output": {
+            "path": "A3/semantics/trace-027.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_20",
+          "trace_sha256": "d8f88feb7821600400e57ebd815da6e0311d20e3ca56b1e83f61206d9533585f",
+          "output": {
+            "path": "A3/semantics/trace-028.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_21",
+          "trace_sha256": "f19cc428db2a227540e9a64c02835be75c259cd4a727317764bc01434c89c538",
+          "output": {
+            "path": "A3/semantics/trace-029.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_22",
+          "trace_sha256": "d009f54be4dc7252449679278373407870aec844f1dfe8618cb1c788e05c9d58",
+          "output": {
+            "path": "A3/semantics/trace-030.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_23",
+          "trace_sha256": "c409cd9c97862ddf338d041ee52ecb284fa5776ec08226f483b9d95195121192",
+          "output": {
+            "path": "A3/semantics/trace-031.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_24",
+          "trace_sha256": "ab00947ae7443278c4c359ed3eb096cca4c0e7e30b0006e8484c82f02c92af57",
+          "output": {
+            "path": "A3/semantics/trace-032.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_25",
+          "trace_sha256": "e6d6ae3cc14a14c8a55c7ea54e8b5c4c00bd8da65bc8a2ac4779ffc6f1bdf83c",
+          "output": {
+            "path": "A3/semantics/trace-033.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_26",
+          "trace_sha256": "c965fcdc9152f6da940096f0307b047df7dc5072cefc06aa2e1172a936aca638",
+          "output": {
+            "path": "A3/semantics/trace-034.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_27",
+          "trace_sha256": "6883df5cddd83a080899249c935b0cb2e718c4db563088fc1492441c98bda341",
+          "output": {
+            "path": "A3/semantics/trace-035.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_28",
+          "trace_sha256": "1c86fd02a44c45cbd95adde054808e3d3ee3181463e877f25f9f96fd31ec4b61",
+          "output": {
+            "path": "A3/semantics/trace-036.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_29",
+          "trace_sha256": "4b67c07608075309946ccd022d0c4d261ac2a624e295a045d189699ca1fe6db4",
+          "output": {
+            "path": "A3/semantics/trace-037.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_30",
+          "trace_sha256": "aa91e208153f902039767e654870714d234b0b9784a5e0f6ad67cb06d9e49c6e",
+          "output": {
+            "path": "A3/semantics/trace-038.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_31",
+          "trace_sha256": "ebf145d87a7f64b58214b211ebe87d430b87baf7724f1c1e187f5a61a534a0a6",
+          "output": {
+            "path": "A3/semantics/trace-039.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_32",
+          "trace_sha256": "d61e4a2c45fbc10efdcf08bde83d4bacb91518690fb546027bbffa3f1b4141e6",
+          "output": {
+            "path": "A3/semantics/trace-040.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_33",
+          "trace_sha256": "27a2551e0d174d6ca96e5337e82cfe987224bff62a7044d9b9879b52c548f1f2",
+          "output": {
+            "path": "A3/semantics/trace-041.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_34",
+          "trace_sha256": "485056f096439ec35e7efc6308863c78bc6b785be69fb78d190d553865752324",
+          "output": {
+            "path": "A3/semantics/trace-042.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_35",
+          "trace_sha256": "eb9a4c6e084db8a57aab1f86c2f0ba3137f53ab13c26b676e54200ae26be7f97",
+          "output": {
+            "path": "A3/semantics/trace-043.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_36",
+          "trace_sha256": "eb843a737beb7f1bd88b4d4052685d4106098f9730dbeaaa935ee357cf63050b",
+          "output": {
+            "path": "A3/semantics/trace-044.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_37",
+          "trace_sha256": "6f3a552e165a1757ba4342d2304ff28e10f6cf865a2c01d9202e94e54a71bb9e",
+          "output": {
+            "path": "A3/semantics/trace-045.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_38",
+          "trace_sha256": "e6ec3d2b40afc22279f73ce3339c326008f9aeea22f9fd0347621ba6148fba8f",
+          "output": {
+            "path": "A3/semantics/trace-046.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_39",
+          "trace_sha256": "300cdedec2c2680ab2e334ecaec7ed0a82eab040dcb6e031a2c5d78a45ec3a58",
+          "output": {
+            "path": "A3/semantics/trace-047.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_40",
+          "trace_sha256": "40f58508f0c05e81b3f33080269b8ea1cdbe37e6309425bf2e977aa1a1947a53",
+          "output": {
+            "path": "A3/semantics/trace-048.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_41",
+          "trace_sha256": "447fedbb2d7da07aff6be449cdf21c5887bd0bda4780a25f8fa6c295f9aa9bb7",
+          "output": {
+            "path": "A3/semantics/trace-049.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_42",
+          "trace_sha256": "6fa55bae9f6618ca8807685e7df8acffa98b4d7140d74add02964da359b6e986",
+          "output": {
+            "path": "A3/semantics/trace-050.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_43",
+          "trace_sha256": "0f0e3c18103f9a31e3941b4e56786e3d2e6fb4f7ced5594c16da793673be9598",
+          "output": {
+            "path": "A3/semantics/trace-051.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_44",
+          "trace_sha256": "3861e2ec593b9a3bc179cca87c47af45f67fb7df5cd1a51123b080a92754c7b1",
+          "output": {
+            "path": "A3/semantics/trace-052.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_45",
+          "trace_sha256": "ae69f66162b3b60c1ed74d7e478dd1af6455fc5bc5f52c553a53683cc9d7ccce",
+          "output": {
+            "path": "A3/semantics/trace-053.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_46",
+          "trace_sha256": "f7a62c05d66754e718ce755000afc07edd800549713eb56c02cc5234afcedadf",
+          "output": {
+            "path": "A3/semantics/trace-054.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_47",
+          "trace_sha256": "d928b70d6f94929b720135b9ed177e21071d7e7d2f90e43617b34fbdaad0f3b4",
+          "output": {
+            "path": "A3/semantics/trace-055.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_48",
+          "trace_sha256": "421f542c8f6da42c73f34d560309d7b92bf7dc8195b3d46330da4d5f2f10740c",
+          "output": {
+            "path": "A3/semantics/trace-056.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_49",
+          "trace_sha256": "1af940efc95fdf0a0e07c5f4600f7d81bc09e652c235475df75df566f7a1ee2e",
+          "output": {
+            "path": "A3/semantics/trace-057.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_50",
+          "trace_sha256": "953d817de1d677711607a6856949188a68b2eac018c5c6e444c6f9875bc202fa",
+          "output": {
+            "path": "A3/semantics/trace-058.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_51",
+          "trace_sha256": "8cb3f28dfca59756b5721e1cc6907c41cecedd8ab0a7e33b7f3ad1d6974552df",
+          "output": {
+            "path": "A3/semantics/trace-059.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_52",
+          "trace_sha256": "19bb95b3c1a511093f763d8833f6cea323f3df643beb47dfe6797be1be483046",
+          "output": {
+            "path": "A3/semantics/trace-060.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_53",
+          "trace_sha256": "00439bce5aa64babe8145bf9cade5fe4045bf26b72a4f5e0e31cf95092304ead",
+          "output": {
+            "path": "A3/semantics/trace-061.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_54",
+          "trace_sha256": "c1e0115d9aad3faefc7fea94d90669ddbb906148992dcea1bd92a7f749007e6a",
+          "output": {
+            "path": "A3/semantics/trace-062.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_55",
+          "trace_sha256": "462229ecd73e9a46d02018960ef76a95d9009864fa263ac789af56d55ffa12d7",
+          "output": {
+            "path": "A3/semantics/trace-063.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_56",
+          "trace_sha256": "3c3973dfc498783b563db6cb2fc4ebe84a4b158f313994f9efce1e7d736f736d",
+          "output": {
+            "path": "A3/semantics/trace-064.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_57",
+          "trace_sha256": "96a1b0190d55a45a2da0f125ce0936be1fa794e01ff229cca933399b2adb94fa",
+          "output": {
+            "path": "A3/semantics/trace-065.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_58",
+          "trace_sha256": "3337e875c5e181860df4f9071190607c28a5c34009f56c7e1317e23c7e97881a",
+          "output": {
+            "path": "A3/semantics/trace-066.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_59",
+          "trace_sha256": "e3bea5b0a55a8ba3aabbed64cb59d8138f7dfb3d86ac056aec8fe97f0833b98f",
+          "output": {
+            "path": "A3/semantics/trace-067.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_60",
+          "trace_sha256": "61431807f2ee42c20292de6c2fcd8b8d687e4d4ed65757d3f5ce538850ae949a",
+          "output": {
+            "path": "A3/semantics/trace-068.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_61",
+          "trace_sha256": "7edeed280843f26260174f51563181ab4f92f886dac90a76bf430e3df7b9137c",
+          "output": {
+            "path": "A3/semantics/trace-069.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_invalid_62",
+          "trace_sha256": "f0210c9659196c1edd8db01390d04d647e26941848a2fda56e60abf6e233d2d8",
+          "output": {
+            "path": "A3/semantics/trace-070.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_37",
+          "trace_sha256": "4e4e0aafa7f611fa17bb70824d9ae4e63c29656e7e7a74ae49e173a8a36065f5",
+          "output": {
+            "path": "A3/semantics/trace-071.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_53",
+          "trace_sha256": "1ad44eaa4b12bc6382271ab86ea1bcb114201cc786a2d0f241db1cfaaae3f2c8",
+          "output": {
+            "path": "A3/semantics/trace-072.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_71",
+          "trace_sha256": "c37fc4725810ab84a3b622d9ff91ff22b5c92870ab17fff48b2403e181bf5981",
+          "output": {
+            "path": "A3/semantics/trace-073.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_89",
+          "trace_sha256": "5c1a3ce0d54946a1438bef98112c585e6143e7b221b3de989c007f3aaab14033",
+          "output": {
+            "path": "A3/semantics/trace-074.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_107",
+          "trace_sha256": "5d0c6129cbde253075d5536b43fba179a43218107aff84b304b100d828cbec9d",
+          "output": {
+            "path": "A3/semantics/trace-075.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        },
+        {
+          "trace_id": "grader_seed_127",
+          "trace_sha256": "a9dc22d58302e17060009dfb507d1345bb2784980917de93fabdda1ead8b0c64",
+          "output": {
+            "path": "A3/semantics/trace-076.json",
+            "status": "missing_or_unreadable",
+            "reason": "unavailable",
+            "bytes": null,
+            "sha256": null,
+            "truncated": null
+          },
+          "check": null,
+          "execution": {
+            "status": "unavailable"
+          }
+        }
+      ],
+      "performance": [
+        {
+          "side": "baseline",
+          "trial": 1,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 1,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 2,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 2,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 3,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 3,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 4,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 4,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 5,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 5,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 6,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 6,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 7,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 7,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": 8,
+          "phase": "measurement",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "baseline",
+          "trial": 8,
+          "phase": "measurement",
+          "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        },
+        {
+          "side": "candidate",
+          "trial": null,
+          "phase": "quality",
+          "source_sha256": null,
+          "input_sha256": "96bdc15992a540698d666f58c4efb8c46a547456a87e073c6d355430c522f8cf",
+          "expected_sha256": "e5e74bd953f083a1182136e39b0a61991f53fa7d64eab3c6ca654c1140ed718e",
+          "execution": {
+            "status": "unavailable"
+          },
+          "source_verified": false,
+          "output": {
+            "status": "not_observed"
+          }
+        }
+      ],
+      "artifact_sha256": null,
+      "raw_outputs_complete": false
+    }
+  },
+  "execution": {
+    "implementation_sha": "3ece458ceaa92c5dad8d8e0b1e782a6961400b96",
+    "run_id": "41159550621",
+    "execution_id": "kv-reclamation-one-pair-1",
+    "charge_pr": 275,
+    "charge_head": "5af3553683137582d624379d26c2c5f7cc9e2785"
+  }
+}

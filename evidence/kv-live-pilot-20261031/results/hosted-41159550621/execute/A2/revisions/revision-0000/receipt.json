@@ -1,0 +1,9 @@
+{
+  "plan_sha256": "b66130352cce6fb6201561d3a026a7a78d800ac0f84ecb899f57a0906ffa4767",
+  "execution_id": "kv-reclamation-one-pair-1",
+  "arm": "A2",
+  "artifact": "candidate.py",
+  "revision": 0,
+  "sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+  "actor_sha256": "5693406e41f85324a3ba702405c664651e066a31f0245948f18022e69f784628"
+}
