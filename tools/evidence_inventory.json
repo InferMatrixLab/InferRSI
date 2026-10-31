@@ -5,7 +5,10 @@
       "kind": "campaign",
       "manifests": [
         {"path": "plan/client-manifest.json", "schema": "historical-sha256",
-         "files": {"run_client.py": {"local": "evidence/h3-ref2va-ascend-293/plan/run_client.py"}}},
+         "files": {
+           "run_client.py": {"local": "evidence/h3-ref2va-ascend-293/plan/run_client.py"},
+           "probe_cache_counter.py": {"local": "evidence/h3-ref2va-ascend-293/plan/probe_cache_counter.py"}
+         }},
         {
           "path": "validator/manifest.json",
           "schema": "historical-sha256",

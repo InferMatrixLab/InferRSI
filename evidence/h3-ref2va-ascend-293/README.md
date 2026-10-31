@@ -224,3 +224,23 @@ peak was 26,912 MiB (10-second samples across the whole lifecycle).
 Diagnostic cleanup took 26.29 s with no forced signals and zero server/container
 exit codes; individual worker exits were not captured. The residency + upstream
 high-quality cache combination is being screened separately.
+
+
+The [residency + high-cache combination](results/resident-cachedit-screening.json)
+also passed [matched quality](results/resident-cachedit-quality.json): SSIM
+0.985825, PSNR 46.06 dB, LPIPS 0.01616, audio cosine 0.99744. It recorded
+317.03 s warmup and 261.40 s measured E2E (175.87 s denoise, 4.42 s decode),
+with the same single-warmup peer-tail limitation. Both requests reported 27
+cached steps. These numbers are not additive component gains or final ranking.
+
+## Installed Cache-DiT counter observation
+
+The high profile is configured as MC1, but its NPU summaries include adjacent
+cached steps. A [CPU-only probe](plan/probe_cache_counter.py) of the installed
+Cache-DiT 1.5.0 `CachedContext.add_cached_step` reproduces counters 1, 0, 2 for
+cache hits at steps 4, 6, 7 after explicitly simulating the manager reset at the
+intervening full-compute step. The [receipt](results/cache-counter-probe.json)
+pins the installed source and probe hashes and records exit 0. This is a narrow
+counter observation, not a full policy-correctness verdict or performance test.
+No backend patch was applied. Preserve both configured values and actual hit
+indices rather than treating the profile name as proof of a strict skip limit.
