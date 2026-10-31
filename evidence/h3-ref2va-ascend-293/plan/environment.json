@@ -1,0 +1,20 @@
+{
+  "image": "quay.io/ascend/vllm-omni:nightly-20261022-6b35bca",
+  "image_id": "sha256:7fc6c73bd19a6ef4ee8d6048009972234796a1fc1bd3067168a425343cc476f7",
+  "packages": {
+    "torch": "2.10.0+cpu",
+    "torch-npu": "2.10.0.post4",
+    "vllm": "0.32.0+empty",
+    "mindiesd": "3.1.0",
+    "transformers": "5.19.0",
+    "diffusers": "0.40.0",
+    "cache-dit": "1.5.0"
+  },
+  "quality_optional_packages": {
+    "lpips": "0.1.4"
+  },
+  "device": "Ascend 910B1",
+  "device_count": 8,
+  "memory_per_device_mib": 65536,
+  "ownership": "Container label must match actual host UID and reservation holder; plugin library primary group required by installed MindIE-SD. Private identity values are omitted."
+}

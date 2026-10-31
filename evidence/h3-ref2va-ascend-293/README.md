@@ -58,6 +58,9 @@ claims need their own retained evidence.
 1. Inspect current source before importing old optimization patches: distinguish
    a missing implementation from an existing option needing qualification.
 2. Qualify the execution identity and runtime before spending full-model time.
+   A native HCCL TLS initialization failure was traced to a missing passwd UID
+   entry; setting Python USER/LOGNAME alone was insufficient. Eight-rank all-reduce
+   passed after supplying the entry. This is runtime qualification, not a model gain.
    Shared-NPU reservations depend on real process ownership; a display label is
    insufficient. Library ownership checks may use primary rather than supplemental
    groups; retain the actual failure and repair in environment evidence.
