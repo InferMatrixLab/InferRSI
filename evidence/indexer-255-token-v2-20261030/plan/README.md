@@ -1,3 +1,0 @@
-CPU-only single fixed ranking candidate. The accepted prospective protocol is preserved verbatim. Development semantic inputs retain their original draft-status text for byte provenance; coordinator acceptance is recorded in accepted-protocol.json and source hashes. Heldout content is intentionally absent and was never run: the development MRR gate failed, so the coordinator stopped promotion and heldout evaluation. No timing campaign, services or model execution.
-
-The validator scripts are the exact scripts used for development evaluation/default capture. Independent-review.json is a supplemental post-run audit, not a prospective validator. The candidate commit was frozen after development and before any heldout (which remained unused).

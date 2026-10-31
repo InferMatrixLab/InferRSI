@@ -1,1 +1,0 @@
-With Dk=32 and useKernel true, caller declares unmasked kernel available but masked unavailable and supplies mask[B,T]. They expect automatic ops fallback, all masked Y zero equivalence, and shape alone to prove slice support.

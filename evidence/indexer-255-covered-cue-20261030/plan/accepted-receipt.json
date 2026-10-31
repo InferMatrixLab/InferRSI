@@ -1,8 +1,0 @@
-{
-  "status": "ACCEPTED_BEFORE_CAPSULES_AND_CASES",
-  "at_utc": "2026-10-30T03:43:39.735991+00:00",
-  "protocol_sha256": "4512e1ea3d56235b207e4926c0ed84e8eb3022a461830c919ad29810ee27b026",
-  "baseline": "6e6ee245d9e92ee9365976f2e4e262304999f147",
-  "all_six_source_supported_required": true,
-  "previous_results_unchanged": true
-}

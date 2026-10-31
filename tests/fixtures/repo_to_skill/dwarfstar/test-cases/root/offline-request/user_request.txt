@@ -1,1 +1,0 @@
-I have an already-installed DwarfStar server but do not want any network requests yet. Prepare a deterministic short Chat Completions JSON body for an API alias named local-model. Does changing the alias select a new GGUF?

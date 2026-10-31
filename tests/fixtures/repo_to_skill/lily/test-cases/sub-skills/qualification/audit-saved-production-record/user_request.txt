@@ -1,1 +1,0 @@
-I have a saved Lily production benchmark JSON and its expected full source SHA and decode count. I want an offline consistency check only: source identity, production versus diagnostic fields, finite timings, interval/token counts and token digest. Can the bundled helper do this without MLX, model files or process inspection, and would success prove the GPU run happened?

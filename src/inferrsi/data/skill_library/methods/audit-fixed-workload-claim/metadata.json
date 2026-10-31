@@ -1,9 +1,0 @@
-{
-  "status": "candidate",
-  "origin": ["internal"],
-  "tags": ["performance", "audit", "measurement"],
-  "empirical_validation": "not_run",
-  "limitations": [
-    "Guidance for supplied reports; no local efficacy validation or measured performance gain is established."
-  ]
-}

@@ -1,5 +1,0 @@
-# Content refinement
-
-Reviewed the integrated root/three routes and helper/source contracts. Kept decode specialization predicate distinct from actual variant/dispatch and scratch; prefill context-independent formula distinct from total memory; packed mask coordinates and chunk-before-range precedence explicit; model preparation/pipeline cache distinct from real numerical evidence. Removed unbundled source-test execution instructions from runtime and retained them only in the external native-candidate report. Source notices preserved byte-for-byte. No native test or compiler check is relabeled passed.
-
-Adversarial follow-up found two support-only issues before publication: giant integer softcap was implicitly float-converted by math.isfinite (API OverflowError; CLI already contained it), and file paths could block on a named FIFO. Final helpers retain positive integer semantics without float conversion and reject known non-regular input paths before opening. This is a bounded convenience guard, not an atomic filesystem security boundary. No native result changed.
