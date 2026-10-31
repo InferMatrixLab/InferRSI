@@ -1,0 +1,15 @@
+{
+  "purpose": "Decode-graph optimization campaign for Drama-3 on Ascend 910B1; RTF targets are recorded, not claimed",
+  "hypothesis": "Drama-3 stage 0 samples one whole frame per stream per step, so decode is launch-bound; replaying decode as a single FULL ACL graph should cut single-stream RTF and raise frames/s without changing outputs",
+  "isolated_variable": "stage-0 NPU compilation_config.cudagraph_mode: PIECEWISE vs FULL_AND_PIECEWISE",
+  "control_revision": "<baseline-sha-from-acceptance-issue>",
+  "candidate_revision": "<candidate-sha-from-acceptance-issue>",
+  "engine_revision": "vLLM-Omni 0.32.0 nightly 2026-10-22 image; vLLM-Ascend 0.19.1rc2; CANN 9.1.0",
+  "devices": "2x Ascend 910B1 (A2), stage 0 TP2 + EP on devices 0,1; DAC stage 1 on device 1",
+  "protocol": "fishaudio/drama-3, streaming /v1/audio/speech, Seed-TTS-Eval en, one fixed pre-encoded reference (85 frames x 10 codebooks), max_tokens=500, 64 prompts, 1 warmup, concurrency 1..64",
+  "metrics": "frames/s = audio_s x 21.5 / wall; RTF = (end - start) / audio_s including queueing and prefill; TTFA from first SSE audio event",
+  "targets": {"rtf_mean_c1_lt": 0.1, "rtf_mean_c64_lt": 1.0},
+  "success": "C1 RTF mean improves by at least 20% with no request failures and no change to sampling semantics",
+  "stop": "Stop on stage-0 readiness failure, request failures above 1 percent, or host load above twice the quiet baseline",
+  "notes": "Host is shared (load average 15-20); single readings of C8-C32 are not comparable across tables. Only the FULL-graph change is in the candidate; the causal_conv1d_update binding was tested and rejected."
+}
