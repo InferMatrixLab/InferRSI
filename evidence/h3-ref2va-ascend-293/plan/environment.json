@@ -16,5 +16,5 @@
   "device": "Ascend 910B1",
   "device_count": 8,
   "memory_per_device_mib": 65536,
-  "ownership": "Container label must match actual host UID and reservation holder; plugin library primary group required by installed MindIE-SD. Private identity values are omitted."
+  "ownership": "Container scheduler label and actual UID match the reservation holder. NSS passwd resolves this UID for native HCCL TLS initialization. MindIE-SD and sibling mindiesd.libs are copied byte-for-byte into a runtime directory owned by this UID; the container uses primary GID 1000 and preserves CANN/TBE PYTHONPATH. Private identity values are omitted."
 }

@@ -14,6 +14,7 @@ published tree; public artifacts use labelled paths and hashes.
 | Candidate family | Source at the frozen baseline | Experiment requirement |
 | --- | --- | --- |
 | Component residency / weight transfer | [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/recipes/MiniMaxAI/minimax-h3-ref2va-8-rank-resident.yaml) | Measure transfer/encode/decode separately; resident layers require rank-local transfer, so compare that changed transfer strategy explicitly. |
+| HSDP weight residency | [FSDP2 loader](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/distributed/hsdp.py) | Existing generic NPU-capable path; qualify H3 load-time memory, 8-rank USP interaction, output parity and latency before recommending it. |
 | Exact AdaLN projection reuse | [shared cache](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/cache/exact_projection_cache.py) | Already enabled by default. Do not claim it as new work. Offload can invalidate storage signatures; count actual hits before relying on reuse. |
 | Reference-KV reuse | [reference cache](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache.py) | Approximate across timesteps even with BF16 cache storage. Validate reference refresh, SP layout, host transfer and audio/video quality. |
 | Cache-DiT | [request quality policy](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/models/minimax_h3/quality_policy.py) | Record actual hit counts and refresh policy. Repeated inputs must not hide cross-request cache leakage. |
@@ -70,3 +71,19 @@ claims need their own retained evidence.
 
 These are campaign observations and workflow hypotheses. No controlled experiment
 has yet shown that they improve an optimizer's success rate or search efficiency.
+
+## Bringup qualification
+
+The repaired runtime generated one 2-step, 5-second Ref2VA smoke response
+(HTTP 200, 124 frames, 1344×768, 24 fps, stereo 32 kHz). This is neither
+a 50-step performance sample nor a model quality acceptance. The server and
+container returned zero, but all eight workers needed termination after the
+15-second graceful-exit budget; TBE subprocess and resource-tracker warnings
+followed. Lifecycle remains INCONCLUSIVE.
+
+An isolated import probe found that the installed vLLM runtime leaves fresh
+workers with no vLLM logging handler and an effective WARNING level until
+logging is explicitly configured. Pipeline profiling INFO messages are therefore
+missing from the initial launcher's logs. A diagnostic launcher applies the
+installed vLLM LoggingConfig in each spawned process. It is an instrumentation
+change and must not be credited as an inference speedup.

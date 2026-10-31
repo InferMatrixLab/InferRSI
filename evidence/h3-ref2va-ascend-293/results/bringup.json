@@ -64,9 +64,34 @@
     },
     {
       "id": "baseline-smoke-06",
-      "status": "running",
+      "status": "failed",
       "stage": "full-model bringup after collective qualification",
-      "container_exit": null
+      "container_exit": 1,
+      "cause": "Relocated MindIE package omitted its sibling mindiesd.libs native dependency directory",
+      "resolution": "Retain both directories byte-for-byte; qualify import plus collective in all eight ranks before restart"
+    },
+    {
+      "id": "hccl-mindie-combined",
+      "status": "passed",
+      "stage": "MindIE import and all-reduce in all eight ranks",
+      "container_exit": 0
+    },
+    {
+      "id": "baseline-smoke-07",
+      "status": "generated_with_inconclusive_lifecycle",
+      "stage": "full-model bringup",
+      "container_exit": 0,
+      "server_exit": 0,
+      "http_status": 200,
+      "configured_steps": 2,
+      "video_frames": 124,
+      "video_size": [
+        1344,
+        768
+      ],
+      "audio_rate": 32000,
+      "audio_channels": 2,
+      "lifecycle_note": "All eight workers were terminated after the 15 second shutdown grace; TBE subprocess and resource-tracker warnings followed. Container exit zero does not qualify graceful worker teardown. This is a cold smoke, not a performance sample or quality acceptance."
     }
   ],
   "scope": "Runtime preparation only; no model performance or accuracy acceptance",
