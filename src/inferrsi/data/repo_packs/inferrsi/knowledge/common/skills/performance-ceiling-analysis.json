@@ -22,11 +22,12 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/54d4c89d4db82cbfc10d6096fe49bb077136e8b1/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "54d4c89d4db82cbfc10d6096fe49bb077136e8b1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e17a009f4cfaa27119818748421d7b099431f333/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "e17a009f4cfaa27119818748421d7b099431f333",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/flexgen-offload-feasibility.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md",
@@ -49,7 +50,7 @@
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "4810761a3ab1e5e6e000060d9ad140a0e8892937486f2ab384d50868c22b0f11"
+      "content_sha256": "0203dfabd2a02d2ab8f8696b922dcc3df86b3a811352a5bc6cea57aee68e869c"
     }
   ],
   "index_type": "packaged-skill",
@@ -58,8 +59,9 @@
   },
   "checkout_ref": "checkout:performance-ceiling-analysis",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "4810761a3ab1e5e6e000060d9ad140a0e8892937486f2ab384d50868c22b0f11",
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "3fcd2126846cf42ee77b1def39fc05ebfc54cf7428e0a6844b0ade1acf9f47ea",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "0203dfabd2a02d2ab8f8696b922dcc3df86b3a811352a5bc6cea57aee68e869c",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "70cd45ab665d4a83544a55fb48f2c83f195715a39af1e8e238ab574403150212",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/flexgen-offload-feasibility.md": "984cc41c4412eafa6d20e109dea8927ad321a668776bc86bbffda0a94dfa9cc7",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md": "e64b62fded4490708414a898f540b0319c54d2b205fd5d060acaab419734d100",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
@@ -140,6 +142,20 @@
         ],
         "readset": "references/mooncake-prefix-reuse-feasibility.md",
         "license": "UNKNOWN"
+      },
+      {
+        "type": "paper",
+        "id": "pmlr-v202-sheng23a",
+        "version": "ICML 2023 official ten-author edition, PMLR 202:31094-31116",
+        "url": "https://proceedings.mlr.press/v202/sheng23a/sheng23a.pdf",
+        "content_sha256": "7cd9673c37640011d38ef4b8595f5e1e09a85b1f803a3734f19c97ca66c75b9e",
+        "sections": [
+          "1 and 3; 4.1-4.3, Figures 1-3, Algorithm 1, Equation 1",
+          "4.4 (scope boundary only); 6 and 6.1, Tables 2-3 (denominators and ablations)",
+          "Appendix A.3 selected cost/peak-memory formulas, PDF pages 15-17; A.2 ending only (theorem boundary)"
+        ],
+        "readset": "references/flexgen-offload-feasibility.md",
+        "license": "CC-BY-4.0"
       }
     ],
     "verification": {
@@ -167,9 +183,11 @@
     "empirical_validation": "not_run",
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified."
+      "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
     ],
     "provenance_readsets": [
+      "references/flexgen-offload-feasibility.md",
       "references/mooncake-prefix-reuse-feasibility.md",
       "references/papers-20261015/cases/decision-cases.md",
       "references/papers-20261015/govern-optimization-experiments/procedure.md",
@@ -205,7 +223,8 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified."
+    "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
   ],
   "verification": {
     "locally_verified": false,

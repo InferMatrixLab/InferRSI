@@ -54,6 +54,20 @@
       ],
       "readset": "references/mooncake-prefix-reuse-feasibility.md",
       "license": "UNKNOWN"
+    },
+    {
+      "type": "paper",
+      "id": "pmlr-v202-sheng23a",
+      "version": "ICML 2023 official ten-author edition, PMLR 202:31094-31116",
+      "url": "https://proceedings.mlr.press/v202/sheng23a/sheng23a.pdf",
+      "content_sha256": "7cd9673c37640011d38ef4b8595f5e1e09a85b1f803a3734f19c97ca66c75b9e",
+      "sections": [
+        "1 and 3; 4.1-4.3, Figures 1-3, Algorithm 1, Equation 1",
+        "4.4 (scope boundary only); 6 and 6.1, Tables 2-3 (denominators and ablations)",
+        "Appendix A.3 selected cost/peak-memory formulas, PDF pages 15-17; A.2 ending only (theorem boundary)"
+      ],
+      "readset": "references/flexgen-offload-feasibility.md",
+      "license": "CC-BY-4.0"
     }
   ],
   "verification": {
@@ -81,9 +95,11 @@
   "empirical_validation": "not_run",
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified."
+    "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
   ],
   "provenance_readsets": [
+    "references/flexgen-offload-feasibility.md",
     "references/mooncake-prefix-reuse-feasibility.md",
     "references/papers-20261015/cases/decision-cases.md",
     "references/papers-20261015/govern-optimization-experiments/procedure.md",

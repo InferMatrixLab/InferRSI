@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/54d4c89d4db82cbfc10d6096fe49bb077136e8b1/src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
-      "commit": "54d4c89d4db82cbfc10d6096fe49bb077136e8b1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e17a009f4cfaa27119818748421d7b099431f333/src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
+      "commit": "e17a009f4cfaa27119818748421d7b099431f333",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/husky/metadata.json",
