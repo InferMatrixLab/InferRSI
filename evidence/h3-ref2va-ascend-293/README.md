@@ -181,3 +181,21 @@ completion and process exit are separate evidence requirements.
 The existing pre-sharded HSDP loader is not a direct substitute for this native
 checkpoint: its documented contract excludes tensor layout transforms, while H3
 loading reorders grouped QKV weights. That path was not runtime-tested here.
+
+
+## MC2 cache screening
+
+The isolated `max_continuous_cached_steps=2` arm completed one warmup and one
+measured 50-step, 5-second request. [Receipt](results/cache2-screening.json):
+338.59 s warmup and 250.19 s measured, including cold peer work left after the
+first response. Both requests reused 28 of 50 steps. The measured denoise stage
+was 170.18 s and hot audio decode was 0.92 s. Do not rank this single sample as a
+steady-state comparison against the earlier MC1 pilot.
+
+[Decoded-media quality passed](results/cache2-quality.json): SSIM 0.985777,
+PSNR 46.05 dB, LPIPS 0.01624, audio cosine 0.99841, RMS ratio 1.00311; scoring
+exited 0. Under the diagnostic 60-second shutdown grace, the server/container
+exited 0 with no terminate/kill calls; client completion to container exit was
+27.24 s. Individual worker exit codes were not captured. This does not qualify
+production-default cleanup or final performance. MC4 and the remaining isolated
+arms are still running.

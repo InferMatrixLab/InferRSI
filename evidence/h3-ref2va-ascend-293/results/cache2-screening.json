@@ -1,0 +1,155 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Profile-enabled single-sample screening; no final speedup acceptance",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "diagnostic_shutdown_grace_s": 60.0,
+    "arm": "cache2",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--enable-diffusion-pipeline-profiler",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--enable-cache-dit-summary",
+      "--cache-backend",
+      "cache_dit",
+      "--cache-config",
+      "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.04,\"max_continuous_cached_steps\":2,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+    ]
+  },
+  "samples": [
+    {
+      "label": "measured-5-0",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 250186.5874445066,
+      "bytes": 6518894,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-835b3714ff4c652b",
+        "X-Inference-Time-S": "250.118",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":2.4633862245827913,\"MiniMaxH3Pipeline._encode_local_media\":8.686428953893483,\"MiniMaxH3Pipeline.diffuse\":170.1766879009083,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.4321721652522683,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":0.9162841970100999,\"MiniMaxH3Pipeline.decode\":7.408776951953769,\"queue_wait_ms\":1.444636844098568,\"stage_0_gen_ms\":249090.93618392944}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "valid": true,
+      "output_sha256": "fabd9952e6da2d936405e170db11edb9912fcc84a48e3fd174284ce2595452b9"
+    },
+    {
+      "label": "warmup-5",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 338585.7930528,
+      "bytes": 6519627,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-851d3f683f9c9d10",
+        "X-Inference-Time-S": "338.487",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":5.0469366535544395,\"MiniMaxH3Pipeline._encode_local_media\":78.74373476579785,\"MiniMaxH3Pipeline.diffuse\":171.74030902329832,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.9892957592383027,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":65.52921412698925,\"MiniMaxH3Pipeline.decode\":72.48756946343929,\"queue_wait_ms\":0.4355721175670624,\"stage_0_gen_ms\":337366.2395477295}",
+        "X-Peak-Memory-MB": "20168.000"
+      },
+      "valid": true,
+      "output_sha256": "64de94755e64a1f1f5325b5c7b911a26b8bd6ce31b8574f80a20c4624e797e9a"
+    }
+  ],
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 0,
+    "worker_kill_count": 0,
+    "client_complete_to_container_exit_s": 27.236214,
+    "worker_exit_codes": "Not individually captured; no forced termination or error traceback observed"
+  },
+  "raw_log_sha256": "4d3d203965392ea8570ee72d57836b0d40db6538b418173230c26f65785d0ed9",
+  "quality_result": "cache2-quality.json",
+  "verification_limits": "Raw logs and generated media are private campaign artifacts. Single-workload quality does not establish held-out quality. Diagnostic shutdown grace does not establish clean exit with production defaults. Final unprofiled independent AB/BA remains required.",
+  "cache_summaries_in_request_order": [
+    {
+      "cached_steps": 28,
+      "step_indices": [
+        4,
+        5,
+        7,
+        8,
+        10,
+        11,
+        13,
+        14,
+        16,
+        17,
+        19,
+        20,
+        22,
+        23,
+        25,
+        26,
+        28,
+        29,
+        31,
+        32,
+        34,
+        35,
+        37,
+        38,
+        40,
+        41,
+        43,
+        45
+      ]
+    },
+    {
+      "cached_steps": 28,
+      "step_indices": [
+        4,
+        5,
+        7,
+        8,
+        10,
+        11,
+        13,
+        14,
+        16,
+        17,
+        19,
+        20,
+        22,
+        23,
+        25,
+        26,
+        28,
+        29,
+        31,
+        32,
+        34,
+        35,
+        37,
+        38,
+        40,
+        41,
+        43,
+        45
+      ]
+    }
+  ],
+  "notes": [
+    "One warmup only. The first response preceded completion of peer cold audio decoding; the measured request includes this tail. Formal comparisons use two matched warmups, frozen before running.",
+    "Cache-DiT source: vllm-project/vllm-omni PR 5853; campaign changes only max_continuous_cached_steps from 1 to 2."
+  ],
+  "quality_process_exit": 0,
+  "upstream_source": "https://github.com/vllm-project/vllm-omni/pull/5853"
+}
