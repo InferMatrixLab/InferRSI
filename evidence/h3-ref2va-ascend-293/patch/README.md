@@ -61,5 +61,11 @@ the first-request peer lag was visible after the reply owner had returned.
 The regression failed on the peer rank before the change. The 28 offload tests
 pass afterward, and a real two-process CPU Gloo test passes both exact waveform
 delivery and owner-exception propagation. Applicable commit hooks pass. The
-code reduces decoder invocations from eight to one in the target topology;
-actual NPU latency, quality and process-exit benefits are still pending.
+code reduces decoder invocations from eight to one in the target topology.
+The [NPU smoke](../results/audio-owner-smoke.json) emitted one audio-decode
+profile record and passed [two-step matched media parity](../results/audio-owner-smoke-quality.json).
+Its first-request E2E was 201.78 s versus the preceding cleanup-only smoke's
+154.52 s, so it does not establish a latency gain. Full lifecycle still did not
+pass: six workers received terminate, although none needed kill. Warmed repeated
+A/B remains necessary; the candidate must be removed from the final optimization
+set if it has no qualified benefit.
