@@ -22,6 +22,13 @@ Profiling first, then one hypothesis per step: residency/transfer, fused operato
 
 Sources: [task benchmark selection #60](https://github.com/InferMatrixLab/InferRSI/issues/60), [engineering benchmark scope #252](https://github.com/InferMatrixLab/InferRSI/issues/252), pinned vLLM-Omni NPU recipe, H3 accuracy/quantization tests, and InferRSI source-attributed H3 records. Imported CUDA/older NPU results remain unverified on this campaign.
 
+The portable client defaults to `--quality lossless`. Use `--quality high` for
+the upstream request-owned cache policy, or `--quality server-default` to omit
+the field when testing a separately frozen startup cache configuration. An
+explicit request quality policy can otherwise replace that startup profile.
+The private MC2/MC4 screening client already omitted this field; this portable
+option does not change those experiments or their validators.
+
 ## Acceptance and delivery
 
 - [ ] Runnable baseline, source/model/environment manifests and lifecycle evidence.

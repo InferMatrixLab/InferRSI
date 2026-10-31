@@ -27,6 +27,10 @@ def request(args, label, seconds, seed):
             {"task": "ref2va", "duration": seconds, "aspect_ratio": "16:9", "audio_flow_shift": 3.0}
         ),
     }
+    if args.quality == "server-default":
+        # An explicit quality policy can replace the startup Cache-DiT profile.
+        # Omit it when measuring a separately frozen server cache configuration.
+        data.pop("quality")
     record = {"label": label, "seconds": seconds, "seed": seed, "steps": args.steps, "valid": False}
     start = None
     try:
@@ -99,7 +103,12 @@ def main():
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--seeds", type=int, nargs="+", default=[0])
     parser.add_argument("--repeats", type=int, default=3)
-    parser.add_argument("--quality", choices=("lossless", "high"), default="lossless")
+    parser.add_argument(
+        "--quality",
+        choices=("lossless", "high", "server-default"),
+        default="lossless",
+        help="Use server-default to omit quality and retain the frozen startup cache profile",
+    )
     parser.add_argument("--timeout", type=float, default=14400)
     args = parser.parse_args()
     if args.steps < 1 or args.repeats < 1 or args.timeout <= 0:
