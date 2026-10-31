@@ -69,3 +69,23 @@ Its first-request E2E was 201.78 s versus the preceding cleanup-only smoke's
 pass: six workers received terminate, although none needed kill. Warmed repeated
 A/B remains necessary; the candidate must be removed from the final optimization
 set if it has no qualified benefit.
+
+## Bounded NPU native-runtime finalization
+
+Candidate `ff6ac7b3fc242c9a2b1b3bed3e4cb6fa5ebdd9ba` supplies a 60-second graceful
+worker-exit deadline on NPU; other platforms retain 15 seconds. The deadline is
+shared across all workers, joins return as soon as workers exit, and the existing
+bounded terminate/kill fallback remains. This does not alter request timing.
+
+Source: the retained CANN native-shutdown stack and the
+[MC2 diagnostic receipt](../results/cache2-screening.json), which observed no
+forced signals with a 60-second override and 27.24 seconds total teardown.
+That receipt does not include individual worker exit codes, so production-path
+qualification is still required. The [queued code A/B plan](../plan/audio-qualification.json)
+adds per-worker exit receipts and uses the production NPU path for the candidate.
+
+All 86 executor concurrency tests passed. Editing the files exposed eight mypy
+errors also reproduced on the frozen baseline. Narrow type annotations/casts
+and distinct future-loop variables correct these without changing result
+handling. Applicable commit hooks pass. No inference speedup is claimed for
+cleanup, and no final lifecycle PASS is inferred from the diagnostic run.
