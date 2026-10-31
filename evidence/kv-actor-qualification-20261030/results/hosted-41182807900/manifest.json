@@ -1,0 +1,34 @@
+{
+  "schema": "kv-hosted-qualification-archive-v1",
+  "kind": "actor",
+  "repository": "InferMatrixLab/InferRSI",
+  "pull_request": 287,
+  "run_id": 41182807900,
+  "run_attempt": 1,
+  "run_url": "https://github.com/InferMatrixLab/InferRSI/actions/runs/41182807900",
+  "workflow": ".github/workflows/ci-ready.yml",
+  "head": "1566c3700079c4eab133058083bdb48c12e88333",
+  "revision": "e4de8d8b271a9f87c8fe26e5417bbaf1ca115360",
+  "source_tree": "371c048c6720d17192775ced6c34707704445329",
+  "artifact_id": 13034764841,
+  "artifact_name": "kv-actor-qualification-41182807900-1",
+  "verdict": "PASS",
+  "model_calls": 0,
+  "provider_charges_usd": 0,
+  "files": {
+    "qualification-artifact.zip": {
+      "bytes": 186706,
+      "sha256": "93baf16bdf448abaddbec567f7bbc507f4799a44ee583f16c3135c2a5029b005"
+    },
+    "qualification.json": {
+      "bytes": 82329,
+      "sha256": "f5228b65e714d82c5f38fa080cfb4224bad813940d07bdb4a9c2497c669da25f"
+    }
+  },
+  "embedded_raw_evidence": {
+    "member": "raw-evidence.zip",
+    "bytes": 542377,
+    "sha256": "a8fd7d215b5110d5073f0f64ef4b9be5f14f0edc95bbab5620ad31ebb94fffb7"
+  },
+  "retention": "Exact original Actions ZIP; standalone receipt equals its member. Embedded raw ZIP is retained without repackaging. No candidate replay or model request for archival."
+}
