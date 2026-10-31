@@ -1,0 +1,17 @@
+[
+  {
+    "path": "tests/diffusion/models/minimax_h3/test_minimax_h3_quantization_quality.py",
+    "sha256": "8b9b0786434384fd10c07c7f6ad77c198db6b114b92f0d910a747eef031558b2",
+    "functions": [
+      "_audio_quality_metrics",
+      "_canonical_audio"
+    ]
+  },
+  {
+    "path": "benchmarks/diffusion/quantization_quality.py",
+    "sha256": "3fe9042491f71e953109854f19691da2cf186bc497d0a2b8228341f35c56972c",
+    "functions": [
+      "compute_lpips_video"
+    ]
+  }
+]

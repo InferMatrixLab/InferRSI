@@ -1,0 +1,74 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "performance_samples": [],
+  "quality_samples": [],
+  "attempts": [
+    {
+      "id": "baseline-smoke",
+      "status": "failed",
+      "stage": "torch import",
+      "cause": "getpass.getuser cannot resolve the container UID",
+      "resolution": "Set runtime USER/LOGNAME while preserving the reservation holder UID",
+      "container_exit": 1
+    },
+    {
+      "id": "baseline-smoke-02",
+      "status": "cancelled",
+      "stage": "startup",
+      "cause": "MindIE-SD rejects root-owned plugin library for the non-root primary group",
+      "resolution": "Try the plugin library group as a supplemental group",
+      "container_exit": 1
+    },
+    {
+      "id": "baseline-smoke-03",
+      "status": "cancelled",
+      "stage": "startup",
+      "cause": "Supplemental plugin group does not satisfy MindIE-SD ownership validation",
+      "resolution": "Use the plugin library group as the primary group while preserving the reservation holder UID",
+      "container_exit": 1
+    },
+    {
+      "id": "baseline-smoke-04",
+      "status": "cancelled",
+      "stage": "model initialization",
+      "cause": "Scheduler identifies container ownership as unknown without canhazgpu.owner label",
+      "resolution": "Add owner label matching the actual process UID and reservation holder",
+      "container_exit": 2,
+      "lifecycle_note": "Server exited 143 after requested SIGTERM; container was removed. Editing the launcher during execution caused its trailing shell read to fail; this arm is invalid and future launchers must be immutable during execution."
+    },
+    {
+      "id": "baseline-smoke-05",
+      "status": "failed",
+      "stage": "first request HCCL initialization",
+      "cause": "hcclGetRootInfo error 19; isolated collective probe traces this to native getpwuid failure in HCCL TLS configuration",
+      "resolution": "Provide NSS passwd identity for the actual process UID; validate with eight-rank all-reduce before model restart",
+      "container_exit": 1
+    },
+    {
+      "id": "hccl-gid1000",
+      "status": "cancelled",
+      "cause": "standalone torchrun rendezvous selected an unresolved container hostname",
+      "container_exit": 137
+    },
+    {
+      "id": "hccl-gid1000-loopback",
+      "status": "failed",
+      "cause": "Explicit loopback rendezvous works; all-reduce still fails because native getpwuid cannot resolve the UID",
+      "container_exit": 1
+    },
+    {
+      "id": "hccl-nss-identity",
+      "status": "passed",
+      "stage": "eight-rank all-reduce with NSS identity",
+      "container_exit": 0
+    },
+    {
+      "id": "baseline-smoke-06",
+      "status": "running",
+      "stage": "full-model bringup after collective qualification",
+      "container_exit": null
+    }
+  ],
+  "scope": "Runtime preparation only; no model performance or accuracy acceptance",
+  "raw_logs": "Retained in private campaign storage; not publicly independently verifiable"
+}

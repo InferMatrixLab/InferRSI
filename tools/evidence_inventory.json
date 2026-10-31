@@ -1,6 +1,41 @@
 {
   "version": 1,
   "bundles": {
+    "h3-ref2va-ascend-293": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "validator/manifest.json",
+          "schema": "historical-sha256",
+          "files": {
+            "upstream_metrics.py": {
+              "local": "evidence/h3-ref2va-ascend-293/validator/upstream_metrics.py"
+            },
+            "sources.json": {
+              "local": "evidence/h3-ref2va-ascend-293/validator/sources.json"
+            },
+            "gates.json": {
+              "local": "evidence/h3-ref2va-ascend-293/validator/gates.json"
+            },
+            "compare.py": {
+              "local": "evidence/h3-ref2va-ascend-293/validator/compare.py"
+            },
+            "alexnet-owt-7be5be79.pth": {
+              "external": "Downloaded evaluator weights; content SHA256 recorded, not vendored in this repository"
+            },
+            "lpips-alex-v0.1.pth": {
+              "external": "Downloaded evaluator weights; content SHA256 recorded, not vendored in this repository"
+            },
+            "smoke.py": {
+              "local": "evidence/h3-ref2va-ascend-293/validator/smoke.py"
+            }
+          }
+        }
+      ],
+      "external": [
+        "Model files identified in plan/model-files.json, input media and evaluator weights are retained outside this checkout. Raw runtime logs are private; published receipts preserve their verification limits."
+      ]
+    },
     "kv-live-pilot-20261031": {
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"},
