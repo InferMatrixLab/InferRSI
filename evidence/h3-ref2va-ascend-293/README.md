@@ -21,6 +21,16 @@ published tree; public artifacts use labelled paths and hashes.
 | INT8 / RainFusion | [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/recipes/MiniMaxAI/MiniMax-H3-NPU.md) | Separate quantization, sparsity and combined rows; preserve configured step count. T2VA sparse-window guidance is not Ref2VA acceptance. |
 | Fused indexed modulation | [shared operators](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/layers/indexed_modulation.py) | Already exists, including NPU grid chunking. Profile before proposing a new kernel. |
 
+The pinned Git history attributes Cache-DiT request quality policies to
+[vLLM-Omni #5853](https://github.com/vllm-project/vllm-omni/pull/5853), reference-KV
+reuse to [#8072](https://github.com/vllm-project/vllm-omni/pull/8072), the resident
+Ref2VA recipe to [#8577](https://github.com/vllm-project/vllm-omni/pull/8577), HSDP
+infrastructure to [#1339](https://github.com/vllm-project/vllm-omni/pull/1339), and
+H3 RainFusion/INT8 integration to [#5706](https://github.com/vllm-project/vllm-omni/pull/5706).
+The frozen tree also contains later fixes, including mixed-video RainFusion span
+handling in [#9241](https://github.com/vllm-project/vllm-omni/pull/9241). These are
+implementation origins, not evidence that this campaign has reproduced a gain.
+
 The current baseline explicitly rejects Ref2VA TeaCache in `cache/teacache/backend.py`
 because it has not been calibrated. The older TeaCache record is not a runnable
 main-supported Ref2VA option; use supported Cache-DiT first.
@@ -87,3 +97,27 @@ logging is explicitly configured. Pipeline profiling INFO messages are therefore
 missing from the initial launcher's logs. A diagnostic launcher applies the
 installed vLLM LoggingConfig in each spawned process. It is an instrumentation
 change and must not be credited as an inference speedup.
+
+## Portable request timing client
+
+`plan/run_client.py` adopts the multipart request contract from the pinned H3
+accuracy test. Install `requests` in an isolated environment and provide FFprobe.
+Start the server under the site's NPU reservation first; this HTTP client does
+not own or reserve accelerators. Use a fresh output directory for each arm and
+independent server lifecycle. For example:
+
+```bash
+python plan/run_client.py --base-url http://127.0.0.1:19421 \
+  --prompt <PROMPT_TXT> --video <REFERENCE_MP4> --audio <REFERENCE_MP3> \
+  --seconds 5 15 --steps 50 --seeds 0 --repeats 3 \
+  --quality lossless --output <NEW_ARM_DIRECTORY>
+```
+
+Use `--quality high` only for the isolated Cache-DiT arm. The client times upload
+through receipt of all response bytes; disk writes and FFprobe are outside the
+clock. It retains one warmup per duration, every response, and each failure, and
+stops on the first invalid request. Metadata checks are preliminary: run the
+frozen decoded-media validator separately. Repeated requests in one server are
+not independent process rounds, and the client does not qualify server teardown.
+The initial screening uses an earlier private runner with the same request and
+timing contract; do not relabel those runs as executions of this public script.
