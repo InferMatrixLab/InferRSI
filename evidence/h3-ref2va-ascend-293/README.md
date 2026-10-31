@@ -286,3 +286,24 @@ Server/container exited 0 with no forced worker signals under diagnostic
 not captured. Its E2E sample is not lower than the earlier dense screening
 sample and still includes cold peer tail. No E2E gain, production cleanup
 qualification or combination quality is accepted from this pilot.
+
+The [reference-KV interval-2 attempt](results/reference-kv2-failure.json) failed
+its first warmup with HTTP 500. The first error was the executor's default
+600-second DLO execution-wave timeout; subsequent compiler-initialization
+errors appeared after forced shutdown began. The workers completed 50 denoising
+steps in about 555.99 s, but there was no valid output or measured request.
+That component timing is not successful E2E evidence or a quality result.
+
+Runtime counters showed 25 refresh and 25 reuse steps, with 167.09 GB H2D per
+rank and 6.68 GB pinned host KV storage per rank. This uses the existing
+[reference-KV implementation (#8072)](https://github.com/vllm-project/vllm-omni/pull/8072).
+No reference-KV performance gain is accepted. The failed attempt is retained;
+future 15-second comparisons must explicitly freeze sufficiently long,
+identical DLO wave deadlines for both arms. Changing a deadline is an execution
+configuration, not an optimization or a reason to discard the failure.
+
+A separate [unprofiled original-source 5-second baseline A1](plan/formal-baseline-a1-5.json)
+is frozen and queued with two warmups and three measured requests. It is only
+one independent baseline process; it does not constitute paired acceptance.
+CPU quality scoring for the queued pilots is deferred until this baseline
+finishes so it cannot compete with these timing runs.
