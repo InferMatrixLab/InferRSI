@@ -328,3 +328,12 @@ existing [HSDP path (#1339)](https://github.com/vllm-project/vllm-omni/pull/1339
 Second-round screening has finished. The warmed audio code A/B now holds the
 next reservation; its source revisions, two warmups, three measured requests,
 cache policy, and per-worker exit receipts remain frozen as published.
+
+[Held-out quality inputs](plan/heldout-quality.json) are frozen before any outputs
+from those cases are generated: original references at seeds 1 and 2, plus a
+different public family-dining video at seed 0. The latter reuses the official
+I2VA example as a Ref2VA input, with a campaign-authored voiceover prompt and
+the existing voice-reference audio. Every case needs its own matched dense
+output and the unchanged media gates. These are additional coverage checks,
+not an independent benchmark dataset or semantic-quality certification; their
+latencies must not be pooled with the original performance workload.
