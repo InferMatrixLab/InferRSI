@@ -2,8 +2,9 @@
 
 Governing acceptance: [InferRSI #293](https://github.com/InferMatrixLab/InferRSI/issues/293).
 Status: **INCONCLUSIVE**. This campaign is in progress. No candidate speedup
-is accepted yet. The dense baseline passed the adopted media gates, but worker
-teardown remains unqualified and final repeated A/B is pending.
+is accepted yet. Original dense screening passed the adopted media gates but
+forced worker teardown. A later production-cleanup candidate has eight worker
+exits zero; the final combined revision and repeated A/B remain unqualified.
 
 `plan/` records the initial scope, `validator/` freezes the adopted quality gate,
 `results/` retains attempted and rejected outcomes, and `patch/` identifies engine

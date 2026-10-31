@@ -133,5 +133,8 @@ The [warmed paired pilot](../results/audio-owner-selection.json) observed
 196.67 s before versus 199.09 s after (1.23% higher latency). The three candidate
 requests completed and native NPU cleanup passed with eight worker exits zero.
 Output quality scoring is pending. No steady-state benefit qualified, so the
-audio-owner implementation and its DP guard are being removed from the final
-engine change set. Historical source/worktrees and receipts remain intact.
+audio-owner implementation and its DP guard were removed in `c18fff65a1fedfa55e3f5f2c97b9422942197c8f` from the final
+engine change set. The restored H3 offload tests pass (26 tests), and commit
+hooks pass. Historical source/worktrees and receipts remain intact.
+
+The frozen reference-KV residency pilot remains on `4fc121ff3d6e7ccb1d3e35582fddf509e010dfa9`. Its common audio-owner path is held constant across host/device arms; this isolates residency but cannot qualify the later final combined revision.
