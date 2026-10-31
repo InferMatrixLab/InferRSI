@@ -199,3 +199,13 @@ exited 0 with no terminate/kill calls; client completion to container exit was
 27.24 s. Individual worker exit codes were not captured. This does not qualify
 production-default cleanup or final performance. MC4 and the remaining isolated
 arms are still running.
+
+
+MC4 also passed [matched media quality](results/cache4-quality.json): SSIM
+0.985651, PSNR 45.84 dB, LPIPS 0.01632, audio cosine 0.99755. Its
+[screening receipt](results/cache4-screening.json) records 303.95 s warmup,
+262.39 s measured E2E, and 162.50 s measured denoise. The larger peer cold tail
+means the E2E sample is not a steady-state ranking. Both requests reused 29
+steps, only one more than MC2. Diagnostic cleanup took 25.72 s with no forced
+signals and server/container exit 0; individual worker exit codes were not
+captured. Production qualification remains pending.
