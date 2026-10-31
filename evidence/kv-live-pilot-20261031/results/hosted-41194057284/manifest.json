@@ -1,0 +1,315 @@
+{
+  "authorization": {
+    "plan_digest_verification": "Canonical JSON SHA256 matched",
+    "plan_sha256": "d79e49f96e5373fa5305c38c9c86ad4b7dd4e9daba7cc7cfc441f5c1d508f8a7",
+    "snapshot": "execute/authorization.json",
+    "url": "https://github.com/InferMatrixLab/InferRSI/issues/248#issuecomment-6542223785"
+  },
+  "cost_record": "cost.json",
+  "diagnostics": {
+    "A2": {
+      "execution": {
+        "elapsed_seconds": 17.149138556999958,
+        "returncode": 1,
+        "status": "failed"
+      },
+      "provider_attempts": 1,
+      "reason": "provider_transport_error",
+      "transport_error_code": "http_403",
+      "worker_status": "failed"
+    },
+    "A3": {
+      "execution": {
+        "elapsed_seconds": null,
+        "returncode": null,
+        "status": "unavailable"
+      },
+      "provider_attempts": null,
+      "reason": null,
+      "transport_error_code": null,
+      "worker_status": "unavailable"
+    }
+  },
+  "execution": {
+    "actual_cost_usd": null,
+    "admission_outcome": "granted",
+    "arms": {
+      "A2": {
+        "request_completion_known": false,
+        "slots_consumed": 1,
+        "status": "failed"
+      },
+      "A3": {
+        "request_completion_known": false,
+        "slots_consumed": 0,
+        "status": "not_started"
+      }
+    },
+    "charge_head": "5af3553683137582d624379d26c2c5f7cc9e2785",
+    "charge_pr": 275,
+    "execution_id": "kv-reclamation-one-pair-2",
+    "implementation_sha": "ae0d32218949fd6b906c3e7819ba0d830955c196",
+    "plan_sha256": "d79e49f96e5373fa5305c38c9c86ad4b7dd4e9daba7cc7cfc441f5c1d508f8a7",
+    "reservation_upper_bound_usd": "162.72",
+    "reserved_usd": "162.72",
+    "run_id": "41194057284",
+    "schema": "kv-live-execution-v1"
+  },
+  "files": {
+    "README.md": {
+      "bytes": 3654,
+      "git_blob": "e0196cd81531115e699737515d8fc192aec8a6b6",
+      "sha256": "ed99d9379861aaee22c285990409761539526e00ac4c19bf75e778ab70037720"
+    },
+    "cost.json": {
+      "bytes": 3261,
+      "git_blob": "a27896562eed3a6d7125b198d85a1cb805210728",
+      "sha256": "68e8a11c8326c4598eda01a4ec077db5eee38b940c6704d64194dcb5a7a71555"
+    },
+    "execute-artifact.zip": {
+      "bytes": 10610,
+      "git_blob": "49672f7c58c932be4cf88452e3efc26899f3ba95",
+      "sha256": "411dd497dfcd365a72e558d9d99ea1a90e2104e7c687c1242649c29da018b19c"
+    },
+    "execute/A2/revisions/revision-0000/candidate.py": {
+      "bytes": 3386,
+      "git_blob": "467a8425b037b84bfb5aa707f3f6730c9097d5e3",
+      "sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d"
+    },
+    "execute/A2/revisions/revision-0000/receipt.json": {
+      "bytes": 363,
+      "git_blob": "819f5f443df80d5012498cb57855c34717e35401",
+      "sha256": "1a54771b274c598016634b683a67b1a9b4b6d06ea0ababcf9274253374458888"
+    },
+    "execute/authorization.json": {
+      "bytes": 18973,
+      "git_blob": "8a623b467ea304f1e686d1dbb9558d098d20fa7f",
+      "sha256": "84098a4eda0e5af1d68a1bb7dcd3275b2f8f18dfef0cad952eb4236ede9ff5ab"
+    },
+    "execute/bundle.json": {
+      "bytes": 2161,
+      "git_blob": "7ea04d9fcac74099141cdc92af4e7598500264ef",
+      "sha256": "aeef899719bbbf1bdea4b6506290d540e6ccd3838a1be716ca7207ba900571b1"
+    },
+    "execute/preflight.json": {
+      "bytes": 22090,
+      "git_blob": "3a6f26ed7aece61e46df70ac39d9b42162974e0e",
+      "sha256": "e63400ad5d54254401bcd24b5520425dd29b7258dc524370aa3728bba20ac148"
+    },
+    "grade-artifact.zip": {
+      "bytes": 15731,
+      "git_blob": "568b820ed3ef87d02863d1510f953baddc437466",
+      "sha256": "67e1fef6b4742c8f2659236801a865aabcd0d19be632b849a1912dda5491d9a7"
+    },
+    "grade/authorization.json": {
+      "bytes": 18973,
+      "git_blob": "8a623b467ea304f1e686d1dbb9558d098d20fa7f",
+      "sha256": "84098a4eda0e5af1d68a1bb7dcd3275b2f8f18dfef0cad952eb4236ede9ff5ab"
+    },
+    "grade/evidence.json": {
+      "bytes": 97943,
+      "git_blob": "a07d8f2b0f34f2a12fe25d8b0075c2c1b1bcf214",
+      "sha256": "22d880039590c6d0950772ed0d91d478b19ddf78da2f76a095318a3bb8fdf0a7"
+    },
+    "grade/grade.json": {
+      "bytes": 416,
+      "git_blob": "0fda3bca3a36b51ae881f8c40092f87a2206c994",
+      "sha256": "0be57743282be903a7cc782acb9ed7c059663ee93bb028d87519f8e8ba9242ce"
+    },
+    "grade/projection.json": {
+      "bytes": 246,
+      "git_blob": "560344601f831f840fed859acbca9219a7dc7e38",
+      "sha256": "61a7e3a639c70b814386cac259fef9c20064e59d7f41307fef9ad561fbd96601"
+    }
+  },
+  "grade": {
+    "arms": {
+      "A2": {
+        "reason": "missing_or_invalid_artifact",
+        "verdict": "INCONCLUSIVE"
+      },
+      "A3": {
+        "reason": "missing_or_invalid_artifact",
+        "verdict": "INCONCLUSIVE"
+      }
+    },
+    "plan_sha256": "d79e49f96e5373fa5305c38c9c86ad4b7dd4e9daba7cc7cfc441f5c1d508f8a7",
+    "schema": "kv-live-final-grade-v1",
+    "scope": "one synthetic pair; hidden semantics and nonheldout task timing"
+  },
+  "jobs": [
+    {
+      "completed_at": "2026-10-31T10:48:14Z",
+      "conclusion": "success",
+      "id": 124516541285,
+      "name": "execute",
+      "started_at": "2026-10-31T10:45:46Z",
+      "status": "completed"
+    },
+    {
+      "completed_at": "2026-10-31T10:48:38Z",
+      "conclusion": "success",
+      "id": 124517028863,
+      "name": "grade",
+      "started_at": "2026-10-31T10:48:17Z",
+      "status": "completed"
+    }
+  ],
+  "limitations": [
+    "Both arm grades remain INCONCLUSIVE.",
+    "Workflow success is control/retention completion, not comparison efficacy.",
+    "Transport invocation count and HTTP status do not prove model processing or billing.",
+    "HTTP403 subtype and first-run cause remain unknown.",
+    "Actual billed cost remains unknown; claims are not bills.",
+    "No refund or third attempt."
+  ],
+  "observation_counts": {
+    "A2": {
+      "performance_outputs_observed": 0,
+      "performance_rows": 17,
+      "raw_outputs_complete": false,
+      "semantic_known_checks": 0,
+      "semantic_outputs_observed": 0,
+      "semantic_rows": 77
+    },
+    "A3": {
+      "performance_outputs_observed": 0,
+      "performance_rows": 17,
+      "raw_outputs_complete": false,
+      "semantic_known_checks": 0,
+      "semantic_outputs_observed": 0,
+      "semantic_rows": 77
+    }
+  },
+  "original_artifacts": [
+    {
+      "created_at": "2026-10-31T10:48:12Z",
+      "digest": "sha256:411dd497dfcd365a72e558d9d99ea1a90e2104e7c687c1242649c29da018b19c",
+      "expires_at": "2026-11-30T10:48:12Z",
+      "id": 13039479838,
+      "name": "kv-live-41194057284-1",
+      "size_in_bytes": 10610
+    },
+    {
+      "created_at": "2026-10-31T10:48:36Z",
+      "digest": "sha256:67e1fef6b4742c8f2659236801a865aabcd0d19be632b849a1912dda5491d9a7",
+      "expires_at": "2026-11-30T10:48:36Z",
+      "id": 13040225189,
+      "name": "kv-final-grade-41194057284-1",
+      "size_in_bytes": 15731
+    }
+  ],
+  "provenance": {
+    "assistant": "Codex",
+    "effort": "xhigh",
+    "model": "gpt-6-astra",
+    "scope": "evidence retention; no new experiment"
+  },
+  "repository": "InferMatrixLab/InferRSI",
+  "requests": {
+    "A2": [
+      {
+        "request_sha256": "320dc8d05a29f9d8f969b268d93706c57cb0003f1456b2f77e68a952ba39a06e",
+        "slot": 1,
+        "status": "unresolved",
+        "usage": null
+      }
+    ],
+    "A3": []
+  },
+  "retention": {
+    "candidate_reruns": 0,
+    "exact_expanded_members": 9,
+    "ledger_writes": 0,
+    "model_calls_for_archiving": 0,
+    "original_zip_bytes": true,
+    "originals_and_previous_evidence_unchanged": true,
+    "privacy_boundary": "Fixed exact file list only; no arbitrary logs, environment dumps or provider-response bodies.",
+    "source_changes": 0,
+    "workflow_reruns": 0
+  },
+  "run": {
+    "conclusion": "success",
+    "created_at": "2026-10-31T10:45:42Z",
+    "event": "workflow_dispatch",
+    "head_sha": "ae0d32218949fd6b906c3e7819ba0d830955c196",
+    "id": 41194057284,
+    "run_attempt": 1,
+    "status": "completed",
+    "updated_at": "2026-10-31T10:48:38Z",
+    "workflow_path": ".github/workflows/kv-edit-pilot.yml"
+  },
+  "schema": "kv-live-hosted-retention-v1",
+  "source": {
+    "commit": "ae0d32218949fd6b906c3e7819ba0d830955c196",
+    "dependency_count": 64,
+    "map_origin": "Original frozen public authorization; no new source execution for archiving.",
+    "recorded_dependency_sha256": {
+      ".github/workflows/kv-edit-pilot.yml": "421827ae94e0b5308584c581f4be5ab5f5b155b622e8bae8163009cf73a203a8",
+      "evidence/kv-actor-qualification-20261030/plan/qualification-plan.json": "b2f2d4fa301573b1bfb451fb0ce7f1777bfcd8c8088a61576af8703c45cd7949",
+      "evidence/kv-live-pilot-20261031/plan/second-attempt-budget.json": "3146b1daf7dc59710da6346844f7768cc74333de51c6d4292d2731ea7c6458a3",
+      "evidence/kv-reclamation-20261030/plan/qualification-plan.json": "60cc479686aa2ba3772f627cc5179a3c0dc6d215c0fdeb57547fd58dc30859ed",
+      "evidence/kv-reclamation-20261030/validator/BENCHMARK_PROVENANCE.md": "54ba35ab354e0305f101bfb78d96eee016d1c3bad50b7a97d9452b8f254f2111",
+      "evidence/kv-reclamation-20261030/validator/benchmark.py": "c9fd5bdb12ad82ea4bdf9b1cace13e56053d7294eceb9d9357ffdae304984c69",
+      "evidence/kv-reclamation-20261030/validator/independent/CONTRACT.md": "85714ad11d360ca885c417cb4d56ef4ecf289e3a0c24696e94808e45661d2ccd",
+      "evidence/kv-reclamation-20261030/validator/independent/FREEZE.json": "163c21134a8155da2a6469d9dbddb6ea71cb162e14f53e1c4266fe8ce75126f7",
+      "evidence/kv-reclamation-20261030/validator/independent/INDEPENDENCE.md": "94acf341905fb171ef34aedbefb6f4d13fd485d0fc8013d9dc3027b64d97e6e6",
+      "evidence/kv-reclamation-20261030/validator/independent/build_fixtures.py": "d1d3f77b96d4187a4e12f5943703daa2de7507175c37faa34e96c57451c7bb46",
+      "evidence/kv-reclamation-20261030/validator/independent/control_spec.json": "8db4fece4e266bd1c41d3ae56ecaad3be3fcdcc6ef7a970bb574749cf20d7de5",
+      "evidence/kv-reclamation-20261030/validator/independent/fixtures.json": "5f00b3782b85d0f0c5294ab7f191f2b4e58996a14ab609d3de22c9a291c0e34c",
+      "evidence/kv-reclamation-20261030/validator/independent/oracle.py": "1521b278a258d6579d000e640068a981b697ab679b3d967593ed62dcf6af2712",
+      "evidence/kv-reclamation-20261030/validator/independent/test_verifier.py": "88ef532797ebb502d5a9e0f0a5aea22080a1aec0f3a429bf23f260d0cd64e30f",
+      "evidence/kv-reclamation-20261030/validator/independent/verifier.py": "e641fa6088032e15568fe17e87385a9f97e7e1d8d702a65fb62084f99741f862",
+      "evidence/kv-reclamation-20261030/validator/source_workload.py": "aac18d5edc5c9421ea7d28bec475f7089478baa7ae644ec12ddb368a0efe4bc7",
+      "evidence/kv-reclamation-20261030/validator/supplemental-freeze.json": "717d7c1a4327f3bcaa9755c9b343a142e0223a651996893d7de3e4065cf6b6f0",
+      "evidence/kv-reclamation-20261030/validator/test_benchmark.py": "b3f06f781b5839b666e5b1e51e691bc88351ef9640b2c1e62b93af3364fd45da",
+      "pyproject.toml": "1c1c4e482c1577883fb6c4678c96571a86eb819b6fcc834937fe344fb4a94b1f",
+      "src/inferrsi/__init__.py": "606691627d4b346e60072208ada8d6b4df2409de190daffb7795c2cc24517e47",
+      "src/inferrsi/claim.py": "5f24c4fa91b48f0bb4d4554531607763fc8fc108e90f332816f06cfb520b5cc1",
+      "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md": "4c3f27459df239f9f4fc971c559d4c9ddfbfebd70507a8a93be8eae59a30b69d",
+      "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/metadata.json": "b43fc3a7ccae59c664fcdf9ff77962edcc07c2a3df8b59324db551642bd23e23",
+      "src/inferrsi/data/skill_library/repositories/vllm/audit-vllm-kv-lifetimes/references/source-notes.md": "3665b034594fc8cc767c408002f4e16f8803369242405027c7f37ce6c9ecebe9",
+      "src/inferrsi/harness/__init__.py": "1006e4713003f44bfb32b2e385a918e1652b9e9833801e4555674a71e57fb0d5",
+      "src/inferrsi/harness/evaluation.py": "20d0c52145600a5d6b1e513b61f2fffaa459b83db194876be40726bd4f343a59",
+      "src/inferrsi/harness/kv_edit_workbench.py": "bc1f64c8aae39534b8052fdd9a6f3a6b8e63f7a9e9c93cd1077c37ef99cc6f69",
+      "src/inferrsi/harness/kv_reclamation.py": "56878c4d1bdda096ac681cadf2d99377bec59d47839802fdf94cfbd9066dc8b9",
+      "src/inferrsi/harness/reporting.py": "38c58f02c44e8c8aeacf46527e142be0e3142a83e4b2693246d0ca76c0ddd7c3",
+      "src/inferrsi/harness/runner.py": "d290fc87710e77c8e6069e95bb0d347016a393707592d2eed98f07951f2d0865",
+      "src/inferrsi/harness/scenarios/__init__.py": "4e97913c806077f0cadfeb29d986d2fa75b55ab8766cb86e6e3e9a195a9a1f5a",
+      "src/inferrsi/harness/scenarios/external.py": "f3f8d4fc516ebce81c26d82248e83f79b299eed0fc17ce73e2844995aea9c3f9",
+      "src/inferrsi/harness/skill_eval_engineering.py": "c83097f6069dd3e09046080b61c88aebc0922d09aab3fd5f1a03d8f04ec976f2",
+      "src/inferrsi/infra/__init__.py": "8779897733779266841b0f79b84b1dc43f0fa57c013855c906c809829ecfc77c",
+      "src/inferrsi/infra/artifacts.py": "bcf3adf325e34e10a4ecb4baf0af855ddca3d77eff76de5b66e493baaa3d7eaf",
+      "src/inferrsi/infra/executors/__init__.py": "327c3cd5c821c832ff260a41dba0ee1e439cdabefc9edfb9cad1cd38d14bc87a",
+      "src/inferrsi/infra/executors/local.py": "37bcbca9f3261c8c58a8bf806c9da40720b18d0676c82e8ed24c3901ac9bbe77",
+      "src/inferrsi/infra/processes.py": "3b96ebc7a50913e78e86ff3dcba74c8ee8d03d547d9591ca6488f390ac1e6189",
+      "src/inferrsi/infra/targets/__init__.py": "1f3ea75dded7c6cc967754c7b6d4f30ef00da8191a749938aabc3c6bb8f86eb3",
+      "src/inferrsi/infra/targets/git.py": "abb93f9332db336298102e28c06b9a7553597d4d03b957358602f60d61b1aa65",
+      "src/inferrsi/model/__init__.py": "3c1dba4f5159fd9fbc8d4d96e2a83c8441491c1b1dc7b42031a3fc1782ed9d9f",
+      "src/inferrsi/model/anthropic_agent.py": "284d52dd379b2948dd45ede167175010fe26615e5a307f848efcbe90c0ca5646",
+      "src/inferrsi/model/anthropic_edit_agent.py": "3db20467b07657c1a083f7968cfd996bbbffbe04f987bf4283a8d1456f679cf2",
+      "src/inferrsi/model/protocols/__init__.py": "5a2f54483b164de04e309dbebb87a700b213682b0f44a50d89a752dd71a4ce47",
+      "src/inferrsi/model/protocols/metrics.py": "5b32e296a746b6de30cb0c89f23f730296b0087884c1acc2b6127c1295d4db7a",
+      "src/inferrsi/model/request_guard.py": "c2f8a2f822f32785327a2138ee7b0609896b180819d9d1cbe851534aa6198628",
+      "src/inferrsi/runspec.py": "dca0952425caf42095ef0c7e2feb8ef4740cc422ecb61e777f203962d9b87709",
+      "src/inferrsi/summary_chart.py": "d29023d60f6be804c1b01c9eb73765d4824d6c3bb870fe22c99a24544bc1d8bc",
+      "tests/fixtures/kv_reclamation/candidate.py": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+      "tests/fixtures/kv_reclamation/workload.py": "aac18d5edc5c9421ea7d28bec475f7089478baa7ae644ec12ddb368a0efe4bc7",
+      "tools/kv_edit_inputs.py": "485a12e198054b683cd2c6dd6abdbce47a76aec094506f930cb27ebed213eeab",
+      "tools/kv_edit_pilot.py": "2e1a2baa9586436d27b3004cb68addc16fa0685bc90961406e31d03f69c3fee3",
+      "tools/kv_live_job.py": "f58e9f2d8a714a7d010aa50fa134ce9295fa88d1c1f8a4dc093895085f5863fc",
+      "tools/kv_live_policy.py": "a2537e0dc5ba111781fdd9adecbb6b1f6766d573ac3910d13c0b0a9187ff005a",
+      "tools/kv_live_worker.py": "19b0b3765a56b1ae33eef62cac496a793f5844ff42e82bdc6cf21aa76617909c",
+      "tools/kv_pilot_admission.py": "1538a51f3a7e116cd2039006b874f7a9211a0344b30f587d707fc4f7dfb34949",
+      "tools/kv_runtime_qualification.py": "4dc0dfb45f5ed1eb5f31e3843df81d6b5c22c373d69f2d6c47629f202ac03a0c",
+      "tools/kv_worker_supervisor.py": "7b2f25148bc0b14536321aa45b434c23424c53858760a708689a28774d585168",
+      "tools/qualify_kv_actor_cleanup.py": "45030c6054056c91706701c1c24c5028acac53e8bd2692ae45ab3163941945b0",
+      "tools/qualify_kv_edit_actor.py": "f5b5e884f3f4313d39ba8392ba58f1b29c9af0d1ceed9195347092fc7279cd5f",
+      "tools/qualify_kv_reclamation.py": "b53efb547ff6dec04492d08f41b9479afee5d07bbee964911a264f453e620815",
+      "tools/skill_eval_budget.py": "4e88ad86ab7f7e2be22e3966c825a217faf166df213e5e4b5449a72bfdb1b88f",
+      "tools/skill_eval_budget_git.py": "488b5c963c77021fbb25802909b599e72a21b44c2cd7dcdc4dbab8d712863e30",
+      "tools/skill_eval_pr.py": "156a2b44f98fb30e97bad875efc889855a6ca543000d95a50e7577a487c56a1d"
+    },
+    "tree": "c0c453ddc357dec7e29a165a4c74a734de729014"
+  }
+}

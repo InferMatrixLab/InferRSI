@@ -1,0 +1,75 @@
+{
+  "schema": "kv-live-cost-retention-v1",
+  "run_id": 41194057284,
+  "run_attempt": 1,
+  "implementation_sha": "ae0d32218949fd6b906c3e7819ba0d830955c196",
+  "charge_pr": 275,
+  "charge_head": "5af3553683137582d624379d26c2c5f7cc9e2785",
+  "currency": "USD",
+  "reserved_ceiling_usd": "162.72",
+  "actual_cost_usd": null,
+  "actual_cost_status": "Unknown; no authoritative usage or billing receipt retained.",
+  "transport_observation": "One A2 transport invocation recorded http_403; issuer, reason subtype, model processing and billing remain unknown. A3 did not start.",
+  "authorization_plan_sha256": "d79e49f96e5373fa5305c38c9c86ad4b7dd4e9daba7cc7cfc441f5c1d508f8a7",
+  "ledger_digest_domain": "Admission cost-plan plan_digest differs from full authorization plan_sha256.",
+  "ledger_binding": {
+    "plan_digest": "5eda5a6a46506e529e6527e6e7e52f013cb6312617c3fdb2e69026b3f1796561",
+    "run_id": "kv-reclamation-one-pair-v1:kv-reclamation-feasibility-20261031-second",
+    "worst_case_microusd": 162720000
+  },
+  "previous_checkpoints": {
+    "pr": "23bae89818a0eb4f1ed9ccda2361d10cbf3908ed",
+    "daily": "936569a520083cb359a375d3d474a2391a15edae"
+  },
+  "ledgers": [
+    {
+      "scope": "PR275 lifetime",
+      "ref": "refs/heads/skill-eval-budget/1409534281/275",
+      "commit": "e00589f35e5dec551f2dc6dbf495892f980ad626",
+      "path": "ledger.json",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e00589f35e5dec551f2dc6dbf495892f980ad626/ledger.json",
+      "revision": 4,
+      "new_phase": "claimed",
+      "actual_cost": null
+    },
+    {
+      "scope": "Asia/Shanghai daily",
+      "ref": "refs/heads/skill-eval-budget/1409534281/daily",
+      "commit": "d563fe5659f8625f23512911fcf94637d38c7617",
+      "path": "ledger.json",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/d563fe5659f8625f23512911fcf94637d38c7617/ledger.json",
+      "revision": 12,
+      "new_phase": "claimed",
+      "actual_cost": null
+    }
+  ],
+  "retained_usd": {
+    "first_pair": "162.72",
+    "second_pair": "162.72",
+    "other_carryover": "491.35",
+    "PR275_and_pilot": "325.44",
+    "daily": "816.79"
+  },
+  "caps_usd": {
+    "PR275_scoped_exception": "350.00",
+    "other_PR_default": "200.00",
+    "daily": "1000.00",
+    "pilot": "1000.00"
+  },
+  "accounting_rule": "Both full claims and all older entries remain unchanged. No refund, settlement, reset or third attempt. Remaining cap space is not execution authority.",
+  "independent_ledger_audit": {
+    "result": "PASS",
+    "observation_interval_utc": [
+      "2026-10-31T10:48:55.538Z",
+      "2026-10-31T10:49:01.223Z"
+    ],
+    "method": "Reviewed scoped-cap GitHubGitStore/GitHubDailyStore.read_verified replay over fresh connector GETs to exact old checkpoints plus reused verified immutable earlier ancestry; exact Git blob/tree hashes checked; GET-only local adapter, no Python network client.",
+    "prior_entries_exactly_unchanged": true,
+    "same_new_binding_both_ledgers": true,
+    "other_four_pr_refs_unchanged": true,
+    "settlement_or_refund_observed": false,
+    "exact_frozen_policy_binding_matches": true,
+    "execution_bundle_consistent": true,
+    "original_validation_sha256": "5b53a4be2c2aeacbbcb498691355c15cd3c74ddbf50abed996a98fe579a8ff39"
+  }
+}

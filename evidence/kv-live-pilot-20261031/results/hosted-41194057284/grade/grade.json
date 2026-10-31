@@ -1,0 +1,15 @@
+{
+  "schema": "kv-live-final-grade-v1",
+  "plan_sha256": "d79e49f96e5373fa5305c38c9c86ad4b7dd4e9daba7cc7cfc441f5c1d508f8a7",
+  "scope": "one synthetic pair; hidden semantics and nonheldout task timing",
+  "arms": {
+    "A2": {
+      "verdict": "INCONCLUSIVE",
+      "reason": "missing_or_invalid_artifact"
+    },
+    "A3": {
+      "verdict": "INCONCLUSIVE",
+      "reason": "missing_or_invalid_artifact"
+    }
+  }
+}

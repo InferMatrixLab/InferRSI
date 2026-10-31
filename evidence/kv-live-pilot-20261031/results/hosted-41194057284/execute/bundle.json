@@ -1,0 +1,89 @@
+{
+  "schema": "kv-live-bundle-v1",
+  "execution": {
+    "schema": "kv-live-execution-v1",
+    "implementation_sha": "ae0d32218949fd6b906c3e7819ba0d830955c196",
+    "run_id": "41194057284",
+    "plan_sha256": "d79e49f96e5373fa5305c38c9c86ad4b7dd4e9daba7cc7cfc441f5c1d508f8a7",
+    "execution_id": "kv-reclamation-one-pair-2",
+    "charge_pr": 275,
+    "charge_head": "5af3553683137582d624379d26c2c5f7cc9e2785",
+    "reservation_upper_bound_usd": "162.72",
+    "reserved_usd": "162.72",
+    "admission_outcome": "granted",
+    "actual_cost_usd": null,
+    "arms": {
+      "A2": {
+        "status": "failed",
+        "request_completion_known": false,
+        "slots_consumed": 1
+      },
+      "A3": {
+        "status": "not_started",
+        "request_completion_known": false,
+        "slots_consumed": 0
+      }
+    }
+  },
+  "artifacts": {
+    "A2": {
+      "status": "missing_or_invalid"
+    },
+    "A3": {
+      "status": "missing_or_invalid"
+    }
+  },
+  "requests": {
+    "A2": [
+      {
+        "slot": 1,
+        "request_sha256": "320dc8d05a29f9d8f969b268d93706c57cb0003f1456b2f77e68a952ba39a06e",
+        "status": "unresolved",
+        "usage": null
+      }
+    ],
+    "A3": []
+  },
+  "evidence": {
+    "A2": {
+      "revisions": [
+        {
+          "revision": 0,
+          "sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d"
+        }
+      ],
+      "feedback": [],
+      "status": "incomplete"
+    },
+    "A3": {
+      "revisions": [],
+      "feedback": [],
+      "status": "incomplete"
+    }
+  },
+  "preflight_status": "prepared",
+  "diagnostics": {
+    "A2": {
+      "worker_status": "failed",
+      "reason": "provider_transport_error",
+      "provider_attempts": 1,
+      "transport_error_code": "http_403",
+      "execution": {
+        "status": "failed",
+        "returncode": 1,
+        "elapsed_seconds": 17.149138556999958
+      }
+    },
+    "A3": {
+      "worker_status": "unavailable",
+      "reason": null,
+      "provider_attempts": null,
+      "transport_error_code": null,
+      "execution": {
+        "status": "unavailable",
+        "returncode": null,
+        "elapsed_seconds": null
+      }
+    }
+  }
+}
