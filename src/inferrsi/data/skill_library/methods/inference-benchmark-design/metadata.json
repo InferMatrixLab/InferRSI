@@ -156,5 +156,6 @@
     "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
     "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."
 }

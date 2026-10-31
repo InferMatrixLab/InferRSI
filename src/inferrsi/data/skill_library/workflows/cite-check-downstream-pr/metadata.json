@@ -38,5 +38,6 @@
     "Checklist-only procedure; it validates citation discipline, not the measurement behind an artifact.",
     "A passing review does not establish that the campaign evidence itself is correct."
   ],
-  "provenance_readsets": []
+  "provenance_readsets": [],
+  "searchspace_not_applicable": "SKILL.md §§ Checklist and Red flags check acceptance links, revision/artifact citations and claim wording; they provide no hardware-resource mechanism."
 }

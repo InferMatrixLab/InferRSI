@@ -172,6 +172,11 @@ def test_frontmatter_boundary_validation(tmp_path, frontmatter):
         '{"applicability": {"prerequisites": ["a", 2]}}',
         '{"applicability": {"hardware": []}}',
         '{"applicability": {"prerequisites": 3}}',
+        '{"searchspace_not_applicable": ""}',
+        '{"searchspace_not_applicable": "  "}',
+        '{"searchspace_not_applicable": null}',
+        '{"searchspace_not_applicable": []}',
+        '{"searchspace_not_applicable": {"reason": "process only"}}',
     ],
 )
 def test_recommendation_and_applicability_shape_is_validated(tmp_path, sidecar):

@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f143ad5de97b07ed2d86e206764a29c3415363ed/src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
+      "commit": "f143ad5de97b07ed2d86e206764a29c3415363ed",
       "paths": [
         "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json",
@@ -38,7 +38,7 @@
   "checkout_ref": "checkout:skill-evolution-playbook",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md": "9cd37f21fe0d862069e4798edca8a04d59f8b840e55d521901594a63dddd9ba3",
-    "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json": "92b36338b9257e2e41b95e4370694d7de52ed84bc7971056b3bfced07b0993d8",
+    "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json": "11e2549fbfb7fa0ac05beacd32cd591c1e052c5da866c74ad0517ece9305e0a9",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -63,7 +63,8 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "searchspace_not_applicable": "SKILL.md §§ When should one trajectory update a skill?, How large should a skill edit be?, and When should skills split or merge? govern skill-text evolution and held-out evaluation, not hardware-resource state or control."
   },
   "applicability": {},
   "recommendations": [

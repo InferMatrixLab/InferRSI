@@ -18,5 +18,6 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "searchspace_not_applicable": "SKILL.md §§ When should one trajectory update a skill?, How large should a skill edit be?, and When should skills split or merge? govern skill-text evolution and held-out evaluation, not hardware-resource state or control."
 }

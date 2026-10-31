@@ -1,9 +1,16 @@
 {
   "status": "candidate",
-  "origin": ["internal"],
-  "tags": ["performance", "audit", "measurement"],
+  "origin": [
+    "internal"
+  ],
+  "tags": [
+    "performance",
+    "audit",
+    "measurement"
+  ],
   "empirical_validation": "not_run",
   "limitations": [
     "Guidance for supplied reports; no local efficacy validation or measured performance gain is established."
-  ]
+  ],
+  "searchspace_not_applicable": "SKILL.md §§ Preserve the observation hierarchy, Check what was actually compared, and Return an auditable conclusion audit supplied measurements and verdicts; device identity is comparison metadata, not a hardware-resource mechanism."
 }

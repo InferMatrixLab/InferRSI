@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f143ad5de97b07ed2d86e206764a29c3415363ed/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "f143ad5de97b07ed2d86e206764a29c3415363ed",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
@@ -49,7 +49,7 @@
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "59b5656e7d989b3cee8d6f95cd43be03053b1fb11c3a82bb49ab3d402f7aacee",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "18310402a8ade03fd48ac687f79ba9d447871e90337de84c0e1bc15c0b827306",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "a6671976f3755ea152dc8abd7d147b73d11c07dc65ec188d02dabc8ee0f99eaf",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
@@ -214,7 +214,8 @@
       "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
       "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."
   },
   "applicability": {},
   "recommendations": [

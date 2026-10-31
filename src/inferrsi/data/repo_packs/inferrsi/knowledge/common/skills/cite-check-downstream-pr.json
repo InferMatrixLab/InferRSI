@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f143ad5de97b07ed2d86e206764a29c3415363ed/src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
+      "commit": "f143ad5de97b07ed2d86e206764a29c3415363ed",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md",
@@ -40,7 +40,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317",
     "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/SKILL.md": "485932cdf3b1fba5dc69be73e75d38f86a7b79442d26e82a296c963a7598d226",
-    "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/metadata.json": "7a18f9dbb4894216802a44929b913990fc4bd8521cb60976d9435ee8f37e4265"
+    "src/inferrsi/data/skill_library/workflows/cite-check-downstream-pr/metadata.json": "ade23e3def5c7b875fba4084d32fa63b1af90bebeade72506265c974405eb55d"
   },
   "skill_metadata": {
     "name": "cite-check-downstream-pr",
@@ -84,7 +84,8 @@
       "Checklist-only procedure; it validates citation discipline, not the measurement behind an artifact.",
       "A passing review does not establish that the campaign evidence itself is correct."
     ],
-    "provenance_readsets": []
+    "provenance_readsets": [],
+    "searchspace_not_applicable": "SKILL.md §§ Checklist and Red flags check acceptance links, revision/artifact citations and claim wording; they provide no hardware-resource mechanism."
   },
   "applicability": {
     "scope": "Review of a downstream PR description that cites RSI acceptance work for a performance or quality improvement",

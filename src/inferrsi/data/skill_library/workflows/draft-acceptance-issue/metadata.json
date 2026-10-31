@@ -36,5 +36,6 @@
     "Drafts an issue only; it freezes no gate and runs no measurement.",
     "The placeholder SHA convention depends on the campaign owner filling them in later."
   ],
-  "provenance_readsets": []
+  "provenance_readsets": [],
+  "searchspace_not_applicable": "SKILL.md §§ Steps and Output prepare an acceptance issue, RunSpec, frozen gates and evidence paths; device identifiers are campaign metadata rather than a hardware-resource mechanism."
 }

@@ -85,6 +85,28 @@ dependency and peer remain independent repository relationships.
 
 ## Sources and revisions
 
+### Resource-layer applicability
+
+The SearchSpace Matrix owns positive resource-layer and lifecycle-stage mappings.
+Its supplementary `Resource` tables describe guidance without claiming numbered
+layer coverage. A missing mapping means unknown, not that a procedure applies
+everywhere or nowhere.
+
+A sidecar may declare `searchspace_not_applicable` as a non-empty reason when its
+procedure does not address any of the five resource layers. The reason identifies
+the procedure's actual scope and its source section. Omit the field for positive
+or unanalyzed mappings; it is not a second mapping table. Device-independent
+guidance may still address a resource layer, so `applicability.hardware` does not
+determine this declaration.
+
+The coverage view shows unknown, N/A, numbered coverage and supplementary guidance
+separately. An N/A declaration alongside a positive matrix mapping is a visible
+conflict; it counts as neither N/A nor coverage until reconciled. The generated
+catalog retains the reason in `skill_metadata`. None of these declarations alters
+skill maturity, empirical validation or execution authority.
+
+### Source identities
+
 | Type | Identity and scope | Not interchangeable with |
 |---|---|---|
 | Git | URL, commit (or explicitly partial historical prefix), paths/readset | Paper version or tested runtime stack |

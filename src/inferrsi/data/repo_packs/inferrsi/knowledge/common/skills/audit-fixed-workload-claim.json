@@ -20,8 +20,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f143ad5de97b07ed2d86e206764a29c3415363ed/src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
+      "commit": "f143ad5de97b07ed2d86e206764a29c3415363ed",
       "paths": [
         "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
         "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json",
@@ -37,7 +37,7 @@
   "checkout_ref": "checkout:audit-fixed-workload-claim",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md": "2be89b1340a3deb978c8e1792d18aeecbe8f5de81d4daf542389f53826b8ebee",
-    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json": "81edd75fa16939807548d0944e9203cfd7c0cb17e63463872d96ca2c1273d1d8",
+    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json": "245bdfe7b7f3ff3cb8009ac23c1b4bb5bbdd6ea8efbf401e80c99eee343748fa",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -55,7 +55,8 @@
     "empirical_validation": "not_run",
     "limitations": [
       "Guidance for supplied reports; no local efficacy validation or measured performance gain is established."
-    ]
+    ],
+    "searchspace_not_applicable": "SKILL.md §§ Preserve the observation hierarchy, Check what was actually compared, and Return an auditable conclusion audit supplied measurements and verdicts; device identity is comparison metadata, not a hardware-resource mechanism."
   },
   "applicability": {},
   "recommendations": [
