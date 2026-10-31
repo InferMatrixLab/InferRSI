@@ -141,7 +141,9 @@ in `restore_tensor_storage`, reached from DLO shutdown. The existing terminal
 path skips AllGather reconstruction but still copies rank-local weights. A
 downstream candidate skips terminal reconstruction for all managed blocks while
 retaining ordinary disable and startup rollback. Its 116 DLO CPU tests and
-applicable pre-commit checks pass; actual NPU teardown validation is pending.
+applicable pre-commit checks pass. The cleanup-only NPU smoke removes the sampled
+reconstruction but still requires forced process termination; see
+[the partial result](results/shutdown-fixed-smoke.json) and [follow-up candidate](patch/README.md).
 This is a lifecycle candidate and has no claimed inference-latency benefit.
 
 ## Cache-DiT screening evidence
