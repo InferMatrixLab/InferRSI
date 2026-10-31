@@ -153,5 +153,7 @@
   "notes": [
     "One warmup only; measured request includes peer cold-work tail. Do not rank this E2E sample as steady state.",
     "Compared with MC2, only max_continuous_cached_steps changes from 2 to 4; adaptive threshold remains 0.04."
-  ]
+  ],
+  "sampled_peak_mib_any_device": 25635,
+  "memory_scope": "10-second driver HBM samples across startup, requests and cleanup; not an exact active-tensor peak"
 }

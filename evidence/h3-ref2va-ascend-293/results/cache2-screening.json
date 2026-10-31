@@ -151,5 +151,7 @@
     "Cache-DiT source: vllm-project/vllm-omni PR 5853; campaign changes only max_continuous_cached_steps from 1 to 2."
   ],
   "quality_process_exit": 0,
-  "upstream_source": "https://github.com/vllm-project/vllm-omni/pull/5853"
+  "upstream_source": "https://github.com/vllm-project/vllm-omni/pull/5853",
+  "sampled_peak_mib_any_device": 26298,
+  "memory_scope": "10-second driver HBM samples across startup, requests and cleanup; not an exact active-tensor peak"
 }

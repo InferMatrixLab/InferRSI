@@ -209,3 +209,18 @@ means the E2E sample is not a steady-state ranking. Both requests reused 29
 steps, only one more than MC2. Diagnostic cleanup took 25.72 s with no forced
 signals and server/container exit 0; individual worker exit codes were not
 captured. Production qualification remains pending.
+
+
+## VAE residency screening
+
+Selecting only `dit` and `text_encoder` for offload, following upstream
+[#8577](https://github.com/vllm-project/vllm-omni/pull/8577), passed
+[matched media quality](results/resident-quality.json): SSIM 0.985969,
+PSNR 46.24 dB, LPIPS 0.01593, audio cosine 0.99932. The
+[receipt](results/resident-screening.json) records 500.52 s warmup, 458.52 s
+measured E2E, 371.60 s denoise and 4.34 s decode. The E2E sample includes peer
+cold-work tail and does not establish a steady-state gain. Driver HBM sampled
+peak was 26,912 MiB (10-second samples across the whole lifecycle).
+Diagnostic cleanup took 26.29 s with no forced signals and zero server/container
+exit codes; individual worker exits were not captured. The residency + upstream
+high-quality cache combination is being screened separately.
