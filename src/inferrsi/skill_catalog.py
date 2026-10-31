@@ -156,6 +156,37 @@ def _references(metadata: dict, name: str) -> list[str]:
     return references
 
 
+def _strings(record: dict, key: str, name: str) -> None:
+    """A declared string list must be strings; [] is a deliberate empty value."""
+    if key not in record:
+        return
+    listed = record[key]
+    if not isinstance(listed, list) or any(
+        not isinstance(item, str) or not item.strip() for item in listed
+    ):
+        raise ValueError(f"Skill {key} must be a list of non-empty strings: {name}")
+
+
+def _applicability(record: dict, name: str) -> None:
+    """Conditions a procedure assumes. Descriptive only; never a validation claim."""
+    if "applicability" not in record:
+        return
+    declared = record["applicability"]
+    if not isinstance(declared, dict):
+        raise ValueError(f"Skill applicability must be a mapping: {name}")
+    for key, value in declared.items():
+        if isinstance(value, str):
+            if not value.strip():
+                raise ValueError(f"Skill applicability.{key} is empty: {name}")
+        elif isinstance(value, list):
+            if not value or any(not isinstance(item, str) or not item.strip() for item in value):
+                raise ValueError(
+                    f"Skill applicability.{key} must be a non-empty string list: {name}"
+                )
+        else:
+            raise ValueError(f"Skill applicability.{key} must be a string or string list: {name}")
+
+
 def _effective(directory: Path) -> dict:
     # Read bytes line by line; parse only the frontmatter, never decode the body.
     with _entry(directory, "SKILL.md").open("rb") as stream:
@@ -175,6 +206,11 @@ def _effective(directory: Path) -> dict:
                 raise ValueError("Local skill name and description belong in SKILL.md")
             if set(record) != {"name", "description"}:
                 raise ValueError("Local skill structured fields belong in metadata.json")
+        # Only sidecars declare these fields, and JSON cannot express a container
+        # cycle; validating the sidecar leaves the bundle normalizer free to report
+        # a cyclic legacy frontmatter value against the field that contains it.
+        _strings(metadata, "recommendations", directory.name)
+        _applicability(metadata, directory.name)
         record.update(metadata)
     _references(record, directory.name)
     if "status" in record and not isinstance(record["status"], str):

@@ -1,0 +1,39 @@
+{
+  "schema_version": 1,
+  "profile": "local-skill-v1",
+  "kind": "skill",
+  "status": "candidate",
+  "origin": [
+    "first-party"
+  ],
+  "consumption_mode": "packaged",
+  "tags": [
+    "competitive-analysis",
+    "positioning",
+    "claim",
+    "unverified"
+  ],
+  "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Qualitative positioning of a new RSI repository against other projects before acceptance evidence exists",
+    "prerequisites": "A selected repository and readable public material from the alternatives; no benchmark run is required",
+    "input_contract": "A target repository plus whatever the alternatives publish about what they optimize and how they prove it",
+    "produced_artifact": "A short Markdown note covering problem, alternatives, differentiation, limits and open questions",
+    "failure_modes": [
+      "Numeric comparison written without a PASS campaign in our own evidence tree",
+      "Third-party figure repeated as if reproduced under our RunSpec",
+      "Scan presented as a substitute for acceptance evidence"
+    ],
+    "refusal_point": "Refuses any numeric comparison not sourced from our own evidence/<campaign-id>/results/ with a PASS verdict"
+  },
+  "recommendations": [
+    "Answer the four framing questions qualitatively first; the absence of a published claim contract is itself a finding.",
+    "Label every third-party number unverified unless it was reproduced under our RunSpec.",
+    "Close the note with open questions rather than a conclusion the evidence cannot support."
+  ],
+  "limitations": [
+    "Produces positioning material only; it establishes no performance or quality result.",
+    "Third-party claim contracts are read from public material and may be incomplete."
+  ],
+  "provenance_readsets": []
+}

@@ -1,14 +1,14 @@
 # InferRSI skill library
 
-The English-only library contains **120 skill documents**: 76 registered roots,
-21 separately indexed engine/router documents and 23 AREX graph sub-skills.
+The English-only library contains **124 skill documents**: 77 registered roots,
+21 separately indexed engine/router documents and 26 AREX graph sub-skills.
 Complete procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
 
 | Directory | Content |
 | --- | --- |
-| [Hardware](hardware/) | Ascend (14 registered skills), CUDA (3) and host resource guidance (5) |
+| [Hardware](hardware/README.md) | Ascend (14 registered skills), CUDA (3) and host resource guidance (5), with retained source-depth navigation |
 | [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 76 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 77 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -137,12 +137,13 @@ scheduling/placement proposals remain separate from both implementation pins.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 76-ID registry.
+the links and catalog records below, separately from the 77-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 
 | Repository | Focus | Entry | Catalog |
 | --- | --- | --- | --- |
+| Lithos Metal source guide | Task compiler/fusion, GPU-resident generation/DSpark state and exact serving/cache ownership; candidate | [Skill](repositories/lithos-metal/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/lithos-metal.json) |
 | ComfyUI source audit | Workflow-output cache validity and model-weight residency; source-derived candidate | [Skill](repositories/comfy-ui/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json) |
 | stable-diffusion.cpp source audit | Native image weight/runtime capacity and protected segment prefetch; source-derived candidate | [Skill](repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json) |
 | h3.c / MiniMax-H3 source audit | Conditioning, AdaLN precompute, phased/cached residency, precision and BF16 SSD streaming; source-derived candidate | [Skill](repositories/h3-c/audit-h3-runtime-residency/SKILL.md) | [Record](../repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json) |

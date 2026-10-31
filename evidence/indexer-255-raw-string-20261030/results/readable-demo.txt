@@ -1,0 +1,36 @@
+SYNTHETIC CONTRACT DEMO — not general retrieval accuracy
+Cue: n t; fields retain substring matching and weights 4/3/2/1.
+A title with actual newline+tab has neither literal n nor literal t.
+A title with literal backslash-n/backslash-t contains both letters.
+
+Record                         legacy score  raw-string score
+synthetic/y.controls                      8                 0
+synthetic/z.literal                       8                 8
+synthetic/a.split                         7                 7
+synthetic/b.split                         7                 7
+synthetic/m.metadata                      5                 5
+synthetic/x.empty                         0                 0
+
+Legacy selected: synthetic/y.controls -> synthetic/z.literal -> synthetic/a.split -> synthetic/b.split -> synthetic/m.metadata
+Opt-in selected: synthetic/z.literal -> synthetic/a.split -> synthetic/b.split -> synthetic/m.metadata
+
+FIXED REAL-CORPUS CLI EXAMPLE — interface/context demonstration only
+Query: cpu.stat.local; task cue: cgroupv2; limit: 1; context budget: 65536 bytes.
+
+Legacy: exit=0; method=weighted-lexical-v1
+  Selected: package:inferrsi.common.skills.cgroup_resource_controls
+  Revision: sha256:aebe3d1e6af70b9eb1cc1f04292e977e0bb507a3b614a5f36dfe24361c6f8b18
+  Context bytes: 7348
+  Complete core: data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md
+    SHA-256: fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5
+  Context omissions: []
+
+Raw opt-in: exit=0; method=weighted-raw-string-v1
+  Selected: package:inferrsi.common.skills.cgroup_resource_controls
+  Revision: sha256:aebe3d1e6af70b9eb1cc1f04292e977e0bb507a3b614a5f36dfe24361c6f8b18
+  Context bytes: 7348
+  Complete core: data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md
+    SHA-256: fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5
+  Context omissions: []
+
+Default behavior is unchanged. No efficacy, latency or whole-Issue completion claim.

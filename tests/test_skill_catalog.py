@@ -8,6 +8,7 @@ from inferrsi.skill_catalog import (
     get_skill,
     skill_directories,
     skill_instructions,
+    skill_metadata,
     skill_records,
     skill_reference,
     skill_resource,
@@ -33,7 +34,7 @@ def test_checkout_catalog_is_metadata_only():
     assert len({record["name"] for record in records}) == len(records)
     assert all(set(record) <= {"name", "description", "status", "tags"} for record in records)
     inherited = next(record for record in records if record["name"] == "claim-contract")
-    assert set(inherited) == {"name", "description"}
+    assert set(inherited) == {"name", "description", "status", "tags"}
     casebook = next(
         record for record in records if record["name"] == "inference-optimization-casebook"
     )
@@ -155,3 +156,48 @@ def test_frontmatter_boundary_validation(tmp_path, frontmatter):
     (directory / "SKILL.md").write_text(frontmatter, encoding="utf-8")
     with pytest.raises(ValueError):
         skill_records(tmp_path)
+
+
+@pytest.mark.parametrize(
+    "sidecar",
+    [
+        # recommendations must be a list of non-empty strings
+        '{"recommendations": "Read this first."}',
+        '{"recommendations": [""]}',
+        '{"recommendations": [1]}',
+        '{"recommendations": null}',
+        # applicability must be a mapping of strings or non-empty string lists
+        '{"applicability": []}',
+        '{"applicability": {"scope": ""}}',
+        '{"applicability": {"prerequisites": ["a", 2]}}',
+        '{"applicability": {"hardware": []}}',
+        '{"applicability": {"prerequisites": 3}}',
+    ],
+)
+def test_recommendation_and_applicability_shape_is_validated(tmp_path, sidecar):
+    directory = tmp_path / "selected"
+    directory.mkdir()
+    (directory / "SKILL.md").write_text(
+        '---\nname: selected\ndescription: test\n---\n', encoding="utf-8"
+    )
+    (directory / "metadata.json").write_text(sidecar, encoding="utf-8")
+    with pytest.raises(ValueError):
+        skill_records(tmp_path)
+
+
+def test_explicit_empty_recommendations_is_a_statement_not_a_shape_error(tmp_path):
+    directory = tmp_path / "selected"
+    directory.mkdir()
+    (directory / "SKILL.md").write_text(
+        '---\nname: selected\ndescription: test\n---\n', encoding="utf-8"
+    )
+    (directory / "metadata.json").write_text(
+        '{"recommendations": [], "applicability": {"hardware": "not-applicable"}}',
+        encoding="utf-8",
+    )
+    record = skill_records(tmp_path)[0]
+    assert record["name"] == "selected"
+    assert skill_metadata(tmp_path, "selected")["recommendations"] == []
+    assert skill_metadata(tmp_path, "selected")["applicability"] == {
+        "hardware": "not-applicable"
+    }

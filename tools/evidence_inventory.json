@@ -1,6 +1,48 @@
 {
   "version": 1,
   "bundles": {
+    "kv-live-pilot-20261031": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Prospective one-pair plan/source data only; no paid execution or efficacy result exists. First-run result retention remains required."]
+    },
+    "kv-actor-qualification-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Exact-revision hosted actor receipts are retained as separate CI artifacts; no paid result is committed."]
+    },
+    "kv-reclamation-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
+    },
+    "indexer-255-limit-sizing-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
+    },
+    "indexer-255-raw-string-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}]
+    },
+    "indexer-255-token-v3-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
+    },
+    "indexer-255-blind-cue-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
+    },
+    "indexer-255-covered-cue-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/publication-integrity.json", "schema": "bundle-sha256"}]
+    },
+    "indexer-255-token-v2-20261030": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}]
+    },
+    "indexer-255-20261029": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity-manifest.json", "schema": "bundle-sha256"}]
+    },
     "_template": {"kind": "template", "manifests": []},
     "qwen38-h20-fp8-single-request-vllm032": {
       "kind": "campaign", "manifests": [

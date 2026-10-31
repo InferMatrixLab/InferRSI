@@ -1012,6 +1012,7 @@ def test_changed_runtime_controllers_reject_execution_and_report_without_calls(t
     assert "src/inferrsi/infra/executors/local.py" in module.CONTROLLERS
     assert "src/inferrsi/infra/processes.py" in module.CONTROLLERS
     assert "src/inferrsi/infra/artifacts.py" in module.CONTROLLERS
+    assert "tools/skill_eval_artifact_guidance.py" in module.CONTROLLERS
     client = FixedOutputClient(tmp_path)
     for name in module.CONTROLLERS:
         target = runtime / name

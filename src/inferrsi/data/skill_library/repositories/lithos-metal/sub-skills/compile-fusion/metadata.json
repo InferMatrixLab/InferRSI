@@ -1,0 +1,52 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "tags": [
+    "lithos-metal",
+    "metal",
+    "apple-silicon",
+    "compile-fusion"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/lithos-ai/lithos-metal",
+      "commit": "6653b7df5f2c4392ec7b038960f2796b1499923f",
+      "paths": [
+        "monolith/compiler/emit.py",
+        "monolith/compiler/region_fusion.py",
+        "monolith/compiler/static_fusion.py",
+        "monolith/compiler/decoder_fusion.py",
+        "monolith/compiler/barriers.py",
+        "monolith/compiler/arena.py",
+        "monolith/compiler/coverage.py",
+        "monolith/backends/metal/base.py",
+        "monolith/backends/metal/registry.py"
+      ],
+      "readset": "../../references/source-notes.md"
+    }
+  ],
+  "applicability": {
+    "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately."
+  },
+  "limitations": [
+    "Source-derived candidate; empirical efficacy validation not_run.",
+    "CPU/software and synthetic Metal contracts do not qualify full-model/DSpark numerics, quality or E2E performance.",
+    "No model downloads, live DisCo deployment or inference backend integration is provided."
+  ],
+  "provenance_readsets": [
+    "../../references/source-notes.md"
+  ],
+  "consumption_mode": "packaged",
+  "license": "Apache-2.0",
+  "disable-model-invocation": true,
+  "metadata": {
+    "disco-role": "operating"
+  }
+}

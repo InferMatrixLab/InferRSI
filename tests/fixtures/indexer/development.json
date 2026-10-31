@@ -1,0 +1,190 @@
+{
+  "schema_version": 1,
+  "label_scope": "Partial source-reviewed positives; not exhaustive relevance ground truth. No observed ranking used to select labels.",
+  "cases": [
+    {
+      "id": "dev01",
+      "split": "development",
+      "query": "",
+      "relevance": "cgroupv2 cpu quota",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.cgroup_resource_controls"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/hardware/host/cgroup-resource-controls/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5"
+      },
+      "rationale": "CPU throttling and quota attribution, not GPU utilization."
+    },
+    {
+      "id": "dev02",
+      "split": "development",
+      "query": "",
+      "relevance": "P2pNccl KV transfer completion",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.cuda.skills.audit_afd_p2p_exchanges"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md": "a46110891eca860915e314d6921a22856d631453b22b17837fe30262d6780535"
+      },
+      "rationale": "Send/receive completion and ownership in AFD P2P exchanges."
+    },
+    {
+      "id": "dev03",
+      "split": "development",
+      "query": "",
+      "relevance": "DLRover checkpoint replica recovery",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.checkpoint_recovery_consistency"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/methods/checkpoint-recovery-consistency/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md": "6b7db1eb2780dec27858cb7aa0a3c093c5b5dfa4c30261aebfeaa255213ff688"
+      },
+      "rationale": "Distributed checkpoint validity and replica recovery."
+    },
+    {
+      "id": "dev04",
+      "split": "development",
+      "query": "",
+      "relevance": "weight loading mmap checkpoint peak memory",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.weight_loading_optimization"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/methods/weight-loading-optimization/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md": "a1bf0e2ec066d5f30225c6cc5fb603f830f48eb5e2aee3fc3d084ed9d8aebe2f"
+      },
+      "rationale": "Storage-to-device startup and weight loading, distinct from per-request compute."
+    },
+    {
+      "id": "dev05",
+      "split": "development",
+      "query": "",
+      "relevance": "Ascend npu-smi device health before launch",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.ascend.skills.ascend_device_health"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/hardware/ascend/ascend-device-health/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a"
+      },
+      "rationale": "NPU device availability and health before launching a task."
+    },
+    {
+      "id": "dev06",
+      "split": "development",
+      "query": "",
+      "relevance": "H3 MiniMax AdaLN SSD residency",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.audit_h3_runtime_residency"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/repositories/h3-c/audit-h3-runtime-residency/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md": "fdb4d9483c6efa836f9e59617da605fa9c2186e11c2041b05d5c81850ba0475d"
+      },
+      "rationale": "MiniMax-H3 source-defined residency lifetime and storage path."
+    },
+    {
+      "id": "dev07",
+      "split": "development",
+      "query": "",
+      "relevance": "fixed workload throughput denominator timing claim",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.audit_fixed_workload_claim"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/methods/audit-fixed-workload-claim/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md": "2be89b1340a3deb978c8e1792d18aeecbe8f5de81d4daf542389f53826b8ebee"
+      },
+      "rationale": "Audit benchmark timing denominator and comparable fixed work."
+    },
+    {
+      "id": "dev08",
+      "split": "development",
+      "query": "",
+      "relevance": "storage fio direct IO page cache measurement",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.storage_io_measurement"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "/hardware/host/storage-io-measurement/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md"
+      ],
+      "evidence_sha256": {
+        "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md": "63b883c10a8d3e7d918abfc7175b72e2b401ff1e02697f94b8382ec1c8f369b7"
+      },
+      "rationale": "Storage I/O measurement with cache and device/process attribution."
+    }
+  ]
+}

@@ -1,5 +1,3 @@
-"""Portable knowledge integration; these checks do not validate inference claims."""
-
 import json
 import re
 import subprocess
@@ -154,7 +152,7 @@ def test_library_root_exposes_only_owner_categories_and_required_entrypoints():
     assert {path.name for path in LIBRARY.iterdir() if path.is_dir()} == {
         "hardware", "frameworks", "repositories", "methods", "workflows",
     }
-    assert len(list(LIBRARY.rglob("SKILL.md"))) == 120
+    assert len(list(LIBRARY.rglob("SKILL.md"))) == 124
     assert not any(path.name == "zh-CN" for path in LIBRARY.rglob("*") if path.is_dir())
     references = LIBRARY / "workflows/inference-engine-research/references"
     assert (references / "import.md").is_file()

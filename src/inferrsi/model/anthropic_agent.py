@@ -17,6 +17,7 @@ from urllib.error import HTTPError
 
 KIND = "anthropic-messages-agent-v1"
 FULL_CONTEXT_KIND = "anthropic-messages-full-context-v1"
+EDIT_KIND = "anthropic-messages-edit-check-v1"
 FULL_CONTEXT_MAX_REQUEST = 262144
 ENDPOINT = "https://yibuapi.com/v1/messages"
 SOURCE = "src/inferrsi/model/anthropic_agent.py"
@@ -40,7 +41,7 @@ def validate_spec(model, spec):
               "max_output_tokens", "max_request_bytes", "max_read_bytes", "max_tool_calls"}
     if not isinstance(spec, dict) or set(spec) != fields:
         raise ValueError("Unknown or missing agent setting")
-    if (spec["kind"] not in (KIND, FULL_CONTEXT_KIND) or spec["provider"] != "yibuapi"
+    if (spec["kind"] not in (KIND, FULL_CONTEXT_KIND, EDIT_KIND) or spec["provider"] != "yibuapi"
             or spec["endpoint"] != ENDPOINT
             or spec["api_version"] != "2023-06-01"):
         raise ValueError("Unsupported provider protocol identity")
@@ -194,6 +195,10 @@ class AnthropicAgentClient:
     spend_limit: dict | None = None
     require_authorization: bool = False
 
+    def __post_init__(self):
+        if isinstance(self.spec, dict) and self.spec.get("kind") == EDIT_KIND:
+            raise ValueError("Editing requires the separate bounded edit/check adapter")
+
     def frozen_identity(self):
         validate_spec({"name": self.model, "effort": "not_applicable"}, self.spec)
         value = {"settings": json.loads(canonical(self.spec)),
@@ -260,10 +265,11 @@ def send_message(payload, spec, key, timeout, *, environment=None, require_autho
     validate_spec({"name": payload.get("model"), "effort": "not_applicable"}, spec)
     if not isinstance(key, str) or not key or not key.isascii() or any(c.isspace() for c in key):
         raise AgentError("invalid_credential_shape")
+    encoded_key = canonical(key)[1:-1]  # Match substrings in the same JSON encoding.
     raw = canonical(payload).encode()
     if len(raw) > spec["max_request_bytes"]:
         raise AgentError("request_bytes_limit")
-    if key in raw.decode():
+    if encoded_key in raw.decode():
         raise AgentError("credential_in_payload")
     request = urllib.request.Request(spec["endpoint"], data=raw, method="POST", headers={
         "x-api-key": key, "anthropic-version": spec["api_version"],
@@ -295,7 +301,7 @@ def send_message(payload, spec, key, timeout, *, environment=None, require_autho
     try:
         result = json.loads(data, object_pairs_hook=unique_object,
                             parse_constant=lambda _: (_ for _ in ()).throw(ValueError()))
-        if key in canonical(result):
+        if encoded_key in canonical(result):
             raise AgentError("credential_echo")
         return result
     except AgentError:
@@ -441,6 +447,8 @@ def run_agent(workspace, schema, prompt, model, spec, timeout, emit, *, send,
               input_token_ceiling=None):
     """Run only the read/submit contract. Tests inject transport; no implicit live path."""
     validate_spec({"name": model, "effort": "not_applicable"}, spec)
+    if spec["kind"] == EDIT_KIND:
+        raise ValueError("Editing requires the separate bounded edit/check adapter")
     validate_schema(schema)
     if not math.isfinite(timeout) or timeout <= 0:
         raise ValueError("A finite positive trial timeout is required")

@@ -1,0 +1,152 @@
+[
+  {
+    "id": "freshdev01",
+    "rank": null,
+    "ids": [
+      "inferrsi.common.skills.weight_loading_optimization",
+      "inferrsi.common.skills.audit_sd_cpp_residency",
+      "inferrsi.common.skills.npu_skill_factory",
+      "inferrsi.common.skills.bound_windowed_attention_replay",
+      "inferrsi.ascend.skills.cann_attribution_overlap"
+    ],
+    "complete_relevant": [],
+    "output_bytes": 1023627,
+    "context_bytes": 209844,
+    "context_omissions": [],
+    "sha256": "a2e2d4cb94d5e14bb3ad251d1b5a25d088dc5ab29918e36f5fe42d6f86e71d5c"
+  },
+  {
+    "id": "freshdev02",
+    "rank": 1,
+    "ids": [
+      "inferrsi.common.skills.choose_parallel_training_plan",
+      "inferrsi.common.skills.weight_loading_optimization",
+      "inferrsi.common.skills.training_input_pipeline",
+      "inferrsi.common.skills.training_resource_budget",
+      "inferrsi.cuda.skills.audit_flare_session_lifecycle"
+    ],
+    "complete_relevant": [
+      "inferrsi.common.skills.choose_parallel_training_plan"
+    ],
+    "output_bytes": 995468,
+    "context_bytes": 192276,
+    "context_omissions": [],
+    "sha256": "052429227fab7d925a9846eca3bb567d948008e17566ca62827a72b2a1da194a"
+  },
+  {
+    "id": "freshdev03",
+    "rank": 1,
+    "ids": [
+      "inferrsi.common.skills.training_input_pipeline",
+      "inferrsi.common.skills.weight_loading_optimization",
+      "inferrsi.common.skills.kv_tier_management",
+      "inferrsi.common.skills.bound_windowed_attention_replay",
+      "inferrsi.common.skills.repository_evolution_analysis"
+    ],
+    "complete_relevant": [
+      "inferrsi.common.skills.training_input_pipeline"
+    ],
+    "output_bytes": 936745,
+    "context_bytes": 141145,
+    "context_omissions": [],
+    "sha256": "459e5bff3a0cd751c64d0459e3754fc06548bf878d33cf8e7af98aab99da5275"
+  },
+  {
+    "id": "freshdev04",
+    "rank": 2,
+    "ids": [
+      "inferrsi.common.skills.npu_skill_factory",
+      "inferrsi.common.skills.skill_evolution_playbook",
+      "inferrsi.common.skills.repository_evolution_analysis",
+      "inferrsi.ascend.skills.cann_attribution_overlap",
+      "inferrsi.common.skills.weight_loading_optimization"
+    ],
+    "complete_relevant": [
+      "inferrsi.common.skills.skill_evolution_playbook"
+    ],
+    "output_bytes": 991347,
+    "context_bytes": 186469,
+    "context_omissions": [],
+    "sha256": "fa56817e4ef5c18d55d3cd981ebd8067599e8e6d48a68fad0d3a2b556d926069"
+  },
+  {
+    "id": "freshdev05",
+    "rank": 1,
+    "ids": [
+      "inferrsi.cuda.skills.reason_hopper_kernels",
+      "inferrsi.ascend.skills.cann_attribution_overlap",
+      "inferrsi.ascend.skills.ascend_distributed_parallel",
+      "inferrsi.common.skills.draft_acceptance_issue",
+      "inferrsi.common.skills.weight_loading_optimization"
+    ],
+    "complete_relevant": [
+      "inferrsi.cuda.skills.reason_hopper_kernels"
+    ],
+    "output_bytes": 1024332,
+    "context_bytes": 217296,
+    "context_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.weight_loading_optimization",
+        "reason": "context_limit",
+        "required_bytes": 47137,
+        "available_bytes": 44848
+      }
+    ],
+    "sha256": "e5af4a11f36aeb6754e554419cdda3226bd6d4d90e377a67a2fff6f815923adb"
+  },
+  {
+    "id": "freshdev06",
+    "rank": null,
+    "ids": [
+      "inferrsi.ascend.skills.ascend_operator_tuning",
+      "inferrsi.common.skills.weight_loading_optimization",
+      "inferrsi.ascend.skills.ascend_operator_profiling",
+      "inferrsi.common.skills.storage_io_measurement",
+      "inferrsi.ascend.skills.ascend_video_diffusion_optimization"
+    ],
+    "complete_relevant": [],
+    "output_bytes": 908046,
+    "context_bytes": 114329,
+    "context_omissions": [],
+    "sha256": "48acc9062fdb58f0e04bf83fd53dd43c2b2fc12b1690fd3f2cfc0be284d82b08"
+  },
+  {
+    "id": "freshnegative01",
+    "rank": null,
+    "ids": [
+      "inferrsi.common.skills.dense_performance_evidence",
+      "inferrsi.common.skills.optimization_search_policy",
+      "inferrsi.common.skills.repository_evolution_analysis",
+      "inferrsi.common.skills.performance_ceiling_analysis",
+      "inferrsi.ascend.skills.ascend_optimization_casebook"
+    ],
+    "complete_relevant": [],
+    "output_bytes": 938511,
+    "context_bytes": 140102,
+    "context_omissions": [
+      {
+        "ref": "package:inferrsi.common.skills.performance_ceiling_analysis",
+        "reason": "context_limit",
+        "required_bytes": 170782,
+        "available_bytes": 131214
+      }
+    ],
+    "sha256": "dcaa7d4e51b2bd26d89987810f2b65f517e4dc1362caa9d672ed8dc0fcdc2c25"
+  },
+  {
+    "id": "freshnegative02",
+    "rank": null,
+    "ids": [
+      "inferrsi.common.skills.npu_skill_factory",
+      "inferrsi.common.skills.repository_evolution_analysis",
+      "inferrsi.ascend.skills.ascend_operator_tuning",
+      "inferrsi.common.skills.bound_windowed_attention_replay",
+      "inferrsi.common.skills.competitor_scan"
+    ],
+    "complete_relevant": [],
+    "output_bytes": 968466,
+    "context_bytes": 163968,
+    "context_omissions": [],
+    "sha256": "dba7c45a509cf178f694a28f3e3294305a4878395b6c886454c5fddd13cb129d"
+  }
+]

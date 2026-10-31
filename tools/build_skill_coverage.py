@@ -30,6 +30,10 @@ HEADING = re.compile(r"^## ([1-5]) · (.+)$")
 LINK = re.compile(r"\(([^()\s]*/skill_library/[^()\s]+/SKILL\.md)\)")
 BOLD = re.compile(r"\*\*(.+?)\*\*")
 
+# A sidecar states this for a dimension that genuinely does not apply, so the
+# view can tell it apart from a field nobody has analyzed yet.
+NOT_APPLICABLE = "not-applicable"
+
 
 def cells(line):
     body = line.strip()[1:]
@@ -231,6 +235,8 @@ def collect(root):
         inputs.append(directory / "SKILL.md")
         if has_sidecar:
             inputs.append(directory / "metadata.json")
+        declared = metadata.get("applicability")
+        advice = metadata.get("recommendations")
         rows.append({
             "id": name,
             "path": relative,
@@ -241,6 +247,14 @@ def collect(root):
             "validation": metadata.get("empirical_validation", "unknown"),
             "readsets": len(metadata.get("provenance_readsets") or []),
             "sidecar": has_sidecar,
+            "conditions": conditions(metadata),
+            "typed_conditions": sorted(
+                key for key in (declared if isinstance(declared, dict) else {})
+                if key not in ("scope", "hardware", "prerequisites")
+            ),
+            # None means the owner declared nothing; a list is owner-supplied
+            # advice, and [] is the deliberate statement that there is none.
+            "advice": len(advice) if isinstance(advice, list) else None,
             "layers": layer_refs(ss.get(name, [])),
             "other_ss": sorted({
                 heading[3:] for heading, _, _ in ss.get(name, [])
@@ -257,6 +271,34 @@ def collect(root):
     return rows, unregistered, len(documents), dead, input_digest(root, inputs)
 
 
+def conditions(metadata):
+    """Declared applicability, reduced to what the view renders.
+
+    Absent and empty both mean "not analyzed". A field whose value is the
+    ``not-applicable`` sentinel is a deliberate statement that the dimension does
+    not apply to this procedure; it is not a missing value.
+    """
+    declared = metadata.get("applicability")
+    if not isinstance(declared, dict) or not declared:
+        return {"scope": None, "not_applicable": [], "dimensions": 0}
+    # The catalog accepts a string or a string list for every applicability key,
+    # so a listed scope is a declaration, not an absent one.
+    scope = declared.get("scope")
+    if isinstance(scope, list):
+        scope = "; ".join(scope)
+    scope = scope if isinstance(scope, str) else None
+    return {
+        "scope": scope,
+        "not_applicable": sorted(
+            key for key, value in declared.items()
+            if value == NOT_APPLICABLE or (
+                isinstance(value, list) and value == [NOT_APPLICABLE]
+            )
+        ),
+        "dimensions": len(declared),
+    }
+
+
 def gaps(row):
     found = []
     if not row["layers"]:
@@ -265,6 +307,8 @@ def gaps(row):
         found.append("no-Reference-Matrix-row")
     if not row["sidecar"]:
         found.append("no-sidecar")
+    if not row["conditions"]["scope"] and not row["conditions"]["dimensions"]:
+        found.append("no-applicability")
     if not row["eval"]:
         found.append("no-eval")
     return found
@@ -318,6 +362,8 @@ def render(rows, unregistered, documents, dead, digest):
         "[`skill-index.json`](../src/inferrsi/data/skill_library/skill-index.json) |",
         "| Declared task, status, validation state, provenance readsets | "
         "the skill's `SKILL.md` frontmatter and `metadata.json` sidecar |",
+        "| Declared applicability conditions, workflow input/output/failure/refusal | "
+        "`applicability` in the same `metadata.json` sidecar; descriptive, not evidential |",
         "| Resource layer, lifecycle stage | [SearchSpace Matrix](searchspace-matrix.md) |",
         "| Source identity and inspected scope | [Reference Matrix](reference-matrix.md) |",
         "| Evaluation selection | frozen `evidence/<campaign>/plan/protocol-*.json` |",
@@ -363,9 +409,9 @@ def render(rows, unregistered, documents, dead, digest):
         if not group:
             continue
         out += [f"## Registered: {title} ({len(group)})", ""]
-        out.append("| Skill | Backend | Declared task | SearchSpace layer / stage | "
-                   "Reference Matrix | State | Gaps |")
-        out.append("|---|---|---|---|---|---|---|")
+        out.append("| Skill | Backend | Declared task | Applicability | Conditions | "
+                   "SearchSpace layer / stage | Reference Matrix | State | Gaps |")
+        out.append("|---|---|---|---|---|---|---|---|---|")
         for row in group:
             link = f"[{row['id']}](../{LIBRARY.as_posix()}/{row['path']}/SKILL.md)"
             layered = []
@@ -381,8 +427,28 @@ def render(rows, unregistered, documents, dead, digest):
                 f"{heading} ({source})" for heading, source in row["rm"]
             ) or "—"
             state = f"{row['status']} · {row['validation']} · {row['readsets']} readset(s)"
+            declared = row["conditions"]
+            applicability = ""
+            if declared["scope"]:
+                applicability = cell_text(short(declared["scope"], 90))
+            elif declared["dimensions"]:
+                applicability = "— (declared, no scope)"
+            else:
+                applicability = "**unknown**"
+            # N/A is rendered independently of scope: a declaration that marks a
+            # dimension not-applicable carries that statement without naming one.
+            if declared["not_applicable"]:
+                na = "N/A: " + ", ".join(declared["not_applicable"])
+                applicability += f"<br>{na}"
+            contract = []
+            if row["typed_conditions"]:
+                contract.append(", ".join(row["typed_conditions"]))
+            if row["advice"] is not None:
+                contract.append(f"{row['advice']} advice")
+            contract_text = cell_text("<br>".join(contract)) or "—"
             out.append(
                 f"| {link} | {row['backend']} | {cell_text(short(row['task']))} | "
+                f"{applicability} | {contract_text} | "
                 f"{cell_text(layers)} | {cell_text(matrix)} | {state} | "
                 f"{', '.join(gaps(row)) or '—'} |"
             )
@@ -421,7 +487,8 @@ def render(rows, unregistered, documents, dead, digest):
         out.append("")
 
     out += ["## Recorded gaps", "", "| Gap | Skills |", "|---|---|"]
-    for token in ("no-SearchSpace-layer", "no-Reference-Matrix-row", "no-sidecar", "no-eval"):
+    for token in ("no-SearchSpace-layer", "no-Reference-Matrix-row", "no-sidecar",
+                  "no-applicability", "no-eval"):
         names = [row["id"] for row in rows if token in gaps(row)]
         listed = (", ".join(names) if len(names) <= 20
                   else "as listed in the Gaps column above")

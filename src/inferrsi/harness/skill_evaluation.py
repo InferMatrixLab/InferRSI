@@ -7,6 +7,7 @@ from pathlib import Path
 from ..infra.artifacts import atomic_write_json, sha256
 from ..infra.executors.local import execute_command
 from ..knowledge_operations import KnowledgeReader
+from . import skill_eval_engineering as engineering
 
 
 def global_skills() -> list[str]:
@@ -187,11 +188,16 @@ def run_trial(
     deadline: float,
     *,
     timeout_seconds: float | None = None,
+    engineering_artifact: bool = False,
+    generation_only: bool = False,
 ) -> dict:
+    if generation_only and not engineering_artifact:
+        raise ValueError("Generation-only requires the engineering artifact adapter")
     trial_dir.mkdir(parents=True)
     final = trial_dir / "answer.json"
-    before = {
-        p.relative_to(workspace).as_posix(): sha256(p) for p in workspace.rglob("*") if p.is_file()
+    before = engineering.input_hashes(workspace) if engineering_artifact else {
+        p.relative_to(workspace).as_posix(): sha256(p)
+        for p in workspace.rglob("*") if p.is_file()
     }
     command = client.command(workspace, final, schema, prompt)
     # An injected client may tighten the frozen limit, but cannot extend it.
@@ -224,14 +230,63 @@ def run_trial(
         evaluation_error = "agent_trace_error"
     output, checks, verification = None, None, None
     if evaluation_error is None:
-        if not final.is_file():
+        if final.is_symlink():
+            evaluation_error = "invalid_output_symlink"
+        elif not final.is_file():
             evaluation_error = "missing_output"
         else:
             try:
-                output = json.loads(final.read_text(encoding="utf-8"))
-            except ValueError:
+                answer_limit = 1048576 if generation_only else 65536
+                answer_bytes = (engineering.read_regular(final, answer_limit)
+                                if engineering_artifact
+                                else final.read_bytes())
+                output = json.loads(answer_bytes.decode("utf-8"))
+            except (ValueError, UnicodeError):
                 evaluation_error = "invalid_output_json"
-    if evaluation_error is None:
+    if evaluation_error is None and generation_only:
+        try:
+            output = engineering.materialize_generated_artifact(workspace, output)
+        except (ValueError, OSError):
+            evaluation_error = "invalid_generated_artifact"
+    if evaluation_error is None and engineering_artifact:
+        artifact = workspace / "parser.py"
+        if not isinstance(output, dict) or set(output) != {"artifact", "summary"}:
+            evaluation_error = "invalid_artifact_answer"
+        else:
+            try:
+                artifact_bytes = engineering.read_regular(artifact, engineering.MAX_SOURCE_BYTES)
+                source = artifact_bytes.decode("utf-8")
+                if any(path.is_symlink() for path in (trial_dir, *trial_dir.absolute().parents)):
+                    raise ValueError("Retained directory contains a symlink")
+                if any((trial_dir / name).exists() or (trial_dir / name).is_symlink()
+                       for name in ("agent-answer.json", "parser.py", "verification")):
+                    raise ValueError("Agent created reserved evidence paths")
+            except (ValueError, UnicodeError):
+                evaluation_error = "missing_or_invalid_artifact"
+            else:
+                # A single bounded snapshot supplies both retained bytes and grading.
+                (trial_dir / "agent-answer.json").write_bytes(answer_bytes)
+                (trial_dir / "parser.py").write_bytes(artifact_bytes)
+                output = {**output, "artifact_source": source}
+                atomic_write_json(final, output)
+                verification_dir = trial_dir / "verification"
+                verification_dir.mkdir()
+                (verification_dir / "stdout.log").write_text("", encoding="utf-8")
+                (verification_dir / "stderr.log").write_text("", encoding="utf-8")
+                if generation_only:
+                    # The generation process may carry provider credentials. Even
+                    # a capable host must not execute generated source in this phase.
+                    evaluation_error = "artifact_verification_deferred"
+                else:
+                    try:
+                        checks = engineering.verify(task, output)
+                    except engineering.SandboxUnavailable:
+                        evaluation_error = "artifact_sandbox_unavailable"
+                    else:
+                        atomic_write_json(verification_dir / "result.json", checks)
+                        verification = {"status": "completed" if checks["passed"] else "failed",
+                                        "returncode": 0 if checks["passed"] else 1}
+    if evaluation_error is None and not engineering_artifact:
         verifier_environment = getattr(client, "verifier_environment", None)
         options = {"environment": verifier_environment()} if verifier_environment else {}
         verification = execute_command(
@@ -259,9 +314,14 @@ def run_trial(
                     checks = {key: raw_checks[key] for key in ("passed", "assertions")}
                     if verification["returncode"] != (0 if checks["passed"] else 1):
                         evaluation_error = "verifier_exit"
-    after = {
-        p.relative_to(workspace).as_posix(): sha256(p) for p in workspace.rglob("*") if p.is_file()
-    }
+    try:
+        after = engineering.input_hashes(workspace) if engineering_artifact else {
+            p.relative_to(workspace).as_posix(): sha256(p)
+            for p in workspace.rglob("*") if p.is_file()
+        }
+    except (ValueError, OSError):
+        after = None
+        evaluation_error = evaluation_error or "invalid_workspace_node"
     verdict = task_verdict(execution, trace, output, checks)
     if before != after:
         evaluation_error = evaluation_error or "inputs_changed"
@@ -281,7 +341,14 @@ def run_trial(
         "observations": trace,
         "inputs_unchanged": before == after,
         "input_hashes": before,
-        "output_sha256": sha256(final) if final.is_file() else None,
+        "output_sha256": sha256(final) if final.is_file() and not final.is_symlink() else None,
     }
+    if engineering_artifact:
+        retained = trial_dir / "parser.py"
+        record["artifact_sha256"] = (sha256(retained) if retained.is_file()
+                                     and not retained.is_symlink() else None)
+        record["artifact_kind"] = engineering.ADAPTER
+        if generation_only:
+            record["execution_mode"] = engineering.GENERATION_MODE
     atomic_write_json(trial_dir / "result.json", record)
     return record

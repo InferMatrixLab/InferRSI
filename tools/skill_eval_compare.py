@@ -1,4 +1,5 @@
 import argparse
+import difflib
 import hashlib
 import json
 import math
@@ -12,6 +13,7 @@ from dataclasses import replace
 from pathlib import Path
 
 from inferrsi.harness import skill_eval_diagnostic as diagnostic
+from inferrsi.harness import skill_eval_engineering as engineering
 from inferrsi.harness.skill_evaluation import (
     CodexClient,
     export_bundle,
@@ -21,9 +23,15 @@ from inferrsi.harness.skill_evaluation import (
 )
 from inferrsi.infra.artifacts import atomic_write_json, sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader, safe_path
+from inferrsi.model.anthropic_agent import (
+    FULL_CONTEXT_KIND,
+    AnthropicAgentClient,
+    validate_schema,
+    validate_spec,
+)
 from inferrsi.model.anthropic_agent import SOURCE as AGENT_SOURCE
-from inferrsi.model.anthropic_agent import AnthropicAgentClient, validate_schema, validate_spec
 from inferrsi.model.request_guard import SOURCE as GUARD_SOURCE
+from tools import skill_eval_artifact_guidance as artifact_guidance
 from tools.skill_eval_pilot import PROMPT, SCHEMA, observed_tokens
 from tools.skill_eval_snapshot import selected_snapshot
 from tools.skill_eval_verifier import verify
@@ -32,8 +40,10 @@ ROOT = Path(__file__).resolve().parents[1]
 ROLES = ("baseline", "candidate")
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 CONTROLLERS = (GUARD_SOURCE, "tools/skill_eval_compare.py", "tools/skill_eval_pilot.py",
+               "tools/skill_eval_artifact_guidance.py",
                "src/inferrsi/harness/skill_evaluation.py",
-               "src/inferrsi/harness/skill_eval_diagnostic.py", "tools/skill_eval_snapshot.py",
+               "src/inferrsi/harness/skill_eval_diagnostic.py",
+               "src/inferrsi/harness/skill_eval_engineering.py", "tools/skill_eval_snapshot.py",
                "src/inferrsi/infra/executors/local.py", "src/inferrsi/infra/processes.py",
                "src/inferrsi/infra/artifacts.py")
 EVIDENCE = ("execution.json", "agent/stdout.log", "agent/stderr.log",
@@ -175,16 +185,24 @@ def validate_default_audit(task: dict) -> None:
 def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) -> None:
     if set(config) - {"mode", "skill", "skill_root", "cases", "schema", "grader",
                       "snapshots", "model", "limits", "client", "pricing", "spend_limit",
-                      "adapter"}:
+                      "adapter", "execution_mode"}:
         raise ValueError("Unknown configuration field")
     adapter = config.get("adapter", "audit")
-    if adapter not in ("audit", diagnostic.ADAPTER):
+    if adapter not in ("audit", diagnostic.ADAPTER, engineering.ADAPTER):
         raise ValueError("Unknown experiment adapter")
-    if adapter == diagnostic.ADAPTER:
+    if adapter in (diagnostic.ADAPTER, engineering.ADAPTER):
         if config["mode"] != "update":
             raise ValueError("Diagnostic comparisons require paired old/new bundles (update mode)")
         if "grader" in config or "schema" in config:
-            raise ValueError("Diagnostic adapter owns its frozen schema and verifier")
+            raise ValueError("Selected adapter owns its frozen schema and verifier")
+    generation_only = config.get("execution_mode") == engineering.GENERATION_MODE
+    if "execution_mode" in config and (not generation_only or adapter != engineering.ADAPTER):
+        raise ValueError("Unsupported execution mode for selected adapter")
+    if generation_only and (not isinstance(config.get("client"), dict)
+                            or config["client"].get("kind") != FULL_CONTEXT_KIND):
+        raise ValueError("Generation-only requires the bounded full-context provider")
+    if adapter == engineering.ADAPTER and "client" in config and not generation_only:
+        raise ValueError("Engineering artifacts require local execution, not read/submit provider")
     if config["mode"] not in ("addition", "update"):
         raise ValueError("mode must be addition or update")
     if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", config["skill"]):
@@ -218,7 +236,9 @@ def validate(config: dict, tasks: list[dict], *, default_grader: bool = True) ->
     if not tasks:
         raise ValueError("cases must be nonempty with unique IDs")
     for task in tasks:
-        if adapter == diagnostic.ADAPTER:
+        if adapter == engineering.ADAPTER:
+            engineering.validate_task(task)
+        elif adapter == diagnostic.ADAPTER:
             diagnostic.validate_task(task)
         else:
             validate_input(task, CASE_INPUT)
@@ -305,16 +325,19 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
     config = read_json(config_path)
     tasks = read_json(config_path.parent / config["cases"])
     is_diagnostic = config.get("adapter") == diagnostic.ADAPTER
-    grader = Path(diagnostic.__file__) if is_diagnostic else (
-        config_path.parent / config["grader"] if "grader" in config else (
-            ROOT / "tools/skill_eval_verifier.py"
-        )
-    )
+    is_engineering = config.get("adapter") == engineering.ADAPTER
+    grader = (Path(engineering.__file__) if is_engineering else
+              Path(diagnostic.__file__) if is_diagnostic else
+              config_path.parent / config["grader"] if "grader" in config else
+              ROOT / "tools/skill_eval_verifier.py")
     validate(config, tasks, default_grader=(
         grader.read_bytes() == (ROOT / "tools/skill_eval_verifier.py").read_bytes()))
     require_git_version(subprocess.check_output(("git", "--version"), cwd=repo, text=True))
-    schema = diagnostic.SCHEMA if is_diagnostic else (
-        read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA)
+    generation_only = config.get("execution_mode") == engineering.GENERATION_MODE
+    schema = (engineering.GENERATION_SCHEMA if generation_only else
+              engineering.SCHEMA if is_engineering else
+              diagnostic.SCHEMA if is_diagnostic else
+              read_json(config_path.parent / config["schema"]) if "schema" in config else SCHEMA)
     if "client" in config:
         validate_schema(schema)
     output.mkdir(parents=True, exist_ok=False)
@@ -323,11 +346,14 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
     write_json(output / "plan/tasks.json", tasks)
     write_json(output / "plan/schema.json", schema)
     shutil.copyfile(grader, output / "validator/verify.py")
+    if is_engineering:
+        (output / "plan/starter").mkdir()
+        (output / "plan/starter/parser.py").write_bytes(engineering.STARTER.encode("utf-8"))
     arms = {}
     with tempfile.TemporaryDirectory(prefix="se-") as temporary:
         for role, short in zip(ROLES, ("b", "c")):
             selected = config["snapshots"][role]
-            if is_diagnostic:
+            if is_diagnostic or is_engineering:
                 closure = selected_snapshot(
                     repo, selected["git_revision"], config["skill_root"], config["skill"],
                     Path(temporary) / short, bundle_revision=selected.get("bundle_revision"))
@@ -366,7 +392,9 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         "exam": {"cases": files["plan/tasks.json"], "schema": files["plan/schema.json"],
                  "grader": files["validator/verify.py"]},
         "same_bundle": before is not None and before["revision"] == after["revision"],
-        "prompt": diagnostic.PROMPT if is_diagnostic else PROMPT, "files": files,
+        "prompt": (engineering.GENERATION_PROMPT if generation_only else
+                   engineering.PROMPT if is_engineering else
+                   diagnostic.PROMPT if is_diagnostic else PROMPT), "files": files,
         "controllers": {name: sha256(ROOT / name) for name in CONTROLLERS},
         "retry_policy": "none", "cost": None,
         "isolation": "Fresh sessions and workspaces; selected bundle only. "
@@ -375,6 +403,14 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
     }
     if is_diagnostic:
         plan["adapter"] = diagnostic.ADAPTER
+    if is_engineering:
+        plan["adapter"] = engineering.ADAPTER
+        name = "src/inferrsi/harness/skill_eval_engineering.py"
+        plan["controllers"][name] = sha256(ROOT / name)
+        local_source = "tools/skill_eval_local.py"
+        plan["controllers"][local_source] = sha256(ROOT / local_source)
+        plan["isolation"] += (" Artifact replay requires bubblewrap namespaces and fails closed. "
+                              "Public tests, not blind evaluation; reconstructed CPU fixture.")
     if "client" in config:
         client = AnthropicAgentClient(config["model"]["name"], config["client"],
                                       config["limits"]["timeout_seconds"],
@@ -387,6 +423,14 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         plan["isolation"] = ("Fresh workspaces; read/submit tools expose selected files only. "
                              "No shell, network tool, external agent CLI or global config. "
                              "Provider worker and verifier use separate filtered environments.")
+    if generation_only:
+        plan["execution_mode"] = engineering.GENERATION_MODE
+        plan["isolation"] = (
+            "Generation only: the provider receives frozen task/starter and its assigned bundle. "
+            "No shell, file-writing or test tools. "
+            "A trusted controller materializes only parser.py; "
+            "artifact code runs only in the independent bubblewrap verifier. "
+            "This is not a workspace-agent or iterative tool-use experiment.")
     write_json(output / "plan/freeze.json", plan)
     return sha256(output / "plan/freeze.json")
 
@@ -524,7 +568,8 @@ def execute(output: Path, authorization: str, *, client=None,
         raise ValueError("PR execution requires the guarded bounded provider")
     if "client" in plan:
         configured = provider_client(plan)
-        if require_request_authorization:
+        if (require_request_authorization
+                or plan.get("execution_mode") == engineering.GENERATION_MODE):
             configured = replace(configured, require_authorization=True)
         configured.require_live_readiness(len(plan["schedule"]))
         if client is not None:
@@ -532,6 +577,11 @@ def execute(output: Path, authorization: str, *, client=None,
         configured.environment()  # Missing keys fail before start/trial evidence.
         client = configured
         stop_on_unknown_usage = True
+    if plan.get("execution_mode") == engineering.GENERATION_MODE and "client" not in plan:
+        raise ValueError("Generation-only requires the frozen bounded provider")
+    if plan.get("adapter") == engineering.ADAPTER and client is None:
+        raise ValueError("Engineering execution requires a verified confined local client; "
+                         "the default danger-full-access Codex client is not qualified")
     if client is None:
         client = CodexClient(plan["model"]["name"], plan["model"]["effort"],
                              plan["limits"]["timeout_seconds"])
@@ -563,6 +613,9 @@ def execute(output: Path, authorization: str, *, client=None,
         with tempfile.TemporaryDirectory(prefix="se-trial-") as temporary:
             workspace = Path(temporary)
             write_json(workspace / "task.json", task)
+            is_engineering = plan.get("adapter") == engineering.ADAPTER
+            if is_engineering:
+                shutil.copyfile(output / "plan/starter/parser.py", workspace / "parser.py")
             prompt = plan["prompt"] + "\nTask operation: " + task["request"]
             if bundle is not None:
                 folder = ".agents/skills" if task["split"] == "discovery" else "knowledge"
@@ -573,7 +626,10 @@ def execute(output: Path, authorization: str, *, client=None,
             result = run_trial(client, task, role, entry["repeat"], workspace,
                                directory, output / "plan/schema.json",
                                output / "validator/verify.py", prompt, deadline,
-                               timeout_seconds=plan["limits"]["timeout_seconds"])
+                               timeout_seconds=plan["limits"]["timeout_seconds"],
+                               engineering_artifact=is_engineering,
+                               generation_only=(plan.get("execution_mode")
+                                                == engineering.GENERATION_MODE))
             result["evidence_sha256"] = {name: sha256(directory / name) for name in EVIDENCE
                                          if (directory / name).is_file()}
             atomic_write_json(directory / "result.json", result)
@@ -595,10 +651,11 @@ def execute(output: Path, authorization: str, *, client=None,
     atomic_write_json(output / "results/status.json", status)
     atomic_write_json(output / "results/status.receipt.json",
                       {"result_sha256": sha256(output / "results/status.json")})
-    return report(output)
+    return report(output, replay_artifacts=(
+        plan.get("execution_mode") != engineering.GENERATION_MODE))
 
 
-def retained_trial(output: Path, entry: dict) -> dict:
+def retained_trial(output: Path, entry: dict, expected_adapter=None, execution_mode=None) -> dict:
     directory = trial_directory(output, entry)
     path = directory / "result.json"
     if not path.is_file():
@@ -607,6 +664,20 @@ def retained_trial(output: Path, entry: dict) -> dict:
                 "evaluation_error": "interrupted_attempt" if interrupted else None,
                 "missing": not interrupted, "checks": None, "output": None,
                 "evidence": {}, "elapsed_seconds": None, "observations": {"usage": None}}
+    if expected_adapter == engineering.ADAPTER:
+        # A retained tree is untrusted input too: reject special/symlink evidence
+        # before legacy report readers open it. Producers must already be stopped.
+        names = ("result.json", "receipt.json", "answer.json", "parser.py",
+                 "author-execution.json", *EVIDENCE)
+        try:
+            for name in names:
+                retained_path = directory / name
+                if retained_path.exists() or retained_path.is_symlink():
+                    engineering.read_regular(retained_path, 8 * 1024 * 1024)
+        except ValueError:
+            return {**entry, "verdict": "INCONCLUSIVE", "evaluation_error": "unsafe_retained_file",
+                    "missing": False, "checks": None, "output": None, "evidence": {},
+                    "elapsed_seconds": None, "observations": {"usage": None}}
     raw_record = path.read_bytes()
     error = receipt_error(raw_record, directory / "receipt.json", "trial")
     answer = directory / "answer.json"
@@ -636,7 +707,24 @@ def retained_trial(output: Path, entry: dict) -> dict:
         "tool_calls": len(record["observations"]["commands"])
         if isinstance(record["observations"].get("commands"), list) else None,
     }
-    error = record.get("evaluation_error")
+    record_error = record.get("evaluation_error")
+    # Artifact integrity failures take precedence over a replayable host error.
+    error = None if expected_adapter == engineering.ADAPTER else record_error
+    if (expected_adapter == engineering.ADAPTER
+            and record.get("artifact_kind") != engineering.ADAPTER):
+        error = error or "missing_retained_artifact_identity"
+    if execution_mode == engineering.GENERATION_MODE:
+        if record.get("execution_mode") != execution_mode:
+            error = error or "missing_generation_mode_identity"
+        elif not record["inputs_unchanged"] or record.get("execution_state") != "completed":
+            error = "invalid_generation_execution"
+        else:
+            selected["execution_mode"] = execution_mode
+            selected["artifact_verdict"] = None
+    if record.get("execution_state") == "author_reported":
+        selected["provenance"] = record.get("provenance")
+        selected["author_reported_execution"] = True
+        selected["artifact_verdict"] = None  # Re-derived below, never trusted from a receipt.
     if record["observations"].get("client_kind"):
         selected["observations"].update({
             key: record["observations"].get(key) for key in
@@ -650,7 +738,9 @@ def retained_trial(output: Path, entry: dict) -> dict:
     if digests is None:
         error = error or "missing_retained_evidence_hashes"
     else:
-        for name in EVIDENCE:
+        required_evidence = (*EVIDENCE, "author-execution.json") if (
+            record["execution_state"] == "author_reported") else EVIDENCE
+        for name in required_evidence:
             if name not in digests:
                 if record["verdict"] in ("PASS", "FAIL"):
                     error = error or "missing_retained_evidence_hashes"
@@ -661,7 +751,28 @@ def retained_trial(output: Path, entry: dict) -> dict:
                 error = error or "missing_retained_evidence"
             elif retained[name] != digests[name]:
                 error = error or "retained_evidence_hash_mismatch"
-    if error or record["execution_state"] != "completed" or not record["inputs_unchanged"]:
+            elif name == "author-execution.json":
+                evidence[name] = artifact.relative_to(output).as_posix()
+    if record.get("artifact_kind") == engineering.ADAPTER and record.get("artifact_sha256") is None:
+        error = error or "missing_retained_artifact"
+    if record.get("artifact_sha256") is not None:
+        try:
+            artifact_answer = json.loads(data) if data is not None else None
+        except ValueError:
+            artifact_answer = None
+        artifact = directory / "parser.py"
+        if artifact.is_symlink() or not artifact.is_file():
+            error = error or "missing_retained_artifact"
+        elif sha256(artifact) != record["artifact_sha256"]:
+            error = error or "retained_artifact_hash_mismatch"
+        elif (not isinstance(artifact_answer, dict)
+              or artifact_answer.get("artifact_source") != artifact.read_bytes().decode("utf-8")):
+            error = error or "retained_artifact_disagrees_with_answer"
+        else:
+            evidence["parser.py"] = artifact.relative_to(output).as_posix()
+    error = error or record_error
+    if (error or record["execution_state"] not in ("completed", "author_reported")
+            or not record["inputs_unchanged"]):
         selected["verdict"] = "INCONCLUSIVE"
     return {**selected, "evaluation_error": error, "missing": False,
             "output": text,
@@ -686,15 +797,17 @@ def condition_summary(trials: list[dict]) -> dict:
     return groups
 
 
-def read_report(output: Path) -> dict:
+def read_report(output: Path, *, replay_artifacts: bool = True) -> dict:
     plan = load_plan(output)
-    trials = [retained_trial(output, entry) for entry in plan["schedule"]]
+    trials = [retained_trial(output, entry, plan.get("adapter"), plan.get("execution_mode"))
+              for entry in plan["schedule"]]
     # A receipt is an unkeyed hash: a rewritten tree can carry a consistent one.
     # Re-grading retained answers with trusted code is what makes a PASS/FAIL
     # verdict independent of the artifact copy the agent could reach. This runs
     # before pairs are formed so an unverifiable grade cannot become an outcome.
-    verify_retained_grader(plan, [t for t in trials if not t["missing"]],
-                           {task["id"]: task for task in read_json(output / "plan/tasks.json")})
+    if replay_artifacts:
+        verify_retained_grader(plan, [t for t in trials if not t["missing"]],
+                               {task["id"]: task for task in read_json(output / "plan/tasks.json")})
     index = {(t["task_id"], t["repeat"], t["condition"]): t for t in trials}
     pairs = []
     for entry in plan["schedule"]:
@@ -710,8 +823,22 @@ def read_report(output: Path) -> dict:
             outcome = {("FAIL", "PASS"): "fix", ("PASS", "FAIL"): "regression",
                        ("PASS", "PASS"): "unchanged_correct",
                        ("FAIL", "FAIL"): "unchanged_incorrect"}[before, after]
-        pairs.append({"case_id": entry["task_id"], "repeat": entry["repeat"],
+        manual = any(arm.get("author_reported_execution") for arm in arms.values())
+        if manual:
+            outcome = {"fix": "artifact_improved", "regression": "artifact_regressed",
+                       "unchanged_correct": "artifacts_both_pass",
+                       "unchanged_incorrect": "artifacts_both_fail"}.get(outcome, outcome)
+        pairs.append({"comparability": "unverified_author_reported" if manual else "controller_run",
+                      "case_id": entry["task_id"], "repeat": entry["repeat"],
                       "outcome": outcome, **arms})
+    if plan.get("execution_mode") == engineering.GENERATION_MODE:
+        for pair in pairs:
+            replayed = tuple(pair[role].get("artifact_verdict") for role in ROLES)
+            pair["comparability"] = "generation_only_provider"
+            pair["replayed_artifact_outcome"] = {
+                ("FAIL", "PASS"): "artifact_improved", ("PASS", "FAIL"): "artifact_regressed",
+                ("PASS", "PASS"): "artifacts_both_pass", ("FAIL", "FAIL"): "artifacts_both_fail",
+            }.get(replayed, "inconclusive")
     discovery = [t for t in trials if t["split"] == "discovery"]
     status = {"execution_state": "not_completed"}
     status_path = output / "results/status.json"
@@ -735,16 +862,41 @@ def read_report(output: Path) -> dict:
         "pairs": pairs,
         "counts": {name: sum(p["outcome"] == name for p in pairs) for name in (
             "fix", "regression", "unchanged_correct", "unchanged_incorrect", "missing_pair",
-            "inconclusive")},
+            "inconclusive", *( ("artifact_improved", "artifact_regressed",
+                               "artifacts_both_pass", "artifacts_both_fail")
+                             if plan.get("adapter") == engineering.ADAPTER else ()))},
         "discovery": discovery, "discovery_conditions": condition_summary(discovery),
         "status": status,
         "claim": "Pipeline results only; fixed-output offline clients do not establish "
         "skill efficacy. Discovery is separate. Unknown usage and cost remain unknown.",
     }
+    if plan.get("adapter") == engineering.ADAPTER:
+        result["adapter"] = engineering.ADAPTER
+        if any(trial.get("author_reported_execution") for trial in trials):
+            captured = sum(bool(trial.get("author_reported_execution")) for trial in trials)
+            result["status"] = {"execution_state": "author_reported_unverified",
+                                "artifact_capture_state": "complete" if captured == len(trials)
+                                else "partial", "recorded_trials": captured,
+                                "expected_trials": len(trials)}
+        result["claim"] = (
+            "Reconstructed CPU parser artifact checks only. Author-run provenance, environment, "
+            "usage and costs are self-reported, not independently authenticated. Public tests "
+            "may be overfit. Paired artifact differences do not prove skill causality, original "
+            "engine behavior, hardware efficacy or whole-PR acceptance. Reviewer decides merge.")
+    if plan.get("execution_mode") == engineering.GENERATION_MODE:
+        result["execution_mode"] = engineering.GENERATION_MODE
+        result["claim"] = (
+            "Generation-only provider trial: no model shell, file-writing or test tools. "
+            "The trusted controller materializes parser.py, and independent replay checks "
+            "the retained artifact. This does not measure iterative workspace-agent performance. "
+            "Public reconstructed CPU tests may be overfit; artifact differences alone do not "
+            "establish skill causality, hardware efficacy or whole-PR acceptance.")
     if "client" in plan:
         result["client"] = plan["client"]
         result["max_api_requests"] = plan["max_api_requests"]
         result["reservation"] = plan.get("reservation")
+    if plan.get("adapter") == engineering.ADAPTER:
+        result["guidance"] = artifact_guidance.comparison(result)
     return result
 
 
@@ -760,6 +912,7 @@ def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
     trusted_verifier = {
         sha256(ROOT / "tools/skill_eval_verifier.py"): verify,
         sha256(Path(diagnostic.__file__)): diagnostic.verify,
+        sha256(Path(engineering.__file__)): engineering.verify,
     }.get(plan["exam"]["grader"])
     if trusted_verifier is None:
         for trial in trials:
@@ -774,16 +927,52 @@ def verify_retained_grader(plan: dict, trials: list[dict], tasks: dict) -> None:
                 trial["evaluation_error"] = "unverified_custom_grader"
         return
     for trial in trials:
-        if trial["verdict"] not in ("PASS", "FAIL"):
+        manual_artifact = (trusted_verifier is engineering.verify
+                           and trial.get("author_reported_execution")
+                           and trial.get("evaluation_error") in (
+                               None, "reported_agent_failure", "artifact_sandbox_unavailable",
+                               "reported_run_exceeded_frozen_timeout"))
+        generated_artifact = (
+            trusted_verifier is engineering.verify
+            and plan.get("execution_mode") == engineering.GENERATION_MODE
+            and trial.get("execution_mode") == engineering.GENERATION_MODE
+            and trial.get("evaluation_error") in (None, "artifact_sandbox_unavailable",
+                                                    "artifact_verification_deferred"))
+        replay_artifact = manual_artifact or generated_artifact
+        if replay_artifact:
+            trial["artifact_verdict"] = None
+            trial.pop("artifact_checks", None)
+            trial.pop("artifact_replay_error", None)
+        if trial["verdict"] not in ("PASS", "FAIL") and not replay_artifact:
             continue
-        checks = trusted_verifier(tasks[trial["task_id"]], json.loads(trial["output"]))
-        if checks != trial["checks"] or checks["passed"] != (trial["verdict"] == "PASS"):
+        try:
+            checks = trusted_verifier(tasks[trial["task_id"]], json.loads(trial["output"]))
+        except engineering.SandboxUnavailable:
+            trial["verdict"] = "INCONCLUSIVE"
+            trial["grader_trust"] = "unverified"
+            if generated_artifact:
+                trial["artifact_replay_error"] = "artifact_sandbox_unavailable"
+            else:
+                trial["evaluation_error"] = "artifact_sandbox_unavailable"
+            continue
+        replay_after_blocked_capture = (
+            replay_artifact and trial["checks"] is None
+            and trial["evaluation_error"] in ("artifact_sandbox_unavailable",
+                                               "artifact_verification_deferred"))
+        if not replay_after_blocked_capture and (
+                checks != trial["checks"] or (trial["verdict"] in ("PASS", "FAIL")
+                and checks["passed"] != (trial["verdict"] == "PASS"))):
             raise ValueError("Untrusted grading disagrees with the trusted grader")
+        if replay_artifact:
+            # Report can recheck a portable artifact on a capable reviewer host,
+            # without rewriting capture failure or upgrading pair comparability.
+            trial["artifact_checks"] = checks
+            trial["artifact_verdict"] = "PASS" if checks["passed"] else "FAIL"
         trial["grader_trust"] = "reverified"
 
 
-def report(output: Path) -> dict:
-    result = read_report(output)
+def report(output: Path, *, replay_artifacts: bool = True) -> dict:
+    result = read_report(output, replay_artifacts=replay_artifacts)
     write_json(output / "report.json", result)
     (output / "report.md").write_text(markdown(result), encoding="utf-8")
     return result
@@ -829,6 +1018,9 @@ def markdown(result: dict) -> str:
         lines += [f"### {trial['task_id']} / {trial['repeat']} / {trial['condition']}", "",
                   f"Verdict: {trial['verdict'] or 'missing'}; error: "
                   f"{trial['evaluation_error'] or 'none'}; split: {trial['split']}", ""]
+        if trial.get("provenance"):
+            lines += ["Provenance: " + trial["provenance"],
+                      "Independent artifact outcome: " + str(trial.get("artifact_verdict")), ""]
         lines += [f"[{name}]({path})" for name, path in trial["evidence"].items()]
         lines += ["", "Grading assertions:", "", "```json",
                   json.dumps(trial["checks"], ensure_ascii=False, sort_keys=True), "```", "",
@@ -839,7 +1031,53 @@ def markdown(result: dict) -> str:
               "### Git source changes", "", "The same frozen exam is used by both arms. "
               "Source changes below are surfaced, not substituted for that exam.", "", "```text",
               "\n".join(result["source_changes"]) or "(none)", "```", ""]
-    return "\n".join(lines)
+    rendered = "\n".join(lines)
+    if result.get("adapter") != engineering.ADAPTER:
+        return rendered
+    summary = ["# Local engineering artifact evidence", "",
+               artifact_guidance.markdown(result.get("guidance")
+                                          or artifact_guidance.comparison(result)),
+               result["claim"], "",
+               "**Merge implication:** artifact checks inform review; they do not authorize merge. "
+               "Verify current head, source fidelity, author-run controls and remaining PR scope.",
+               "",
+               "| Task | Baseline artifact | Candidate artifact | Observed difference |",
+               "| --- | --- | --- | --- |"]
+    for pair in result["pairs"]:
+        outcomes = [pair[role].get("artifact_verdict") or pair[role]["verdict"] or "missing"
+                    for role in ROLES]
+        summary.append(f"| {pair['case_id']} | {outcomes[0]} | {outcomes[1]} | "
+                       f"{pair.get('replayed_artifact_outcome', pair['outcome'])} |")
+    summary += ["", "## Failed checks and coverage", "",
+                "Public reconstructed response-parser checks only; no original server, GPU, "
+                "retrieval quality or whole-corpus coverage."]
+    for pair in result["pairs"]:
+        for role in ROLES:
+            trial = pair[role]
+            checks = trial.get("artifact_checks") or trial.get("checks") or {}
+            failed = [name for name, passed in checks.get("assertions", {}).items() if not passed]
+            summary.append(f"- {pair['case_id']} / {role}: "
+                           + (", ".join(failed) if failed else "no failed check retained")
+                           + "; limitation/error: " + str(trial.get("evaluation_error") or "none")
+                           + "; comparability: " + pair["comparability"] + ".")
+        sources = []
+        for role in ROLES:
+            try:
+                answer = json.loads(pair[role].get("output") or "null")
+            except ValueError:
+                answer = None
+            sources.append(answer.get("artifact_source") if isinstance(answer, dict) else None)
+        if all(isinstance(source, str) for source in sources):
+            delta = "".join(difflib.unified_diff(sources[0].splitlines(keepends=True),
+                                                sources[1].splitlines(keepends=True),
+                                                fromfile="baseline/parser.py",
+                                                tofile="candidate/parser.py"))
+            fence = "`" * max(4, 1 + max((len(run) for run in re.findall(r"`+", delta)), default=0))
+            summary += ["", "### Retained artifact difference: " + pair["case_id"], "",
+                        fence + "diff", delta or "(identical artifact bytes)", fence]
+    summary += ["", "<details><summary>Revisions, settings, outputs and audit evidence</summary>",
+                "", rendered, "", "</details>", ""]
+    return "\n".join(summary)
 
 
 def main():
@@ -849,6 +1087,15 @@ def main():
     parser.add_argument("--config", type=Path)
     parser.add_argument("--repo", type=Path)
     parser.add_argument("--authorize", help="Explicit execution authorization: frozen plan SHA-256")
+    handoff = parser.add_mutually_exclusive_group()
+    handoff.add_argument("--stage-local", type=Path, help="Export one author-run workspace")
+    handoff.add_argument("--capture-local", type=Path, help="Capture one author-run workspace")
+    parser.add_argument("--submission", type=Path, help="Author logs and execution.json directory")
+    parser.add_argument("--task-id")
+    parser.add_argument("--condition", choices=ROLES)
+    parser.add_argument("--repeat", type=int, default=1)
+    parser.add_argument("--current-head",
+                        help="Reviewer-checked current PR head; not fetched by CLI")
     args = parser.parse_args()
     output = args.output.resolve()
     if args.mode == "prepare":
@@ -859,7 +1106,23 @@ def main():
     elif args.mode == "execute":
         if args.authorize is None:
             parser.error("execute requires --authorize <frozen-plan-sha256>")
-        execute(output, args.authorize)
+        if args.stage_local or args.capture_local:
+            from tools import skill_eval_local
+
+            if not args.task_id or not args.condition or not args.current_head:
+                parser.error("Local handoff requires --task-id, --condition, --current-head")
+            common = (output, args.authorize, args.task_id, args.condition, args.repeat)
+            if args.stage_local:
+                result = skill_eval_local.stage(*common, args.stage_local.resolve(),
+                                                args.current_head)
+            else:
+                if args.submission is None:
+                    parser.error("Capture requires --submission with author logs")
+                result = skill_eval_local.capture(*common, args.capture_local.resolve(),
+                                                  args.current_head, args.submission.resolve())
+            print(json.dumps(result))
+        else:
+            execute(output, args.authorize)
     else:
         report(output)
 

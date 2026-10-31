@@ -4,7 +4,11 @@
     "npu",
     "graph-mode",
     "aclgraph",
-    "npugraph-ex"
+    "npugraph-ex",
+    "torchair",
+    "capture-key",
+    "input-staging",
+    "output-lifetime"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -16,8 +20,46 @@
   "empirical_validation": "not_run",
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Historical awesome-ascend-skills/cannbot import retains its short pin and UNKNOWN license in references/legacy-source-notes.md; it was not reread for this source slice.",
+    "The new official TorchAir read follows Python configuration/code generation and capture/replay ownership only; native TorchNPU/CANN, GE execution, transformations, static kernel compilation and native communication remain uninspected.",
+    "Selected stub and NPU smoke test definitions were read, not executed. Independent source pins do not establish stack compatibility, correctness, performance or service evidence."
   ],
-  "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "provenance_readsets": [
+    "references/torchair-graph-readset.json",
+    "references/torchair-graph-path.md",
+    "references/legacy-source-notes.md"
+  ],
+  "consumption_mode": "packaged",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/Ascend/torchair",
+      "commit": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+      "paths": [
+        "python/torchair/configs/compiler_config.py",
+        "python/torchair/configs/aclgraph_config.py",
+        "python/torchair/configs/debug_config.py",
+        "python/torchair/configs/npugraphex_config.py",
+        "python/torchair/npu_fx_compiler.py",
+        "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+        "python/torchair/_acl_concrete_graph/acl_graph.py",
+        "docs/zh/npugraph_ex/quick_start.md",
+        "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+        "tests/st/torchair_aclgraph_st.py",
+        "tests/smoke/aclgraph_test.py",
+        "LICENSE"
+      ],
+      "source_channel": "official_repository",
+      "inspected_scope": "selected_python_implementation_documentation_and_test_definitions",
+      "license": "BSD-3-Clause",
+      "readset": "references/torchair-graph-readset.json"
+    }
+  ],
+  "references": [
+    "references/torchair-graph-path.md",
+    "references/torchair-graph-readset.json",
+    "references/torchair-LICENSE.md",
+    "references/legacy-source-notes.md",
+    "../ascend-aclgraph-capture-replay/SKILL.md"
+  ]
 }

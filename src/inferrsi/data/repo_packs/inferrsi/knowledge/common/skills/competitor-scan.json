@@ -9,18 +9,24 @@
   "scenario": "skills.discovery",
   "status": "imported",
   "summary": "Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts.",
-  "tags": [],
+  "tags": [
+    "competitive-analysis",
+    "positioning",
+    "claim",
+    "unverified"
+  ],
   "origin": [
-    "unknown"
+    "first-party"
   ],
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
-        "src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md"
+        "src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md",
+        "src/inferrsi/data/skill_library/workflows/competitor-scan/metadata.json"
       ],
       "content_sha256": "0ede58ace65a9324a538b4816add1684f230ba536d4364fe5a5dd2c0bbed3776"
     }
@@ -31,23 +37,75 @@
   },
   "checkout_ref": "checkout:competitor-scan",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190",
-    "src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md": "0ede58ace65a9324a538b4816add1684f230ba536d4364fe5a5dd2c0bbed3776"
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317",
+    "src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md": "0ede58ace65a9324a538b4816add1684f230ba536d4364fe5a5dd2c0bbed3776",
+    "src/inferrsi/data/skill_library/workflows/competitor-scan/metadata.json": "74b387e5df7b40cce9fd1ceee7ea1a26c258a4ed091144f2b366ef971895a2e8"
   },
   "skill_metadata": {
     "name": "competitor-scan",
-    "description": "Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts."
+    "description": "Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts.",
+    "schema_version": 1,
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "status": "candidate",
+    "origin": [
+      "first-party"
+    ],
+    "consumption_mode": "packaged",
+    "tags": [
+      "competitive-analysis",
+      "positioning",
+      "claim",
+      "unverified"
+    ],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "Qualitative positioning of a new RSI repository against other projects before acceptance evidence exists",
+      "prerequisites": "A selected repository and readable public material from the alternatives; no benchmark run is required",
+      "input_contract": "A target repository plus whatever the alternatives publish about what they optimize and how they prove it",
+      "produced_artifact": "A short Markdown note covering problem, alternatives, differentiation, limits and open questions",
+      "failure_modes": [
+        "Numeric comparison written without a PASS campaign in our own evidence tree",
+        "Third-party figure repeated as if reproduced under our RunSpec",
+        "Scan presented as a substitute for acceptance evidence"
+      ],
+      "refusal_point": "Refuses any numeric comparison not sourced from our own evidence/<campaign-id>/results/ with a PASS verdict"
+    },
+    "recommendations": [
+      "Answer the four framing questions qualitatively first; the absence of a published claim contract is itself a finding.",
+      "Label every third-party number unverified unless it was reproduced under our RunSpec.",
+      "Close the note with open questions rather than a conclusion the evidence cannot support."
+    ],
+    "limitations": [
+      "Produces positioning material only; it establishes no performance or quality result.",
+      "Third-party claim contracts are read from public material and may be incomplete."
+    ],
+    "provenance_readsets": []
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Qualitative positioning of a new RSI repository against other projects before acceptance evidence exists",
+    "prerequisites": "A selected repository and readable public material from the alternatives; no benchmark run is required",
+    "input_contract": "A target repository plus whatever the alternatives publish about what they optimize and how they prove it",
+    "produced_artifact": "A short Markdown note covering problem, alternatives, differentiation, limits and open questions",
+    "failure_modes": [
+      "Numeric comparison written without a PASS campaign in our own evidence tree",
+      "Third-party figure repeated as if reproduced under our RunSpec",
+      "Scan presented as a substitute for acceptance evidence"
+    ],
+    "refusal_point": "Refuses any numeric comparison not sourced from our own evidence/<campaign-id>/results/ with a PASS verdict"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Answer the four framing questions qualitatively first; the absence of a published claim contract is itself a finding.",
+    "Label every third-party number unverified unless it was reproduced under our RunSpec.",
+    "Close the note with open questions rather than a conclusion the evidence cannot support."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
-    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario."
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Produces positioning material only; it establishes no performance or quality result.",
+    "Third-party claim contracts are read from public material and may be incomplete."
   ],
   "verification": {
     "locally_verified": false,

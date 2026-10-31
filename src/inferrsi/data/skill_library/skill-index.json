@@ -304,6 +304,10 @@
     "weight-loading-optimization": {
       "path": "methods/weight-loading-optimization",
       "backend": "common"
+    },
+    "lithos-metal": {
+      "path": "repositories/lithos-metal",
+      "backend": "common"
     }
   }
 }

@@ -8,13 +8,17 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "How to configure, debug, and optimize Ascend NPU graph mode (npugraph_ex / aclgraph): capture-and-replay mechanics, FX pass configuration, memory reuse, static kernel compilation, communication-in-graph, forced-eager fallback, and the document-first lookup discipline for CANN configuration options. Source-grounded from awesome-ascend-skills torch-npugraph-ex-knowledge skill.\n",
+  "summary": "Diagnose an Ascend TorchAir ACL graph path from versioned configuration through FX compilation, capture-key selection, eager fallback, input staging, replay and output lifetime. Use when repeated inference has host overhead, capture churn, stale outputs or an uncertain backend; require source-matched configuration and separate device validation.",
   "tags": [
     "ascend",
     "npu",
     "graph-mode",
     "aclgraph",
-    "npugraph-ex"
+    "npugraph-ex",
+    "torchair",
+    "capture-key",
+    "input-staging",
+    "output-lifetime"
   ],
   "origin": [
     "external"
@@ -22,14 +26,18 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/legacy-source-notes.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-LICENSE.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-graph-path.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-graph-readset.json",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "9203cc5a14a1d65df5fbf275734b93be023e06527459b2f79864f28a338cb44a"
+      "content_sha256": "a7341b5bf3b43f32d6114e2109e5043e46f3ddeef9b7bb3b20c1c50236bab638"
     }
   ],
   "index_type": "packaged-skill",
@@ -38,19 +46,27 @@
   },
   "checkout_ref": "checkout:ascend-graph-mode",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md": "9203cc5a14a1d65df5fbf275734b93be023e06527459b2f79864f28a338cb44a",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json": "72b41e7845915d34b09219624e82976386f3125816293540c2c38143fe6b477f",
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md": "a7341b5bf3b43f32d6114e2109e5043e46f3ddeef9b7bb3b20c1c50236bab638",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json": "3912bdfc721a703580a97a42ca13ac708396b17c4b600bf9e76375dd061fd29c",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/legacy-source-notes.md": "a51c655aff59741cd7421277bd71dffeb9907560950459ae0a776207e496de4a",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-LICENSE.md": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-graph-path.md": "272424571ff439278c8f2675406eae7da9a6482c581973e24319739fa0e58348",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-graph-readset.json": "eb84cbd5c355a88ee013dc7e428b274162e0e13e85845b58526113b0d6a2b46b",
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
     "name": "ascend-graph-mode",
-    "description": "How to configure, debug, and optimize Ascend NPU graph mode (npugraph_ex / aclgraph): capture-and-replay mechanics, FX pass configuration, memory reuse, static kernel compilation, communication-in-graph, forced-eager fallback, and the document-first lookup discipline for CANN configuration options. Source-grounded from awesome-ascend-skills torch-npugraph-ex-knowledge skill.\n",
+    "description": "Diagnose an Ascend TorchAir ACL graph path from versioned configuration through FX compilation, capture-key selection, eager fallback, input staging, replay and output lifetime. Use when repeated inference has host overhead, capture churn, stale outputs or an uncertain backend; require source-matched configuration and separate device validation.",
     "tags": [
       "ascend",
       "npu",
       "graph-mode",
       "aclgraph",
-      "npugraph-ex"
+      "npugraph-ex",
+      "torchair",
+      "capture-key",
+      "input-staging",
+      "output-lifetime"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -62,10 +78,48 @@
     "empirical_validation": "not_run",
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Historical awesome-ascend-skills/cannbot import retains its short pin and UNKNOWN license in references/legacy-source-notes.md; it was not reread for this source slice.",
+      "The new official TorchAir read follows Python configuration/code generation and capture/replay ownership only; native TorchNPU/CANN, GE execution, transformations, static kernel compilation and native communication remain uninspected.",
+      "Selected stub and NPU smoke test definitions were read, not executed. Independent source pins do not establish stack compatibility, correctness, performance or service evidence."
     ],
-    "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "provenance_readsets": [
+      "references/torchair-graph-readset.json",
+      "references/torchair-graph-path.md",
+      "references/legacy-source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/Ascend/torchair",
+        "commit": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+        "paths": [
+          "python/torchair/configs/compiler_config.py",
+          "python/torchair/configs/aclgraph_config.py",
+          "python/torchair/configs/debug_config.py",
+          "python/torchair/configs/npugraphex_config.py",
+          "python/torchair/npu_fx_compiler.py",
+          "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+          "python/torchair/_acl_concrete_graph/acl_graph.py",
+          "docs/zh/npugraph_ex/quick_start.md",
+          "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+          "tests/st/torchair_aclgraph_st.py",
+          "tests/smoke/aclgraph_test.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_python_implementation_documentation_and_test_definitions",
+        "license": "BSD-3-Clause",
+        "readset": "references/torchair-graph-readset.json"
+      }
+    ],
+    "references": [
+      "references/torchair-graph-path.md",
+      "references/torchair-graph-readset.json",
+      "references/torchair-LICENSE.md",
+      "references/legacy-source-notes.md",
+      "../ascend-aclgraph-capture-replay/SKILL.md"
+    ]
   },
   "applicability": {},
   "recommendations": [
@@ -78,7 +132,9 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Historical awesome-ascend-skills/cannbot import retains its short pin and UNKNOWN license in references/legacy-source-notes.md; it was not reread for this source slice.",
+    "The new official TorchAir read follows Python configuration/code generation and capture/replay ownership only; native TorchNPU/CANN, GE execution, transformations, static kernel compilation and native communication remain uninspected.",
+    "Selected stub and NPU smoke test definitions were read, not executed. Independent source pins do not establish stack compatibility, correctness, performance or service evidence."
   ],
   "verification": {
     "locally_verified": false,

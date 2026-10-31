@@ -23,12 +23,13 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md",
+        "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-source-readset.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md",
         "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md",
@@ -38,7 +39,7 @@
         "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "bdfa5a4ef37d9f303c3a23cd6f98c21137b97ac5ed58e0ed5fac6d71d33e52ef"
+      "content_sha256": "d3805c5f605faae663ad5a674a56c1e1e5fdd211cd58833c008e557cfd7e4c37"
     }
   ],
   "index_type": "packaged-skill",
@@ -47,17 +48,18 @@
   },
   "checkout_ref": "checkout:training-resource-budget",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md": "bdfa5a4ef37d9f303c3a23cd6f98c21137b97ac5ed58e0ed5fac6d71d33e52ef",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json": "d42b614af9cee6ee0d4a25dc5d57c7b98438feed1e807a7c9f1755109a86e9cf",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md": "eb97f935ed30517a8fc9edec5e9cddc04f5d679d156c16d75bd29c534593360a",
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/SKILL.md": "d3805c5f605faae663ad5a674a56c1e1e5fdd211cd58833c008e557cfd7e4c37",
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/metadata.json": "adb0473945920794e07f62e19230683e6f8b2a0f07f91d41a451374f919d343b",
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-historical.md": "ad65c27f278c3d0ca3599a7630c02d3e529477a05b71b7703bd2d75f0d8fdd2c",
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/mindspeed-source-readset.md": "4462d69ed6a941a03639c756968be3ce54f947e51f6ca618f4fb1cd43b643b35",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/INTEGRATION_NOTES.md": "c55c6ad2131ef788866411dcc7056f221420ebff30c95c6bc919b09a4818cb73",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/cases/paper-grounded-cases.md": "19bd25b1a944adb2351ebc6b1d795150ea033041a44f6cc261e881677812a101",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/knowledge/offload-delta.md": "f8740fc5c8bbbe5ac13ff1cfec7ca499569d0b46e8cd56cf1f5a44c3a5e72242",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/notes/training-memory-scheduling.md": "9aa6d3e01452dff95c8a8940ff62ead8c146ce215c9175b78c9f2ef508a7b2de",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/papers-20261015/references/source-readset.md": "2a5c166767f56fa47e7eba7386f1f36da8cb73702e5b5bbe14d6a456ca9ebfae",
-    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/sources.md": "6d248f58af8b350fc66c22898988d6f451ac60d03bcd805cd6e84df5e55174ac",
+    "src/inferrsi/data/skill_library/methods/training-resource-budget/references/sources.md": "53d70671a183de4aaa3369f9caf2383a23b6f8a0a7b04464a8d8a639150afc6a",
     "src/inferrsi/data/skill_library/methods/training-resource-budget/references/stas-decision-notes.md": "f1a993e6c4ca9a035a2effcaf5500081f227b0cc56cc885a6b22fda0041fc744",
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
     "name": "training-resource-budget",
@@ -84,6 +86,7 @@
     ],
     "provenance_readsets": [
       "references/mindspeed-historical.md",
+      "references/mindspeed-source-readset.md",
       "references/papers-20261015/cases/paper-grounded-cases.md",
       "references/papers-20261015/INTEGRATION_NOTES.md",
       "references/papers-20261015/knowledge/offload-delta.md",

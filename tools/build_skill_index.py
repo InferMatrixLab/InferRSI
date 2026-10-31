@@ -64,7 +64,12 @@ def build_index(project: Path, source_revision: str) -> dict[str, str]:
     }
     if inputs != pinned_inputs:
         raise ValueError("Skill input paths differ from the source revision; commit sources first")
-    if _git(project, "diff", "--name-only", revision, "--", *sorted(inputs)):
+    # Compare the whole tree diff and intersect locally: passing several hundred
+    # paths on the command line exceeds the Windows process-argument limit.
+    dirty = set(
+        _git(project, "diff", "--name-only", revision).decode("utf-8").splitlines()
+    )
+    if dirty & inputs:
         raise ValueError("Skill inputs differ from the source revision; commit sources first")
     source_files = _source_hashes(project, revision, inputs)
     return render_index(root, revision, source_files)
@@ -83,6 +88,23 @@ def source_inputs(root: Path) -> set[str]:
         for item in _registry(root).values()
         for path in (root / item["path"]).rglob("*") if path.is_file()
     }
+
+
+DEFAULT_RECOMMENDATIONS = [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure.",
+]
+
+
+def recommendations(metadata: dict) -> list[str]:
+    """Owner-supplied procedure advice, or generic navigation when absent.
+
+    A declared empty list means the owner states there is no procedure-specific
+    advice; it is not the same as an absent field and does not fall back.
+    """
+    if "recommendations" in metadata:
+        return list(metadata["recommendations"])
+    return list(DEFAULT_RECOMMENDATIONS)
 
 
 def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dict[str, str]:
@@ -131,10 +153,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
             "source_files": hashes,
             "skill_metadata": metadata,
             "applicability": metadata.get("applicability", {}),
-            "recommendations": [
-                "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-                "Read the packaged references and owner-local cases alongside the procedure.",
-            ],
+            "recommendations": recommendations(metadata),
             "limitations": [
                 "This generated abstract points to the complete packaged skill; "
                 "external evidence and upstream repositories remain source links.",

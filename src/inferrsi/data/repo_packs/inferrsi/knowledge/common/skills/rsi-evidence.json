@@ -9,18 +9,25 @@
   "scenario": "skills.discovery",
   "status": "imported",
   "summary": "Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
-  "tags": [],
+  "tags": [
+    "evidence",
+    "verdict",
+    "runspec",
+    "provenance",
+    "review"
+  ],
   "origin": [
-    "unknown"
+    "first-party"
   ],
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md",
+        "src/inferrsi/data/skill_library/workflows/rsi-evidence/metadata.json",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md",
         "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/NOTICE.md",
@@ -38,8 +45,9 @@
   },
   "checkout_ref": "checkout:rsi-evidence",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190",
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md": "08f76e12f6f8e8893f03bcdc8152a96c0c99442e7faecbc2a67a18c632fcb243",
+    "src/inferrsi/data/skill_library/workflows/rsi-evidence/metadata.json": "caf3ef265df71b3cbec31b6c4affb6ebe9278fba0626b23bc124825d2761e49a",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/LICENSE-MIT.md": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
     "src/inferrsi/data/skill_library/workflows/rsi-evidence/references/loopx-goal-governance/NOTICE.md": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
@@ -50,18 +58,80 @@
   },
   "skill_metadata": {
     "name": "rsi-evidence",
-    "description": "Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts."
+    "description": "Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE verdicts.",
+    "schema_version": 1,
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "status": "candidate",
+    "origin": [
+      "first-party"
+    ],
+    "consumption_mode": "packaged",
+    "tags": [
+      "evidence",
+      "verdict",
+      "runspec",
+      "provenance",
+      "review"
+    ],
+    "empirical_validation": "not_run",
+    "provenance_readsets": [
+      "references/loopx-goal-governance/README.md"
+    ],
+    "applicability": {
+      "scope": "Documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+      "prerequisites": "A campaign with pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about goal authority additionally need the LoopX governance reference",
+      "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
+      "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
+      "failure_modes": [
+        "Metrics pasted into an issue comment with no link to an evidence path",
+        "A verdict vocabulary outside PASS/FAIL/INCONCLUSIVE",
+        "PASS recorded on a cleanup or integrity-probe failure",
+        "Output reused across trials, aliased into a reference, or written outside its own trial directory",
+        "Source fingerprint taken over a directory overlap that excludes changed tracked files",
+        "Org-wide default SHAs assumed in a skill or CI instead of read from the acceptance issue"
+      ],
+      "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
+    },
+    "recommendations": [
+      "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
+      "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
+      "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",
+      "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default."
+    ],
+    "limitations": [
+      "Documents evidence discipline; it performs no measurement and certifies no campaign.",
+      "The LoopX goal-governance reference is a source-derived candidate and adds no execution permission or empirical validation."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Documenting or reviewing an optimization campaign whose verdict will be cited downstream",
+    "prerequisites": "A campaign with pinned baseline and candidate SHAs and an evidence tree under evidence/<campaign-id>/; conclusions about goal authority additionally need the LoopX governance reference",
+    "input_contract": "Campaign artifacts in plan/, results/, patch/ and validator/, plus the RunSpec that fixes repo x revision x backend x device x model x scenario",
+    "produced_artifact": "An evidence record that links paths instead of pasting metrics, and states exactly one of PASS, FAIL or INCONCLUSIVE with its rationale",
+    "failure_modes": [
+      "Metrics pasted into an issue comment with no link to an evidence path",
+      "A verdict vocabulary outside PASS/FAIL/INCONCLUSIVE",
+      "PASS recorded on a cleanup or integrity-probe failure",
+      "Output reused across trials, aliased into a reference, or written outside its own trial directory",
+      "Source fingerprint taken over a directory overlap that excludes changed tracked files",
+      "Org-wide default SHAs assumed in a skill or CI instead of read from the acceptance issue"
+    ],
+    "refusal_point": "Refuses PASS when the validator freeze, the results rationale or the pinned SHAs are missing, and reports INCONCLUSIVE for that campaign instead"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Link evidence paths in the report; a metric quoted only in a comment cannot be re-checked later.",
+    "Fingerprint tracked source even when the output directory overlaps it, and exclude only the current run's generated files.",
+    "Treat a missing upstream-cache release proof as INCONCLUSIVE rather than a PASS with a caveat.",
+    "Read baseline and candidate SHAs from the acceptance issue for that campaign, never from a skill default."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
-    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario."
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Documents evidence discipline; it performs no measurement and certifies no campaign.",
+    "The LoopX goal-governance reference is a source-derived candidate and adds no execution permission or empirical validation."
   ],
   "verification": {
     "locally_verified": false,

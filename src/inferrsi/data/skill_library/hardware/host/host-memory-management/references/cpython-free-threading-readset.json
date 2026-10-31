@@ -1,0 +1,57 @@
+{
+  "repository": "python/cpython",
+  "revision": "60403a5409ff2c3f3b07dd2ca91a7a3e096839c7",
+  "release_label": "v3.13.0",
+  "source_channel": "official_repository",
+  "source_type": "official_documentation_only",
+  "inspection_date": "2026-10-30",
+  "license": "PSF-2.0",
+  "license_resource": "cpython-PSF-LICENSE.md",
+  "acquisition": "Selected official documentation and license spans read at the resolved release commit. Raw immutable bytes independently checked against Git blob SHA-1; whole-file SHA-256 does not claim whole-file inspection.",
+  "range_convention": "One-based inclusive lines; line_count excludes a phantom terminal line.",
+  "scope": "Build capability versus running GIL state, extension-triggered GIL re-enabling and explicit thread-safety requirements.",
+  "files": [
+    {
+      "path": "Doc/howto/free-threading-python.rst",
+      "ranges": [
+        [
+          1,
+          91
+        ]
+      ],
+      "source_type": "official_documentation",
+      "role": "Free-threaded build versus runtime GIL state, extension re-enabling, explicit locking",
+      "blob": "b21e3287ecaa3f58b397af2e08de4f1f59e00790",
+      "bytes": 6435,
+      "sha256": "e434670a7f36d8c3f28a8b69551bdded96f330bd66c6d43f90ecfb2887c26f8a",
+      "line_count": 154,
+      "url": "https://github.com/python/cpython/blob/60403a5409ff2c3f3b07dd2ca91a7a3e096839c7/Doc/howto/free-threading-python.rst"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          59,
+          118
+        ]
+      ],
+      "source_type": "license",
+      "role": "PSF License Version 2 applies to Python documentation; documentation code dual licensed under Zero-Clause BSD",
+      "blob": "14603b95c2e23b5a4cd6ff93f50348d1817f7638",
+      "bytes": 13809,
+      "sha256": "78b12c3a81360b357002334f0e70ea0e92eebf7a9b358805c03c48484945f3bb",
+      "line_count": 277,
+      "url": "https://github.com/python/cpython/blob/60403a5409ff2c3f3b07dd2ca91a7a3e096839c7/LICENSE"
+    }
+  ],
+  "excluded": [
+    "CPython implementation internals, later Python releases, package/extension compatibility and free-threaded PyTorch execution.",
+    "Performance percentages in the unselected document tail are not imported or generalized."
+  ],
+  "validation": {
+    "source_identity": "raw_bytes_match_declared_git_blobs",
+    "free_threaded_execution": "not_run",
+    "inference_stack_compatibility": "not_run"
+  },
+  "attribution": "Copyright (c) 2001-2024 Python Software Foundation; All Rights Reserved. Original summary/introspection example; no CPython implementation copied."
+}

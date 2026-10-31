@@ -50,8 +50,22 @@
   },
   "applicability": {
     "scope": "InferRSI skill lifecycle management",
-    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission",
+    "input_contract": "A candidate inventory plus the source and evaluation evidence for each candidate skill; read-only artifact admission needs no historical sibling execution interface",
+    "produced_artifact": "An admitted or refused skill candidate with its source, evidence and limitation record, and its stable id and owning path",
+    "failure_modes": [
+      "A candidate admitted on an inventory line without source or evaluation evidence",
+      "A stable id or path assigned twice across owners",
+      "Indexing or admission reported as validation or promotion",
+      "Paper-to-code equivalence asserted without a pinned readset"
+    ],
+    "refusal_point": "Refuses admission when a candidate has neither source evidence nor a declared evaluation state, and records the refusal instead of leaving the field blank"
   },
+  "recommendations": [
+    "Read the methodology counterexamples in references/papers-20261015/cases/ before admitting a candidate derived from a paper.",
+    "Keep the source snapshot revision as research evidence; it is not a campaign default.",
+    "Record an unvalidated candidate as candidate with not_run rather than omitting the state."
+  ],
   "tags": [
     "skill-factory",
     "distillation",

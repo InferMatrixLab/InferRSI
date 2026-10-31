@@ -29,8 +29,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json",
@@ -61,7 +61,7 @@
     "src/inferrsi/data/skill_library/repositories/local-dream/references/source-identity.json": "b85f028bb96a37852e9d9780b5d5052fdd9c8f3a704ad391b6381adb58291347",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/upstream-license.md": "41003d4a74749c0220e33dd415042164b5a1093ed401f36277234f772d22d3d0",
     "src/inferrsi/data/skill_library/repositories/local-dream/scripts/screen_declarations.py": "ccd7d0d55be9a47484ec3a74498d8edef8aba55287f92287775c8d82050c8932",
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
     "name": "local-dream",

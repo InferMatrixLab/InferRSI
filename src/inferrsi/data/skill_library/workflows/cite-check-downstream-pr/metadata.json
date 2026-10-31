@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "profile": "local-skill-v1",
+  "kind": "skill",
+  "status": "candidate",
+  "origin": [
+    "first-party"
+  ],
+  "consumption_mode": "packaged",
+  "tags": [
+    "review",
+    "downstream",
+    "citation",
+    "evidence",
+    "verdict"
+  ],
+  "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Review of a downstream PR description that cites RSI acceptance work for a performance or quality improvement",
+    "prerequisites": "The PR description, the acceptance issue it cites, and the evidence paths it names; reviewing is read-only and needs no local run",
+    "input_contract": "One PR description plus the cited acceptance issue and its evidence tree; the reviewer reads claims and citations, not the candidate code",
+    "produced_artifact": "A per-checklist review result that either accepts the citation or marks the summary unverified, using only PASS/FAIL/INCONCLUSIVE vocabulary",
+    "failure_modes": [
+      "No acceptance issue URL, only a chat thread",
+      "Branch names instead of full baseline and candidate SHAs",
+      "Microbenchmark evidence offered for an end-to-end latency claim",
+      "A threshold restated or invented relative to the acceptance issue",
+      "Evidence path absent, stale or on a different SHA than the cited candidate"
+    ],
+    "refusal_point": "Refuses to restate a performance or quality claim whose artifacts are missing, stale or off-SHA; reports the summary as unverified instead"
+  },
+  "recommendations": [
+    "Read the cited acceptance issue before the PR description so an invented threshold is visible immediately.",
+    "Resolve every listed evidence path and compare its SHA with the candidate SHA the PR names.",
+    "Report an unverifiable claim as unverified rather than repeating its number."
+  ],
+  "limitations": [
+    "Checklist-only procedure; it validates citation discipline, not the measurement behind an artifact.",
+    "A passing review does not establish that the campaign evidence itself is correct."
+  ],
+  "provenance_readsets": []
+}

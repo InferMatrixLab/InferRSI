@@ -1,0 +1,290 @@
+{
+  "repository": "Ascend/torchair",
+  "revision": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+  "tree": "d035bf2bfa25f3824d5d7ae54daa04a7a9e4a487",
+  "source_channel": "official_repository",
+  "source_type": "selected_implementation_and_official_documentation",
+  "inspection_date": "2026-10-30",
+  "license": "BSD-3-Clause",
+  "license_resource": "torchair-LICENSE.md",
+  "acquisition": "Read selected source/document/test bodies from the clean official GitHub checkout. File digests use exact Git blob bytes and were verified against Git blob SHA-1. Full-file digests identify bytes; only listed ranges describe substantive inspection. Upstream source bodies are not vendored.",
+  "range_convention": "One-based inclusive lines; line_count uses splitlines(), excluding a phantom line after a terminal newline.",
+  "scope": "TorchAir Python configuration and generated ACL graph execution through graph keys, capture/eager fallback, input staging, replay/update calls and output lifetime. Native TorchNPU/CANN graph, task, event and allocator implementations remain uninspected.",
+  "files": [
+    {
+      "path": "python/torchair/configs/compiler_config.py",
+      "ranges": [
+        [
+          1,
+          114
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Configuration owner, mode and compatibility warnings",
+      "blob": "ca74c22ab615602c397c26fbaa8ae07010898da8",
+      "bytes": 6735,
+      "sha256": "a176d2744becaff3c1b37b991bc128fd29e105e605c6dc9b15eb9d9cfbe0d7da",
+      "line_count": 158,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/python/torchair/configs/compiler_config.py"
+    },
+    {
+      "path": "python/torchair/configs/aclgraph_config.py",
+      "ranges": [
+        [
+          1,
+          15
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Custom pool is the only declared ACL graph subconfiguration field",
+      "blob": "bfabf336a6570769384511ee308b3342c04a45e0",
+      "bytes": 336,
+      "sha256": "c4ffec760aa65b2309977c4bdd20bf122f9eaad23a7fd2809bc50a01e5247f91",
+      "line_count": 15,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/python/torchair/configs/aclgraph_config.py"
+    },
+    {
+      "path": "python/torchair/configs/debug_config.py",
+      "ranges": [
+        [
+          78,
+          120
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Graph eager, clone, pool reuse and capture limit configuration serialization",
+      "blob": "b1631c7e89d30461fb2f4d9364c5e6101fad7359",
+      "bytes": 3961,
+      "sha256": "8785d8536c94dbb40e72f6ebf029d7d2e85d09f9c9c134d4d1eaa859882e15b2",
+      "line_count": 120,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/python/torchair/configs/debug_config.py"
+    },
+    {
+      "path": "python/torchair/configs/npugraphex_config.py",
+      "ranges": [
+        [
+          1,
+          122
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Options-to-config mapping, allowed names and inverted booleans",
+      "blob": "fd753015c3a949fde86fdf049a34c908edb48d09",
+      "bytes": 5174,
+      "sha256": "b27018c3adbefbd70069b4900234f5bf58588e0dd2ff2e92dfea6589f45b42ea",
+      "line_count": 122,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/python/torchair/configs/npugraphex_config.py"
+    },
+    {
+      "path": "python/torchair/npu_fx_compiler.py",
+      "ranges": [
+        [
+          496,
+          710
+        ],
+        [
+          716,
+          728
+        ],
+        [
+          871,
+          915
+        ],
+        [
+          930,
+          1011
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Backend partial, AOT compiler setup, ACL versus GE dispatch and generated Python runtime kernel",
+      "blob": "8165e02ee57a6eb2afd1b6bf84cc6ef5038fe797",
+      "bytes": 45104,
+      "sha256": "dcce2b8c6589c3edeb9700efd2ad99c9bf182e3c210e011333b61a091ac4d2f9",
+      "line_count": 1039,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/python/torchair/npu_fx_compiler.py"
+    },
+    {
+      "path": "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+      "ranges": [
+        [
+          57,
+          123
+        ],
+        [
+          154,
+          204
+        ],
+        [
+          221,
+          239
+        ],
+        [
+          313,
+          377
+        ],
+        [
+          519,
+          563
+        ],
+        [
+          600,
+          629
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Capture metadata, custom pool policy, option normalization and generated AclGraph bridge",
+      "blob": "358aa50af10e72f62913bda8b0cb713194549806",
+      "bytes": 43659,
+      "sha256": "ebd81a833c42540b8dfdace7ee3ea7196805d60915e9cd91e3d8aa5ba7a22653",
+      "line_count": 863,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/python/torchair/_acl_concrete_graph/fx2acl_converter.py"
+    },
+    {
+      "path": "python/torchair/_acl_concrete_graph/acl_graph.py",
+      "ranges": [
+        [
+          230,
+          278
+        ],
+        [
+          526,
+          577
+        ],
+        [
+          764,
+          1024
+        ],
+        [
+          1040,
+          1056
+        ],
+        [
+          1070,
+          1154
+        ],
+        [
+          1183,
+          1245
+        ],
+        [
+          1271,
+          1475
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Graph keys, persistent fallback, capture, input staging, replay/update calls and output lifetime",
+      "blob": "0df920553112a25ac265273299009d79cfdd42df",
+      "bytes": 84301,
+      "sha256": "dc4c23544800eea6661c63dd6e7f04055f324c9f5692ef200f5470742256641c",
+      "line_count": 1645,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/python/torchair/_acl_concrete_graph/acl_graph.py"
+    },
+    {
+      "path": "docs/zh/npugraph_ex/quick_start.md",
+      "ranges": [
+        [
+          1,
+          133
+        ]
+      ],
+      "source_type": "official_documentation",
+      "role": "Registered backend/options interface, stated inference constraints and diagnostic suggestions",
+      "blob": "28034a5cfed76c6e1146c5182a458f4e3329cc56",
+      "bytes": 9363,
+      "sha256": "c873ae5dea30563bfc6b4d59213ffa06b939edb1979051fbce839846e2139f9a",
+      "line_count": 161,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/docs/zh/npugraph_ex/quick_start.md"
+    },
+    {
+      "path": "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+      "ranges": [
+        [
+          1,
+          42
+        ]
+      ],
+      "source_type": "official_documentation",
+      "role": "Separate documented TorchNPU-facing configuration class",
+      "blob": "5db0572f8694cc992fb622044420e3a1f30dfa1b",
+      "bytes": 2256,
+      "sha256": "606f569c2c70e75f31e51be441bb35af9ca35adfa8eb77cfa851a44a5dcaf144",
+      "line_count": 42,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md"
+    },
+    {
+      "path": "tests/st/torchair_aclgraph_st.py",
+      "ranges": [
+        [
+          1,
+          104
+        ],
+        [
+          1124,
+          1200
+        ],
+        [
+          1832,
+          1879
+        ]
+      ],
+      "source_type": "stub_test_definition",
+      "role": "Fake NPU setup, capture/replay, output reconstruction and persistent capture-limit fallback; not executed",
+      "blob": "4dd812bad54fe9d309e3e5409d2e528cedcfa6cf",
+      "bytes": 164988,
+      "sha256": "3af33aa5bf27abb85576489a218c8354208ff6c685b96a9e7ec4c98e3a1ae500",
+      "line_count": 3915,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/tests/st/torchair_aclgraph_st.py"
+    },
+    {
+      "path": "tests/smoke/aclgraph_test.py",
+      "ranges": [
+        [
+          1,
+          51
+        ],
+        [
+          3129,
+          3185
+        ]
+      ],
+      "source_type": "native_test_definition",
+      "role": "Real torch_npu setup and output-clone storage identity definitions; not executed",
+      "blob": "fab405a2678da6feb266f987e255957ddc43c0e5",
+      "bytes": 147953,
+      "sha256": "06f40fc049b83e26e9ddcd21290e6d5b0243fd407dbf803bae37a086bd1a64a8",
+      "line_count": 3271,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/tests/smoke/aclgraph_test.py"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "source_type": "license",
+      "role": "Retained upstream copyright, redistribution conditions and disclaimer",
+      "blob": "90f0370d79f768bd5c8b7b327bf270c9e053d470",
+      "bytes": 3343,
+      "sha256": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01",
+      "line_count": 78,
+      "url": "https://github.com/Ascend/torchair/blob/e1118e8b0fc1b95190ab53b732c0872989550e20/LICENSE"
+    }
+  ],
+  "not_inspected": [
+    "TorchNPU/CANN native graph, stream, event, task-update and allocator bodies",
+    "GE C++ executor and graph compilation",
+    "FX pass and static-kernel compilation implementations",
+    "HCCL/native collective implementations",
+    "AOT/PyTorch compiler internals beyond TorchAir call sites"
+  ],
+  "validation": {
+    "source_read": "completed_bounded_read",
+    "stub_tests": "not_run",
+    "native_tests": "not_run",
+    "performance": "not_run",
+    "model_quality": "not_run",
+    "service": "not_run"
+  }
+}

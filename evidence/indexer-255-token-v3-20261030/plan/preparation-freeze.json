@@ -1,0 +1,10 @@
+{
+  "frozen_at_utc": "2026-10-30T02:56:05.815592+00:00",
+  "status": "FROZEN_PROSPECTIVE_BEFORE_IMPLEMENTATION_AND_EVALUATION",
+  "baseline": "b3549ce1aea1556f76de1d2e14a4240474947b6b",
+  "files": {
+    "protocol.md": "2adf6a226b4c3763e52dec159aaae9ec4ea0824f2b0b0bd37a92799ef06bf94d",
+    "source-manifest.json": "9a1a7d9fda980602ca344a4cf8be10fbfa7eef96c2dc1feaea8eab75647c4215",
+    "synthetic-contracts.json": "4cd0fd6fd7ac9dcb910cd31f560c0507fa2e5701b4bf9110bfb77ef9acfb9dc8"
+  }
+}

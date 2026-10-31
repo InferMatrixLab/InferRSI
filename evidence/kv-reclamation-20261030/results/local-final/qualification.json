@@ -1,0 +1,33 @@
+{
+  "schema": "kv-reclamation-qualification-v1",
+  "revision": "3902e4abcbe8806a683ab06caf4b9f09743c20cf",
+  "snapshot_hash": "c8d4f418ec669e134e8e7e3f6e430a531b6c10bcba5b360cb051d0bac9e1e569",
+  "dirty": true,
+  "plan_sha256": "60cc479686aa2ba3772f627cc5179a3c0dc6d215c0fdeb57547fd58dc30859ed",
+  "verifier_freeze_sha256": "163c21134a8155da2a6469d9dbddb6ea71cb162e14f53e1c4266fe8ce75126f7",
+  "controller_sha256": "7576f9d3b5cdf059697a58d562f72fd2d71c27dcef41ddb3ea4ee93427bcd860",
+  "qualifier_sha256": "b53efb547ff6dec04492d08f41b9479afee5d07bbee964911a264f453e620815",
+  "benchmark_supplement_sha256": "717d7c1a4327f3bcaa9755c9b343a142e0223a651996893d7de3e4065cf6b6f0",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "verdict": "INCONCLUSIVE",
+  "software_checks_passed": false,
+  "controls": {},
+  "measurements": {},
+  "model_calls": 0,
+  "provider_charges_usd": 0,
+  "scope": "Synthetic model-free artifact qualification; actor isolation NOT qualified",
+  "chronology": "Independent and plan local freeze preceded reference; public plan posting followed reference authorship and preceded all timing; independent benchmark supplement frozen after reference authorship and before timing",
+  "raw_evidence": {
+    "path": "raw-evidence.zip",
+    "sha256": "2d11379d6951fea6bafd68a75908443a423cff299d6e301241f538b3404e1d35",
+    "files": [
+      "probe/stderr.log",
+      "probe/stdout.log"
+    ],
+    "scope": "Actual control outputs and runner evidence; labelled path redactions"
+  },
+  "error": "KV replay did not establish its sandbox boundary",
+  "source_unchanged": true,
+  "elapsed_seconds": 0.060621932992944494
+}

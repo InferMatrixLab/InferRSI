@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
@@ -54,9 +54,9 @@
   },
   "checkout_ref": "checkout:npu-skill-factory",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190",
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e",
-    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "12fc9272bd5fbf02dd9b897d8ca40984b72ae54f20492ace5304711bbc4d71c3",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "073174963ca5c19c63d68843ccabdbf758f4c8b7ca61e3d7283affd6f88a753c",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/QA.md": "3f3785ec39a6938a5d1f2e874e99153fe92c0e666dd3e78a499c8b47d891346a",
@@ -128,8 +128,22 @@
     },
     "applicability": {
       "scope": "InferRSI skill lifecycle management",
-      "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+      "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission",
+      "input_contract": "A candidate inventory plus the source and evaluation evidence for each candidate skill; read-only artifact admission needs no historical sibling execution interface",
+      "produced_artifact": "An admitted or refused skill candidate with its source, evidence and limitation record, and its stable id and owning path",
+      "failure_modes": [
+        "A candidate admitted on an inventory line without source or evaluation evidence",
+        "A stable id or path assigned twice across owners",
+        "Indexing or admission reported as validation or promotion",
+        "Paper-to-code equivalence asserted without a pinned readset"
+      ],
+      "refusal_point": "Refuses admission when a candidate has neither source evidence nor a declared evaluation state, and records the refusal instead of leaving the field blank"
     },
+    "recommendations": [
+      "Read the methodology counterexamples in references/papers-20261015/cases/ before admitting a candidate derived from a paper.",
+      "Keep the source snapshot revision as research evidence; it is not a campaign default.",
+      "Record an unvalidated candidate as candidate with not_run rather than omitting the state."
+    ],
     "tags": [
       "skill-factory",
       "distillation",
@@ -166,11 +180,21 @@
   },
   "applicability": {
     "scope": "InferRSI skill lifecycle management",
-    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission",
+    "input_contract": "A candidate inventory plus the source and evaluation evidence for each candidate skill; read-only artifact admission needs no historical sibling execution interface",
+    "produced_artifact": "An admitted or refused skill candidate with its source, evidence and limitation record, and its stable id and owning path",
+    "failure_modes": [
+      "A candidate admitted on an inventory line without source or evaluation evidence",
+      "A stable id or path assigned twice across owners",
+      "Indexing or admission reported as validation or promotion",
+      "Paper-to-code equivalence asserted without a pinned readset"
+    ],
+    "refusal_point": "Refuses admission when a candidate has neither source evidence nor a declared evaluation state, and records the refusal instead of leaving the field blank"
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Read the methodology counterexamples in references/papers-20261015/cases/ before admitting a candidate derived from a paper.",
+    "Keep the source snapshot revision as research evidence; it is not a campaign default.",
+    "Record an unvalidated candidate as candidate with not_run rather than omitting the state."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

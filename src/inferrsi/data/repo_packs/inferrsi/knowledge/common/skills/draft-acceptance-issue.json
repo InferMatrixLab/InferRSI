@@ -9,18 +9,25 @@
   "scenario": "skills.discovery",
   "status": "imported",
   "summary": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs.",
-  "tags": [],
+  "tags": [
+    "acceptance",
+    "issue",
+    "runspec",
+    "template",
+    "campaign"
+  ],
   "origin": [
-    "unknown"
+    "first-party"
   ],
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
-        "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md"
+        "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md",
+        "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/metadata.json"
       ],
       "content_sha256": "ce983acfb7d7d3272775e7cf00c92e4ddadd97511b602575a76e5ab7ade01b56"
     }
@@ -31,23 +38,76 @@
   },
   "checkout_ref": "checkout:draft-acceptance-issue",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190",
-    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md": "ce983acfb7d7d3272775e7cf00c92e4ddadd97511b602575a76e5ab7ade01b56"
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317",
+    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md": "ce983acfb7d7d3272775e7cf00c92e4ddadd97511b602575a76e5ab7ade01b56",
+    "src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/metadata.json": "e97a665349f234d74baeaa20c6996bff990d0f45c40c0b7ac7283aa599cb951e"
   },
   "skill_metadata": {
     "name": "draft-acceptance-issue",
-    "description": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs."
+    "description": "Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs.",
+    "schema_version": 1,
+    "profile": "local-skill-v1",
+    "kind": "skill",
+    "status": "candidate",
+    "origin": [
+      "first-party"
+    ],
+    "consumption_mode": "packaged",
+    "tags": [
+      "acceptance",
+      "issue",
+      "runspec",
+      "template",
+      "campaign"
+    ],
+    "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "Opening a new acceptance campaign in an RSI-style repository, before any baseline or candidate run",
+      "prerequisites": "A chosen campaign subject and an empty evidence/<campaign-id>/ tree copied from evidence/_template/; SHAs may still be placeholders",
+      "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count} and the gates the campaign must meet",
+      "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, gates, evidence paths, initial verdict and a downstream citation blurb",
+      "failure_modes": [
+        "Gates written after the search loop has already run",
+        "Campaign SHAs committed into recipes/, benchmarks/, skills or workflow defaults",
+        "PASS claimed without a validator/ freeze and a results/ rationale"
+      ],
+      "refusal_point": "Refuses to state a verdict other than INCONCLUSIVE while the validator freeze or results rationale is absent"
+    },
+    "recommendations": [
+      "Write the gates in plan/ before any search loop; a gate chosen afterwards cannot reject the candidate honestly.",
+      "Use the <baseline-sha> and <candidate-sha> placeholders until the campaign fixes them, and keep the real values in the issue.",
+      "Set the initial verdict to INCONCLUSIVE so the absence of evidence is recorded rather than assumed away."
+    ],
+    "limitations": [
+      "Drafts an issue only; it freezes no gate and runs no measurement.",
+      "The placeholder SHA convention depends on the campaign owner filling them in later."
+    ],
+    "provenance_readsets": []
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Opening a new acceptance campaign in an RSI-style repository, before any baseline or candidate run",
+    "prerequisites": "A chosen campaign subject and an empty evidence/<campaign-id>/ tree copied from evidence/_template/; SHAs may still be placeholders",
+    "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count} and the gates the campaign must meet",
+    "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, gates, evidence paths, initial verdict and a downstream citation blurb",
+    "failure_modes": [
+      "Gates written after the search loop has already run",
+      "Campaign SHAs committed into recipes/, benchmarks/, skills or workflow defaults",
+      "PASS claimed without a validator/ freeze and a results/ rationale"
+    ],
+    "refusal_point": "Refuses to state a verdict other than INCONCLUSIVE while the validator freeze or results rationale is absent"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Write the gates in plan/ before any search loop; a gate chosen afterwards cannot reject the candidate honestly.",
+    "Use the <baseline-sha> and <candidate-sha> placeholders until the campaign fixes them, and keep the real values in the issue.",
+    "Set the initial verdict to INCONCLUSIVE so the absence of evidence is recorded rather than assumed away."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
-    "The imported status describes this index, not the original skill; its declared status is unspecified.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
-    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario."
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Drafts an issue only; it freezes no gate and runs no measurement.",
+    "The placeholder SHA convention depends on the campaign owner filling them in later."
   ],
   "verification": {
     "locally_verified": false,

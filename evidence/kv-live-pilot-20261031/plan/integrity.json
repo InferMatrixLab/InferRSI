@@ -1,0 +1,15 @@
+{
+  "patch/README.md": "e17139b8e1119897081e96a352a7d8714ee3f078361af133fee41c897775eca0",
+  "plan/A2.json": "e6936bbb5cf3f78177bef2a299b1e50adbab17bf179121e782c3be6befd49770",
+  "plan/A3.json": "4e895045d7a556165fafeea48a8ce92bb50da48090a0d2a1c92f27aa98e5eb57",
+  "plan/README.md": "6d22422aff5a7672f416f7a7ab44b31479303cfd305acc0dfe680cf94b51cdd0",
+  "plan/final-suite.json": "ff3de0b55e0eb40120b7b3b13559b070f0ea02cd02b08606bfd5d51014352654",
+  "plan/hidden-traces.json": "935058055afeb86a8eab4a4f185ef3c11bccf2f6f58bcb32fb23e6c3624d9284",
+  "plan/plan.json": "b66130352cce6fb6201561d3a026a7a78d800ac0f84ecb899f57a0906ffa4767",
+  "plan/public/development.json": "e6da6e89af6a2956cc8f7dfe494b61fe9919900eefac5cb724bb508947dcb56c",
+  "plan/public/task.json": "8ee9cc95f07c8c36550f25008862f381a0a0a457bf2f62d4e644c6e38cfad44b",
+  "plan/public/workbench.md": "97596737c04f1904941e6eddd0090107af762d2743625260bf2185a35d85df5f",
+  "plan/visible-suite.json": "812ac3e5dd686271d40598e8b8d35faa6f039888f1d36852e571b11b36c600bc",
+  "results/README.md": "7dbee40dbb7028cf88714900bb61fef9e15a1bd8d0d78aaff1455757664a1b94",
+  "validator/README.md": "2de9d36892a00c70203e1c3198321bbaf70cb8f4041f83ef65d236dbe265ec9e"
+}

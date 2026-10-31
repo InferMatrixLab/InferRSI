@@ -6,7 +6,10 @@
     "parallelism",
     "usp",
     "hccl",
-    "communication"
+    "communication",
+    "allreduce",
+    "topology-dispatch",
+    "collective-correctness"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -28,16 +31,54 @@
         "skills/training/torch-npu-comm-test/references/supported-ops.md"
       ],
       "readset": "references/awesome-ascend-communication-tests.md"
+    },
+    {
+      "type": "git",
+      "url": "https://gitcode.com/cann/hccl",
+      "commit": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+      "paths": [
+        "src/common/hccl_common.h",
+        "src/ops/all_reduce/all_reduce.cc",
+        "src/ops/op_common/op_common.cc",
+        "src/ops/op_common/selector/selector_engine.cc",
+        "src/ops/op_common/selector/cost_model.cc",
+        "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+        "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+        "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+        "src/ops/op_common/algorithm/template/alg_template_base.h",
+        "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+        "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+        "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+        "test/st/algorithm/testcase/all_reduce_testcase.cc",
+        "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+        "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+        "src/common/log.h",
+        "LICENSE"
+      ],
+      "source_channel": "official_repository",
+      "inspected_scope": "selected_native_implementation_and_simulator_test_definitions",
+      "license": "CANN Open Software License Agreement Version 2.0",
+      "readset": "references/hccl-allreduce-readset.json"
     }
   ],
   "empirical_validation": "not_run",
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Only the incremental awesome-ascend-skills communication-test slice is normalized; inherited strategy guidance and its source identities remain unchanged.",
-    "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains."
+    "Only the declared communication-test and native HCCL source slices are normalized; inherited strategy guidance and its source identities remain unchanged.",
+    "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains.",
+    "Native source coverage is one selected multi-rank AICPU mesh one-shot AllReduce path at the HCCL pin; legacy device routes, other engines/collectives and HCOMM transport/runtime implementations are not qualified.",
+    "Inspected upstream tests use simulated task-graph semantics; neither those tests nor native numerical, memory, bandwidth, model-quality or service experiments were run."
   ],
   "provenance_readsets": [
-    "references/awesome-ascend-communication-tests.md"
+    "references/awesome-ascend-communication-tests.md",
+    "references/hccl-allreduce.md",
+    "references/hccl-allreduce-readset.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "references": [
+    "references/awesome-ascend-communication-tests.md",
+    "references/hccl-allreduce.md",
+    "references/hccl-allreduce-readset.json",
+    "references/hccl-LICENSE.md"
+  ]
 }

@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from ._skill_selection import RELEVANCE_METHODS
 from .catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 from .runspec import RunSpec
 
@@ -191,6 +192,10 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
     collect.add_argument("--relevance", help="Opt-in lexical cue for packaged skill selection")
+    collect.add_argument(
+        "--relevance-method", choices=RELEVANCE_METHODS, default="weighted-lexical-v1",
+        help="Packaged skill ranking method; nondefault method requires --relevance",
+    )
     collect.add_argument(
         "--context-bytes", type=int,
         help="Opt-in context view; total UTF-8 resource-body byte budget",

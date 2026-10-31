@@ -1,0 +1,53 @@
+{
+  "format": "gzip, mtime=0; byte-identical inputs share one archive",
+  "files": [
+    {
+      "original_path": "results/baseline-contract-smoke.json",
+      "original_sha256": "a35be36b859e6c4fd5bd7b7ec38920794f77adb322e9ae26498f31a9b4a91b6c",
+      "original_bytes": 540743,
+      "archive": "results/raw/a35be36b859e6c4fd5bd7b7ec38920794f77adb322e9ae26498f31a9b4a91b6c.json.gz",
+      "archive_sha256": "22a4ada0c2dab381ee9f8e3b342d0418d9e0668a16379fde069bae4b1eb0e9ad",
+      "archive_bytes": 136920
+    },
+    {
+      "original_path": "results/paired-run/A-cases.json",
+      "original_sha256": "fbe219d8332596850e32d3d64ed4e4d566644d630c6e007338fd834af83fd2c0",
+      "original_bytes": 8248857,
+      "archive": "results/raw/fbe219d8332596850e32d3d64ed4e4d566644d630c6e007338fd834af83fd2c0.json.gz",
+      "archive_sha256": "0de101743d3cdb7a1eef38a7a398d71ce372bb19f9380b85000b45d052f3341c",
+      "archive_bytes": 1960685
+    },
+    {
+      "original_path": "results/paired-run/A-heldout.json",
+      "original_sha256": "3f3d873aaa65657ef4e3213e15847dbd90c9e30207621238fc2a35d2c9d5419f",
+      "original_bytes": 3967752,
+      "archive": "results/raw/3f3d873aaa65657ef4e3213e15847dbd90c9e30207621238fc2a35d2c9d5419f.json.gz",
+      "archive_sha256": "7af84694f52243cf0433a7212af5d038c6dbca8a08e125ef8c0ef7fe2dae90a6",
+      "archive_bytes": 1022977
+    },
+    {
+      "original_path": "results/paired-run/B-cases.json",
+      "original_sha256": "fbe219d8332596850e32d3d64ed4e4d566644d630c6e007338fd834af83fd2c0",
+      "original_bytes": 8248857,
+      "archive": "results/raw/fbe219d8332596850e32d3d64ed4e4d566644d630c6e007338fd834af83fd2c0.json.gz",
+      "archive_sha256": "0de101743d3cdb7a1eef38a7a398d71ce372bb19f9380b85000b45d052f3341c",
+      "archive_bytes": 1960685
+    },
+    {
+      "original_path": "results/paired-run/B-heldout.json",
+      "original_sha256": "3f3d873aaa65657ef4e3213e15847dbd90c9e30207621238fc2a35d2c9d5419f",
+      "original_bytes": 3967752,
+      "archive": "results/raw/3f3d873aaa65657ef4e3213e15847dbd90c9e30207621238fc2a35d2c9d5419f.json.gz",
+      "archive_sha256": "7af84694f52243cf0433a7212af5d038c6dbca8a08e125ef8c0ef7fe2dae90a6",
+      "archive_bytes": 1022977
+    },
+    {
+      "original_path": "results/paired-run/contracts.json",
+      "original_sha256": "517e374c3f13d9d22dafad37d51368d1f4e5669842f9bc0dadc1bb88cba3d968",
+      "original_bytes": 1195539,
+      "archive": "results/raw/517e374c3f13d9d22dafad37d51368d1f4e5669842f9bc0dadc1bb88cba3d968.json.gz",
+      "archive_sha256": "0c070b69dcc6ea010a24c637a160b19ea8a7384eb40bb17636db0eaa42906a0a",
+      "archive_bytes": 275870
+    }
+  ]
+}

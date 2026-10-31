@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "profile": "local-skill-v1",
+  "kind": "skill",
+  "status": "candidate",
+  "origin": [
+    "first-party"
+  ],
+  "consumption_mode": "packaged",
+  "tags": [
+    "acceptance",
+    "issue",
+    "runspec",
+    "template",
+    "campaign"
+  ],
+  "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Opening a new acceptance campaign in an RSI-style repository, before any baseline or candidate run",
+    "prerequisites": "A chosen campaign subject and an empty evidence/<campaign-id>/ tree copied from evidence/_template/; SHAs may still be placeholders",
+    "input_contract": "A campaign id of the form {model-or-scenario}/{device}x{count} and the gates the campaign must meet",
+    "produced_artifact": "An acceptance issue body with campaign id, pinned baseline and candidate SHAs, RunSpec, gates, evidence paths, initial verdict and a downstream citation blurb",
+    "failure_modes": [
+      "Gates written after the search loop has already run",
+      "Campaign SHAs committed into recipes/, benchmarks/, skills or workflow defaults",
+      "PASS claimed without a validator/ freeze and a results/ rationale"
+    ],
+    "refusal_point": "Refuses to state a verdict other than INCONCLUSIVE while the validator freeze or results rationale is absent"
+  },
+  "recommendations": [
+    "Write the gates in plan/ before any search loop; a gate chosen afterwards cannot reject the candidate honestly.",
+    "Use the <baseline-sha> and <candidate-sha> placeholders until the campaign fixes them, and keep the real values in the issue.",
+    "Set the initial verdict to INCONCLUSIVE so the absence of evidence is recorded rather than assumed away."
+  ],
+  "limitations": [
+    "Drafts an issue only; it freezes no gate and runs no measurement.",
+    "The placeholder SHA convention depends on the campaign owner filling them in later."
+  ],
+  "provenance_readsets": []
+}

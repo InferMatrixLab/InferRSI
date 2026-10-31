@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "corpus_sha": "1147c5bb41724826b64ad13cebc8a4dce5cc278b",
+  "label_scope": "Independently source-reviewed partial positives. No retrieval calls, scoring implementation, observed rankings or benchmark outputs used to select queries or labels.",
+  "status": "DRAFT_PENDING_INDEPENDENT_REVIEW",
+  "contract": {
+    "positive_metric": "Hit@5 and MRR@5 over listed known-positive IDs; not complete precision/recall.",
+    "negative_metric": "Nongating out-of-domain diagnostic: report returned IDs/count separately; semantic absence does not imply lexical zero matches. Operational no-match and incompatible-filter gates are separate unchanged-contract checks, not these cases.",
+    "delivery": "Listed required_resource_suffixes are minimum positive anchors, not the complete required set. Audit all resources in the pinned indexed_skill required set, including references/licenses, plus matching revision. Distinguish retrieval miss, budget omission, and incomplete-resource delivery.",
+    "heldout": "Do not reveal heldout wording, labels or family details to implementer until candidate runtime/code hash freeze.",
+    "limitations": "Twelve deliberately selected diagnostic positives, two easy out-of-domain controls; no representativeness, production generalization or agent efficacy claim. Family disjointness is a manually chosen intent taxonomy, not universal independence."
+  },
+  "cases": [
+    {
+      "id": "freshdev01",
+      "split": "development",
+      "intent_family": "split_backward_optimizer_validation",
+      "query": "",
+      "relevance": "Our pipeline can delay parameter-gradient work after input gradients. Can we also remove the optimizer synchronization point if clipping sometimes fails, or must we keep a rollback path?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.assess_split_backward_schedule"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "methods/assess-split-backward-schedule/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md": "1e64f28ea71672fb53c56f6108b87864738c6d03d6dcd32eedaef9e0625e96e3"
+      },
+      "source_passages": [
+        {
+          "path": "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
+          "start_line": 20,
+          "end_line": 20,
+          "quote": "Removing a barrier must preserve global norm/clipping/NaN decisions, rollback/re-update, and correctness of work dependent on a tentative update."
+        }
+      ],
+      "rationale": "The intent is optimizer validation legality under split backward, not persistent checkpoint recovery or asynchronous snapshot reuse.",
+      "limitations": "Partial positive label only: other skills are unjudged, not irrelevant. Source-derived candidate guidance does not establish runtime validity or downstream task success.",
+      "required_resource_suffixes_scope": "minimum anchors only; complete indexed_skill required-resource set must also be audited"
+    },
+    {
+      "id": "freshdev02",
+      "split": "development",
+      "intent_family": "heterogeneous_training_mesh_partition",
+      "query": "",
+      "relevance": "Some training stages are activation-heavy and others weight-heavy. How should I compare unequal device groups and stage boundaries without ignoring transfers between different shard layouts?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.choose_parallel_training_plan"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "methods/choose-parallel-training-plan/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md": "25d04aed9782b2a8ff1186828becdc7fce93c4418039ceaef9b8dcc5ec9bcd24"
+      },
+      "source_passages": [
+        {
+          "path": "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md",
+          "start_line": 16,
+          "end_line": 16,
+          "quote": "Consider uneven stage boundaries and mesh sizes where activation/weight intensity changes."
+        }
+      ],
+      "rationale": "The decision is stage/mesh and sharding placement, not B/W execution order or CPU quota.",
+      "limitations": "Partial positive label only: other skills are unjudged, not irrelevant. Source-derived candidate guidance does not establish runtime validity or downstream task success.",
+      "required_resource_suffixes_scope": "minimum anchors only; complete indexed_skill required-resource set must also be audited"
+    },
+    {
+      "id": "freshdev03",
+      "split": "development",
+      "intent_family": "remote_training_sample_lookahead",
+      "query": "",
+      "relevance": "Increasing Mosaic sample look-ahead made workers download the same shards repeatedly. How do I decide whether more prefetch helps when the local shard cache is tight?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.training_input_pipeline"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "methods/training-input-pipeline/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md": "64bd2c6b795d966045d1d3cca55976d3d49b08b06df7c7e06a70c2824cf55b7e"
+      },
+      "source_passages": [
+        {
+          "path": "src/inferrsi/data/skill_library/methods/training-input-pipeline/SKILL.md",
+          "start_line": 61,
+          "end_line": 62,
+          "quote": "More look-ahead can therefore increase churn when the local\ncache cannot retain the working set."
+        }
+      ],
+      "rationale": "The query concerns producer sample lookahead and shard eviction, not measuring disk utilization, page-cache effects or checkpoint loading.",
+      "limitations": "Partial positive label only: other skills are unjudged, not irrelevant. Source-derived candidate guidance does not establish runtime validity or downstream task success.",
+      "required_resource_suffixes_scope": "minimum anchors only; complete indexed_skill required-resource set must also be audited"
+    },
+    {
+      "id": "freshdev04",
+      "split": "development",
+      "intent_family": "conflicting_skill_trace_lessons",
+      "query": "",
+      "relevance": "Two execution traces recommend opposite changes to the same agent procedure. How can I preserve both lessons instead of letting the more frequent outcome overwrite the other?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.skill_evolution_playbook"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "methods/skill-evolution-playbook/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md": "9cd37f21fe0d862069e4798edca8a04d59f8b840e55d521901594a63dddd9ba3"
+      },
+      "source_passages": [
+        {
+          "path": "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
+          "start_line": 56,
+          "end_line": 57,
+          "quote": "Do not resolve\n   by voting on whichever outcome appeared more often in the pool."
+        }
+      ],
+      "rationale": "Direct conditional lesson reconciliation and inconclusive escalation; not current candidate acceptance or retrieval rankings.",
+      "limitations": "Partial positive label only: other skills are unjudged, not irrelevant. Source-derived candidate guidance does not establish runtime validity or downstream task success.",
+      "required_resource_suffixes_scope": "minimum anchors only; complete indexed_skill required-resource set must also be audited"
+    },
+    {
+      "id": "freshdev05",
+      "split": "development",
+      "intent_family": "hopper_instruction_applicability",
+      "query": "",
+      "relevance": "A kernel recipe uses tcgen05 and tensor memory, but my deployment is H100. Does an SM90 label make that recipe usable, and what compiled instruction path must I verify?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.cuda.skills.reason_hopper_kernels"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "hardware/cuda/reason-hopper-kernels/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md": "cec4e3aa1eb64c31c54b5f5ca40af2b61b7919d94be4174968581d5f752c0538"
+      },
+      "source_passages": [
+        {
+          "path": "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
+          "start_line": 30,
+          "end_line": 32,
+          "quote": "Do not map\nBlackwell tcgen05, TMEM, hardware block-scaled MMA, CLC or two-SM MMA recipes to\nHopper."
+        }
+      ],
+      "rationale": "Architecture-specific instruction applicability, not generic kernel tiling correctness.",
+      "limitations": "Partial positive label only: other skills are unjudged, not irrelevant. Source-derived candidate guidance does not establish runtime validity or downstream task success.",
+      "required_resource_suffixes_scope": "minimum anchors only; complete indexed_skill required-resource set must also be audited"
+    },
+    {
+      "id": "freshdev06",
+      "split": "development",
+      "intent_family": "simulation_near_capacity_calibration",
+      "query": "",
+      "relevance": "A serving simulator matches operator times at light load. Is that sufficient to choose a deployment that meets tail latency as arrivals approach saturation?",
+      "filters": {},
+      "limit": 5,
+      "context_bytes": 262144,
+      "relevant_ids": [
+        "inferrsi.common.skills.calibrate_serving_simulation"
+      ],
+      "forbidden_ids": [],
+      "required_resource_suffixes": [
+        "methods/calibrate-serving-simulation/SKILL.md"
+      ],
+      "evidence_paths": [
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md"
+      ],
+      "source_sha256": {
+        "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352"
+      },
+      "source_passages": [
+        {
+          "path": "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+          "start_line": 19,
+          "end_line": 19,
+          "quote": "Include the intended load regime and capacity boundary; do not substitute a low-load check for an SLO claim."
+        }
+      ],
+      "rationale": "Empirical predictor calibration domain and queueing risk, not fixed-workload timing-denominator audit.",
+      "limitations": "Partial positive label only: other skills are unjudged, not irrelevant. Source-derived candidate guidance does not establish runtime validity or downstream task success.",
+      "required_resource_suffixes_scope": "minimum anchors only; complete indexed_skill required-resource set must also be audited"
+    }
+  ]
+}

@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround, HCCL bandwidth verification and source-scoped communication-test selection, timing and correctness-check coverage.\n",
+  "summary": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers native HCCL multi-rank AllReduce dispatch, scratch and synchronization boundaries, AlltoAllV defect workaround, and source-scoped communication-test timing and correctness coverage.\n",
   "tags": [
     "ascend",
     "npu",
@@ -16,7 +16,10 @@
     "parallelism",
     "usp",
     "hccl",
-    "communication"
+    "communication",
+    "allreduce",
+    "topology-dispatch",
+    "collective-correctness"
   ],
   "origin": [
     "external"
@@ -24,15 +27,18 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2f72a0ccabd87eefdc76223c9b82f7091c379da1/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
-      "commit": "2f72a0ccabd87eefdc76223c9b82f7091c379da1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bde70d82bb65cc2e5dcd0f9d33cda5d38091120b/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "bde70d82bb65cc2e5dcd0f9d33cda5d38091120b",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "4ce9dcadd1ae3c7a8cc633336760d0a3c382f354f1b7028e3a10d28fa0d0c9fa"
+      "content_sha256": "0b79d95e8d5abf0a822f8ae6bfa3779cbb40595c5b6f0fb934233275f5899ef8"
     }
   ],
   "index_type": "packaged-skill",
@@ -41,14 +47,17 @@
   },
   "checkout_ref": "checkout:ascend-distributed-parallel",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "4ce9dcadd1ae3c7a8cc633336760d0a3c382f354f1b7028e3a10d28fa0d0c9fa",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "b6cb25879b1bca5f5af08b48776f2e664cf5dcd11a0efb1c4f56879e2afa9006",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "0b79d95e8d5abf0a822f8ae6bfa3779cbb40595c5b6f0fb934233275f5899ef8",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "56ae2092fb4d6538603c1d3d3916f0a3f0eb443d23dad3217ebd74d48d208d94",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
-    "src/inferrsi/data/skill_library/skill-index.json": "531190c468b6fb385b9b4aa71e666e8dd20d92aa5adc54bf4040f2096e3dd190"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json": "4a3d403986dfceaa28605f2f30b79545e1efdc27f35c88755402b75b4d13d7e2",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce.md": "4770bba0090ed5ead3d2fd3b2cce2d21ba708acae3e0b4d859cc503499da5b93",
+    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
     "name": "ascend-distributed-parallel",
-    "description": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers AlltoAllV defect workaround, HCCL bandwidth verification and source-scoped communication-test selection, timing and correctness-check coverage.\n",
+    "description": "Select and validate distributed parallelism strategy on Ascend NPU: topology-aware  card-group selection, USP/CP/TP/PP strategy choice, communication masking setup and  verification, attribution of parallelism gains, and diagnosis of strategies that appear  to activate but have no effect. Covers native HCCL multi-rank AllReduce dispatch, scratch and synchronization boundaries, AlltoAllV defect workaround, and source-scoped communication-test timing and correctness coverage.\n",
     "tags": [
       "ascend",
       "npu",
@@ -56,7 +65,10 @@
       "parallelism",
       "usp",
       "hccl",
-      "communication"
+      "communication",
+      "allreduce",
+      "topology-dispatch",
+      "collective-correctness"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -78,18 +90,56 @@
           "skills/training/torch-npu-comm-test/references/supported-ops.md"
         ],
         "readset": "references/awesome-ascend-communication-tests.md"
+      },
+      {
+        "type": "git",
+        "url": "https://gitcode.com/cann/hccl",
+        "commit": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+        "paths": [
+          "src/common/hccl_common.h",
+          "src/ops/all_reduce/all_reduce.cc",
+          "src/ops/op_common/op_common.cc",
+          "src/ops/op_common/selector/selector_engine.cc",
+          "src/ops/op_common/selector/cost_model.cc",
+          "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+          "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+          "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+          "src/ops/op_common/algorithm/template/alg_template_base.h",
+          "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+          "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+          "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+          "test/st/algorithm/testcase/all_reduce_testcase.cc",
+          "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+          "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+          "src/common/log.h",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_native_implementation_and_simulator_test_definitions",
+        "license": "CANN Open Software License Agreement Version 2.0",
+        "readset": "references/hccl-allreduce-readset.json"
       }
     ],
     "empirical_validation": "not_run",
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Only the incremental awesome-ascend-skills communication-test slice is normalized; inherited strategy guidance and its source identities remain unchanged.",
-      "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains."
+      "Only the declared communication-test and native HCCL source slices are normalized; inherited strategy guidance and its source identities remain unchanged.",
+      "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains.",
+      "Native source coverage is one selected multi-rank AICPU mesh one-shot AllReduce path at the HCCL pin; legacy device routes, other engines/collectives and HCOMM transport/runtime implementations are not qualified.",
+      "Inspected upstream tests use simulated task-graph semantics; neither those tests nor native numerical, memory, bandwidth, model-quality or service experiments were run."
     ],
     "provenance_readsets": [
-      "references/awesome-ascend-communication-tests.md"
+      "references/awesome-ascend-communication-tests.md",
+      "references/hccl-allreduce.md",
+      "references/hccl-allreduce-readset.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "references": [
+      "references/awesome-ascend-communication-tests.md",
+      "references/hccl-allreduce.md",
+      "references/hccl-allreduce-readset.json",
+      "references/hccl-LICENSE.md"
+    ]
   },
   "applicability": {},
   "recommendations": [
@@ -102,8 +152,10 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Only the incremental awesome-ascend-skills communication-test slice is normalized; inherited strategy guidance and its source identities remain unchanged.",
-    "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains."
+    "Only the declared communication-test and native HCCL source slices are normalized; inherited strategy guidance and its source identities remain unchanged.",
+    "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains.",
+    "Native source coverage is one selected multi-rank AICPU mesh one-shot AllReduce path at the HCCL pin; legacy device routes, other engines/collectives and HCOMM transport/runtime implementations are not qualified.",
+    "Inspected upstream tests use simulated task-graph semantics; neither those tests nor native numerical, memory, bandwidth, model-quality or service experiments were run."
   ],
   "verification": {
     "locally_verified": false,

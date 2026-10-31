@@ -132,3 +132,138 @@ def test_committed_view_matches_its_sources():
     assert OUTPUT.read_text(encoding="utf-8") == rendered, (
         "docs/skill-coverage.md is stale; rerun tools/build_skill_coverage.py"
     )
+
+
+def test_absent_and_empty_applicability_are_both_unknown_but_distinct_from_na():
+    """Absent, empty and not-applicable are three states, not one blank cell."""
+    assert coverage.conditions({}) == {
+        "scope": None, "not_applicable": [], "dimensions": 0,
+    }
+    assert coverage.conditions({"applicability": {}})["dimensions"] == 0
+    na = coverage.conditions({
+        "applicability": {"scope": "x", "hardware": coverage.NOT_APPLICABLE},
+    })
+    assert na["scope"] == "x"
+    assert na["not_applicable"] == ["hardware"]
+    assert coverage.conditions({
+        "applicability": {"hardware": [coverage.NOT_APPLICABLE]},
+    })["not_applicable"] == ["hardware"]
+
+
+def test_gaps_separate_unknown_applicability_from_a_declared_statement():
+    base = {"layers": {}, "rm": [], "sidecar": True, "eval": [],
+            "conditions": coverage.conditions({"applicability": {"scope": "x"}})}
+    assert "no-applicability" not in coverage.gaps(base)
+    # A not-applicable-only declaration is a statement, not a missing field.
+    stated = dict(base, conditions=coverage.conditions({
+        "applicability": {"hardware": coverage.NOT_APPLICABLE},
+    }))
+    assert "no-applicability" not in coverage.gaps(stated)
+    blank = dict(base, conditions=coverage.conditions({"applicability": {}}))
+    assert "no-applicability" in coverage.gaps(blank)
+    absent = dict(base, conditions=coverage.conditions({}))
+    assert "no-applicability" in coverage.gaps(absent)
+
+
+def test_declared_workflow_conditions_reach_the_rows():
+    """The five workflow sidecars expose typed conditions, not only a scope."""
+    rows, _, _, _, _ = coverage.collect(PROJECT)
+    by_id = {row["id"]: row for row in rows}
+    for name in (
+        "cite-check-downstream-pr", "claim-contract", "competitor-scan",
+        "draft-acceptance-issue", "rsi-evidence", "npu-skill-factory",
+    ):
+        assert name in by_id, f"{name} is not registered at this revision"
+        row = by_id[name]
+        assert row["conditions"]["scope"], f"{name} lost its declared scope"
+        assert row["typed_conditions"] == [
+            "failure_modes", "input_contract", "produced_artifact", "refusal_point",
+        ], f"{name} does not carry the workflow shape"
+        assert row["advice"], f"{name} declares no recommendations"
+        assert "no-applicability" not in coverage.gaps(row)
+
+
+def test_rendered_view_shows_the_collected_contract_and_advice_summary():
+    """The Markdown projection must consume what collect() gathers per row."""
+    rows, _, _, _, _ = coverage.collect(PROJECT)
+    rendered = coverage.render(rows, [], 0, [], "digest")
+    workflow = next(row for row in rows if row["id"] == "claim-contract")
+    line = next(
+        text for text in rendered.splitlines() if "workflows/claim-contract/SKILL.md" in text
+    )
+    assert "failure_modes, input_contract, produced_artifact, refusal_point" in line
+    assert f"{workflow['advice']} advice" in line
+    # A skill without these fields keeps one empty marker, not a blank cell.
+    silent = next(row for row in rows if not row["typed_conditions"] and row["advice"] is None)
+    silent_line = next(
+        text for text in rendered.splitlines()
+        if f"skill_library/{silent['path']}/SKILL.md" in text
+    )
+    assert "| — |" in silent_line
+
+
+def test_na_only_declaration_keeps_its_marker_without_a_scope():
+    """An N/A dimension is a statement even when no scope is named."""
+    rows = [{
+        "id": "probe", "path": "methods/probe", "backend": "common",
+        "category": "methods", "task": "probe", "status": "candidate",
+        "validation": "not_run", "readsets": 0, "sidecar": True,
+        "conditions": coverage.conditions({"applicability": {"hardware": "not-applicable"}}),
+        "typed_conditions": [], "advice": 0, "layers": {}, "other_ss": [],
+        "rm": [], "eval": [],
+    }]
+    rendered = coverage.render(rows, [], 0, [], "digest")
+    line = next(text for text in rendered.splitlines() if "methods/probe/SKILL.md" in text)
+    assert "N/A: hardware" in line
+    assert "— (declared, no scope)" in line
+    assert "0 advice" in line
+
+
+def test_list_valued_scope_is_rendered_not_treated_as_missing(tmp_path):
+    """The catalog accepts a string list for scope; the view must show it."""
+    library = tmp_path / coverage.LIBRARY
+    skill = library / "methods" / "probe"
+    skill.mkdir(parents=True)
+    (library / "skill-index.json").write_text(json.dumps({
+        "schema_version": 1,
+        "skills": {"probe": {"path": "methods/probe", "backend": "common"}},
+    }), encoding="utf-8")
+    (skill / "SKILL.md").write_text(
+        "---\nname: probe\ndescription: probe\n---\nBody\n", encoding="utf-8"
+    )
+    (skill / "metadata.json").write_text(
+        json.dumps({"applicability": {"scope": ["serving", "kv-cache"]}}), encoding="utf-8"
+    )
+    for matrix in (coverage.SEARCHSPACE, coverage.REFERENCE):
+        (tmp_path / matrix).parent.mkdir(parents=True, exist_ok=True)
+        (tmp_path / matrix).write_text("", encoding="utf-8")
+    collected = coverage.collect(tmp_path)
+    line = next(
+        text for text in coverage.render(*collected).splitlines()
+        if "methods/probe/SKILL.md" in text
+    )
+    assert "serving; kv-cache" in line
+    assert "no scope" not in line
+
+
+def test_applicability_is_descriptive_and_never_promotes_validation():
+    """Filling conditions must not raise locally_verified or change declared state."""
+    from inferrsi.skill_catalog import skill_metadata
+
+    rows, _, _, _, _ = coverage.collect(PROJECT)
+    described = [row for row in rows if row["typed_conditions"]]
+    assert described, "expected at least one workflow sidecar at this revision"
+    for row in described:
+        metadata = skill_metadata(LIBRARY, row["id"])
+        assert metadata.get("verification", {}).get("locally_verified", False) is False
+        assert row["validation"] == metadata.get("empirical_validation", "unknown")
+
+
+def test_recommendations_default_only_when_the_sidecar_is_silent():
+    from tools import build_skill_index as index_builder
+
+    assert index_builder.recommendations({}) == index_builder.DEFAULT_RECOMMENDATIONS
+    # An explicit empty list is a statement, so it must not fall back.
+    assert index_builder.recommendations({"recommendations": []}) == []
+    own = ["Read the acceptance issue first."]
+    assert index_builder.recommendations({"recommendations": own}) == own

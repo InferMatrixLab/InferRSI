@@ -286,6 +286,80 @@ def test_hostile_http_body_is_rejected_without_leakage(spec, monkeypatch, raw, r
         agent.send_message({"model": MODEL}, spec, "fake-key-only", 1)
 
 
+# Ordinary-key transport protection already existed. These fabricated keys and
+# mocked HTTP bodies test encoding consistency, not an observed real-service disclosure.
+FAKE_ESCAPED_KEYS = ["fake-key-offline", 'fake"key-offline',
+                     r"fake\key-offline", 'fake"\\key-offline']
+
+
+@pytest.mark.parametrize("key", FAKE_ESCAPED_KEYS)
+@pytest.mark.parametrize("location", ["alone", "nested_value", "object_key"])
+def test_real_transport_rejects_credential_substring_in_payload_before_http(
+    spec, monkeypatch, key, location
+):
+    assert agent.execution_environment({agent.KEY_ENV: key})[agent.KEY_ENV] == key
+    attempts = []
+
+    def opener(*args):
+        attempts.append(args)
+        pytest.fail("credential-bearing payload must never reach HTTP")
+
+    monkeypatch.setattr(agent.urllib.request, "build_opener", opener)
+    text = key if location == "alone" else "prefix-" + key + "-suffix"
+    content = {text: "unrelated"} if location == "object_key" else {"content": text}
+    payload = {"model": MODEL, "messages": [content]}
+    with pytest.raises(agent.AgentError) as failure:
+        agent.send_message(payload, spec, key, 1, environment={})
+    assert str(failure.value) == "credential_in_payload" and not attempts
+
+
+@pytest.mark.parametrize("key", FAKE_ESCAPED_KEYS)
+@pytest.mark.parametrize("wire_encoding", ["canonical", "unicode_escapes"])
+@pytest.mark.parametrize("location", ["alone", "nested_value", "object_key"])
+def test_real_transport_rejects_decoded_credential_substring_from_http(
+    spec, monkeypatch, key, wire_encoding, location
+):
+    assert agent.execution_environment({agent.KEY_ENV: key})[agent.KEY_ENV] == key
+    text = key if location == "alone" else "prefix-" + key + "-suffix"
+    value = {"nested": {text: "unrelated"} if location == "object_key" else {"text": text}}
+    raw = agent.canonical(value)
+    if wire_encoding == "unicode_escapes":
+        raw = raw.replace(agent.canonical(text),
+                          '"' + "".join(f"\\u{ord(c):04x}" for c in text) + '"')
+    raw = raw.encode()
+    attempts = []
+
+    class Opener:
+        def open(self, request, timeout):
+            attempts.append(request)
+            assert request.get_header("X-api-key") == key
+            assert json.loads(request.data) == {"model": MODEL}
+            return io.BytesIO(raw)
+
+    monkeypatch.setattr(agent.urllib.request, "build_opener", lambda *args: Opener())
+    with pytest.raises(agent.AgentError) as failure:
+        agent.send_message({"model": MODEL}, spec, key, 1, environment={})
+    assert str(failure.value) == "credential_echo" and len(attempts) == 1
+
+
+@pytest.mark.parametrize("key", FAKE_ESCAPED_KEYS)
+def test_real_transport_allowed_key_encoding_does_not_reject_clean_response(
+    spec, monkeypatch, key
+):
+    attempts = []
+
+    class Opener:
+        def open(self, request, timeout):
+            attempts.append(request)
+            assert request.get_header("X-api-key") == key
+            return io.BytesIO(b'{"text":"unrelated public output"}')
+
+    monkeypatch.setattr(agent.urllib.request, "build_opener", lambda *args: Opener())
+    assert agent.send_message({"model": MODEL}, spec, key, 1, environment={}) == {
+        "text": "unrelated public output"}
+    assert len(attempts) == 1
+
+
 @pytest.mark.parametrize("mode", ["addition", "update"])
 def test_opt_in_plan_freezes_identity_and_cannot_execute_or_fall_back(tmp_path, spec, mode):
     config, repo = configuration(tmp_path, mode, ids=("one",))

@@ -9,7 +9,7 @@ from datetime import date, datetime
 from importlib.resources import files
 from pathlib import Path, PurePosixPath
 
-from ._skill_selection import context_view, indexed_skill, skill_score, words
+from ._skill_selection import RELEVANCE_METHODS, context_view, indexed_skill, skill_score, words
 from .catalog import KNOWLEDGE_SCOPES, SCENARIO_ALIASES, knowledge_records
 
 AUTHORITIES = ("package", "checkout", "store")
@@ -264,9 +264,12 @@ class KnowledgeReader:
         for identity in self.records():
             result.setdefault(identity, []).append("package")
         if self.skill_root is not None:
-            from .skill_catalog import skill_records
+            # Enumeration reads registered names only. Validating sidecar content
+            # here would abort the whole collection over one malformed, possibly
+            # unrequested, skill; Collect reports that per item through _read.
+            from .skill_catalog import skill_directories
 
-            local = [record["name"] for record in skill_records(self.skill_root)]
+            local = list(skill_directories(self.skill_root))
             local.extend(self._cases())
             if len(set(local)) != len(local):
                 raise IdentityError("collision", "Duplicate identity inside the checkout")
@@ -487,6 +490,7 @@ class KnowledgeReader:
         max_bytes: int | None = None,
         material: bool = False,
         relevance: str | None = None,
+        relevance_method: str = "weighted-lexical-v1",
         context_bytes: int | None = None,
     ) -> dict:
         if type(limit) is not int or limit < 1:
@@ -501,6 +505,10 @@ class KnowledgeReader:
             raise ValueError("Unknown content kind")
         if relevance is not None and (not isinstance(relevance, str) or not words(relevance)):
             raise ValueError("relevance requires at least one word")
+        if relevance_method not in RELEVANCE_METHODS:
+            raise ValueError("Unknown relevance method")
+        if relevance is None and relevance_method != "weighted-lexical-v1":
+            raise ValueError("relevance_method requires relevance")
         if context_bytes is not None and (type(context_bytes) is not int or context_bytes < 1):
             raise ValueError("context_bytes must be a positive integer")
         if revisions is None:
@@ -563,6 +571,11 @@ class KnowledgeReader:
 
         def select(reference: str, bundle: Bundle, view: dict) -> None:
             nonlocal used, context_used
+            # Normal Bundle views were serialized while computing their revision.
+            # Preserve custom subclasses' serialization/error behavior below.
+            if type(bundle) is Bundle and len(selected) >= limit:
+                omitted.append({"id": reference, "reason": "output_limit"})
+                return
             size = len(_json(view))
             if len(selected) >= limit or (max_bytes is not None and used + size > max_bytes):
                 omitted.append({"id": reference, "reason": "output_limit"})
@@ -642,7 +655,9 @@ class KnowledgeReader:
                     continue
                 try:
                     core, _, _ = indexed_skill(record, view, bundle.content)
-                    score = skill_score(relevance, record, bundle.content[core])
+                    score = skill_score(
+                        relevance, record, bundle.content[core], method=relevance_method
+                    )
                 except (ValueError, KeyError, TypeError) as exc:
                     omitted.append({
                         "id": reference, "reason": "index_unavailable", "detail": str(exc),
@@ -670,7 +685,7 @@ class KnowledgeReader:
         }
         if relevance is not None:
             result["selection"] = {
-                "method": "weighted-lexical-v1", "cue": relevance,
+                "method": relevance_method, "cue": relevance,
                 "scope": "generated-packaged-skills", "ranking_applied": ids is None,
             }
             result["limitations"][0] = (

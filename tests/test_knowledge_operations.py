@@ -374,6 +374,45 @@ def test_cyclic_alias_is_an_invalid_omission_not_a_crash(tmp_path):
     assert "cycle" in result["omissions"][0]["detail"]
 
 
+def test_malformed_sidecar_is_an_omission_without_aborting_valid_neighbours(tmp_path):
+    # Enumeration reads registered names only. Content validation happens when
+    # Collect reads the requested owner, so a malformed sidecar attributes the
+    # failure to that skill instead of aborting the whole collection.
+    _skill(tmp_path, "sk")
+    _skill(tmp_path, "ok")
+    (tmp_path / "sk" / "metadata.json").write_text(
+        '{"applicability": []}', encoding="utf-8"
+    )
+    reader = KnowledgeReader(skill_root=tmp_path)
+    mixed = reader.collect(ids=["sk", "ok"])
+    assert [item["ref"] for item in mixed["items"]] == ["checkout:ok"]
+    assert [(o["id"], o["reason"]) for o in mixed["omissions"]] == [("sk", "invalid")]
+    assert "applicability" in mixed["omissions"][0]["detail"]
+    # An unrequested malformed owner must not reach a request that omits it.
+    assert [item["ref"] for item in reader.collect(ids=["ok"])["items"]] == ["checkout:ok"]
+    assert not reader.collect(ids=["ok"])["omissions"]
+
+
+@pytest.mark.parametrize(
+    "sidecar, field",
+    [
+        ('{"applicability": []}', "applicability"),
+        ('{"applicability": {"scope": ""}}', "applicability"),
+        ('{"recommendations": "bad"}', "recommendations"),
+        ('{"recommendations": [""]}', "recommendations"),
+    ],
+)
+def test_malformed_declared_fields_stay_invalid_and_strict(tmp_path, sidecar, field):
+    # Isolation must not weaken validation: the malformed owner still fails.
+    _skill(tmp_path, "sk")
+    _skill(tmp_path, "ok")
+    (tmp_path / "sk" / "metadata.json").write_text(sidecar, encoding="utf-8")
+    result = KnowledgeReader(skill_root=tmp_path).collect(ids=["sk", "ok"])
+    assert [item["ref"] for item in result["items"]] == ["checkout:ok"]
+    assert [(o["id"], o["reason"]) for o in result["omissions"]] == [("sk", "invalid")]
+    assert field in result["omissions"][0]["detail"]
+
+
 def test_shared_acyclic_reference_is_still_normalized():
     # The same object under two sibling fields is not a cycle.
     shared = {"note": "x"}
