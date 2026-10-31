@@ -37,6 +37,23 @@ class PRKey:
 
 
 @dataclass(frozen=True)
+class TrustedPRLimit:
+    """Key-bound operator authority, never decoded from ledger/worker JSON.
+
+    Only a reviewed root resolver may supply an exception. Ordinary callers and
+    readers retain the default cap; attaching this context does not grant a run.
+    """
+
+    key: PRKey
+    limit_microusd: int
+
+    def __post_init__(self):
+        if type(self.key) is not PRKey:
+            raise BudgetError("Trusted limit requires an exact PR identity")
+        _amount(self.limit_microusd, positive=True)
+
+
+@dataclass(frozen=True)
 class Genesis:
     """Trusted operator audit, NOT a proof inferred from an absent ledger.
 
@@ -98,10 +115,15 @@ class Ledger:
     genesis: Genesis
     revision: int = 0
     entries: tuple[Entry, ...] = ()
+    trusted_limit: TrustedPRLimit | None = None
 
     def __post_init__(self):
         if type(self.key) is not PRKey or type(self.genesis) is not Genesis:
             raise BudgetError("Missing ledger identity or genesis audit")
+        if self.trusted_limit is not None and (
+                type(self.trusted_limit) is not TrustedPRLimit
+                or self.trusted_limit.key != self.key):
+            raise BudgetError("Trusted limit belongs to another PR")
         _amount(self.revision)
         if type(self.entries) is not tuple or any(type(e) is not Entry for e in self.entries):
             raise BudgetError("Invalid ledger entries")
@@ -113,7 +135,7 @@ class Ledger:
         runs = [e.binding.run_id for e in self.entries]
         if len(set(plans)) != len(plans) or len(set(runs)) != len(runs):
             raise BudgetError("Duplicate plan or run binding")
-        if self.charged > PR_LIMIT_MICROUSD:
+        if self.charged > self.limit:
             raise BudgetError("PR cumulative budget exhausted")
 
     @property
@@ -122,7 +144,12 @@ class Ledger:
 
     @property
     def remaining(self):
-        return PR_LIMIT_MICROUSD - self.charged
+        return self.limit - self.charged
+
+    @property
+    def limit(self):
+        return (PR_LIMIT_MICROUSD if self.trusted_limit is None
+                else self.trusted_limit.limit_microusd)
 
 
 def reserve(ledger: Ledger, binding: Binding) -> Ledger:
@@ -225,6 +252,7 @@ def validate_successor(before: Ledger, after: Ledger) -> None:
     if type(before) is not Ledger or type(after) is not Ledger:
         raise BudgetError("Invalid transition state")
     if (before.key != after.key or before.genesis != after.genesis
+            or before.trusted_limit != after.trusted_limit
             or after.revision != before.revision + 1):
         raise BudgetError("Reset or identity change forbidden")
     candidates = []
@@ -242,11 +270,13 @@ def validate_successor(before: Ledger, after: Ledger) -> None:
 def encode(ledger: Ledger) -> str:
     if type(ledger) is not Ledger:
         raise BudgetError("Invalid ledger")
-    return json.dumps({"schema_version": 1, **asdict(ledger)},
+    value = asdict(ledger)
+    value.pop("trusted_limit")  # Authority is out-of-band; old ledger bytes stay unchanged.
+    return json.dumps({"schema_version": 1, **value},
                       sort_keys=True, separators=(",", ":"), allow_nan=False)
 
 
-def decode(payload: str) -> Ledger:
+def decode(payload: str, *, trusted_limit: TrustedPRLimit | None = None) -> Ledger:
     """Strict schema/number/duplicate validation, not history authentication."""
     def unique(pairs):
         result = {}
@@ -269,7 +299,7 @@ def decode(payload: str) -> Ledger:
                 raise BudgetError("Invalid reservation schema")
             entries.append(Entry(Binding(**entry["binding"]), entry["phase"], entry["actual_cost"]))
         return Ledger(PRKey(**value["key"]), Genesis(**value["genesis"]),
-                      value["revision"], tuple(entries))
+                      value["revision"], tuple(entries), trusted_limit)
     except (TypeError, KeyError, ValueError, OverflowError, RecursionError) as exc:
         raise BudgetError("Missing, corrupt, or unsupported ledger") from exc
 

@@ -406,3 +406,167 @@ def test_existing_full_context_read_submit_kind_is_not_editing_authority():
     config["client"].update(kind=provider.FULL_CONTEXT_KIND, max_requests=1)
     with pytest.raises(b.BudgetError):
         policy(provider_json=provider.canonical(config))
+
+
+def additional_world():
+    world = World()
+    first = policy()
+    world.admit(first)
+    original_pr = b.encode(world.pr.ledger)
+    limit = b.TrustedPRLimit(KEY, 350_000_000)
+    world.pr.ledger = b.decode(original_pr, trusted_limit=limit)
+    extra = pilot.AdditionalAttempt(limit, first.binding, "one-fixed-additional",
+        "one-fixed-additional.1", "a" * 40, "b" * 40)
+    second = policy(campaign_id=extra.campaign_id, execution_id=extra.execution_id,
+                    plan_sha256="6" * 64, additional_attempt=extra)
+    assert b.encode(world.pr.ledger) == original_pr
+    return world, first, second
+
+
+def test_one_additional_pair_keeps_both_full_claims_and_every_ceiling():
+    world, first, second = additional_world()
+    prior_pr, prior_daily = world.pr.ledger.entries, world.daily.ledger.entries
+    session = world.admit(second)
+    assert world.pr.ledger.entries[:1] == prior_pr
+    assert world.daily.ledger.entries[:-1] == prior_daily
+    assert world.pr.ledger.charged == 325_440_000
+    assert world.pr.ledger.remaining == 24_560_000
+    assert world.daily.ledger.charged_on(DAY) == 816_790_000
+    assert b.DAILY_LIMIT_MICROUSD - world.daily.ledger.charged_on(DAY) == 183_210_000
+    assert pilot.PILOT_LIMIT_MICROUSD - 2 * BOUND == 674_560_000
+    assert all(e.phase == "claimed" and e.actual_cost is None for e in world.pr.ledger.entries)
+    session.start_arm("A2", 700.0)
+    session.authorize(grant(session), 700.0)
+    with pytest.raises(provider.AgentError, match="unknown_usage"):
+        session.complete(grant(session), None)
+    with pytest.raises(b.BudgetError):
+        session.start_arm("A3", 700.0)
+    assert world.pr.ledger.entries[0].binding == first.binding
+    assert len(world.events) == 8
+
+
+def test_historical_v1_binding_digest_is_unchanged():
+    from dataclasses import asdict
+    old = policy()
+    fields = asdict(old)
+    fields.pop("additional_attempt")
+    assert old.binding.plan_digest == pilot._fingerprint(fields)
+
+
+@pytest.mark.parametrize("change", ["same", "digest", "third", "day", "smaller"])
+def test_additional_attempt_cannot_be_reused_or_turned_into_third(change):
+    world, _, second = additional_world()
+    world.admit(second)
+    before = list(world.events)
+    with pytest.raises(b.BudgetError):
+        if change == "digest":
+            second = replace(second, plan_sha256="7" * 64)
+        elif change == "third":
+            extra = replace(second.additional_attempt, prior_binding=second.binding,
+                            campaign_id="third", execution_id="third.1")
+            second = replace(second, campaign_id=extra.campaign_id,
+                             execution_id=extra.execution_id, additional_attempt=extra)
+        elif change == "day":
+            world.now += timedelta(days=1)
+        elif change == "smaller":
+            config = json.loads(second.provider_json)
+            config["client"]["max_requests"] = 2
+            second = replace(second, provider_json=provider.canonical(config))
+        world.admit(second)
+    assert world.events == before
+    assert world.pr.ledger.charged == 325_440_000
+
+
+def test_other_pr_or_repository_cannot_borrow_exception_context():
+    world, _, second = additional_world()
+    for key in (b.PRKey(KEY.repository_id, KEY.pr_number + 1), b.PRKey(9999, KEY.pr_number)):
+        with pytest.raises(b.BudgetError, match="reviewed scope"):
+            replace(second, key=key)
+    # Even a separately constructed context on another PR cannot move the old KV claim.
+    key = b.PRKey(KEY.repository_id, KEY.pr_number + 1)
+    extra = replace(second.additional_attempt, limit=b.TrustedPRLimit(key, 350_000_000))
+    other = replace(second, key=key, additional_attempt=extra)
+    store = FakeStore(b.Ledger(key, b.Genesis("other audit", 0),
+                              trusted_limit=extra.limit), world.events)
+    with pytest.raises(b.BudgetError, match="prior claim"):
+        pilot.admit(other, world.daily, store, **world.kwargs())
+    assert store.ledger.charged == 0 and len(world.events) == 4
+
+
+@pytest.mark.parametrize("change", ["prior_binding", "prior_phase", "missing", "extra_pr"])
+def test_exact_original_claim_is_required_before_any_new_write(change):
+    world, _, second = additional_world()
+    if change == "prior_binding":
+        second = replace(second, additional_attempt=replace(second.additional_attempt,
+            prior_binding=replace(second.additional_attempt.prior_binding, plan_digest="8" * 64)))
+    elif change == "prior_phase":
+        old = world.pr.ledger.entries[0].binding
+        world.pr.ledger = b.advance(world.pr.ledger, old, "finished", actual_cost=0)
+        world.daily.ledger = b.daily_advance(world.daily.ledger, KEY, old,
+                                             "finished", DAY, actual_cost=0)
+    elif change == "missing":
+        world = World()
+        world.pr.ledger = replace(world.pr.ledger, trusted_limit=second.trusted_limit)
+    else:
+        other = b.Binding("8" * 64, "unrelated-pr-history", 1)
+        world.pr.ledger = b.reserve(world.pr.ledger, other)
+        world.daily.ledger = b.daily_reserve(world.daily.ledger, KEY, other, DAY)
+    before = list(world.events)
+    with pytest.raises(b.BudgetError):
+        world.admit(second)
+    assert world.events == before
+
+
+@pytest.mark.parametrize("store_name,outcomes", [
+    ("daily", ["conflict"]), ("daily", ["unknown"]), ("daily", ["unknown_commit"]),
+    ("pr", ["conflict"]), ("pr", ["unknown"]), ("pr", ["unknown_commit"]),
+    ("daily", ["commit", "unknown_commit"]), ("pr", ["commit", "unknown_commit"]),
+    ("daily", ["crash"]), ("pr", ["crash"]),
+])
+def test_additional_partial_or_uncertain_cas_never_grants_or_refunds(store_name, outcomes):
+    world, _, second = additional_world()
+    getattr(world, store_name).outcomes = outcomes
+    launched = []
+    with pytest.raises((b.BudgetError, KeyboardInterrupt)):
+        pilot.run_admitted(second, world.daily, world.pr, launch=launched.append, **world.kwargs())
+    assert launched == []
+    assert world.pr.ledger.charged >= BOUND
+    assert world.daily.ledger.charged_on(DAY) >= 654_070_000
+    assert world.pr.ledger.entries[0].phase == "claimed"
+    if world.daily.ledger.charged_on(DAY) > 654_070_000:
+        with pytest.raises(b.BudgetError):
+            world.admit(second)
+
+
+def test_two_racing_additional_admissions_have_only_one_durable_winner():
+    world, _, second = additional_world()
+    winners = []
+    world.daily.before_cas = lambda _: winners.append(world.admit(second))
+    with pytest.raises(b.BudgetError):
+        world.admit(second)
+    assert len(winners) == 1 and len(world.events) == 8
+    assert world.pr.ledger.charged == 325_440_000
+    assert world.daily.ledger.charged_on(DAY) == 816_790_000
+
+
+def test_additional_pair_checks_full_daily_cap_before_any_write():
+    world, _, second = additional_world()
+    extra = b.Binding('9' * 64, 'unrelated-new-obligation', 200_000_000)
+    world.daily.ledger = b.daily_reserve(world.daily.ledger, b.PRKey(KEY.repository_id, 50),
+                                         extra, DAY)
+    before = list(world.events)
+    with pytest.raises(b.BudgetError, match='daily'):
+        world.admit(second)
+    assert world.events == before
+    assert world.pr.ledger.charged == BOUND
+
+
+def test_namespace_history_is_rechecked_before_each_additional_request():
+    world, _, second = additional_world()
+    session = world.admit(second)
+    session.start_arm('A2', 700.0)
+    unrelated = b.Binding('9' * 64, pilot.CAMPAIGN_NAMESPACE + 'unapproved-third', 1)
+    world.daily.ledger = b.daily_reserve(world.daily.ledger, b.PRKey(KEY.repository_id, 50),
+                                         unrelated, DAY)
+    with pytest.raises(b.BudgetError, match='already bound'):
+        session.authorize(grant(session), 700.0)

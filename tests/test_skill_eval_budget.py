@@ -18,6 +18,48 @@ def binding(number=1, amount=50_000_000):
     return budget.Binding(f"{number:064x}", f"workflow-{number}:attempt-1", amount)
 
 
+def test_scoped_limit_is_out_of_band_key_bound_and_default_remains_200():
+    key = budget.PRKey(1409534281, 275)
+    prior = budget.advance(budget.reserve(
+        budget.Ledger(key, budget.Genesis("audited-existing-history", 0)),
+        binding(1, 162_720_000)), binding(1, 162_720_000), "claimed")
+    original = budget.encode(prior)
+    with pytest.raises(budget.BudgetError, match="exhausted"):
+        budget.reserve(prior, binding(2, 162_720_000))
+    limit = budget.TrustedPRLimit(key, 350_000_000)
+    contextual = budget.decode(original, trusted_limit=limit)
+    assert budget.encode(contextual) == original
+    final = budget.reserve(contextual, binding(2, 162_720_000))
+    assert final.charged == 325_440_000 and final.remaining == 24_560_000
+    raw = budget.encode(final)
+    assert "trusted_limit" not in raw and "350000000" not in raw
+    assert budget.decode(raw, trusted_limit=limit) == final
+    with pytest.raises(budget.BudgetError):
+        budget.decode(raw)  # Default reader does not silently inherit the exception.
+    for other in (budget.PRKey(key.repository_id, 276), budget.PRKey(1, 275)):
+        with pytest.raises(budget.BudgetError):
+            budget.Ledger(other, budget.Genesis("other-audit", 0), trusted_limit=limit)
+        ordinary = budget.Ledger(other, budget.Genesis("other-audit", 200_000_000))
+        with pytest.raises(budget.BudgetError):
+            budget.reserve(ordinary, binding(3, 1))
+    assert budget.PR_LIMIT_MICROUSD == 200_000_000
+
+
+def test_ledger_json_cannot_supply_or_transition_a_cap_exception():
+    before = genesis()
+    value = json.loads(budget.encode(before))
+    value["trusted_limit"] = {"key": {"repository_id": 123, "pr_number": 7},
+                              "limit_microusd": 350_000_000}
+    with pytest.raises(budget.BudgetError):
+        budget.decode(json.dumps(value))
+    after = budget.reserve(replace(before, trusted_limit=budget.TrustedPRLimit(
+        KEY, 350_000_000)), binding())
+    with pytest.raises(budget.BudgetError, match="identity change"):
+        budget.validate_successor(before, after)
+    with pytest.raises(budget.BudgetError):
+        budget.TrustedPRLimit(KEY, True)
+
+
 class MemoryStore:
     def __init__(self, ledger):
         self.snapshot = budget.Snapshot("lineage-0", ledger)

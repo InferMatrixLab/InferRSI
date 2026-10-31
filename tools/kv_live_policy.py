@@ -146,8 +146,10 @@ def frozen_authorization(*, fetch=fetch_comment, now=None):
 
 
 def validate_plan(plan, *, now):
-    if (type(plan) is not dict or set(plan) != PLAN_FIELDS
-            or plan["schema"] != "kv-live-plan-v1"
+    fields = PLAN_FIELDS | ({"budget_exception"} if type(plan) is dict
+                            and plan.get("schema") == "kv-live-plan-v2" else set())
+    if (type(plan) is not dict or set(plan) != fields
+            or plan["schema"] not in {"kv-live-plan-v1", "kv-live-plan-v2"}
             or plan["repository_id"] != REPOSITORY_ID
             or not all(_positive(plan[k]) for k in ("issue", "charge_pr", "expires_at"))
             or not _hex(plan["charge_head"], 40) or plan["expires_at"] <= now
@@ -165,6 +167,7 @@ def validate_plan(plan, *, now):
     key = budget.PRKey(REPOSITORY_ID, plan["charge_pr"])
     LedgerAnchor(key=key, **plan["ledger"])
     DailyLedgerAnchor(key=budget.DailyKey(REPOSITORY_ID), **plan["daily_ledger"])
+    additional_attempt(plan)
     sources = plan["dependencies"]
     required = set(DEPENDENCIES) | set(scripted.dependencies())
     if (type(sources) is not dict or not required <= set(sources)
@@ -245,13 +248,43 @@ def validate_qualification(plan):
     return receipt
 
 
+def additional_attempt(plan):
+    """Resolve only exact frozen v2 data; no ledger/worker/CLI cap authority."""
+    if plan.get("schema", "kv-live-plan-v1") == "kv-live-plan-v1":
+        if "budget_exception" in plan:
+            raise ValueError("Legacy plan cannot carry a budget exception")
+        return None
+    value = plan.get("budget_exception")
+    fields = {"schema", "key", "pr_lifetime_cap_microusd", "pilot_lifetime_cap_microusd",
+              "additional_attempts", "prior_binding", "pr_checkpoint", "daily_checkpoint",
+              "campaign_id", "execution_id"}
+    if (plan.get("schema") != "kv-live-plan-v2" or type(value) is not dict
+            or set(value) != fields or value["schema"] != "kv-one-additional-attempt-v1"
+            or type(value["additional_attempts"]) is not int or value["additional_attempts"] != 1
+            or type(value["pilot_lifetime_cap_microusd"]) is not int
+            or value["pilot_lifetime_cap_microusd"] != admission.PILOT_LIMIT_MICROUSD
+            or type(value["key"]) is not dict
+            or value["key"] != {"repository_id": REPOSITORY_ID, "pr_number": plan["charge_pr"]}
+            or type(value["prior_binding"]) is not dict
+            or set(value["prior_binding"]) != {"plan_digest", "run_id", "worst_case"}
+            or value["campaign_id"] != plan["campaign_id"]
+            or value["execution_id"] != plan["execution_id"]
+            or value["pr_checkpoint"] != plan["ledger"]["checkpoint_commit"]
+            or value["daily_checkpoint"] != plan["daily_ledger"]["checkpoint_commit"]):
+        raise ValueError("Invalid exact one-additional-attempt scope")
+    return admission.AdditionalAttempt(
+        budget.TrustedPRLimit(budget.PRKey(**value["key"]), value["pr_lifetime_cap_microusd"]),
+        budget.Binding(**value["prior_binding"]), value["campaign_id"], value["execution_id"],
+        value["pr_checkpoint"], value["daily_checkpoint"])
+
+
 def policy(plan, revision):
     actors = [read_json(ROOT / plan["actors"][arm]["config"]["path"]) for arm in ("A2", "A3")]
     return admission.PilotPolicy(
         plan["campaign_id"], budget.PRKey(REPOSITORY_ID, plan["charge_pr"]),
         plan["execution_id"], fingerprint(plan), plan["charge_head"], revision,
         tuple(a["actor_sha256"] for a in actors), provider.canonical(plan["provider"]),
-        plan["expires_at"])
+        plan["expires_at"], additional_attempt(plan))
 
 
 def runtime(environment=None):

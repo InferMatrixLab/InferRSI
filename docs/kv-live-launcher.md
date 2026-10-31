@@ -141,3 +141,27 @@ An operator must not enable the locator, add a secret binding or dispatch merely
 because repository tests passed. These tests establish software behavior only;
 real hosted isolation, provider delivery, measured model output and efficacy
 remain separate evidence.
+
+## Explicit one-additional-attempt exception
+
+The default PR lifetime cap is unchanged. A v2 public plan may carry the reviewed
+`budget_exception` object: exact repository/charge PR, trusted PR cap, fixed new
+campaign/execution IDs, exact prior claimed binding and PR/day checkpoints. The
+root validates it under the existing owner-comment/locator identity, then passes
+an immutable key-bound limit only to the anchored PR reader. It is never a ledger
+JSON field, environment/CLI setting, worker input or candidate-selected allowance.
+Historical ledger bytes remain unchanged; an ordinary default reader still
+rejects a cumulative balance exceeding its default cap.
+
+The additional admission requires the exact sole prior KV claim and retains it
+in full. It rejects any other KV reservation/claim, including a partial uncertain
+write. Once the new pair is claimed, every request requires exactly those two
+claims. A third campaign, changed ID, new PR, different day or smaller requested
+budget cannot reset this guard. Both caps are checked before the existing
+daily-first CAS sequence; races, ambiguous writes and unknown usage still stop
+without retries or refunds. The pilot total ceiling remains unchanged.
+
+Issue-scoped proposed values and remaining activation prerequisites live in
+[`SECOND-ATTEMPT.md`](../evidence/kv-live-pilot-20261031/plan/SECOND-ATTEMPT.md).
+The original v1 plan/binding remains historical; this software support alone
+neither renews its expiry nor authorizes a model request.

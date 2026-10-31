@@ -98,7 +98,7 @@ def staged(tmp_path, monkeypatch):
     monkeypatch.setattr(policy, "policy", lambda *_: root_policy)
     original_admit = job.admission.admit
     monkeypatch.setattr(job.admission, "admit", lambda *args, **kwargs:
-        original_admit(*args, **kwargs, wall_clock=lambda: world.now))
+        original_admit(*args, **({"wall_clock": lambda: world.now} | kwargs)))
     monkeypatch.setattr(kv, "invoke", fake_sandbox)
     monkeypatch.setattr(kv, "probe_isolation", lambda *_: {"offline": True})
     return SimpleNamespace(root=root, output=output, plan=plan, world=world,
@@ -793,3 +793,56 @@ def test_trace_exit_failure_cannot_be_upgraded_by_correct_stdout(staged, monkeyp
     if receipt == "failed":
         assert row["execution"]["returncode"] == 1
     assert "OFFLINE-PRIVATE-CANARY" not in provider.canonical(row)
+
+
+def test_fake_second_pair_preserves_first_claim_and_cannot_launch_third(staged, monkeypatch):
+    from dataclasses import replace
+
+    from tests.test_kv_pilot_admission import additional_world
+    world, first, second = additional_world()
+    staged.world = world
+    extra = replace(second.additional_attempt, execution_id=staged.plan['execution_id'])
+    second = replace(second, execution_id=extra.execution_id, additional_attempt=extra,
+        plan_sha256=staged.authorization['plan_sha256'],
+        actor_sha256=tuple(staged.configs[a]['actor_sha256'] for a in ('A2', 'A3')))
+    monkeypatch.setattr(policy, 'policy', lambda *_: second)
+    seen = []
+    scripts = [read_task(), work(CANDIDATE), work(CANDIDATE + '# second\n', '2'), submit()]
+    launch = launcher(scripts, seen)
+    def after_both_claims(*args, **kwargs):
+        assert len(world.events) == 8
+        assert world.pr.ledger.charged == 325_440_000
+        assert world.pr.ledger.entries[0].binding == first.binding
+        return launch(*args, **kwargs)
+    result = job.execute(staged.output, api=SimpleNamespace(),
+        stores=(world.daily, world.pr), launch=after_both_claims)
+    assert seen == ['A2', 'A3']
+    assert all(a['status'] == 'completed' for a in result['arms'].values())
+    assert world.daily.ledger.charged_on('2026-10-30') == 816_790_000
+    summary = job.package(staged.output)
+    assert all(len(r) == 4 for r in summary['requests'].values())
+    assert all(a['status'] == 'submitted' for a in summary['artifacts'].values())
+    with pytest.raises(policy.budget.BudgetError):
+        world.admit(second)
+    assert seen == ['A2', 'A3'] and len(world.events) == 8
+
+
+def test_controller_supplies_only_root_bound_limit_to_anchored_pr_store(staged, monkeypatch):
+    from tests.test_kv_pilot_admission import additional_world
+    world, _, second = additional_world()
+    monkeypatch.setattr(policy, 'policy', lambda *_: second)
+    staged.plan['ledger'] = {'ref': 'refs/heads/skill-eval-budget/123/999',
+        'genesis_commit': 'a' * 40, 'checkpoint_commit': 'b' * 40}
+    staged.plan['daily_ledger'] = {'ref': 'refs/heads/skill-eval-budget/1409534281/daily',
+        'genesis_commit': 'c' * 40, 'checkpoint_commit': 'd' * 40}
+    captured = []
+    monkeypatch.setattr(job, 'GitHubDailyStore', lambda api, anchor: world.daily)
+    def pr_store(api, anchor, **kwargs):
+        captured.append((anchor, kwargs))
+        raise ValueError('offline stop before admission')
+    monkeypatch.setattr(job, 'GitHubGitStore', pr_store)
+    with pytest.raises(ValueError, match='offline stop'):
+        job.execute(staged.output, api=SimpleNamespace())
+    assert captured[0][0].key == second.key
+    assert captured[0][1] == {'trusted_limit': second.trusted_limit}
+    assert len(world.events) == 4  # Only the synthetic previous pair, no new write.

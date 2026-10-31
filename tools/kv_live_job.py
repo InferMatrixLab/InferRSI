@@ -319,7 +319,8 @@ def execute(output, *, api=None, stores=None, launch=worker.run_supervised):
     if stores is None:
         stores = (GitHubDailyStore(api, policy.DailyLedgerAnchor(
             key=policy.budget.DailyKey(policy.REPOSITORY_ID), **plan["daily_ledger"])),
-            GitHubGitStore(api, policy.LedgerAnchor(key=root_policy.key, **plan["ledger"])))
+            GitHubGitStore(api, policy.LedgerAnchor(key=root_policy.key, **plan["ledger"]),
+                           trusted_limit=root_policy.trusted_limit))
     summary = {"schema": "kv-live-execution-v1", "implementation_sha": revision,
                "run_id": run_id, "plan_sha256": authorization["plan_sha256"],
                "execution_id": plan["execution_id"], "charge_pr": plan["charge_pr"],

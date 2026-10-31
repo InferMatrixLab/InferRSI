@@ -300,3 +300,42 @@ def test_audited_genesis_can_have_one_main_parent_but_not_merge(parent_count):
     assert store.compare_and_swap(snap, reserved) is budget.WriteResult.COMMITTED
     assert store.read_verified(KEY).ledger.charged == 50_000_010
     assert not any(path == "/git/commits/" + main_parents[0] for _, path, _ in api.calls)
+
+
+def test_trusted_key_limit_verifies_old_chain_without_rewriting_history():
+    api = GitAPI()
+    default = GitHubGitStore(api, api.anchor)
+    first = binding(1, 162_720_000)
+    before = default.read_verified(KEY)
+    assert default.compare_and_swap(
+        before, budget.reserve(before.ledger, first)) is budget.WriteResult.COMMITTED
+    budget.claim_once(default, KEY, first)
+    checkpoint, old_objects = api.tip, copy.deepcopy(api.objects)
+    limit = budget.TrustedPRLimit(KEY, 350_000_000)
+    anchor = replace(api.anchor, checkpoint_commit=checkpoint)
+    scoped = GitHubGitStore(api, anchor, trusted_limit=limit)
+    before = scoped.read_verified(KEY)
+    assert budget.encode(before.ledger) == budget.encode(default.read_verified(KEY).ledger)
+    second = binding(2, 162_720_000)
+    assert scoped.compare_and_swap(
+        before, budget.reserve(before.ledger, second)) is budget.WriteResult.COMMITTED
+    claimed = budget.claim_once(scoped, KEY, second)
+    assert claimed.charged == 325_440_000 and claimed.remaining == 24_560_000
+    assert all(api.objects[k] == v for k, v in old_objects.items())
+    assert scoped.read_verified(KEY).ledger == claimed
+    with pytest.raises(budget.BudgetError):
+        GitHubGitStore(api, anchor).read_verified(KEY)
+    with pytest.raises(budget.BudgetError):
+        GitHubGitStore(api, anchor, trusted_limit=budget.TrustedPRLimit(
+            budget.PRKey(123, 8), 350_000_000))
+    api.tip = checkpoint
+    with pytest.raises(budget.BudgetError, match="rollback"):
+        scoped.read_verified(KEY)
+
+
+def test_daily_store_cannot_receive_pr_limit_context():
+    from tools.skill_eval_budget_git import DailyLedgerAnchor, GitHubDailyStore
+    anchor = DailyLedgerAnchor(budget.DailyKey(123),
+        "refs/heads/skill-eval-budget/123/daily", "1" * 40, "1" * 40)
+    with pytest.raises(budget.BudgetError, match="never a daily"):
+        GitHubDailyStore(None, anchor, trusted_limit=budget.TrustedPRLimit(KEY, 350_000_000))
