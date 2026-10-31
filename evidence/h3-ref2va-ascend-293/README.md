@@ -161,3 +161,21 @@ The runner's summary condition incorrectly requires a startup Cache-DiT backend
 even when request-owned Cache-DiT is active. Consequently no actual hit count is
 claimed from this run. The upstream implementation receives optimization credit;
 the downstream summary correction is observability work, not an inference gain.
+
+## HSDP feasibility evidence
+
+The [HSDP smoke receipt](results/hsdp-smoke.json) records one successful 2-step
+request (124 frames, stereo 32 kHz) at 190.18 s, including first-request work.
+This is not a 50-step performance or quality comparison. Per-rank model loading
+took 402.62–1178.93 s; startup native sampling located CPU BF16 weight copies.
+The full run's sampled peak reached 65,480 MiB on a device, including loading;
+it is not a steady-state active-tensor footprint or a 15-second capacity result.
+
+Teardown still required eight terminate and seven kill signals. The reply owner
+finished while peers were still in first-call audio decode, and several workers
+logged cleanup completion before their processes were terminated. Cleanup callback
+completion and process exit are separate evidence requirements.
+
+The existing pre-sharded HSDP loader is not a direct substitute for this native
+checkpoint: its documented contract excludes tensor layout transforms, while H3
+loading reorders grouped QKV weights. That path was not runtime-tested here.
