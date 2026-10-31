@@ -89,3 +89,18 @@ errors also reproduced on the frozen baseline. Narrow type annotations/casts
 and distinct future-loop variables correct these without changing result
 handling. Applicable commit hooks pass. No inference speedup is claimed for
 cleanup, and no final lifecycle PASS is inferred from the diagnostic run.
+
+### Audio ownership across DP replicas
+
+Self-review found that the reused H3 broadcast helpers use the global DiT group.
+Different DP replicas can own different requests, so broadcasting rank zero's
+waveform across DP would be incorrect. Follow-up
+`833bf9b07395734237f16bddf50109d32bb93312` retains the original independent audio
+decode when DP is not exactly one. It does not alter the frozen DP1 pilot path.
+
+The regression produced two DP2 failures and two DP1 passes before the guard.
+Afterward all 31 related tests passed, including a real two-process Gloo check
+that gives the two DP replicas distinct waveforms, plus owner failure and DP1
+broadcast cases. Commit hooks pass. This validates the audio ownership boundary,
+not full DP2 model serving or an inference speedup. The queued DP1 pilot remains
+pinned to `ff6ac7b3f`; final qualification must use the final accepted revision.
