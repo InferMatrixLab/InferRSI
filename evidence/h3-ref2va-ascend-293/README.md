@@ -143,3 +143,21 @@ downstream candidate skips terminal reconstruction for all managed blocks while
 retaining ordinary disable and startup rollback. Its 116 DLO CPU tests and
 applicable pre-commit checks pass; actual NPU teardown validation is pending.
 This is a lifecycle candidate and has no claimed inference-latency benefit.
+
+## Cache-DiT screening evidence
+
+The existing `quality=high` policy completed both requests. Its
+[pilot receipt](results/cachedit-screening.json) records a 341.44 s warmup and
+212.75 s measured request, versus dense's 403.49 s: an observed single-sample
+47.27% reduction, with profiling enabled in both arms. This is not a final gain.
+[Matched media parity](results/cachedit-quality.json) passed: SSIM 0.985838,
+PSNR 46.08 dB, LPIPS 0.01615, audio spectral cosine 0.99775 and RMS ratio 1.00429.
+This qualifies one seed and duration only; longer clips and held-out seeds remain
+pending. Eight workers required terminate and seven required kill, so lifecycle
+remains unqualified despite zero server/container exit codes.
+
+The active policy logged `DBCache_F1B0_W4I1M0MC1_R0.04_N50_CFG0`.
+The runner's summary condition incorrectly requires a startup Cache-DiT backend
+even when request-owned Cache-DiT is active. Consequently no actual hit count is
+claimed from this run. The upstream implementation receives optimization credit;
+the downstream summary correction is observability work, not an inference gain.
