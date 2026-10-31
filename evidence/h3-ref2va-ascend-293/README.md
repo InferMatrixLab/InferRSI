@@ -268,3 +268,21 @@ under the diagnostic 60-second grace; individual worker exit codes were not
 captured. Cleanup took 28.96 s. This does not qualify production cleanup.
 INT8 uses the existing [PR #5706](https://github.com/vllm-project/vllm-omni/pull/5706)
 path; no new quantization implementation or isolated speedup is claimed.
+
+RainFusion at sparsity 0.8 from step 12 completed its
+[profiled pilot](results/rainfusion-screening.json): 502.18 s warmup,
+413.20 s measured E2E, and 335.01 s measured denoising. Runtime logs confirmed
+multi-video sparse attention for both reference and target spans; attention
+roles without a video segment stayed dense as designed. This is the existing
+[RainFusion path (#5706)](https://github.com/vllm-project/vllm-omni/pull/5706)
+with the baseline's [multi-video correction (#9241)](https://github.com/vllm-project/vllm-omni/pull/9241),
+not a new kernel contribution.
+
+[Matched RainFusion quality](results/rainfusion-quality.json) passed: SSIM
+0.979176, PSNR 40.883324 dB, LPIPS 0.02227, audio cosine 0.99641 and RMS
+ratio 0.98551; scoring exited 0. Driver-sampled whole-run peak was 23,974 MiB.
+Server/container exited 0 with no forced worker signals under diagnostic
+60-second grace, and cleanup took 26.84 s; individual worker exit codes were
+not captured. Its E2E sample is not lower than the earlier dense screening
+sample and still includes cold peer tail. No E2E gain, production cleanup
+qualification or combination quality is accepted from this pilot.
