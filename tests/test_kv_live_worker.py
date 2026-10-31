@@ -1,13 +1,17 @@
 """Synthetic-key/fake-HTTP controls only; never provider calls or live ledger access."""
 
 import copy
+import io
+import json
 import time
 from unittest.mock import Mock
+from urllib.error import HTTPError
 
 import pytest
 
 from inferrsi.model import anthropic_agent as provider
 from tests.test_anthropic_edit_agent import read_task
+from tests.test_kv_pilot_admission import policy as sample_policy
 from tools import kv_live_worker as worker
 
 GATE = {"SKILL_EVAL_GATE_PORT": "1234", "SKILL_EVAL_GATE_TOKEN": "a" * 64,
@@ -105,3 +109,58 @@ def test_ninth_authorized_send_cannot_make_a_ninth_http_attempt(tmp_path):
     with pytest.raises(provider.AgentError):
         value.send(payload, value.config["client"], 100)
     assert http.call_count == 8
+
+
+@pytest.mark.parametrize("failure,expected", [
+    (401, "http_401"), (429, "http_429"), (500, "http_500"), (503, "http_503"),
+    ("bad_json", "invalid_response_json"), ("echo", "credential_echo"),
+    ("network", "transport_error"),
+])
+def test_real_transport_closed_failure_code_survives_generic_failure(
+        tmp_path, monkeypatch, failure, expected):
+    value, _, _ = sender(tmp_path, transport=provider.send_message)
+    value.config["client"] = json.loads(sample_policy().provider_json)["client"]
+    opener = Mock()
+    monkeypatch.setattr(provider.urllib.request, "build_opener", Mock(return_value=opener))
+    if type(failure) is int:
+        opener.open.side_effect = HTTPError("https://unused.invalid", failure,
+            "OFFLINE-FAKE-KEY private error", {}, io.BytesIO(b"private response body"))
+    elif failure == "network":
+        opener.open.side_effect = OSError("OFFLINE-FAKE-KEY private network detail")
+    else:
+        raw = b"not JSON: private response" if failure == "bad_json" else (
+            provider.canonical({"text": "OFFLINE-FAKE-KEY"}).encode())
+        opener.open.return_value = io.BytesIO(raw)
+    payload = {"model": "claude-opus-5-5"}
+    value.authorize(grant(payload), value.deadline)
+    with pytest.raises(provider.AgentError, match="^provider_transport_error$"):
+        value.send(payload, value.config["client"], 100)
+    assert value.transport_error_code == expected
+    assert value.attempts == opener.open.call_count == 1
+    assert worker.scripted._read_json(tmp_path / "complete.json")["usage"] is None
+    with pytest.raises(provider.AgentError):
+        value.send(payload, value.config["client"], 100)
+    assert opener.open.call_count == 1
+
+
+def test_arbitrary_exception_and_nonclosed_codes_are_never_retained(tmp_path):
+    value, http, _ = sender(tmp_path, transport=Mock(
+        side_effect=provider.AgentError("OFFLINE-FAKE-KEY http_401 private payload")))
+    payload = {"model": "claude-opus-5-5"}
+    value.authorize(grant(payload), value.deadline)
+    with pytest.raises(provider.AgentError, match="^provider_transport_error$"):
+        value.send(payload, value.config["client"], 100)
+    assert value.transport_error_code == "unknown"
+    assert value.attempts == http.call_count == 1
+    for invalid in ("http_099", "http_600", "http_４０１", "http_401\n", {}, None, True):
+        assert worker.closed_reason(invalid) == "unknown"
+
+
+def test_failed_presend_gate_has_known_zero_transport_invocations(tmp_path):
+    value, http, ipc = sender(tmp_path)
+    ipc.side_effect = OSError("OFFLINE-FAKE-KEY private gate detail")
+    with pytest.raises(OSError):
+        value.authorize(grant({"model": "claude-opus-5-5"}), value.deadline)
+    assert value.attempts == http.call_count == 0
+    assert value.transport_error_code is None
+    assert not (tmp_path / "complete.json").exists()

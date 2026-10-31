@@ -46,6 +46,19 @@ isolation/runtime/cleanup/replay receipts. Each preparation stage records its
 start before running. Missing, failed or interrupted stages are explicit; no
 exception text, process command, environment or arbitrary log is published.
 
+The execution bundle also projects closed worker diagnostics from fixed trusted
+result paths: worker status, an allowlisted reason/error code, `provider_attempts`
+and outer executor status/return code/elapsed seconds. `provider_attempts` counts
+invocations of the transport function, **not confirmed HTTP delivery or charges**.
+A present zero is distinct from a missing/malformed/interrupted record (`null`).
+Only fixed reason enums or `http_100` through `http_599` are retained; unknown
+exceptions become `unknown`, never arbitrary exception text. The transport code
+is captured separately before the edit agent generalizes its failure. These
+diagnostics do not settle costs, authorize retry or upgrade a verdict. Packaging
+only reads existing first-run files, including when controller writing stopped.
+This future retention correction cannot recover a reason omitted from an earlier
+artifact; that earlier cause and billing remain unknown without separate evidence.
+
 The grader uploads only its dedicated `public/` projection, not its working
 directory. `evidence.json` enumerates every assigned hidden trace and the fixed
 alternating AB/BA timing trials plus quality validation. It binds the original

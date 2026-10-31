@@ -105,7 +105,7 @@ def staged(tmp_path, monkeypatch):
                            configs=configs, authorization=authorization)
 
 
-def launcher(scripts, seen):
+def launcher(scripts, seen, *, transport=None):
     def execute(command, cwd, output, deadline, *, environment):
         assert environment[provider.KEY_ENV] == "OFFLINE-FAKE-PROVIDER-KEY"
         forbidden = {"GITHUB_TOKEN", "ACTIONS_RUNTIME_TOKEN", "HOME", "PYTHONPATH"}
@@ -117,7 +117,7 @@ def launcher(scripts, seen):
         responses = iter(copy.deepcopy(scripts))
         code = worker.live_worker(args["--inputs"], args["--workspace"], args["--output"],
             deadline, environment=environment, emit=lambda _: None,
-            transport=lambda *a, **kw: next(responses))
+            transport=transport or (lambda *a, **kw: next(responses)))
         return {"status": "completed" if code == 0 else "failed", "returncode": code}
 
     return lambda *args, **kwargs: worker.run_supervised(*args, **kwargs, execute=execute)
@@ -161,6 +161,80 @@ def test_unknown_usage_retains_attempt_and_does_not_disclose_other_arm(staged):
     assert summary["requests"]["A2"][0]["status"] == "unresolved"
     assert summary["requests"]["A2"][0]["usage"] is None
     assert staged.world.pr.ledger.charged == 162720000
+    assert summary["diagnostics"]["A2"]["reason"] == "unknown_usage"
+    assert summary["diagnostics"]["A2"]["provider_attempts"] == 1
+    assert summary["diagnostics"]["A3"]["provider_attempts"] is None
+
+
+def test_closed_worker_failure_is_packaged_without_retry_or_arbitrary_text(staged):
+    seen = []
+    transport = Mock(side_effect=provider.AgentError("http_429"))
+    job.execute(staged.output, api=SimpleNamespace(),
+        stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([], seen, transport=transport))
+    assert seen == ["A2"] and transport.call_count == 1
+    assert staged.world.pr.ledger.charged == 162720000
+    summary = job.package(staged.output)
+    diagnostic = summary["diagnostics"]["A2"]
+    assert diagnostic == {"worker_status": "failed", "reason": "provider_transport_error",
+        "provider_attempts": 1, "transport_error_code": "http_429",
+        "execution": {"status": "failed", "returncode": 1, "elapsed_seconds": None}}
+    assert summary["requests"]["A2"][0]["usage"] is None
+    assert summary["diagnostics"]["A3"]["worker_status"] == "unavailable"
+    public = b"".join(p.read_bytes() for p in (staged.output / "public").rglob("*") if p.is_file())
+    assert b"OFFLINE-FAKE-PROVIDER-KEY" not in public
+
+
+def test_failed_request_gate_consumes_slot_but_retains_zero_transport_invocations(
+        staged, monkeypatch):
+    monkeypatch.setattr(job.admission._Admission, "authorize", lambda *_: False)
+    seen, transport = [], Mock()
+    result = job.execute(staged.output, api=SimpleNamespace(),
+        stores=(staged.world.daily, staged.world.pr),
+        launch=launcher([], seen, transport=transport))
+    assert seen == ["A2"] and transport.call_count == 0
+    assert result["arms"]["A2"]["slots_consumed"] == 1
+    assert result["arms"]["A2"]["request_completion_known"] is False
+    summary = job.package(staged.output)
+    assert summary["diagnostics"]["A2"]["provider_attempts"] == 0
+    assert summary["diagnostics"]["A2"]["reason"] == "request_authorization_denied"
+    assert summary["diagnostics"]["A3"]["provider_attempts"] is None
+    assert staged.world.pr.ledger.charged == 162720000
+
+
+@pytest.mark.parametrize("attempts", [0, 1, 8, True, -1, 9, "1", None])
+def test_closed_outcome_recovers_fixed_files_even_without_execution_summary(
+        staged, attempts):
+    root = staged.output / "A2/run"
+    (root / "worker").mkdir(parents=True)
+    atomic_write_json(root / "worker/result.json", {"schema": worker.SCHEMA,
+        "status": "failed", "reason": "PRIVATE-CANARY arbitrary text",
+        "provider_attempts": attempts, "transport_error_code": "PRIVATE-CANARY",
+        "environment": {"secret": "PRIVATE-CANARY"}})
+    atomic_write_json(root / "supervision.json", {"schema": "kv-worker-supervision-v1",
+        "execution": {"status": "failed", "returncode": -15, "elapsed_seconds": 1.5,
+                      "metric": 99, "argv": ["PRIVATE-CANARY"], "error": "PRIVATE-CANARY"}})
+    assert not (staged.output / "execution.json").exists()
+    summary = job.package(staged.output)
+    diagnostic = summary["diagnostics"]["A2"]
+    assert diagnostic["reason"] == diagnostic["transport_error_code"] == "unknown"
+    assert diagnostic["provider_attempts"] == (
+        attempts if type(attempts) is int and 0 <= attempts <= 8 else None)
+    assert diagnostic["execution"] == {
+        "status": "failed", "returncode": -15, "elapsed_seconds": 1.5}
+    assert summary["diagnostics"]["A3"]["provider_attempts"] is None
+    assert "PRIVATE-CANARY" not in provider.canonical(summary)
+    assert summary["artifacts"]["A2"]["status"] == "missing_or_invalid"
+
+
+@pytest.mark.parametrize("data", [b"not-json private", b"[]", b'{"schema":"wrong"}'])
+def test_missing_or_malformed_worker_result_does_not_infer_zero(staged, data):
+    root = staged.output / "A2/run"
+    write(root, "worker/result.json", data)
+    diagnostic = job.package(staged.output)["diagnostics"]["A2"]
+    assert diagnostic == {"worker_status": "unavailable", "reason": None,
+        "provider_attempts": None, "transport_error_code": None,
+        "execution": {"status": "unavailable", "returncode": None, "elapsed_seconds": None}}
 
 
 def test_prepared_input_mutation_blocks_before_reservation(staged):

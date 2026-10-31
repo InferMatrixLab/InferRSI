@@ -771,6 +771,39 @@ def _grade_evidence(bundle, output, result, plan=None):
     return manifest
 
 
+def _worker_outcome(root):
+    """Recover only closed trusted outcome fields, even if controller writing stopped."""
+    outcome = {"worker_status": "unavailable", "reason": None, "provider_attempts": None,
+               "transport_error_code": None,
+               "execution": {"status": "unavailable", "returncode": None,
+                             "elapsed_seconds": None}}
+    try:
+        value = policy.read_json(root / "worker/result.json")
+        if type(value) is not dict or value.get("schema") != worker.SCHEMA:
+            raise ValueError("Wrong worker result")
+        if value.get("status") in {"completed", "failed", "inconclusive"}:
+            outcome["worker_status"] = value["status"]
+        if "reason" in value:
+            outcome["reason"] = worker.closed_reason(value["reason"])
+        attempts = value.get("provider_attempts")
+        if type(attempts) is int and 0 <= attempts <= 8:
+            outcome["provider_attempts"] = attempts
+        if value.get("transport_error_code") is not None:
+            outcome["transport_error_code"] = worker.closed_reason(value["transport_error_code"])
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    try:
+        value = policy.read_json(root / "supervision.json")
+        if type(value) is not dict or value.get("schema") != "kv-worker-supervision-v1":
+            raise ValueError("Wrong supervision result")
+        projected = _execution_projection(value.get("execution"))
+        outcome["execution"].update({k: v for k, v in projected.items()
+                                     if k in outcome["execution"]})
+    except (OSError, ValueError, KeyError, TypeError):
+        pass
+    return outcome
+
+
 def package(output):
     """Fixed bounded public projection. Never copy raw worker/provider logs or private paths."""
     output = Path(output)
@@ -791,6 +824,8 @@ def package(output):
                  if (output / "execution.json").is_file() else {})
     summary = {"schema": "kv-live-bundle-v1", "execution": execution, "artifacts": {},
                "requests": {}, "evidence": {}, "preflight_status": preflight_status}
+    summary["diagnostics"] = {arm: _worker_outcome(output / arm / "run")
+                              for arm in ("A2", "A3")}
     for arm in ("A2", "A3"):
         try:
             supervision = policy.read_json(output / arm / "run/supervision.json")
@@ -819,7 +854,7 @@ def package(output):
         summary["evidence"][arm] = _public_evidence(root, public / arm, arm, execution)
         try:
             result = policy.read_json(root / "result.json")
-            if result.get("status") != "completed":
+            if type(result) is not dict or result.get("status") != "completed":
                 raise ValueError("not submitted")
             receipt = policy.read_json(root / "final/receipt.json", 16384)
             data = kv.source_bytes(root / "final/candidate.py")

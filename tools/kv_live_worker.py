@@ -27,8 +27,30 @@ from tools import kv_edit_pilot as scripted  # noqa: E402
 from tools.kv_worker_supervisor import supervise  # noqa: E402
 
 SCHEMA = "kv-live-worker-v1"
+REASONS = frozenset({
+    "unknown", "sandbox_unavailable", "live_worker_error", "provider_transport_error",
+    "transport_error", "invalid_response_json", "response_bytes_limit", "credential_echo",
+    "invalid_credential_shape", "credential_in_payload", "request_authorization_denied",
+    "request_without_exact_grant", "request_bytes_limit", "timeout", "unknown_usage",
+    "incompatible_response", "input_token_limit", "output_token_limit", "request_limit",
+    "request_allocation_unavailable", "workspace_symlink", "invalid_workspace_file",
+    "tool_read_limit", "protected_workspace_changed", "unexposed_path", "invalid_candidate",
+    "candidate_bytes_limit", "invalid_visible_feedback", "feedback_bytes_limit",
+    "revision_retention_error", "deadline_exceeds_frozen_limit", "tool_call_limit",
+    "invalid_tool_call", "unsupported_tool", "task_not_read", "visible_callback_error",
+    "stale_or_missing_receipt", "edit_agent_error", "feedback_retention_limit",
+})
 FIELDS = {"schema", "arm", "model", "client", "edit_plan", "input_token_ceiling",
           "suite_sha256", "baseline_sha256", "actor_sha256", "dependencies", "prompt"}
+
+
+def closed_reason(value):
+    """Fixed codes only; never exception text, provider bodies or credentials."""
+    if type(value) is str and (value in REASONS or (
+            len(value) == 8 and value.startswith("http_") and value[5:].isascii()
+            and value[5:].isdigit() and 100 <= int(value[5:]) <= 599)):
+        return value
+    return "unknown"
 
 
 def dependencies():
@@ -89,6 +111,7 @@ class GrantedSender:
         self.key, self.gate = key, gate_environment(gate)
         self.transport, self.authorize_ipc = transport, authorize_ipc
         self.grant, self.ready, self.sent, self.attempts = None, False, False, 0
+        self.transport_error_code = None
 
     def authorize(self, grant, deadline):
         if (deadline != self.deadline or time.monotonic() >= deadline
@@ -115,7 +138,11 @@ class GrantedSender:
             # prevents send_message's implicit environment gate from double-counting.
             value = self.transport(payload, spec, self.key, min(remaining, left),
                                    environment={}, require_authorization=False)
-        except Exception:
+        except Exception as error:
+            # Keep a separate closed diagnostic before the edit agent generalizes
+            # transport failures. Counting this invocation does not prove HTTP delivery.
+            self.transport_error_code = closed_reason(error.args[0] if (
+                isinstance(error, provider.AgentError) and len(error.args) == 1) else None)
             atomic_write_json(self.bridge / "complete.json", {"grant": self.grant, "usage": None})
             raise provider.AgentError("provider_transport_error") from None
         atomic_write_json(self.bridge / "complete.json", {"grant": self.grant,
@@ -176,10 +203,11 @@ def live_worker(inputs, workspace, output, deadline, *, environment, emit,
     except kv.SandboxUnavailable:
         result.update(status="inconclusive", reason="sandbox_unavailable")
     except provider.AgentError as error:
-        result["reason"] = str(error)
+        result["reason"] = closed_reason(error.args[0] if len(error.args) == 1 else None)
     except Exception:
         result["reason"] = "live_worker_error"
     result["provider_attempts"] = sender.attempts if sender else 0
+    result["transport_error_code"] = sender.transport_error_code if sender else None
     atomic_write_json(output / "result.json", result)
     return 0 if result["status"] == "completed" else 1
 
