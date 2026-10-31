@@ -302,8 +302,10 @@ future 15-second comparisons must explicitly freeze sufficiently long,
 identical DLO wave deadlines for both arms. Changing a deadline is an execution
 configuration, not an optimization or a reason to discard the failure.
 
-A separate [unprofiled original-source 5-second baseline A1](plan/formal-baseline-a1-5.json)
-is frozen and queued with two warmups and three measured requests. It is only
-one independent baseline process; it does not constitute paired acceptance.
-CPU quality scoring for the queued pilots is deferred until this baseline
-finishes so it cannot compete with these timing runs.
+The standalone [5-second baseline A1 plan](plan/formal-baseline-a1-5.json)
+was [withdrawn before execution](plan/formal-baseline-a1-5-withdrawal.json).
+It allocated no devices and produced no measurements. Accepted paired A/B must
+share one NPU reservation, so the complete formal campaign will be frozen and
+reserved together after candidate selection. The original plan remains as
+history, not evidence. Queued pilot scoring waits for the threshold timing job
+to finish; no standalone baseline remains in the queue.
