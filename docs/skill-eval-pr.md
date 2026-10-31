@@ -69,13 +69,20 @@ The author and independent reviewer must disposition that relevance explicitly.
 For canonical library or generated-index changes, the planner may show the existing
 `python tools/build_skill_index.py --source-revision <declared-commit> --check`
 with an **actual** immutable pin. It reads the known generated README as bounded
-Git data, requires one declared source commit, and checks that the entire canonical
-library has identical Git bytes/modes at that pin and the PR head. It does not
-execute the generator or establish that generated records are correct. At the
+Git data, requires one declared source commit in the frozen head's ancestor closure,
+and checks that the entire canonical library has identical Git bytes/modes at that
+pin and the PR head. It does not
+execute the generator or establish that generated records are correct. Plan and
+publish both fetch full history before preparing the same fingerprint; a shallow
+boundary must not make a declared ancestor disappear in only one job. At the
 identified PR checkout, with the reviewed tool and documented development/skills
 extras, the author can run that no-model check and retain its exit code plus full
 success/drift output. An absent, unavailable or mismatched pin yields an explicit
-source-selection action instead; HEAD is never silently substituted. A successful
+source-selection action instead; HEAD is never silently substituted. Non-ancestor
+pins are also withheld from this automatic command selection, whether locally cached
+or missing. This is an advisory availability limit, not a failed check, invalid
+source claim or change to the indexer's accepted inputs; authors can explicitly
+review an independently chosen source pin. A successful
 index check establishes projection consistency, not source-claim truth, behavior,
 hardware compatibility or skill benefit.
 

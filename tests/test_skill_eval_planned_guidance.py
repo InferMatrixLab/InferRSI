@@ -2,6 +2,7 @@
 
 import copy
 import json
+import subprocess
 from unittest.mock import Mock
 
 import pytest
@@ -204,3 +205,88 @@ def test_reachable_malformed_skill_yaml_retains_raw_reason_but_projects_only_cat
     text = render(plan)
     assert "Invalid skill YAML" in visible(text) and "SECRET-CANARY" not in text
     assert (output / "pr-plan.json").read_bytes() == original
+
+
+
+def test_plan_and_publisher_full_history_keep_projection_fingerprint_identical(tmp_path):
+    # Actual local Git transport, not a stubbed metadata/availability response.
+    # No candidate checkout/import, model invocation, external network or credentials.
+    repo, readme, _, pin, _, _ = index_fixture(tmp_path)
+    base = git(repo, "rev-parse", "HEAD")
+    readme.write_text(readme.read_text() + "\nSynthetic PR projection change.\n")
+    git(repo, "add", ".")
+    git(repo, "commit", "--quiet", "-m", "Synthetic PR head after shallow base")
+    head = git(repo, "rev-parse", "HEAD")
+    remote = tmp_path / "remote.git"
+    git(tmp_path, "clone", "--quiet", "--bare", str(repo), str(remote))
+    git(remote, "update-ref", "refs/heads/main", base)
+    git(remote, "update-ref", "refs/pull/7/head", head)
+    git(remote, "symbolic-ref", "HEAD", "refs/heads/main")
+    shallow, publisher = tmp_path / "shallow", tmp_path / "publisher"
+    for destination, depth in ((shallow, ["--depth", "1"]), (publisher, [])):
+        git(tmp_path, "clone", "--quiet", "--no-checkout", "--branch", "main", *depth,
+            remote.as_uri(), str(destination))
+        # Same explicit base + PR ref fetch as the existing workflow entrypoint.
+        git(destination, "fetch", "--no-tags", "--no-recurse-submodules", remote.as_uri(),
+            base, "refs/pull/7/head")
+    assert git(shallow, "rev-parse", "--is-shallow-repository") == "true"
+    assert git(publisher, "rev-parse", "--is-shallow-repository") == "false"
+    mapping = tmp_path / "mapping.json"
+    write_json(mapping, {"skills": [], "skill_root": pr.LIBRARY_PATH,
+                        "model": {"name": "offline-fixture", "effort": "test"},
+                        "limits": {"repeats": 1, "max_task_calls": 2, "timeout_seconds": 60,
+                                   "campaign_seconds": 600, "token_stop_new_trials": 1000}})
+    identity = {"repository": "example/fixture", "pr": 7, "base": base,
+                "head": head, "version": base}
+    old = pr.prepare(shallow, mapping, identity, tmp_path / "old-shallow-plan")
+    published = pr.prepare(publisher, mapping, identity, tmp_path / "full-publisher-plan")
+    assert old["projection_check"]["status"] == "unavailable"
+    assert published["projection_check"] == {"status": "ready", "source_revision": pin,
+                                            "declared_in": pr.PROJECTION_PATH + "/README.md"}
+    assert pr.fingerprint(old) != pr.fingerprint(published)  # Reproduces the native finding.
+    git(shallow, "fetch", "--unshallow", "--no-tags", "--no-recurse-submodules", remote.as_uri())
+    repaired = pr.prepare(shallow, mapping, identity, tmp_path / "full-plan")
+    assert repaired == published and pr.fingerprint(repaired) == pr.fingerprint(published)
+    assert not repaired["comparisons"] and repaired["estimated_calls"] == 0
+
+
+
+def test_unrelated_source_ref_presence_cannot_change_full_history_plan(tmp_path):
+    repo, readme, _, _, _, _ = index_fixture(tmp_path)
+    tree = git(repo, "rev-parse", "HEAD^{tree}")
+    unrelated = git(repo, "commit-tree", tree, "-m", "Synthetic unrelated source with same library")
+    readme.write_text(f"Source snapshot: [{unrelated}](https://github.com/example/fixture/tree/"
+                      f"{unrelated}/{pr.LIBRARY_PATH}).\n")
+    git(repo, "add", ".")
+    git(repo, "commit", "--quiet", "-m", "Synthetic nonancestor declaration")
+    head = git(repo, "rev-parse", "HEAD")
+    remote = tmp_path / "remote.git"
+    git(tmp_path, "clone", "--quiet", "--bare", str(repo), str(remote))
+    # The orphan object is not copied merely by naming its SHA in README.
+    git(repo, "update-ref", "refs/heads/source-only", unrelated)
+    git(remote, "fetch", str(repo), "refs/heads/source-only:refs/heads/source-only")
+    git(remote, "update-ref", "refs/heads/main", head)
+    git(remote, "symbolic-ref", "HEAD", "refs/heads/main")
+    cached, absent = tmp_path / "cached", tmp_path / "absent"
+    git(tmp_path, "clone", "--quiet", "--no-checkout", remote.as_uri(), str(cached))
+    git(remote, "update-ref", "-d", "refs/heads/source-only")
+    git(tmp_path, "clone", "--quiet", "--no-checkout", remote.as_uri(), str(absent))
+    assert git(cached, "cat-file", "-t", unrelated) == "commit"
+    missing = subprocess.run(["git", "cat-file", "-e", unrelated], cwd=absent,
+                             capture_output=True, check=False)
+    assert missing.returncode != 0
+    mapping = tmp_path / "mapping.json"
+    write_json(mapping, {"skills": [], "skill_root": pr.LIBRARY_PATH,
+                        "model": {"name": "offline-fixture", "effort": "test"},
+                        "limits": {"repeats": 1, "max_task_calls": 2, "timeout_seconds": 60,
+                                   "campaign_seconds": 600, "token_stop_new_trials": 1000}})
+    identity = {"repository": "example/fixture", "pr": 7, "base": git(repo, "rev-parse", "HEAD^"),
+                "head": head, "version": head}
+    plans = []
+    for index, clone in enumerate((cached, absent)):
+        assert git(clone, "rev-parse", "--is-shallow-repository") == "false"
+        plans.append(pr.prepare(clone, mapping, identity, tmp_path / f"plan-{index}"))
+    assert plans[0] == plans[1] and pr.fingerprint(plans[0]) == pr.fingerprint(plans[1])
+    assert plans[0]["projection_check"]["status"] == "unavailable"
+    assert "source_revision" not in plans[0]["projection_check"]
+    assert "automatic command selection" in plans[0]["projection_check"]["reason"]

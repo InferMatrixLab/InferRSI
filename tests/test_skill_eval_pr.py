@@ -483,6 +483,11 @@ def test_workflow_separates_execution_and_publication_credentials():
         checkout = next(step for step in job["steps"] if step.get("uses") == "actions/checkout@v4")
         assert checkout["with"]["persist-credentials"] is False
         assert checkout["with"]["ref"] == "${{ github.workflow_sha }}"
+    # Plan identities must not depend on a source ancestor missing only in one job.
+    for name in ("plan", "publish"):
+        checkout = next(s for s in workflow["jobs"][name]["steps"]
+                        if s.get("uses") == "actions/checkout@v4")
+        assert checkout["with"]["fetch-depth"] == 0
     step = next(s for s in executor["steps"] if "control --output" in s.get("run", ""))
     assert set(step["env"]) == {"GITHUB_TOKEN", "SKILL_EVAL_YIBUAPI_KEY"}
 

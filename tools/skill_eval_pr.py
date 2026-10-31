@@ -78,7 +78,8 @@ def projection_check(repo, identity, changes):
     """Identify an applicable existing check from raw Git data, without running it."""
     if not any(matches_path(c["path"], (LIBRARY_PATH, PROJECTION_PATH)) for c in changes):
         return None
-    unavailable = {"status": "unavailable", "reason": "No usable declared projection source pin"}
+    unavailable = {"status": "unavailable", "reason":
+                   "No verified ancestor source pin for automatic command selection"}
     readme = PROJECTION_PATH + "/README.md"
     try:
         # Do not follow a symlink or read executable/oversized PR metadata.
@@ -92,7 +93,16 @@ def projection_check(repo, identity, changes):
                    + re.escape(identity["repository"]) + r"/tree/\1/"
                    + re.escape(LIBRARY_PATH) + r"\)\.$")
         pins = re.findall(pattern, text, flags=re.M)
-        if len(pins) != 1 or git(repo, "cat-file", "-t", pins[0]).strip() != b"commit":
+        if len(pins) != 1:
+            return unavailable
+        # Only the frozen head's full ancestor closure is stable across jobs.
+        # An unrelated locally cached object must not change the plan fingerprint.
+        ancestor = subprocess.run(
+            [*compare.GIT_READ, "merge-base", "--is-ancestor", pins[0], identity["head"]],
+            cwd=repo, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=False)
+        if ancestor.returncode != 0:
+            return unavailable
+        if git(repo, "cat-file", "-t", pins[0]).strip() != b"commit":
             return unavailable
         library = git(repo, "ls-tree", identity["head"], "--", LIBRARY_PATH).decode().split()
         if len(library) != 4 or library[:2] != ["040000", "tree"]:
