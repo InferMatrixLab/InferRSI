@@ -1,8 +1,9 @@
 # MiniMax-H3 Ref2VA on Ascend
 
 Governing acceptance: [InferRSI #293](https://github.com/InferMatrixLab/InferRSI/issues/293).
-Status: **INCONCLUSIVE**. This campaign is in progress. No accepted speedup or
-model-quality result exists yet.
+Status: **INCONCLUSIVE**. This campaign is in progress. No candidate speedup
+is accepted yet. The dense baseline passed the adopted media gates, but worker
+teardown remains unqualified and final repeated A/B is pending.
 
 `plan/` records the initial scope, `validator/` freezes the adopted quality gate,
 `results/` retains attempted and rejected outcomes, and `patch/` identifies engine
@@ -121,3 +122,24 @@ frozen decoded-media validator separately. Repeated requests in one server are
 not independent process rounds, and the client does not qualify server teardown.
 The initial screening uses an earlier private runner with the same request and
 timing contract; do not relabel those runs as executions of this public script.
+
+## Dense screening evidence
+
+The first 50-step, 5-second dense arm completed its warmup and measured request.
+[Timing receipt](results/dense-screening.json): warmup 569.43 s, one measured
+request 403.49 s, with pipeline profiling enabled. These are pilot observations,
+not an unprofiled or statistically qualified baseline. Eight workers needed
+terminate and seven needed kill; the API server and container still returned 0.
+
+[Official reference video parity](results/official-video.json) passed with SSIM
+0.980571 and PSNR 42.63 dB. [Warmup-versus-measured media parity](results/baseline-repeat.json)
+also passed: SSIM 0.986017, PSNR 46.26 dB, LPIPS 0.01584, audio spectral cosine
+0.99961 and RMS ratio 1.00139. Repeated outputs are not byte-identical.
+
+Teardown stack samples repeatedly located rank-local text-encoder reconstruction
+in `restore_tensor_storage`, reached from DLO shutdown. The existing terminal
+path skips AllGather reconstruction but still copies rank-local weights. A
+downstream candidate skips terminal reconstruction for all managed blocks while
+retaining ordinary disable and startup rollback. Its 116 DLO CPU tests and
+applicable pre-commit checks pass; actual NPU teardown validation is pending.
+This is a lifecycle candidate and has no claimed inference-latency benefit.

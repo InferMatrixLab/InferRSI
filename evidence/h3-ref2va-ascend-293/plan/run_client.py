@@ -43,6 +43,16 @@ def request(args, label, seconds, seed):
             )
             record["e2e_ms"] = (time.perf_counter() - start) * 1000
         record.update(http_status=response.status_code, bytes=len(response.content))
+        record["response_metrics"] = {
+            name: response.headers[name]
+            for name in (
+                "X-Request-Id",
+                "X-Inference-Time-S",
+                "X-Stage-Durations",
+                "X-Peak-Memory-MB",
+            )
+            if name in response.headers
+        }
         if not response.ok:
             raise RuntimeError(f"HTTP {response.status_code}: {response.text[:1000]}")
         output = args.output / f"{label}.mp4"

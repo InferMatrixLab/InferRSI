@@ -1,0 +1,42 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Profile-enabled screening; one measured request, not a final performance claim",
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "configuration": {
+    "task": "ref2va",
+    "steps": 50,
+    "duration_s": 5,
+    "seed": 0,
+    "quality": "lossless",
+    "devices": 8,
+    "ulysses": 8,
+    "ring": 1,
+    "text_encoder_tp": 8,
+    "vae_tile_parallel": 8,
+    "distributed_layerwise_offload": true,
+    "attention": "FLASH_ATTN / MindIE ascend_laser_attention",
+    "pipeline_profiler": true
+  },
+  "warmup_e2e_ms": 569429.4159188867,
+  "measured_e2e_ms": [
+    403488.06970287114
+  ],
+  "requests": {
+    "completed": 2,
+    "failed": 0,
+    "measured": 1,
+    "warmup": 1
+  },
+  "sampled_peak_mib_any_device": 24664,
+  "memory_sampling_interval_s": 10,
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 8,
+    "worker_kill_count": 7,
+    "client_complete_to_container_exit_s": 26.729898,
+    "stack_observation": "Rank 0 repeatedly copied rank-local text-encoder weights in restore_tensor_storage <- restore_next_block_to_cpu <- DLO._disable during shutdown."
+  },
+  "raw_log_sha256": "6ab1da3240c11756496724db21ce0bd10f7ddd01b49103323a603b340f837580",
+  "verification_limits": "Raw host logs and media remain private campaign artifacts; these receipts are not independent reproduction. Python sampling was limited to warmup; teardown stack reads happened after response completion. Final unprofiled AB/BA remains pending."
+}

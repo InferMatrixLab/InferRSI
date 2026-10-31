@@ -12,6 +12,13 @@
       "url": "https://cdn.hailuoai.com/prod/hailuo_demo/testsets/h3_promo_eval_ref2va/gallery/sr_v2p26_trio_seed42_20260724/inputs/f463d523c5ce_01_%E9%9F%B3%E9%A2%911_RSLcbpzJPo_6%E6%9C%885%E6%97%A5(1).mp3",
       "sha256": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454",
       "bytes": 204432
+    },
+    {
+      "name": "upstream-reference.mp4",
+      "role": "official output parity reference, separate from candidate-to-baseline gate",
+      "url": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/main/assets/r2va.mp4",
+      "sha256": "5c9d33dfc517438c59e93da7b3d0b2a62e3cf69bc2adb7d1b2d33d7d8df7161f",
+      "bytes": 850734
     }
   ],
   "prompt_sha256": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd"
