@@ -103,6 +103,7 @@ def main():
     parser.add_argument("--steps", type=int, default=50)
     parser.add_argument("--seeds", type=int, nargs="+", default=[0])
     parser.add_argument("--repeats", type=int, default=3)
+    parser.add_argument("--warmups", type=int, default=1)
     parser.add_argument(
         "--quality",
         choices=("lossless", "high", "server-default"),
@@ -111,12 +112,18 @@ def main():
     )
     parser.add_argument("--timeout", type=float, default=14400)
     args = parser.parse_args()
-    if args.steps < 1 or args.repeats < 1 or args.timeout <= 0:
-        parser.error("steps, repeats and timeout must be positive")
+    if args.steps < 1 or args.repeats < 1 or args.warmups < 1 or args.timeout <= 0:
+        parser.error("steps, repeats, warmups and timeout must be positive")
     args.output.mkdir(parents=True, exist_ok=False)
     results = []
     for seconds in args.seconds:
-        jobs = [(f"warmup-{seconds}", args.seeds[0])]
+        jobs = [
+            (
+                f"warmup-{seconds}" if args.warmups == 1 else f"warmup-{seconds}-{index}",
+                args.seeds[0],
+            )
+            for index in range(args.warmups)
+        ]
         jobs += [
             (f"measured-{seconds}-seed{seed}-{repeat}", seed)
             for seed in args.seeds

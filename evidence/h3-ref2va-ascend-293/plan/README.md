@@ -29,6 +29,11 @@ explicit request quality policy can otherwise replace that startup profile.
 The private MC2/MC4 screening client already omitted this field; this portable
 option does not change those experiments or their validators.
 
+Before formal runs, [formal-warmup.json](formal-warmup.json) fixes two warmups for
+both arms, using `--warmups 2`. The first MC2 response returned before peer ranks
+finished their first audio decode, so one response does not establish full-rank
+warmup. Retain both warmups and inspect measured samples for remaining transients.
+
 ## Acceptance and delivery
 
 - [ ] Runnable baseline, source/model/environment manifests and lifecycle evidence.

@@ -1,0 +1,13 @@
+{
+  "status": "planned_not_executed",
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/293",
+  "warmups_per_duration_per_independent_server": 2,
+  "applies_to": "Both baseline and candidate in every formal AB/BA cell",
+  "reason": "In the MC2 pilot the owner returned the first response at 19:53:29 UTC, while a peer completed its first audio decode at 19:54:20 UTC. The next prompt stage completed at 19:54:31 UTC. A single warmup response therefore does not establish that every rank has finished cold work. Use two complete warmup requests consistently, retain both, and inspect measured samples for residual transients.",
+  "evidence_run": "screen2-cache2-50-5",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "changes_to_prior_results": "None. Existing single-warmup pilots retain their original labels and timings.",
+  "quality_gate_changes": "None.",
+  "request_order": "Two warmups followed by at least three measured requests per duration; alternating independent-server AB/BA rounds.",
+  "timing_instrumentation": "Disable pipeline profiling and cache summaries for both arms. Preserve request E2E and response metadata."
+}
