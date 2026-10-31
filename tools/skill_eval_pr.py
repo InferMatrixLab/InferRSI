@@ -35,6 +35,8 @@ MARKER = "<!-- inferrsi-skill-eval-pr:v1 -->"
 RETENTION_DAYS = 30
 MAX_ARCHIVE = 100 * 1024 * 1024
 SHA = r"[0-9a-f]{40}"
+LIBRARY_PATH = "src/inferrsi/data/skill_library"
+PROJECTION_PATH = "src/inferrsi/data/repo_packs/inferrsi/knowledge"
 
 
 def canonical(value):
@@ -57,6 +59,52 @@ def changed_files(repo, base, head):
 
 def blob_exists(repo, revision, path):
     return bool(git(repo, "ls-tree", revision, "--", path).strip())
+
+
+def matches_path(path, prefixes):
+    return any(path == prefix or path.startswith(prefix.rstrip("/") + "/")
+               for prefix in prefixes)
+
+
+def task_context(tasks):
+    # Public descriptive metadata only, not inputs, oracle answers or arbitrary fields.
+    if not isinstance(tasks, list):
+        return []
+    return [{key: task[key] for key in ("id", "split", "request", "evidence_scope", "provenance")
+             if isinstance(task.get(key), str)} for task in tasks if isinstance(task, dict)]
+
+
+def projection_check(repo, identity, changes):
+    """Identify an applicable existing check from raw Git data, without running it."""
+    if not any(matches_path(c["path"], (LIBRARY_PATH, PROJECTION_PATH)) for c in changes):
+        return None
+    unavailable = {"status": "unavailable", "reason": "No usable declared projection source pin"}
+    readme = PROJECTION_PATH + "/README.md"
+    try:
+        # Do not follow a symlink or read executable/oversized PR metadata.
+        entry = git(repo, "ls-tree", identity["head"], "--", readme).decode().split()
+        if len(entry) != 4 or entry[:2] != ["100644", "blob"]:
+            return unavailable
+        if int(git(repo, "cat-file", "-s", entry[2])) > 65536:
+            return unavailable
+        text = git(repo, "cat-file", "blob", entry[2]).decode("utf-8")
+        pattern = (r"^Source snapshot: \[(" + SHA + r")\]\(https://github\.com/"
+                   + re.escape(identity["repository"]) + r"/tree/\1/"
+                   + re.escape(LIBRARY_PATH) + r"\)\.$")
+        pins = re.findall(pattern, text, flags=re.M)
+        if len(pins) != 1 or git(repo, "cat-file", "-t", pins[0]).strip() != b"commit":
+            return unavailable
+        library = git(repo, "ls-tree", identity["head"], "--", LIBRARY_PATH).decode().split()
+        if len(library) != 4 or library[:2] != ["040000", "tree"]:
+            return unavailable
+        changed = git(repo, "diff", "--no-ext-diff", "--no-textconv", "--no-renames",
+                      "--name-only", pins[0], identity["head"], "--", LIBRARY_PATH)
+        if changed.strip():
+            return {"status": "unavailable", "reason":
+                    "Declared projection source differs from current canonical library bytes"}
+        return {"status": "ready", "source_revision": pins[0], "declared_in": readme}
+    except (subprocess.CalledProcessError, UnicodeError, ValueError):
+        return unavailable
 
 
 def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blocked=None):
@@ -84,9 +132,8 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
     output.mkdir(parents=True, exist_ok=False)
     coverage, selected = [], set()
     for change in changes:
-        matches = [item for item in mapping["skills"] if any(
-            change["path"] == path or change["path"].startswith(path.rstrip("/") + "/")
-            for path in item["paths"])]
+        matches = [item for item in mapping["skills"]
+                   if matches_path(change["path"], item["paths"])]
         status = "uncovered"
         if matches:
             status = "unsupported" if change["status"] not in ("A", "M") else "covered"
@@ -101,12 +148,22 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
         # safe-ID rule here, before building any output path from it.
         if not re.fullmatch(r"[a-z0-9][a-z0-9._-]*", item["skill"]):
             raise ValueError("Unsafe skill ID in the PR case mapping")
+        selection = {"basis": "trusted_path_mapping", "adapter": item.get("adapter", "audit"),
+                     "matched_paths": [c["path"] for c in changes
+                                       if matches_path(c["path"], item["paths"])]}
+        try:
+            selection["tasks"] = task_context(
+                compare.read_json(mapping_path.parent / item["cases"]))
+        except (OSError, ValueError):
+            selection["tasks"] = []
+        selected_item = {"skill": item["skill"], "selection": selection}
         if planning_blocked is not None:
-            comparisons.append({"skill": item["skill"],
+            comparisons.append({**selected_item,
                                 "unsupported": "Mapping-only scope; provider unavailable"})
             continue
         entrypoint = mapping["skill_root"] + "/" + item["entrypoint"]
         if not blob_exists(repo, identity["head"], entrypoint):
+            comparisons.append({**selected_item, "unsupported": "Mapped entrypoint is missing"})
             for entry in coverage:
                 if any(entry["path"].startswith(p.rstrip("/") + "/")
                        or entry["path"] == p for p in item["paths"]):
@@ -131,7 +188,7 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
             digest = compare.prepare(config_path, repo, destination)
         except ValueError as error:
             # Unsupported snapshots remain visible; they are never task passes.
-            comparisons.append({"skill": item["skill"], "unsupported": str(error)})
+            comparisons.append({**selected_item, "unsupported": str(error)})
             for entry in coverage:
                 if any(entry["path"] == p or entry["path"].startswith(p.rstrip("/") + "/")
                        for p in item["paths"]):
@@ -140,7 +197,10 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
         finally:
             config_path.unlink()
         plan = compare.load_plan(destination)
-        comparisons.append({"skill": item["skill"], "mode": plan["mode"],
+        selection["tasks"] = task_context(compare.read_json(destination / "plan/tasks.json"))
+        selection["required_answer_fields"] = compare.read_json(
+            destination / "plan/schema.json").get("required", [])
+        comparisons.append({**selected_item, "mode": plan["mode"],
                             "plan_sha256": digest, "cases": [
                                 {"id": t["id"], "split": t["split"]}
                                 for t in compare.read_json(destination / "plan/tasks.json")],
@@ -150,6 +210,9 @@ def prepare(repo, mapping_path, identity, output, *, provider=None, planning_blo
             "comparisons": comparisons, "model": mapping["model"], "limits": mapping["limits"],
             "estimated_calls": sum(c.get("calls", 0) for c in comparisons),
             "retention_days": RETENTION_DAYS}
+    check = projection_check(repo, identity, changes)
+    if check is not None:
+        plan["projection_check"] = check
     if planning_blocked is not None:
         plan["execution_blocked"] = planning_blocked
         plan["model"] = {"name": "unconfigured", "effort": "not_applicable"}
@@ -481,6 +544,173 @@ def review_guidance(plan, results, *, evidence_state):
             "evidence_state": evidence_state, "plan_sha256": fingerprint(plan)}
 
 
+def public_preparation_reason(reason):
+    """Project known refusal categories, never arbitrary exception/YAML excerpts."""
+    fixed = {
+        "Executable snapshot entries are not supported",
+        "Snapshot symlinks and submodules are not supported",
+        "Snapshot revision must identify a Git commit",
+        "Snapshot skill_root contains no files",
+        "Mapping-only scope; provider unavailable",
+        "Mapped entrypoint is missing",
+        "Unknown configuration field",
+        "Unknown experiment adapter",
+        "Unknown case split",
+        "cases must be nonempty with unique IDs",
+        "case IDs must be safe path components",
+        "schedule exceeds max_task_calls",
+        "Diagnostic comparisons require paired old/new bundles (update mode)",
+        "Selected adapter owns its frozen schema and verifier",
+        "Unsupported execution mode for selected adapter",
+    }
+    if isinstance(reason, str):
+        if reason in fixed:
+            return reason
+        for prefix in ("Invalid skill YAML: ", "Missing declared skill document: ",
+                       "Missing local snapshot blob: ", "Unsafe bundle path: ",
+                       "Symlink resource is not supported: ",
+                       "Resource escapes the skills root: ",
+                       "Resource cycle inside the skills root: ",
+                       "Unsupported input fields at ", "Missing required case fields: "):
+            if reason.startswith(prefix):
+                return prefix.rstrip(": ") + " (detail omitted)"
+        if reason.startswith(
+                "Snapshot preparation requires Git >= 2.45 for --no-lazy-fetch; found "):
+            return "Snapshot preparation requires Git >= 2.45 for --no-lazy-fetch"
+    return "Snapshot/task preparation failed (unrecognized reason; raw detail not projected)"
+
+
+def path_groups(paths):
+    groups = {"Canonical library paths": [], "Generated projection paths": [], "Other paths": []}
+    for path in paths:
+        key = ("Canonical library paths" if matches_path(path, (LIBRARY_PATH,)) else
+               "Generated projection paths" if matches_path(path, (PROJECTION_PATH,)) else
+               "Other paths")
+        groups[key].append(path)
+    return groups
+
+
+def author_actions(plan):
+    """Nonpaid next actions; never synthesize an execution or approval command."""
+    lines = ["**PLANNED: not executed; there are no task outcomes yet.**",
+             "### Author actions (no model calls)",
+             "1. **Bind the checkout.** Run `git rev-parse HEAD`; it must equal "
+             + code(plan["head"]) + ". If it differs, obtain a current plan; "
+             "do not reuse old results."]
+    check = plan.get("projection_check")
+    if isinstance(check, dict):
+        revision = check.get("source_revision")
+        if (check.get("status") == "ready" and isinstance(revision, str)
+                and re.fullmatch(SHA, revision)):
+            lines += ["2. **Check source/index consistency.** At that PR checkout, using the "
+                      "reviewed repository tool and its documented development dependencies, run:",
+                      "```bash", "python tools/build_skill_index.py --source-revision "
+                      + revision + " --check", "```",
+                      "The declared source pin matches this head's canonical library bytes. "
+                      "The command has **not run**: retain its exit code and full "
+                      "drift/success output. "
+                      "It checks the generated projection, not claim truth or skill efficacy."]
+        else:
+            lines += ["2. **Resolve the index source pin before checking.** "
+                      + safe_text(check.get("reason")) + ". Identify the committed source matching "
+                      "the canonical inputs and record why it applies; do not substitute HEAD "
+                      "or label the projection verified."]
+    else:
+        lines += ["2. **Choose an applicable check.** Match each changed behavior to the task "
+                  "below or a source/content check; a path match alone does not establish "
+                  "relevance."]
+    supported = [c for c in plan["comparisons"] if "plan_sha256" in c]
+    if not supported:
+        lines += ["**No supported automatic comparison is selected.** Review the canonical changes "
+                  "and explain which claims need evidence, are unaffected, or remain unverified; "
+                  "do not treat generated records as separate behavioral claims."]
+    for item in plan["comparisons"][:3]:
+        lines += ["- **" + code(item["skill"]) + "**"]
+        selection = item.get("selection", {})
+        matched = selection.get("matched_paths", [])
+        if matched:
+            lines += ["  Selected by the trusted path mapping: "
+                      + "; ".join(code(p) if len(p) <= 128 else safe_text(p, 180)
+                                  for p in matched[:2])
+                      + (f" (+{len(matched) - 2} more in the plan)." if len(matched) > 2 else ".")]
+        tasks = selection.get("tasks", [])
+        for task in tasks[:2] if "unsupported" not in item else []:
+            lines += ["  Task " + code(task.get("id")) + ": "
+                      + safe_text(task.get("request"), 300)]
+            scope = [safe_text(task[key], 200) for key in ("evidence_scope", "provenance")
+                     if key in task]
+            if scope:
+                lines += ["  Scope: " + "; ".join(scope)]
+        if not tasks:
+            lines += ["  Task metadata was not retained; inspect frozen tasks before "
+                      "deciding relevance."]
+        if "unsupported" in item:
+            lines += ["  **Unsupported:** "
+                      + safe_text(public_preparation_reason(item["unsupported"]), 240)
+                      + ". No snapshot prepared; task metadata is in details. "
+                      "Do not relax snapshot safety."]
+        else:
+            fields = selection.get("required_answer_fields", [])
+            if fields:
+                lines += ["  Required answer fields: "
+                          + ", ".join(code(field) for field in fields[:12]) + "."]
+            lines += ["  Independent check: frozen " + code(selection.get("adapter", "unspecified"))
+                      + " grader/schema bound in details. Confirm it tests the changed claim, "
+                      "not merely the touched path."]
+    if len(plan["comparisons"]) > 3:
+        lines += ["Additional mappings and all task metadata are retained in the plan details."]
+    # Only successful preparation and safe IDs yield concrete read-only inspection commands.
+    safe = [c for c in supported if re.fullmatch(r"[a-z0-9][a-z0-9._-]*", c["skill"])]
+    if safe:
+        skill = safe[0]["skill"]
+        lines += ["From the downloaded **skill-eval-plan** artifact directory, inspect the first "
+                  "prepared task and its required answer schema (read-only; **not grading**):",
+                  "```bash", f"python -m json.tool {skill}/plan/tasks.json",
+                  f"python -m json.tool {skill}/plan/schema.json", "```"]
+    groups = path_groups([c["path"] for c in plan["coverage"] if c["coverage"] != "covered"])
+    lines += ["Uncovered scope by location: " + "; ".join(
+        f"{name}: {len(paths)}" for name, paths in groups.items())
+        + ". Path counts are not claim counts; no metadata-only conclusion is inferred.",
+        "3. **Return evidence for independent review:** head, check/task/source pin, command, "
+        "environment, exit status, outputs/failures and untested claims. Label scripted controls. "
+        "Request each claim's disposition: verified, refuted or unverified; this plan proves "
+        "neither model provenance nor benefit."]
+    repository, version = plan.get("repository", ""), plan.get("version", "")
+    if (re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repository)
+            and re.fullmatch(SHA, version)):
+        base = f"https://github.com/{repository}/blob/{version}/docs/"
+        lines += ["[Check recipes and evidence limits](" + base
+                  + "skill-eval-pr.md#nonpaid-author-handoff)"]
+    steps = lines[2:]
+    prepared = len(supported)
+    gaps = [c for c in plan["coverage"] if c["coverage"] != "covered"]
+    intro = [lines[0], "No approval, model efficacy or current-head test result is implied.",
+             "- **Next:** " + ("run the pinned source/index `--check` below at head "
+                 if isinstance(check, dict) and check.get("status") == "ready" else
+                 "resolve check applicability at head ") + code(plan["head"]) + "."]
+    blockers = [safe_text(public_preparation_reason(c["unsupported"]), 160)
+                for c in plan["comparisons"] if "unsupported" in c]
+    if isinstance(check, dict) and check.get("status") != "ready":
+        blockers.append(safe_text(check.get("reason"), 160))
+    if blockers:
+        intro += ["- **Blockers:** " + "; ".join(dict.fromkeys(blockers[:3]))
+                  + ". No unsafe fallback; details below."]
+    else:
+        intro += ["- **Task selection:** " + ("confirm the prepared task tests the changed claim."
+                  if prepared else "no supported automatic comparison; choose a relevant source/"
+                  "content check and disposition uncovered claims.")]
+    intro += [f"- Selected comparisons: **{prepared}** · Estimated task calls: "
+              f"**{plan['estimated_calls']}**. Uncovered/unsupported changes: **{len(gaps)}**; "
+              + "; ".join(f"{name}: {len(paths)}" for name, paths in groups.items())
+              + ". These are paths, not independent claims.",
+              "- **Return:** command, input/source pin, exit status, outputs/failures and "
+              "untested claims for independent verified/refuted/unverified disposition.",
+              "", "<details>",
+              "<summary>Author verification steps (nonpaid; not yet run)</summary>",
+              "", *steps, "", "</details>", ""]
+    return intro
+
+
 def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None,
             execution_control=None):
     expired = now >= expires_at
@@ -489,17 +719,19 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
     guidance = review_guidance(plan, results, evidence_state=evidence_state)
     lines = [MARKER, "## Skill evaluation"]
     lines += comparison_lines(plan, results, evidence_state)
-    if plan.get("execution_blocked"):
+    planned = evidence_state == "planned / unexecuted" and not results
+    if planned:
+        lines += author_actions(plan)
+    if plan.get("execution_blocked") and not planned:
         lines += ["", "Paid execution blocked: " + safe_text(plan["execution_blocked"]) + ". "
                   "New execution only: this does not invalidate available retained results; "
                   "no alternate provider/model is selected."]
-    if execution_control is not None:
-        lines += ["", "Automatic execution / cumulative PR budget: `"
-                  + canonical(execution_control) + "`", ""]
-    lines += ["### Advisory: " + guidance["disposition"],
-              "Retained evidence availability: **" + evidence_state + "**. "
-              "No approval or merge authorization is issued."]
-    lines.extend("- " + safe_text(reason) for reason in guidance["reasons"][:6])
+    advisory = ["### Advisory: " + guidance["disposition"],
+                "Retained evidence availability: **" + evidence_state + "**. "
+                "No approval or merge authorization is issued."]
+    if not planned:
+        lines += advisory
+    lines.extend("- " + safe_text(reason) for reason in guidance["reasons"][:6] if not planned)
     if len(guidance["reasons"]) > 6:
         lines += [f"- {len(guidance['reasons']) - 6} additional reasons in details below."]
     lines += [""]
@@ -515,39 +747,41 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
                 counts[key] += result["counts"][key]
         lines += ["**RETAINED RESULTS**", "", "Outcomes: `" + canonical(counts) + "`",
                   "Discovery is reported separately in retained evidence."]
-    else:
-        counts["missing_pair"] = sum(
-            sum(c["split"] != "discovery" for c in item["cases"]) * plan["limits"]["repeats"]
-            for item in plan["comparisons"] if "plan_sha256" in item)
-        lines += ["**PLANNED: execution is not authorized by knowing this hash.**",
-                  "Outcomes: `" + canonical(counts) + "`",
-                  "Earlier revision results are stale for this plan."]
     gaps = [c for c in plan["coverage"] if c["coverage"] != "covered"]
     selected = sum("plan_sha256" in item for item in plan["comparisons"])
-    lines += ["", f"Selected comparisons: **{selected}** · Estimated task calls: "
-              f"**{plan['estimated_calls']}**.",
-              f"Uncovered/unsupported changes: **{len(gaps)}**. Gaps never count as passes.", "",
-              "Applicable only while these revisions and inputs match the current PR.",
+    limits = ["Applicable only while these revisions and inputs match the current PR.",
               "Paid execution requires trusted label authorization and cumulative PR reservation. "
               "Unknown accounting blocks new paid calls; planning is not execution.",
-              "Pipeline evidence only; offline fixed outputs do not establish skill efficacy.",
-              f"[Evidence and logs]({evidence_url}) · Retention: {RETENTION_DAYS} days.",
-              f"Outcomes are historical; verifiable only before Unix time `{int(expires_at)}` "
+              "Pipeline evidence only; offline fixed outputs do not establish skill efficacy."]
+    if not planned:
+        lines += ["", f"Selected comparisons: **{selected}** · Estimated task calls: "
+                  f"**{plan['estimated_calls']}**.",
+                  f"Uncovered/unsupported changes: **{len(gaps)}**. Gaps never count as passes.",
+                  "", *limits]
+    lines += [f"[Evidence and logs]({evidence_url}) · Retention: {RETENTION_DAYS} days.",
+              f"Retained artifacts are verifiable only before Unix time `{int(expires_at)}` "
               "while the linked artifact is available. Expired evidence is unverified.", "",
               "<details>",
               "<summary>Plan bindings, budget, frozen exam and advisory details</summary>", "",
+              *(advisory + limits if planned else []),
+              *(["Paid execution blocked: " + safe_text(plan["execution_blocked"]) + ". "
+                  "New execution only: this does not invalidate available retained results; "
+                  "no alternate provider/model is selected."]
+                 if planned and plan.get("execution_blocked") else []),
               "Unchanged-correct is valid neutral evidence, not incremental benefit.",
               "Content/source review and authorship admission remain separate.",
               "Trusted regrading checks retained answers, not model/hardware provenance or "
               "a hostile executor; this is not an efficacy certification.",
-              *["- " + safe_text(reason) for reason in guidance["reasons"][6:26]],
-              "", "Per-case outcomes (discovery excluded; regressions and gaps first):",
-              "```json", json_for_code(sorted(guidance["observations"], key=lambda item:
-                  (item["outcome"] not in ("regression", "inconclusive", "missing_pair",
-                                           "unchanged_incorrect"), item["skill"]))[:20]), "```",
-              f"Showing at most 20 of {len(guidance['observations'])} pairs; "
-              "the evidence link contains all outcomes, including omitted regressions/gaps.",
-              "",
+              *["- " + safe_text(reason) for reason in
+                (guidance["reasons"][:26] if planned else guidance["reasons"][6:26])],
+              *([] if planned else [
+                  "", "Per-case outcomes (discovery excluded; regressions and gaps first):",
+                  "```json", json_for_code(sorted(guidance["observations"], key=lambda item:
+                      (item["outcome"] not in ("regression", "inconclusive", "missing_pair",
+                                               "unchanged_incorrect"), item["skill"]))[:20]), "```",
+                  f"Showing at most 20 of {len(guidance['observations'])} pairs; "
+                  "The evidence link contains all outcomes, including omitted regressions/gaps.",
+                  ""]),
               *[line for line in evidence_binding_lines(plan, results, evidence_state)],
               f"Plan SHA-256: `{fingerprint(plan)}`",
               f"Base: `{plan['base']}` · Head: `{plan['head']}`",
@@ -564,7 +798,18 @@ def summary(plan, results, evidence_url, expires_at, now, *, evidence_state=None
                          f"{item['calls']} |")
             lines.append("\nFrozen exam hashes: `" + canonical(item["exam"]) + "`\n")
         else:
-            lines.append(f"| {code(item['skill'])} | unsupported snapshot | — | 0 |")
+            lines.append(f"| {code(item['skill'])} | unsupported snapshot: "
+                         + safe_text(public_preparation_reason(item.get("unsupported")))
+                         + " | — | 0 |")
+        if "selection" in item:
+            lines += ["", "Selection/task metadata (not a relevance verdict):", "```json",
+                      json_for_code(item["selection"]), "```"]
+    if execution_control is not None:
+        lines += ["", "Automatic execution / cumulative PR budget:", "```json",
+                  json_for_code(execution_control), "```"]
+    if "projection_check" in plan:
+        lines += ["", "Projection check selection (not an executed result):", "```json",
+                  json_for_code(plan["projection_check"]), "```"]
     if "provider_config" in plan:
         lines += ["", "Provider/settings: `" + canonical(plan["provider_config"]) + "`"]
     lines += ["", "</details>", "", "<details>",

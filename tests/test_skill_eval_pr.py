@@ -105,7 +105,7 @@ def test_deleted_and_unmapped_skill_changes_are_visible_not_passed(tmp_path):
     assert plan["comparisons"] == [] and plan["estimated_calls"] == 0
     assert {c["coverage"] for c in plan["coverage"]} == {"uncovered", "unsupported"}
     body = integration.summary(plan, [], "https://github.com/example/fixture/actions/runs/1", 10, 1)
-    assert "uncovered" in body and "unsupported" in body and '"fix":0' in body
+    assert "uncovered" in body and "unsupported" in body and "Outcomes:" not in body
     with pytest.raises(ValueError, match="No supported comparisons"):
         approval(plan)
 
