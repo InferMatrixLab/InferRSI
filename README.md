@@ -127,14 +127,16 @@ Requires **Python 3.10+**. Licensed under [Apache-2.0](LICENSE).
 
 **InferRSI is a Developer Preview (pre-release), with no API stability promise.**
 The [daily release bot](docs/releases.md) publishes a version when the default
-branch changes. This preview is not on PyPI. Choose an existing tag from
-[Releases](https://github.com/InferMatrixLab/InferRSI/releases), then install:
+branch changes. This preview is not on PyPI. Download the wheel and `SHA256SUMS`
+from the selected [Release](https://github.com/InferMatrixLab/InferRSI/releases),
+verify its checksum, then install the downloaded wheel:
 
 ```bash
-pip install "git+https://github.com/InferMatrixLab/InferRSI.git@<version-tag>"
+python -m pip install "<download-directory>/inferrsi-<version>-py3-none-any.whl"
 ```
 
-From this checkout:
+For Codex, use the [standalone plugin ZIP](docs/codex-plugin.md#install-from-the-release-zip).
+For CLI development from this checkout:
 
 ```bash
 python -m venv .venv

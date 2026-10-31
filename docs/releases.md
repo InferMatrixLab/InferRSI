@@ -81,11 +81,12 @@ requirements in [contributing](contributing.md#evidence-and-claims).
 
 Each Release contains a Python wheel, source distribution, the versioned Codex
 plugin ZIP and `SHA256SUMS` covering all three packages. Extract the ZIP and
-follow the [Codex plugin installation guide](codex-plugin.md#install-from-a-local-archive).
-The ZIP contains the native local marketplace, plugin, complete bundled runtime
+follow the [Codex plugin installation guide](codex-plugin.md#install-from-the-release-zip).
+The ZIP contains one standalone plugin, complete bundled runtime
 and knowledge, licenses and installation README. Plugin build failure or a
 missing/corrupt installer blocks publication. It does not update a plugin branch,
-account installation or marketplace listing.
+account installation or marketplace listing. No marketplace catalog or installation
+wrapper is packaged; the downloaded ZIP is the only Codex plugin release asset.
 
 ## Setup and manual checks
 

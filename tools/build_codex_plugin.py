@@ -1,4 +1,4 @@
-"""Build a local Codex marketplace and archive from the canonical runtime bytes."""
+"""Build a standalone Codex plugin archive from the canonical runtime bytes."""
 
 from __future__ import annotations
 
@@ -43,12 +43,9 @@ def _version(path: Path) -> str:
 
 
 def build_plugin(
-    output: Path, *, project: Path = PROJECT, marketplace_name: str = "inferrsi-local",
-    release_version: str | None = None,
+    output: Path, *, project: Path = PROJECT, release_version: str | None = None,
 ) -> dict:
     """Create a fresh distribution; never replace user configuration or earlier builds."""
-    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", marketplace_name):
-        raise ValueError("Marketplace name must contain lowercase words separated by hyphens")
     output = output.resolve()
     archive = output.with_name(output.name + ".zip")
     if output.exists() or archive.exists():
@@ -72,12 +69,10 @@ def build_plugin(
             )
     _io_path(output.parent).mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="irsi-", dir=_io_path(output.parent)) as staging:
-        stage = Path(staging) / output.name
-        plugin = stage / "plugins" / "inferrsi"
+        plugin = Path(staging) / "inferrsi"
         shutil.copytree(template, plugin, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         shutil.copyfile(project / "LICENSE", plugin / "LICENSE")
-        shutil.copyfile(project / "LICENSE", stage / "LICENSE")
-        shutil.copyfile(project / "docs" / "codex-plugin.md", stage / "README.md")
+        shutil.copyfile(project / "docs" / "codex-plugin.md", plugin / "README.md")
         runtime = plugin / "runtime"
         hashes = {}
         for path in sorted(source.rglob("*")):
@@ -110,32 +105,20 @@ def build_plugin(
             "content_sha256": hashlib.sha256(identity.encode("utf-8")).hexdigest(),
             "files": hashes,
         })
-        _json(stage / ".agents" / "plugins" / "marketplace.json", {
-            "name": marketplace_name,
-            "interface": {"displayName": "InferRSI preview"},
-            "plugins": [{
-                "name": "inferrsi",
-                "source": {"source": "local", "path": "./plugins/inferrsi"},
-                "policy": {"installation": "AVAILABLE", "authentication": "ON_INSTALL"},
-                "category": "Productivity",
-            }],
-        })
         # Stable ZIP metadata makes repeated builds of identical bytes comparable.
         with zipfile.ZipFile(archive, "x", compression=zipfile.ZIP_DEFLATED) as bundle:
-            for path in sorted(stage.rglob("*")):
+            for path in sorted(plugin.rglob("*")):
                 if path.is_file():
                     info = zipfile.ZipInfo(
-                        (Path(output.name) / path.relative_to(stage)).as_posix(),
+                        (Path("inferrsi") / path.relative_to(plugin)).as_posix(),
                         date_time=(1980, 1, 1, 0, 0, 0),
                     )
                     info.compress_type = zipfile.ZIP_DEFLATED
                     info.external_attr = 0o100644 << 16
                     bundle.writestr(info, path.read_bytes())
-        shutil.copytree(stage, _io_path(output))
+        shutil.copytree(plugin, _io_path(output))
     return {
-        "marketplace_name": marketplace_name,
-        "marketplace": str(output),
-        "plugin": str(output / "plugins" / "inferrsi"),
+        "plugin": str(output),
         "archive": str(archive),
         "runtime_files": len(hashes),
     }
@@ -144,13 +127,11 @@ def build_plugin(
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=PROJECT / "dist" / "codex-plugin")
-    parser.add_argument("--marketplace-name", default="inferrsi-local")
     parser.add_argument("--release-version",
                         help="Require the built runtime version and stamp the ZIP")
     args = parser.parse_args()
     try:
-        result = build_plugin(args.output, marketplace_name=args.marketplace_name,
-                              release_version=args.release_version)
+        result = build_plugin(args.output, release_version=args.release_version)
     except (OSError, ValueError) as exc:
         parser.error(str(exc))
     print(json.dumps(result, indent=2))

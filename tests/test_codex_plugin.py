@@ -21,16 +21,16 @@ except ModuleNotFoundError:  # Python 3.10: pytest supplies tomli.
 
 @pytest.fixture(scope="module")
 def distribution(tmp_path_factory):
-    root = tmp_path_factory.mktemp("codex-plugin") / "marketplace"
+    root = tmp_path_factory.mktemp("codex-plugin") / "distribution"
     result = build_plugin(root)
     extracted = _io_path(root.parent / "extracted")
     with zipfile.ZipFile(result["archive"]) as archive:
         archive.extractall(extracted)
-    return extracted / root.name
+    return extracted / "inferrsi"
 
 
 def invoke(distribution, cwd, *args):
-    launcher = distribution / "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py"
+    launcher = distribution / "skills/inferrsi/scripts/inferrsi.py"
     return subprocess.run(
         [sys.executable, "-I", "-S", "-X", "utf8", str(launcher), *args],
         cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=45,
@@ -38,7 +38,7 @@ def invoke(distribution, cwd, *args):
 
 
 def test_bundle_preserves_canonical_bytes_and_license(distribution):
-    plugin = distribution / "plugins/inferrsi"
+    plugin = distribution
     runtime = plugin / "runtime"
     manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))
     for name, digest in manifest["files"].items():
@@ -46,7 +46,6 @@ def test_bundle_preserves_canonical_bytes_and_license(distribution):
         assert hashlib.sha256(actual).hexdigest() == digest
         assert actual == _io_path(PROJECT / "src" / name).read_bytes()
     assert (plugin / "LICENSE").read_bytes() == (PROJECT / "LICENSE").read_bytes()
-    assert (distribution / "LICENSE").read_bytes() == (PROJECT / "LICENSE").read_bytes()
     assert not list(plugin.rglob("*.pyc"))
 
 
@@ -61,7 +60,7 @@ def test_bundle_contains_all_declared_package_data(distribution):
         for pattern in patterns for path in source.glob(pattern) if path.is_file()
     }
     assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
-    runtime = distribution / "plugins/inferrsi/runtime"
+    runtime = distribution / "runtime"
     installed = {
         path.relative_to(runtime / "inferrsi").as_posix()
         for path in (runtime / "inferrsi/data").rglob("*") if path.is_file()
@@ -110,7 +109,7 @@ def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_pat
 def test_missing_runtime_has_repair_guidance(tmp_path):
     source = PROJECT / "plugins/inferrsi"
     incomplete = tmp_path / "incomplete"
-    shutil.copytree(source, incomplete / "plugins/inferrsi")
+    shutil.copytree(source, incomplete)
     result = invoke(incomplete, tmp_path, "--plugin-info")
     assert result.returncode == 2
     assert "built distribution" in result.stderr
@@ -140,15 +139,22 @@ def test_builder_refuses_to_replace_existing_files(tmp_path):
     assert sentinel.read_text(encoding="utf-8") == "keep"
 
 
-def test_named_marketplace_installs_the_same_bundled_runtime(tmp_path):
-    output = tmp_path / "remote-preview"
-    result = build_plugin(output, marketplace_name="inferrsi-preview")
-    catalog = json.loads((output / ".agents/plugins/marketplace.json").read_text(encoding="utf-8"))
-    assert result["marketplace_name"] == catalog["name"] == "inferrsi-preview"
-    plugin = output / catalog["plugins"][0]["source"]["path"]
+def test_archive_contains_only_one_standalone_plugin(tmp_path):
+    output = tmp_path / "offline-package"
+    result = build_plugin(output)
+    assert result["plugin"] == str(output)
+    with zipfile.ZipFile(result["archive"]) as archive:
+        names = archive.namelist()
+        assert {Path(name).parts[0] for name in names} == {"inferrsi"}
+        assert "inferrsi/plugin.json" in names
+        assert "inferrsi/README.md" in names
+        assert not any("marketplace" in name or ".agents" in name for name in names)
+        metadata = json.loads(archive.read("inferrsi/plugin.json"))
+        assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"
+        assert len(metadata["extensions"]["com.openai"]["interface"]["shortDescription"]) <= 30
     info = invoke(output, tmp_path, "--plugin-info")
     assert info.returncode == 0, info.stderr
-    manifest = json.loads((plugin / "runtime/manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((output / "runtime/manifest.json").read_text(encoding="utf-8"))
     assert json.loads(info.stdout)["content_sha256"] == manifest["content_sha256"]
 
 
@@ -176,7 +182,7 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
     check_plugin(Path(result["archive"]), "v0.2.0")
     assert (project / "plugins/inferrsi/plugin.json").read_bytes() == template
     with zipfile.ZipFile(result["archive"]) as archive:
-        name = "inferrsi-codex-plugin-v0.2.0/plugins/inferrsi/plugin.json"
+        name = "inferrsi/plugin.json"
         assert json.loads(archive.read(name))["version"] == "0.2.0"
     with pytest.raises(ValueError, match="agree exactly"):
         check_plugin(Path(result["archive"]), "v0.2.1")
@@ -196,12 +202,12 @@ def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp
 
 
 @pytest.mark.parametrize("replacement", [
-    "plugins//inferrsi/", "plugins/./inferrsi/", "plugins/Inferrsi/", "plugins./inferrsi/",
+    "inferrsi//", "inferrsi/./", "Inferrsi/", "inferrsi./",
 ])
 def test_release_archive_rejects_extraction_aliases(tmp_path, replacement):
     changed = tmp_path / "aliased.zip"
-    name = "inferrsi-codex-plugin-v0.2.0/plugins/inferrsi/runtime/inferrsi/__init__.py"
-    alias = name.replace("plugins/inferrsi/", replacement)
+    name = "inferrsi/runtime/inferrsi/__init__.py"
+    alias = name.replace("inferrsi/", replacement, 1)
     with zipfile.ZipFile(changed, "w") as archive:
         archive.writestr(name, b"pass")
         archive.writestr(alias, b"raise RuntimeError('must not execute unverified alias')")
@@ -221,8 +227,8 @@ def test_release_archive_rejects_unsafe_names_before_metadata(tmp_path, name):
 def test_release_archive_rejects_new_modules_under_case_aliased_directories(tmp_path):
     changed = tmp_path / "directory-alias.zip"
     with zipfile.ZipFile(changed, "w") as archive:
-        archive.writestr("root/plugins/inferrsi/runtime/inferrsi/__init__.py", b"pass")
-        archive.writestr("root/Plugins/inferrsi/runtime/hashlib.py", b"must not execute")
+        archive.writestr("inferrsi/runtime/inferrsi/__init__.py", b"pass")
+        archive.writestr("inferrsi/Runtime/hashlib.py", b"must not execute")
     with pytest.raises(ValueError, match="Unsafe"):
         check_plugin(changed, "v0.2.0")
 
@@ -232,8 +238,20 @@ def test_release_archive_rejects_unverified_runtime_modules(release_distribution
     changed = tmp_path / "shadow.zip"
     shutil.copyfile(original, changed)
     with zipfile.ZipFile(changed, "a") as archive:
-        archive.writestr("inferrsi-codex-plugin-v0.2.0/plugins/inferrsi/runtime/hashlib.py", b"")
+        archive.writestr("inferrsi/runtime/hashlib.py", b"")
     with pytest.raises(ValueError, match="outside the bundled runtime"):
+        check_plugin(changed, "v0.2.0")
+
+
+@pytest.mark.parametrize("extra", [
+    "inferrsi/.agents/plugins/marketplace.json", "marketplace/plugins/inferrsi/plugin.json",
+])
+def test_release_archive_rejects_marketplace_wrappers(release_distribution, tmp_path, extra):
+    changed = tmp_path / "marketplace.zip"
+    shutil.copyfile(release_distribution[2]["archive"], changed)
+    with zipfile.ZipFile(changed, "a") as archive:
+        archive.writestr(extra, "{}")
+    with pytest.raises(ValueError, match="standalone|marketplace"):
         check_plugin(changed, "v0.2.0")
 
 

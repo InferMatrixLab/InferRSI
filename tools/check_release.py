@@ -95,7 +95,7 @@ def check_plugin(path: Path, tag: str) -> None:
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
         if len(names) != len(set(names)):
-            raise ValueError("Plugin ZIP must contain one unambiguous marketplace root")
+            raise ValueError("Plugin ZIP must contain one standalone inferrsi plugin")
         roots = set()
         destinations = set()
         spellings = {}
@@ -118,16 +118,20 @@ def check_plugin(path: Path, tag: str) -> None:
                 if spellings.setdefault(prefix.casefold(), prefix) != prefix:
                     raise ValueError("Unsafe plugin ZIP directory alias")
             roots.add(name.parts[0])
-        if len(roots) != 1:
-            raise ValueError("Plugin ZIP must contain one unambiguous marketplace root")
-        root = roots.pop()
-        plugin = f"{root}/plugins/inferrsi"
+        if roots != {"inferrsi"}:
+            raise ValueError("Plugin ZIP must contain one standalone inferrsi plugin")
+        plugin = "inferrsi"
+        allowed = {"plugin.json", "skills", "runtime", "LICENSE", "README.md"}
+        if any(len(PurePosixPath(name).parts) > 1
+               and PurePosixPath(name).parts[1] not in allowed for name in names):
+            raise ValueError("Plugin ZIP includes a marketplace or unrelated wrapper")
         metadata = json.loads(archive.read(f"{plugin}/plugin.json"))
         manifest = json.loads(archive.read(f"{plugin}/runtime/manifest.json"))
-        catalog = json.loads(archive.read(f"{root}/.agents/plugins/marketplace.json"))
-        expected = [("inferrsi", {"source": "local", "path": "./plugins/inferrsi"})]
-        if [(item["name"], item["source"]) for item in catalog["plugins"]] != expected:
-            raise ValueError("Plugin marketplace does not resolve the bundled plugin")
+        if metadata.get("$schema") != "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json":
+            raise ValueError("Plugin manifest must use the portable plugin schema")
+        archive.getinfo(f"{plugin}/skills/inferrsi/SKILL.md")
+        archive.getinfo(f"{plugin}/README.md")
+        archive.getinfo(f"{plugin}/LICENSE")
         check_versions(tag, metadata["version"], manifest["runtime_version"])
         if metadata["name"] != "inferrsi" or manifest["plugin_version"] != version:
             raise ValueError("Plugin identity/version does not match the release")

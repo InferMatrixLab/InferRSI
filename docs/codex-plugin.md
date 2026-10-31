@@ -1,83 +1,52 @@
-# InferRSI plugin for Codex (local preview)
+# InferRSI plugin for Codex (Developer Preview)
 
 Use InferRSI from a Codex conversation in your target repository: research a
 bottleneck, prepare a comparison, or inspect an existing run. This is the Codex
 implementation slice of [RFC #152](https://github.com/InferMatrixLab/InferRSI/issues/152);
 DSH/openJiuwen integration and a measured usability comparison remain separate.
 
-## Install from the GitHub preview
-
-Give Codex the [preview installation page](https://github.com/zengchuang-hw/OmniRSI/tree/codex/inferrsi-plugin-preview)
-and ask it to install InferRSI. On Windows, use the following PowerShell route
-to fetch only the generated branch and enable long paths for this Git operation:
-
-```powershell
-$pluginInstallDir = Join-Path $env:LOCALAPPDATA "InferRSI/codex-plugin-preview"
-git -c core.longpaths=true clone --depth 1 --single-branch --branch codex/inferrsi-plugin-preview https://github.com/zengchuang-hw/OmniRSI $pluginInstallDir
-codex plugin marketplace add $pluginInstallDir
-codex plugin add inferrsi@inferrsi-preview
-codex plugin list --marketplace inferrsi-preview --json
-```
-
-Choose a fresh directory, or inspect an existing installation before reusing it.
-This does not change global Git configuration. Direct Git marketplace registration
-on the tested Windows client first checked out the repository's default branch
-and hit the platform's path-length limit; the explicit single-branch clone avoids
-that unrelated checkout. Other clients may use the native Git-source route:
-
-```text
-codex plugin marketplace add https://github.com/zengchuang-hw/OmniRSI --ref codex/inferrsi-plugin-preview
-codex plugin add inferrsi@inferrsi-preview
-codex plugin list --marketplace inferrsi-preview --json
-```
-
-This uses a generated preview branch in the fork, separate from InferRSI's main
-branch and the public plugin directory. The branch includes the marketplace,
-native plugin and bundled runtime, so the client does not need to build source.
-Keep one InferRSI installation active: if switching from the older local preview,
-remove `inferrsi@inferrsi-local` and its marketplace using the commands below.
-Start a new conversation after installation; refresh/restart a desktop client
-if its plugin catalog has not updated. Both installation routes require a local
-Codex client with plugin support, Python 3.10+ and Git.
-
-## Install from a local archive
+## Install from the Release ZIP
 
 The [daily release guide](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/releases.md)
 describes the versioned installer named
 `inferrsi-codex-plugin-vX.Y.Z.zip` in
 [GitHub Releases](https://github.com/InferMatrixLab/InferRSI/releases). Download
-it with `SHA256SUMS`, verify the checksum and extract it into a fresh directory.
-The enclosed `inferrsi-codex-plugin-vX.Y.Z/` directory is the marketplace root;
-its marketplace name is `inferrsi-local`. This installer bundles the same-version
-InferRSI runtime and knowledge, so it does not need a separate pip installation.
+it with `SHA256SUMS` and verify the ZIP's SHA-256 before importing it. The ZIP
+contains exactly one plugin directory:
+
+```text
+inferrsi/
+  plugin.json
+  skills/inferrsi/SKILL.md
+  skills/inferrsi/scripts/inferrsi.py
+  runtime/manifest.json
+  runtime/inferrsi/
+  LICENSE
+  README.md
+```
+
+The downloaded archive bundles the same-version InferRSI runtime and knowledge;
+installation requires no source checkout, package build or separate pip install.
+There is no marketplace catalog, registration step or distribution branch.
+
+In a Codex client with **Plugin Creator** available, provide the downloaded ZIP
+and ask: "Import this InferRSI plugin ZIP as a private plugin." For an existing
+InferRSI plugin, ask to update that plugin from the ZIP instead of creating a
+duplicate. Use the returned plugin link to enable it, then start a new
+conversation. The import uploads the archive to the account/workspace; it still
+requires a network connection. Here, offline package means the runtime and
+resources are included, not that the Codex client can operate air-gapped.
+
+Clients without archive import cannot install this package directly. The current
+Codex CLI's `plugin add` accepts marketplace selectors, not ZIP paths; do not pass
+the archive to that command. Archive ingestion and enablement must be verified
+on the target host; release checks validate package contents and local execution.
 
 Requires a local Codex client with plugin support and Python 3.10 or newer.
 Git is needed for target-repository inspection and experiment source provenance.
 The built plugin contains the same InferRSI core and knowledge bytes as its
 source build; basic operations need no pip install, network service or API key
 specific to InferRSI. Your normal Codex model connection is still required.
-
-Obtain the generated marketplace folder, or extract its ZIP. Then run:
-
-The following selectors are for the default `inferrsi-local` build. For an
-archive from the GitHub preview, use `inferrsi-preview` instead; the authoritative
-name is the top-level `name` in `.agents/plugins/marketplace.json`.
-
-```text
-codex plugin marketplace add "<MARKETPLACE_ROOT>"
-codex plugin add inferrsi@inferrsi-local
-codex plugin list --marketplace inferrsi-local --json
-```
-
-`<MARKETPLACE_ROOT>` is the extracted directory containing
-`.agents/plugins/marketplace.json` and `plugins/inferrsi/`. Substitute its actual
-path. Local marketplace paths are resolved from that root. The raw
-`plugins/inferrsi/` source template is not a complete distribution.
-
-In desktop clients, the same local marketplace can be found in the plugin
-directory and InferRSI installed/enabled there. Begin a new conversation after
-installation so its skill catalog includes InferRSI. If a running client does not
-refresh the marketplace, restart it and check again.
 
 ## First task
 
@@ -113,8 +82,9 @@ Image validators and target engines retain their own optional dependencies.
 python tools/build_codex_plugin.py
 ```
 
-This writes a fresh `dist/codex-plugin/` marketplace and
-`dist/codex-plugin.zip`. Use that marketplace directory in the install commands.
+This writes a fresh `dist/codex-plugin/` standalone plugin directory and
+`dist/codex-plugin.zip`. The ZIP always has the single enclosing `inferrsi/`
+directory shown above; the output directory's name does not add a wrapper.
 To rebuild, choose a new `--output <directory>`; the builder refuses to replace
 an existing distribution/archive.
 
@@ -124,9 +94,8 @@ requires that version to match the generated runtime, and stamps only the
 generated plugin manifest. The tracked source template remains unchanged.
 Unbuilt source previews use the runtime's explicit `0+unknown` fallback.
 
-For a separately named distribution, use `--marketplace-name inferrsi-preview`.
-Publish only the generated marketplace directory on its distribution branch;
-the source template alone is not a working remote plugin.
+Only the ZIP is attached to Releases. The raw `plugins/inferrsi/` source template
+does not contain the bundled runtime and is not an installation package.
 
 The build copies the canonical Python package, its packaged knowledge/resources
 and source notices, plus the repository license. It records per-file SHA-256
@@ -136,27 +105,21 @@ source owners. No new core dependencies or CI lanes are introduced.
 
 ## Updates, disable and uninstall
 
-Build a fresh distribution. Remove this preview plugin and its marketplace using
-the commands below, then repeat installation with the new marketplace root.
-Check the selected bundle with `--plugin-info` in a new conversation. This also
-refreshes a locally rebuilt preview with the same version. Do not overwrite an
-installed cache or carry forward an old runtime by hand.
+Download and verify the new Release ZIP, then ask Plugin Creator to update the
+existing InferRSI plugin from that archive. Check the selected bundle with
+`--plugin-info` in a new conversation. Do not overwrite an installed cache or
+carry forward an old runtime by hand.
+
+Plugin Creator updates overlay existing files. Ask it to compare the old and new
+runtime manifests and explicitly delete removed runtime/resources while retaining
+the same plugin identity and audience; omitting a file from the ZIP alone does
+not remove its installed copy.
 
 Disable InferRSI in the desktop plugin UI when you want to retain its installation
-but stop loading it. To remove the preview:
-
-```text
-codex plugin remove inferrsi@inferrsi-local
-codex plugin marketplace remove inferrsi-local
-```
-
-For the GitHub preview, substitute `inferrsi@inferrsi-preview` and
-`inferrsi-preview` respectively. With the Windows clone route, update only that
-clone using `git -C "<install-directory>" -c core.longpaths=true pull --ff-only`,
-then reinstall and verify the plugin. A source registered directly as Git can
-instead be refreshed with `codex plugin marketplace upgrade inferrsi-preview`.
-Refresh/reinstall the selected bundle, especially when a preview is rebuilt with
-the same version.
+but stop loading it. To uninstall, remove the selected InferRSI plugin in the
+client's plugin management UI. Existing marketplace-based previews are a separate
+installation: disable/remove them in the client before enabling the ZIP import
+so only one InferRSI entry skill is active.
 
 Removal does not delete target repositories or experiment evidence. The plugin
 registers no MCP server, hooks, daemon or scheduled task.
