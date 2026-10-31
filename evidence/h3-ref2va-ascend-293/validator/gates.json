@@ -1,0 +1,13 @@
+{
+  "width": 1344,
+  "height": 768,
+  "fps": 24,
+  "sample_rate": 32000,
+  "channels": 2,
+  "min_ssim": 0.97,
+  "min_psnr_db": 34.0,
+  "max_lpips": 0.2,
+  "min_audio_spectral_cosine": 0.8,
+  "min_audio_rms_ratio": 0.5,
+  "max_audio_rms_ratio": 2.0
+}
