@@ -105,7 +105,7 @@ def test_deleted_and_unmapped_skill_changes_are_visible_not_passed(tmp_path):
     assert plan["comparisons"] == [] and plan["estimated_calls"] == 0
     assert {c["coverage"] for c in plan["coverage"]} == {"uncovered", "unsupported"}
     body = integration.summary(plan, [], "https://github.com/example/fixture/actions/runs/1", 10, 1)
-    assert "uncovered" in body and "unsupported" in body and '"fix":0' in body
+    assert "uncovered" in body and "unsupported" in body and "Outcomes:" not in body
     with pytest.raises(ValueError, match="No supported comparisons"):
         approval(plan)
 
@@ -483,6 +483,11 @@ def test_workflow_separates_execution_and_publication_credentials():
         checkout = next(step for step in job["steps"] if step.get("uses") == "actions/checkout@v4")
         assert checkout["with"]["persist-credentials"] is False
         assert checkout["with"]["ref"] == "${{ github.workflow_sha }}"
+    # Plan identities must not depend on a source ancestor missing only in one job.
+    for name in ("plan", "publish"):
+        checkout = next(s for s in workflow["jobs"][name]["steps"]
+                        if s.get("uses") == "actions/checkout@v4")
+        assert checkout["with"]["fetch-depth"] == 0
     step = next(s for s in executor["steps"] if "control --output" in s.get("run", ""))
     assert set(step["env"]) == {"GITHUB_TOKEN", "SKILL_EVAL_YIBUAPI_KEY"}
 
