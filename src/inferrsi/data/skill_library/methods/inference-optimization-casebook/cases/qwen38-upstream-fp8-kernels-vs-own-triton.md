@@ -34,3 +34,14 @@ engine environment. The M=1 numbers are microbenchmarks, not end-to-end decode.
 
 Limitations: single-card microbenchmarks; end-to-end prefill was measured
 separately; upstream versions may change both the numbers and the licensing.
+
+Retained records: the 2.8 / 273 / 279 TFLOPS table, 3273 GB/s at M=1, the 280
+TFLOPS go line, the 2.5% shortfall, the placeholder package and the torch pin
+are Issue #67 comment 6336720892 (body sha256
+`37b84900b48fc5da201792c280519969514d2bbed0afe75a3c4ef56329077201`). 2.8 TFLOPS
+at M=8192 and the 145 s prefill are also in
+[nano-vllm pull request 3](https://github.com/jiangkuaixue123/nano-vllm/pull/3)
+(body sha256 `172d437e2772a4e5aefff1f9a03a4fd381f6b11e0c12e0821eb2541c5c568c34`);
+the same day's ledger withdraws 145.3 s because it includes first-call JIT.
+Comment 6336567189 records 279 against the 280 line. The located ledger does
+not contain an abandon-below-250 threshold.

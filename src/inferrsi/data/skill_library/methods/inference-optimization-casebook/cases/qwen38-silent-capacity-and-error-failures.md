@@ -26,3 +26,14 @@ device. The third row is specific to bucketed graph execution.
 
 Limitations: observed on one engine and one card; the exact fallback behaviour
 past capacity was not characterised beyond "generation failed".
+
+Retained records: the empty-log handler is `nanovllm/qwen38/server.py` at
+`f2d1adc96a7e25e2e61425f5fa97a8f7a7225e77`. `graph_headroom = 256` is
+`nanovllm/qwen38/runner.py` at `3f7516a7b4a2c0a34871a453c294bc23b1b6c67c`.
+[nano-vllm pull request 8](https://github.com/jiangkuaixue123/nano-vllm/pull/8)
+(body sha256 `b4c5b6c2c3681976df2ccc7ea41c9b5c245aa0769d2c82e91e26f4eca8cc1684`)
+records a streamed error reported as success and job 1951 failing after 876
+tokens. Prompt+256 headroom on an 8192-input/2048-output request is retained in
+`evidence/qwen38-h20-fp8-single-request-vllm032/results/full-context-graph/preparation.md`
+at `d5e17195280249cd0bbd5ef87d79d8654cce7056`. The literal index 993 is not in
+those artifacts.

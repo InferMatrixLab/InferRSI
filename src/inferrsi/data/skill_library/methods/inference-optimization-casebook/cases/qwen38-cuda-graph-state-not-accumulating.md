@@ -32,3 +32,12 @@ Limitations: observed on one H20-3e card with one workload; no concurrency and
 no cross-device qualification. The configuration was recorded as INCONCLUSIVE
 for acceptance purposes because the measurement that exposed it happened after
 the timing run.
+
+Retained records: the 0.70 gap is Issue #67 comment 6337245823 (body sha256
+`de68a42eb35593b850c63e9bdc29f6896775d8f15fa34fdc8f8be8a6866a7f3f`). Comment
+6331682106 names `store:case.qwen38-graph-state-not-accumulating-cand` and a
+tiny-fixture bitwise pass (body sha256
+`9f7d7085e4d4508712fa5f5a1022111092ad897703663c697773e20bcccd0663`); it does not
+contain the literal `0.00e+00`, and prefix `5c7700d` is not a public commit.
+The in-place buffers and dedicated capture pool are `nanovllm/qwen38/graph.py`
+at `3f7516a7b4a2c0a34871a453c294bc23b1b6c67c`.
