@@ -18,8 +18,12 @@ timing; it is not a profiler-derived inference speedup.
 
 Validation: 116 DLO CPU tests and all applicable pre-commit hooks passed. The
 separate NPU smoke uses a detached worktree at the executable candidate revision.
-Actual NPU lifecycle validation is pending. No inference-latency benefit is
-claimed for this change.
+The [NPU smoke](../results/shutdown-fixed-smoke.json) generated valid media and
+no longer sampled rank-local reconstruction during teardown. Rank zero disabled
+DLO immediately and completed its worker cleanup callback about three seconds
+later, but processes still required termination: later stacks were in CANN
+runtime shutdown while peers finished audio decode. Full lifecycle remains
+INCONCLUSIVE. No inference-latency benefit is claimed for this change.
 
 ## Request-owned Cache-DiT summaries
 
@@ -40,3 +44,22 @@ declared a writable target-device attribute while its sole production subclass
 implemented a read-only property. The same error was reproduced on the frozen
 baseline. Declaring the mixin contract as a read-only abstract property fixes
 the check without changing the runner's device selection.
+
+## Decode one waveform across inference ranks
+
+Candidate `0a766ab59d8f7a31b71de24fb415335e58ae7854` changes full-tensor H3 decode
+to run the non-collective audio VAE on rank zero and broadcast its waveform.
+It uses the existing H3 rank-zero exception broadcast before transferring the
+tensor, so a failed owner does not leave peers waiting for waveform data.
+The chunked MP4 path is unchanged.
+
+Source: this campaign's per-rank decode profiles and H3's existing reference
+encoding/error/tensor broadcast pattern. This is a new campaign implementation,
+not imported Cache-DiT work. The prior path ran the same audio VAE on every rank;
+the first-request peer lag was visible after the reply owner had returned.
+
+The regression failed on the peer rank before the change. The 28 offload tests
+pass afterward, and a real two-process CPU Gloo test passes both exact waveform
+delivery and owner-exception propagation. Applicable commit hooks pass. The
+code reduces decoder invocations from eight to one in the target topology;
+actual NPU latency, quality and process-exit benefits are still pending.
