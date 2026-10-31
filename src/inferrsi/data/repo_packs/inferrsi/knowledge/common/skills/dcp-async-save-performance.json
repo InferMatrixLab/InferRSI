@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json",
@@ -41,7 +41,7 @@
   "checkout_ref": "checkout:dcp-async-save-performance",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md": "645139ee0c88ec865cad952e24cda35f4648d4b777b732c9b7d274b6c7830845",
-    "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json": "db7ad368394ccbfdeff6a16e3423c300d51305b1f95ff5c3936df91738a8cc35",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/metadata.json": "49764fa454403fb38891d82ee63de1e07a90d3ff6a3cd28550aee7ea34cbdcb0",
     "src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/references/sources.md": "22afe4f4d77f441096cc657d55d763473bfcbea8fb531c8e493fe49ab84955f7",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -71,12 +71,33 @@
     "provenance_readsets": [
       "references/sources.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Source-supported diagnosis of training-visible PyTorch DCP save pauses, snapshot/staging/upload lifetimes and bounded CPU staging-buffer reuse; distributed recovery validity and backend durability need separate evidence.",
+      "prerequisites": "Known correspondence between the installed PyTorch API and source/version notes, identified checkpointed-state mutation boundaries and an initial one-outstanding-save policy before overlap is considered.",
+      "input_contract": "Installed PyTorch revision, stager, storage writer and thread/process executor, checkpoint contents, ranks per host and state-mutation boundaries; performance assessment needs caller/staging/upload waits and host/resource observations.",
+      "produced_artifact": "A completion/lifetime diagnosis and smallest justified staging/cache/backpressure lever, with separate caller-pause, staging, upload and step-time measurements proposed for authorized validation.",
+      "failure_modes": "Mutating source state before staging completes, overwriting cached snapshots before prior upload completes, ignoring caller-side state_dict work or treating async return as durability can corrupt the snapshot or misstate the pause.",
+      "refusal_point": "Reject staging overlap that races checkpointed-state mutation; do not infer backend durability from asynchronous return or writer completion."
+    },
+    "recommendations": [
+      "Place the staging wait before the earliest mutation of any checkpointed state, including forward-mutated buffers rather than only optimizer.step.",
+      "Wait for the previous upload before reusing a stager's CPU storage; observe the final upload before closing caller-owned staging resources.",
+      "Measure checkpoint and intervening steps with the same state/cadence, retaining first-use and cached-buffer costs plus per-host memory and I/O pressure."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Source-supported diagnosis of training-visible PyTorch DCP save pauses, snapshot/staging/upload lifetimes and bounded CPU staging-buffer reuse; distributed recovery validity and backend durability need separate evidence.",
+    "prerequisites": "Known correspondence between the installed PyTorch API and source/version notes, identified checkpointed-state mutation boundaries and an initial one-outstanding-save policy before overlap is considered.",
+    "input_contract": "Installed PyTorch revision, stager, storage writer and thread/process executor, checkpoint contents, ranks per host and state-mutation boundaries; performance assessment needs caller/staging/upload waits and host/resource observations.",
+    "produced_artifact": "A completion/lifetime diagnosis and smallest justified staging/cache/backpressure lever, with separate caller-pause, staging, upload and step-time measurements proposed for authorized validation.",
+    "failure_modes": "Mutating source state before staging completes, overwriting cached snapshots before prior upload completes, ignoring caller-side state_dict work or treating async return as durability can corrupt the snapshot or misstate the pause.",
+    "refusal_point": "Reject staging overlap that races checkpointed-state mutation; do not infer backend durability from asynchronous return or writer completion."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Place the staging wait before the earliest mutation of any checkpointed state, including forward-mutated buffers rather than only optimizer.step.",
+    "Wait for the previous upload before reusing a stager's CPU storage; observe the final upload before closing caller-owned staging resources.",
+    "Measure checkpoint and intervening steps with the same state/cadence, retaining first-use and cached-buffer costs plus per-host memory and I/O pressure."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

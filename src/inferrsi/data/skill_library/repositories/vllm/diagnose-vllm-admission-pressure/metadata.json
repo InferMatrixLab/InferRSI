@@ -33,5 +33,18 @@
     "references/papers-20261015/references/orca-readset.md",
     "references/source-notes.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Pinned vLLM V1 branch-based diagnosis of queued requests, low scheduled-token counts and KV-pressure preemption, separating admission/token/input/allocation/connector-wait constraints.",
+    "prerequisites": "The deployed scheduler must be mapped to the pinned branches, with effective configuration and a bounded request/step trace; another revision requires re-establishing that correspondence.",
+    "input_contract": "Deployed revision, scheduler class/configuration, connector role, KV layout, policy and speculative/encoder/concurrent-batch features; per-step queues, tokens, both budgets, allocation results, victims, transfer/free state and timing.",
+    "produced_artifact": "A per-step accounting ledger, observed limiting branch and competing explanation, missing instrumentation and one conditional configuration/progress hypothesis with predicted effects and trade-offs.",
+    "failure_modes": "Inferring memory exhaustion from a queue or high KV usage, conflating token/input budgets, ignoring pending frees or reading async token accounting as load completion can attribute admission stalls to the wrong branch.",
+    "refusal_point": "When required state is missing, leave the diagnosis unresolved and request the smallest trace; escalate allocation or connector behavior outside the readset and stop before live mutation or performance claims."
+  },
+  "recommendations": [
+    "Trace the first actual blocking or skip branch and record running versus admission caps and token versus input budgets separately.",
+    "Inspect deferred frees and request-free eligibility before blaming preemption victim selection, then reconcile restored budgets for an already-scheduled victim.",
+    "Reconstruct waiting admission independently, including queue precedence and async prefix states; change no setting without a branch-specific hypothesis."
+  ]
 }

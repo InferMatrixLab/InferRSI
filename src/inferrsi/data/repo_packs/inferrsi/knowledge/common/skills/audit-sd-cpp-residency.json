@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE",
         "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md",
@@ -49,7 +49,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/LICENSE": "b53fa08f515cb5a6fff7b9fd8fcd0961a4b80df29d74372d25e1f9171aa042ee",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/SKILL.md": "4c04d39812fb566e3ecb5807c170d5c32848eb2b93a1f0fedcf66ba9a9c92860",
-    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json": "13ab6d874c4e3135be80ef7c3cb6bfd28fb9121012e0536831ec3705ccb8c5eb",
+    "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/metadata.json": "412c649b16526038ee0299f8b2a610bb7f120eaab25cd83575809fe03b604b2e",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/loader-storage-boundaries.md": "c1ec047aa37fca6b374f9bfd750e8f30d45af1d48fe728db23873c0b84ad94e8",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/phase-residency.md": "7b537cb972347dd68e303960f142892346d8b19b884e4d08016ea36a23bdaa7a",
     "src/inferrsi/data/skill_library/repositories/stable-diffusion-cpp/audit-sd-cpp-residency/references/source-identity.json": "af4830370b6eddc2d176a9ae14da4ab56a90b0fe048a01a89ee051df4365d8e9",
@@ -117,7 +117,12 @@
       }
     ],
     "applicability": {
-      "scope": "Source-grounded audit of native image-generation weight/runtime residency, optional segment prefetch and bounded non-ZIP safetensors catalog/read/staging ownership; confirm the actual source, GGML, backend, model and executing path independently."
+      "scope": "Source-grounded audit of native image-generation weight/runtime residency, optional segment prefetch and bounded non-ZIP safetensors catalog/read/staging ownership; confirm the actual source, GGML, backend, model and executing path independently.",
+      "prerequisites": "Access to the pinned source/storage boundaries and evidence of the actual image runner/backend dispatch; native capacity or prefetch checks require matching GGML, model and backend resources.",
+      "input_contract": "Runtime/GGML revisions and selection, compiled/loaded backends and devices, model/components and numerical image settings, effective memory/prefetch/placement settings and actual dispatch; retain available phase allocations, cache/workspace, transfer events and completed-image counts.",
+      "produced_artifact": "A phase-by-runner/backend/device ownership table for stored and resident weights, retained runtime, pending allocations, pin/prefetch ownership and release/eviction, with one discriminating check and its actual status.",
+      "failure_modes": "Treating max_vram as proof of segmentation, unpin as physical freeing, or configured prefetch as completed useful overlap can misidentify the capacity cause; missing observations cannot be read as zero.",
+      "refusal_point": "Stop when the cause is resolved or matching GGML/model/backend resources are unavailable; invoking this audit does not authorize dependency installation, model downloads, policy changes or device provisioning."
     },
     "limitations": [
       "Source-derived candidate; native inference, allocator behavior, image quality and performance were not run.",
@@ -132,14 +137,25 @@
       "references/source-notes.md",
       "references/loader-storage-boundaries.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Separate parameter storage, compute-resident weights, retained workspace/output caches and pending allocations for each runner and phase.",
+      "Verify the actual monolithic, segmented or multi-device path before interpreting a memory budget or prefetch setting.",
+      "For a policy comparison, hold model, inputs, numerical settings and device fixed; check completed images and quality before latency, and separate startup, first and warm requests."
+    ]
   },
   "applicability": {
-    "scope": "Source-grounded audit of native image-generation weight/runtime residency, optional segment prefetch and bounded non-ZIP safetensors catalog/read/staging ownership; confirm the actual source, GGML, backend, model and executing path independently."
+    "scope": "Source-grounded audit of native image-generation weight/runtime residency, optional segment prefetch and bounded non-ZIP safetensors catalog/read/staging ownership; confirm the actual source, GGML, backend, model and executing path independently.",
+    "prerequisites": "Access to the pinned source/storage boundaries and evidence of the actual image runner/backend dispatch; native capacity or prefetch checks require matching GGML, model and backend resources.",
+    "input_contract": "Runtime/GGML revisions and selection, compiled/loaded backends and devices, model/components and numerical image settings, effective memory/prefetch/placement settings and actual dispatch; retain available phase allocations, cache/workspace, transfer events and completed-image counts.",
+    "produced_artifact": "A phase-by-runner/backend/device ownership table for stored and resident weights, retained runtime, pending allocations, pin/prefetch ownership and release/eviction, with one discriminating check and its actual status.",
+    "failure_modes": "Treating max_vram as proof of segmentation, unpin as physical freeing, or configured prefetch as completed useful overlap can misidentify the capacity cause; missing observations cannot be read as zero.",
+    "refusal_point": "Stop when the cause is resolved or matching GGML/model/backend resources are unavailable; invoking this audit does not authorize dependency installation, model downloads, policy changes or device provisioning."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Separate parameter storage, compute-resident weights, retained workspace/output caches and pending allocations for each runner and phase.",
+    "Verify the actual monolithic, segmented or multi-device path before interpreting a memory budget or prefetch setting.",
+    "For a policy comparison, hold model, inputs, numerical settings and device fixed; check completed images and quality before latency, and separate startup, first and warm requests."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm-metal/LICENSE",
         "src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
@@ -65,7 +65,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/vllm-metal/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
     "src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md": "5f83b1b989e8dc239a6f34a6b3bd63872533ecc1404483a69dabfb1865648439",
-    "src/inferrsi/data/skill_library/repositories/vllm-metal/metadata.json": "63d51d1ace6b0ba503c28751a8ffbf9224038395f4146a94c775c628d8075470",
+    "src/inferrsi/data/skill_library/repositories/vllm-metal/metadata.json": "55652ec6de744d92044951e25ea89aa18c92b14846dd4b597444d773bb8c31e3",
     "src/inferrsi/data/skill_library/repositories/vllm-metal/references/repo-provenance.md": "970bda4d1081704aa82c94d6544a98bbf479430c4fc2c82a1a82f206043aa72a",
     "src/inferrsi/data/skill_library/repositories/vllm-metal/references/repo-routing-metadata.json": "230a2b383bcf2855af4de50374c41f11b0b0841268ae45e424c1c97f679b477a",
     "src/inferrsi/data/skill_library/repositories/vllm-metal/references/scope-and-notices.md": "aaef98eaea4cff56f39852e1d131163ebc01334e79034b1890f67a2660727d3e",
@@ -185,7 +185,11 @@
       "method": "Stable-ID manual author sequencing plus bounded cache author lane; integrated graph followed by assertion/helper/static and selected pure Python source tests; Apple native blocks retained."
     },
     "applicability": {
-      "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification."
+      "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification.",
+      "prerequisites": "Access to the plugin-specific platform/ABI, cache-lifecycle and qualification contracts; actual engine changes require separate authority, resource ownership, frozen gates and cleanup, with a supported artifact pairing.",
+      "input_contract": "Source/package/runtime/native artifact identities, Python/OS/chip/device, backend/executor, checkpoint/tokenizer/draft identities, format/dtype, effective feature flags and workload.",
+      "produced_artifact": "An identity/route/invariant report with actual safe-check result, counter-signal and next authorized native check; partial CPU evidence stays separate from unverified transfers, sleep/wake, model and HTTP outcomes.",
+      "failure_modes": "Using lazy import success as native registration or ABI evidence, treating a feature switch as dispatch, or conflating cache capacity with physical residency and kernel time with HTTP time can overstate plugin behavior."
     },
     "limitations": [
       "BLOCKED_REQUIRED_BACKEND: actual Apple MLX/Metal and MPS kernels/model loading, cache transfers/sleep/wake and real worker dispatch are not verified.",
@@ -198,14 +202,24 @@
       "references/repo-provenance.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Resolve platform registration, backend/runner and native ABI pairing before capacity tuning; a package visibility check establishes only its reported software facts.",
+      "Keep MLX and MPS, full-attention and recurrent state, logical cache capacity and physical residency as separate contracts.",
+      "Preserve failed paths and distinguish parser/API checks from real transfers, sleep/wake, model output and HTTP performance evidence."
+    ]
   },
   "applicability": {
-    "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification."
+    "scope": "Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch evidence investigation. Common catalog scope does not certify CPU inference or cross-backend qualification.",
+    "prerequisites": "Access to the plugin-specific platform/ABI, cache-lifecycle and qualification contracts; actual engine changes require separate authority, resource ownership, frozen gates and cleanup, with a supported artifact pairing.",
+    "input_contract": "Source/package/runtime/native artifact identities, Python/OS/chip/device, backend/executor, checkpoint/tokenizer/draft identities, format/dtype, effective feature flags and workload.",
+    "produced_artifact": "An identity/route/invariant report with actual safe-check result, counter-signal and next authorized native check; partial CPU evidence stays separate from unverified transfers, sleep/wake, model and HTTP outcomes.",
+    "failure_modes": "Using lazy import success as native registration or ABI evidence, treating a feature switch as dispatch, or conflating cache capacity with physical residency and kernel time with HTTP time can overstate plugin behavior."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Resolve platform registration, backend/runner and native ABI pairing before capacity tuning; a package visibility check establishes only its reported software facts.",
+    "Keep MLX and MPS, full-attention and recurrent state, logical cache capacity and physical residency as separate contracts.",
+    "Preserve failed paths and distinguish parser/API checks from real transfers, sleep/wake, model output and HTTP performance evidence."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

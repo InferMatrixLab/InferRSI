@@ -92,7 +92,7 @@ jobs:
         run: |
           env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \
             /usr/bin/python3 -m tools.qualify_kv_edit_actor \
-            --plan evidence/kv-actor-qualification-20261030/plan/qualification-plan.json \
+            --plan evidence/kv-actor-qualification-20261031/plan/qualification-plan.json \
             --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/kv-actor-qualification"
       - name: Retain separate scripted actor receipt including failures
         if: always()

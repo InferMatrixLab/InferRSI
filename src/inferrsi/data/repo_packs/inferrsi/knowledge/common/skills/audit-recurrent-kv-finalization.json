@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/LICENSE",
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
@@ -48,7 +48,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md": "a468d75f25e77b96e6fb5376692f7a89c0464cc00d4df035f1dc6cc923f713cc",
-    "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/metadata.json": "db0b4593d7a6fbb898fdf11a1710b529abbade847ea57319843669b375b68fc8",
+    "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/metadata.json": "dfd605f8f31740565063fad0785dea3e7751b8deea4d43e1a66ca30d92ae901f",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/NOTICE.md": "cca794656897ecdc37f983f7f23c4cd12306dbe3c9cd2f54fece6340753ae4cf",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-identity.json": "5e52db0a0bda4673b9aac46a3fc035b824780def72921fee6796edb2ed9fca65",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-notes.md": "0956f59cd9a1fac27da53228dd60c51a07b87639a43c09bfab296c4aeeceaab9",
@@ -112,7 +112,12 @@
       }
     ],
     "applicability": {
-      "scope": "Pinned vLLM-RLT native Ouro synchronous scheduling with host KVMetadata: LAST_EXITED propagation versus SHARED, later depth-specific Torch-reference attention and normal release/wait/free order. No speculation, connector, preemption, prefix sharing, split/packed prefill or graph/static-buffer path qualification."
+      "scope": "Pinned vLLM-RLT native Ouro synchronous scheduling with host KVMetadata: LAST_EXITED propagation versus SHARED, later depth-specific Torch-reference attention and normal release/wait/free order. No speculation, connector, preemption, prefix sharing, split/packed prefill or graph/static-buffer path qualification.",
+      "prerequisites": "The selected native Ouro synchronous path uses host KVMetadata, no speculation/connector/preemption, atomic prefill and disabled graph/static-buffer/packed-prefill paths; changed execution conditions need a new bounded check.",
+      "input_contract": "Repository revision, model/configuration, recurrent-layer set, loop count, cache layout and block size, dtype/device, attention backend and effective flags, plus the traced token/depth/layer and its next consumer.",
+      "produced_artifact": "A bounded token/finalization/consumer/retirement trace separating source call order, observed data and written validity, completion evidence and remaining native model/backend/performance gaps.",
+      "failure_modes": "Substituting mark_finalized for K/V propagation, accepting allocated pages as a complete written prefix, applying LAST_EXITED copy expectations to SHARED, or treating event recording as completion can invalidate the ownership diagnosis.",
+      "refusal_point": "On a failed prerequisite or complete-prefix check, retain the first failing token/depth/layer and trace the missing operation. Stop the conclusion when flags or metadata ownership leave the selected path."
     },
     "limitations": [
       "Source-derived candidate; native CPU/CUDA, model correctness/quality, performance and agent efficacy are not validated.",
@@ -123,14 +128,25 @@
       "references/source-notes.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Distinguish copied K/V values, logical written positions and allocated capacity; follow the later depth-specific attention consumer.",
+      "Preserve executed shallower values during LAST_EXITED propagation and use SHARED as a separate one-plane control.",
+      "Follow the latest request event through runner release before scheduler cache release; page reuse is not evidence of erased old bytes."
+    ]
   },
   "applicability": {
-    "scope": "Pinned vLLM-RLT native Ouro synchronous scheduling with host KVMetadata: LAST_EXITED propagation versus SHARED, later depth-specific Torch-reference attention and normal release/wait/free order. No speculation, connector, preemption, prefix sharing, split/packed prefill or graph/static-buffer path qualification."
+    "scope": "Pinned vLLM-RLT native Ouro synchronous scheduling with host KVMetadata: LAST_EXITED propagation versus SHARED, later depth-specific Torch-reference attention and normal release/wait/free order. No speculation, connector, preemption, prefix sharing, split/packed prefill or graph/static-buffer path qualification.",
+    "prerequisites": "The selected native Ouro synchronous path uses host KVMetadata, no speculation/connector/preemption, atomic prefill and disabled graph/static-buffer/packed-prefill paths; changed execution conditions need a new bounded check.",
+    "input_contract": "Repository revision, model/configuration, recurrent-layer set, loop count, cache layout and block size, dtype/device, attention backend and effective flags, plus the traced token/depth/layer and its next consumer.",
+    "produced_artifact": "A bounded token/finalization/consumer/retirement trace separating source call order, observed data and written validity, completion evidence and remaining native model/backend/performance gaps.",
+    "failure_modes": "Substituting mark_finalized for K/V propagation, accepting allocated pages as a complete written prefix, applying LAST_EXITED copy expectations to SHARED, or treating event recording as completion can invalidate the ownership diagnosis.",
+    "refusal_point": "On a failed prerequisite or complete-prefix check, retain the first failing token/depth/layer and trace the missing operation. Stop the conclusion when flags or metadata ownership leave the selected path."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Distinguish copied K/V values, logical written positions and allocated capacity; follow the later depth-specific attention consumer.",
+    "Preserve executed shallower values during LAST_EXITED propagation and use SHARED as a separate one-plane control.",
+    "Follow the latest request event through runner release before scheduler cache release; page reuse is not evidence of erased old bytes."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

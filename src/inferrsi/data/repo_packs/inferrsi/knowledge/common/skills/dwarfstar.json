@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/dwarfstar/LICENSE",
         "src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
@@ -57,7 +57,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/dwarfstar/LICENSE": "4a8a1358f5b048627d71e4988de0bafd386f4988991929629e6cb9e29b7b9b2f",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md": "a04a252ecdcd4710a3273595f4bd1f3eb8e24d5bb1bfe005f058a78388254dc9",
-    "src/inferrsi/data/skill_library/repositories/dwarfstar/metadata.json": "e1f0c2dc3d7ea9278039c2e8c3e8ca4f8e3aba33504b7784d628e903f0b5fc8c",
+    "src/inferrsi/data/skill_library/repositories/dwarfstar/metadata.json": "c883f6bc05e585f072cf03f734b7a296a65842c7921d3afcfe89e1977405fbd2",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/references/repo-provenance.md": "7d72f9c85ee60fe003f5f5a585b52e9989ebcedca625b584fa39a976d4433998",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/references/repo-routing-metadata.json": "8e195b420b67151932af5f435c284f49677cc7863e650c83cfa9e762fd00db0b",
     "src/inferrsi/data/skill_library/repositories/dwarfstar/references/source-identity.json": "a38fe07d003accd83b7626d7e189f7b49b4b73e7a223e4d441b0e33add5d9c91",
@@ -154,7 +154,12 @@
       "method": "User-approved native C adaptation and partial drafting; manual stable-ID subskill orchestration and integrated create/verify stages. Required-backend blocks disable automatic admission."
     },
     "applicability": {
-      "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification."
+      "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification.",
+      "prerequisites": "Access to the pinned native-source contract and relevant memory/state/qualification route; native verification needs a compatible build, matching hardware/weights and task-specific execution authority.",
+      "input_contract": "Engine revision/patches, actual model artifact/representation, selected backend/build and topology, memory/storage budget, context/chunk/session count, image inputs, sampling/speculation policy, cache state and quality/service requirements.",
+      "produced_artifact": "A bounded executing-tuple report with observed signal, source-backed mechanism, alternate explanation, proposed falsifier, actual check outcome and unresolved backend/model/service gap.",
+      "failure_modes": "Inferring model support from flags, aliases, file mapping or quantization names can select the wrong graph; treating CPU bookkeeping or parser checks as native backend/service qualification can overstate the result.",
+      "refusal_point": "Stop at unavailable hardware/weights, unsafe exposure or the authorized budget; retain memory-guard refusals rather than disabling the guard to claim fit."
     },
     "limitations": [
       "Metal/CUDA/ROCm inference, actual model output, SSD runtime I/O, GPU recurrent rollback, physical distributed behavior, service quality/performance and skill efficacy remain unverified.",
@@ -166,14 +171,25 @@
       "references/repo-provenance.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Choose the memory, serving-state or qualification route by the observed symptom and identify the owner, validity key and release/rollback boundary.",
+      "Freeze comparison controls, test the smallest invariant first and retain fallback messages, cancellations, refusals and unavailable fixtures.",
+      "Base model support on the actual loaded artifact and graph; use native backend evidence for model, tensor-parallel or service conclusions."
+    ]
   },
   "applicability": {
-    "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification."
+    "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification.",
+    "prerequisites": "Access to the pinned native-source contract and relevant memory/state/qualification route; native verification needs a compatible build, matching hardware/weights and task-specific execution authority.",
+    "input_contract": "Engine revision/patches, actual model artifact/representation, selected backend/build and topology, memory/storage budget, context/chunk/session count, image inputs, sampling/speculation policy, cache state and quality/service requirements.",
+    "produced_artifact": "A bounded executing-tuple report with observed signal, source-backed mechanism, alternate explanation, proposed falsifier, actual check outcome and unresolved backend/model/service gap.",
+    "failure_modes": "Inferring model support from flags, aliases, file mapping or quantization names can select the wrong graph; treating CPU bookkeeping or parser checks as native backend/service qualification can overstate the result.",
+    "refusal_point": "Stop at unavailable hardware/weights, unsafe exposure or the authorized budget; retain memory-guard refusals rather than disabling the guard to claim fit."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Choose the memory, serving-state or qualification route by the observed symptom and identify the owner, validity key and release/rollback boundary.",
+    "Freeze comparison controls, test the smallest invariant first and retain fallback messages, cancellations, refusals and unavailable fixtures.",
+    "Base model support on the actual loaded artifact and graph; use native backend evidence for model, tensor-parallel or service conclusions."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

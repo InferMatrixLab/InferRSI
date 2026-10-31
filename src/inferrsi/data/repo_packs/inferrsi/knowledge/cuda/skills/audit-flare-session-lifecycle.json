@@ -29,8 +29,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/LICENSE",
         "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md",
@@ -52,7 +52,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/SKILL.md": "02a5f7c18e44201215ecec17c6ac96b27be9148bcc189df287f39d1b372b7721",
-    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/metadata.json": "58716737446f46bd1de77aa323c5652f97277d44dd952c82b42399b2cb769b87",
+    "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/metadata.json": "9c667c7735ebe4fb07247e098218f6b03a1c1fafa776f1372f8d948ea8ea756b",
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/diagnostics.md": "0908a0eae53a2e10775a8b6ee3e3944b2fa410174402b5a1a8c98eb674dd4b4d",
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/lifecycle.md": "107ebe3c22e5dba8007c3b8ea61149f10bc55c51b557a4230f3e5de859bb0f7c",
     "src/inferrsi/data/skill_library/repositories/flare-local-inference/audit-flare-session-lifecycle/references/source-ledger.json": "61e51a97ffd7c1fa7866bdd440b024d0c5e0065635ac8d0ba53d2c69c7f9e470",
@@ -126,7 +126,12 @@
       "method": "AREX scope/ground/construct/verify and repository evidence/usability methods adapted to InferRSI native owners and packaging; no DisCo runtime or managed import."
     },
     "applicability": {
-      "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification."
+      "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification.",
+      "prerequisites": "Access to package/source identity and bounded restore traces, with preparation compatibility established before cache-state diagnosis. Running, freeing resources or changing configuration requires separate authority.",
+      "input_contract": "Execution ABI and prepared-contract version, ordinary/speculative configuration, model/layout identity, request IDs and consumed-token endpoints, GPU/host prefixes, continuation row, ticket/waiter identities, transfer events, fences and resource counts.",
+      "produced_artifact": "A checkpoint/ticket ownership table, five-outcome admission ledger and diagnosis identifying the earliest unsupported transition and smallest missing observation.",
+      "failure_modes": "A KV-only lookup hit can omit continuation state; admission can be mistaken for actual reuse; client cancellation can be mistaken for transfer completion; mixing absolute timestamps from client and native clocks can corrupt the diagnosis.",
+      "refusal_point": "Stop with an unresolved edge when package identity, layout, transfer completion or clock provenance is unknown."
     },
     "limitations": [
       "Source-only candidate; native Flare/model/GPU/service and skill efficacy were not evaluated.",
@@ -139,14 +144,25 @@
       "references/source-notes.md",
       "references/source-ledger.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Pair the immutable KV parent chain with the complete continuation row at the same consumed-token endpoint before calling a checkpoint restorable.",
+      "Distinguish lookup outcomes, destination reservation, ticket creation, transfer completion, publication and actual reused-token evidence.",
+      "Follow scheduler-owned tickets through waiter cancellation and check write/use fences before allowing storage reuse."
+    ]
   },
   "applicability": {
-    "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification."
+    "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification.",
+    "prerequisites": "Access to package/source identity and bounded restore traces, with preparation compatibility established before cache-state diagnosis. Running, freeing resources or changing configuration requires separate authority.",
+    "input_contract": "Execution ABI and prepared-contract version, ordinary/speculative configuration, model/layout identity, request IDs and consumed-token endpoints, GPU/host prefixes, continuation row, ticket/waiter identities, transfer events, fences and resource counts.",
+    "produced_artifact": "A checkpoint/ticket ownership table, five-outcome admission ledger and diagnosis identifying the earliest unsupported transition and smallest missing observation.",
+    "failure_modes": "A KV-only lookup hit can omit continuation state; admission can be mistaken for actual reuse; client cancellation can be mistaken for transfer completion; mixing absolute timestamps from client and native clocks can corrupt the diagnosis.",
+    "refusal_point": "Stop with an unresolved edge when package identity, layout, transfer completion or clock provenance is unknown."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Pair the immutable KV parent chain with the complete continuation row at the same consumed-token endpoint before calling a checkpoint restorable.",
+    "Distinguish lookup outcomes, destination reservation, ticket creation, transfer completion, publication and actual reused-token evidence.",
+    "Follow scheduler-owned tickets through waiter cancellation and check write/use fences before allowing storage reuse."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

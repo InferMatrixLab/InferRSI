@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE",
         "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md",
@@ -45,7 +45,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/comfy-ui/LICENSE": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/SKILL.md": "c993bd6ff8e9b5f82f39f175ec8242341136e4ee0808af414e1d94ad3e196c5e",
-    "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json": "74742851a002a51c208362cdcd2a59fdab5d1734d8492b1f93fbec3cf21e0841",
+    "src/inferrsi/data/skill_library/repositories/comfy-ui/metadata.json": "81ad1c73b12426e4bf7961889f4b9a1c92739c6be18380402f7866e021cac67b",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/graph-cache-invalidation.md": "614c9a4e6943d24d7d7be7d632682ce8b1dcc239124a37d9dc1d487113772eac",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/model-residency.md": "014c68386e7cdfdb7b4f566836e8b2ff61bd5a5a506e7b4723f83fe80c5d4de7",
     "src/inferrsi/data/skill_library/repositories/comfy-ui/references/repo-provenance.md": "ca996ef515af42a3ce304747fa3f12a31c00533deaace5ba2ce21aefa0a62e2e",
@@ -104,7 +104,12 @@
       }
     ],
     "applicability": {
-      "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer."
+      "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer.",
+      "prerequisites": "Access to the pinned provenance and the actual node registry/cache caller; residency questions additionally require the concrete patcher and effective dynamic/static mode. Native memory conclusions need the actual backend.",
+      "input_contract": "Exact revision, API-format prompt/output targets, relevant node classes/constants/links/hidden inputs and external state, selected cache caller/mode and patcher settings, plus available execution/load/memory/timing observations.",
+      "produced_artifact": "A state/owner/key/lifetime/consumer ledger with invalidation or release events, evidence and unresolved boundaries, followed by a discriminating check and its actual result.",
+      "failure_modes": "Treating identical JSON as proof of unchanged external inputs, confusing eviction with key validity, or equating workflow cache hits with device-resident model weights can explain the wrong state contract.",
+      "refusal_point": "Stop when the cause/action is supported or required environment, backend or model resources are unavailable; do not manufacture a hit, hardware result or performance threshold."
     },
     "limitations": [
       "Source-derived candidate; no local executor-cache, device-residency or performance qualification.",
@@ -114,14 +119,25 @@
     "provenance_readsets": [
       "references/repo-provenance.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Draw the affected dependency cone with declared, lazy and dynamically expanded links, then mark unfingerprinted external state unresolved.",
+      "Separate output/object cache validity and retention from patch identity, partial unload, full detach and allocator-visible release.",
+      "Change one test variable while fixing prompt, output target, model, backend, precision, seed and cache mode; check values and executed nodes before timing."
+    ]
   },
   "applicability": {
-    "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer."
+    "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer.",
+    "prerequisites": "Access to the pinned provenance and the actual node registry/cache caller; residency questions additionally require the concrete patcher and effective dynamic/static mode. Native memory conclusions need the actual backend.",
+    "input_contract": "Exact revision, API-format prompt/output targets, relevant node classes/constants/links/hidden inputs and external state, selected cache caller/mode and patcher settings, plus available execution/load/memory/timing observations.",
+    "produced_artifact": "A state/owner/key/lifetime/consumer ledger with invalidation or release events, evidence and unresolved boundaries, followed by a discriminating check and its actual result.",
+    "failure_modes": "Treating identical JSON as proof of unchanged external inputs, confusing eviction with key validity, or equating workflow cache hits with device-resident model weights can explain the wrong state contract.",
+    "refusal_point": "Stop when the cause/action is supported or required environment, backend or model resources are unavailable; do not manufacture a hit, hardware result or performance threshold."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Draw the affected dependency cone with declared, lazy and dynamically expanded links, then mark unfingerprinted external state unresolved.",
+    "Separate output/object cache validity and retention from patch identity, partial unload, full detach and allocator-visible release.",
+    "Change one test variable while fixing prompt, output target, model, backend, precision, seed and cache mode; check values and executed nodes before timing."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

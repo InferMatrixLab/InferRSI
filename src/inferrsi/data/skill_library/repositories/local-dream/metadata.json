@@ -83,7 +83,11 @@
     }
   ],
   "applicability": {
-    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification.",
+    "prerequisites": "Access to the pinned Android lifecycle/native/packaging contracts and identified installed artifacts; stronger conclusions require an authorized, frozen workload on the actual selected Android/ARM64 backend.",
+    "input_contract": "Source revision, installed APK/version/flavor/ABI, native executable and loaded DiT library, QNN/Hexagon/MNN builds, model/export/weights/tokenizer identities, requested and serving configuration, and lifecycle/readiness/generation/cache observations.",
+    "produced_artifact": "A bounded failed-boundary report with counter-signals, identities observed versus declared, the smallest missing discriminator and retained INCONCLUSIVE native scope.",
+    "failure_modes": "Reading UI flags or equal declared configurations as actual dispatch/readiness, treating cancellation/SSE progress as native completion, or interpreting model-directory caches as authenticated model-revision namespaces can misidentify stale state."
   },
   "limitations": [
     "Source-derived candidate; required Android ARM64/MNN/QNN/Hexagon/model execution BLOCKED_REQUIRED_BACKEND / not_run; qualification INCONCLUSIVE.",
@@ -98,5 +102,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Compare requested and serving model/backend/dimensions/bind address through stop/reopen and health observations; never enable host mode as a diagnostic default.",
+    "Trace the actual MNN/QNN/Anima/DiT path and separate native library/ABI identity from UI runOnCpu flags and declared SDK labels.",
+    "Keep progress, cancellation, native completion, release and saved final output separate; check prompt-cache mode/version/dimensions and textual-inversion caller guards before proposing cache changes."
+  ]
 }

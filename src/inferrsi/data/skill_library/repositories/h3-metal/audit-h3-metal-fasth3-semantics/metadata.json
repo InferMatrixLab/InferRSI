@@ -77,7 +77,12 @@
     "method": "Bounded fork-specific source audit, bundled selected-declaration helper and assertion-backed cases. Native Apple/Metal/model evidence remains blocked; no numerical/performance/skill-efficacy claim."
   },
   "applicability": {
-    "scope": "h3-metal FastH3 requested/effective configuration, checkpoint transformation and schedule/RoPE semantics, VSA prefix/partial tiles and dispatch/fallback audit. Common catalog placement is discovery, not CPU inference or Apple qualification."
+    "scope": "h3-metal FastH3 requested/effective configuration, checkpoint transformation and schedule/RoPE semantics, VSA prefix/partial tiles and dispatch/fallback audit. Common catalog placement is discovery, not CPU inference or Apple qualification.",
+    "prerequisites": "Access to the fork-specific source and semantic contracts; native checks additionally need their matching Metal/model resources and separate execution authority.",
+    "input_contract": "Source revision/patches, requested parameters and explicitly captured environment controls, checkpoint path/key-family/config identity, requested/aligned frames, latent dimensions, packed prefix segments and sparse-pipeline availability or unknown.",
+    "produced_artifact": "A ledger of requested and normalized parameters, ambient overrides, source invariants, counterexamples, observed/unknown facts and the smallest discriminating next check.",
+    "failure_modes": "Ignoring ambient overrides, mixing checkpoint identity switches, using global rather than per-head Q/K/V concatenation, pooling padded boundary rows, or double-adding coarse attention can invalidate the semantic audit.",
+    "refusal_point": "Stop on conflicting configuration, mixed checkpoint identity, missing resources or the authorized boundary; name the missing native test/fixture and leave it blocked/not_run."
   },
   "limitations": [
     "BLOCKED_REQUIRED_BACKEND: native Apple/Metal, actual FastH3 checkpoint/schedule/sparse parity, audio/video quality, target memory fit, performance and service evidence not_run.",
@@ -92,5 +97,10 @@
     "references/source-identity.json",
     "references/repo-provenance.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Record requested parameters, normalized values and later environment overrides separately, including requested versus aligned frame counts.",
+    "Audit checkpoint transformations and schedule consumers beyond tensor names/shapes; tiny permutation fixtures can falsify mappings but do not establish model parity.",
+    "Resolve sparse eligibility and the dense-fine-plus-gated-coarse fallback explicitly; preserve unknown pipeline availability."
+  ]
 }

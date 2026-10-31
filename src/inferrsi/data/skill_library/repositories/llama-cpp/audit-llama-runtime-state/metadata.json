@@ -1,11 +1,20 @@
 {
-  "tags": ["llama.cpp", "context", "state", "graph-reuse", "cancellation", "correctness"],
+  "tags": [
+    "llama.cpp",
+    "context",
+    "state",
+    "graph-reuse",
+    "cancellation",
+    "correctness"
+  ],
   "status": "candidate",
   "empirical_validation": "not_run",
   "profile": "local-skill-v1",
   "schema_version": 1,
   "kind": "skill",
-  "origin": ["external"],
+  "origin": [
+    "external"
+  ],
   "sources": [
     {
       "type": "git",
@@ -36,13 +45,25 @@
     }
   ],
   "applicability": {
-    "scope": "Pinned llama.cpp context-memory, graph-reuse and server task-lifecycle diagnosis; concrete model/backend behavior requires native validation."
+    "scope": "Pinned llama.cpp context-memory, graph-reuse and server task-lifecycle diagnosis; concrete model/backend behavior requires native validation.",
+    "prerequisites": "Pinned llama.cpp source or a concrete runtime trace, access to the relevant memory/graph/server ownership evidence and an identified caller recovery policy that remains in force.",
+    "input_contract": "Source/build and model revisions, memory type, actual backend/device and execution mode, context/batch/ubatch parameters, sequence IDs/positions/output flags and return status; graph cases need dispatch evidence, server cases need correlated HTTP/task/slot/cache logs.",
+    "produced_artifact": "An owner/event ledger of ubatch progress, retained memory, graph-gate decisions, input readiness and slot release/retention, with the first supported broken obligation or smallest missing observation.",
+    "failure_modes": "Assuming whole-batch rollback after partial decode failure, treating token count as a complete graph-reuse key, or equating posted cancellation with released slots can hide retained state or misdiagnose correct deferred work.",
+    "refusal_point": "Stop before reset or repair if revision, memory type, actual backend, sequence ownership or partial progress is unknown; escalate unsupported rollback or unresolved in-flight work."
   },
   "limitations": [
     "Source-derived candidate; native runtime and efficacy validation not run.",
     "No cross-backend preemption, model-quality or performance claim.",
     "KV, recurrent and hybrid state contracts must be checked independently."
   ],
-  "provenance_readsets": ["references/source-notes.md"],
-  "consumption_mode": "packaged"
+  "provenance_readsets": [
+    "references/source-notes.md"
+  ],
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Reconcile per-sequence retained positions with completed ubatches before retrying a failed logical batch.",
+    "Check both graph allow_reuse and input can_reuse gates, then establish copy readiness independently of graph identity.",
+    "Trace cancellation posting, normal task processing, slot release and prompt retention as separate events."
+  ]
 }

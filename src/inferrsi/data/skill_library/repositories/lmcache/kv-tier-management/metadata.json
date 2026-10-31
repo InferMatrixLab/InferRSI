@@ -21,5 +21,17 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "LMCache multiprocess runtime KV tier policy across engine GPU cache, host L1 and configured L2 adapters, covering store/retention, prefetch admission, eviction and RAM pressure; startup loading and checkpoint recovery have separate owners.",
+    "prerequisites": "The deployment uses the inspected MP-mode semantics rather than single-process knobs; selected GDS/DAX/raw-block paths need their own platform and adapter prerequisites. Lazy offload additionally requires vLLM prefix caching.",
+    "input_contract": "MP versus single-process mode, store/retention policy and rationale, L1 manager capacities and eviction settings, L2 adapter capacities/eviction, chunk-size distribution and prefetch in-flight setting, together with token-level hit and pressure counters.",
+    "produced_artifact": "A mode- and adapter-specific tier-policy choice with retention rationale, an ordered RAM-release plan and a verification record separating L1/L2 token hits, prefetch pressure, store lag and per-manager usage.",
+    "failure_modes": "Mixing MP and in-process controls, treating key-count eviction as a byte fraction for unequal chunks, omitting fs capacity management, or increasing count-based prefetch admission without tracking L1 pressure can make the policy or memory claim unusable."
+  },
+  "recommendations": [
+    "Choose store retention and prefetched-key retention separately; use skip_l1 with noop only for buffer-only operation and account for failed stores remaining in L1.",
+    "Tune the count-based prefetch in-flight limit against L1 allocation failures and in-flight bytes; eager or warm prefetch can raise pressure before useful reuse.",
+    "Record per-adapter capacity/eviction and actual chunk-size uniformity; report token-level L1/L2 hits and sum per-l1_tag bytes rather than ratios."
+  ]
 }

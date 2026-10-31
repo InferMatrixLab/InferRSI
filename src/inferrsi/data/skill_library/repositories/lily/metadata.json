@@ -90,7 +90,12 @@
     "method": "User-approved native Rust/Metal and partial drafting adaptation; stable-ID lanes, integrated source graph and assertion/helper verification. Missing compiler/backend/checkpoint remains explicit."
   },
   "applicability": {
-    "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support."
+    "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support.",
+    "prerequisites": "Access to the exact Lily source/model-layout/API contracts; native checks require the matching Rust/Metal/checkpoint environment and frozen comparison requirements.",
+    "input_contract": "Source revision, Cargo lock/toolchain, macOS/chip/GPU family, checkpoint and tensor payload identities, affine configuration/layout, tokenizer/template/stops, sequence/output budgets, greedy policy, input history, prefix-cache state and quality/measurement requirements.",
+    "produced_artifact": "A source/model/device-bound representation, serving-cache or qualification diagnosis with the observation, invariant, alternate cause, smallest falsifier, actual result and remaining native gap.",
+    "failure_modes": "Equal bit width, file size, API names or prompt_cache_key do not establish tensor/token/state equivalence; ignoring the extra lookahead slot can understate request capacity, and green CPU references do not replace matched-model Metal goldens.",
+    "refusal_point": "Stop at unsupported formats/APIs, missing compiler/backend/checkpoint, unfrozen gates or the authorized budget; do not weaken ignored/golden tests to obtain a green result."
   },
   "limitations": [
     "Cargo/Rust1.92, supported M5/macOS26/Metal and model resources are unavailable; native evidence remains BLOCKED_REQUIRED_BACKEND.",
@@ -103,5 +108,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Resolve exact affine representation and strict API semantics, then trace token frontier, cache key and restore/release ownership.",
+    "Retain the source's extra request lookahead slot in capacity arithmetic rather than counting only prompt and visible output.",
+    "Separate reported benchmark version from the checked-out runner and distinguish offline screening, native compilation, Metal operators and matched-model goldens."
+  ]
 }

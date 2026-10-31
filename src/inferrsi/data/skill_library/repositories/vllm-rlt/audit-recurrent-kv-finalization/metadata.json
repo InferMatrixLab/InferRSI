@@ -54,7 +54,12 @@
     }
   ],
   "applicability": {
-    "scope": "Pinned vLLM-RLT native Ouro synchronous scheduling with host KVMetadata: LAST_EXITED propagation versus SHARED, later depth-specific Torch-reference attention and normal release/wait/free order. No speculation, connector, preemption, prefix sharing, split/packed prefill or graph/static-buffer path qualification."
+    "scope": "Pinned vLLM-RLT native Ouro synchronous scheduling with host KVMetadata: LAST_EXITED propagation versus SHARED, later depth-specific Torch-reference attention and normal release/wait/free order. No speculation, connector, preemption, prefix sharing, split/packed prefill or graph/static-buffer path qualification.",
+    "prerequisites": "The selected native Ouro synchronous path uses host KVMetadata, no speculation/connector/preemption, atomic prefill and disabled graph/static-buffer/packed-prefill paths; changed execution conditions need a new bounded check.",
+    "input_contract": "Repository revision, model/configuration, recurrent-layer set, loop count, cache layout and block size, dtype/device, attention backend and effective flags, plus the traced token/depth/layer and its next consumer.",
+    "produced_artifact": "A bounded token/finalization/consumer/retirement trace separating source call order, observed data and written validity, completion evidence and remaining native model/backend/performance gaps.",
+    "failure_modes": "Substituting mark_finalized for K/V propagation, accepting allocated pages as a complete written prefix, applying LAST_EXITED copy expectations to SHARED, or treating event recording as completion can invalidate the ownership diagnosis.",
+    "refusal_point": "On a failed prerequisite or complete-prefix check, retain the first failing token/depth/layer and trace the missing operation. Stop the conclusion when flags or metadata ownership leave the selected path."
   },
   "limitations": [
     "Source-derived candidate; native CPU/CUDA, model correctness/quality, performance and agent efficacy are not validated.",
@@ -65,5 +70,10 @@
     "references/source-notes.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Distinguish copied K/V values, logical written positions and allocated capacity; follow the later depth-specific attention consumer.",
+    "Preserve executed shallower values during LAST_EXITED propagation and use SHARED as a separate one-plane control.",
+    "Follow the latest request event through runner release before scheduler cache release; page reuse is not evidence of erased old bytes."
+  ]
 }

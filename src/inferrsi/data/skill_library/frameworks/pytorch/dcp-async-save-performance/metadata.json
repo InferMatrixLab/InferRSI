@@ -22,5 +22,18 @@
   "provenance_readsets": [
     "references/sources.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Source-supported diagnosis of training-visible PyTorch DCP save pauses, snapshot/staging/upload lifetimes and bounded CPU staging-buffer reuse; distributed recovery validity and backend durability need separate evidence.",
+    "prerequisites": "Known correspondence between the installed PyTorch API and source/version notes, identified checkpointed-state mutation boundaries and an initial one-outstanding-save policy before overlap is considered.",
+    "input_contract": "Installed PyTorch revision, stager, storage writer and thread/process executor, checkpoint contents, ranks per host and state-mutation boundaries; performance assessment needs caller/staging/upload waits and host/resource observations.",
+    "produced_artifact": "A completion/lifetime diagnosis and smallest justified staging/cache/backpressure lever, with separate caller-pause, staging, upload and step-time measurements proposed for authorized validation.",
+    "failure_modes": "Mutating source state before staging completes, overwriting cached snapshots before prior upload completes, ignoring caller-side state_dict work or treating async return as durability can corrupt the snapshot or misstate the pause.",
+    "refusal_point": "Reject staging overlap that races checkpointed-state mutation; do not infer backend durability from asynchronous return or writer completion."
+  },
+  "recommendations": [
+    "Place the staging wait before the earliest mutation of any checkpointed state, including forward-mutated buffers rather than only optimizer.step.",
+    "Wait for the previous upload before reusing a stager's CPU storage; observe the final upload before closing caller-owned staging resources.",
+    "Measure checkpoint and intervening steps with the same state/cadence, retaining first-use and cached-buffer costs plus per-host memory and I/O pressure."
+  ]
 }

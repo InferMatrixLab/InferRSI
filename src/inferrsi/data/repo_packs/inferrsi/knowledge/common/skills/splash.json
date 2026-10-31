@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/splash/LICENSE",
         "src/inferrsi/data/skill_library/repositories/splash/SKILL.md",
@@ -61,7 +61,7 @@
     "src/inferrsi/data/skill_library/repositories/splash/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/repositories/splash/SKILL.md": "619b87c282dcec4befa319085764fb53fa506a05c6a7112500bcca662f059ece",
     "src/inferrsi/data/skill_library/repositories/splash/THIRD_PARTY_NOTICES": "2fedf1277bf732f8435c3e3be2798f52f25f7e2bd4155865cb366da55b88e50b",
-    "src/inferrsi/data/skill_library/repositories/splash/metadata.json": "d4c679f474c31549156aad417e23c2802b9f4bc904472e5cb16916f2996b50ba",
+    "src/inferrsi/data/skill_library/repositories/splash/metadata.json": "9d0613387fdaee61de7e79146e2a896f19ac7f5c1d355f74afe767074f64dd2a",
     "src/inferrsi/data/skill_library/repositories/splash/references/repo-provenance.md": "20e3462f1b6a8752eb0fa6f36e76867f142a49c1953f498f895e29c4fd4f0204",
     "src/inferrsi/data/skill_library/repositories/splash/references/repo-routing-metadata.json": "287ae591f42949b8d33312659ec8303c47d5c73093c64c125edb1cf6ea8de8b9",
     "src/inferrsi/data/skill_library/repositories/splash/references/source-identity.json": "2f778882ec440538a46f48332650412b446722246c8dc5690083f19da7dce61d",
@@ -189,7 +189,12 @@
       "method": "User-approved native Metal/C++ and isolated source-Python adaptation; stable-ID lanes, integrated graph, assertion cases and create/verify stages. Required-backend block disables automatic admission."
     },
     "applicability": {
-      "scope": "Pinned Splash representation, planning, state/serving and verification investigation; common discovery does not qualify a different Mac/model/backend."
+      "scope": "Pinned Splash representation, planning, state/serving and verification investigation; common discovery does not qualify a different Mac/model/backend.",
+      "prerequisites": "Access to the pinned representation/planning, serving-cache or qualification route; native checks need matching Apple/backend/model resources, an authorized workload and frozen semantic/measurement controls.",
+      "input_contract": "Source/build, macOS/device, target and compatible draft artifacts/formats, tokenizer/template/vision selection, context/cache/memory controls, KV/recurrent precision, ANE and verifier-row policy, concurrency/priority/sampling, quality controls and cache state.",
+      "produced_artifact": "An execution-identity report with observation, source-backed invariant, alternate explanation, smallest discriminating check, actual result and unresolved Metal/ANE/model/disk-state gap.",
+      "failure_modes": "Treating an API alias as new weights, equal bit width as loader/kernel compatibility, or a fixed seed as fixed cache/batch/adaptive-verification scheduling can invalidate the comparison; CPU cache/codec checks do not prove GPU state.",
+      "refusal_point": "Stop at unsupported formats, unavailable backend/model resources, unsafe service exposure or the authorized budget."
     },
     "limitations": [
       "Required Metal/ANE/model/actual device and disk-state execution remains BLOCKED_REQUIRED_BACKEND; Python policy/codec checks do not clear it.",
@@ -201,14 +206,25 @@
       "references/repo-provenance.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Resolve representation, memory/cache owner, validity key and reclaim/rollback boundary before tuning a numeric control.",
+      "Freeze semantic and workload controls beyond the seed, and retain actual-path fallbacks, admission waits, evictions, cancellations and errors.",
+      "Inspect options without starting the normal serve path, which can download target/draft weights; installation and serving require separate task authority."
+    ]
   },
   "applicability": {
-    "scope": "Pinned Splash representation, planning, state/serving and verification investigation; common discovery does not qualify a different Mac/model/backend."
+    "scope": "Pinned Splash representation, planning, state/serving and verification investigation; common discovery does not qualify a different Mac/model/backend.",
+    "prerequisites": "Access to the pinned representation/planning, serving-cache or qualification route; native checks need matching Apple/backend/model resources, an authorized workload and frozen semantic/measurement controls.",
+    "input_contract": "Source/build, macOS/device, target and compatible draft artifacts/formats, tokenizer/template/vision selection, context/cache/memory controls, KV/recurrent precision, ANE and verifier-row policy, concurrency/priority/sampling, quality controls and cache state.",
+    "produced_artifact": "An execution-identity report with observation, source-backed invariant, alternate explanation, smallest discriminating check, actual result and unresolved Metal/ANE/model/disk-state gap.",
+    "failure_modes": "Treating an API alias as new weights, equal bit width as loader/kernel compatibility, or a fixed seed as fixed cache/batch/adaptive-verification scheduling can invalidate the comparison; CPU cache/codec checks do not prove GPU state.",
+    "refusal_point": "Stop at unsupported formats, unavailable backend/model resources, unsafe service exposure or the authorized budget."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Resolve representation, memory/cache owner, validity key and reclaim/rollback boundary before tuning a numeric control.",
+    "Freeze semantic and workload controls beyond the seed, and retain actual-path fallbacks, admission waits, evictions, cancellations and errors.",
+    "Inspect options without starting the normal serve path, which can download target/draft weights; installation and serving require separate task authority."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

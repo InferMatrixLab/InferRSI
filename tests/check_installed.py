@@ -293,8 +293,10 @@ research = json.loads(output.getvalue())
 assert research["profile"]["model"] == "MiniMax-H3"
 assert research["target_validation"] == "unverified"
 assert research["target"]["device"] == "M5 Mac Studio"
+framework_first = search_knowledge("mlx", limit=1)[0]["id"]
 assert any(
-    item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+    item["record"]["id"] == framework_first
+    and {"group": "framework", "query": "mlx"} in item["matched_queries"]
     for item in research["items"]
 )
 assert {item["group"] for item in research["queries"]} == {

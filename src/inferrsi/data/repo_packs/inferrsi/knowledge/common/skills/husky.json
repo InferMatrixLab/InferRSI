@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/husky/metadata.json",
@@ -44,7 +44,7 @@
   "checkout_ref": "checkout:husky",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/husky/SKILL.md": "ac86afdabf9adffb684cb635971934438724bdfde8628ec549727ea23c40cf3b",
-    "src/inferrsi/data/skill_library/repositories/husky/metadata.json": "9b720bc6fcb65b6dbddba36d6187b4bee86346a1bc633f55a75bd43dbe4fa04e",
+    "src/inferrsi/data/skill_library/repositories/husky/metadata.json": "b1cb0a5be02d1170125bfc3e16c044b9c1463a611a14d36fac40638524fc2e52",
     "src/inferrsi/data/skill_library/repositories/husky/references/author-report.md": "4c1351ca42b2535a7c03c4da87706040650ef10d86eadcdb496e881a147fc0f7",
     "src/inferrsi/data/skill_library/repositories/husky/references/repo-provenance.md": "37de912e2e2a36b44233560e6a8368b994428bff587ed4f04b1cb5fbaba0a9e7",
     "src/inferrsi/data/skill_library/repositories/husky/references/source-availability.json": "d3523e53c89d4aee5bfaa17db84501aa4c4eddd59bcee486df5d48d3aa48173d",
@@ -105,7 +105,12 @@
       "method": "Single coherent research workflow, bounded source summary, original verification questions and offline schema checks. Repository/environment/native stages remain unavailable."
     },
     "applicability": {
-      "scope": "Review Husky document claims and specify missing evidence; common catalog scope is not inference backend compatibility."
+      "scope": "Review Husky document claims and specify missing evidence; common catalog scope is not inference backend compatibility.",
+      "prerequisites": "Access to the bounded official-document inventory and verification protocol; implementation and native reproduction remain unavailable until separately supplied and authenticated.",
+      "input_contract": "The exact claim, source/view date, workload and comparison intent, supporting evidence classes and available implementation/model/output/measurement artifacts; unknown identity, licensing and availability remain explicit.",
+      "produced_artifact": "A reviewable claim/evidence request recording source availability, mechanism hypothesis, counter-signal, missing identities/artifacts, proposed falsifying check and actual result or bounded INCONCLUSIVE conclusion.",
+      "failure_modes": "Treating a public-page reading as code inspection, proposed extensions as shipped behavior, summed independent ratios as one gain, or a structurally valid self-reported card as authentic evidence can overstate qualification.",
+      "refusal_point": "Stop at missing source/receipts, unsafe or private data, unsupported resources or the authorized budget; unavailable artifacts yield an unverified/INCONCLUSIVE research conclusion."
     },
     "limitations": [
       "No canonical public repository, implementation revision, retained receipts or source-code license was identified; unknowns remain unknown.",
@@ -119,14 +124,25 @@
       "references/repo-provenance.md",
       "references/source-availability.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Separate author reports, inspected implementation, executed experiments and new interpretations, including negative findings and future work.",
+      "Request immutable identities and artifacts, then state one mechanism, competing explanation and smallest ablation with frozen semantic requirements.",
+      "Use the offline card auditor only to identify structural gaps; it authenticates neither artifacts nor execution and leaves qualification unadjudicated."
+    ]
   },
   "applicability": {
-    "scope": "Review Husky document claims and specify missing evidence; common catalog scope is not inference backend compatibility."
+    "scope": "Review Husky document claims and specify missing evidence; common catalog scope is not inference backend compatibility.",
+    "prerequisites": "Access to the bounded official-document inventory and verification protocol; implementation and native reproduction remain unavailable until separately supplied and authenticated.",
+    "input_contract": "The exact claim, source/view date, workload and comparison intent, supporting evidence classes and available implementation/model/output/measurement artifacts; unknown identity, licensing and availability remain explicit.",
+    "produced_artifact": "A reviewable claim/evidence request recording source availability, mechanism hypothesis, counter-signal, missing identities/artifacts, proposed falsifying check and actual result or bounded INCONCLUSIVE conclusion.",
+    "failure_modes": "Treating a public-page reading as code inspection, proposed extensions as shipped behavior, summed independent ratios as one gain, or a structurally valid self-reported card as authentic evidence can overstate qualification.",
+    "refusal_point": "Stop at missing source/receipts, unsafe or private data, unsupported resources or the authorized budget; unavailable artifacts yield an unverified/INCONCLUSIVE research conclusion."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Separate author reports, inspected implementation, executed experiments and new interpretations, including negative findings and future work.",
+    "Request immutable identities and artifacts, then state one mechanism, competing explanation and smallest ablation with frozen semantic requirements.",
+    "Use the offline card auditor only to identify structural gaps; it authenticates neither artifacts nor execution and leaves qualification unadjudicated."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

@@ -31,5 +31,18 @@
   "provenance_readsets": [
     "references/source-notes.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Pinned vLLM V1 scheduler/connector ownership audit for asynchronous KV load/save completion, retained blocks, preemption and failed receives; concrete connector conformance is not established by the interface.",
+    "prerequisites": "A concrete connector and worker/model-runner call trace at identified revisions, with request/block events sufficient to compare actual callers against the pinned scheduler/interface contracts.",
+    "input_contract": "Engine/connector revision and class, producer/consumer roles, KV-group count/block namespace, failure policy, concurrent-batch and graph modes; correlate bounded request IDs with allocation, matched tokens, load/save events, receive failures, preemption, finish and pool return.",
+    "produced_artifact": "An ownership/event ledger and bounded contract-conformance report naming the earliest evidenced broken obligation, owner, affected requests/blocks and smallest missing observation, with a proposed targeted regression check.",
+    "failure_modes": "Equating reserved tokens with usable KV, finished responses with reusable blocks, or send completion with scheduler write-fence completion can hide unsafe reuse; missing failed-receive completion can leave waits unreleased.",
+    "refusal_point": "Escalate absent concrete caller evidence, ambiguous block namespaces, unsupported layouts or revision drift; stop before inferring a backend fix, freeing retained blocks or claiming a reproduced bug."
+  },
+  "recommendations": [
+    "Trace lookup, allocation, worker execution and completion propagation before changing request state; repeated or undecided lookup and ordinary admission waits can be valid.",
+    "Check delayed-free ownership and scheduler in-flight-write fences separately, including empty-step save/metadata ordering in the real worker.",
+    "Keep receive failure and finished_recving correlated, and use request-level failure evidence for multi-group layouts while preserving the existing recovery policy."
+  ]
 }

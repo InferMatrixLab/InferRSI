@@ -2,11 +2,19 @@
   "profile": "local-skill-v1",
   "schema_version": 1,
   "kind": "skill",
-  "origin": ["external"],
+  "origin": [
+    "external"
+  ],
   "status": "candidate",
   "empirical_validation": "not_run",
   "license": "GPL-3.0",
-  "tags": ["comfyui", "workflow", "cache-invalidation", "model-residency", "state-ownership"],
+  "tags": [
+    "comfyui",
+    "workflow",
+    "cache-invalidation",
+    "model-residency",
+    "state-ownership"
+  ],
   "sources": [
     {
       "type": "git",
@@ -40,13 +48,25 @@
     }
   ],
   "applicability": {
-    "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer."
+    "scope": "Source-grounded ComfyUI workflow-output cache and model-weight ownership audit; confirm the actual revision, node registry, cache caller and static/dynamic patcher before transfer.",
+    "prerequisites": "Access to the pinned provenance and the actual node registry/cache caller; residency questions additionally require the concrete patcher and effective dynamic/static mode. Native memory conclusions need the actual backend.",
+    "input_contract": "Exact revision, API-format prompt/output targets, relevant node classes/constants/links/hidden inputs and external state, selected cache caller/mode and patcher settings, plus available execution/load/memory/timing observations.",
+    "produced_artifact": "A state/owner/key/lifetime/consumer ledger with invalidation or release events, evidence and unresolved boundaries, followed by a discriminating check and its actual result.",
+    "failure_modes": "Treating identical JSON as proof of unchanged external inputs, confusing eviction with key validity, or equating workflow cache hits with device-resident model weights can explain the wrong state contract.",
+    "refusal_point": "Stop when the cause/action is supported or required environment, backend or model resources are unavailable; do not manufacture a hit, hardware result or performance threshold."
   },
   "limitations": [
     "Source-derived candidate; no local executor-cache, device-residency or performance qualification.",
     "Seven self-authored cases exercised only the unchanged pure upstream graph_utils module; they do not verify PromptExecutor, cache signatures or model behavior.",
     "The dynamic native allocator and third-party custom-node behavior remain outside the verified scope."
   ],
-  "provenance_readsets": ["references/repo-provenance.md"],
-  "consumption_mode": "packaged"
+  "provenance_readsets": [
+    "references/repo-provenance.md"
+  ],
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Draw the affected dependency cone with declared, lazy and dynamically expanded links, then mark unfingerprinted external state unresolved.",
+    "Separate output/object cache validity and retention from patch identity, partial unload, full detach and allocator-visible release.",
+    "Change one test variable while fixing prompt, output target, model, backend, precision, seed and cache mode; check values and executed nodes before timing."
+  ]
 }

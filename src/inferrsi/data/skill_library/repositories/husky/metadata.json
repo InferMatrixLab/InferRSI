@@ -1,11 +1,18 @@
 {
   "schema_version": 1,
   "kind": "skill",
-  "origin": ["external"],
+  "origin": [
+    "external"
+  ],
   "status": "candidate",
   "empirical_validation": "not_run",
   "license": "NO_LICENSE",
-  "tags": ["husky", "document-research", "evidence-qualification", "negative-results"],
+  "tags": [
+    "husky",
+    "document-research",
+    "evidence-qualification",
+    "negative-results"
+  ],
   "sources": [
     {
       "type": "document",
@@ -37,7 +44,12 @@
     "method": "Single coherent research workflow, bounded source summary, original verification questions and offline schema checks. Repository/environment/native stages remain unavailable."
   },
   "applicability": {
-    "scope": "Review Husky document claims and specify missing evidence; common catalog scope is not inference backend compatibility."
+    "scope": "Review Husky document claims and specify missing evidence; common catalog scope is not inference backend compatibility.",
+    "prerequisites": "Access to the bounded official-document inventory and verification protocol; implementation and native reproduction remain unavailable until separately supplied and authenticated.",
+    "input_contract": "The exact claim, source/view date, workload and comparison intent, supporting evidence classes and available implementation/model/output/measurement artifacts; unknown identity, licensing and availability remain explicit.",
+    "produced_artifact": "A reviewable claim/evidence request recording source availability, mechanism hypothesis, counter-signal, missing identities/artifacts, proposed falsifying check and actual result or bounded INCONCLUSIVE conclusion.",
+    "failure_modes": "Treating a public-page reading as code inspection, proposed extensions as shipped behavior, summed independent ratios as one gain, or a structurally valid self-reported card as authentic evidence can overstate qualification.",
+    "refusal_point": "Stop at missing source/receipts, unsafe or private data, unsupported resources or the authorized budget; unavailable artifacts yield an unverified/INCONCLUSIVE research conclusion."
   },
   "limitations": [
     "No canonical public repository, implementation revision, retained receipts or source-code license was identified; unknowns remain unknown.",
@@ -47,6 +59,14 @@
     "NO_LICENSE is the unavailable repository-license resolver result, not a legal absence finding or grant to copy publisher material.",
     "Final informed candidate admission is separate; no automatic import, native qualification or skill efficacy is claimed."
   ],
-  "provenance_readsets": ["references/repo-provenance.md", "references/source-availability.json"],
-  "consumption_mode": "packaged"
+  "provenance_readsets": [
+    "references/repo-provenance.md",
+    "references/source-availability.json"
+  ],
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Separate author reports, inspected implementation, executed experiments and new interpretations, including negative findings and future work.",
+    "Request immutable identities and artifacts, then state one mechanism, competing explanation and smallest ablation with frozen semantic requirements.",
+    "Use the offline card auditor only to identify structural gaps; it authenticates neither artifacts nor execution and leaves qualification unadjudicated."
+  ]
 }

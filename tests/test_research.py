@@ -27,7 +27,13 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
     items = result["items"]
     identities = [item["record"]["id"] for item in items]
     assert len(identities) == len(set(identities)) <= 12
-    assert "inferrsi.common.skills.lazy_evaluation_stream_lifetimes" in identities
+    # Corpus additions can reorder matches; the independent framework query still contributes.
+    framework_first = search_knowledge("mlx", limit=1)[0]["id"]
+    assert any(
+        item["record"]["id"] == framework_first
+        and {"group": "framework", "query": "mlx"} in item["matched_queries"]
+        for item in items
+    )
     assert set(result["profile"]["knowledge_ids"]) <= set(identities)
     assert any("diffusion" in item["record"]["scenario"] for item in items)
     assert any(
@@ -169,8 +175,10 @@ def test_public_cli_exposes_model_profile_and_keeps_filters(capsys):
     assert result["profile"]["sources"]
     assert result["target"]["device"] == "M5 Mac Studio"
     assert result["target_validation"] == "unverified"
+    framework_first = search_knowledge("mlx", limit=1)[0]["id"]
     assert any(
-        item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+        item["record"]["id"] == framework_first
+        and {"group": "framework", "query": "mlx"} in item["matched_queries"]
         for item in result["items"]
     )
     assert main([

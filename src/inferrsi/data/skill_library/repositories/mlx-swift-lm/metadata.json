@@ -86,7 +86,11 @@
     "method": "Stable-ID lifecycle and recurrent-kernel author lanes, integrated root/local references, hard cases and offline support/static/scaffold/package checks; native Swift/Xcode/MLX compiler/tests not_run."
   },
   "applicability": {
-    "scope": "Selected Swift ownership/cancellation/settling and actual GatedDelta Metal/ops contracts. Common categorization is not CPU inference or Apple qualification."
+    "scope": "Selected Swift ownership/cancellation/settling and actual GatedDelta Metal/ops contracts. Common categorization is not CPU inference or Apple qualification.",
+    "prerequisites": "Access to the Swift lifecycle and selected GatedDelta contracts, with resolved MLX/native identities for a comparison; native checks require a prepared matching Swift/Xcode/Apple stack and separate authorization.",
+    "input_contract": "Exact source revision, resolved Swift/MLX dependencies, Xcode/SDK/OS/device, API family and native artifact identity; the selected question supplies lifecycle ownership/completion observations or recurrent producer shape/dtype/layout and actual consumer/fallback.",
+    "produced_artifact": "An identity and actual-versus-declared report for generation ownership or recurrent kernel invariants, with safe support result, counter-signal and smallest separately authorized native check.",
+    "failure_modes": "Conflating lexical isolation with exclusive access across await or completed task join, treating useKernel as observed dispatch, calling an ops fallback CPU execution, or assuming a manifest range is a resolved dependency can invalidate the conclusion."
   },
   "limitations": [
     "BLOCKED_REQUIRED_BACKEND: native Swift/MLX compiler, host-control tests and required Apple Metal cancellation/backgrounding/kernel/cache/model/fit/quality/service/performance evidence not_run.",
@@ -100,5 +104,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Resolve mutable-context/cache ownership and task settlement separately from lexical isolation and queued GPU work before cache reuse or producer shutdown.",
+    "Follow recurrent shape/dtype/layout to the actual Metal or ops consumer; predicate eligibility and useKernel alone do not prove dispatch.",
+    "Record the actual dependency resolution and use the documented Xcode macOS test route; the source states swift test does not work for this package."
+  ]
 }

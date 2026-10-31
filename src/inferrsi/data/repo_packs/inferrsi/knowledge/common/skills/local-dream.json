@@ -29,8 +29,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json",
@@ -53,7 +53,7 @@
   "checkout_ref": "checkout:local-dream",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md": "e51fd3c71d693070abeba57ca67dcca82c7347cb94eb98f43e7c455bcacbaa46",
-    "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json": "ab33602252d0f5bb0797c3e1f12466b55a82aeaff10cd24e42a99a5224c8e593",
+    "src/inferrsi/data/skill_library/repositories/local-dream/metadata.json": "63b71cc6a237d8c4e00db875d15594df09d6e3cf87a1cb25183a311b4d480804",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/android-lifecycle.md": "f85e5fce39f5de5f88548fd8c21978240c810f899e03ff05ed72eb3508ee5e36",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/native-contracts.md": "40206892f5e421f9d8edf303870f5c4aefa3e87123537178d45f438f3d04b7ce",
     "src/inferrsi/data/skill_library/repositories/local-dream/references/packaging-and-abi.md": "9a19bca59e19c3bfbfc1a15f5fc756c13d954ace367812aeb000551f4484ad06",
@@ -154,7 +154,11 @@
       }
     ],
     "applicability": {
-      "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+      "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification.",
+      "prerequisites": "Access to the pinned Android lifecycle/native/packaging contracts and identified installed artifacts; stronger conclusions require an authorized, frozen workload on the actual selected Android/ARM64 backend.",
+      "input_contract": "Source revision, installed APK/version/flavor/ABI, native executable and loaded DiT library, QNN/Hexagon/MNN builds, model/export/weights/tokenizer identities, requested and serving configuration, and lifecycle/readiness/generation/cache observations.",
+      "produced_artifact": "A bounded failed-boundary report with counter-signals, identities observed versus declared, the smallest missing discriminator and retained INCONCLUSIVE native scope.",
+      "failure_modes": "Reading UI flags or equal declared configurations as actual dispatch/readiness, treating cancellation/SSE progress as native completion, or interpreting model-directory caches as authenticated model-revision namespaces can misidentify stale state."
     },
     "limitations": [
       "Source-derived candidate; required Android ARM64/MNN/QNN/Hexagon/model execution BLOCKED_REQUIRED_BACKEND / not_run; qualification INCONCLUSIVE.",
@@ -169,14 +173,24 @@
       "references/repo-provenance.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Compare requested and serving model/backend/dimensions/bind address through stop/reopen and health observations; never enable host mode as a diagnostic default.",
+      "Trace the actual MNN/QNN/Anima/DiT path and separate native library/ABI identity from UI runOnCpu flags and declared SDK labels.",
+      "Keep progress, cancellation, native completion, release and saved final output separate; check prompt-cache mode/version/dimensions and textual-inversion caller guards before proposing cache changes."
+    ]
   },
   "applicability": {
-    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification."
+    "scope": "Selected Android app/process and native diffusion boundary contracts; common is a discovery category, not CPU/device compatibility or native qualification.",
+    "prerequisites": "Access to the pinned Android lifecycle/native/packaging contracts and identified installed artifacts; stronger conclusions require an authorized, frozen workload on the actual selected Android/ARM64 backend.",
+    "input_contract": "Source revision, installed APK/version/flavor/ABI, native executable and loaded DiT library, QNN/Hexagon/MNN builds, model/export/weights/tokenizer identities, requested and serving configuration, and lifecycle/readiness/generation/cache observations.",
+    "produced_artifact": "A bounded failed-boundary report with counter-signals, identities observed versus declared, the smallest missing discriminator and retained INCONCLUSIVE native scope.",
+    "failure_modes": "Reading UI flags or equal declared configurations as actual dispatch/readiness, treating cancellation/SSE progress as native completion, or interpreting model-directory caches as authenticated model-revision namespaces can misidentify stale state."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Compare requested and serving model/backend/dimensions/bind address through stop/reopen and health observations; never enable host mode as a diagnostic default.",
+    "Trace the actual MNN/QNN/Anima/DiT path and separate native library/ABI identity from UI runOnCpu flags and declared SDK labels.",
+    "Keep progress, cancellation, native completion, release and saved final output separate; check prompt-cache mode/version/dimensions and textual-inversion caller guards before proposing cache changes."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

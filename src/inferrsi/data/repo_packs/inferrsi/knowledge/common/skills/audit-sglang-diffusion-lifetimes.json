@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
         "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
@@ -43,7 +43,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE": "1495e1e757ef4d0925a2350563cf5754bb23c51701a8ec4fb3c5cdcbedae6747",
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": "b0a4ba4751087126143ef86983798deb0ed00e24b6ff06bf6ef76a9df6e274f2",
-    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "6ed57dfb4f25ecb34b81f2188b055e05d172ba2581e6a3b605b814b2f733a4d6",
+    "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "e2cb137978960d29b3644967a29dab930c768d3453bce8aff2aad96fd90a56d9",
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -101,7 +101,12 @@
       }
     ],
     "applicability": {
-      "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation."
+      "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation.",
+      "prerequisites": "Pinned source or a concrete trace of the selected composed-pipeline executor and installed residency manager, with the applicable monolithic route identified.",
+      "input_contract": "Source/build, backend and executor/pipeline class, model revision, modality/shape, steps/scheduler/seed/output count, grouped/serial route, ranks, placement, warmup/save settings and symptom; timeout cases need correlated request/job and client/scheduler/worker events.",
+      "produced_artifact": "A version-bound owner/event ledger, first unresolved boundary, causal hypothesis, smallest real discriminating check, exact results and missing dependencies.",
+      "failure_modes": "Assuming all executors share the SyncExecutor contract, treating closed component use as eviction, assuming grouped schedulers are isolated, or reading socket close/job deletion as stopped device compute can misdiagnose ownership.",
+      "refusal_point": "Stop performance claims when the executing path, cleanup or output quality is unresolved; retain the failure and a known baseline rather than inferring a blanket leak or safety conclusion."
     },
     "limitations": [
       "Source-derived candidate; upstream runtime and efficacy validation not run.",
@@ -111,14 +116,25 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Trace the actual executor and separate request, stage, component-use, module, scheduler, finalizer and allocator-cache lifetimes.",
+      "Check scheduler aliases and declared output-copy policies before introducing overlap; compare real serial/grouped outputs with fixed timesteps and seeds.",
+      "Correlate worker, finalizer and device completion after client timeout or deletion; preserve an unknown execution outcome until that evidence exists."
+    ]
   },
   "applicability": {
-    "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation."
+    "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation.",
+    "prerequisites": "Pinned source or a concrete trace of the selected composed-pipeline executor and installed residency manager, with the applicable monolithic route identified.",
+    "input_contract": "Source/build, backend and executor/pipeline class, model revision, modality/shape, steps/scheduler/seed/output count, grouped/serial route, ranks, placement, warmup/save settings and symptom; timeout cases need correlated request/job and client/scheduler/worker events.",
+    "produced_artifact": "A version-bound owner/event ledger, first unresolved boundary, causal hypothesis, smallest real discriminating check, exact results and missing dependencies.",
+    "failure_modes": "Assuming all executors share the SyncExecutor contract, treating closed component use as eviction, assuming grouped schedulers are isolated, or reading socket close/job deletion as stopped device compute can misdiagnose ownership.",
+    "refusal_point": "Stop performance claims when the executing path, cleanup or output quality is unresolved; retain the failure and a known baseline rather than inferring a blanket leak or safety conclusion."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Trace the actual executor and separate request, stage, component-use, module, scheduler, finalizer and allocator-cache lifetimes.",
+    "Check scheduler aliases and declared output-copy policies before introducing overlap; compare real serial/grouped outputs with fixed timesteps and seeds.",
+    "Correlate worker, finalizer and device completion after client timeout or deletion; preserve an unknown execution outcome until that evidence exists."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

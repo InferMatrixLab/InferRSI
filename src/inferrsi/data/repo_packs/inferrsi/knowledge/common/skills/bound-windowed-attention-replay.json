@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:bound-windowed-attention-replay",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/SKILL.md": "4703beb6e5194ef2ff2c0b5ec69f64e35417a4bc0dfb50a10c80a920b77ef3b5",
-    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "014be24d0e669f4acbc0717dc323eec784026cf185186619d5a19d6d84496131",
+    "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/metadata.json": "c68254b1a96a8834ae46c7a1d9035856fa4783315b219aa95e31461bd8ac58c9",
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/source-notes.md": "fd917bd5ac80bee9c9f4525f8e0300f6d67dc144e2a16632af42a67f3d53d098",
     "src/inferrsi/data/skill_library/repositories/deepinfer/bound-windowed-attention-replay/references/validation.md": "60e71e70c5519bcdf6c171eec2be2f342e8801bedd746d6005f11adc646dfaff",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
@@ -90,7 +90,11 @@
     "applicability": {
       "scope": "Decoders with an explicit producer/consumer boundary and a demonstrated dependency closure for compact query rows, including separately preserved historical state",
       "prerequisites": "A derived dependency closure; a full-length KV write at the boundary; known rollback depth; control over metadata construction",
-      "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer"
+      "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer",
+      "input_contract": "The actual producer/consumer split and transitive dependency closure, boundary index, window and rollback depth, consumer KV sharing/compression layout and separately preserved historical keys.",
+      "produced_artifact": "A dependency listing, enforced retain length, compact query/position/store-slot/visibility metadata, a separate historical-key retention statement and a diagnostic equivalence-reference mode.",
+      "failure_modes": "Applying window-plus-rollback without dependency closure, discarding full-layout state, clipping away the sampling row, or comparing across preemption can invalidate replay; compact queries do not imply historical keys were dropped.",
+      "refusal_point": "Stop if required consumer state is unavailable without a preserved full-length copy, the boundary representation cannot be captured, or comparison preemption moves the anchor. Do not use for clipped-region outputs or required bit-identical preemption replay."
     },
     "limitations": [
       "Source-derived candidate; no equivalence run was performed.",
@@ -104,16 +108,26 @@
       "references/source-notes.md",
       "references/validation.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Derive every consumer dependency before computing keep; preserve the required full-layout representation separately from the compact query rows.",
+      "Use the visibility-only diagnostic mode to isolate equivalence from row gathering, and retain one sampling row for a fully clipped chunk.",
+      "Check metadata at chunk/store boundaries, actual prompt-logprob handling and zero preemption during equivalence comparison."
+    ]
   },
   "applicability": {
     "scope": "Decoders with an explicit producer/consumer boundary and a demonstrated dependency closure for compact query rows, including separately preserved historical state",
     "prerequisites": "A derived dependency closure; a full-length KV write at the boundary; known rollback depth; control over metadata construction",
-    "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer"
+    "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer",
+    "input_contract": "The actual producer/consumer split and transitive dependency closure, boundary index, window and rollback depth, consumer KV sharing/compression layout and separately preserved historical keys.",
+    "produced_artifact": "A dependency listing, enforced retain length, compact query/position/store-slot/visibility metadata, a separate historical-key retention statement and a diagnostic equivalence-reference mode.",
+    "failure_modes": "Applying window-plus-rollback without dependency closure, discarding full-layout state, clipping away the sampling row, or comparing across preemption can invalidate replay; compact queries do not imply historical keys were dropped.",
+    "refusal_point": "Stop if required consumer state is unavailable without a preserved full-length copy, the boundary representation cannot be captured, or comparison preemption moves the anchor. Do not use for clipped-region outputs or required bit-identical preemption replay."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Derive every consumer dependency before computing keep; preserve the required full-layout representation separately from the compact query rows.",
+    "Use the visibility-only diagnostic mode to isolate equivalence from row gathering, and retain one sampling row for a fully clipped chunk.",
+    "Check metadata at chunk/store boundaries, actual prompt-logprob handling and zero preemption during equivalence comparison."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

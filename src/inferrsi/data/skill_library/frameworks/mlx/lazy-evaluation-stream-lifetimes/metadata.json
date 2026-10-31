@@ -42,7 +42,12 @@
     }
   ],
   "applicability": {
-    "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately."
+    "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately.",
+    "prerequisites": "Access to the pinned MLX execution/lifetime contract and a bounded reproduction with an identified evaluation/read boundary; device-dependent conclusions need the actual selected backend.",
+    "input_contract": "MLX revision/build, backend/device, Python/C++ entry, array shapes/dtypes, primitive streams, evaluation/read boundary and transformation context; timing needs warmup/work boundaries, while memory needs live references, in-flight buffers, allocator cache and synchronized observations.",
+    "produced_artifact": "A producer/evaluation/dependency-wait/backend/availability-cleanup trace, ownership table, observed symptom and one discriminating check with build-bound actual evidence status.",
+    "failure_modes": "Timing graph construction or submission as execution, assuming evaluated means completed, synchronizing only the default stream, or treating graph detachment/Python deletion as reusable storage can misdiagnose time or memory.",
+    "refusal_point": "Stop when the trace answers the question; if the required backend is absent, retain the source-supported diagnosis and exact runtime gap rather than substituting CPU import success."
   },
   "limitations": [
     "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
@@ -51,5 +56,10 @@
   "provenance_readsets": [
     "references/source-map.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Separate graph construction, async_eval submission, eval and host reads, and record which stream the measurement actually synchronizes.",
+    "Preserve the dependency-wait path and selected backend buffer-retention/donation contract before changing streams or assuming storage can be reused.",
+    "Distinguish live, in-flight and allocator-cached memory; inspect the real error/cleanup path before proposing a leak fix or hiding the failure."
+  ]
 }

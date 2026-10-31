@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:lazy-evaluation-stream-lifetimes",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md": "a95569bcc0da6e715fd74783a6a1e0489e92b680c582f15dafbf98df589d505a",
-    "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/metadata.json": "9c2293c8956508de987c886c7224d673d22912e7e915b026b05abdd287e97401",
+    "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/metadata.json": "cfa57ac908025135113d04c3d64b9967f8d9a3af4a00707673d94b8227c85808",
     "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/execution-lifetime.md": "c4bc41e08aca68f661325f61e6f0db1760a079dc362f295c847bdc374fee3bf6",
     "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/source-map.md": "798b9cb89ed6b885eb47464ca9f137d2802a54571b9327e631d7742d3e5abd5d",
     "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/references/validation.md": "ebfc00bf7d6ab0a1dc415953ae84d56ccdc713d5614aff85e433c4a843793bff",
@@ -94,7 +94,12 @@
       }
     ],
     "applicability": {
-      "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately."
+      "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately.",
+      "prerequisites": "Access to the pinned MLX execution/lifetime contract and a bounded reproduction with an identified evaluation/read boundary; device-dependent conclusions need the actual selected backend.",
+      "input_contract": "MLX revision/build, backend/device, Python/C++ entry, array shapes/dtypes, primitive streams, evaluation/read boundary and transformation context; timing needs warmup/work boundaries, while memory needs live references, in-flight buffers, allocator cache and synchronized observations.",
+      "produced_artifact": "A producer/evaluation/dependency-wait/backend/availability-cleanup trace, ownership table, observed symptom and one discriminating check with build-bound actual evidence status.",
+      "failure_modes": "Timing graph construction or submission as execution, assuming evaluated means completed, synchronizing only the default stream, or treating graph detachment/Python deletion as reusable storage can misdiagnose time or memory.",
+      "refusal_point": "Stop when the trace answers the question; if the required backend is absent, retain the source-supported diagnosis and exact runtime gap rather than substituting CPU import success."
     },
     "limitations": [
       "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
@@ -103,14 +108,25 @@
     "provenance_readsets": [
       "references/source-map.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Separate graph construction, async_eval submission, eval and host reads, and record which stream the measurement actually synchronizes.",
+      "Preserve the dependency-wait path and selected backend buffer-retention/donation contract before changing streams or assuming storage can be reused.",
+      "Distinguish live, in-flight and allocator-cached memory; inspect the real error/cleanup path before proposing a leak fix or hiding the failure."
+    ]
   },
   "applicability": {
-    "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately."
+    "scope": "MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual backend separately.",
+    "prerequisites": "Access to the pinned MLX execution/lifetime contract and a bounded reproduction with an identified evaluation/read boundary; device-dependent conclusions need the actual selected backend.",
+    "input_contract": "MLX revision/build, backend/device, Python/C++ entry, array shapes/dtypes, primitive streams, evaluation/read boundary and transformation context; timing needs warmup/work boundaries, while memory needs live references, in-flight buffers, allocator cache and synchronized observations.",
+    "produced_artifact": "A producer/evaluation/dependency-wait/backend/availability-cleanup trace, ownership table, observed symptom and one discriminating check with build-bound actual evidence status.",
+    "failure_modes": "Timing graph construction or submission as execution, assuming evaluated means completed, synchronizing only the default stream, or treating graph detachment/Python deletion as reusable storage can misdiagnose time or memory.",
+    "refusal_point": "Stop when the trace answers the question; if the required backend is absent, retain the source-supported diagnosis and exact runtime gap rather than substituting CPU import success."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Separate graph construction, async_eval submission, eval and host reads, and record which stream the measurement actually synchronizes.",
+    "Preserve the dependency-wait path and selected backend buffer-retention/donation contract before changing streams or assuming storage can be reused.",
+    "Distinguish live, in-flight and allocator-cached memory; inspect the real error/cleanup path before proposing a leak fix or hiding the failure."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

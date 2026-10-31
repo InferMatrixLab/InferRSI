@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:audit-afd-p2p-exchanges",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md": "a46110891eca860915e314d6921a22856d631453b22b17837fe30262d6780535",
-    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "4e6100dfb9fc7bc00b19915f4fd38ad509704f2a609c658adf4d632d4e05b6c1",
+    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "ae8c7582265dd6902cc4172293fc709244cc915df9390672fde25687b9e79b4b",
     "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
     "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
@@ -92,7 +92,12 @@
       }
     ],
     "applicability": {
-      "scope": "Source-based CUDA P2pNccl rank/payload audit; selected eager dense-FFN path with compute_gate_on_attention=false. Repository identity afd_plugin; runtime/backend compatibility unverified."
+      "scope": "Source-based CUDA P2pNccl rank/payload audit; selected eager dense-FFN path with compute_gate_on_attention=false. Repository identity afd_plugin; runtime/backend compatibility unverified.",
+      "prerequisites": "Access to the pinned source ledger and caller-level evidence for the selected eager dense FFN path with Attention-side gating disabled; any proposed cross-stream reuse needs an established communicator completion contract.",
+      "input_contract": "Plugin and dependency revisions, connector and role, A/F worker counts, DP/PCP/TP coordinates, worker/device ranks, subgroup roster, stage, per-peer token counts, payload shape/dtype/device, transfer context and returned slices.",
+      "produced_artifact": "A bounded rank-namespace and per-peer payload ownership ledger, the earliest evidenced mismatch or missing edge, and a proposed verification plan.",
+      "failure_modes": "Inferring data peers from control senders, accepting equal total row counts despite a peer permutation, or treating an even-split fallback or Python return as proof of ownership/completion can produce a wrong exchange diagnosis.",
+      "refusal_point": "Stop on A < F, invalid role ranks, duplicate/missing assignments or an unresolved rank namespace; return the conflicting callers and ledger entries without inventing ranks or attributing the fault to networking."
     },
     "limitations": [
       "Source-derived candidate; native exchange, model quality, backend compatibility, performance and agent efficacy not_run.",
@@ -107,14 +112,25 @@
       "../../../methods/inference-benchmark-design/SKILL.md",
       "../../../methods/dense-performance-evidence/SKILL.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Record role, world and subgroup-local ranks separately; reconstruct the actual subgroup roster before interpreting send/receive peers.",
+      "Track distinct row identities and stage-specific peer lengths through concatenation and splitting; use same-total swapped lengths as a countercheck.",
+      "Establish the last communicator/stream completion obligation before reusing or releasing a receive buffer."
+    ]
   },
   "applicability": {
-    "scope": "Source-based CUDA P2pNccl rank/payload audit; selected eager dense-FFN path with compute_gate_on_attention=false. Repository identity afd_plugin; runtime/backend compatibility unverified."
+    "scope": "Source-based CUDA P2pNccl rank/payload audit; selected eager dense-FFN path with compute_gate_on_attention=false. Repository identity afd_plugin; runtime/backend compatibility unverified.",
+    "prerequisites": "Access to the pinned source ledger and caller-level evidence for the selected eager dense FFN path with Attention-side gating disabled; any proposed cross-stream reuse needs an established communicator completion contract.",
+    "input_contract": "Plugin and dependency revisions, connector and role, A/F worker counts, DP/PCP/TP coordinates, worker/device ranks, subgroup roster, stage, per-peer token counts, payload shape/dtype/device, transfer context and returned slices.",
+    "produced_artifact": "A bounded rank-namespace and per-peer payload ownership ledger, the earliest evidenced mismatch or missing edge, and a proposed verification plan.",
+    "failure_modes": "Inferring data peers from control senders, accepting equal total row counts despite a peer permutation, or treating an even-split fallback or Python return as proof of ownership/completion can produce a wrong exchange diagnosis.",
+    "refusal_point": "Stop on A < F, invalid role ranks, duplicate/missing assignments or an unresolved rank namespace; return the conflicting callers and ledger entries without inventing ranks or attributing the fault to networking."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Record role, world and subgroup-local ranks separately; reconstruct the actual subgroup roster before interpreting send/receive peers.",
+    "Track distinct row identities and stage-specific peer lengths through concatenation and splitting; use same-total swapped lengths as a countercheck.",
+    "Establish the last communicator/stream completion obligation before reusing or releasing a receive buffer."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

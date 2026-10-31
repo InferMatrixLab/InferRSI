@@ -6,6 +6,11 @@
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
       "external": ["Prospective one-pair plan/source data only; no paid execution or efficacy result exists. First-run result retention remains required."]
     },
+    "kv-actor-qualification-20261031": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Fresh exact-revision hosted actor receipts for the updated K payload are retained as separate CI artifacts; this plan makes no provider calls and grants no live authorization."]
+    },
     "kv-actor-qualification-20261030": {
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],

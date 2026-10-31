@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/LICENSE",
         "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
@@ -57,7 +57,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/LICENSE": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
     "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md": "fdb4d9483c6efa836f9e59617da605fa9c2186e11c2041b05d5c81850ba0475d",
-    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/metadata.json": "fe626a77af3f084f36fd73ffdb6f67976e7dceeafb94ba22078ef03c3a96cfae",
+    "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/metadata.json": "952bd2947b68e56d249f10798e028d191a8ffbdb2f123775be66946d3e2ef77e",
     "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/THIRD_PARTY_NOTICES.md": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
     "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md": "57ce01754ba96c378f13a91305ef3d418b926f99b2753f0af99315572bce063a",
     "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-weight-inventory.json": "fbaacaeec340d3ce893556ee864405a0746af4d13530a38cb3d5aa9d60929271",
@@ -177,7 +177,12 @@
       "method": "Manual pinned-source distillation informed by the existing Repo-To-Skill ledger; no AREX/DisCo execution or behavioral efficacy claim."
     },
     "applicability": {
-      "scope": "MiniMax-H3 joint audio/video C/Metal runtime audit: raw checkpoint compatibility, input encoders, schedule precompute, phased/cached residency, numerical controls and SSD streaming on Apple Silicon. Common catalog placement is a discovery classification, not cross-backend qualification."
+      "scope": "MiniMax-H3 joint audio/video C/Metal runtime audit: raw checkpoint compatibility, input encoders, schedule precompute, phased/cached residency, numerical controls and SSD streaming on Apple Silicon. Common catalog placement is a discovery classification, not cross-backend qualification.",
+      "prerequisites": "Access to the pinned source architecture and selected component/format inventory; native checks need matching model, fixture and backend resources within an authorized experiment budget.",
+      "input_contract": "Runtime revision/patches, macOS/SDK/GPU and memory budget, FL2VA/Ref2VA selection, component formats, prompt and ordered media, requested/aligned frames, canvases, steps/seed, layer/reuse/token/precision policies and preview/interactive-cache state.",
+      "produced_artifact": "A phase/component/owner ledger with resident weights, runtime/host buffers, overlap, release/reuse boundaries and observations/unknowns, followed by a discriminating check, actual result and remaining gap.",
+      "failure_modes": "Estimating fit from model-file bytes, confusing runtime int8 with incompatible MLX bundles, ignoring preview/cache overlap, or reducing DiT residency to address a VAE/host-output peak can produce a wrong capacity diagnosis.",
+      "refusal_point": "Stop at unavailable model/fixture/backend resources or the accepted experiment budget; missing target evidence remains unverified/INCONCLUSIVE."
     },
     "limitations": [
       "Native h3.c/Metal execution, target peak memory, audio/video quality, performance, service behavior and skill efficacy were not run.",
@@ -191,14 +196,25 @@
       "references/source-identity.json",
       "references/minimax-h3-weight-inventory.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Resolve the actual conditioning and output components before counting residency; do not add alternative checkpoints or count shared files twice.",
+      "Trace one-shot, preview and interactive ownership separately, including AdaLN schedule dependencies and prepared-cache reset boundaries.",
+      "Classify approximation and precision controls before comparison, then measure the relevant phase with tensor, physical/compressed/swap and storage observations."
+    ]
   },
   "applicability": {
-    "scope": "MiniMax-H3 joint audio/video C/Metal runtime audit: raw checkpoint compatibility, input encoders, schedule precompute, phased/cached residency, numerical controls and SSD streaming on Apple Silicon. Common catalog placement is a discovery classification, not cross-backend qualification."
+    "scope": "MiniMax-H3 joint audio/video C/Metal runtime audit: raw checkpoint compatibility, input encoders, schedule precompute, phased/cached residency, numerical controls and SSD streaming on Apple Silicon. Common catalog placement is a discovery classification, not cross-backend qualification.",
+    "prerequisites": "Access to the pinned source architecture and selected component/format inventory; native checks need matching model, fixture and backend resources within an authorized experiment budget.",
+    "input_contract": "Runtime revision/patches, macOS/SDK/GPU and memory budget, FL2VA/Ref2VA selection, component formats, prompt and ordered media, requested/aligned frames, canvases, steps/seed, layer/reuse/token/precision policies and preview/interactive-cache state.",
+    "produced_artifact": "A phase/component/owner ledger with resident weights, runtime/host buffers, overlap, release/reuse boundaries and observations/unknowns, followed by a discriminating check, actual result and remaining gap.",
+    "failure_modes": "Estimating fit from model-file bytes, confusing runtime int8 with incompatible MLX bundles, ignoring preview/cache overlap, or reducing DiT residency to address a VAE/host-output peak can produce a wrong capacity diagnosis.",
+    "refusal_point": "Stop at unavailable model/fixture/backend resources or the accepted experiment budget; missing target evidence remains unverified/INCONCLUSIVE."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Resolve the actual conditioning and output components before counting residency; do not add alternative checkpoints or count shared files twice.",
+    "Trace one-shot, preview and interactive ownership separately, including AdaLN schedule dependencies and prepared-cache reset boundaries.",
+    "Classify approximation and precision controls before comparison, then measure the relevant phase with tensor, physical/compressed/swap and storage observations."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

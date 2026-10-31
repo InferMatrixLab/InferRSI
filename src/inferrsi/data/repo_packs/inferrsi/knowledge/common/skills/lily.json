@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/lily/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/lily/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lily/LICENSE",
         "src/inferrsi/data/skill_library/repositories/lily/NOTICE.md",
@@ -61,7 +61,7 @@
     "src/inferrsi/data/skill_library/repositories/lily/LICENSE": "b9e2b50a48a09fb39dafa71ab1a11a6e87389addda17faa99d55f5f74a0001ac",
     "src/inferrsi/data/skill_library/repositories/lily/NOTICE.md": "7a01e666044fb8aca1fd88c636bca43bcc95b8b1fecbe101dce4c7c80fbb5759",
     "src/inferrsi/data/skill_library/repositories/lily/SKILL.md": "db815674d5d36964902041d310d3df844d00ab2e6bef0ce4b72ed2696ab2b9aa",
-    "src/inferrsi/data/skill_library/repositories/lily/metadata.json": "6d9d54e84f957881cc26894eb82ae666f106cfc6c505924f9a6fb6b35eab457f",
+    "src/inferrsi/data/skill_library/repositories/lily/metadata.json": "52f01d58613e1a93e9cfd958ceca9ab5061baa07c5f94572393520434892b420",
     "src/inferrsi/data/skill_library/repositories/lily/references/repo-provenance.md": "96182f6cb3666f89adf1aed6e216c0a84ce3a04a0685a4257e286100ba8ee367",
     "src/inferrsi/data/skill_library/repositories/lily/references/repo-routing-metadata.json": "f2f3becb51056e03081c7c4140e19572a6318c3d63015884df56eb49d38a00fc",
     "src/inferrsi/data/skill_library/repositories/lily/references/source-identity.json": "4595559c11611c855be150919fca3eeb89e7f96c7a8dd133b9f79a5cd8e05e62",
@@ -177,7 +177,12 @@
       "method": "User-approved native Rust/Metal and partial drafting adaptation; stable-ID lanes, integrated source graph and assertion/helper verification. Missing compiler/backend/checkpoint remains explicit."
     },
     "applicability": {
-      "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support."
+      "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support.",
+      "prerequisites": "Access to the exact Lily source/model-layout/API contracts; native checks require the matching Rust/Metal/checkpoint environment and frozen comparison requirements.",
+      "input_contract": "Source revision, Cargo lock/toolchain, macOS/chip/GPU family, checkpoint and tensor payload identities, affine configuration/layout, tokenizer/template/stops, sequence/output budgets, greedy policy, input history, prefix-cache state and quality/measurement requirements.",
+      "produced_artifact": "A source/model/device-bound representation, serving-cache or qualification diagnosis with the observation, invariant, alternate cause, smallest falsifier, actual result and remaining native gap.",
+      "failure_modes": "Equal bit width, file size, API names or prompt_cache_key do not establish tensor/token/state equivalence; ignoring the extra lookahead slot can understate request capacity, and green CPU references do not replace matched-model Metal goldens.",
+      "refusal_point": "Stop at unsupported formats/APIs, missing compiler/backend/checkpoint, unfrozen gates or the authorized budget; do not weaken ignored/golden tests to obtain a green result."
     },
     "limitations": [
       "Cargo/Rust1.92, supported M5/macOS26/Metal and model resources are unavailable; native evidence remains BLOCKED_REQUIRED_BACKEND.",
@@ -190,14 +195,25 @@
       "references/repo-provenance.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Resolve exact affine representation and strict API semantics, then trace token frontier, cache key and restore/release ownership.",
+      "Retain the source's extra request lookahead slot in capacity arithmetic rather than counting only prompt and visible output.",
+      "Separate reported benchmark version from the checked-out runner and distinguish offline screening, native compilation, Metal operators and matched-model goldens."
+    ]
   },
   "applicability": {
-    "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support."
+    "scope": "Exact Lily source/checkpoint/layout/API/cache/qualification investigation; common catalog classification is not CPU inference or cross-device support.",
+    "prerequisites": "Access to the exact Lily source/model-layout/API contracts; native checks require the matching Rust/Metal/checkpoint environment and frozen comparison requirements.",
+    "input_contract": "Source revision, Cargo lock/toolchain, macOS/chip/GPU family, checkpoint and tensor payload identities, affine configuration/layout, tokenizer/template/stops, sequence/output budgets, greedy policy, input history, prefix-cache state and quality/measurement requirements.",
+    "produced_artifact": "A source/model/device-bound representation, serving-cache or qualification diagnosis with the observation, invariant, alternate cause, smallest falsifier, actual result and remaining native gap.",
+    "failure_modes": "Equal bit width, file size, API names or prompt_cache_key do not establish tensor/token/state equivalence; ignoring the extra lookahead slot can understate request capacity, and green CPU references do not replace matched-model Metal goldens.",
+    "refusal_point": "Stop at unsupported formats/APIs, missing compiler/backend/checkpoint, unfrozen gates or the authorized budget; do not weaken ignored/golden tests to obtain a green result."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Resolve exact affine representation and strict API semantics, then trace token frontier, cache key and restore/release ownership.",
+    "Retain the source's extra request lookahead slot in capacity arithmetic rather than counting only prompt and visible output.",
+    "Separate reported benchmark version from the checked-out runner and distinguish offline screening, native compilation, Metal operators and matched-model goldens."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

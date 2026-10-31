@@ -35,7 +35,12 @@
     }
   ],
   "applicability": {
-    "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification."
+    "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification.",
+    "prerequisites": "Access to the independently pinned MLX-LM generation/cache contracts and the selected entry path; model, backend and runtime compatibility is separately established for any native claim.",
+    "input_contract": "MLX-LM/MLX revisions and builds, backend/device, model/tokenizer/adapter/draft identities, entry point, tokenized prompts, cache classes, batching/prefill limits, per-request sampling/processors/stops, seed and KV quantization; failure traces include UIDs, stages, lengths, terminal reason and next-request result.",
+    "produced_artifact": "An entry-path decision, UID/stage/cache-row table, prefix identity and cache-class assumptions, terminal/cleanup trace and actual evidence status with a targeted verification plan.",
+    "failure_modes": "Ignoring server batching gates, filtering only some per-request row state, reusing a text-only prefix key or treating a stop flag as immediate MLX work cancellation can corrupt lifecycle reasoning.",
+    "refusal_point": "Stop at the first unsupported contract or missing required fixture/backend; retain a targeted plan without inferring paged allocation, radix sharing or instantaneous prefill interruption."
   },
   "limitations": [
     "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
@@ -44,5 +49,10 @@
   "provenance_readsets": [
     "references/source-map.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Resolve the library versus server entry and its batching gates before transferring BatchGenerator behavior.",
+    "Keep UID, caches, tokens, samplers, processors, lengths, stop matchers and pending outputs aligned under the same removal selection, including prompt-stage requests.",
+    "Check exact token/model/adapter/draft identity and cache-type copy/trim semantics, then trace cooperative removal through survivor and next-request behavior."
+  ]
 }

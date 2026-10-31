@@ -37,7 +37,11 @@
   "applicability": {
     "scope": "Engines with multi-token speculative decoding whose verification forward cost grows with query rows",
     "prerequisites": "A calibrated per-position acceptance signal; a measured (rows, step_time) curve; a handle on metadata construction",
-    "hardware": "Backend-independent procedure; the reference implementation targets NVIDIA SM100 and Ascend 950 only"
+    "hardware": "Backend-independent procedure; the reference implementation targets NVIDIA SM100 and Ascend 950 only",
+    "input_contract": "Draft width and row representation, the defined individual/conditional versus cumulative acceptance semantics, verify rows/time curve, sampler cost and acceptance round actually available at schedule time.",
+    "produced_artifact": "A per-step verification row budget, per-request query lengths from one through draft_width plus one, cumulative acceptance vectors and predicted-versus-realized acceptance error logs.",
+    "failure_modes": "Confusing verification savings with reduced drafting, misreading confidence semantics or available rounds, allowing later-position confidence to select an earlier token, or generating non-prefix grants can invalidate the budget or sampling claim.",
+    "refusal_point": "Stop if unthrottled drafting or sampler cost dominates, the signal cannot be made cumulative, or no round supplies acceptance estimates; the procedure also does not apply without a per-step cost model."
   },
   "limitations": [
     "Source-derived candidate; no local efficacy validation and no reproduced gain.",
@@ -52,5 +56,10 @@
     "references/source-notes.md",
     "references/validation.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Measure draft, verify and sampler costs separately and fit the verify curve for graph sizes that will actually replay.",
+    "Preserve the one-row floor and prefix grants, and audit CPU/GPU allocation timing against the per-position decision-independence contract.",
+    "Report verification rows, accepted tokens, total step time and throughput separately; use an independently specified sampling oracle rather than requiring unchanged accepted length."
+  ]
 }

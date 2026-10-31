@@ -27,8 +27,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlc-llm/LICENSE",
         "src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md",
@@ -71,7 +71,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/mlc-llm/LICENSE": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md": "e0fd1accb4216191c56e7e4a8074633f36d9063727c2546e0d2eed14220d8cf4",
-    "src/inferrsi/data/skill_library/repositories/mlc-llm/metadata.json": "c9927e284e44aa09733424c024409ec8efc9593520418bb7d2e53ef301363681",
+    "src/inferrsi/data/skill_library/repositories/mlc-llm/metadata.json": "f20ca326ca0966e8d56b5fa698f971001a4af77370a145631e98476601610fa9",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/references/mlc-notice.md": "3a7dfb37bb96ce6f5a1cc0d6d4c8da3b8a35e6ec4692647ba0a37f6155c7e694",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-provenance.md": "423f21e1de6d7ab2e11c0bdf540357efde025ae4535bdf76ed9770b1a59ba35a",
     "src/inferrsi/data/skill_library/repositories/mlc-llm/references/repo-routing-metadata.json": "5309c27e7b60c4fe7aaef28bf6911e7e3c936b58b1a907aa8486bf0e40b4c0d0",
@@ -186,7 +186,11 @@
       }
     ],
     "applicability": {
-      "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification."
+      "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification.",
+      "prerequisites": "Access to the pinned MLC and exact TVM fork/gitlink contracts; native checks require separately prepared matching MLC/TVM/FFI and the applicable Apple SDK/device stack.",
+      "input_contract": "MLC revision, TVM gitlink/build, model/tokenizer/quantized-parameter identity, target/host/SDK, compiled artifact/format, runtime device and the actual compiled/runtime configuration sources.",
+      "produced_artifact": "An identity and actual-versus-declared boundary report for artifact, Metal runtime or KV-limit ownership, with a negative signal and smallest missing native discriminator.",
+      "failure_modes": "Treating a schema hash as payload authentication, an opt-in WebLLM artifact contract as a native-engine ABI, serializable Metal fallback as runnable, or automatic capacity estimates as free memory can create unsupported qualification claims."
     },
     "limitations": [
       "Source-derived candidate; original compiled CPU/native tests, compiler/live API/CLI/model/Metal/fit/quality/service/performance execution not_run; required native BLOCKED_REQUIRED_BACKEND.",
@@ -200,14 +204,24 @@
       "references/repo-provenance.md",
       "references/source-identity.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Identify the interface's actual consumer before using a valid artifact manifest as evidence of native model/task support.",
+      "Separate codegen/export from runtime factory/load, pipeline creation, dispatch and stream completion; a serializable kind=metal fallback can still be non-runnable.",
+      "Trace runtime preference, compile-time bounds, nested workspace inputs and explicit overrides separately before interpreting a KV or working-set estimate."
+    ]
   },
   "applicability": {
-    "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification."
+    "scope": "Selected artifact/Apple target/pinned TVM Metal consumer and KV configuration source contracts. Common catalog categorization is not CPU inference or Apple qualification.",
+    "prerequisites": "Access to the pinned MLC and exact TVM fork/gitlink contracts; native checks require separately prepared matching MLC/TVM/FFI and the applicable Apple SDK/device stack.",
+    "input_contract": "MLC revision, TVM gitlink/build, model/tokenizer/quantized-parameter identity, target/host/SDK, compiled artifact/format, runtime device and the actual compiled/runtime configuration sources.",
+    "produced_artifact": "An identity and actual-versus-declared boundary report for artifact, Metal runtime or KV-limit ownership, with a negative signal and smallest missing native discriminator.",
+    "failure_modes": "Treating a schema hash as payload authentication, an opt-in WebLLM artifact contract as a native-engine ABI, serializable Metal fallback as runnable, or automatic capacity estimates as free memory can create unsupported qualification claims."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Identify the interface's actual consumer before using a valid artifact manifest as evidence of native model/task support.",
+    "Separate codegen/export from runtime factory/load, pipeline creation, dispatch and stream completion; a serializable kind=metal fallback can still be non-runnable.",
+    "Trace runtime preference, compile-time bounds, nested workspace inputs and explicit overrides separately before interpreting a KV or working-set estimate."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

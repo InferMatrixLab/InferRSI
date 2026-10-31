@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json",
@@ -43,7 +43,7 @@
   "checkout_ref": "checkout:generation-cache-lifecycle",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/SKILL.md": "bf1177cb9985c12a9bf11edb64771018e1e314c4713920de8fd4a989ff70115f",
-    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json": "d86cecb615e93ba0f6be09d1ead102cd5a17068c07e1be2549ac5cd8f7519279",
+    "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/metadata.json": "c2e30a2a3365dd27cac7916dc26aa356f1277d07ebee891c173ee37b77111fa1",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/cache-stop.md": "bba6b5c73261065309cbcf11b1e591eef48916f0c79ceaaf74d98a9fa96b0992",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/generation-batch.md": "f16d3c57d45e63bcaffd3871aa41c76972ee11f7dbf1e12b45d9b170303cad9b",
     "src/inferrsi/data/skill_library/repositories/mlx-lm/generation-cache-lifecycle/references/source-map.md": "91d26181f246307f2113f94b12ac9587d689b654dcd216e9f14b11cf5ebb650c",
@@ -89,7 +89,12 @@
       }
     ],
     "applicability": {
-      "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification."
+      "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification.",
+      "prerequisites": "Access to the independently pinned MLX-LM generation/cache contracts and the selected entry path; model, backend and runtime compatibility is separately established for any native claim.",
+      "input_contract": "MLX-LM/MLX revisions and builds, backend/device, model/tokenizer/adapter/draft identities, entry point, tokenized prompts, cache classes, batching/prefill limits, per-request sampling/processors/stops, seed and KV quantization; failure traces include UIDs, stages, lengths, terminal reason and next-request result.",
+      "produced_artifact": "An entry-path decision, UID/stage/cache-row table, prefix identity and cache-class assumptions, terminal/cleanup trace and actual evidence status with a targeted verification plan.",
+      "failure_modes": "Ignoring server batching gates, filtering only some per-request row state, reusing a text-only prefix key or treating a stop flag as immediate MLX work cancellation can corrupt lifecycle reasoning.",
+      "refusal_point": "Stop at the first unsupported contract or missing required fixture/backend; retain a targeted plan without inferring paged allocation, radix sharing or instantaneous prefill interruption."
     },
     "limitations": [
       "Source-derived candidate; no local native-backend, model, service or efficacy validation.",
@@ -98,14 +103,25 @@
     "provenance_readsets": [
       "references/source-map.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Resolve the library versus server entry and its batching gates before transferring BatchGenerator behavior.",
+      "Keep UID, caches, tokens, samplers, processors, lengths, stop matchers and pending outputs aligned under the same removal selection, including prompt-stage requests.",
+      "Check exact token/model/adapter/draft identity and cache-type copy/trim semantics, then trace cooperative removal through survivor and next-request behavior."
+    ]
   },
   "applicability": {
-    "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification."
+    "scope": "MLX-LM generation, batch-row and prefix-cache diagnosis; model/backend/runtime compatibility requires separate qualification.",
+    "prerequisites": "Access to the independently pinned MLX-LM generation/cache contracts and the selected entry path; model, backend and runtime compatibility is separately established for any native claim.",
+    "input_contract": "MLX-LM/MLX revisions and builds, backend/device, model/tokenizer/adapter/draft identities, entry point, tokenized prompts, cache classes, batching/prefill limits, per-request sampling/processors/stops, seed and KV quantization; failure traces include UIDs, stages, lengths, terminal reason and next-request result.",
+    "produced_artifact": "An entry-path decision, UID/stage/cache-row table, prefix identity and cache-class assumptions, terminal/cleanup trace and actual evidence status with a targeted verification plan.",
+    "failure_modes": "Ignoring server batching gates, filtering only some per-request row state, reusing a text-only prefix key or treating a stop flag as immediate MLX work cancellation can corrupt lifecycle reasoning.",
+    "refusal_point": "Stop at the first unsupported contract or missing required fixture/backend; retain a targeted plan without inferring paged allocation, radix sharing or instantaneous prefill interruption."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Resolve the library versus server entry and its batching gates before transferring BatchGenerator behavior.",
+    "Keep UID, caches, tokens, samplers, processors, lengths, stop matchers and pending outputs aligned under the same removal selection, including prompt-stage requests.",
+    "Check exact token/model/adapter/draft identity and cache-type copy/trim semantics, then trace cooperative removal through survivor and next-request behavior."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

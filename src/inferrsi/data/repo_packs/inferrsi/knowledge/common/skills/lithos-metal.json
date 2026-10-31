@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lithos-metal/LICENSE",
         "src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
@@ -60,7 +60,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/lithos-metal/LICENSE": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
     "src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md": "4c71ba2f26c275829466bba2412738aa27799842e642c75cdfd36d9ed8713f7f",
-    "src/inferrsi/data/skill_library/repositories/lithos-metal/metadata.json": "ea2d4e73e33a49433a2834d19489653f828e56f69c4975cc32cf508176eb24ae",
+    "src/inferrsi/data/skill_library/repositories/lithos-metal/metadata.json": "c5fa717d6f79d54e6aa2b0c5b672e80ac7412fbe5901ae24fda78a24c584ba67",
     "src/inferrsi/data/skill_library/repositories/lithos-metal/references/mlx-license.md": "ccfab7ccb2ea306f71531c8ca77bb55507606cd90768b1e32b8b52ab5b48cf01",
     "src/inferrsi/data/skill_library/repositories/lithos-metal/references/notices.md": "b2c9d2481ef2c9d16b3240c951ae65db417e5d309cd06b7917db9d84fe175886",
     "src/inferrsi/data/skill_library/repositories/lithos-metal/references/package-api.md": "4f3ecfabafb2a15eddf21ccf964b8c37635bbb7862418a2c404e7049c0fa2898",
@@ -132,7 +132,11 @@
       }
     ],
     "applicability": {
-      "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately."
+      "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately.",
+      "prerequisites": "Access to the pinned package/API and selected compiler, generation or serving contracts; revision/API drift needs a fresh bounded inspection, and efficacy claims need campaign-owned gates and matching native/model evidence.",
+      "input_contract": "Actual source/package version, backend/configuration, chip/core count and OS, target/draft checkpoint identities, context and prompt-token IDs, sampling/numerical options and the affected recipe/runtime/session/cache boundary.",
+      "produced_artifact": "A routed region/dependency, committed-state or cache-identity/lifecycle ledger, followed by the smallest supported finding, missing checks and next bounded action.",
+      "failure_modes": "Treating session adoption/cache hits as generation correctness, fewer dispatches as faster rounds, another chip recipe as the default, CPU cache checks as GPU rollback or health liveness as loaded/warm model state can yield unsupported conclusions."
     },
     "limitations": [
       "Source-derived candidate; empirical efficacy validation not_run.",
@@ -147,14 +151,24 @@
     "disable-model-invocation": true,
     "metadata": {
       "disco-role": "operating"
-    }
+    },
+    "recommendations": [
+      "Follow session replacement across recipe geometry, committed generation state and serving adoption/cache identity before interpreting a cache hit.",
+      "Keep an unfused/native or target-only control with matching decoded weights, numerical mode, row bounds and sampling policy; verify dependencies and persistent state before timing.",
+      "Distinguish package/CPU checks, synthetic Metal execution, model continuation and HTTP workload evidence; chip recipes and target-compute projections do not establish another device or E2E rate."
+    ]
   },
   "applicability": {
-    "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately."
+    "scope": "Pinned Lithos Metal 0.1.2 source/API contracts; Apple silicon Metal runtime; model and recipe qualification required separately.",
+    "prerequisites": "Access to the pinned package/API and selected compiler, generation or serving contracts; revision/API drift needs a fresh bounded inspection, and efficacy claims need campaign-owned gates and matching native/model evidence.",
+    "input_contract": "Actual source/package version, backend/configuration, chip/core count and OS, target/draft checkpoint identities, context and prompt-token IDs, sampling/numerical options and the affected recipe/runtime/session/cache boundary.",
+    "produced_artifact": "A routed region/dependency, committed-state or cache-identity/lifecycle ledger, followed by the smallest supported finding, missing checks and next bounded action.",
+    "failure_modes": "Treating session adoption/cache hits as generation correctness, fewer dispatches as faster rounds, another chip recipe as the default, CPU cache checks as GPU rollback or health liveness as loaded/warm model state can yield unsupported conclusions."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Follow session replacement across recipe geometry, committed generation state and serving adoption/cache identity before interpreting a cache hit.",
+    "Keep an unfused/native or target-only control with matching decoded weights, numerical mode, row bounds and sampling policy; verify dependencies and persistent state before timing.",
+    "Distinguish package/CPU checks, synthetic Metal execution, model continuation and HTTP workload evidence; chip recipes and target-compute projections do not establish another device or E2E rate."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json",
@@ -41,7 +41,7 @@
   "checkout_ref": "checkout:kv-tier-management",
   "source_files": {
     "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/SKILL.md": "e4b78f368d70c8abb74a935acb910414015f1aeec1b50f7a295e836822ec4b27",
-    "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json": "c221189b8d85fac3bd41ef1c7cd560f1aebc8cfa0381c182d1d571a7169be829",
+    "src/inferrsi/data/skill_library/repositories/lmcache/kv-tier-management/metadata.json": "85f7242b83334af11f57799875738b498bfe4680a51f36727792dfbe91806704",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -69,12 +69,31 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "LMCache multiprocess runtime KV tier policy across engine GPU cache, host L1 and configured L2 adapters, covering store/retention, prefetch admission, eviction and RAM pressure; startup loading and checkpoint recovery have separate owners.",
+      "prerequisites": "The deployment uses the inspected MP-mode semantics rather than single-process knobs; selected GDS/DAX/raw-block paths need their own platform and adapter prerequisites. Lazy offload additionally requires vLLM prefix caching.",
+      "input_contract": "MP versus single-process mode, store/retention policy and rationale, L1 manager capacities and eviction settings, L2 adapter capacities/eviction, chunk-size distribution and prefetch in-flight setting, together with token-level hit and pressure counters.",
+      "produced_artifact": "A mode- and adapter-specific tier-policy choice with retention rationale, an ordered RAM-release plan and a verification record separating L1/L2 token hits, prefetch pressure, store lag and per-manager usage.",
+      "failure_modes": "Mixing MP and in-process controls, treating key-count eviction as a byte fraction for unequal chunks, omitting fs capacity management, or increasing count-based prefetch admission without tracking L1 pressure can make the policy or memory claim unusable."
+    },
+    "recommendations": [
+      "Choose store retention and prefetched-key retention separately; use skip_l1 with noop only for buffer-only operation and account for failed stores remaining in L1.",
+      "Tune the count-based prefetch in-flight limit against L1 allocation failures and in-flight bytes; eager or warm prefetch can raise pressure before useful reuse.",
+      "Record per-adapter capacity/eviction and actual chunk-size uniformity; report token-level L1/L2 hits and sum per-l1_tag bytes rather than ratios."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "LMCache multiprocess runtime KV tier policy across engine GPU cache, host L1 and configured L2 adapters, covering store/retention, prefetch admission, eviction and RAM pressure; startup loading and checkpoint recovery have separate owners.",
+    "prerequisites": "The deployment uses the inspected MP-mode semantics rather than single-process knobs; selected GDS/DAX/raw-block paths need their own platform and adapter prerequisites. Lazy offload additionally requires vLLM prefix caching.",
+    "input_contract": "MP versus single-process mode, store/retention policy and rationale, L1 manager capacities and eviction settings, L2 adapter capacities/eviction, chunk-size distribution and prefetch in-flight setting, together with token-level hit and pressure counters.",
+    "produced_artifact": "A mode- and adapter-specific tier-policy choice with retention rationale, an ordered RAM-release plan and a verification record separating L1/L2 token hits, prefetch pressure, store lag and per-manager usage.",
+    "failure_modes": "Mixing MP and in-process controls, treating key-count eviction as a byte fraction for unequal chunks, omitting fs capacity management, or increasing count-based prefetch admission without tracking L1 pressure can make the policy or memory claim unusable."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Choose store retention and prefetched-key retention separately; use skip_l1 with noop only for buffer-only operation and account for failed stores remaining in L1.",
+    "Tune the count-based prefetch in-flight limit against L1 allocation failures and in-flight bytes; eager or warm prefetch can raise pressure before useful reuse.",
+    "Record per-adapter capacity/eviction and actual chunk-size uniformity; report token-level L1/L2 hits and sum per-l1_tag bytes rather than ratios."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

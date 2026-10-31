@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
+      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:diffusers-invocation-state",
   "source_files": {
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md": "7581b56336d07213a87d01477793ae1a8acf0b7cf876fce36c9a761ee32c1ff4",
-    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "68ac7f64b7ab947fc2db664bc3990f102c1cc5539b42350aa5818d0bbf17d86c",
+    "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/metadata.json": "66f8d20c1644aba964adfff3b439bfd3ecd3875885191e6ce10721bc50877b1a",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/ownership.md": "40688cc44183027efbf2fca8d3548c299cdf2e33fef54f76ab3549353eb9bd1b",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/source-map.md": "10562a75683bd9bd07ec2e37a1cbd0f93f2534d6f85b55a566adb2d97485215f",
     "src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/references/validation.md": "5a0b854b87d091d7d505b0bdd5c03330052507a851ab6edf35b93a6675f2d4f7",
@@ -84,7 +84,12 @@
       }
     ],
     "applicability": {
-      "scope": "FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin; inspect the actual caller contract."
+      "scope": "FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin; inspect the actual caller contract.",
+      "prerequisites": "Access to the pinned ownership path and an identified caller admission/serialization contract; other pipeline or scheduler classes need their own contracts.",
+      "input_contract": "Diffusers/PyTorch revisions, pipeline/scheduler classes and object identities, construction/from_pipe path, actual components, scheduler config and resolved timesteps/sigmas, shape/dtype, callback/interrupt timing, output/cleanup path and overlapping intervals.",
+      "produced_artifact": "An object-identity/ownership map and call-to-schedule-reset/step/interrupt/output/cleanup trace, the caller admission contract, one next check and actual evidence status.",
+      "failure_modes": "Assuming from_pipe deep-copies scheduler state, passing an enumeration index instead of a scheduler timestep, or treating cooperative iteration skipping as kernel cancellation/exception cleanup can misidentify invocation ownership.",
+      "refusal_point": "Stop when the ownership question is resolved or a required fixture/backend is absent; do not infer service-wide race or serialization behavior from this readset."
     },
     "limitations": [
       "Source-derived candidate; no installed API, native scheduler, model, concurrency or service validation.",
@@ -94,14 +99,25 @@
     "provenance_readsets": [
       "references/source-map.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Check wrapper and scheduler identities explicitly and follow the effective schedule reset and step-index progression.",
+      "Trace interruption through its loop-boundary consumer and normal decode/cleanup tail while preserving the caller's existing shared-state serialization.",
+      "Use a real scheduler CPU check only for its scheduler cycle; keep pipeline reuse/interruption and serving claims tied to matching fixtures and execution evidence."
+    ]
   },
   "applicability": {
-    "scope": "FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin; inspect the actual caller contract."
+    "scope": "FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin; inspect the actual caller contract.",
+    "prerequisites": "Access to the pinned ownership path and an identified caller admission/serialization contract; other pipeline or scheduler classes need their own contracts.",
+    "input_contract": "Diffusers/PyTorch revisions, pipeline/scheduler classes and object identities, construction/from_pipe path, actual components, scheduler config and resolved timesteps/sigmas, shape/dtype, callback/interrupt timing, output/cleanup path and overlapping intervals.",
+    "produced_artifact": "An object-identity/ownership map and call-to-schedule-reset/step/interrupt/output/cleanup trace, the caller admission contract, one next check and actual evidence status.",
+    "failure_modes": "Assuming from_pipe deep-copies scheduler state, passing an enumeration index instead of a scheduler timestep, or treating cooperative iteration skipping as kernel cancellation/exception cleanup can misidentify invocation ownership.",
+    "refusal_point": "Stop when the ownership question is resolved or a required fixture/backend is absent; do not infer service-wide race or serialization behavior from this readset."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Check wrapper and scheduler identities explicitly and follow the effective schedule reset and step-index progression.",
+    "Trace interruption through its loop-boundary consumer and normal decode/cleanup tail while preserving the caller's existing shared-state serialization.",
+    "Use a real scheduler CPU check only for its scheduler cycle; keep pipeline reuse/interruption and serving claims tied to matching fixtures and execution evidence."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
