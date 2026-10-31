@@ -1,0 +1,201 @@
+name: Release bot
+
+on:
+  schedule:
+    # 02:00 Asia/Shanghai every day. GitHub schedules can be delayed.
+    - cron: "0 18 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Plan and validate only; create no remote tag or Release
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+  pull-requests: none
+
+concurrency:
+  group: release-bot
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    if: >-
+      github.repository == 'InferMatrixLab/InferRSI' &&
+      github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      release: ${{ steps.plan.outputs.release }}
+      tag: ${{ steps.plan.outputs.tag }}
+      version: ${{ steps.plan.outputs.version }}
+      prerelease: ${{ steps.plan.outputs.prerelease }}
+      commit: ${{ steps.plan.outputs.commit }}
+      previous_tag: ${{ steps.plan.outputs.previous_tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Plan only when the source tree changed since the last published release
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        shell: bash
+        run: |
+          gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100" > "$RUNNER_TEMP/releases.json"
+          python tools/check_release.py plan --default-branch "$DEFAULT_BRANCH" \
+            --releases "$RUNNER_TEMP/releases.json" >> "$GITHUB_OUTPUT"
+
+  build:
+    needs: plan
+    if: needs.plan.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+      RELEASE_COMMIT: ${{ needs.plan.outputs.commit }}
+      # Multiple reserved tags can share a commit after failed publication.
+      SETUPTOOLS_SCM_PRETEND_VERSION_FOR_INFERRSI: ${{ needs.plan.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.plan.outputs.commit }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate source and create the local version tag
+        shell: bash
+        run: |
+          [[ "$(git rev-parse HEAD)" == "$RELEASE_COMMIT" ]]
+          git tag "$RELEASE_TAG" "$RELEASE_COMMIT"
+      - name: Run CPU checks before release
+        run: |
+          python -m pip install -e ".[dev]" build twine
+          ruff check src tests tools
+          pytest
+          test -z "$(git status --porcelain)"
+      - name: Build and check distributables
+        shell: bash
+        run: |
+          python -m build --outdir "$RUNNER_TEMP/release-dist"
+          python -m twine check "$RUNNER_TEMP"/release-dist/*.whl "$RUNNER_TEMP"/release-dist/*.tar.gz
+          python tools/check_release.py sdist "$RUNNER_TEMP"/release-dist/*.tar.gz
+          test -z "$(git status --porcelain)"
+      - name: Check a clean wheel installation outside the checkout
+        shell: bash
+        run: |
+          python -m venv "$RUNNER_TEMP/wheel-env"
+          wheels=("$RUNNER_TEMP"/release-dist/*.whl)
+          "$RUNNER_TEMP/wheel-env/bin/python" -m pip install "${wheels[0]}[skills]"
+          cp tests/check_installed.py tools/check_release.py "$RUNNER_TEMP/"
+          cd "$RUNNER_TEMP"
+          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_installed.py
+          env -u PYTHONPATH "$RUNNER_TEMP/wheel-env/bin/python" -I check_release.py \
+            installed --tag "$RELEASE_TAG"
+      - name: Build and validate the installable Codex plugin ZIP
+        shell: bash
+        run: |
+          python tools/build_codex_plugin.py \
+            --output "$RUNNER_TEMP/plugin-build/inferrsi-codex-plugin-$RELEASE_TAG" \
+            --release-version "${RELEASE_TAG#v}"
+          cp "$RUNNER_TEMP/plugin-build/inferrsi-codex-plugin-$RELEASE_TAG.zip" "$RUNNER_TEMP/release-dist/"
+          python tools/check_release.py plugin \
+            "$RUNNER_TEMP/release-dist/inferrsi-codex-plugin-$RELEASE_TAG.zip" --tag "$RELEASE_TAG"
+          test -z "$(git status --porcelain)"
+      - name: Generate checksums
+        working-directory: ${{ runner.temp }}/release-dist
+        run: sha256sum *.whl *.tar.gz *.zip > SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-distributions
+          path: ${{ runner.temp }}/release-dist/
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: [plan, build]
+    if: >-
+      needs.plan.outputs.release == 'true' && needs.build.result == 'success' &&
+      (github.event_name == 'schedule' || !inputs.dry_run)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # GitHub bundles tag/Release writes under Contents; no tag-only scope exists.
+      # This workflow must never create commits, update branches or operate on PRs.
+      contents: write
+      pull-requests: none
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ needs.plan.outputs.tag }}
+      RELEASE_COMMIT: ${{ needs.plan.outputs.commit }}
+      PREVIOUS_TAG: ${{ needs.plan.outputs.previous_tag }}
+      PRERELEASE: ${{ needs.plan.outputs.prerelease }}
+      DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+    steps:
+      # The write job never checks out or executes repository/build code.
+      - name: Validate publication inputs before using the write token
+        shell: bash
+        run: |
+          version_tag='^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'
+          [[ "$RELEASE_TAG" =~ $version_tag ]]
+          [[ "$RELEASE_COMMIT" =~ ^[0-9a-f]{40}$ ]]
+          [[ -z "$PREVIOUS_TAG" || "$PREVIOUS_TAG" =~ $version_tag ]]
+          [[ "$PRERELEASE" == true || "$PRERELEASE" == false ]]
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-distributions
+          path: dist
+      - name: Verify downloaded checksums
+        working-directory: dist
+        run: sha256sum --check SHA256SUMS
+      - name: Recheck source ancestry and release state before writing
+        shell: bash
+        run: |
+          comparison=$(gh api "repos/$GH_REPO/compare/$RELEASE_COMMIT...$DEFAULT_BRANCH")
+          [[ "$(jq -r '.base_commit.sha' <<< "$comparison")" == "$RELEASE_COMMIT" ]]
+          status=$(jq -r '.status' <<< "$comparison")
+          [[ "$status" == ahead || "$status" == identical ]]
+          releases=$(gh api --paginate --slurp "repos/$GH_REPO/releases?per_page=100")
+          tags=$(jq -r '.[][] | .tag_name' <<< "$releases")
+          if grep -Fxq "$RELEASE_TAG" <<< "$tags"; then
+            echo "::error::Release already exists; no tags or assets will be overwritten."
+            exit 1
+          fi
+          published=$(jq -r '.[][] | select(.draft == false) | .tag_name | select(test("^v(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"))' <<< "$releases")
+          latest=$(printf '%s\n' "$published" | sort -V | tail -n 1)
+          [[ "$latest" == "$PREVIOUS_TAG" ]]
+      - name: Create the remote tag, upload packages, then publish
+        shell: bash
+        run: |
+          gh api --method POST "repos/$GH_REPO/git/refs" \
+            -f ref="refs/tags/$RELEASE_TAG" -f sha="$RELEASE_COMMIT" > /dev/null
+          notes="Source: https://github.com/$GH_REPO/tree/$RELEASE_COMMIT"
+          notes+=$'\n\nThese notes describe software changes. Release builds and scaffold checks do not establish campaign PASS, model quality or service performance. Any such claim requires its acceptance issue and complete frozen evidence.'
+          options=()
+          if [[ -n "$PREVIOUS_TAG" ]]; then options+=(--notes-start-tag "$PREVIOUS_TAG"); fi
+          gh release create "$RELEASE_TAG" dist/*.whl dist/*.tar.gz dist/*.zip dist/SHA256SUMS \
+            --verify-tag --draft --title "InferRSI $RELEASE_TAG" \
+            --generate-notes --notes "$notes" "${options[@]}"
+          assets=$(gh release view "$RELEASE_TAG" --json assets --jq '.assets[].name')
+          for file in dist/*.whl dist/*.tar.gz dist/*.zip dist/SHA256SUMS; do
+            grep -Fxq "$(basename "$file")" <<< "$assets"
+          done
+          sha=$(gh api "repos/$GH_REPO/git/ref/tags/$RELEASE_TAG" --jq '.object.sha')
+          [[ "$sha" == "$RELEASE_COMMIT" ]]
+          if [[ "$PRERELEASE" == true ]]; then
+            gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false
+          else
+            [[ "$PRERELEASE" == false ]]
+            gh release edit "$RELEASE_TAG" --draft=false --prerelease=false --latest
+          fi

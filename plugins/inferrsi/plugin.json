@@ -12,7 +12,7 @@
       "onboardingSkill": "./skills/inferrsi/SKILL.md",
       "interface": {
         "displayName": "InferRSI",
-        "shortDescription": "Research and verify inference optimizations",
+        "shortDescription": "Inference research and checks",
         "developerName": "InferMatrixLab",
         "category": "Productivity",
         "defaultPrompt": [
