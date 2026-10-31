@@ -104,3 +104,25 @@ that gives the two DP replicas distinct waveforms, plus owner failure and DP1
 broadcast cases. Commit hooks pass. This validates the audio ownership boundary,
 not full DP2 model serving or an inference speedup. The queued DP1 pilot remains
 pinned to `ff6ac7b3f`; final qualification must use the final accepted revision.
+
+## Optional device-resident reference KV
+
+Candidate `4fc121ff3d6e7ccb1d3e35582fddf509e010dfa9` adds opt-in
+`kv_cache_residency=device` to the existing reference-KV configuration. Default
+host staging is unchanged. Device residency stores each layer's reference K/V
+in a contiguous device pool and avoids host capture and H2D staging; refresh
+interval semantics and returned-payload ownership remain the same. Host KV
+quantization cannot be combined with this option. Pool bytes and transfer
+counters are logged explicitly.
+
+Source: [reference-KV PR #8072](https://github.com/vllm-project/vllm-omni/pull/8072)
+and this campaign's retained KV2 counters. The failed host-KV2 attempt transferred
+167.09 GB per rank over 25 reuse steps; this motivates an isolated transfer
+hypothesis, not a measured causal attribution or predicted speedup.
+
+[Thirteen CPU tests pass](../results/reference-kv-residency-cpu.json), including
+exact host/device payload parity, refresh, ownership, block-cache skips and
+cleanup. All applicable pre-commit checks pass. The
+[frozen NPU pilot](../plan/kv-residency-pilot.json) compares host/device at interval
+2, then device interval 8, within one reservation after earlier CPU scoring ends.
+NPU speed, actual HBM and output quality remain unverified; no benefit is accepted.

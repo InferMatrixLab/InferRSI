@@ -1,0 +1,45 @@
+{
+  "status": "planned_not_executed",
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/293",
+  "source_revision": "4fc121ff3d6e7ccb1d3e35582fddf509e010dfa9",
+  "hypothesis": "Optional device residency avoids synchronous host capture and repeated H2D staging while preserving the reference refresh schedule. Screen the same interval first, then a larger lossy refresh interval.",
+  "source": [
+    "https://github.com/vllm-project/vllm-omni/pull/8072",
+    "https://github.com/vllm-project/vllm-omni/pull/9698"
+  ],
+  "evidence_trigger": "The retained KV2 attempt transferred 167086080000 H2D bytes per rank and hit the original 600 s execution timeout. Transfer attribution is a hypothesis until isolated here.",
+  "order": [
+    "kv2",
+    "kvdevice2",
+    "kvdevice8"
+  ],
+  "changed_variable_per_comparison": [
+    "host versus device residency at interval 2",
+    "refresh interval 2 versus 8 with device residency"
+  ],
+  "quantization": "none",
+  "steps": 50,
+  "duration_s": 5,
+  "seed": 0,
+  "warmups_per_arm": 2,
+  "measured_requests_per_arm": 1,
+  "independent_servers_per_arm": 1,
+  "profiler": false,
+  "cache_summary": false,
+  "block_cache": false,
+  "wave_timeout_s": 14400,
+  "http_timeout_s": 14400,
+  "shutdown": "Production NPU grace 60 s; every worker exit recorded",
+  "reservation": "All arms in ONE fixed physical 0..7 NPU reservation, 3 h hard; 165 min soft TERM and 180 s kill-after. Start after previous CPU quality scoring completes.",
+  "quality": "Unchanged frozen video/audio gates versus original dense output, plus host versus device at interval 2. A single pilot does not qualify broad model quality or final performance.",
+  "scope": "INCONCLUSIVE until executed; no predicted gain is accepted. Final selected combination requires independent AB/BA at both durations.",
+  "memory": "Pool payload formula 2*layers*reference_rows*local_heads*head_dim*dtype_bytes; capture actual driver HBM and runtime pool bytes, not formula alone.",
+  "script_sha256": {
+    "run_host.sh": "6dff8e02967bb633de6d25f2b75d4159bdf8ba84871cf1fce86d3728346a63e5",
+    "run_inner.sh": "38a682f657555f95f246d993fd24eabfa4ab3970a9218ae96dc24ae62069ed82",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+    "campaign.sh": "9c9dfa0d432d9ee368c2223e66e43fbc6384bb1a5f71175aad8baaa6022320f8",
+    "launch_durable.sh": "9fe5b2ff24a1a90bf52b0057885521576dec30abbb799b46d3a5657e77924ce0"
+  }
+}

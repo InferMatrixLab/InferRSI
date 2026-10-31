@@ -346,3 +346,10 @@ worker exit codes were zero, with no forced signals and server/container exit
 zero, under the explicitly diagnostic 60-second baseline grace. This is not
 baseline production-lifecycle qualification. Candidate and per-output quality
 results remain pending; no code speedup is accepted from this arm alone.
+
+The next [reference-KV residency pilot](plan/kv-residency-pilot.json) is frozen
+and waits for the current warmed pilots and their CPU quality scoring. The
+[optional implementation](patch/README.md#optional-device-resident-reference-kv)
+passes 13 CPU behavior tests, but has no NPU performance or quality verdict yet.
+Both host and device arms use the same longer execution deadline; changing the
+timeout is not an optimization benefit.
