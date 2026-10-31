@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/537429708a0dedbea0ba188418f0fb5e1cbf9ede/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "537429708a0dedbea0ba188418f0fb5e1cbf9ede",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ef4557e15186af6a457705940a36808ebf5bfafa/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "ef4557e15186af6a457705940a36808ebf5bfafa",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
@@ -33,10 +33,16 @@
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4"
+      "content_sha256": "e6ff2de3835ad455df1c5bab7ad002d8489d8c7ef9abeab9660206f602cc8fe7"
     }
   ],
   "index_type": "packaged-skill",
@@ -45,7 +51,7 @@
   },
   "checkout_ref": "checkout:inference-optimization-casebook",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "e6ff2de3835ad455df1c5bab7ad002d8489d8c7ef9abeab9660206f602cc8fe7",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "677d95abb353cecdfca81132759e6a8cd5804ee48c4163e150dde72a2b89f335",
@@ -54,6 +60,12 @@
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "65b4228f8e4ea980b93197e505190ccfedfc5a0f7fd1c28671ec693e3d2a4218",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "a2df4056af372fbbb2fbe90db01acc926fad78775844fa91cff8bc2f3286ff58",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "fdcadb4488e29ca45edf21a350ed28ed4f6c6a9fb4772a61d90ca8f62ce5bb04",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.json": "13cae252f2abf8fe364132f285a84abbb84c785283322ef5c55dec1f9d8bc181",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.md": "73e89ce9ac408710f8f810c28d09b1b5697c09b4837923b8cc4ddd1cdb5ba92f",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.json": "c72d5555bc6dc9d6d63b4aaa767f2f52b4c3d2a6de7008f578de4b68c9a2e692",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.md": "75037437ebb4521f1598c0665c1769cf15d89e7a2a3cc6bcd272a04f2af19981",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.json": "bbca91c9ee2986de179ae902448280c4162a7192f3762e783f8ee222e9869663",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.md": "b693151b444111e3ed45ebf35b7631b4b2083a58e7240bebe8af53f9b659ade6",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "6aa0dd8ae9a8b45d770593f236ce39a6c2e06a8e67ad7176b47d484686028f63",
     "src/inferrsi/data/skill_library/skill-index.json": "326cafc7a19ae61582f696c169336ba93166bba47a952048afab3a5f9039a909"
   },
