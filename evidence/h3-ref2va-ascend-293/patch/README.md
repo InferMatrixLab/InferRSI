@@ -126,3 +126,12 @@ cleanup. All applicable pre-commit checks pass. The
 [frozen NPU pilot](../plan/kv-residency-pilot.json) compares host/device at interval
 2, then device interval 8, within one reservation after earlier CPU scoring ends.
 NPU speed, actual HBM and output quality remain unverified; no benefit is accepted.
+
+### Audio-owner selection outcome
+
+The [warmed paired pilot](../results/audio-owner-selection.json) observed
+196.67 s before versus 199.09 s after (1.23% higher latency). The three candidate
+requests completed and native NPU cleanup passed with eight worker exits zero.
+Output quality scoring is pending. No steady-state benefit qualified, so the
+audio-owner implementation and its DP guard are being removed from the final
+engine change set. Historical source/worktrees and receipts remain intact.

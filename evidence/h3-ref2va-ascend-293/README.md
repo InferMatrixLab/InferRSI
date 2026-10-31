@@ -353,3 +353,17 @@ and waits for the current warmed pilots and their CPU quality scoring. The
 passes 13 CPU behavior tests, but has no NPU performance or quality verdict yet.
 Both host and device arms use the same longer execution deadline; changing the
 timeout is not an optimization benefit.
+
+The [audio-owner paired pilot](results/audio-owner-selection.json) is complete:
+three warmed measured requests averaged 196.67 s before and 199.09 s after,
+an observed 1.23% latency increase. This is one server pair, not a
+statistical-significance claim. The candidate's eight workers, server and
+container all exited zero without forced signals using the production NPU
+60-second grace. Baseline lifecycle passed only under the matched diagnostic
+grace. Per-output quality scoring remains pending.
+
+Audio-owner is rejected from the final optimization set because this pilot
+establishes no steady-state benefit. Its cold-start and CPU decode-count
+observations are retained, but are not substituted for the requested warmed
+E2E result. Frozen pilot worktrees remain unchanged; the final combined
+candidate must still be revalidated after removing this code.
