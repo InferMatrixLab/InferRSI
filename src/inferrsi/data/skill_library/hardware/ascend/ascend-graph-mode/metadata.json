@@ -61,5 +61,17 @@
     "references/torchair-LICENSE.md",
     "references/legacy-source-notes.md",
     "../ascend-aclgraph-capture-replay/SKILL.md"
+  ],
+  "applicability": {
+    "scope": "Diagnose the TorchAir Python ACL graph path from configuration and FX compilation through capture-key selection, fallback, input staging, replay and output lifetime.",
+    "prerequisites": "Eager correctness established first; configuration must match the installed backend, with authorization and workload-specific tolerances for any NPU comparison.",
+    "input_contract": "Installed hardware/runtime versions, actual compile backend/options, shape/dtype/stride and alias/mutation contract, retained outputs, capture/replay/fallback observations and workload mix.",
+    "produced_artifact": "A branch-specific diagnosis and bounded configuration or lifetime proposal with correctness, cold/warm cost, resource and concurrency checks still required on the actual stack.",
+    "failure_modes": "Shape equality or clone_input=False does not prove capture reuse or zero-copy; capture limits can trigger persistent fallback and later replay can overwrite retained outputs."
+  },
+  "recommendations": [
+    "Use the installed CompilerConfig/backend surface and a fresh compiled instance for option changes; do not mix registered-backend snippets with callable-backend configuration.",
+    "Observe capture, recapture, replay and persistent fallback separately, including changed addresses and revisiting old keys after a capture-limit event.",
+    "Preserve earlier results before another replay and check views/input-output aliases; keep cold capture, input/output copying, optional compiler passes and service timing separate."
   ]
 }

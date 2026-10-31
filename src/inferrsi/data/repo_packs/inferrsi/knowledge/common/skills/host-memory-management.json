@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json",
@@ -56,7 +56,7 @@
   "checkout_ref": "checkout:host-memory-management",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md": "4c8db9f603cd581d002e8f41da65af9cbd03699be05c4965a55de47e044e4dd8",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "0d1fe7238bf3e744b463df5f7dc683110468ae266709e63f0d3edfaa0e2f110c",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "9fe5988b136da9aeff9d00b0c6c607cac00b4071efaf637d287a350e5d4fcafb",
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-PSF-LICENSE.md": "33f1a470702f459c160751bf3188b3fa7462fc761a006e03e80ef3f0a7a01ed6",
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-free-threading-readset.json": "46336623b3c573fad97d4c686d9836baab807adf10f4bea05352d7a46236e004",
     "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/legacy-source-notes.md": "bb1c0fb7a4d1a0301ca9e699e733224f3dcf0ded3cfe13e612e5c04d48a8cab5",
@@ -168,12 +168,29 @@
       "references/cpython-PSF-LICENSE.md",
       "references/legacy-source-notes.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Audit host preparation, pinned-host pressure and asynchronous CUDA-copy ownership/order/lifetime, with separately scoped routing for Ascend descriptor retention, Python preprocessing and NUMA placement.",
+      "input_contract": "Host buffer ownership and alias/mutation behavior, copy direction/dtype/layout, producer/consumer streams, live/in-flight/cache budget and the actual interpreter/placement context.",
+      "produced_artifact": "An ownership and dependency audit with bounded transfer candidates and a correctness-first validation plan separating enqueue, pinning, transfer, model and end-to-end cost.",
+      "failure_modes": "A stream wait does not prevent CPU mutation and record_stream does not create a data dependency; cached host storage may outlive Python scope, and the eager reusable-slot example is not capture-safe."
+    },
+    "recommendations": [
+      "Track copy-before-consumer order, CPU payload reuse and device storage lifetime as three independent obligations; wait for D2H completion before CPU reads.",
+      "Compare pageable, per-request pinning and bounded reuse on the real workload while budgeting all live and in-flight slots, cache and preprocessing memory.",
+      "Keep the eager staging-slot preconditions explicit and validate ordering/lifetime under stress before performance; a small passing sample does not establish a hazardous pattern is safe."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Audit host preparation, pinned-host pressure and asynchronous CUDA-copy ownership/order/lifetime, with separately scoped routing for Ascend descriptor retention, Python preprocessing and NUMA placement.",
+    "input_contract": "Host buffer ownership and alias/mutation behavior, copy direction/dtype/layout, producer/consumer streams, live/in-flight/cache budget and the actual interpreter/placement context.",
+    "produced_artifact": "An ownership and dependency audit with bounded transfer candidates and a correctness-first validation plan separating enqueue, pinning, transfer, model and end-to-end cost.",
+    "failure_modes": "A stream wait does not prevent CPU mutation and record_stream does not create a data dependency; cached host storage may outlive Python scope, and the eager reusable-slot example is not capture-safe."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Track copy-before-consumer order, CPU payload reuse and device storage lifetime as three independent obligations; wait for D2H completion before CPU reads.",
+    "Compare pageable, per-request pinning and bounded reuse on the real workload while budgeting all live and in-flight slots, cache and preprocessing memory.",
+    "Keep the eager staging-slot preconditions explicit and validate ordering/lifetime under stress before performance; a small passing sample does not establish a hazardous pattern is safe."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

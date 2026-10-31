@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json",
@@ -47,7 +47,7 @@
   "checkout_ref": "checkout:ascend-graph-mode",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/SKILL.md": "a7341b5bf3b43f32d6114e2109e5043e46f3ddeef9b7bb3b20c1c50236bab638",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json": "3912bdfc721a703580a97a42ca13ac708396b17c4b600bf9e76375dd061fd29c",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/metadata.json": "017a288c514f6f0aab9d00247af7923258816f0987db15e09a5025a1f3937aa2",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/legacy-source-notes.md": "a51c655aff59741cd7421277bd71dffeb9907560950459ae0a776207e496de4a",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-LICENSE.md": "bc07d81fa332b6543463588a120518c57b5ce8582d3747de75d2f6b09b068c01",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-graph-mode/references/torchair-graph-path.md": "272424571ff439278c8f2675406eae7da9a6482c581973e24319739fa0e58348",
@@ -119,12 +119,31 @@
       "references/torchair-LICENSE.md",
       "references/legacy-source-notes.md",
       "../ascend-aclgraph-capture-replay/SKILL.md"
+    ],
+    "applicability": {
+      "scope": "Diagnose the TorchAir Python ACL graph path from configuration and FX compilation through capture-key selection, fallback, input staging, replay and output lifetime.",
+      "prerequisites": "Eager correctness established first; configuration must match the installed backend, with authorization and workload-specific tolerances for any NPU comparison.",
+      "input_contract": "Installed hardware/runtime versions, actual compile backend/options, shape/dtype/stride and alias/mutation contract, retained outputs, capture/replay/fallback observations and workload mix.",
+      "produced_artifact": "A branch-specific diagnosis and bounded configuration or lifetime proposal with correctness, cold/warm cost, resource and concurrency checks still required on the actual stack.",
+      "failure_modes": "Shape equality or clone_input=False does not prove capture reuse or zero-copy; capture limits can trigger persistent fallback and later replay can overwrite retained outputs."
+    },
+    "recommendations": [
+      "Use the installed CompilerConfig/backend surface and a fresh compiled instance for option changes; do not mix registered-backend snippets with callable-backend configuration.",
+      "Observe capture, recapture, replay and persistent fallback separately, including changed addresses and revisiting old keys after a capture-limit event.",
+      "Preserve earlier results before another replay and check views/input-output aliases; keep cold capture, input/output copying, optional compiler passes and service timing separate."
     ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Diagnose the TorchAir Python ACL graph path from configuration and FX compilation through capture-key selection, fallback, input staging, replay and output lifetime.",
+    "prerequisites": "Eager correctness established first; configuration must match the installed backend, with authorization and workload-specific tolerances for any NPU comparison.",
+    "input_contract": "Installed hardware/runtime versions, actual compile backend/options, shape/dtype/stride and alias/mutation contract, retained outputs, capture/replay/fallback observations and workload mix.",
+    "produced_artifact": "A branch-specific diagnosis and bounded configuration or lifetime proposal with correctness, cold/warm cost, resource and concurrency checks still required on the actual stack.",
+    "failure_modes": "Shape equality or clone_input=False does not prove capture reuse or zero-copy; capture limits can trigger persistent fallback and later replay can overwrite retained outputs."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Use the installed CompilerConfig/backend surface and a fresh compiled instance for option changes; do not mix registered-backend snippets with callable-backend configuration.",
+    "Observe capture, recapture, replay and persistent fallback separately, including changed addresses and revisiting old keys after a capture-limit event.",
+    "Preserve earlier results before another replay and check views/input-output aliases; keep cold capture, input/output copying, optional compiler passes and service timing separate."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

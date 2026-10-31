@@ -27,8 +27,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json",
@@ -48,7 +48,7 @@
   "checkout_ref": "checkout:ascend-distributed-parallel",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/SKILL.md": "0b79d95e8d5abf0a822f8ae6bfa3779cbb40595c5b6f0fb934233275f5899ef8",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "56ae2092fb4d6538603c1d3d3916f0a3f0eb443d23dad3217ebd74d48d208d94",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/metadata.json": "096a12d4a5b98bd057e1a87f972038fd43556e82e484b5134943b6e45e880178",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/awesome-ascend-communication-tests.md": "0cb27a3d24409171bb414d7ebf0c49ad62be5f46482f29624695496ba9eb3e63",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-LICENSE.md": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-distributed-parallel/references/hccl-allreduce-readset.json": "4a3d403986dfceaa28605f2f30b79545e1efdc27f35c88755402b75b4d13d7e2",
@@ -139,12 +139,31 @@
       "references/hccl-allreduce.md",
       "references/hccl-allreduce-readset.json",
       "references/hccl-LICENSE.md"
+    ],
+    "applicability": {
+      "scope": "Select and diagnose Ascend parallel strategies and their activation/overlap, with a separately bounded native multi-rank HCCL AllReduce dispatch and correctness procedure.",
+      "input_contract": "Installed collective/runtime builds, rank/device map and topology, workload/strategy settings, count/dtype/reduction, effective dispatch, per-rank outputs and completed-collective/application timing evidence.",
+      "produced_artifact": "A topology- and workload-qualified strategy/dispatch diagnosis, activation and correctness checks, stage-cost attribution and a target-validation proposal; isolated test completion is not a service result.",
+      "failure_modes": "Requested parallel settings can silently fall back; stale local-head/chunk/shard parameters can disable a path, and changed topology/card count can confound strategy comparisons."
+    },
+    "recommendations": [
+      "Confirm the final collective algorithm/engine after fallback and observe sharding/collective activation before interpreting correct outputs or tuning performance.",
+      "Preserve peer/thread waits and test distinct rank/position data with explicit completion on every rank; keep enqueue time, collective completion and application-stage timing separate.",
+      "Recompute topology-derived parameters and remeasure the anchor after changing card groups or parallel degree; inherited diffusion topology restrictions are not universal HCCL gates.",
+      "Require producer/consumer timeline and exposed-communication evidence for overlap; compare the real pipeline wait cost rather than extrapolating small collectives from bytes."
     ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Select and diagnose Ascend parallel strategies and their activation/overlap, with a separately bounded native multi-rank HCCL AllReduce dispatch and correctness procedure.",
+    "input_contract": "Installed collective/runtime builds, rank/device map and topology, workload/strategy settings, count/dtype/reduction, effective dispatch, per-rank outputs and completed-collective/application timing evidence.",
+    "produced_artifact": "A topology- and workload-qualified strategy/dispatch diagnosis, activation and correctness checks, stage-cost attribution and a target-validation proposal; isolated test completion is not a service result.",
+    "failure_modes": "Requested parallel settings can silently fall back; stale local-head/chunk/shard parameters can disable a path, and changed topology/card count can confound strategy comparisons."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Confirm the final collective algorithm/engine after fallback and observe sharding/collective activation before interpreting correct outputs or tuning performance.",
+    "Preserve peer/thread waits and test distinct rank/position data with explicit completion on every rank; keep enqueue time, collective completion and application-stage timing separate.",
+    "Recompute topology-derived parameters and remeasure the anchor after changing card groups or parallel degree; inherited diffusion topology restrictions are not universal HCCL gates.",
+    "Require producer/consumer timeline and exposed-communication evidence for overlap; compare the real pipeline wait cost rather than extrapolating small collectives from bytes."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

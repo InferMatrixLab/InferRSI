@@ -80,5 +80,17 @@
     "references/hccl-allreduce.md",
     "references/hccl-allreduce-readset.json",
     "references/hccl-LICENSE.md"
+  ],
+  "applicability": {
+    "scope": "Select and diagnose Ascend parallel strategies and their activation/overlap, with a separately bounded native multi-rank HCCL AllReduce dispatch and correctness procedure.",
+    "input_contract": "Installed collective/runtime builds, rank/device map and topology, workload/strategy settings, count/dtype/reduction, effective dispatch, per-rank outputs and completed-collective/application timing evidence.",
+    "produced_artifact": "A topology- and workload-qualified strategy/dispatch diagnosis, activation and correctness checks, stage-cost attribution and a target-validation proposal; isolated test completion is not a service result.",
+    "failure_modes": "Requested parallel settings can silently fall back; stale local-head/chunk/shard parameters can disable a path, and changed topology/card count can confound strategy comparisons."
+  },
+  "recommendations": [
+    "Confirm the final collective algorithm/engine after fallback and observe sharding/collective activation before interpreting correct outputs or tuning performance.",
+    "Preserve peer/thread waits and test distinct rank/position data with explicit completion on every rank; keep enqueue time, collective completion and application-stage timing separate.",
+    "Recompute topology-derived parameters and remeasure the anchor after changing card groups or parallel degree; inherited diffusion topology restrictions are not universal HCCL gates.",
+    "Require producer/consumer timeline and exposed-communication evidence for overlap; compare the real pipeline wait cost rather than extrapolating small collectives from bytes."
   ]
 }

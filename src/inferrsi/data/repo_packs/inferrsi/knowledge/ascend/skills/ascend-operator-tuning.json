@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json",
@@ -41,7 +41,7 @@
   "checkout_ref": "checkout:ascend-operator-tuning",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/SKILL.md": "38b151bc6b4e9734c6fa41efb7a30343559400c0c75bbdd26bd8a968b8ea4592",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "04d2002fc8a0a7becf86b0b73daaf2da8716ab466d7f988da43d41a10f26680e",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-tuning/metadata.json": "776fe88247ddacd3cf245920c580a9ff8f2a80fbc0ad1fa7d8be6d63b15a66f7",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -69,12 +69,33 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Run a bounded, accuracy-gated tuning campaign for a single Ascend operator already identified as the bottleneck, escalating from code-level to scheduling and instruction-level changes.",
+      "prerequisites": "A measured operator baseline, an explicit numeric target and a logged on-device accuracy pass before tuning; performance comparisons use real hardware.",
+      "input_contract": "Operator implementation, fixed shape/dtype/card and warmup policy, accuracy result, per-core work/wait measurements and round logs.",
+      "produced_artifact": "A bounded campaign record of each change, accuracy and measured timing delta, kept/reverted rounds, current stage and documented stop condition.",
+      "refusal_point": "Do not start without the baseline and accuracy gate; revert accuracy failures, and stop/escalate repeated failures, timeouts, exhausted stages or the campaign budget.",
+      "failure_modes": "Scheduler-idle and predecessor-wait bottlenecks need different fixes; output inplace-reshape can corrupt slice writes, and a changed analyzer log format can produce a misleading zero-core report."
+    },
+    "recommendations": [
+      "Change one parameter and recheck accuracy each round; keep the failure record when reverting and compare the final configuration against the same baseline workload and warmup policy.",
+      "Route scheduler bubbles separately from predecessor dependencies and enter instruction-level tuning only after isolating a specific long task.",
+      "Verify the analyzer parsed real cores before trusting its diagnosis, and rederive PyPTO tile/buffer/scheduling settings for the target SoC rather than copying numeric examples."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Run a bounded, accuracy-gated tuning campaign for a single Ascend operator already identified as the bottleneck, escalating from code-level to scheduling and instruction-level changes.",
+    "prerequisites": "A measured operator baseline, an explicit numeric target and a logged on-device accuracy pass before tuning; performance comparisons use real hardware.",
+    "input_contract": "Operator implementation, fixed shape/dtype/card and warmup policy, accuracy result, per-core work/wait measurements and round logs.",
+    "produced_artifact": "A bounded campaign record of each change, accuracy and measured timing delta, kept/reverted rounds, current stage and documented stop condition.",
+    "refusal_point": "Do not start without the baseline and accuracy gate; revert accuracy failures, and stop/escalate repeated failures, timeouts, exhausted stages or the campaign budget.",
+    "failure_modes": "Scheduler-idle and predecessor-wait bottlenecks need different fixes; output inplace-reshape can corrupt slice writes, and a changed analyzer log format can produce a misleading zero-core report."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Change one parameter and recheck accuracy each round; keep the failure record when reverting and compare the final configuration against the same baseline workload and warmup policy.",
+    "Route scheduler bubbles separately from predecessor dependencies and enter instruction-level tuning only after isolating a specific long task.",
+    "Verify the analyzer parsed real cores before trusting its diagnosis, and rederive PyPTO tile/buffer/scheduling settings for the target SoC rather than copying numeric examples."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

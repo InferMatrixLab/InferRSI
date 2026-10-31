@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json",
@@ -40,7 +40,7 @@
   "checkout_ref": "checkout:torchnpu-pinned-host-memory-lifecycle",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md": "23e93ea7c98f99743509fdc04139d78ed2e7123c63e80b366c6beaba7eb70d0d",
-    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json": "97836a38465106d816a9ace894a7b277d6d330f9accade8f8493ce6f0fb57ef9",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/metadata.json": "0fa51de079663043fd5785beffb153d989b1cac5833dbd2c99535f6b782a5e95",
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/references/source-notes.md": "435193590b4a2ba32e2e4c6fa9d7e8f889528d412cbbb48e35ec5433f7dab384",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -69,12 +69,29 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy ownership/readiness, reuse and path-specific cache controls.",
+      "input_contract": "Installed versions/settings, host pressure and allocation/reuse distribution, stream timeline, owned versus registered/pageable buffers, selected host allocator path and host statistics/allocation timings.",
+      "produced_artifact": "An ownership classification, source evidence IDs, one eligible allocator proposal, benefit/resource cost and rollback criteria for a later fresh-process comparison.",
+      "refusal_point": "Keep baseline settings for live-buffer growth, pageable copies, stable reuse, unverified versions or unsupported paths; stop tuning on event/runtime errors and escalate external ownership or gate conflicts."
+    },
+    "recommendations": [
+      "Do not mutate an H2D source or read a D2H destination before completion; non_blocking=True alone proves neither overlap nor external-buffer lifetime tracking.",
+      "Interpret host allocated/active bytes using the selected host path, and test round/cache controls only in supported default-path fresh processes; a per-buffer cache threshold is not a total-cache cap.",
+      "Keep host and device allocator options separate and use an explicit quiescent boundary for host cache release; cache clearing is not a copy-completion barrier."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy ownership/readiness, reuse and path-specific cache controls.",
+    "input_contract": "Installed versions/settings, host pressure and allocation/reuse distribution, stream timeline, owned versus registered/pageable buffers, selected host allocator path and host statistics/allocation timings.",
+    "produced_artifact": "An ownership classification, source evidence IDs, one eligible allocator proposal, benefit/resource cost and rollback criteria for a later fresh-process comparison.",
+    "refusal_point": "Keep baseline settings for live-buffer growth, pageable copies, stable reuse, unverified versions or unsupported paths; stop tuning on event/runtime errors and escalate external ownership or gate conflicts."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Do not mutate an H2D source or read a D2H destination before completion; non_blocking=True alone proves neither overlap nor external-buffer lifetime tracking.",
+    "Interpret host allocated/active bytes using the selected host path, and test round/cache controls only in supported default-path fresh processes; a per-buffer cache threshold is not a total-cache cap.",
+    "Keep host and device allocator options separate and use an explicit quiescent boundary for host cache release; cache clearing is not a copy-completion barrier."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

@@ -36,8 +36,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/metadata.json",
@@ -62,7 +62,7 @@
   "checkout_ref": "checkout:reason-hopper-kernels",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md": "cec4e3aa1eb64c31c54b5f5ca40af2b61b7919d94be4174968581d5f752c0538",
-    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/metadata.json": "7520da1cc97412631a600957ecb18aa5a7a4461ea21e76c237330180193ed898",
+    "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/metadata.json": "79ca64dc97ad34331036dc071e86954c98ac568e651adfae74cce74f1ca61c7b",
     "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/fp8.md": "31d9c211c11c2224007abbdcd4059913c4a54833fe2d2f926411c5238fcd3501",
     "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/cutlass-bsd.md": "42fec630f410aa308f70a51a89fadcd19586fa620f9831a32bee528a9a10000e",
     "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/references/licenses/deepgemm-mit.md": "6c73a30c14a2938abaa6afe98ebb19e6d81dac5bd4ace0cb05c61c20afa37b85",
@@ -238,7 +238,10 @@
         "CLC",
         "two-SM MMA",
         "native NVFP4/block-scaled tcgen05 MMA"
-      ]
+      ],
+      "input_contract": "Device/compute capability, compiler target and selected implementation, kernel/library revisions, shapes/strides/alignment, numeric and grouping/epilogue semantics, correctness criterion and measurement boundary.",
+      "produced_artifact": "A source-qualified, reviewable hypothesis with one bounded change, resource/accuracy exchange, counter-signal, stop condition and next verification step.",
+      "failure_modes": "SM90 tags or import/dispatch guards can hide an unbuilt or unselected SM90a instruction path; extra stages or register caps can increase spills or lower residency."
     },
     "limitations": [
       "Native compilation, GPU correctness, numerical accuracy, profiling, performance, model/service behavior and skill efficacy were not run.",
@@ -256,7 +259,12 @@
       "../diagnose-attention-bottlenecks/SKILL.md",
       "../../../methods/kernel-writing-guide/SKILL.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "For WGMMA advice, confirm the compiled and selected SM90a path; do not transplant Blackwell-only instruction or memory mechanisms.",
+      "Resolve producer/consumer ownership and completion before tuning stage depth; budget live accumulators, padded shared memory, scales and epilogue storage together.",
+      "For later validation, check tails, short K, stage wraparound and grouped offsets against the frozen reference, inspect actual PTX/SASS resources, and include setup/conversion/reduction costs."
+    ]
   },
   "applicability": {
     "scope": "Source-derived Hopper SM90/SM90a kernel reasoning for TMA/mbarrier, WGMMA, resource/layout/pipeline/software scheduling and selected FP8 GEMM. CUDA categorization does not certify other GPU architectures, library dispatch, or a combined tested stack.",
@@ -270,11 +278,15 @@
       "CLC",
       "two-SM MMA",
       "native NVFP4/block-scaled tcgen05 MMA"
-    ]
+    ],
+    "input_contract": "Device/compute capability, compiler target and selected implementation, kernel/library revisions, shapes/strides/alignment, numeric and grouping/epilogue semantics, correctness criterion and measurement boundary.",
+    "produced_artifact": "A source-qualified, reviewable hypothesis with one bounded change, resource/accuracy exchange, counter-signal, stop condition and next verification step.",
+    "failure_modes": "SM90 tags or import/dispatch guards can hide an unbuilt or unselected SM90a instruction path; extra stages or register caps can increase spills or lower residency."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "For WGMMA advice, confirm the compiled and selected SM90a path; do not transplant Blackwell-only instruction or memory mechanisms.",
+    "Resolve producer/consumer ownership and completion before tuning stage depth; budget live accumulators, padded shared memory, scales and epilogue storage together.",
+    "For later validation, check tails, short K, stage wraparound and grouped offsets against the frozen reference, inspect actual PTX/SASS resources, and include setup/conversion/reduction costs."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

@@ -22,5 +22,18 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Audit Linux cgroup v2 CPU quota/shares, effective placement, memory pressure/protection and conditional block-device IO controls for serving or training workloads.",
+    "prerequisites": "Identify workload cgroup membership, kernel/controller support, ancestor limits and the authorized file owner; prepare previous values and stop conditions before a separately authorized trial.",
+    "input_contract": "Target PID and hierarchy/namespace view, requested/effective cpusets, time-aligned CPU/memory/IO counters and application/sibling observations; IO proposals require resolved block-backed traffic.",
+    "produced_artifact": "An evidence-qualified control review/proposal with capacity tradeoff, configuration provenance, rollback manifest and matched-window application/sibling checks.",
+    "failure_modes": "Ancestor constraints can invalidate requested placement; pressure movement alone is not application causality, and unsupported IO accounting or shared-inode attribution can misassign traffic."
+  },
+  "recommendations": [
+    "Separate own-quota throttling, ancestor limits and sibling contention before choosing a cpu.max or cpu.weight review.",
+    "Compare requested with effective CPU/node sets and budget cpuset.mems migration before proposing placement; align memory PSI with local versus descendant event deltas.",
+    "Treat increased headroom as a shared-capacity spend and verify application outcomes and sibling impact, not just counter improvements.",
+    "Resolve actual block-backed traffic and supported IO controls before proposing caps; preserve inaccessible-ancestor uncertainty and do not infer container write authority."
+  ]
 }

@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json",
@@ -40,7 +40,7 @@
   "checkout_ref": "checkout:ascend-operator-profiling",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md": "401981cf7828edcab0c9ea882f7ecd83badfa3c2a95006e912cf99d67b3d6a12",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "efd37bb23acb500dad4ec8ebe7ddfe5c3f196374052825f923ac85da8445f06b",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-operator-profiling/metadata.json": "b2b93637f01546ecb1b7076be6798d234988c594cccdcb764ad222af9ad21af9",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -71,12 +71,31 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Build, measure and diagnose one Ascend operator in isolation using msprof op, before interpreting system-level or multi-kernel performance.",
+      "prerequisites": "A built executable or test harness and access to real NPU hardware with msprof op for collection.",
+      "input_contract": "Operator executable/harness, collection settings and OPPROF output directory, plus the operator directory used to archive each measurement round.",
+      "produced_artifact": "Per-round raw CSV archives and observational min/average/max summaries, followed by a bottleneck interpretation and comparison of operator duration and core balance.",
+      "failure_modes": "Unwarmed or reduced-frequency runs distort timing; separately budgeting simultaneous GM reads/writes misses shared bandwidth, and tiny workloads can be dominated by launch overhead."
+    },
+    "recommendations": [
+      "Collect warmup and repeated measurements into a named round, preserve the raw CSVs, and distinguish the summary statistics from the subsequent bottleneck judgment.",
+      "Compare task duration, dominant pipeline ratios and per-core balance together; change one optimization point, rebuild as needed and archive the new round before deciding to keep it.",
+      "Check current versus rated frequency and shared read/write bandwidth before blaming the kernel; aggregate msprof ratios do not provide an instruction-by-instruction timeline."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Build, measure and diagnose one Ascend operator in isolation using msprof op, before interpreting system-level or multi-kernel performance.",
+    "prerequisites": "A built executable or test harness and access to real NPU hardware with msprof op for collection.",
+    "input_contract": "Operator executable/harness, collection settings and OPPROF output directory, plus the operator directory used to archive each measurement round.",
+    "produced_artifact": "Per-round raw CSV archives and observational min/average/max summaries, followed by a bottleneck interpretation and comparison of operator duration and core balance.",
+    "failure_modes": "Unwarmed or reduced-frequency runs distort timing; separately budgeting simultaneous GM reads/writes misses shared bandwidth, and tiny workloads can be dominated by launch overhead."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Collect warmup and repeated measurements into a named round, preserve the raw CSVs, and distinguish the summary statistics from the subsequent bottleneck judgment.",
+    "Compare task duration, dominant pipeline ratios and per-core balance together; change one optimization point, rebuild as needed and archive the new round before deciding to keep it.",
+    "Check current versus rated frequency and shared read/write bandwidth before blaming the kernel; aggregate msprof ratios do not provide an instruction-by-instruction timeline."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

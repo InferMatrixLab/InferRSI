@@ -19,5 +19,17 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Use line-level profiling to reduce exposed Python request-preparation, scheduling and execution-coordination overhead in a bounded serving optimization loop.",
+    "prerequisites": "Confirm host overhead is the limiting factor with the detection procedure before tuning; choose a representative workload and consistent CPU affinity for comparisons.",
+    "input_contract": "Detection/NVTX triage, qualified target function paths and line-profiler output, workload/affinity settings, related correctness tests and serving benchmark metrics.",
+    "produced_artifact": "Per-round hotspot/change/rollback and correctness records plus a final before/after benchmark report, failed attempts, remaining hotspots and scoped follow-up recommendations.",
+    "failure_modes": "Optimizing the default preparation function can miss a different regressing owner; caching/hoisting/preallocation can violate lifetime or invalidation, and a line-level speedup can leave serving throughput unchanged."
+  },
+  "recommendations": [
+    "Profile the actual top regressing function by absolute exposed time, drilling into dominant unprofiled subcalls instead of assuming _prepare_tp_inputs is the owner.",
+    "Prefer one small evidence-supported change with explicit ownership/lifetime/invalidation checks, run relevant correctness tests and revert failed or regressing candidates.",
+    "Re-profile identical workloads after each accepted change and compare hotspot time, total function time and serving metrics; reassess the next bottleneck and stay within the authorized budget."
+  ]
 }

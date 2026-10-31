@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json",
@@ -40,7 +40,7 @@
   "checkout_ref": "checkout:ascend-device-health",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json": "80d80c15514919826fa72d6f6cf26b76db8accd85d21187fc239232ca454e7bf",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/metadata.json": "f643185563dbf528a5a1f2b0561685ae34302a9efc9900c6753a7168b4e8b329",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -67,12 +67,31 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Pre-run Ascend device-health, topology, occupancy and timing checks before a trusted baseline, multi-card run or graph capture, including after a killed job.",
+      "hardware": "Ascend NPU card groups with topology and health visible through npu-smi.",
+      "input_contract": "Intended card group, current topology/health and process occupancy, prior termination history and expected workload step timing.",
+      "produced_artifact": "A pre-run health/occupancy and step-timing record, with recovery observations and a baseline-remeasurement requirement after a card-group change.",
+      "failure_modes": "Health=OK can miss degraded post-kill timing; foreign processes, unwarmed clocks or comparing different card groups can contaminate the baseline."
+    },
+    "recommendations": [
+      "Read topology each session rather than hardcoding card numbers, then check health and foreign-process occupancy before the workload smoke check.",
+      "Use the short step-timing check to investigate post-kill degradation; record affected cards and timings instead of treating Health=OK as sufficient evidence.",
+      "Warm up operator measurements and remeasure the baseline after changing card groups; set only environment variables needed by the run."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Pre-run Ascend device-health, topology, occupancy and timing checks before a trusted baseline, multi-card run or graph capture, including after a killed job.",
+    "hardware": "Ascend NPU card groups with topology and health visible through npu-smi.",
+    "input_contract": "Intended card group, current topology/health and process occupancy, prior termination history and expected workload step timing.",
+    "produced_artifact": "A pre-run health/occupancy and step-timing record, with recovery observations and a baseline-remeasurement requirement after a card-group change.",
+    "failure_modes": "Health=OK can miss degraded post-kill timing; foreign processes, unwarmed clocks or comparing different card groups can contaminate the baseline."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Read topology each session rather than hardcoding card numbers, then check health and foreign-process occupancy before the workload smoke check.",
+    "Use the short step-timing check to investigate post-kill degradation; record affected cards and timings instead of treating Health=OK as sufficient evidence.",
+    "Warm up operator measurements and remeasure the baseline after changing card groups; set only environment variables needed by the run."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

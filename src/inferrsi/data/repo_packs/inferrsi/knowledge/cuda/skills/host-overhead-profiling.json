@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json",
@@ -39,7 +39,7 @@
   "checkout_ref": "checkout:host-overhead-profiling",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/SKILL.md": "326e566fbe30d3ba04e4b50c3e87aad9df037f0ac4ad6fe129165ae97dc5f91d",
-    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "76e34c1c64aba473a9e126b032a776417caa0f913f6ac3cf4dba3a5d123b1ee0",
+    "src/inferrsi/data/skill_library/hardware/cuda/host-overhead-profiling/metadata.json": "bc4236c65e37378f4a74e0b88c47776055c186aca44c000b1f68e8c63cc4b277",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -65,12 +65,31 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Detect exposed host overhead and diagnose per-step host regressions in CUDA inference serving from existing nsys timelines.",
+      "prerequisites": "An existing serving nsys trace and Python with sqlite3; comparative root-cause analysis needs baseline and target traces, with nsys export available for report-format input.",
+      "input_contract": "One trace for detection/breakdown or two comparable traces for regression analysis, including the workload/phase context needed to isolate steady-state forward steps.",
+      "produced_artifact": "A detection verdict with metric/phase evidence, per-step NVTX/kernel/API breakdown and ranked host-operation deltas for a targeted optimization handoff.",
+      "failure_modes": "Warmup/loading or mismatched phase mixtures distort per-step comparisons; duplicated rank ranges, unresolved NVTX text IDs or overlapping rank end times can miscompute host gaps."
+    },
+    "recommendations": [
+      "Isolate comparable steady-state forward iterations and inspect context/generation separately; aggregate utilization can hide a phase-specific host bottleneck.",
+      "Confirm exposed preparation using both performance impact and idle attribution, retain communication as a confounder, and triage absolute NVTX time deltas before line-level optimization.",
+      "Resolve NVTX text IDs, account for TP rank duplication and use the maximum overlapping end time for gaps; do not compare full-trace totals as per-step overhead."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Detect exposed host overhead and diagnose per-step host regressions in CUDA inference serving from existing nsys timelines.",
+    "prerequisites": "An existing serving nsys trace and Python with sqlite3; comparative root-cause analysis needs baseline and target traces, with nsys export available for report-format input.",
+    "input_contract": "One trace for detection/breakdown or two comparable traces for regression analysis, including the workload/phase context needed to isolate steady-state forward steps.",
+    "produced_artifact": "A detection verdict with metric/phase evidence, per-step NVTX/kernel/API breakdown and ranked host-operation deltas for a targeted optimization handoff.",
+    "failure_modes": "Warmup/loading or mismatched phase mixtures distort per-step comparisons; duplicated rank ranges, unresolved NVTX text IDs or overlapping rank end times can miscompute host gaps."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Isolate comparable steady-state forward iterations and inspect context/generation separately; aggregate utilization can hide a phase-specific host bottleneck.",
+    "Confirm exposed preparation using both performance impact and idle attribution, retain communication as a confounder, and triage absolute NVTX time deltas before line-level optimization.",
+    "Resolve NVTX text IDs, account for TP rank duplication and use the maximum overlapping end time for gaps; do not compare full-trace totals as per-step overhead."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

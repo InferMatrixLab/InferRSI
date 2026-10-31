@@ -23,5 +23,16 @@
     "references/papers-20261015/README.md",
     "references/sources.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Diagnose attention-kernel bottlenecks after IO reduction, tile/pipeline regressions and precision or hardware-port assumptions.",
+    "input_contract": "Actual kernel/device revisions, attention shapes and semantics, operand/accumulator types, correctness/quality criteria, and existing traffic, resource, parallelism and stall observations.",
+    "produced_artifact": "A bottleneck diagnosis with confidence, one bounded candidate, resource exchange, counter-signal, missing evidence, source ID and next authorization gate.",
+    "refusal_point": "Return conditional hypotheses when observations are missing; reject or defer changes with wrong outputs/gradients, unsafe lifetimes/order, unsupported primitives, unacceptable accuracy or gains erased by omitted work."
+  },
+  "recommendations": [
+    "Preserve masks, dropout replay, online-softmax normalization and gradient obligations before comparing costs; exact algebra does not imply bitwise equality.",
+    "After fusion, reclassify the exposed limit using scalar work, independent output tiles and resource ceilings; larger tiles and deeper pipelines can reduce residency or spill.",
+    "Include precision preprocessing/conversion in the measurement boundary and check generated asynchronous scheduling; validate accelerator-specific primitives separately before a port."
+  ]
 }

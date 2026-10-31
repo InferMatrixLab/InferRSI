@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json",
@@ -44,7 +44,7 @@
   "checkout_ref": "checkout:ascend-video-diffusion-optimization",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md": "53c21e64f0dd47f9510faef1f2c01e1283899787ba7ebfe70cdabd8e57a76f00",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json": "8c2b364298330751fd1252516159b16c27e90354e2a724782d2851e68e43cdb3",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json": "35f725c9d9e0a8638b234da798232d2ae49a37b70f0b0360710bce333f9265ca",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -78,7 +78,10 @@
     "applicability": {
       "scope": "Ascend NPU video diffusion inference and serving optimization",
       "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in methods/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
-      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+      "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue",
+      "input_contract": "Issue-scoped performance and quality gates, timing boundary, representative and held-out workloads, frozen model/runtime/input settings and an authorized optimization budget.",
+      "produced_artifact": "An experiment ledger and final report of the frozen goal, baseline/final samples, quality/resource checks, accepted or reverted changes and remaining gap; verdicts require the acceptance issue evidence.",
+      "failure_modes": "Packed-layout conversion from noncontiguous weights can corrupt outputs; missing side-stream lifetime/order handling or omitted layout-copy costs can invalidate an optimization comparison."
     },
     "limitations": [
       "Ascend specialization of the backend-agnostic methods/video-diffusion-optimization skeleton; every operator, layout and profiler reference (TransData, FRACTAL_NZ, CANN) is Ascend-specific and must be re-derived per backend.",
@@ -95,16 +98,25 @@
       "../../../methods/video-diffusion-optimization/scripts/evaluate_target.py",
       "../../../methods/video-diffusion-optimization/assets/campaign.template.json"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Follow the common goal-contract and measure-change-verify loop, including final restarted-artifact acceptance; an operator win does not establish end-to-end improvement.",
+      "Materialize contiguous weights before FRACTAL_NZ conversion when strides differ from physical order, and attribute TransData/copy costs before proposing fusion.",
+      "Use field notes only to form hypotheses; derive thresholds, chunking, precision and sparsity from the target model measurements, and preserve stream dependencies and tensor lifetimes."
+    ]
   },
   "applicability": {
     "scope": "Ascend NPU video diffusion inference and serving optimization",
     "hardware": "Ascend NPU; the measure-change-verify workflow skeleton is backend-agnostic and lives in methods/video-diffusion-optimization, while the operator, layout and profiler references here are Ascend-specific",
-    "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue"
+    "prerequisites": "A reproducible benchmark, a frozen quality check, and numeric gates defined in the governing acceptance issue",
+    "input_contract": "Issue-scoped performance and quality gates, timing boundary, representative and held-out workloads, frozen model/runtime/input settings and an authorized optimization budget.",
+    "produced_artifact": "An experiment ledger and final report of the frozen goal, baseline/final samples, quality/resource checks, accepted or reverted changes and remaining gap; verdicts require the acceptance issue evidence.",
+    "failure_modes": "Packed-layout conversion from noncontiguous weights can corrupt outputs; missing side-stream lifetime/order handling or omitted layout-copy costs can invalidate an optimization comparison."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Follow the common goal-contract and measure-change-verify loop, including final restarted-artifact acceptance; an operator win does not establish end-to-end improvement.",
+    "Materialize contiguous weights before FRACTAL_NZ conversion when strides differ from physical order, and attribute TransData/copy costs before proposing fusion.",
+    "Use field notes only to form hypotheses; derive thresholds, chunking, precision and sparsity from the target model measurements, and preserve stream dependencies and tensor lifetimes."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

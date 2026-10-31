@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json",
@@ -41,7 +41,7 @@
   "checkout_ref": "checkout:ascend-performance-analysis",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/SKILL.md": "a057b7f86a24f34a8f84abbbb4910d58d4e50ff47060e1c404600017e3febe89",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "9e705625c8308013c287576b0247da6f6116d817a4a535cbecff80abd6ea35ee",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/metadata.json": "f3fb35b14b5b1054a9192459862451149395368f4a75f430caef2f41ad050296",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-CANN-2.0-LICENSE.md": "89b1c114df62cfd183004f38d18d07f186436c3b37203dd69c3e84becf9d2282",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-performance-analysis/references/cannbot-stage-evidence.md": "f56e4125325c9c1b9235a1d64fd732861c7686444492422daff44ba8dd648be4",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
@@ -102,12 +102,31 @@
     "provenance_readsets": [
       "references/cannbot-stage-evidence.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Interpret Ascend CANN profiling evidence from step breakdown through kernel/utilization/communication analysis, and assess execution/validator evidence in automated optimization-stage reports.",
+      "prerequisites": "Usable warm-state captures with representative steps, required files and non-null utilization columns; healthy cards and a consistent valid topology for multi-card comparisons.",
+      "input_contract": "CANN step/kernel/utilization/communication outputs with verified column semantics; for stage acceptance, the loaded candidate, baseline, quality-validator output and comparable measurements.",
+      "produced_artifact": "An evidence-qualified bottleneck classification and optimization direction; stage conclusions retain missing-execution/validator INCONCLUSIVE or observed gate-failure FAIL.",
+      "failure_modes": "Summing concurrent communication durations double-counts overlap; misidentified columns can drop communication, and a successful export can still lack usable utilization data."
+    },
+    "recommendations": [
+      "Start from the step-level computing/communication/overlap/free breakdown and stop deepening the analysis once the bottleneck is located; do not sum concurrent streams as wall time.",
+      "Inspect actual column headers and enum values on the installed CANN version, then verify files and non-null metrics before interpreting utilization heuristics.",
+      "Use same-window interleaved baseline/candidate measurements on shared machines; progress markers, hashes and source-derived thresholds do not substitute for quality and execution evidence."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Interpret Ascend CANN profiling evidence from step breakdown through kernel/utilization/communication analysis, and assess execution/validator evidence in automated optimization-stage reports.",
+    "prerequisites": "Usable warm-state captures with representative steps, required files and non-null utilization columns; healthy cards and a consistent valid topology for multi-card comparisons.",
+    "input_contract": "CANN step/kernel/utilization/communication outputs with verified column semantics; for stage acceptance, the loaded candidate, baseline, quality-validator output and comparable measurements.",
+    "produced_artifact": "An evidence-qualified bottleneck classification and optimization direction; stage conclusions retain missing-execution/validator INCONCLUSIVE or observed gate-failure FAIL.",
+    "failure_modes": "Summing concurrent communication durations double-counts overlap; misidentified columns can drop communication, and a successful export can still lack usable utilization data."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Start from the step-level computing/communication/overlap/free breakdown and stop deepening the analysis once the bottleneck is located; do not sum concurrent streams as wall time.",
+    "Inspect actual column headers and enum values on the installed CANN version, then verify files and non-null metrics before interpreting utilization heuristics.",
+    "Use same-window interleaved baseline/candidate measurements on shared machines; progress markers, hashes and source-derived thresholds do not substitute for quality and execution evidence."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

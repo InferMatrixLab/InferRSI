@@ -21,5 +21,16 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Design or restructure AscendC tiling for the covered reduction, broadcast and elementwise classes, plus the bounded mxfp8 fusion and small-channel transpose cases.",
+    "input_contract": "Operator class and semantics, normalized shapes/axes, dtype, target chip generation, valid/aligned lengths and intermediate-buffer requirements.",
+    "produced_artifact": "A multi-core split, UB chunk formula, buffer-size/total-usage plan and branch matrix with edge tests; these are design outputs, not benchmark results.",
+    "failure_modes": "Budgeting only inputs omits intermediate UB storage; mixing valid and aligned lengths or copy units corrupts boundaries, and choosing unsupported generation-specific primitives invalidates the design."
+  },
+  "recommendations": [
+    "Normalize axes first, then decide full-load versus chunking from the entire live working set; derive tile size from buffer, axis, API and load-balance constraints.",
+    "Keep valid compute/copy lengths separate from aligned storage offsets and sizes, and complete dtype, tail/alignment and boundary branches before tuning.",
+    "Select primitives by the target generation and preserve class-specific coverage limits; re-evaluate sample constants and API semantics instead of treating formulas as tested performance evidence."
+  ]
 }

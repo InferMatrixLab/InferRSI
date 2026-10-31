@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json",
@@ -41,7 +41,7 @@
   "checkout_ref": "checkout:cann-attribution-overlap",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/SKILL.md": "0e6f094dc554abea12e07def50f20b233b47127779a8aefad595b4ab1efd24c2",
-    "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json": "acccc8eb86de0df6caf78a9b3c6db76a2a686adc4a5ba0029a4d62d50ff9a8f8",
+    "src/inferrsi/data/skill_library/hardware/ascend/cann-attribution-overlap/metadata.json": "7ad137076afb55fbea74c6c5c0c0ca8eb3a8e615a765ec23199e8df75a8abd4f",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -69,12 +69,33 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Attribute representative CANN trace kernels to source owners and plan bounded multistream overlap using data, state, event and collective-order dependencies.",
+      "prerequisites": "Pin the installed CANN/TorchNPU/TorchAir versions before choosing one execution-mode synchronization API family; communication proposals require communication evidence.",
+      "input_contract": "Representative-step selection and shapes, kernel/stream inventory with code_ref, adjacent wait windows and dependency edges; communication analysis also needs rank/transport evidence.",
+      "produced_artifact": "An attribution map, serial/candidate/pending dependency groups and a minimal overlap plan with joins, enable/fallback path, resource tradeoffs and acceptance checks.",
+      "failure_modes": "Kernel names and mechanical coverage can misidentify ownership; logical independence can hide resource contention, and overlap ratios or summed durations can hide unchanged wall time or new tails."
+    },
+    "recommendations": [
+      "Join hotspots to source owners and adjacent wait windows before selecting a target; keep compute cost, waiting and host gaps separate.",
+      "Build explicit data/state/event/collective-order edges, then verify one correct overlap point before increasing overlap or partitioning resources.",
+      "Require observed overlap, preserved state/order and fallback behavior plus latency and outside-module checks; report wall time, interval unions and duration sums separately.",
+      "Carry disputed formulas and source-revision distinctions forward; device free time alone does not identify Python, GIL or OS causes without matching host evidence."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Attribute representative CANN trace kernels to source owners and plan bounded multistream overlap using data, state, event and collective-order dependencies.",
+    "prerequisites": "Pin the installed CANN/TorchNPU/TorchAir versions before choosing one execution-mode synchronization API family; communication proposals require communication evidence.",
+    "input_contract": "Representative-step selection and shapes, kernel/stream inventory with code_ref, adjacent wait windows and dependency edges; communication analysis also needs rank/transport evidence.",
+    "produced_artifact": "An attribution map, serial/candidate/pending dependency groups and a minimal overlap plan with joins, enable/fallback path, resource tradeoffs and acceptance checks.",
+    "failure_modes": "Kernel names and mechanical coverage can misidentify ownership; logical independence can hide resource contention, and overlap ratios or summed durations can hide unchanged wall time or new tails."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Join hotspots to source owners and adjacent wait windows before selecting a target; keep compute cost, waiting and host gaps separate.",
+    "Build explicit data/state/event/collective-order edges, then verify one correct overlap point before increasing overlap or partitioning resources.",
+    "Require observed overlap, preserved state/order and fallback behavior plus latency and outside-module checks; report wall time, interval unions and duration sums separately.",
+    "Carry disputed formulas and source-revision distinctions forward; device free time alone does not identify Python, GIL or OS causes without matching host evidence."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

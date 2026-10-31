@@ -21,5 +21,18 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Measure and attribute storage traffic for model loading or serving while separating device/process observations from application outcomes and cache/startup effects.",
+    "prerequisites": "Resolve backing devices and participating worker PIDs first; active fio benchmarks or cache manipulation require separate authorization, with bounded observation during already-authorized runs.",
+    "input_contract": "Observed loader access pattern, tool/OS/filesystem versions, file-to-device mapping, worker PIDs, phase timestamps, cache-state method and raw IO/job/application measurements.",
+    "produced_artifact": "A workload- and cache-qualified IO evidence record with units, achieved depth, errors/bytes/completion and device/process attribution, plus a separately measured application outcome where benefit is claimed.",
+    "refusal_point": "Reject unspecified or copied-example benchmark workloads; do not name a storage bottleneck from util/iowait alone or infer application gain from synthetic bandwidth."
+  },
+  "recommendations": [
+    "Match the fio read pattern to the observed loader and verify achieved rather than requested depth; more queued work can increase latency.",
+    "Record warm/cold/unknown cache state and its method, separate startup from repeated/steady reads, and check completed bytes for truncated runs.",
+    "Align per-device and per-process observations with the application phase, retain units and latency provenance, and corroborate saturation using traffic, queues and process activity.",
+    "Only run a separately authorized bounded read-only job against an explicit existing regular file, then remeasure the real application before accepting a benefit."
+  ]
 }

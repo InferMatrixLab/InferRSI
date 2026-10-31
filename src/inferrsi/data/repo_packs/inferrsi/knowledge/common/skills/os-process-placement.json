@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json",
@@ -42,7 +42,7 @@
   "checkout_ref": "checkout:os-process-placement",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053",
-    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "ec02995c075f0a540921f57b4846f2cafe334eb90f44389f17c3c50457c3e9c5",
+    "src/inferrsi/data/skill_library/hardware/host/os-process-placement/metadata.json": "d53e53f724c7b6f261cf6c9b579afd20b2279cb1ffd0af89f8ce9f475046fa76",
     "src/inferrsi/data/skill_library/hardware/host/os-process-placement/references/llama-numa-thread-readset.md": "748b254b3b043a5ddb0f480eb4a566854d27eedd7b111499863e9bf0a5a6951e",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -92,12 +92,31 @@
     "provenance_readsets": [
       "references/llama-numa-thread-readset.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Prepare and record CPU/NUMA process placement, phase-specific thread settings, device contention and environment prerequisites before shared-host performance measurements.",
+      "prerequisites": "No outstanding hard environment errors: required devices/driver, planned device count and any container prerequisites must be present before running.",
+      "input_contract": "Current affinity/NUMA policy, accelerator locality, workload phase/thread controls, device occupancy, runtime environment and relevant container/resource limits.",
+      "produced_artifact": "A recorded placement/thread/environment configuration and preflight outcome, with errors requiring remediation and warnings retained for the measurement campaign.",
+      "failure_modes": "Changing affinity or thread settings between rounds confounds timing; combining independent affinity mechanisms is order-sensitive, and small driver memory usage can be mistaken for device occupation."
+    },
+    "recommendations": [
+      "Inspect affinity and NUMA policy before placement and hold them constant across comparisons; document and requalify a round when placement changes.",
+      "Choose one affinity-mask authority and distinguish generation, batch and frontend thread controls; source template thread counts are starting points rather than tuned constants.",
+      "Record device occupancy and structured ERROR/WARNING results before measuring, using the official environment setup for derived CANN paths."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Prepare and record CPU/NUMA process placement, phase-specific thread settings, device contention and environment prerequisites before shared-host performance measurements.",
+    "prerequisites": "No outstanding hard environment errors: required devices/driver, planned device count and any container prerequisites must be present before running.",
+    "input_contract": "Current affinity/NUMA policy, accelerator locality, workload phase/thread controls, device occupancy, runtime environment and relevant container/resource limits.",
+    "produced_artifact": "A recorded placement/thread/environment configuration and preflight outcome, with errors requiring remediation and warnings retained for the measurement campaign.",
+    "failure_modes": "Changing affinity or thread settings between rounds confounds timing; combining independent affinity mechanisms is order-sensitive, and small driver memory usage can be mistaken for device occupation."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Inspect affinity and NUMA policy before placement and hold them constant across comparisons; document and requalify a round when placement changes.",
+    "Choose one affinity-mask authority and distinguish generation, batch and frontend thread controls; source template thread counts are starting points rather than tuned constants.",
+    "Record device occupancy and structured ERROR/WARNING results before measuring, using the official environment setup for derived CANN paths."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

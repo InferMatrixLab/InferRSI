@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ad322aab86d9a148bc4b378a15b2762e41b86908/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
-      "commit": "ad322aab86d9a148bc4b378a15b2762e41b86908",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
+      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json",
@@ -40,7 +40,7 @@
   "checkout_ref": "checkout:host-overhead-optimization",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md": "36ef88826a32ac3147b869001004ded17a8d5a491e25bfe105005ba39ea9d1eb",
-    "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json": "ae71c389dfdb1a19d267feecb4c6f1fbb4c9afad501ff6d8fab7e38b29bcc37a",
+    "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/metadata.json": "db3c63ca77a46e647a806e094ae662504768a958d537630a4d7bcabde35d6da3",
     "src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/references/deepinfer-zero-overhead-scheduling.md": "f452bf40132c9195d739f1c86b3aa18857138c7ed0f1861af5853d93b9955924",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -67,12 +67,31 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Use line-level profiling to reduce exposed Python request-preparation, scheduling and execution-coordination overhead in a bounded serving optimization loop.",
+      "prerequisites": "Confirm host overhead is the limiting factor with the detection procedure before tuning; choose a representative workload and consistent CPU affinity for comparisons.",
+      "input_contract": "Detection/NVTX triage, qualified target function paths and line-profiler output, workload/affinity settings, related correctness tests and serving benchmark metrics.",
+      "produced_artifact": "Per-round hotspot/change/rollback and correctness records plus a final before/after benchmark report, failed attempts, remaining hotspots and scoped follow-up recommendations.",
+      "failure_modes": "Optimizing the default preparation function can miss a different regressing owner; caching/hoisting/preallocation can violate lifetime or invalidation, and a line-level speedup can leave serving throughput unchanged."
+    },
+    "recommendations": [
+      "Profile the actual top regressing function by absolute exposed time, drilling into dominant unprofiled subcalls instead of assuming _prepare_tp_inputs is the owner.",
+      "Prefer one small evidence-supported change with explicit ownership/lifetime/invalidation checks, run relevant correctness tests and revert failed or regressing candidates.",
+      "Re-profile identical workloads after each accepted change and compare hotspot time, total function time and serving metrics; reassess the next bottleneck and stay within the authorized budget."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Use line-level profiling to reduce exposed Python request-preparation, scheduling and execution-coordination overhead in a bounded serving optimization loop.",
+    "prerequisites": "Confirm host overhead is the limiting factor with the detection procedure before tuning; choose a representative workload and consistent CPU affinity for comparisons.",
+    "input_contract": "Detection/NVTX triage, qualified target function paths and line-profiler output, workload/affinity settings, related correctness tests and serving benchmark metrics.",
+    "produced_artifact": "Per-round hotspot/change/rollback and correctness records plus a final before/after benchmark report, failed attempts, remaining hotspots and scoped follow-up recommendations.",
+    "failure_modes": "Optimizing the default preparation function can miss a different regressing owner; caching/hoisting/preallocation can violate lifetime or invalidation, and a line-level speedup can leave serving throughput unchanged."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Profile the actual top regressing function by absolute exposed time, drilling into dominant unprofiled subcalls instead of assuming _prepare_tp_inputs is the owner.",
+    "Prefer one small evidence-supported change with explicit ownership/lifetime/invalidation checks, run relevant correctness tests and revert failed or regressing candidates.",
+    "Re-profile identical workloads after each accepted change and compare hotspot time, total function time and serving metrics; reassess the next bottleneck and stay within the authorized budget."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
