@@ -309,3 +309,22 @@ share one NPU reservation, so the complete formal campaign will be frozen and
 reserved together after candidate selection. The original plan remains as
 history, not evidence. Queued pilot scoring waits for the threshold timing job
 to finish; no standalone baseline remains in the queue.
+
+The [50-step HSDP screening attempt](results/hsdp-screening-failure.json)
+also failed the default 600-second execution RPC deadline and returned HTTP
+500. Only about 28 of 50 denoising steps completed before forced termination.
+The profiler's 579.16 s duration came from an interrupted call and must not be
+reported as a complete 50-step denoising latency. There is no valid output,
+measured request or quality result. Eight workers received terminate and kill.
+
+The timeout's error text says “DLO”, but this arm used `--use-hsdp` without
+DLO: the same deadline is passed by the ordinary single-group execution path.
+This is an execution-guard naming/scope observation, not a successful HSDP
+result. Model loading took 228.71–304.62 s per rank in this attempt versus up
+to 1178.93 s in the earlier smoke; no controlled load-time optimization explains
+that difference. Both attempts remain available. The source remains the
+existing [HSDP path (#1339)](https://github.com/vllm-project/vllm-omni/pull/1339).
+
+Second-round screening has finished. The warmed audio code A/B now holds the
+next reservation; its source revisions, two warmups, three measured requests,
+cache policy, and per-worker exit receipts remain frozen as published.
