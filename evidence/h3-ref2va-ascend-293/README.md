@@ -11,6 +11,9 @@ exits zero; the final combined revision and repeated A/B remain unqualified.
 changes when available. Private runtime paths and raw host logs stay outside the
 published tree; public artifacts use labelled paths and hashes.
 
+[Transferable observations](results/lessons.md) link each operational lesson to
+its evidence and state what it does not establish.
+
 ## Attribution and candidate selection
 
 | Candidate family | Source at the frozen baseline | Experiment requirement |
