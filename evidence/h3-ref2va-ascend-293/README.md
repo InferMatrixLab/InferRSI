@@ -407,3 +407,7 @@ remains rejected for lack of steady-state benefit despite passing media gates.
 ## Bounded cache selection and first-delivery final plan
 
 The [four-profile search](results/cache-range-selection.json) completed with 12/12 quality PASS and clean worker lifecycles. Mean E2E: MC4/R0.12 142.26 s; MC8/R0.12 121.23 s; MC8/R0.24 106.73 s; MC8/R0.48 105.32 s. MC8/R0.48 is selected by the lowest observed passing mean; its 1.3% gap to R0.24 is not a statistical-significance claim. The [frozen five-second ABBA plan](plan/final-5s-abba.json) compares original c7f56f0 with c18fff65a in one reservation and checks three additional coverage pairs. Coverage is scored only after A1/B1 servers exit, before B2/A2 timing. Fifteen-second qualification is deferred.
+
+## First final attempt interrupted: nested shutdown budget
+
+The first final ABBA attempt was deliberately stopped after A1: [receipt](results/final-5s-abba-interrupted.json). A1 completed all eight requests, but the 30-second outer Orchestrator join ended before actual worker exit receipts were printed. Eight shutdown-complete callbacks and server/container exit zero are insufficient to mark lifecycle PASS. B1 startup was interrupted; B2/A2 were not run. The new regression reproduced this mismatch (one NPU failure, one non-NPU pass); after selecting a bounded 90-second outer NPU join, all 10 engine-output/shutdown tests pass. Replacement full ABBA must use a new frozen source and reservation; this A1 will not be spliced into it.
