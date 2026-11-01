@@ -399,3 +399,7 @@ independent-round uncertainty or the final original-baseline comparison.
 The bounded follow-up cache search's quality eligibility is satisfied, but it
 still waits for the intervening KV pilot and scoring. The audio-owner change
 remains rejected for lack of steady-state benefit despite passing media gates.
+
+## Completed five-second KV residency pilot
+
+[Full receipt](results/kv-residency-pilot.json): host interval 2 / device interval 2 / device interval 8 measured 593.24 / 327.13 / 268.77 seconds. All four quality comparisons passed and all three services recorded eight normal worker exits. The same-interval observation is a single-pair pilot, not repeated final qualification. Device residency removes reference-KV host transfers at the cost of a 6.68 GB/rank resident payload. Measured sampled HBM peaks are recorded separately. Source 4fc121ff3 holds the later-rejected audio-owner code common in all arms. Final first delivery is five seconds; fifteen seconds is deferred by the requester.
