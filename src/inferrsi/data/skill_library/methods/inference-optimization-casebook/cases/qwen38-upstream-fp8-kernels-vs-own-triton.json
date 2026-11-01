@@ -44,8 +44,9 @@
     "Single card; numbers are microbenchmarks, not end-to-end",
     "Thresholds registered for one shape family and one device",
     "Upstream versions may change both performance and licensing",
-    "The located ledger records go >=280 TFLOPS and does not contain an abandon-below-250 threshold",
-    "145 s is in the unmerged PR body; the same day's ledger withdraws 145.3 s as evidence because it includes first-call JIT",
+    "The case body and this sidecar both keep the recorded go line of >=280 TFLOPS and the observed 273/279 TFLOPS figures",
+    "An abandon-below-250 threshold is absent from the located records and is not asserted",
+    "145 s remains only as a withdrawn, JIT-confounded report from the unmerged PR body; it is not timing evidence",
     "No raw microbenchmark file for these TFLOPS figures was in the retained evidence tree; the digests above are the public ledger bodies"
   ],
   "attribution": "Issue #67 comments 6336720892 and 6336567189, and nano-vllm pull request 3; microbenchmarks, not an end-to-end claim"

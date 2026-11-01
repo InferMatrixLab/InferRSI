@@ -7,7 +7,7 @@ each cost a debugging round.
 
 | Symptom | What actually happened | Detection that would have caught it |
 | --- | --- | --- |
-| HTTP 200 with an SSE `error` frame mid-stream | Decode ran past the configured graph bucket, the engine fell back or failed, and the wrapper kept the stream open | Assert `completion_tokens` equals the requested count and `finish_reason == length` on every request |
+| HTTP 200 with an SSE `error` frame mid-stream | Decode ran past the configured graph bucket, the engine fell back or failed, and the wrapper kept the stream open | On every request, parse each SSE frame, reject an embedded `error` or a truncated stream, and require a terminal frame whose `finish_reason` is `stop` or `length`. When usage is present, check `completion_tokens` against it. A normal EOS/`stop` finish below `max_tokens` is success. Assert `completion_tokens` equals a frozen budget and `finish_reason == length` only on a capacity fixture that disables early stop |
 | HTTP 400, empty body, 0-byte server log | The error handler deliberately dropped all exceptions ("client addresses and arbitrary exceptions do not belong in service logs") | Log a structured line with exception type and a truncated message; never return an error status without a body |
 | Generation failed at token 993 with no message | The graph bucket was chosen from `prompt + headroom` with `headroom = 256`, while the request asked for 2048 output tokens | Validate bucket coverage against maximum output length, not against prompt slack, before starting the run |
 
@@ -15,7 +15,8 @@ Disposition: a serving layer must never convert an internal failure into a
 success response. Log the exception type to stderr even when the payload must be
 redacted, return a JSON error body for every 4xx/5xx, and treat capacity
 (bucket, context, output length) as a pre-flight assertion rather than a runtime
-surprise.
+surprise. `max_tokens` is an upper bound. Do not treat a shorter `stop` finish
+as a failed length request.
 
 Revisit condition: any wrapper that owns stream framing or error translation.
 First check: send one request whose output length exceeds the configured
