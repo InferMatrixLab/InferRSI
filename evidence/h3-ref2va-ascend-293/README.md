@@ -371,3 +371,18 @@ establishes no steady-state benefit. Its cold-start and CPU decode-count
 observations are retained, but are not substituted for the requested warmed
 E2E result. Frozen pilot worktrees remain unchanged; the final combined
 candidate must still be revalidated after removing this code.
+
+The initial warmed threshold timing sweep completed all nine measured requests.
+Separate receipts retain [0.04](results/threshold-cache4.json),
+[0.08](results/threshold-cache4t08.json), and
+[0.12](results/threshold-cache4t12.json), with actual worker exits. CPU media
+scoring is running after timing; these receipts do not infer output quality.
+
+A [bounded follow-up cache search](plan/cache-range-pilot.json) is frozen before
+any of its outputs: MC4/R0.12 control, MC8/R0.12, MC8/R0.24, MC8/R0.48. It runs
+only if every initial threshold output passes the unchanged gates, and only
+after earlier CPU scoring and the KV pilot finish. The same-source control
+isolates the reuse limit first, then the residual threshold. All variants keep
+50 steps and identical output specifications. This is an adaptive pilot, not an
+upstream recommendation or final acceptance. The four profile argument lists
+round-trip through the launcher without shell evaluation.
