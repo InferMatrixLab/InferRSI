@@ -1,0 +1,107 @@
+[
+  {
+    "name": "area:knowledge",
+    "group": "area",
+    "description": "Knowledge line: packs, skill library, knowledge admission"
+  },
+  {
+    "name": "area:process",
+    "group": "area",
+    "description": "Repo-wide process, governance, privacy and security rules"
+  },
+  {
+    "name": "area:usability",
+    "group": "area",
+    "description": "Usability and collaboration: issue navigation, templates, readable reports"
+  },
+  {
+    "name": "area:workbench",
+    "group": "area",
+    "description": "CLI workbench: profile, A/B loop, quality gates, evidence reports"
+  },
+  {
+    "name": "help:wanted",
+    "group": "help",
+    "description": "Needs an owner or contributor"
+  },
+  {
+    "name": "kind:acceptance",
+    "group": "kind",
+    "description": "Campaign acceptance issue: frozen gates + evidence tree; PASS/FAIL/INCONCLUSIVE"
+  },
+  {
+    "name": "kind:bug",
+    "group": "kind",
+    "description": "Defect report: an observable symptom that differs from expected behavior"
+  },
+  {
+    "name": "kind:docs",
+    "group": "kind",
+    "description": "Documentation and template delivery"
+  },
+  {
+    "name": "kind:investigation",
+    "group": "kind",
+    "description": "Research / discovery; no delivery promise"
+  },
+  {
+    "name": "kind:rfc",
+    "group": "kind",
+    "description": "Proposal / design discussion; scope review before build"
+  },
+  {
+    "name": "kind:roadmap",
+    "group": "kind",
+    "description": "Program-level roadmap anchor (Now / Next / Later)"
+  },
+  {
+    "name": "kind:status",
+    "group": "kind",
+    "description": "Periodic status snapshot"
+  },
+  {
+    "name": "kind:task",
+    "group": "kind",
+    "description": "Bounded delivery task with a delegated slice"
+  },
+  {
+    "name": "kind:tracking",
+    "group": "kind",
+    "description": "Tracking umbrella that follows child work"
+  },
+  {
+    "name": "priority:P0",
+    "group": "priority",
+    "description": "Decide or start now; blocks other work. Only with status:proposed or status:accepted"
+  },
+  {
+    "name": "priority:P1",
+    "group": "priority",
+    "description": "Decide or start this week. Only with status:proposed or status:accepted"
+  },
+  {
+    "name": "priority:P2",
+    "group": "priority",
+    "description": "Decide or start after this week. Only with status:proposed or status:accepted"
+  },
+  {
+    "name": "skill-eval:execute",
+    "group": "skill-eval",
+    "description": "Owner-authorized paid Skill Eval opt-in; cumulative USD 200 per PR. Not a quality or merge approval."
+  },
+  {
+    "name": "status:accepted",
+    "group": "status",
+    "description": "The decision owner accepted it in a recorded comment"
+  },
+  {
+    "name": "status:deferred",
+    "group": "status",
+    "description": "The decision owner deferred it in a recorded comment"
+  },
+  {
+    "name": "status:proposed",
+    "group": "status",
+    "description": "Waiting for the decision named in the status block"
+  }
+]
