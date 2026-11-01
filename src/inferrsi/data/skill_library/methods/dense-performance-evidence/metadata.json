@@ -13,6 +13,26 @@
     "external"
   ],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Deciding which performance evidence to collect next and which claim each evidence level supports, from correctness through microbenchmark, component profile, isolated scenario benchmark and multi-regime serving benchmark to a production A/B experiment; also structuring a measurement campaign",
+    "prerequisites": "Level 0 correctness evidence is collected before any performance measurement; a Level 5 experiment needs production infrastructure, traffic splitting and statistical power",
+    "input_contract": "The claim to be made or the question to answer, and the evidence already collected with its level, workload, hardware/software context and controls",
+    "produced_artifact": "The minimum evidence level each claim requires, the next evidence to collect under the escalation rule, and negative-result records with hypothesis, evidence level, the metric that did not improve, context and the reason if known; a classification of evidence, not a measurement",
+    "failure_modes": [
+      "An md5 match or a test pass is read as semantically correct output or as support for a performance claim",
+      "A microbenchmark improvement is reported as an inference throughput gain",
+      "Absolute kernel durations or single collective latencies are compared across devices or sessions",
+      "A win on one fixed workload or concurrency is generalized to production traffic",
+      "Worse metrics, per-task regressions or negative results are discarded, or a shared task budget is taken as equal total cost"
+    ],
+    "refusal_point": "Withholds any claim above the level its evidence reaches, leaves an unresolved source protocol or denominator mismatch unresolved, and lets neither upstream scores nor local packaging checks promote an InferRSI candidate"
+  },
+  "recommendations": [
+    "Collect Level 0 first and profile at Level 2 before implementing; escalate to Level 3 only after a promising Level 2 result, and to Level 4 only after a Level 3 win worth validating across regimes.",
+    "Collect a Level 1 microbenchmark only for an isolated-kernel question after Level 2 has confirmed that kernel is on the critical path.",
+    "For a Level 1 claim, pin input shape and dtype, exclude warmup, synchronize before timing, run at least 10 repetitions and report median and IQR; for a Level 3 claim, match hardware, software stack, model revision and inputs, run at least 3 repetitions and alternate A/B/A order.",
+    "Read the admission/drain occupancy case when interpreting finite service cohorts; phase-selected occupancy is not end-to-end gain."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

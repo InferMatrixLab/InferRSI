@@ -25,6 +25,7 @@ MAX_ATTEMPTS_PER_ARM = 8
 PER_REQUEST_MICROUSD = 10_170_000
 FULL_RESERVATION_MICROUSD = 162_720_000
 MAX_ARM_SECONDS = 600
+PILOT_LIMIT_MICROUSD = 1_000_000_000
 
 
 def _identifier(value):
@@ -37,6 +38,33 @@ def _sha(value, size=64):
 
 def _fingerprint(value):
     return hashlib.sha256(provider.canonical(value).encode()).hexdigest()
+
+
+@dataclass(frozen=True)
+class AdditionalAttempt:
+    """One explicit issue-scoped continuation, supplied only by the trusted root.
+
+    Old claims remain immutable. The fixed new identities are not caller-chosen
+    retry IDs, and checkpoints must be used by the independently anchored stores.
+    """
+
+    limit: budget.TrustedPRLimit
+    prior_binding: budget.Binding
+    campaign_id: str
+    execution_id: str
+    pr_checkpoint: str
+    daily_checkpoint: str
+
+    def __post_init__(self):
+        if (type(self.limit) is not budget.TrustedPRLimit
+                or not budget.PR_LIMIT_MICROUSD < self.limit.limit_microusd <= PILOT_LIMIT_MICROUSD
+                or type(self.prior_binding) is not budget.Binding
+                or self.prior_binding.worst_case != FULL_RESERVATION_MICROUSD
+                or not self.prior_binding.run_id.startswith(CAMPAIGN_NAMESPACE)
+                or not _identifier(self.campaign_id) or not _identifier(self.execution_id)
+                or self.prior_binding.run_id == CAMPAIGN_NAMESPACE + self.campaign_id
+                or not _sha(self.pr_checkpoint, 40) or not _sha(self.daily_checkpoint, 40)):
+            raise budget.BudgetError("Invalid trusted one-additional-attempt exception")
 
 
 @dataclass(frozen=True)
@@ -59,6 +87,7 @@ class PilotPolicy:
     actor_sha256: tuple[str, str]
     provider_json: str
     expires_at: int
+    additional_attempt: AdditionalAttempt | None = None
 
     def __post_init__(self):
         if (not _identifier(self.campaign_id) or not _identifier(self.execution_id)
@@ -68,7 +97,16 @@ class PilotPolicy:
                 or any(not _sha(value) for value in self.actor_sha256)
                 or type(self.expires_at) is not int or self.expires_at <= 0):
             raise budget.BudgetError("Invalid trusted pilot binding")
+        extra = self.additional_attempt
+        if extra is not None and (type(extra) is not AdditionalAttempt
+                or extra.limit.key != self.key or extra.campaign_id != self.campaign_id
+                or extra.execution_id != self.execution_id):
+            raise budget.BudgetError("Additional attempt differs from exact reviewed scope")
         self.reservation(now=0)
+
+    @property
+    def trusted_limit(self):
+        return None if self.additional_attempt is None else self.additional_attempt.limit
 
     def reservation(self, *, now):
         try:
@@ -100,7 +138,10 @@ class PilotPolicy:
     def binding(self):
         # Global run uniqueness plus the fixed namespace below prevents a new
         # digest, PR, date, workflow run/attempt or campaign ID from resetting it.
-        return budget.Binding(_fingerprint(asdict(self)),
+        value = asdict(self)
+        if self.additional_attempt is None:
+            value.pop("additional_attempt")  # Preserve every historical v1 binding digest.
+        return budget.Binding(_fingerprint(value),
                               CAMPAIGN_NAMESPACE + self.campaign_id,
                               FULL_RESERVATION_MICROUSD)
 
@@ -116,7 +157,8 @@ def _read_pair(policy, daily_store, pr_store):
     daily = daily_store.read_verified(daily_key)
     pr = pr_store.read_verified(policy.key)
     if (type(daily) is not budget.DailySnapshot or daily.ledger.key != daily_key
-            or type(pr) is not budget.Snapshot or pr.ledger.key != policy.key):
+            or type(pr) is not budget.Snapshot or pr.ledger.key != policy.key
+            or pr.ledger.trusted_limit != policy.trusted_limit):
         raise budget.BudgetError("Wrong verified ledger identity")
     daily.ledger.require_active()
     # An audited PR genesis is not enough if global historical obligations
@@ -125,6 +167,26 @@ def _read_pair(policy, daily_store, pr_store):
     if retained_pr != pr.ledger.charged:
         raise budget.BudgetError("Inconsistent historical daily/PR charges")
     return daily, pr
+
+
+def _campaign_history(policy, daily, pr, *, admitted=False):
+    """Namespace-wide one-shot guard; partial writes count, regardless of day/PR."""
+    extra = policy.additional_attempt
+    expected = (() if extra is None else (extra.prior_binding,))
+    if admitted:
+        expected += (policy.binding,)
+    entries = tuple(e for e in daily.entries if e.binding.run_id.startswith(CAMPAIGN_NAMESPACE))
+    if (tuple(e.binding for e in entries) != expected
+            or any(e.key != policy.key or e.phase != "claimed" or e.actual_cost is not None
+                   for e in entries)):
+        raise budget.BudgetError("Pilot campaign already bound or exact prior claim missing")
+    if extra is not None and (pr.genesis.legacy_charge != 0
+            or tuple(e.binding for e in pr.entries) != expected
+            or any(e.phase != "claimed" or e.actual_cost is not None for e in pr.entries)):
+        raise budget.BudgetError("Additional attempt must preserve the exact prior PR claim")
+    total = sum(e.binding.worst_case for e in entries)
+    if total + (0 if admitted else FULL_RESERVATION_MICROUSD) > PILOT_LIMIT_MICROUSD:
+        raise budget.BudgetError("Pilot lifetime budget exhausted")
 
 
 def _current(policy, check_current, wall_clock, admitted_day=None):
@@ -156,11 +218,9 @@ def admit(policy, daily_store, pr_store, *, check_current,
         raise budget.BudgetError("Explicit trusted admission dependencies required")
     admitted_day = _current(policy, check_current, wall_clock)
     daily, pr = _read_pair(policy, daily_store, pr_store)
-    if any(e.binding.run_id.startswith(CAMPAIGN_NAMESPACE) for e in daily.ledger.entries):
-        raise budget.BudgetError("Pilot campaign already bound; no relaunch or replan")
-    # One immutable campaign on one lifetime-capped PR is strictly below the
-    # $1,000 task ceiling. Unrelated past campaigns are NOT new pilot spending;
-    # daily_reserve still includes all relevant global charges and carryover.
+    _campaign_history(policy, daily.ledger, pr.ledger)
+    # The explicit exception allows only its one additional immutable campaign.
+    # Unrelated obligations still count in daily_reserve; nothing is refunded.
     binding = policy.binding
     day_next = budget.daily_reserve(daily.ledger, policy.key, binding, admitted_day)
     pr_next = budget.reserve(pr.ledger, binding)  # Check BOTH caps before any write.
@@ -214,6 +274,7 @@ class _Admission:
                            and e.phase == "claimed" and e.admitted_day == self._day
                            for e in daily.ledger.entries)):
             raise budget.BudgetError("Both exact durable pilot claims are required")
+        _campaign_history(self.policy, daily.ledger, pr.ledger, admitted=True)
         _current(self.policy, self._check_current, self._wall, self._day)
 
     def context(self, arm):

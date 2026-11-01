@@ -7,6 +7,27 @@
   "origin": [
     "external"
   ],
+  "applicability": {
+    "scope": "Proposing training activation and gradient memory reductions when pressure appears to come from live tensors or allocator-reserved memory, by distinguishing lifetime reordering, address packing and selective rematerialization; covers activation checkpointing for recomputation, not persistent recovery checkpoints",
+    "prerequisites": "The packaged evidence and limits are read before citing paper results; installing or running a solver or framework, modifying allocation or checkpoint policies, reproducing workloads or provisioning hardware needs separate authorization",
+    "input_contract": "The actual forward/backward/update DAG, shapes and precision, tensor sizes and consumer lifetimes; resident versus reserved peak bytes; operator, workspace and temporary-output peaks; batch and accumulation policy; optimizer and collective barriers; representative compute and transfer costs; whether the goal is fit, step time or time to a fixed training objective",
+    "produced_artifact": "A preferred candidate, simpler fallback, resource ledger, critical-path prediction, assumptions, counter-signals and unresolved-evidence list, with source claims kept apart from proposed decisions, plus a proposed matched comparison; a reviewable proposal, not an implementation",
+    "failure_modes": [
+      "Fragmentation and live-byte excess are not distinguished at the same phase",
+      "OLLA address packing is read as tensor placement across CPU/SSD tiers",
+      "Reordering moves a release or update past a dependency such as shared weights, accumulation, gradient clipping, optimizer state or collectives",
+      "A static packing plan ignores alignment, aliasing, workspace, asynchronous overlap or shape variability",
+      "Added recomputation consumes the compute window that previously hid transfers",
+      "Checkmate's rounding is taken to guarantee the memory cap, or its 10% allowance is used as a portable safety margin",
+      "A solver timeout is read as proof of infeasibility"
+    ],
+    "refusal_point": "Returns the missing classification instead of a preferred checkpoint interval when only total OOM memory is known, and escalates when a legal dependency graph, memory margin or correctness model is unavailable"
+  },
+  "recommendations": [
+    "Where ordering is legal, try earlier last-use and gradient release before adding computation or transfer.",
+    "Check dependency validity and memory feasibility separately for an approximate schedule.",
+    "Account for planning cost over the expected number of repeated steps."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

@@ -48,9 +48,62 @@ Plans and reports have one identifiable bot comment beginning with
 `<!-- inferrsi-skill-eval-pr:v1 -->`. A new head/base, trusted implementation,
 mapping, exam, model or budget produces a new plan. Earlier authorization and
 results are stale. The planner replaces the summary with the current plan and
-missing pairs. A publisher checks live revisions twice and refuses older writer
+explicit unexecuted status (not zero-valued pseudo-results). A publisher checks live revisions twice and refuses older writer
 runs, so delayed jobs cannot replace a newer summary. All plan/execute/publish
 runs for one PR share non-cancelling Actions concurrency.
+
+### Nonpaid author handoff
+
+A **PLANNED** comment is a work instruction, not a test result. Its front section
+identifies the current head, next action, unresolved blockers and required evidence.
+The collapsed **Author verification steps** contain the actual path-map trigger,
+existing task purpose/scope, required answer fields and concrete check instructions.
+Known fixed snapshot refusals remain precise; recognized dynamic errors expose only
+the fixed category, never arbitrary exception/YAML excerpts. Unknown errors receive
+an explicit generic preparation failure. The original plan/exception bytes are not
+rewritten by this public display projection. A mapped path does **not** establish
+that its task tests the changed claim. For example, a blocked-request diagnostic
+case is not a source-fidelity check merely because a skill metadata file changed.
+The author and independent reviewer must disposition that relevance explicitly.
+
+For canonical library or generated-index changes, the planner may show the existing
+`python tools/build_skill_index.py --source-revision <declared-commit> --check`
+with an **actual** immutable pin. It reads the known generated README as bounded
+Git data, requires one declared source commit in the frozen head's ancestor closure,
+and checks that the entire canonical library has identical Git bytes/modes at that
+pin and the PR head. It does not
+execute the generator or establish that generated records are correct. Plan and
+publish both fetch full history before preparing the same fingerprint; a shallow
+boundary must not make a declared ancestor disappear in only one job. At the
+identified PR checkout, with the reviewed tool and documented development/skills
+extras, the author can run that no-model check and retain its exit code plus full
+success/drift output. An absent, unavailable or mismatched pin yields an explicit
+source-selection action instead; HEAD is never silently substituted. Non-ancestor
+pins are also withheld from this automatic command selection, whether locally cached
+or missing. This is an advisory availability limit, not a failed check, invalid
+source claim or change to the indexer's accepted inputs; authors can explicitly
+review an independently chosen source pin. A successful
+index check establishes projection consistency, not source-claim truth, behavior,
+hardware compatibility or skill benefit.
+
+For successfully prepared mappings, the displayed `python -m json.tool` commands
+inspect the retained tasks and schema from the downloaded `skill-eval-plan`
+artifact directory; they do not grade anything or call a model. Produce the required
+answer/artifact only after confirming applicability. Use the existing
+[comparison contract](skill-eval-comparison.md) or, for an explicitly selected
+engineering task, [local-author handoff](local-skill-evaluation.md). No paid
+execute command is a nonpaid fallback, and no task or mapping is selected on the
+author's behalf when the existing mapping supplies none.
+
+Return the current PR head, exact check/task and source pin, commands, environment,
+exit status, bounded input/output evidence and failures. Distinguish real author
+work from synthetic hand-authored/scripted controls. List claims still untested;
+an independent reviewer records verified/refuted/unverified dispositions. Path
+counts are grouped by canonical/generated/other **location**, never treated as
+claim counts or proof of a metadata-only change. Full paths, frozen task/grader
+identities, budget and execution controls remain in collapsed audit details and
+the retained plan. Older plans lacking task metadata say so instead of borrowing
+new metadata or rebinding old evidence. Unsupported snapshot safety is unchanged.
 
 ### Refresh a plan without execution
 

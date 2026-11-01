@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f143ad5de97b07ed2d86e206764a29c3415363ed/src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
-      "commit": "f143ad5de97b07ed2d86e206764a29c3415363ed",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/54d4c89d4db82cbfc10d6096fe49bb077136e8b1/src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
+      "commit": "54d4c89d4db82cbfc10d6096fe49bb077136e8b1",
       "paths": [
         "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md",
         "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json",
@@ -34,7 +34,7 @@
   "checkout_ref": "checkout:assess-split-backward-schedule",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md": "1e64f28ea71672fb53c56f6108b87864738c6d03d6dcd32eedaef9e0625e96e3",
-    "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json": "c6acae57d70190cea0e18c71c79127962181e58169e011df75d8635b3db4daa7",
+    "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/metadata.json": "a089dd2c2e5a4b41e970e426c63b5b8f65acc77d2e5a40a44b38543b5d730a00",
     "src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/references/source-notes.md": "61b1609f71c37b61d136b8c4d39f793de87cffb1cf31c8ec737a1c3fa6fb1b4e",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -49,6 +49,26 @@
     "origin": [
       "external"
     ],
+    "applicability": {
+      "scope": "Assessing memory-capped split-backward and V-shaped pipeline schedule proposals when a pipeline trace suggests input-gradient propagation waits behind deferrable weight-gradient work or an optimizer barrier, while preserving synchronous update, global-batch and optimizer-validation semantics",
+      "prerequisites": "The packaged evidence notes are read before citing the paper; installing or running frameworks, benchmarking schedules, changing training semantics, configuring hardware or modifying repositories needs separate authorization",
+      "input_contract": "Stage and microbatch counts, microbatch and global batch, precision, optimizer and clipping/NaN behavior; F, input-gradient B, weight-gradient W and transfer timings; per-pass retained and released bytes; total device peak and margin; collective ordering; kernel-splitting support; calculated bubble rate kept apart from measured idle time and useful samples/s",
+      "produced_artifact": "A candidate schedule and fallback with per-pass order rationale, peak-memory and transfer costs, unchanged semantic requirements, counter-signals and a future verification proposal; a reviewable plan, not an enabled schedule",
+      "failure_modes": [
+        "Completion of B is equated with releasing all activations, so W inputs retained by deferral go uncounted",
+        "The equal-time zero-bubble construction replaces observed F/B/W and transfer times, or kernel-splitting and synchronization overhead is left out",
+        "The schedule is chosen by minimum modeled bubble rate instead of whole-step throughput under the memory and quality constraint",
+        "pMB activation capacity is read as total memory, hiding HBM, workspace, buffers or per-rank imbalance",
+        "Removing the optimizer barrier drops global norm, clipping or NaN decisions, rollback and re-update, or the correctness of work that depends on a tentative update",
+        "Optimizer post-validation is conflated with accepting stale-gradient delayed updates"
+      ],
+      "refusal_point": "Withholds an enablement recommendation under frequent clipping/NaNs, small available memory, strongly unequal passes, unsupported split kernels, hidden collectives or dynamic shapes, and retains the synchronized fallback while optimizer reversibility and rollback coverage are unverified"
+    },
+    "recommendations": [
+      "Compare ordinary 1F1B with a memory-capped split schedule first; add V-shaped two-chunk placement only when memory permits, and at matched global batch also try smaller microbatches with more microbatches.",
+      "Decide optimizer post-validation separately from the schedule change.",
+      "In a later authorized comparison, hold model, global batch and precision fixed and compare real with calculated idle intervals."
+    ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -58,10 +78,25 @@
     ],
     "consumption_mode": "packaged"
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Assessing memory-capped split-backward and V-shaped pipeline schedule proposals when a pipeline trace suggests input-gradient propagation waits behind deferrable weight-gradient work or an optimizer barrier, while preserving synchronous update, global-batch and optimizer-validation semantics",
+    "prerequisites": "The packaged evidence notes are read before citing the paper; installing or running frameworks, benchmarking schedules, changing training semantics, configuring hardware or modifying repositories needs separate authorization",
+    "input_contract": "Stage and microbatch counts, microbatch and global batch, precision, optimizer and clipping/NaN behavior; F, input-gradient B, weight-gradient W and transfer timings; per-pass retained and released bytes; total device peak and margin; collective ordering; kernel-splitting support; calculated bubble rate kept apart from measured idle time and useful samples/s",
+    "produced_artifact": "A candidate schedule and fallback with per-pass order rationale, peak-memory and transfer costs, unchanged semantic requirements, counter-signals and a future verification proposal; a reviewable plan, not an enabled schedule",
+    "failure_modes": [
+      "Completion of B is equated with releasing all activations, so W inputs retained by deferral go uncounted",
+      "The equal-time zero-bubble construction replaces observed F/B/W and transfer times, or kernel-splitting and synchronization overhead is left out",
+      "The schedule is chosen by minimum modeled bubble rate instead of whole-step throughput under the memory and quality constraint",
+      "pMB activation capacity is read as total memory, hiding HBM, workspace, buffers or per-rank imbalance",
+      "Removing the optimizer barrier drops global norm, clipping or NaN decisions, rollback and re-update, or the correctness of work that depends on a tentative update",
+      "Optimizer post-validation is conflated with accepting stale-gradient delayed updates"
+    ],
+    "refusal_point": "Withholds an enablement recommendation under frequent clipping/NaNs, small available memory, strongly unequal passes, unsupported split kernels, hidden collectives or dynamic shapes, and retains the synchronized fallback while optimizer reversibility and rollback coverage are unverified"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Compare ordinary 1F1B with a memory-capped split schedule first; add V-shaped two-chunk placement only when memory permits, and at matched global batch also try smaller microbatches with more microbatches.",
+    "Decide optimizer post-validation separately from the schedule change.",
+    "In a later authorized comparison, hold model, global batch and precision fixed and compare real with calculated idle intervals."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

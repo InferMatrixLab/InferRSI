@@ -21,6 +21,26 @@
       "readset": "references/source-notes.md"
     }
   ],
+  "applicability": {
+    "scope": "Building an evidence-gated serving-configuration shortlist when a profiled simulator or cost model is proposed to reduce deployment experiments; extends performance-ceiling-analysis, optimization-search-policy and inference-benchmark-design without replacing their ceilings or measurement contract",
+    "prerequisites": "The packaged Vidur evidence and evidence-type notes are read; reading the skill does not authorize execution, and no validation check runs under it without separate execution authorization",
+    "input_contract": "Model, shape and dtype; actual kernel/runtime revision; graph mode; GPU, host and topology; request length and arrival distribution; total resources and cost basis; memory limits; latency definitions and percentile SLOs",
+    "produced_artifact": "A bounded decision memo with input identities, model assumptions, evidence type, exact metrics and denominators, unsupported dimensions, nondominated candidates with predicted ranges, joint constraint checks, the next discriminating trial and rollback/finalization requirements, keeping prediction and measurement columns apart; a shortlist for future measurement, not a measured result",
+    "failure_modes": [
+      "Learned runtime output is labeled a physical bound",
+      "A missing identity is filled with a paper default, or topology is substituted, instead of being marked unknown",
+      "A low-load check stands in for an SLO claim at the intended load regime and capacity boundary",
+      "A predictor that relies on summed KV volume hides batches with equal volume but unequal context distributions",
+      "Capacity binary search is applied without verifying its monotonic/stationary premise or treating overloaded samples explicitly",
+      "One predicted winner is reported when uncertainty exceeds rank separation"
+    ],
+    "refusal_point": "Stops predictive certification when profiles are missing, topology is substituted, error grows near capacity or host overhead is omitted; labels an ordering unresolved when uncertainty exceeds rank separation; asserts neither universal error below 9% nor current vLLM, asynchronous PP or NPU support from the historical simulator paper"
+  },
+  "recommendations": [
+    "Classify every estimate as a physical bound, measured envelope, Amdahl-style conditional impact or empirical prediction before comparing configurations.",
+    "Keep prefill and decode separate in the operator signatures, and record how sharding and memory planning enter the model.",
+    "Recalibrate after workload drift, kernel/graph/runtime changes, new hardware or topology, or mismatched residuals."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation."
   ],

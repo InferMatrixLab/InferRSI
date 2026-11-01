@@ -8,6 +8,27 @@
   "origin": [
     "external"
   ],
+  "applicability": {
+    "scope": "Diagnosing whether LLM serving queue delay justifies token-boundary priority preemption, including suspended KV, host swap or recomputation and long-request service guarantees; admission-versus-service-order diagnosis, not current scheduler implementation or tenant-fairness certification",
+    "prerequisites": "The packaged source notes are read before quoting a metric or comparing a baseline; installing, benchmarking, changing scheduling or admission, migrating state, editing a repository or running a reproduction needs a separately authorized task",
+    "input_contract": "The late boundary (first token, token gap, completion or a stated cohort's service) with its exact percentile or attainment target and denominator; model and KV format, engine revision, safe interruption boundary, request batch limit, input/output/context distributions, arrival bursts, device live/reserved/allocated bytes, active and suspended requests, host budget, transfer path, recovery time and queue/phase/service timings; per-tenant or priority-class obligations kept apart from aggregate latency",
+    "produced_artifact": "A read-only decision naming the observed failure boundary, the smallest candidate that addresses it, unchanged assumptions, missing evidence, resource cost, affected cohorts, counter-signal and next authorized gate, plus a proposed verification plan; not a validated configuration",
+    "failure_modes": [
+      "An ordinary iteration boundary is taken to permit interrupting a prefill halfway through",
+      "Unknown output length is treated as known from the prompt",
+      "KV is counted for the running batch only, omitting started requests that are suspended",
+      "Reservations are removed because some reserved capacity is not live",
+      "Recompute-based eviction is proposed without a progress invariant, so two jobs can repeatedly displace each other",
+      "Host-device copies or same-host IPC are charged to Network instead of their local resource"
+    ],
+    "refusal_point": "Withholds a preemption recommendation when the apparent gain can be explained by different kernels, unmatched parallelism or an incomparable latency metric; unknown safe boundaries, unsupported state recovery, uncalibrated timing or unclear service obligations are blockers"
+  },
+  "recommendations": [
+    "Name the late boundary and its exact target and denominator before choosing among batching, admission, preemption and state recovery.",
+    "Send prefill interference to choose-prefill-decode-schedule and physical KV slack to diagnose-kv-block-efficiency when those candidates are available; otherwise report the diagnosed boundary and the missing evidence.",
+    "In a later authorized test, isolate service ordering first and state recovery second, and evaluate their interaction only after both are understood.",
+    "Weigh FastServe's same-engine FCFS comparison above its historical-vLLM headline, and do not read its P95 aggregate gain as a starvation or tenant-fairness guarantee."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

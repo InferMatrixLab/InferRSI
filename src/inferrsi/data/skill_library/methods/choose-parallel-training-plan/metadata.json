@@ -7,6 +7,26 @@
   "origin": [
     "external"
   ],
+  "applicability": {
+    "scope": "Comparing stage, device-mesh and operator-sharding candidates for static distributed training when heterogeneous stage memory or work, or communication cost, makes a uniform data/tensor/pipeline plan suspect; derived from historical Alpa, not a current compiler configuration guide",
+    "prerequisites": "The packaged source notes are read; the skill authorizes no compiler or solver install or run, parallelism reconfiguration, repository edit, hardware task or benchmark",
+    "input_contract": "Model operator graph and shapes; global batch, microbatch and accumulation; precision and optimizer; physical links and contention; candidate shard layouts; stage latency, workspace and in-flight activation memory; the objective and expected run length. A device count without topology is insufficient",
+    "produced_artifact": "The best supported candidate and a simpler fallback with a memory and critical-path ledger, planning cost and amortization, semantic invariants, counter-signals, missing evidence and a proposed matched comparison; a plan, not a reconfiguration",
+    "failure_modes": [
+      "Equal arithmetic work is taken to mean equal kernel time, carrying over Alpa's zero compute-cost simplification",
+      "Mean memory replaces the largest per-rank peak with multiple in-flight activation sets",
+      "Inter-stage transfer and microbatch count stay outside the objective, as in historical Alpa, without the gap being reported",
+      "Repeated slow-link sends to replicated destination tiles are not compared with one cross-mesh transfer plus local allgather",
+      "Inter-node Network traffic is merged with intra-node accelerator links",
+      "Static cost estimates are applied to dynamic shapes, asymmetric devices or changing communication contention"
+    ],
+    "refusal_point": "Rejects infeasible stage/mesh pairs, claims no global optimality outside the declared search space, and stops at the plan in paper-only mode"
+  },
+  "recommendations": [
+    "Keep a simple reference plan with the same training semantics and global batch as the comparison point.",
+    "Separate fixed-model scaling from model-size weak scaling before quoting a speedup; Alpa's 9.7x MoE ratio belongs to a specific weak-scaling workload, baseline and 25-Gbps cluster.",
+    "Weigh planning cost against the expected run length; a shorter job may not amortize it."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

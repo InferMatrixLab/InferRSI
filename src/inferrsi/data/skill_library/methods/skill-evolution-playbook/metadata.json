@@ -13,6 +13,28 @@
     "external"
   ],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Design choices for evolving agent skills from execution traces, drawn from Trace2Skill and SkillOpt: when a trajectory should update a skill, how conflicting lessons are handled, how negative evidence is preserved, how large an edit should be and when skills split or merge; for designing or operating a skill evolution pipeline",
+    "prerequisites": "A final-test partition kept outside edit selection and the incumbent skill retained for rollback; changing a skill's scope first needs explicit review of its identity and consumers",
+    "input_contract": "Execution trajectories or trace IDs with the diagnosed causal failure and the successful behavior an amendment must preserve; the incumbent skill and its revision lineage; held-out evaluation results for candidate edits",
+    "produced_artifact": "A scoped case or amendment proposal, or a consolidated candidate edit, with rejection records and the versioned revision lineage; a candidate for independently evaluated acceptance, not a replacement decision or an efficacy claim",
+    "failure_modes": [
+      "An anecdote, or agreement among analysts, is taken as efficacy",
+      "Consolidation output is treated as a replacement decision instead of a candidate awaiting independent acceptance",
+      "A tie or uncertain result is reported as improvement",
+      "A conflict is resolved by voting for whichever outcome appeared more often in the pool",
+      "A rejection is applied to every future use of an idea instead of the comparison it constrains",
+      "Paper-specific section counts or length budgets are used as universal defaults, or a skill is split on length alone",
+      "A stronger task solver is assumed to be a stronger improver, or replay rankings and private inner scores are read as outer generalization"
+    ],
+    "refusal_point": "Records a conflict that conditioning cannot resolve, where the same context produces different outcomes across runs, as INCONCLUSIVE and flags it for human review instead of choosing a lesson; claims no universal minimum trace count, paper-to-code equivalence or local efficacy"
+  },
+  "recommendations": [
+    "Condition a conflicting lesson on its context (when X, do A; when Y, avoid A) before choosing one side.",
+    "Store each rejection record with its evaluation evidence, outside the deployed task procedure, and give it a retirement condition.",
+    "Bound the target passage and intended behavior before editing, inspect the actual diff and preserve rollback state.",
+    "Prefer an amendment when the existing skill owns the workflow; create a new candidate only for a genuinely distinct capability."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

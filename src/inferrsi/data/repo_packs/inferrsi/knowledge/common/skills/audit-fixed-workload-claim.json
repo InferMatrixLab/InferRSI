@@ -20,8 +20,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f143ad5de97b07ed2d86e206764a29c3415363ed/src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
-      "commit": "f143ad5de97b07ed2d86e206764a29c3415363ed",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/54d4c89d4db82cbfc10d6096fe49bb077136e8b1/src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
+      "commit": "54d4c89d4db82cbfc10d6096fe49bb077136e8b1",
       "paths": [
         "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md",
         "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json",
@@ -37,7 +37,7 @@
   "checkout_ref": "checkout:audit-fixed-workload-claim",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md": "2be89b1340a3deb978c8e1792d18aeecbe8f5de81d4daf542389f53826b8ebee",
-    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json": "245bdfe7b7f3ff3cb8009ac23c1b4bb5bbdd6ea8efbf401e80c99eee343748fa",
+    "src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/metadata.json": "d36e8a6148b7ab830f1ddf6e573a865965502709a835ce460c37e3d4c386de95",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -53,15 +53,47 @@
       "measurement"
     ],
     "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "Auditing a performance claim against supplied fixed-workload reports and an explicit measurement contract: aggregation, retained observations, comparability and quality evidence",
+      "input_contract": "Baseline and candidate fixed-workload reports with request observations grouped by trial and workload; the measurement contract stating metric, unit, timing boundary, improvement direction, aggregation rule and order, fixed exclusions, threshold and comparison operator; the declared quality and completion evidence; the requested output schema",
+      "produced_artifact": "An audit conclusion showing baseline and candidate aggregates, the calculation, the threshold comparison and the evidence or missing information that controls the verdict; it interprets supplied evidence and does not itself establish a measured improvement",
+      "failure_modes": [
+        "A pooled request median silently replaces a median of per-trial means, or the reverse, reweighting trials whose request counts differ",
+        "Late requests, failures or outliers are dropped, or requests move between trials, outside the exclusions the contract fixes",
+        "Values are rounded before the threshold comparison",
+        "A missing rule that permits different verdicts is resolved toward the favorable one",
+        "A speed improvement is read as task success, or a quality pass as equivalent measured work",
+        "Different workloads or incomplete observations are repaired by a favorable aggregate"
+      ],
+      "refusal_point": "Does not replace missing evidence with a pass, does not support a percentage claim on an undefined denominator, and does not launch a new benchmark or alter the contract to resolve an unfavorable result; a failed threshold is reported apart from an unverified comparison or missing quality evidence"
+    },
+    "recommendations": [
+      "Recover the contract's metric, direction, aggregation order and comparison operator before reading the report's own verdict.",
+      "Treat a named minimum bound as >= and a maximum bound as <= unless the contract requires a strict comparison.",
+      "Keep separate regimes and metrics separate unless the contract defines their aggregation."
+    ],
     "limitations": [
       "Guidance for supplied reports; no local efficacy validation or measured performance gain is established."
-    ],
-    "searchspace_not_applicable": "SKILL.md §§ Preserve the observation hierarchy, Check what was actually compared, and Return an auditable conclusion audit supplied measurements and verdicts; device identity is comparison metadata, not a hardware-resource mechanism."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Auditing a performance claim against supplied fixed-workload reports and an explicit measurement contract: aggregation, retained observations, comparability and quality evidence",
+    "input_contract": "Baseline and candidate fixed-workload reports with request observations grouped by trial and workload; the measurement contract stating metric, unit, timing boundary, improvement direction, aggregation rule and order, fixed exclusions, threshold and comparison operator; the declared quality and completion evidence; the requested output schema",
+    "produced_artifact": "An audit conclusion showing baseline and candidate aggregates, the calculation, the threshold comparison and the evidence or missing information that controls the verdict; it interprets supplied evidence and does not itself establish a measured improvement",
+    "failure_modes": [
+      "A pooled request median silently replaces a median of per-trial means, or the reverse, reweighting trials whose request counts differ",
+      "Late requests, failures or outliers are dropped, or requests move between trials, outside the exclusions the contract fixes",
+      "Values are rounded before the threshold comparison",
+      "A missing rule that permits different verdicts is resolved toward the favorable one",
+      "A speed improvement is read as task success, or a quality pass as equivalent measured work",
+      "Different workloads or incomplete observations are repaired by a favorable aggregate"
+    ],
+    "refusal_point": "Does not replace missing evidence with a pass, does not support a percentage claim on an undefined denominator, and does not launch a new benchmark or alter the contract to resolve an unfavorable result; a failed threshold is reported apart from an unverified comparison or missing quality evidence"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Recover the contract's metric, direction, aggregation order and comparison operator before reading the report's own verdict.",
+    "Treat a named minimum bound as >= and a maximum bound as <= unless the contract requires a strict comparison.",
+    "Keep separate regimes and metrics separate unless the contract defines their aggregation."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

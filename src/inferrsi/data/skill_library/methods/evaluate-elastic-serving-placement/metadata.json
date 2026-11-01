@@ -8,6 +8,26 @@
   "origin": [
     "external"
   ],
+  "applicability": {
+    "scope": "Comparing migration of a running LLM request between compatible model replicas with changing its sequence-parallel execution group, including state-copy, reservation, recomputation, interruption and priority costs, for cross-instance memory imbalance or highly variable long-context serving; not connector wiring or live scaling",
+    "prerequisites": "The relevant Llumnix or LoongServe branch and its readset in the packaged source notes are read; moving state, altering admission or priority, scaling replicas, changing parallelism, running experiments or editing frameworks needs separate authorization",
+    "input_contract": "Exact model and cache identity and format; weight residency; request phase, context and generated length; source and destination KV bytes; physical free/reserved memory and virtual accounting; batch state; current parallel group; queue and service times; actual topology and transport for each path; the target SLO statistic and affected priority or tenant cohorts",
+    "produced_artifact": "The smallest justified branch with missing capability or evidence, expected saved work or wait, added state, traffic and replica cost, affected SLO and cohorts, counter-signals, the proposed next gate and a future verification plan; an evidence-based recommendation, not a validated deployment rule",
+    "failure_modes": [
+      "Model-weight repartitioning, pipeline configuration, instance migration and sequence sharding are treated as interchangeable uses of parallelism",
+      "Aggregate free bytes are taken to mean a single blocked request fits, conflating internal KV-block slack with cross-instance fragmentation",
+      "Llumnix's 20-30 ms measured downtime is substituted for total transfer time",
+      "Virtual headroom is counted as extra memory or as a tenant-fairness guarantee",
+      "A zero-overhead transition label is read as every group change being free, or a token sum hides length-sensitive attention work",
+      "Ongoing distributed-attention communication goes uncharged because existing KV does not migrate"
+    ],
+    "refusal_point": "Withholds the candidate when every destination is full, pre-copy catch-up is unproven, model or cache compatibility is unknown, or the measured work saved does not exceed exposed costs; current-code review and target-system tests remain a later authorization gate"
+  },
+  "recommendations": [
+    "Decide first whether the question is replica relocation, a sequence-parallel group change, or prefix reuse and phase pools, which evaluate-kv-cache-transfer-gates and choose-prefill-decode-schedule cover when available.",
+    "Name each transfer path separately; only inter-node transport is Network.",
+    "Keep a feasible static, no-migration baseline in any later comparison."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
