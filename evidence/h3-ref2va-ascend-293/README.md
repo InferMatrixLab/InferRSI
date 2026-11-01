@@ -386,3 +386,16 @@ isolates the reuse limit first, then the residual threshold. All variants keep
 50 steps and identical output specifications. This is an adaptive pilot, not an
 upstream recommendation or final acceptance. The four profile argument lists
 round-trip through the launcher without shell evaluation.
+
+[All 18 warmed media comparisons passed](results/warmed-quality-summary.json),
+with scoring exit zero and unchanged gates. This includes every threshold
+output against the original dense output, all three warmed audio baselines,
+and each audio candidate against both its matched baseline and original dense
+output. Native worker/server/container exits are recorded separately.
+
+The initial threshold means were 191.79 s (0.04), 148.21 s (0.08), and 142.26 s
+(0.12), with MC4 fixed. These are three requests in one server per arm, not
+independent-round uncertainty or the final original-baseline comparison.
+The bounded follow-up cache search's quality eligibility is satisfied, but it
+still waits for the intervening KV pilot and scoring. The audio-owner change
+remains rejected for lack of steady-state benefit despite passing media gates.

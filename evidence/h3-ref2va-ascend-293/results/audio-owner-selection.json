@@ -11,7 +11,7 @@
     "baseline",
     "candidate"
   ],
-  "quality": "Pending all measured-output frozen-validator receipts; no quality acceptance inferred here.",
+  "quality": "PASS for all three candidate outputs versus matched baseline and original dense output; baseline repeats also pass. See warmed-quality-summary.json. This does not establish semantic quality.",
   "lifecycle_before": {
     "status": "pass",
     "container_exit": 0,
@@ -121,5 +121,6 @@
   "raw_receipt_sha256": {
     "audio-ab-baseline.json": "1656c7c391dcd8eabc16194538b364628b10924723c4cfd139c3b0e8b64157a2",
     "audio-ab-candidate.json": "46feba6525dea6dcbfff28f3ba47093bfcf5e97b9f6f31bd1a9f2c588926f554"
-  }
+  },
+  "engine_removal_revision": "c18fff65a1fedfa55e3f5f2c97b9422942197c8f"
 }
