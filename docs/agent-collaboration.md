@@ -204,9 +204,10 @@ each case.
 
 Removing `skill-eval:execute` revokes paid Skill Eval authorization; it is not label cleanup,
 and label maintenance never adds, removes, renames or deletes it. The controller rechecks the
-label before each paid request, so no new paid request starts after removal. Removal does not
-cancel a request already sent or roll back budget already reserved or claimed. Only a new label
-event by the owner restores the authorization.
+label before each paid request, so every check after the removal blocks its request. A request
+that passed its last check before the removal can still be sent, and removal does not cancel a
+request already sent or roll back budget already reserved or claimed. Only a new label event by
+the owner restores the authorization.
 
 Open `kind:task`, `kind:acceptance`, `kind:tracking` and `kind:rfc` Issues start with a
 three-line status block that the acting agent keeps current:
