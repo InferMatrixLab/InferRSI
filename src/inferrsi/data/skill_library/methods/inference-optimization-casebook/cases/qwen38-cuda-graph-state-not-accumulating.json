@@ -4,6 +4,7 @@
   "origin": ["first_party"],
   "state": "historical_observation",
   "content": "qwen38-cuda-graph-state-not-accumulating.md",
+  "required_resources": ["qwen38-cuda-graph-state-not-accumulating.json"],
   "sources": [
     {
       "type": "internal",

@@ -4,6 +4,7 @@
   "origin": ["first_party"],
   "state": "historical_observation",
   "content": "qwen38-silent-capacity-and-error-failures.md",
+  "required_resources": ["qwen38-silent-capacity-and-error-failures.json"],
   "sources": [
     {
       "type": "git",

@@ -4,6 +4,7 @@
   "origin": ["first_party"],
   "state": "historical_observation",
   "content": "qwen38-upstream-fp8-kernels-vs-own-triton.md",
+  "required_resources": ["qwen38-upstream-fp8-kernels-vs-own-triton.json"],
   "sources": [
     {
       "type": "internal",

@@ -1,5 +1,8 @@
 # A self-written block-scaled FP8 GEMM was 100x slower than the upstream kernel
 
+Kind, origin, state and source identities belong to the
+[typed source and scope record](qwen38-upstream-fp8-kernels-vs-own-triton.json).
+
 A dedicated engine shipped a Triton block-scaled FP8 GEMM that padded 32
 singleton lanes into an M64 tile to keep numerics stable. It ran at 2.8 TFLOPS
 on H20-3e. An 8K prefill was also reported at 145 s; the same day's ledger
@@ -40,11 +43,10 @@ engine environment. The M=1 numbers are microbenchmarks, not end-to-end decode.
 Limitations: single-card microbenchmarks; end-to-end prefill was measured
 separately; upstream versions may change both the numbers and the licensing.
 
-Retained records: the 2.8 / 273 / 279 TFLOPS table, 3273 GB/s at M=1, the 280
-TFLOPS go line, the 2.5% shortfall, the placeholder package and the torch pin
-are Issue #67 comment 6336720892 (body sha256
-`37b84900b48fc5da201792c280519969514d2bbed0afe75a3c4ef56329077201`). The
-withdrawn 145 s report, not a timing result, is also in
-[nano-vllm pull request 3](https://github.com/jiangkuaixue123/nano-vllm/pull/3)
-(body sha256 `172d437e2772a4e5aefff1f9a03a4fd381f6b11e0c12e0821eb2541c5c568c34`).
+Retained records, with digests in the typed record: the 2.8 / 273 / 279 TFLOPS
+table, 3273 GB/s at M=1, the 280 TFLOPS go line, the 2.5% shortfall, the
+placeholder package and the torch pin are
+[Issue #67](https://github.com/InferMatrixLab/InferRSI/issues/67) comment
+6336720892. The withdrawn 145 s report is in
+[nano-vllm pull request 3](https://github.com/jiangkuaixue123/nano-vllm/pull/3).
 Comment 6336567189 records 279 against the 280 line and does not register 250.
