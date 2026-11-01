@@ -39,6 +39,12 @@
       "efforts": ["xhigh", "max"],
       "suspended": false,
       "source": "https://developers.openai.com/api/docs/models/gpt-6.1-sol"
+    },
+    "gpt-6.1-terra": {
+      "aliases": [],
+      "efforts": ["xhigh", "max"],
+      "suspended": false,
+      "source": "https://developers.openai.com/api/docs/models/gpt-6.1-terra"
     }
   },
   "approval_owners": ["Dong1017"],

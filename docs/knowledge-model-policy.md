@@ -75,6 +75,7 @@ conflicting declarations and stale coverage fail. PR text is never shell input.
 | Claude Opus 5.5 | `claude-opus-5-5` | `anthropic.claude-opus-5-5` (Bedrock) | `xhigh`, `max` |
 | GPT-6-Astra | `gpt-6-astra` | None | `xhigh`, `max` |
 | GPT-6.1 Sol | `gpt-6.1-sol` | None | `xhigh`, `max` |
+| GPT-6.1 Terra | `gpt-6.1-terra` | None | `xhigh`, `max` |
 
 IDs and effort support were checked on 2026-10-21 against official
 [Claude IDs](https://platform.claude.com/docs/en/models/opus-5-5/overview),
@@ -85,6 +86,11 @@ Actual client settings still need truthful declaration. OpenAI uses
 `reasoning.effort`; Claude uses `output_config.effort`. Identity is resolved first,
 then effort uses explicit set membership. Default, `high`, `ultra` and unknown
 settings do not qualify. Aliases are never inferred. Suspension also denies aliases.
+
+GPT-6.1 Terra's canonical ID and support for `xhigh` and `max` were checked on
+2026-11-01 against its [official model documentation](https://developers.openai.com/api/docs/models/gpt-6.1-terra).
+The policy admits only those two efforts for Terra; the model's other supported
+efforts do not qualify for knowledge authorship.
 
 ## Explicit exceptions and policy review
 
