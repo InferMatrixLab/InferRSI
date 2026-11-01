@@ -33,10 +33,16 @@
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.md",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.json",
+        "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4"
+      "content_sha256": "e6ff2de3835ad455df1c5bab7ad002d8489d8c7ef9abeab9660206f602cc8fe7"
     }
   ],
   "index_type": "packaged-skill",
@@ -45,7 +51,7 @@
   },
   "checkout_ref": "checkout:inference-optimization-casebook",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "89a6a82c692f7f5192f4d7f4c3a5ff08a4df3b1c4bdaa0aafb7e04292d8aa5b4",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "e6ff2de3835ad455df1c5bab7ad002d8489d8c7ef9abeab9660206f602cc8fe7",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "3319e23bbe2bd40e2d45fb89dc87bdc92d4df2b5ddd8086fcf84813b43885b7c",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "2cc0a526fe0509551607a03e7626dd3d7844e643c4afb194837f75cddead8b12",
@@ -54,6 +60,12 @@
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-ascend-rejected-directions.md": "be396983812262515899a3e2ba4f01b23ff92e1b836881882c7580372b8ae552",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.json": "146ea1564a46ed03092c7dc5796b318fc05b04b1821105ee00eb7fa7fa1333e2",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.json": "13cae252f2abf8fe364132f285a84abbb84c785283322ef5c55dec1f9d8bc181",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.md": "73e89ce9ac408710f8f810c28d09b1b5697c09b4837923b8cc4ddd1cdb5ba92f",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.json": "c72d5555bc6dc9d6d63b4aaa767f2f52b4c3d2a6de7008f578de4b68c9a2e692",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.md": "8197140a701efc52b1c7f0b6df1cb4d840843b3eb4d1457a6d36a9a396eb90b2",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.json": "97db326a4671cec41bc2141381c3e093d761f140481022abe9116b0d9c163628",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.md": "ea61515741897ebcfdcc0878dd5e98d32362682d0ce5294bbb45c98600815cc0",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "963488658f327d2379183d70357eabf832d70a6a70db2aa67f548493f4088d97",
     "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
