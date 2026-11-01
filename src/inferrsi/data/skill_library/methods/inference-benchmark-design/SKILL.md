@@ -1,6 +1,6 @@
 ---
 name: inference-benchmark-design
-description: 'Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.'
+description: 'Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.'
 ---
 
 # Inference Benchmark Design
@@ -17,6 +17,12 @@ videos, with pinned provenance from InferRSI issue #60. Use the
 [command templates](references/benchmark-commands.md) for entry points and a
 bounded HTTP smoke. These references are candidate knowledge, not qualification
 of every model or backend.
+
+For cache-aware speech recognition, read the
+[ASR stream-boundary procedure](references/cache-aware-asr-stream-boundaries.md)
+before selecting tests or comparing chunk latency. It separates startup/steady geometry, decoded
+progress, stream-slot reuse, reset, EOU and EOF; its source tests and
+author benchmark reports are not local model or serving qualification.
 
 Freeze one primary objective, timing boundary, quality gates and sample/failure
 accounting before optimization. Recorded agent task scores and replay completion
