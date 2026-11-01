@@ -403,3 +403,7 @@ remains rejected for lack of steady-state benefit despite passing media gates.
 ## Completed five-second KV residency pilot
 
 [Full receipt](results/kv-residency-pilot.json): host interval 2 / device interval 2 / device interval 8 measured 593.24 / 327.13 / 268.77 seconds. All four quality comparisons passed and all three services recorded eight normal worker exits. The same-interval observation is a single-pair pilot, not repeated final qualification. Device residency removes reference-KV host transfers at the cost of a 6.68 GB/rank resident payload. Measured sampled HBM peaks are recorded separately. Source 4fc121ff3 holds the later-rejected audio-owner code common in all arms. Final first delivery is five seconds; fifteen seconds is deferred by the requester.
+
+## Bounded cache selection and first-delivery final plan
+
+The [four-profile search](results/cache-range-selection.json) completed with 12/12 quality PASS and clean worker lifecycles. Mean E2E: MC4/R0.12 142.26 s; MC8/R0.12 121.23 s; MC8/R0.24 106.73 s; MC8/R0.48 105.32 s. MC8/R0.48 is selected by the lowest observed passing mean; its 1.3% gap to R0.24 is not a statistical-significance claim. The [frozen five-second ABBA plan](plan/final-5s-abba.json) compares original c7f56f0 with c18fff65a in one reservation and checks three additional coverage pairs. Coverage is scored only after A1/B1 servers exit, before B2/A2 timing. Fifteen-second qualification is deferred.

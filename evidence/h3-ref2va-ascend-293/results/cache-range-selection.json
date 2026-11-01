@@ -1,0 +1,505 @@
+{
+  "status": "pilot_complete_final_abba_pending",
+  "quality_status": "PASS",
+  "selected_profile": "mc8r48",
+  "final_candidate_revision": "c18fff65a1fedfa55e3f5f2c97b9422942197c8f",
+  "duration_s": 5,
+  "deferred_duration_s": 15,
+  "selection_rule": "Lowest observed mean among the four fixed profiles with all three media gates and complete lifecycle; no statistical significance claim between close profiles",
+  "arms": {
+    "control": {
+      "timing": {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 3,
+        "completed": 3,
+        "failed": 0,
+        "missing": 0,
+        "samples_ms": [
+          141968.02868600935,
+          142269.34099104255,
+          142544.23258081079
+        ],
+        "mean_ms": 142260.53408595422,
+        "median_ms": 142269.34099104255,
+        "min_ms": 141968.02868600935,
+        "max_ms": 142544.23258081079,
+        "request_sample_stdev_ms": 288.2028856188166,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      },
+      "lifecycle": {
+        "status": "pass",
+        "container_exit": 0,
+        "server_exit": 0,
+        "forced_signals": 0,
+        "host_cleanup_intervention": false,
+        "expected_workers": 8,
+        "workers": [
+          {
+            "name": "DiffusionWorker-0",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-1",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-2",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-3",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-4",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-5",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-6",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-7",
+            "exit_code": 0,
+            "alive": false
+          }
+        ]
+      },
+      "quality": [
+        {
+          "label": "cache-range-control-0",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.985022,
+            "psnr_db": 45.299553,
+            "lpips": 0.017926323370287014,
+            "audio_spectral_cosine": 0.9949631790320078,
+            "audio_rms_ratio": 1.0336953027479574,
+            "audio_samples": 165888
+          },
+          "result_sha256": "b729f53b604c5414645109c3f4c7cf0e8963b5e62ded0bcd046bd99029400b4c"
+        },
+        {
+          "label": "cache-range-control-1",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.984983,
+            "psnr_db": 45.257186,
+            "lpips": 0.017858593942477338,
+            "audio_spectral_cosine": 0.9944409827391306,
+            "audio_rms_ratio": 1.0357407253382551,
+            "audio_samples": 165888
+          },
+          "result_sha256": "a99b5ed97ccb45c90d06af080366f466eaf2786a152667dde1621021e7099e58"
+        },
+        {
+          "label": "cache-range-control-2",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.984828,
+            "psnr_db": 45.006253,
+            "lpips": 0.018079432088040536,
+            "audio_spectral_cosine": 0.9945687055587769,
+            "audio_rms_ratio": 1.0328713247743921,
+            "audio_samples": 165888
+          },
+          "result_sha256": "4e91c2953f1966597e6d434b48f2775f4bea7a4b8ffb0d795a496a65be4b7ce8"
+        }
+      ],
+      "profile": {
+        "quality": "server-default",
+        "serve_args": [
+          "--diffusion-attention-backend",
+          "FLASH_ATTN",
+          "--cache-backend",
+          "cache_dit",
+          "--cache-config",
+          "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.12,\"max_continuous_cached_steps\":4,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+        ]
+      }
+    },
+    "mc8r12": {
+      "timing": {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 3,
+        "completed": 3,
+        "failed": 0,
+        "missing": 0,
+        "samples_ms": [
+          120555.49678020179,
+          121696.87701575458,
+          121448.10083787888
+        ],
+        "mean_ms": 121233.49154461175,
+        "median_ms": 121448.10083787888,
+        "min_ms": 120555.49678020179,
+        "max_ms": 121696.87701575458,
+        "request_sample_stdev_ms": 600.1916961230781,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      },
+      "lifecycle": {
+        "status": "pass",
+        "container_exit": 0,
+        "server_exit": 0,
+        "forced_signals": 0,
+        "host_cleanup_intervention": false,
+        "expected_workers": 8,
+        "workers": [
+          {
+            "name": "DiffusionWorker-0",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-1",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-2",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-3",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-4",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-5",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-6",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-7",
+            "exit_code": 0,
+            "alive": false
+          }
+        ]
+      },
+      "quality": [
+        {
+          "label": "cache-range-mc8r12-0",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.984325,
+            "psnr_db": 44.264226,
+            "lpips": 0.018230720475736643,
+            "audio_spectral_cosine": 0.9899255633354187,
+            "audio_rms_ratio": 1.044441919536975,
+            "audio_samples": 165888
+          },
+          "result_sha256": "f9f0a56c66b2b9d85c450a864b19a70b87dceac99296c0e00e79a206e1ff0033"
+        },
+        {
+          "label": "cache-range-mc8r12-1",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.983989,
+            "psnr_db": 43.778948,
+            "lpips": 0.01851449940624016,
+            "audio_spectral_cosine": 0.9894074102242788,
+            "audio_rms_ratio": 1.0503389812047867,
+            "audio_samples": 165888
+          },
+          "result_sha256": "3fab79690991f899f3f744986b54247b152f75df19bd67934d29abf2937da4b2"
+        },
+        {
+          "label": "cache-range-mc8r12-2",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.9843,
+            "psnr_db": 44.215055,
+            "lpips": 0.01821497318545176,
+            "audio_spectral_cosine": 0.9896715680758158,
+            "audio_rms_ratio": 1.0519861120187577,
+            "audio_samples": 165888
+          },
+          "result_sha256": "dd622adde37b6f3fcee03e7c4b54e3d5d059289664ba0c504bedee963bd1456e"
+        }
+      ],
+      "profile": {
+        "quality": "server-default",
+        "serve_args": [
+          "--diffusion-attention-backend",
+          "FLASH_ATTN",
+          "--cache-backend",
+          "cache_dit",
+          "--cache-config",
+          "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.12,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+        ]
+      }
+    },
+    "mc8r24": {
+      "timing": {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 3,
+        "completed": 3,
+        "failed": 0,
+        "missing": 0,
+        "samples_ms": [
+          106450.2551406622,
+          107631.55618682504,
+          106107.9015713185
+        ],
+        "mean_ms": 106729.90429960191,
+        "median_ms": 106450.2551406622,
+        "min_ms": 106107.9015713185,
+        "max_ms": 107631.55618682504,
+        "request_sample_stdev_ms": 799.3957630050069,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      },
+      "lifecycle": {
+        "status": "pass",
+        "container_exit": 0,
+        "server_exit": 0,
+        "forced_signals": 0,
+        "host_cleanup_intervention": false,
+        "expected_workers": 8,
+        "workers": [
+          {
+            "name": "DiffusionWorker-0",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-1",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-2",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-3",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-4",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-5",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-6",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-7",
+            "exit_code": 0,
+            "alive": false
+          }
+        ]
+      },
+      "quality": [
+        {
+          "label": "cache-range-mc8r24-0",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.982062,
+            "psnr_db": 42.38804,
+            "lpips": 0.022484157549878283,
+            "audio_spectral_cosine": 0.9863548278808594,
+            "audio_rms_ratio": 1.0871138459324565,
+            "audio_samples": 165888
+          },
+          "result_sha256": "cb0831c37e50281382f8b98f1b4212d9f20b40e10f1dba13ff3e38587307d976"
+        },
+        {
+          "label": "cache-range-mc8r24-1",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.981778,
+            "psnr_db": 42.119239,
+            "lpips": 0.0226096551444742,
+            "audio_spectral_cosine": 0.9865379333496094,
+            "audio_rms_ratio": 1.084137343084427,
+            "audio_samples": 165888
+          },
+          "result_sha256": "4cec5fa28a6b5d430c0f0690e9d85d41e002780f4339eaf7421b34097bb97451"
+        },
+        {
+          "label": "cache-range-mc8r24-2",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.981894,
+            "psnr_db": 42.255475,
+            "lpips": 0.02251815207062229,
+            "audio_spectral_cosine": 0.9850519696871439,
+            "audio_rms_ratio": 1.0849924285781238,
+            "audio_samples": 165888
+          },
+          "result_sha256": "09d0c3033570e27961836e76e54a07ad299352ced72acc70a734ba84d344e342"
+        }
+      ],
+      "profile": {
+        "quality": "server-default",
+        "serve_args": [
+          "--diffusion-attention-backend",
+          "FLASH_ATTN",
+          "--cache-backend",
+          "cache_dit",
+          "--cache-config",
+          "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.24,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+        ]
+      }
+    },
+    "mc8r48": {
+      "timing": {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 3,
+        "completed": 3,
+        "failed": 0,
+        "missing": 0,
+        "samples_ms": [
+          104952.96398270875,
+          106203.02541833371,
+          104816.92950986326
+        ],
+        "mean_ms": 105324.30630363524,
+        "median_ms": 104952.96398270875,
+        "min_ms": 104816.92950986326,
+        "max_ms": 106203.02541833371,
+        "request_sample_stdev_ms": 764.0267052616254,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      },
+      "lifecycle": {
+        "status": "pass",
+        "container_exit": 0,
+        "server_exit": 0,
+        "forced_signals": 0,
+        "host_cleanup_intervention": false,
+        "expected_workers": 8,
+        "workers": [
+          {
+            "name": "DiffusionWorker-0",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-1",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-2",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-3",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-4",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-5",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-6",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-7",
+            "exit_code": 0,
+            "alive": false
+          }
+        ]
+      },
+      "quality": [
+        {
+          "label": "cache-range-mc8r48-0",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.981977,
+            "psnr_db": 42.320324,
+            "lpips": 0.022442983974131844,
+            "audio_spectral_cosine": 0.9864118099212646,
+            "audio_rms_ratio": 1.088015551449693,
+            "audio_samples": 165888
+          },
+          "result_sha256": "6b4179ba4cf2a0d1fce50f39fad9f3b46802fe178c0af0e594f13396bfe062e8"
+        },
+        {
+          "label": "cache-range-mc8r48-1",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.981642,
+            "psnr_db": 41.988632,
+            "lpips": 0.02269495717219768,
+            "audio_spectral_cosine": 0.9854615032672882,
+            "audio_rms_ratio": 1.0901186508478737,
+            "audio_samples": 165888
+          },
+          "result_sha256": "584c107ab421ea7c77dac763397ada0fa2e975ddf77231a21ec9aeffbc558ff2"
+        },
+        {
+          "label": "cache-range-mc8r48-2",
+          "exit_code": 0,
+          "metrics": {
+            "ssim": 0.981666,
+            "psnr_db": 42.010371,
+            "lpips": 0.022707429188754288,
+            "audio_spectral_cosine": 0.9867328107357025,
+            "audio_rms_ratio": 1.0807869724016061,
+            "audio_samples": 165888
+          },
+          "result_sha256": "6acfe0345bb0fe9483f6dcdb05dd7582c494fd2b5d6618c6bb4fed03ff094d0f"
+        }
+      ],
+      "profile": {
+        "quality": "server-default",
+        "serve_args": [
+          "--diffusion-attention-backend",
+          "FLASH_ATTN",
+          "--cache-backend",
+          "cache_dit",
+          "--cache-config",
+          "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.48,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+        ]
+      }
+    }
+  },
+  "source": "Cache-DiT implementation from vLLM-Omni PR5853; this bounded parameter search is campaign-authored, not an upstream recommendation",
+  "scope": "One independent server per arm; three requests within a server are not independent rounds. Final original-baseline ABBA and three coverage pairs remain pending."
+}
