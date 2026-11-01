@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e17a009f4cfaa27119818748421d7b099431f333/src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
-      "commit": "e17a009f4cfaa27119818748421d7b099431f333",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/9056740c7edcd7553a61f97b9141fea4f44c69f6/src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
+      "commit": "9056740c7edcd7553a61f97b9141fea4f44c69f6",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lithos-metal/LICENSE",
         "src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
