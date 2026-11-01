@@ -83,6 +83,36 @@ is not promoted by import, translation, a passing reader test or matrix placemen
 External/internal origin and Skill/Knowledge/Case kind are attributes; contribution,
 dependency and peer remain independent repository relationships.
 
+### Applicability keys and recommendations
+
+Sidecar `applicability` keys follow the contract settled in
+[issue #91](https://github.com/InferMatrixLab/InferRSI/issues/91#issuecomment-6512087181).
+
+| Key | States | Must not |
+|---|---|---|
+| `scope` | What the procedure applies to | Become a capability or efficacy claim |
+| `prerequisites` | What must hold first: access, tooling, authorization | Restate the input contract |
+| `input_contract` | What the caller supplies | Enumerate the procedure's own steps |
+| `produced_artifact` | What it emits, at the body's evidence level | Upgrade a proposal into a validated configuration or measured result |
+| `failure_modes` | How the procedure yields a wrong or unusable result | Restate `limitations` |
+| `refusal_point` | Where the body says it withholds a conclusion | Invent a refusal the body does not state |
+| `hardware` | A device dependency the body establishes | Be inferred from a source's hardware |
+
+`recommendations` holds owner-supplied procedure advice. `tools/build_skill_index.py`
+copies a declared list unchanged. A declared empty list states that the procedure
+has no specific advice and does not fall back; only an absent field produces the
+generic navigation defaults.
+
+`limitations` is not owner-only. The generator emits four sentences of its own and
+then appends the sidecar's `limitations` entries. `failure_modes` is therefore a
+separate field rather than more `limitations` entries.
+
+No mechanical allowlist restricts `applicability` keys. The packaged library uses
+nine distinct keys: the seven above plus `architectures` and `excluded_mechanisms`,
+which appear only in `hardware/cuda/reason-hopper-kernels`. A closed key set would
+reject that sidecar or have to grandfather it. Revisiting this is proposed for
+batch 4 of issue #91 and is not agreed.
+
 ## Sources and revisions
 
 | Type | Identity and scope | Not interchangeable with |

@@ -15,6 +15,28 @@
     "external"
   ],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Diagnosing training input stalls and choosing bounded queue, shard-cache and cache-ownership changes from DALI, Mosaic Streaming and FFCV, while preserving execution-mode gates, sample ordering and per-host memory budgets and separating remote downloads, local storage reads and host/device transfers",
+    "prerequisites": "The pinned readset and its license constraints are read; reading authorizes no commands, cache manipulation or experiment",
+    "input_contract": "Dataset format, sample-size distribution, workers and ranks per host, ordering/shuffle, local-cache state and executor mode; a per-host memory budget that includes checkpoint staging and runtime offload; timings that separate remote fetch, decompression/decoding, transformation, batch readiness and device transfer",
+    "produced_artifact": "One proposed queue, shard-cache or cache-ownership change with its source-backed rule and boundary, the evidence proposed to confirm it, and a verification contract for a separately authorized comparison; no input-throughput, model-quality or hardware result",
+    "failure_modes": [
+      "Low accelerator utilization is taken to identify which producer stage is late",
+      "Missing legacy DALI statistics are read as zero use, or the execution mode is switched silently to obtain them, which changes the comparison",
+      "DALI run() returning is read as output-ready timing instead of the outputs() synchronization boundary",
+      "Mosaic predownload is treated as a byte cap or request count, or per-worker sample targets are multiplied into an exact network-byte prediction",
+      "Look-ahead is increased when the local cache cannot retain the working set, so evicted shards are downloaded again",
+      "cache_limit is read as a bound on total process RAM, or the constructor minimum as an optimum or a guarantee against thrashing",
+      "An FFCV memory map is taken as proof that its pages are resident"
+    ],
+    "refusal_point": "Rejects changes that violate sample coverage or the stated reproducibility contract even if batches arrive faster, does not report queue depth alone as a performance result, and draws no NPU acceleration claim from the CUDA-oriented DALI source"
+  },
+  "recommendations": [
+    "Record dataset format, sample sizes, workers per host, ordering, cache state and executor mode before proposing one change.",
+    "Increase Mosaic look-ahead only when readiness starvation is observed and cache headroom exists; otherwise address shard and working-set residency first.",
+    "Check the exact DALI configuration surface before use, because the constructor and deserialization paths use different queue keys.",
+    "In a later comparison, separate warm-cache throughput from cold retrieval and initialization, and report step time with input wait, host/HBM peaks and actual I/O."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

@@ -156,6 +156,37 @@
     }
   ],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Deciding whether to write a custom inference kernel, routing a kernel pattern to Triton, CuTe DSL, CUDA C++, AscendC or TileIR, applying framework-independent correctness rules, and verifying the executing kernel against a reference before benchmarking; covers fused elementwise chains, reductions, tiled GEMM, attention variants, custom collectives, causal convolution and stateful serving-operator qualification",
+    "prerequisites": "The applicable operator, caller/state and layout contracts are read before substitution, including the causal-conv1d contract and HF Qwen3.5 GDN binding; the CuTe DSL environment uses Linux x86_64, Python 3.10–3.13 and Ampere+ (SM80+) with nvidia-cutlass-dsl installed and no NPU target; the CANN programming guide for the specific SoC is consulted for AscendC",
+    "input_contract": "The candidate operation or operation chain, its shapes, dtypes, quantization and layout requirements, and the target execution phase; the target accelerator and framework constraints; for serving operators, the concrete caller, effective phase and backend, state-row mapping, cache or buffer lifetime and in-place-write behavior; a reference implementation with the same signature, a callable kernel wrapper and fresh CUDA or NPU test tensors; verification shapes and dtypes plus profiler output for the target metric",
+    "produced_artifact": "A write-or-decline decision for the candidate operation with the profiled bottleneck, fusable pair or required dtype, shape or quantization variant unsupported by the standard implementation that justifies it, a framework choice routed by pattern and accelerator, a correctness checklist covering fp32 transcendental round-trips, sync-free wrappers, C division semantics, pre-allocated outputs, fp32 matmul accumulators and masked boundary loads and stores, a starting block or tile size with its autotune and warmup cost noted, a kernel shipping kernel_fn, reference_fn and get_inputs, a reference-parity result across the verification shapes and dtypes, and a post-verification profiler reading on the target metric; for an existing causal-convolution or stateful serving operator, a qualification record naming the caller, phase, backend, state rows and in-place writes, with source selection kept apart from executed dispatch; a routing and correctness decision, not a complete implementation or a measured speedup",
+    "failure_modes": [
+      "A kernel is written for a standalone elementwise op, a standalone matmul or standard attention where the vendor library already wins",
+      "Host-side scheduling cost is treated as a kernel problem instead of being routed to host-overhead-profiling",
+      "Fusion is justified by removed Python call overhead rather than by the DRAM traffic the shared data no longer makes",
+      "A transcendental runs on fp16/bf16 inputs without the fp32 cast round-trip, so the error stays silent through benchmarking",
+      "tl.dot accumulates in the input dtype because Triton is assumed to promote fp16/bf16 to fp32 automatically",
+      "Negative offsets are computed assuming Python floor division while Triton or AscendC rounds toward zero",
+      "An unmasked load or store is accepted because the benchmark shapes happen to divide the block size",
+      "A kernel is benchmarked before it matches its reference, or a shape-boundary, accumulator-dtype or precision failure is read as a tuning problem",
+      "A verification pass is reported as a win although the profiler metric did not move, so the kernel was never on the critical path",
+      "Autotune compile cost is measured as steady-state serving latency instead of being pre-warmed or cached",
+      "A CuTe DSL pattern is routed to an NPU target, or a CUDA tail-guard, attention primitive or SM-matched example is assumed to carry to Ascend",
+      "A causal-conv1d or GDN operator is substituted on build success, import success or matching names without resolving dtype, strides, packed boundaries, state rows and cursors",
+      "An in-tree vLLM wrapper, a GDN prefill flag or a cache-free classification adapter is read as establishing the executed convolution path or generation-state support"
+    ],
+    "refusal_point": "Declines to start a kernel until a profiler puts the target on the critical path near its hardware ceiling, a concrete fusable pair is identified, or the required dtype, shape or quantization variant is unsupported by the standard implementation, and sends host-bound cases elsewhere; refuses to benchmark an unverified kernel and withholds a gain whose profiler metric did not move; keeps operator source selection separate from executed dispatch, numerical parity and hardware qualification, so build or import success qualifies nothing; treats AscendC and TileIR content as source-inferred pending CANN and SoC verification with no local NPU run, treats the AKG Affine FileCheck expectations as IR structure rather than executed CUDA correctness, and reads author-reported overlap and FP8 cases as counterexamples to unconditional tuning rules; claims no Ascend support from NVIDIA primitives",
+    "hardware": "CUDA Ampere+ and Ascend NPU have separate framework routes for each kernel pattern; CuTe DSL requires Linux x86_64, Python 3.10-3.13 and SM80+ with nvidia-cutlass-dsl and is unavailable on NPU; profiling uses ncu on CUDA and msprof on Ascend; the AscendC and TileIR guidance is source-inferred with no local NPU verification and requires validation against the specific CANN version and SoC"
+  },
+  "recommendations": [
+    "Confirm with nsys/ncu or msprof that the target kernel sits on the critical path near its hardware ceiling, name the adjacent operations whose shared data would otherwise round-trip through DRAM, or identify a required dtype, shape or quantization variant unsupported by the standard implementation, before writing any kernel.",
+    "Ship every kernel with kernel_fn, reference_fn and get_inputs, pass reference parity across the verification shapes and dtypes first, and profile afterwards to confirm the target metric actually moved.",
+    "Cast fp16/bf16 to fp32 and back for any math beyond +, -, * and /, declare tl.dot accumulators as tl.float32, and mask every load and store whose shape does not divide the block size.",
+    "Start Triton at BLOCK_SIZE 1024 on Hopper and 512 on Ampere using powers of two, take GEMM tiles from the source skeleton configs (128/256/64 for Hopper, 64/128/32 for smaller cards) and autotune from there.",
+    "On Ascend, reach for TileIR before raw AscendC, size tiles to fit the AI Core Unified Buffer and check cube-unit alignment against the CANN guide for the specific SoC.",
+    "Match a CuTe DSL example to the GPU architecture (SM80 Ampere, SM90 Hopper, SM100 Blackwell) and study its structure instead of copying it, and pre-warm or cache autotuned kernels at startup so first-run compile cost stays out of serving latency."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",

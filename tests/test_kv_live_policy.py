@@ -3,6 +3,7 @@
 import copy
 import json
 import zipfile
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -211,3 +212,89 @@ def test_hosted_qualification_cannot_be_swapped_for_generic_ci_or_other_actor(ca
         (case.root / "code.py").write_text("changed dependency")
     with pytest.raises(ValueError):
         live.validate_qualification(plan)
+
+
+def add_exception(case):
+    from tools import kv_pilot_admission as admission
+    value = {"schema": "kv-one-additional-attempt-v1",
+        "key": {"repository_id": live.REPOSITORY_ID, "pr_number": case.plan["charge_pr"]},
+        "pr_lifetime_cap_microusd": 350_000_000,
+        "pilot_lifetime_cap_microusd": 1_000_000_000, "additional_attempts": 1,
+        "prior_binding": {"plan_digest": "8" * 64,
+            "run_id": admission.CAMPAIGN_NAMESPACE + "original-campaign",
+            "worst_case": admission.FULL_RESERVATION_MICROUSD},
+        "pr_checkpoint": case.plan["ledger"]["checkpoint_commit"],
+        "daily_checkpoint": case.plan["daily_ledger"]["checkpoint_commit"],
+        "campaign_id": case.plan["campaign_id"], "execution_id": case.plan["execution_id"]}
+    case.plan.update(schema="kv-live-plan-v2", budget_exception=value)
+    return value
+
+
+def test_only_exact_public_v2_freeze_can_resolve_scoped_cap(case):
+    value = add_exception(case)
+    # Changing local plan/exception cannot change the verified public bytes.
+    assert live.frozen_authorization(fetch=lambda _: case.comment, now=NOW.timestamp())[0][
+        "plan"]["schema"] == "kv-live-plan-v1"
+    case.authorization.update(plan=case.plan, plan_sha256=live.fingerprint(case.plan))
+    case.comment["body"] = live.PREFIX + json.dumps(case.authorization) + live.SUFFIX
+    with pytest.raises(ValueError, match="exact bytes"):
+        live.frozen_authorization(fetch=lambda _: case.comment, now=NOW.timestamp())
+    case.locator["body_sha256"] = live.sha(case.comment["body"].encode())
+    write(case.root, "locator.json", case.locator)  # Simulated separately reviewed root binding.
+    authorization, _ = live.frozen_authorization(fetch=lambda _: case.comment, now=NOW.timestamp())
+    resolved = live.policy(authorization["plan"], "7" * 40)
+    assert resolved.trusted_limit.key == live.budget.PRKey(live.REPOSITORY_ID, 999)
+    assert resolved.trusted_limit.limit_microusd == 350_000_000
+    assert resolved.additional_attempt.prior_binding.run_id == value["prior_binding"]["run_id"]
+    assert resolved.additional_attempt.pr_checkpoint == case.plan["ledger"]["checkpoint_commit"]
+    assert resolved.reservation(now=NOW.timestamp())["amount"] == "162.72"
+
+
+@pytest.mark.parametrize("field,value", [
+    ("key", {"repository_id": 1409534281, "pr_number": 275}),
+    ("key", {"repository_id": 1, "pr_number": 999}),
+    ("pr_lifetime_cap_microusd", True), ("pr_lifetime_cap_microusd", 200_000_000),
+    ("pr_lifetime_cap_microusd", 1_000_000_001),
+    ("pilot_lifetime_cap_microusd", 1_000_000_001),
+    ("additional_attempts", True), ("additional_attempts", 2),
+    ("pr_checkpoint", "9" * 40), ("daily_checkpoint", "9" * 40),
+    ("campaign_id", "different"), ("execution_id", "different"),
+    ("prior_binding", None), ("prior_binding", {}), ("unexpected", 350_000_000),
+])
+def test_v2_exception_cannot_change_key_identity_count_or_anchored_history(case, field, value):
+    add_exception(case)[field] = value
+    with pytest.raises(ValueError):
+        live.validate_plan(case.plan, now=NOW.timestamp())
+
+
+def test_legacy_plan_rejects_exception_without_versioned_freeze(case):
+    add_exception(case)
+    case.plan["schema"] = "kv-live-plan-v1"
+    with pytest.raises(ValueError):
+        live.validate_plan(case.plan, now=NOW.timestamp())
+    with pytest.raises(ValueError):
+        live.policy(case.plan, "7" * 40)
+
+
+def test_checked_in_second_attempt_is_exactly_owner_scoped_and_preserves_old_binding():
+    root = Path(__file__).resolve().parents[1]
+    folder = root / 'evidence/kv-live-pilot-20261031/plan'
+    old = live.read_json(folder / 'plan.json')
+    old_binding = live.policy(old, '3ece458ceaa92c5dad8d8e0b1e782a6961400b96').binding
+    extra = live.read_json(folder / 'second-attempt-budget.json')
+    assert extra['key'] == {'repository_id': live.REPOSITORY_ID, 'pr_number': 275}
+    assert extra['pr_lifetime_cap_microusd'] == 350_000_000
+    assert extra['pilot_lifetime_cap_microusd'] == 1_000_000_000
+    assert extra['additional_attempts'] == 1
+    assert extra['prior_binding'] == {'plan_digest': old_binding.plan_digest,
+        'run_id': old_binding.run_id, 'worst_case': old_binding.worst_case}
+    new = {**old, 'schema': 'kv-live-plan-v2', 'budget_exception': extra,
+        'campaign_id': extra['campaign_id'], 'execution_id': extra['execution_id'],
+        'ledger': {**old['ledger'], 'checkpoint_commit': extra['pr_checkpoint']},
+        'daily_ledger': {**old['daily_ledger'], 'checkpoint_commit': extra['daily_checkpoint']}}
+    resolved = live.additional_attempt(new)
+    assert resolved.limit.key == live.budget.PRKey(live.REPOSITORY_ID, 275)
+    assert resolved.limit.limit_microusd == 350_000_000
+    assert live.additional_attempt(old) is None
+    assert live.budget.PR_LIMIT_MICROUSD == 200_000_000
+    assert live.budget.DAILY_LIMIT_MICROUSD == 1_000_000_000

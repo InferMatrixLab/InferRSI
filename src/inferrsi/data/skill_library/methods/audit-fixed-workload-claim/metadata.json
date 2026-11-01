@@ -3,6 +3,25 @@
   "origin": ["internal"],
   "tags": ["performance", "audit", "measurement"],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Auditing a performance claim against supplied fixed-workload reports and an explicit measurement contract: aggregation, retained observations, comparability and quality evidence",
+    "input_contract": "Baseline and candidate fixed-workload reports with request observations grouped by trial and workload; the measurement contract stating metric, unit, timing boundary, improvement direction, aggregation rule and order, fixed exclusions, threshold and comparison operator; the declared quality and completion evidence; the requested output schema",
+    "produced_artifact": "An audit conclusion showing baseline and candidate aggregates, the calculation, the threshold comparison and the evidence or missing information that controls the verdict; it interprets supplied evidence and does not itself establish a measured improvement",
+    "failure_modes": [
+      "A pooled request median silently replaces a median of per-trial means, or the reverse, reweighting trials whose request counts differ",
+      "Late requests, failures or outliers are dropped, or requests move between trials, outside the exclusions the contract fixes",
+      "Values are rounded before the threshold comparison",
+      "A missing rule that permits different verdicts is resolved toward the favorable one",
+      "A speed improvement is read as task success, or a quality pass as equivalent measured work",
+      "Different workloads or incomplete observations are repaired by a favorable aggregate"
+    ],
+    "refusal_point": "Does not replace missing evidence with a pass, does not support a percentage claim on an undefined denominator, and does not launch a new benchmark or alter the contract to resolve an unfavorable result; a failed threshold is reported apart from an unverified comparison or missing quality evidence"
+  },
+  "recommendations": [
+    "Recover the contract's metric, direction, aggregation order and comparison operator before reading the report's own verdict.",
+    "Treat a named minimum bound as >= and a maximum bound as <= unless the contract requires a strict comparison.",
+    "Keep separate regimes and metrics separate unless the contract defines their aggregation."
+  ],
   "limitations": [
     "Guidance for supplied reports; no local efficacy validation or measured performance gain is established."
   ]
