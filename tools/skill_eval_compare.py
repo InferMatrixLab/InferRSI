@@ -702,10 +702,14 @@ def retained_trial(output: Path, entry: dict, expected_adapter=None, execution_m
     # Select report fields; raw commands and private workspace paths stay in local artifacts.
     selected = {key: record[key] for key in ("task_id", "condition", "repeat", "split",
                 "verdict", "checks", "elapsed_seconds", "observations", "inputs_unchanged")}
+    # Legacy local imports used [] for unparsed logs, not an observed zero.
+    unparsed_author_log = (record.get("execution_state") == "author_reported"
+                           and record["observations"].get("completed_turns") is None)
     selected["observations"] = {
         "usage": normalize_usage(record["observations"]["usage"]),
         "tool_calls": len(record["observations"]["commands"])
-        if isinstance(record["observations"].get("commands"), list) else None,
+        if (not unparsed_author_log
+            and isinstance(record["observations"].get("commands"), list)) else None,
     }
     record_error = record.get("evaluation_error")
     # Artifact integrity failures take precedence over a replayable host error.
@@ -1021,6 +1025,9 @@ def markdown(result: dict) -> str:
         if trial.get("provenance"):
             lines += ["Provenance: " + trial["provenance"],
                       "Independent artifact outcome: " + str(trial.get("artifact_verdict")), ""]
+        tool_calls = trial["observations"].get("tool_calls")
+        lines += ["Observed command count: "
+                  + ("unknown" if tool_calls is None else str(tool_calls)), ""]
         lines += [f"[{name}]({path})" for name, path in trial["evidence"].items()]
         lines += ["", "Grading assertions:", "", "```json",
                   json.dumps(trial["checks"], ensure_ascii=False, sort_keys=True), "```", "",
