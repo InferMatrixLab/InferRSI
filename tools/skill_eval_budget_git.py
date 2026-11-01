@@ -18,6 +18,7 @@ from tools.skill_eval_budget import (
     Ledger,
     PRKey,
     Snapshot,
+    TrustedPRLimit,
     WriteResult,
     decode,
     decode_daily,
@@ -77,10 +78,14 @@ class GitHubGitStore:
     def valid_genesis(self, ledger):
         return ledger.revision == 0 and not ledger.entries
 
-    def __init__(self, api, anchor: LedgerAnchor, *, max_history=10000):
+    def __init__(self, api, anchor: LedgerAnchor, *, max_history=10000, trusted_limit=None):
         if type(anchor) is not self.anchor_type or type(max_history) is not int or max_history < 1:
             raise BudgetError("Trusted anchor and bounded history are required")
+        if trusted_limit is not None and (type(anchor) is not LedgerAnchor
+                or type(trusted_limit) is not TrustedPRLimit or trusted_limit.key != anchor.key):
+            raise BudgetError("Trusted limit must match the anchored PR, never a daily ledger")
         self.api, self.anchor, self.max_history = api, anchor, max_history
+        self.trusted_limit = trusted_limit
         self._observed = anchor.checkpoint_commit
 
     def _get(self, path):
@@ -123,7 +128,8 @@ class GitHubGitStore:
             raw = base64.b64decode("".join(blob["content"].split()), validate=True)
             if len(raw) > 4_000_000 or blob["size"] != len(raw):
                 raise ValueError("Invalid ledger size")
-            ledger = self.decode_state(raw.decode("utf-8"))
+            ledger = (self.decode_state(raw.decode("utf-8")) if self.trusted_limit is None
+                      else self.decode_state(raw.decode("utf-8"), trusted_limit=self.trusted_limit))
             if ledger.key != self.anchor.key:
                 raise ValueError("Wrong PR identity")
             return parents, ledger

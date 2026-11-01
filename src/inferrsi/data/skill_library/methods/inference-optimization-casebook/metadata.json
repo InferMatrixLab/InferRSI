@@ -13,6 +13,27 @@
     "external"
   ],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Structuring and querying a casebook of past optimization decisions as decision support, when recording optimization experiments or choosing the next optimization from prior art; the casebook is reference material and neither runs profiling nor makes decisions",
+    "prerequisites": "Whole-body text access to the case files for free-text search; applying a case first requires reading the nearest checked-in config and the model's deployment guide",
+    "input_contract": "For a query: natural search terms such as model name, knob, mechanism word or deployment feature, plus the current model and hardware. For a new case: mechanism, applies-when and does-not-apply conditions, procedure, expected effect, accuracy risk, verification, rollback and a real measurement trail with run ID, verdict, exact hardware SKU, model revision, workload and before/after result",
+    "produced_artifact": "Ranked matching cases read as precedents and diagnostic options, or a new or deprecated case record in the template; a precedent's procedure and expected direction of effect, not a guaranteed configuration or a measured result",
+    "failure_modes": [
+      "The query is pre-translated into canonical vocabulary or bounded by structured fields, so synonyms in the body text are missed",
+      "A case's specific values, such as batch size, tensor-parallel degree or kernel parameters, are copied instead of re-derived for the current model and hardware",
+      "The precedent's expected direction of effect stands in for measurement after the change is applied",
+      "A rejected direction is read as a permanent blacklist, or one discarded implementation as ruling out its mechanism",
+      "A confounded run, a missing experiment and a failed gate are recorded as the same evidence state",
+      "Cross-system cases are bootstrapped without re-verifying that the mechanism holds on the target hardware"
+    ],
+    "refusal_point": "Adds no case for an INCONCLUSIVE optimization-effect claim, a single-configuration result without plausible generalization, or a result without a real measurement trail, except a scoped diagnostic observation that keeps its verdict and configuration boundary; manufactures no PASS, and reading the records does not reopen a paused campaign"
+  },
+  "recommendations": [
+    "Search the full case bodies with free text first, then rank the hits by bottleneck class and signals.",
+    "Before retrying a rejected direction, state which condition changed or which uncertainty a bounded check resolves, run an unchanged control and choose the least expensive discriminating check.",
+    "Mark bootstrapped cases source_grounded or author_reported until a local measurement confirms or refutes them.",
+    "When a case's conditions no longer hold, mark it deprecated with the reason instead of deleting it."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

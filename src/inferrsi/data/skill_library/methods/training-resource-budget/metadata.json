@@ -15,6 +15,28 @@
     "external"
   ],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Choosing training offload and resource-budget changes from pinned DeepSpeed configuration, attributed expert diagnosis and a historical MindSpeed case, balancing accelerator capacity, CPU work, pinned RAM and local storage while keeping host/device transfer exposure distinct from collective network bottlenecks",
+    "prerequisites": "The source boundaries are read; garbage-collection or affinity changes, privileged memlock changes and delayed parameter updates each need separate approval, and the skill authorizes no newest-wheel installation, scheduler-priority change, benchmark or failure injection; historical MindSpeed reuse requires compatible allocator symbols, tracked swappable storage, sufficient host capacity and verified device/NUMA/CPU mapping, not merely the presence of npu-smi and lspci",
+    "input_contract": "State attributed to parameters, optimizer state, gradients or activations with its current memory tier, lifetime and next consumer; whether the failure is allocation capacity or throughput; a per-host budget for input buffers, checkpoint snapshots, offloaded state, OS cache and CPU workers with the actual ranks sharing the host; the host/device link recorded apart from collective traffic; the exact source version and enabled execution mode",
+    "produced_artifact": "A candidate decision record per proposal: the observed limiting interval and owning state or resource, source version and execution mode, capacity released and resources consumed with units and uncertainty, overlap readiness and mutation boundaries with expected contention, and the fixed-workload step and correctness evidence required for later validation",
+    "failure_modes": [
+      "A change that lets the model fit is presented as a speedup, although it can slow each step",
+      "A tensor copied to CPU is taken as an InfiniBand/RoCE bottleneck, or CPU/NVMe offload is counted as network evidence",
+      "Parameter max_in_cpu is read as a byte or total-host-memory cap instead of an element count",
+      "NVMe optimizer placement is assumed to remove CPU optimizer demand",
+      "The parameter buffer-pool count is transplanted to the optimizer, or all optimizers are assumed to hold identical states",
+      "Configuration presence or schema documentation is taken as evidence that a knob or overlap actually ran",
+      "Ordinary overlap is taken as permission for delayed, stale parameter updates"
+    ],
+    "refusal_point": "Claims no hardware validation, measured gain or current NPU compatibility, keeps source support and extracted coverage separate from measured improvement, and does not reuse the MindSpeed headline gain; historical source observations do not establish current-stack compatibility, whole-model correctness or measured benefit"
+  },
+  "recommendations": [
+    "Attribute the state and separate a capacity failure from a throughput bottleneck before choosing an offload surface.",
+    "Verify the consumer of buffer_size before calculating bytes or tuning it, and measure the executing path before claiming a knob ran.",
+    "Compare the whole step's critical path, not host capacity alone.",
+    "Use plan-activation-residency, choose-parallel-training-plan and assess-split-backward-schedule for live-range, parallel-plan and backward-ordering questions."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."

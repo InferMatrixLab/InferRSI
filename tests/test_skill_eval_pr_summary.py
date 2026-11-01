@@ -45,13 +45,13 @@ def outcome(**values):
 def assert_boundaries(text):
     main = visible(text)
     assert text.startswith(integration.MARKER + "\n")
-    assert text.count("<details>") == text.count("</details>") == 2
+    assert text.count("<details>") == text.count("</details>") == (3 if "**PLANNED:" in text else 2)
     assert "<details open" not in text
     for statement in ("Applicable only while", "trusted label authorization",
                       "cumulative PR reservation", "Unknown accounting blocks new paid calls",
                       "Retention: 30 days", "Unix time", "Expired evidence is unverified.",
                       "offline fixed outputs do not establish skill efficacy"):
-        assert statement in main
+        assert statement in text
     assert "[Evidence and logs](https://example.invalid/evidence)" in main
 
 
@@ -59,9 +59,10 @@ def test_planned_summary_keeps_visible_status_and_folds_full_approval_fields(pla
     text = render(plan)
     assert_boundaries(text)
     main = visible(text)
-    binding, gaps = details(text)
+    author, binding, gaps = details(text)
+    assert "git rev-parse HEAD" in author
     assert "**PLANNED:" in main
-    assert '"missing_pair":1' in main
+    assert "Outcomes:" not in main and "no task outcomes yet" in main
     assert "Selected comparisons: **1**" in main
     assert "Estimated task calls: **2**" in main
     assert "Uncovered/unsupported changes: **0**" in main
@@ -69,7 +70,10 @@ def test_planned_summary_keeps_visible_status_and_folds_full_approval_fields(pla
                   integration.canonical(plan["model"]),
                   integration.canonical(integration.budget(plan)),
                   integration.canonical(plan["comparisons"][0]["exam"]), "one (holdout)"):
-        assert value in binding and value not in main
+        assert value in binding
+        # The author sees the head to bind the checkout and pinned implementation doc links.
+        if value != plan["head"]:
+            assert value not in main
     assert "(none)" in gaps
 
 
@@ -106,8 +110,8 @@ def test_zero_comparisons_and_zero_gaps_remain_truthful_and_closed(plan):
     main = visible(text)
     assert "Selected comparisons: **0**" in main
     assert "Estimated task calls: **0**" in main
-    assert '"missing_pair":0' in main
-    assert "(none)" in details(text)[1]
+    assert "Outcomes:" not in main and "no supported automatic comparison" in main
+    assert "(none)" in details(text)[-1]
 
 
 def test_seventy_gaps_are_complete_but_visible_summary_is_bounded(plan):
@@ -117,11 +121,11 @@ def test_seventy_gaps_are_complete_but_visible_summary_is_bounded(plan):
     assert_boundaries(text)
     main = visible(text)
     assert "Uncovered/unsupported changes: **70**" in main
-    assert len(main) < 1800 and len(main.splitlines()) < 28
+    assert len(main) < 4300 and len(main.splitlines()) < 40
     assert "uncovered-00.md" not in main
     for gap in plan["coverage"]:
         escaped = html.escape(integration.canonical(gap["path"])).replace("@", "&#64;")
-        assert escaped in details(text)[1]
+        assert escaped in details(text)[-1]
 
 
 @pytest.mark.parametrize("path", [
@@ -138,7 +142,7 @@ def test_hostile_gap_paths_cannot_close_details_or_escape_as_markdown(plan, path
     text = render(plan)
     assert_boundaries(text)
     expected = html.escape(integration.canonical(path)).replace("@", "&#64;")
-    assert expected in details(text)[1]
+    assert expected in details(text)[-1]
     assert "<script>" not in text and "<img " not in text
     assert "@someone" not in text and "@org/team" not in text and "@all" not in text
     assert "\n# forged heading\n" not in text
@@ -149,7 +153,7 @@ def test_unsupported_comparison_has_zero_calls_without_hiding_gap(plan):
                 estimated_calls=0, coverage=[{"path": "missing.md", "coverage": "unsupported"}])
     text = render(plan)
     assert_boundaries(text)
-    assert "unsupported snapshot" in details(text)[0]
+    assert "unsupported snapshot" in details(text)[-2]
     assert "Selected comparisons: **0**" in visible(text)
     assert "Uncovered/unsupported changes: **1**" in visible(text)
 

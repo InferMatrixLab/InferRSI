@@ -225,6 +225,11 @@ helpers and CLI reads without installing any inference engine.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.
+The `pr-references` job fails when GitHub closing syntax appears inside PR body
+text, including negated sentences (working rule 6 in the
+[collaboration guide](agent-collaboration.md#working-rules)). It reads the body at
+the triggering event, so a body edit is checked at the next push. It is not a
+required check.
 
 The merge lane runs the same small smoke selection as draft on every main push,
 including direct pushes. It is a post-push safety check, not a branch-protection

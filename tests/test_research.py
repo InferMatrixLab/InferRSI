@@ -35,7 +35,12 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
         for item in items
     )
     assert set(result["profile"]["knowledge_ids"]) <= set(identities)
-    assert any("diffusion" in item["record"]["scenario"] for item in items)
+    task_first = search_knowledge("diffusion", limit=1)[0]["id"]
+    assert any(
+        item["record"]["id"] == task_first
+        and {"group": "task", "query": "diffusion"} in item["matched_queries"]
+        for item in items
+    )
     assert any(
         match["group"] == "modality" and match["query"] == "video"
         for item in items for match in item["matched_queries"]

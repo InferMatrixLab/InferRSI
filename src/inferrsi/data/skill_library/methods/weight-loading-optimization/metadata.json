@@ -77,6 +77,32 @@
     }
   ],
   "empirical_validation": "not_run",
+  "applicability": {
+    "scope": "Diagnosing the serving-level weight load path from storage to device and choosing changes to it when startup or loading latency dominates: locating the cost by source, format, placement and duplication, accounting once-per-process loading and warmup apart from per-request cost, verifying sharded downloads, restricting device-side prefetch to profiled memory-bound hot spots and ordering CPU-tier offload; also covers source-scoped disk-loading modes, pinned staging, synchronous checkpoint save semantics, fastsafetensors broadcast/scatter/coalesced delivery and the separation of model preparation from serving. Request-time host overhead belongs to host-overhead-profiling, DCP asynchronous save performance to dcp-async-save-performance and distributed recovery validity to checkpoint-recovery-consistency",
+    "prerequisites": "Flag names and API entry paths are re-verified against the pinned source revisions, and torch_npu.npu_prefetch details against the target CANN version, before they are relied on; card state is checked before launch and process placement fixed before measuring, through ascend-device-health and os-process-placement; the Diffusers enable_model_cpu_offload path requires accelerate",
+    "input_contract": "The current load path's byte source, file format, host-first or direct device placement and duplicated copies across processes or instances; startup timings for loading and warmup with byte and access counts per segment, and the expected warmup hit criteria; the safetensors index weight_map and the downloaded shard set; a profile showing memory-bound hot spots and the adjacent compute or communication segments; free device memory and whether an OOM occurs during construction or inference; for cross-rank delivery, the file-to-loader-group-rank map, tensor names, shapes, dtypes and call order, the required replicated or sliced output, the model's expected shard layout and the collective backend",
+    "produced_artifact": "The located load-path cost on the four dimensions with its matching lever, a startup ledger that keeps fixed overhead apart from per-request cost, a structural shard-completeness result naming the missing shards, a prefetch proposal behind an enable_prefetch switch defaulting to False or a recorded decision not to prefetch, an offload candidate order, the recorded loading mode, a distributed delivery choice with its proposed verification, and a preparation/serving record of serialized and rebuilt state, live resource owners and ABI/prepared-contract versions; proposed changes and verification targets, not a measured startup or delivery gain",
+    "failure_modes": [
+      "Loading and warmup are amortized into per-request latency, or a host segment without timing points is treated as costing nothing",
+      "Warmup is accepted on total time while mismatched warmup shapes have warmed a different set of cache entries",
+      "In-flight .incomplete shards are re-downloaded as corrupt, or gap-free shard numbering is accepted without matching the index weight_map",
+      "Prefetch is forced without a profiled memory-bound hot spot or a non-memory-bound dependency window",
+      "Resolution or CFG tier-downs are applied to a construction-phase OOM, or offload is adopted when compute already hides the transfer",
+      "A free-memory probe runs on an mmap-backed load, or a run whose first mlock failure latched with only a warning is treated as fully resident",
+      "Disk counters that include cache and pipes are read as physical writes, or a run without a page-cache drop is reported as a cold start",
+      "The ceil-block scatter partition is used without checking it against the model's expected shard layout, or ranks run different orders or plans so their collectives mismatch",
+      "A faster H2D copy, local clone or rank-local filtered read is counted as a cross-rank communication gain"
+    ],
+    "refusal_point": "Withholds a load-path win until the verification checklist holds and keeps the distributed-delivery checks as verification targets rather than results; does not force prefetch without a safe dependency window and disables it when neither a smaller size nor a moved position removes a regression; records unsupported save behaviors as unknown; rejects mismatched execution ABI or prepared-contract versions instead of editing their tags; and implies no Ascend support from the llama.cpp or fastsafetensors mechanisms",
+    "hardware": "NPU for the device-side prefetch API (torch_npu.npu_prefetch, checked against the target CANN version) and the Diffusers offload playbook; the prefetch and fastsafetensors methodology transfers while the fastsafetensors and llama.cpp APIs do not, and cross-rank completion follows each collective backend's own wait contract"
+  },
+  "recommendations": [
+    "Report preparation/startup/readiness, warmups and measured work as separate numbers, with load latency split into init, header, io and get phases, the cold-cache protocol stated and the effective loading mode identical across compared runs.",
+    "Place each prefetch behind an enable_prefetch switch defaulting to False, start max_size at 50% of the theoretical size, verify a single operator first and step up to 0.7 and then 1.0 only after verified wins.",
+    "Try offload candidates in order of change surface: batch size, resolution, CFG/feature flags, CPU or layered offload, tensor-parallel degree, then activation checkpointing; re-estimate the un-overlapped transfer share after adopting each tier.",
+    "Record whole-set atomic publication, asynchronous checkpointing, multi-rank save coordination and crash durability as unknown for the fastsafetensors saver instead of assuming them.",
+    "Before adopting coalesced delivery, compare it disabled and enabled with identical checkpoint, rank mapping, backend, topology, dtype, cache state, chunk/queue budgets and consumer retention, then measure complete startup under the same accounting protocol."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Normalized provenance covers the existing llama.cpp loading slice at 3e390af18de1131dda27913c00511725b4274c8a and the fastsafetensors distributed-delivery slice at 219e2561a41ede2d5d8eba611c248bb0effbf580; other inherited claims remain unnormalized with original identities and limits retained.",
