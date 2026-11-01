@@ -219,7 +219,7 @@ Keep the existing four lanes:
 | [Draft](../.github/workflows/ci-draft.yml) | Lint and lightweight CPU smoke |
 | [Ready](../.github/workflows/ci-ready.yml) | Full repository checks for PRs |
 | [Merge](../.github/workflows/ci-merge.yml) | Manifest check and lightweight CPU smoke on main |
-| [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests and evidence layout |
+| [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests, evidence layout and label drift |
 
 Ready CI also builds the source distribution and wheel, installs the wheel with
 the optional `skills` parser in a fresh virtual environment, and runs
@@ -234,6 +234,10 @@ text, including negated sentences (working rule 6 in the
 [collaboration guide](agent-collaboration.md#working-rules)). It reads the body at
 the triggering event, so a body edit is checked at the next push. It is not a
 required check.
+The nightly `safety-net` job compares the repository labels with
+[`labels.json`](../.github/labels.json) and fails on drift
+([labels](agent-collaboration.md#labels)). It reads labels with `issues: read` and never
+changes them.
 
 The merge lane runs the same small smoke selection as draft on every main push,
 including direct pushes. It is a post-push safety check, not a branch-protection
