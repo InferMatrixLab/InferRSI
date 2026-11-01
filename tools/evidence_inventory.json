@@ -4,11 +4,13 @@
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [
+        {"path": "results/final-5s/integrity.json", "schema": "bundle-sha256"},
         {"path": "plan/client-manifest.json", "schema": "historical-sha256",
          "files": {
            "run_client.py": {"local": "evidence/h3-ref2va-ascend-293/plan/run_client.py"},
            "probe_cache_counter.py": {"local": "evidence/h3-ref2va-ascend-293/plan/probe_cache_counter.py"},
-           "heldout-family-prompt.txt": {"local": "evidence/h3-ref2va-ascend-293/plan/heldout-family-prompt.txt"}
+           "heldout-family-prompt.txt": {"local": "evidence/h3-ref2va-ascend-293/plan/heldout-family-prompt.txt"},
+           "run_heldout.py": {"local": "evidence/h3-ref2va-ascend-293/plan/run_heldout.py"}
          }},
         {
           "path": "validator/manifest.json",

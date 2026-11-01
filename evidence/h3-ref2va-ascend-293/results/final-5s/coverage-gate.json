@@ -1,0 +1,20 @@
+[
+  {
+    "case": "original-seed1",
+    "label": "final-5s-abba-v2-coverage-original-seed1",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "case": "original-seed2",
+    "label": "final-5s-abba-v2-coverage-original-seed2",
+    "passed": true,
+    "exit_code": 0
+  },
+  {
+    "case": "family-seed0",
+    "label": "final-5s-abba-v2-coverage-family-seed0",
+    "passed": true,
+    "exit_code": 0
+  }
+]

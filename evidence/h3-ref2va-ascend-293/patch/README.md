@@ -2,7 +2,12 @@
 
 All downstream engine changes are consolidated in
 [vLLM-Omni PR #9698](https://github.com/vllm-project/vllm-omni/pull/9698).
-The PR is a draft; no candidate performance result is accepted yet.
+The measured final runtime revision is `098b51f6b96dd160a0959e74e8822422527ff06d`.
+The [final 5-second report](../results/final-5s/README.md) qualifies the selected
+Cache-DiT profile and native candidate cleanup. Device KV remains optional with
+separate single-pair evidence; audio-owner code was reverted. Later PR changes
+are documentation only. The sections below retain historical investigation
+states and must be read with the final report.
 
 ## Terminal DLO cleanup
 

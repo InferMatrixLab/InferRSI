@@ -1,10 +1,17 @@
 # MiniMax-H3 Ref2VA on Ascend
 
 Governing acceptance: [InferRSI #293](https://github.com/InferMatrixLab/InferRSI/issues/293).
-Status: **INCONCLUSIVE**. This campaign is in progress. No candidate speedup
-is accepted yet. Original dense screening passed the adopted media gates but
-forced worker teardown. A later production-cleanup candidate has eight worker
-exits zero; the final combined revision and repeated A/B remain unqualified.
+Status: **PASS for the first-delivery 5-second workload and frozen quality gates**.
+Repeated HTTP E2E: **407.27 → 108.12 s (73.45% lower)**; sampled peak HBM
+increased 3.10%. All 26 requests, 14 quality comparisons and 32 worker exits
+passed. This is lossy caching, with a material audio tradeoff in the family case.
+See the [final report and source/benefit table](results/final-5s/README.md).
+15-second qualification is explicitly deferred by the requester.
+
+The detailed sections below preserve historical investigation states; pending or
+INCONCLUSIVE statements in them describe those earlier experiments, not the
+completed replacement campaign. The final report above is authoritative for
+this delivery.
 
 `plan/` records the initial scope, `validator/` freezes the adopted quality gate,
 `results/` retains attempted and rejected outcomes, and `patch/` identifies engine

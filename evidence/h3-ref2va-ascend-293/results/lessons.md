@@ -19,3 +19,13 @@ scoring is scheduled after timing so it does not compete with the timed host
 work. Multiple requests within one server remain distinct from independent
 process rounds. Every final accepted configuration still requires output gates,
 request completion and lifecycle evidence at the final source revision.
+
+## Final 5-second qualification
+
+The [replacement A/B/B/A campaign](final-5s/README.md) passed all 26 requests,
+14 quality comparisons and 32 actual worker exits. Matching the outer shutdown
+budget to the inner worker budget resolved the missing-exit-receipt failure.
+Selected Cache-DiT reduced mean E2E 73.45% with 3.10% higher sampled peak HBM.
+The family audio cosine of 0.813411 is close to the 0.80 gate: passing a numerical
+media gate does not establish losslessness or semantic quality. Retain this
+tradeoff when transferring the profile, and requalify new references/durations.
