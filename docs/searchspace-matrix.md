@@ -443,6 +443,7 @@ separate from the public release's inspected code paths.
 | Resource | Stage / named mechanism | Canonical owner | Evidence boundary |
 | --- | --- | --- | --- |
 | Accelerator / Host / service boundary | Observe / Verify: select task quality and reference parity; freeze workload, timing, SLOs, units and failure accounting; distinguish agent replay from live task success | [inference-benchmark-design task reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md) and [commands](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md) | Cross-task measurement guidance, not new measured hardware coverage. A text HTTP smoke cannot validate TTS, duplex, image/video quality, repeated A/B or production capacity. No runtime adapter or automatic evaluator is added. |
+| Accelerator / Host / decoded-audio boundary | Observe / Verify: derive cache-aware ASR startup/steady mel geometry and decoded frontier; distinguish slot reset/reuse, EOU, EOF and full stream reset; retain optional-model test coverage | [inference-benchmark-design ASR reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md) | NeMo-Speech.cpp `20999cc921d2b14aa58708f61756a8b2e787ba20`; selected source and test definitions, author ASR benchmark only. Candidate / empirical not_run; no executed model, device, long-stream/load, ASR quality or service gain and no new runtime adapter. |
 
 ## SGLang scope selection
 
