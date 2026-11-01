@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
-      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/daa33a4ba588298ff76e3e077d6c894d7750d9bc/src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
+      "commit": "daa33a4ba588298ff76e3e077d6c894d7750d9bc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json",
@@ -34,7 +34,7 @@
   "checkout_ref": "checkout:plan-activation-residency",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md": "542d8a1e6963f5019986e1fbd79d3a247a045a51487c09313026087ac457c15e",
-    "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json": "c6acae57d70190cea0e18c71c79127962181e58169e011df75d8635b3db4daa7",
+    "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json": "0289c62f93d087cd6a4ba4140487925c4b3258a9db1f7004ff1dfb22fd6d4582",
     "src/inferrsi/data/skill_library/methods/plan-activation-residency/references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -49,6 +49,27 @@
     "origin": [
       "external"
     ],
+    "applicability": {
+      "scope": "Proposing training activation and gradient memory reductions when pressure appears to come from live tensors or allocator-reserved memory, by distinguishing lifetime reordering, address packing and selective rematerialization; covers activation checkpointing for recomputation, not persistent recovery checkpoints",
+      "prerequisites": "The packaged evidence and limits are read before citing paper results; installing or running a solver or framework, modifying allocation or checkpoint policies, reproducing workloads or provisioning hardware needs separate authorization",
+      "input_contract": "The actual forward/backward/update DAG, shapes and precision, tensor sizes and consumer lifetimes; resident versus reserved peak bytes; operator, workspace and temporary-output peaks; batch and accumulation policy; optimizer and collective barriers; representative compute and transfer costs; whether the goal is fit, step time or time to a fixed training objective",
+      "produced_artifact": "A preferred candidate, simpler fallback, resource ledger, critical-path prediction, assumptions, counter-signals and unresolved-evidence list, with source claims kept apart from proposed decisions, plus a proposed matched comparison; a reviewable proposal, not an implementation",
+      "failure_modes": [
+        "Fragmentation and live-byte excess are not distinguished at the same phase",
+        "OLLA address packing is read as tensor placement across CPU/SSD tiers",
+        "Reordering moves a release or update past a dependency such as shared weights, accumulation, gradient clipping, optimizer state or collectives",
+        "A static packing plan ignores alignment, aliasing, workspace, asynchronous overlap or shape variability",
+        "Added recomputation consumes the compute window that previously hid transfers",
+        "Checkmate's rounding is taken to guarantee the memory cap, or its 10% allowance is used as a portable safety margin",
+        "A solver timeout is read as proof of infeasibility"
+      ],
+      "refusal_point": "Returns the missing classification instead of a preferred checkpoint interval when only total OOM memory is known, and escalates when a legal dependency graph, memory margin or correctness model is unavailable"
+    },
+    "recommendations": [
+      "Where ordering is legal, try earlier last-use and gradient release before adding computation or transfer.",
+      "Check dependency validity and memory feasibility separately for an approximate schedule.",
+      "Account for planning cost over the expected number of repeated steps."
+    ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -58,10 +79,26 @@
     ],
     "consumption_mode": "packaged"
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Proposing training activation and gradient memory reductions when pressure appears to come from live tensors or allocator-reserved memory, by distinguishing lifetime reordering, address packing and selective rematerialization; covers activation checkpointing for recomputation, not persistent recovery checkpoints",
+    "prerequisites": "The packaged evidence and limits are read before citing paper results; installing or running a solver or framework, modifying allocation or checkpoint policies, reproducing workloads or provisioning hardware needs separate authorization",
+    "input_contract": "The actual forward/backward/update DAG, shapes and precision, tensor sizes and consumer lifetimes; resident versus reserved peak bytes; operator, workspace and temporary-output peaks; batch and accumulation policy; optimizer and collective barriers; representative compute and transfer costs; whether the goal is fit, step time or time to a fixed training objective",
+    "produced_artifact": "A preferred candidate, simpler fallback, resource ledger, critical-path prediction, assumptions, counter-signals and unresolved-evidence list, with source claims kept apart from proposed decisions, plus a proposed matched comparison; a reviewable proposal, not an implementation",
+    "failure_modes": [
+      "Fragmentation and live-byte excess are not distinguished at the same phase",
+      "OLLA address packing is read as tensor placement across CPU/SSD tiers",
+      "Reordering moves a release or update past a dependency such as shared weights, accumulation, gradient clipping, optimizer state or collectives",
+      "A static packing plan ignores alignment, aliasing, workspace, asynchronous overlap or shape variability",
+      "Added recomputation consumes the compute window that previously hid transfers",
+      "Checkmate's rounding is taken to guarantee the memory cap, or its 10% allowance is used as a portable safety margin",
+      "A solver timeout is read as proof of infeasibility"
+    ],
+    "refusal_point": "Returns the missing classification instead of a preferred checkpoint interval when only total OOM memory is known, and escalates when a legal dependency graph, memory margin or correctness model is unavailable"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Where ordering is legal, try earlier last-use and gradient release before adding computation or transfer.",
+    "Check dependency validity and memory feasibility separately for an approximate schedule.",
+    "Account for planning cost over the expected number of repeated steps."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

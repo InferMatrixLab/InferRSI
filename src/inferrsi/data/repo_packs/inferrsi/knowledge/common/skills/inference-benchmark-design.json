@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a7f23dfef4770e8542f8390709b029fc934928e4/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "a7f23dfef4770e8542f8390709b029fc934928e4",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/daa33a4ba588298ff76e3e077d6c894d7750d9bc/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "daa33a4ba588298ff76e3e077d6c894d7750d9bc",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
@@ -49,7 +49,7 @@
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "59b5656e7d989b3cee8d6f95cd43be03053b1fb11c3a82bb49ab3d402f7aacee",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "18310402a8ade03fd48ac687f79ba9d447871e90337de84c0e1bc15c0b827306",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "d51b5b3600d13b38c2adbf6c6e149c7375c9f1db12bc078679cab67a32a3e9a7",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
@@ -200,6 +200,28 @@
       }
     ],
     "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail",
+      "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices",
+      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule",
+      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend",
+      "failure_modes": [
+        "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
+        "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
+        "Recorded agent task scores or replay completion are read as current task success, or a VBench prompt workload as computed VBench quality",
+        "An upstream better/worse/inconclusive label is used as InferRSI's PASS/FAIL/INCONCLUSIVE verdict",
+        "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
+        "A quality pass is taken to certify that the timed work actually occurred",
+        "Best-seen results are reported as delivered without restarting and validating the final code/config artifact"
+      ],
+      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold"
+    },
+    "recommendations": [
+      "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
+      "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
+      "Use the replay trace that matches the actual deployment pattern.",
+      "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results."
+    ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
@@ -216,10 +238,27 @@
     ],
     "consumption_mode": "packaged"
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail",
+    "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend",
+    "failure_modes": [
+      "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
+      "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
+      "Recorded agent task scores or replay completion are read as current task success, or a VBench prompt workload as computed VBench quality",
+      "An upstream better/worse/inconclusive label is used as InferRSI's PASS/FAIL/INCONCLUSIVE verdict",
+      "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
+      "A quality pass is taken to certify that the timed work actually occurred",
+      "Best-seen results are reported as delivered without restarting and validating the final code/config artifact"
+    ],
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
+    "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
+    "Use the replay trace that matches the actual deployment pattern.",
+    "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
