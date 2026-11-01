@@ -53,6 +53,21 @@ jobs:
       - name: Tests (smoke + unit)
         run: pytest
 
+  pr-references:
+    # Reports closing syntax in PR body text at each ready-lane event; not a branch-protection gate.
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Reject closing syntax inside PR body text
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: python3 tools/check_pr_references.py
+
   kv-task-qualification:
     # Bounded software-control qualification; not a branch-protection or efficacy gate.
     if: github.event.pull_request.draft == false
