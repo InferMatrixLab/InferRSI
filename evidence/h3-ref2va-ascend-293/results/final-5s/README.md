@@ -52,7 +52,7 @@ Baseline `c7f56f0155953c7d4a77276a2f4fcbd844ab0da2`; measured candidate `098b51f
 
 Container `quay.io/ascend/vllm-omni:nightly-20261022-6b35bca`, immutable ID `sha256:7fc6c73bd19a6ef4ee8d6048009972234796a1fc1bd3067168a425343cc476f7`; torch 2.10.0+cpu, torch-npu 2.10.0.post4, vLLM 0.32.0+empty, MindIE-SD 3.1.0, diffusers 0.40.0, transformers 5.19.0, cache-dit 1.5.0, CANN 9.1.0. [Input hashes](../../plan/inputs.json), [model hashes](../../plan/model-files.json), [candidate profile](candidate-profile.json).
 
-Use the [engine recipe](https://github.com/vllm-project/vllm-omni/blob/amy/h3-ref2va-npu-opt/recipes/MiniMaxAI/MiniMax-H3-NPU.md) server command, reserve eight devices with `npu run`, and run the portable client from the evidence bundle:
+Use the [engine recipe](https://github.com/vllm-project/vllm-omni/blob/922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb/recipes/MiniMaxAI/MiniMax-H3-NPU.md) server command, reserve eight devices with `npu run`, and run the portable client from the evidence bundle:
 
 ```bash
 python plan/run_client.py --base-url "http://127.0.0.1:${PORT}" \
