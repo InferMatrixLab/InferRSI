@@ -10,6 +10,21 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  pr-references:
+    # Advisory syntax check, not a required check or closure authorization.
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Check PR body references without evaluating its contents
+        shell: bash
+        run: |
+          env -i PATH=/usr/bin:/bin LANG=C.UTF-8 \
+            /usr/bin/python3 -I tools/check_pr_references.py --event "$GITHUB_EVENT_PATH"
+
   installed-package:
     strategy:
       fail-fast: false
