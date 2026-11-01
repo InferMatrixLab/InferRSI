@@ -54,6 +54,22 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
     assert result["profile"]["output_modalities"] == ["video", "audio"]
 
 
+def test_scoped_mlx_research_retains_the_lifecycle_resource():
+    result = research_knowledge(
+        "MiniMax-H3", frameworks=["mlx"], mechanisms=["lazy evaluation"],
+        repo="inferrsi", scenario="skills.discovery", limit=12,
+    )
+    lifecycle = next(
+        item for item in result["items"]
+        if item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+    )
+    assert lifecycle["record"]["skill_documents"]["original"] == (
+        "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+    )
+    assert {"group": "framework", "query": "mlx"} in lifecycle["matched_queries"]
+    assert {"group": "mechanism", "query": "lazy evaluation"} in lifecycle["matched_queries"]
+
+
 def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(monkeypatch):
     records = [
         {"id": name, "repo": "vllm_omni", "backend": "common", "scenario": "diffusion.*",

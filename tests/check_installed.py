@@ -309,6 +309,21 @@ for key in ("skill_resource", "inventory_resource"):
 assert set(research["profile"]["knowledge_ids"]) <= {
     item["record"]["id"] for item in research["items"]
 }
+output = io.StringIO()
+with contextlib.redirect_stdout(output):
+    assert main([
+        "knowledge", "research", "MiniMax-H3", "--framework", "mlx",
+        "--mechanism", "lazy evaluation", "--repo-type", "inferrsi",
+        "--scenario", "skills.discovery", "--limit", "12",
+    ]) == 0
+mlx_research = json.loads(output.getvalue())
+mlx_lifecycle = next(
+    item for item in mlx_research["items"]
+    if item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+)
+assert mlx_lifecycle["record"]["skill_documents"]["original"] == mlx_document
+assert {"group": "framework", "query": "mlx"} in mlx_lifecycle["matched_queries"]
+assert {"group": "mechanism", "query": "lazy evaluation"} in mlx_lifecycle["matched_queries"]
 assert not inference_modules & sys.modules.keys()
 print(f"Installed package: {inferrsi.__file__}; {len(records)} source-grounded records available.")
 
