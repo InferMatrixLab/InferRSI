@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.",
+  "summary": "Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.",
   "tags": [
     "benchmark",
     "evaluation",
@@ -22,7 +22,9 @@
     "tts",
     "full-duplex",
     "image-generation",
-    "video-generation"
+    "video-generation",
+    "asr",
+    "stream-boundaries"
   ],
   "origin": [
     "external"
@@ -30,16 +32,19 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "59b5656e7d989b3cee8d6f95cd43be03053b1fb11c3a82bb49ab3d402f7aacee"
+      "content_sha256": "a977e81fb83e3e476f66dc97133f1a60a35983bdfaec538ad5063defda41d4b7"
     }
   ],
   "index_type": "packaged-skill",
@@ -48,15 +53,18 @@
   },
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "59b5656e7d989b3cee8d6f95cd43be03053b1fb11c3a82bb49ab3d402f7aacee",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "18310402a8ade03fd48ac687f79ba9d447871e90337de84c0e1bc15c0b827306",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "a977e81fb83e3e476f66dc97133f1a60a35983bdfaec538ad5063defda41d4b7",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "3570ee36df8037c97c4692afe39316b62c0c91c28b2ea29ab9b72c5ae6740bb6",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",
-    "description": "Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.",
+    "description": "Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.",
     "tags": [
       "benchmark",
       "evaluation",
@@ -70,7 +78,9 @@
       "tts",
       "full-duplex",
       "image-generation",
-      "video-generation"
+      "video-generation",
+      "asr",
+      "stream-boundaries"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -197,18 +207,95 @@
           "src/inferrsi/model/protocols/metrics.py"
         ],
         "readset": "references/task-benchmark-selection.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/NVIDIA/NeMo-Speech.cpp",
+        "commit": "20999cc921d2b14aa58708f61756a8b2e787ba20",
+        "paths": [
+          "BENCHMARK.md",
+          "LICENSE",
+          "NOTICE",
+          "THIRD_PARTY_NOTICES.md",
+          "src/asr/encoder/cache_aware_encoder.cpp",
+          "src/asr/encoder/cache_aware_encoder.h",
+          "src/asr/encoder/fastconformer.h",
+          "src/asr/recognizer.cpp",
+          "src/asr/runner.cpp",
+          "src/asr/runner.h",
+          "src/asr/vad/vad_endpointer.cpp",
+          "src/asr/vad/vad_endpointer.h",
+          "tests/cpp/asr/CMakeLists.txt",
+          "tests/cpp/asr/test_cache_stream_geometry.cpp"
+        ],
+        "readset": "references/cache-aware-asr-stream-boundaries.md"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/OpenBMB/JustGoal",
+        "commit": "f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+        "paths": [
+          "LICENSE",
+          "NOTICE",
+          "README.md",
+          "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/dsa_decode.cu",
+          "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/main.py",
+          "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.cu",
+          "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.py",
+          "kda05_reproduction_full_shape/opus-4.8/fa4_bwd/attention_bwd_causal_h16_d128/cute_fabwd_bshd_v5c_fusedzero/helpers/NOT_INCLUDED.md"
+        ],
+        "readset": "references/justgoal-source.json",
+        "license": "Apache-2.0 repository default; NOTICE exceptions and excluded proprietary helper retained",
+        "scope": "Selected kernel entry/workspace/stream contracts and distribution boundary; source-only, no execution"
+      },
+      {
+        "type": "document",
+        "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/paper.pdf",
+        "version": "Repository-paired PDF at f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+        "sha256": "6bfa1a2728546def4c48e15cf55f31d92a543264787318f1522236c80a0ae8c6",
+        "readset": "references/justgoal-source.json",
+        "license": "UNKNOWN",
+        "scope": "Complete 21-page paper and appendices: controlled comparison, independent correctness, repair/coverage and timing evidence; author-reported, no PDF/figure redistribution"
       }
     ],
     "empirical_validation": "not_run",
+    "applicability": {
+      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail",
+      "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
+      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule",
+      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend",
+      "failure_modes": [
+        "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
+        "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
+        "Recorded agent task scores or replay completion are read as current task success, or a VBench prompt workload as computed VBench quality",
+        "An upstream better/worse/inconclusive label is used as InferRSI's PASS/FAIL/INCONCLUSIVE verdict",
+        "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
+        "A quality pass is taken to certify that the timed work actually occurred",
+        "Best-seen results are reported as delivered without restarting and validating the final code/config artifact",
+        "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test"
+      ],
+      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold"
+    },
+    "recommendations": [
+      "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
+      "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
+      "Use the replay trace that matches the actual deployment pattern.",
+      "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results."
+    ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
       "Task benchmark knowledge is distilled from issue #60 with selected pinned-source rechecks; no all-task runtime qualification or optimization benefit is established.",
-      "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification."
+      "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
+      "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
+      "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner."
     ],
     "provenance_readsets": [
       "references/task-benchmark-selection.md",
-      "references/benchmark-commands.md"
+      "references/benchmark-commands.md",
+      "references/cache-aware-asr-stream-boundaries.md",
+      "references/justgoal-evaluation-contracts.md",
+      "references/justgoal-source.json"
     ],
     "references": [
       "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
@@ -216,10 +303,28 @@
     ],
     "consumption_mode": "packaged"
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail",
+    "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend",
+    "failure_modes": [
+      "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
+      "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
+      "Recorded agent task scores or replay completion are read as current task success, or a VBench prompt workload as computed VBench quality",
+      "An upstream better/worse/inconclusive label is used as InferRSI's PASS/FAIL/INCONCLUSIVE verdict",
+      "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
+      "A quality pass is taken to certify that the timed work actually occurred",
+      "Best-seen results are reported as delivered without restarting and validating the final code/config artifact",
+      "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test"
+    ],
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
+    "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
+    "Use the replay trace that matches the actual deployment pattern.",
+    "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
@@ -229,7 +334,9 @@
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
     "Task benchmark knowledge is distilled from issue #60 with selected pinned-source rechecks; no all-task runtime qualification or optimization benefit is established.",
-    "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification."
+    "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
+    "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
+    "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner."
   ],
   "verification": {
     "locally_verified": false,

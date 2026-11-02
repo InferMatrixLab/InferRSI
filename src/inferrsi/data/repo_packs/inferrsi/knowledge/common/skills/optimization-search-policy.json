@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json",
@@ -50,7 +50,7 @@
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md": "0ba4ade1648764a7422f564abe2d4fc9f9a25b5943a6c70c81ce17b8e7fb48d9",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json": "f8448973cf1c9e506179c02c5e55bd804ea039b7276cf08071952f6c0be656ad",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.md": "2c2a8147001d24d1abc8672f15cf0ca759ae461b734413c8dcb7497634bb6821",
-    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "d5aaaa4511c9287e1f3d1f07a25c36320a68cb35a5066778cbd3c2bbb5203c6a",
+    "src/inferrsi/data/skill_library/methods/optimization-search-policy/metadata.json": "6dc0c3b8ce13cff285ad99da4441f2fb6a5931247e7634e657275dd915854e02",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/distserve-phase-placement/README.md": "56e16efce447dfd4990a024ff1d6f7cb428f8e3e1f7b32a7e4d05f57139b836a",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/distserve-phase-placement/source-record.json": "21cc9562f1c19d6b57957c01b53e0adf8700d05ffaaa7764afe07c4da1284de1",
     "src/inferrsi/data/skill_library/methods/optimization-search-policy/references/papers-20261015/INTEGRATION_NOTES.md": "157e74ba180426b279b548a729769f152bf18f9a78ffca4ebfcaf26b7d0c5292",
@@ -78,25 +78,27 @@
       "external"
     ],
     "empirical_validation": "not_run",
-    "sources": [
-      {
-        "type": "paper",
-        "id": "usenix:osdi24:zhong-yinmin",
-        "version": "OSDI 24 proceedings, July 2024, pages 193-210",
-        "url": "https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin",
-        "sections": [
-          "3.3",
-          "4.1-4.2",
-          "6.1-6.5",
-          "7",
-          "Appendices A-C"
-        ],
-        "readset": "references/distserve-phase-placement/source-record.json"
-      },
-      {
-        "type": "unknown",
-        "scope": "Pre-existing sources remain in their original procedure/readsets; this amendment does not normalize that inventory"
-      }
+    "applicability": {
+      "scope": "Selecting, ordering and stopping optimization experiments: candidate generation, exploration versus exploitation, mechanism diversity, negative experiment memory, cost-aware escalation, budget allocation and stopping criteria, drawn from vllm-evolve, the TRT-LLM casebook and SkillOpt",
+      "prerequisites": "The useful work, quality contract, allowed approximations, timing boundary and resource budget are frozen before search, and a complete restartable incumbent is preserved; reading the procedures authorizes no execution, framework change, new resource spending or publication",
+      "input_contract": "Profiling data, existing config, prior experiment and negative records and the casebook for the current bottleneck class, model and hardware; each target stage's fraction of E2E time; the target, locally measured uncertainty and the authorized budget",
+      "produced_artifact": "An ordered experiment plan: one candidate change per round with an explicit hypothesis and its motivating evidence, a bounded shortlist of distinct mechanisms with assumptions, uncertainty, expected impact and evaluation cost, negative records turned into search constraints, and a stop-or-switch decision; when authorized rounds run, a recorded verdict per round with best-seen and delivered outcomes kept apart",
+      "failure_modes": [
+        "The evaluation protocol, measurement setup or baseline changes in the same round as the candidate",
+        "Benchmark budget is spent on a candidate that fails correctness",
+        "A matching keyword in a rejection record is used as a causal diagnosis or automatic veto, or one failed implementation excludes a whole solution family",
+        "Expensive work starts on a stage without computing its Amdahl contribution, so a large local speedup yields little E2E gain",
+        "One mechanism family keeps being sampled only because budget remains, without re-profiling after the limiting stage moves",
+        "Roofline proximity or a utilization threshold is used as a universal stopping rule",
+        "Screening is allowed to skip the frozen acceptance regimes or required service-level evidence"
+      ],
+      "refusal_point": "Discards a correctness-breaking, worse or inconclusive change instead of integrating it, preserves no-change when candidates cannot be separated, does not count a shortcut outside the authorized semantics as an optimization, and does not let a successful probe qualify a broken final state"
+    },
+    "recommendations": [
+      "Before generating a candidate, consult the casebook, the negative record and the target stage's Amdahl contribution.",
+      "Record every worse or inconclusive result with hypothesis, metric, context, evidence level and failure type, and derive a search constraint from it.",
+      "When about three experiments on one hypothesis return inconclusive from measurement variance, fix the protocol or move to a different hypothesis.",
+      "Before reporting, restore and verify the best fully valid incumbent through its canonical launcher."
     ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
@@ -129,12 +131,49 @@
       "../performance-ceiling-analysis/SKILL.md",
       "../../repositories/vllm/audit-vllm-kv-lifetimes/SKILL.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "sources": [
+      {
+        "type": "paper",
+        "id": "usenix:osdi24:zhong-yinmin",
+        "version": "OSDI 24 proceedings, July 2024, pages 193-210",
+        "url": "https://www.usenix.org/conference/osdi24/presentation/zhong-yinmin",
+        "sections": [
+          "3.3",
+          "4.1-4.2",
+          "6.1-6.5",
+          "7",
+          "Appendices A-C"
+        ],
+        "readset": "references/distserve-phase-placement/source-record.json"
+      },
+      {
+        "type": "unknown",
+        "scope": "Pre-existing sources remain in their original procedure/readsets; this amendment does not normalize that inventory"
+      }
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Selecting, ordering and stopping optimization experiments: candidate generation, exploration versus exploitation, mechanism diversity, negative experiment memory, cost-aware escalation, budget allocation and stopping criteria, drawn from vllm-evolve, the TRT-LLM casebook and SkillOpt",
+    "prerequisites": "The useful work, quality contract, allowed approximations, timing boundary and resource budget are frozen before search, and a complete restartable incumbent is preserved; reading the procedures authorizes no execution, framework change, new resource spending or publication",
+    "input_contract": "Profiling data, existing config, prior experiment and negative records and the casebook for the current bottleneck class, model and hardware; each target stage's fraction of E2E time; the target, locally measured uncertainty and the authorized budget",
+    "produced_artifact": "An ordered experiment plan: one candidate change per round with an explicit hypothesis and its motivating evidence, a bounded shortlist of distinct mechanisms with assumptions, uncertainty, expected impact and evaluation cost, negative records turned into search constraints, and a stop-or-switch decision; when authorized rounds run, a recorded verdict per round with best-seen and delivered outcomes kept apart",
+    "failure_modes": [
+      "The evaluation protocol, measurement setup or baseline changes in the same round as the candidate",
+      "Benchmark budget is spent on a candidate that fails correctness",
+      "A matching keyword in a rejection record is used as a causal diagnosis or automatic veto, or one failed implementation excludes a whole solution family",
+      "Expensive work starts on a stage without computing its Amdahl contribution, so a large local speedup yields little E2E gain",
+      "One mechanism family keeps being sampled only because budget remains, without re-profiling after the limiting stage moves",
+      "Roofline proximity or a utilization threshold is used as a universal stopping rule",
+      "Screening is allowed to skip the frozen acceptance regimes or required service-level evidence"
+    ],
+    "refusal_point": "Discards a correctness-breaking, worse or inconclusive change instead of integrating it, preserves no-change when candidates cannot be separated, does not count a shortcut outside the authorized semantics as an optimization, and does not let a successful probe qualify a broken final state"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Before generating a candidate, consult the casebook, the negative record and the target stage's Amdahl contribution.",
+    "Record every worse or inconclusive result with hypothesis, metric, context, evidence level and failure type, and derive a search constraint from it.",
+    "When about three experiments on one hypothesis return inconclusive from measurement variance, fix the protocol or move to a different hypothesis.",
+    "Before reporting, restore and verify the best fully valid incumbent through its canonical launcher."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

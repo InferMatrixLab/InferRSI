@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff/src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md",
-      "commit": "b3c091a61e128cb848ca826d2fdc6b8f9d10e6ff",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8/src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md",
+      "commit": "df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8",
       "paths": [
         "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md",
         "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/metadata.json",
@@ -34,7 +34,7 @@
   "checkout_ref": "checkout:choose-parallel-training-plan",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md": "25d04aed9782b2a8ff1186828becdc7fce93c4418039ceaef9b8dcc5ec9bcd24",
-    "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/metadata.json": "c6acae57d70190cea0e18c71c79127962181e58169e011df75d8635b3db4daa7",
+    "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/metadata.json": "4990d0a2f1a269111a680f45a5d91221af37e3f8b3ce514fea84e97878e767cd",
     "src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/references/source-notes.md": "9f9184d46b19312138a6e805e439e43dc0594a0cc6b46675255a582dc946ca5b",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
@@ -49,6 +49,26 @@
     "origin": [
       "external"
     ],
+    "applicability": {
+      "scope": "Comparing stage, device-mesh and operator-sharding candidates for static distributed training when heterogeneous stage memory or work, or communication cost, makes a uniform data/tensor/pipeline plan suspect; derived from historical Alpa, not a current compiler configuration guide",
+      "prerequisites": "The packaged source notes are read; the skill authorizes no compiler or solver install or run, parallelism reconfiguration, repository edit, hardware task or benchmark",
+      "input_contract": "Model operator graph and shapes; global batch, microbatch and accumulation; precision and optimizer; physical links and contention; candidate shard layouts; stage latency, workspace and in-flight activation memory; the objective and expected run length. A device count without topology is insufficient",
+      "produced_artifact": "The best supported candidate and a simpler fallback with a memory and critical-path ledger, planning cost and amortization, semantic invariants, counter-signals, missing evidence and a proposed matched comparison; a plan, not a reconfiguration",
+      "failure_modes": [
+        "Equal arithmetic work is taken to mean equal kernel time, carrying over Alpa's zero compute-cost simplification",
+        "Mean memory replaces the largest per-rank peak with multiple in-flight activation sets",
+        "Inter-stage transfer and microbatch count stay outside the objective, as in historical Alpa, without the gap being reported",
+        "Repeated slow-link sends to replicated destination tiles are not compared with one cross-mesh transfer plus local allgather",
+        "Inter-node Network traffic is merged with intra-node accelerator links",
+        "Static cost estimates are applied to dynamic shapes, asymmetric devices or changing communication contention"
+      ],
+      "refusal_point": "Rejects infeasible stage/mesh pairs, claims no global optimality outside the declared search space, and stops at the plan in paper-only mode"
+    },
+    "recommendations": [
+      "Keep a simple reference plan with the same training semantics and global batch as the comparison point.",
+      "Separate fixed-model scaling from model-size weak scaling before quoting a speedup; Alpa's 9.7x MoE ratio belongs to a specific weak-scaling workload, baseline and 25-Gbps cluster.",
+      "Weigh planning cost against the expected run length; a shorter job may not amortize it."
+    ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -58,10 +78,25 @@
     ],
     "consumption_mode": "packaged"
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Comparing stage, device-mesh and operator-sharding candidates for static distributed training when heterogeneous stage memory or work, or communication cost, makes a uniform data/tensor/pipeline plan suspect; derived from historical Alpa, not a current compiler configuration guide",
+    "prerequisites": "The packaged source notes are read; the skill authorizes no compiler or solver install or run, parallelism reconfiguration, repository edit, hardware task or benchmark",
+    "input_contract": "Model operator graph and shapes; global batch, microbatch and accumulation; precision and optimizer; physical links and contention; candidate shard layouts; stage latency, workspace and in-flight activation memory; the objective and expected run length. A device count without topology is insufficient",
+    "produced_artifact": "The best supported candidate and a simpler fallback with a memory and critical-path ledger, planning cost and amortization, semantic invariants, counter-signals, missing evidence and a proposed matched comparison; a plan, not a reconfiguration",
+    "failure_modes": [
+      "Equal arithmetic work is taken to mean equal kernel time, carrying over Alpa's zero compute-cost simplification",
+      "Mean memory replaces the largest per-rank peak with multiple in-flight activation sets",
+      "Inter-stage transfer and microbatch count stay outside the objective, as in historical Alpa, without the gap being reported",
+      "Repeated slow-link sends to replicated destination tiles are not compared with one cross-mesh transfer plus local allgather",
+      "Inter-node Network traffic is merged with intra-node accelerator links",
+      "Static cost estimates are applied to dynamic shapes, asymmetric devices or changing communication contention"
+    ],
+    "refusal_point": "Rejects infeasible stage/mesh pairs, claims no global optimality outside the declared search space, and stops at the plan in paper-only mode"
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Keep a simple reference plan with the same training semantics and global batch as the comparison point.",
+    "Separate fixed-model scaling from model-size weak scaling before quoting a speedup; Alpa's 9.7x MoE ratio belongs to a specific weak-scaling workload, baseline and 25-Gbps cluster.",
+    "Weigh planning cost against the expected run length; a shorter job may not amortize it."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
