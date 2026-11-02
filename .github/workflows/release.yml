@@ -145,7 +145,7 @@ jobs:
       - name: Summarize the validated source with the configured AI API
         id: notes
         env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.DS_API_KEY }}
           OPENAI_MODEL: ${{ vars.OPENAI_RELEASE_NOTES_MODEL || 'deepseek-flash' }}
           OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || 'https://api.deepseek.com' }}
           GH_REPO: ${{ github.repository }}

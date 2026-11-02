@@ -86,9 +86,11 @@ requirements in [contributing](contributing.md#evidence-and-claims).
 
 ## AI release summaries
 
-To enable AI summaries, add the Actions repository secret `OPENAI_API_KEY` under
+To enable AI summaries, add the Actions repository secret `DS_API_KEY` under
 **Settings → Secrets and variables → Actions**. The key is injected only into
-the notes step. Do not put it in workflow source, command arguments, PR text or
+the notes step as the helper's internal `OPENAI_API_KEY` environment variable.
+The workflow does not read or fall back to the old `OPENAI_API_KEY` repository
+secret. Do not put the key in workflow source, command arguments, PR text or
 logs. API access and usage are billed by the selected provider for that key;
 GitHub Copilot access is not required.
 
@@ -151,13 +153,13 @@ Merge the configuration into the default branch. GitHub Actions and the listed
 actions must be allowed by organization policy, and the publisher needs
 `contents: write`. Ordinary releases need no extra secret, PAT, GitHub App or
 repository-wide write default. AI summaries additionally use the optional
-`OPENAI_API_KEY` secret described above. The workflow guards the canonical
+`DS_API_KEY` secret described above. The workflow guards the canonical
 repository and default branch; copies must deliberately update that repository
 guard.
 
 Under **Actions → Release bot → Run workflow**, select the default branch and
 leave **dry_run** checked. It plans and builds the next release without creating
-a remote tag or Release; unchanged trees skip here too. With `OPENAI_API_KEY`
+a remote tag or Release; unchanged trees skip here too. With `DS_API_KEY`
 configured, a changed-source dry run also makes the AI request and uploads the
 summary artifact for inspection, consuming API usage. Clearing **dry_run**
 runs the same automatic publication immediately. It takes no version/tag input.
