@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "retained_files": [
+    {
+      "repository": "Ascend/pytorch",
+      "commit": "046934140b96836c3fcef14d0f39ae54dc0a06bf",
+      "path": "LICENSE",
+      "git_blob_oid": "6fc1dcaa6c0ebee07d8ef69360a68ac82474c2b3",
+      "git_blob_sha256": "99317d26c99c8037890c770fd67fa84cc78d210581ed563d3b1abe42976f47be",
+      "bundled_path": "references/licenses/torch-npu-LICENSE.txt"
+    },
+    {
+      "repository": "Ascend/pytorch",
+      "commit": "046934140b96836c3fcef14d0f39ae54dc0a06bf",
+      "path": "docs/LICENSE",
+      "git_blob_oid": "4ea99c213c5c0c005ae4e80df8e52169d06896ec",
+      "git_blob_sha256": "9e5f1b3c610b9c2da5c313bf81d577a7d1acec686bdb0384edefa6df0f90cd94",
+      "bundled_path": "references/licenses/torch-npu-docs-LICENSE.txt"
+    },
+    {
+      "repository": "Ascend/pytorch",
+      "commit": "046934140b96836c3fcef14d0f39ae54dc0a06bf",
+      "path": "Third_Party_Open_Source_Software_Notice",
+      "git_blob_oid": "4f874cd3da356a7568731e532e439b7d45c7f7e4",
+      "git_blob_sha256": "167f93c40acf8a26e4f6cc293df727c04ef869e54a10e7517ce2de60eaf2593f",
+      "bundled_path": "references/licenses/torch-npu-THIRD-PARTY.txt"
+    },
+    {
+      "repository": "Ascend/op-plugin",
+      "commit": "ad946817034b3270e309c81c54f0ee808d0b62cb",
+      "path": "LICENSE",
+      "git_blob_oid": "d2d2e043016ecdda1b4517506dd7e04d099619e0",
+      "git_blob_sha256": "325488df8d01b0601a46b395904b6ce72f4870cd608f49268904e994dab15f97",
+      "bundled_path": "references/licenses/op-plugin-LICENSE.txt"
+    },
+    {
+      "repository": "Ascend/op-plugin",
+      "commit": "ad946817034b3270e309c81c54f0ee808d0b62cb",
+      "path": "Third_Party_Open_Source_Software_Notice",
+      "git_blob_oid": "037f0490637b27f9e610bf4a52775f4b4cc3f328",
+      "git_blob_sha256": "cb91e5fa816c6f6ff7a6a3cf32110c3402b1d4c76778de106130b227782013d0",
+      "bundled_path": "references/licenses/op-plugin-THIRD-PARTY.txt"
+    }
+  ]
+}
