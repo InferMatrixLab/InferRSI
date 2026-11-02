@@ -1,0 +1,80 @@
+{
+  "status": "FAIL",
+  "scope": "Profile-enabled single-sample screening; no final speedup acceptance",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "diagnostic_shutdown_grace_s": 60.0,
+    "arm": "hsdp",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-diffusion-pipeline-profiler",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--use-hsdp",
+      "--hsdp-shard-size",
+      "8"
+    ]
+  },
+  "samples": [
+    {
+      "label": "warmup-5",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 500,
+      "e2e_ms": 667612.36493662,
+      "bytes": 262,
+      "response_metrics": {},
+      "valid": false,
+      "error": "{\"error\":{\"message\":\"('EngineCore encountered an issue. See stack trace (above) for the root cause.', 'Stage-0 inline diffusion engine is dead')\",\"type\":\"InternalServerError\",\"param\":null,\"code\":500,\"request_id\":\"video_sync-8fdf71c60cf7910c\",\"error_stage_id\":0}}",
+      "output_sha256": "20822a73d098fe2249efa68cd972d38ffde5527081a66b14743e246da1dc6cce"
+    }
+  ],
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 1,
+    "worker_terminate_count": 8,
+    "worker_kill_count": 8,
+    "client_complete_to_container_exit_s": null
+  },
+  "raw_log_sha256": "09353e20a0fad4a08ad037909e280cc99daa3e6226f5b29bf753136181105e84",
+  "sampled_peak_mib_any_device": 65489,
+  "memory_scope": "10-second driver HBM samples across startup, requests and cleanup; not an exact active-tensor peak",
+  "cache_summaries_in_request_order": [],
+  "quality_result": null,
+  "verification_limits": "Raw logs and generated media are private campaign artifacts. Single-workload quality does not establish held-out quality. Diagnostic shutdown grace does not establish clean exit with production defaults. Final unprofiled independent AB/BA remains required.",
+  "failure": {
+    "primary_error": "Execution RPC exceeded default 600-second VLLM_OMNI_DLO_DP_WAVE_TIMEOUT; error label says DLO even though this arm uses HSDP without DLO",
+    "error_time_utc": "2026-10-31T22:05:44Z",
+    "outcome": "Warmup HTTP500; no measured request or valid output",
+    "completed_steps_observed": 28,
+    "requested_steps": 50,
+    "partial_denoise_timer_s": 579.158463,
+    "timer_scope": "Profiler finally block emitted a duration for an interrupted denoise call; NOT 50-step performance",
+    "quality": "not evaluated: no valid output"
+  },
+  "model_loading_s_per_rank_in_log_order": [
+    228.712849,
+    240.066088,
+    243.262256,
+    251.198719,
+    252.944333,
+    282.455085,
+    299.035422,
+    304.621197
+  ]
+}

@@ -1,0 +1,420 @@
+# MiniMax-H3 Ref2VA on Ascend
+
+Governing acceptance: [InferRSI #293](https://github.com/InferMatrixLab/InferRSI/issues/293).
+Status: **PASS for the first-delivery 5-second workload and frozen quality gates**.
+Repeated HTTP E2E: **407.27 → 108.12 s (73.45% lower)**; sampled peak HBM
+increased 3.10%. All 26 requests, 14 quality comparisons and 32 worker exits
+passed. This is lossy caching, with a material audio tradeoff in the family case.
+See the [final report and source/benefit table](results/final-5s/README.md).
+15-second qualification is explicitly deferred by the requester.
+
+The detailed sections below preserve historical investigation states; pending or
+INCONCLUSIVE statements in them describe those earlier experiments, not the
+completed replacement campaign. The final report above is authoritative for
+this delivery.
+
+`plan/` records the initial scope, `validator/` freezes the adopted quality gate,
+`results/` retains attempted and rejected outcomes, and `patch/` identifies engine
+changes when available. Private runtime paths and raw host logs stay outside the
+published tree; public artifacts use labelled paths and hashes.
+
+[Transferable observations](results/lessons.md) link each operational lesson to
+its evidence and state what it does not establish.
+
+## Attribution and candidate selection
+
+| Candidate family | Source at the frozen baseline | Experiment requirement |
+| --- | --- | --- |
+| Component residency / weight transfer | [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/recipes/MiniMaxAI/minimax-h3-ref2va-8-rank-resident.yaml) | Measure transfer/encode/decode separately; resident layers require rank-local transfer, so compare that changed transfer strategy explicitly. |
+| HSDP weight residency | [FSDP2 loader](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/distributed/hsdp.py) | Existing generic NPU-capable path; qualify H3 load-time memory, 8-rank USP interaction, output parity and latency before recommending it. |
+| Exact AdaLN projection reuse | [shared cache](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/cache/exact_projection_cache.py) | Already enabled by default. Do not claim it as new work. Offload can invalidate storage signatures; count actual hits before relying on reuse. |
+| Reference-KV reuse | [reference cache](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache.py) | Approximate across timesteps even with BF16 cache storage. Validate reference refresh, SP layout, host transfer and audio/video quality. |
+| Cache-DiT | [request quality policy](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/models/minimax_h3/quality_policy.py) | Record actual hit counts and refresh policy. Repeated inputs must not hide cross-request cache leakage. |
+| INT8 / RainFusion | [NPU recipe](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/recipes/MiniMaxAI/MiniMax-H3-NPU.md) | Separate quantization, sparsity and combined rows; preserve configured step count. T2VA sparse-window guidance is not Ref2VA acceptance. |
+| Fused indexed modulation | [shared operators](https://github.com/vllm-project/vllm-omni/blob/c7f56f0155953c7d4a77276a2f4fcbd844ab0da2/vllm_omni/diffusion/layers/indexed_modulation.py) | Already exists, including NPU grid chunking. Profile before proposing a new kernel. |
+
+The pinned Git history attributes Cache-DiT request quality policies to
+[vLLM-Omni #5853](https://github.com/vllm-project/vllm-omni/pull/5853), reference-KV
+reuse to [#8072](https://github.com/vllm-project/vllm-omni/pull/8072), the resident
+Ref2VA recipe to [#8577](https://github.com/vllm-project/vllm-omni/pull/8577), HSDP
+infrastructure to [#1339](https://github.com/vllm-project/vllm-omni/pull/1339), and
+H3 RainFusion/INT8 integration to [#5706](https://github.com/vllm-project/vllm-omni/pull/5706).
+The frozen tree also contains later fixes, including mixed-video RainFusion span
+handling in [#9241](https://github.com/vllm-project/vllm-omni/pull/9241). These are
+implementation origins, not evidence that this campaign has reproduced a gain.
+
+The current baseline explicitly rejects Ref2VA TeaCache in `cache/teacache/backend.py`
+because it has not been calibrated. The older TeaCache record is not a runnable
+main-supported Ref2VA option; use supported Cache-DiT first.
+
+The imported H3 TeaCache/reference-KV/head-bucket records identify older reports,
+not measurements of this baseline. FastH3's T2VA-only distillation is outside this
+Ref2VA campaign. Existing features adopted via configuration receive upstream
+attribution, not new implementation credit.
+
+## Validator scope
+
+Video SSIM/PSNR use FFmpeg's full-video filters from the upstream accuracy helper.
+Audio metrics are copied verbatim from the pinned H3 quantization test. LPIPS uses
+the same AlexNet, native-resolution normalization and every decoded frame, but
+streams frames through one CPU model to bound memory. Full-length metadata and
+PCM shape checks precede acceptance; no truncation to the shorter output is allowed.
+The frozen helper snapshot retains the upstream LPIPS function for audit.
+
+Run with an optional CPU environment containing `torch`, `torchvision`, `numpy`,
+`lpips==0.1.4`, plus `ffmpeg` and `ffprobe`:
+
+```bash
+python validator/compare.py --baseline <BASELINE_MP4> \
+  --candidate <CANDIDATE_MP4> --frames <EXPECTED_FRAME_COUNT> \
+  --output <QUALITY_JSON>
+```
+
+Missing dependencies or malformed media fail the command; they never establish
+PASS. A validator PASS is only matched video/audio parity under the frozen gates.
+It does not establish reference identity, semantic correctness, lip synchronization,
+temporal benchmark scores, request latency, or clean server lifecycle. Those
+claims need their own retained evidence.
+
+## RSI lessons to evaluate
+
+1. Inspect current source before importing old optimization patches: distinguish
+   a missing implementation from an existing option needing qualification.
+2. Qualify the execution identity and runtime before spending full-model time.
+   A native HCCL TLS initialization failure was traced to a missing passwd UID
+   entry; setting Python USER/LOGNAME alone was insufficient. Eight-rank all-reduce
+   passed after supplying the entry. This is runtime qualification, not a model gain.
+   Shared-NPU reservations depend on real process ownership; a display label is
+   insufficient. Library ownership checks may use primary rather than supplemental
+   groups; retain the actual failure and repair in environment evidence.
+3. Treat a correct benchmark as an optimization prerequisite. Video container
+   validity and reduced denoise time alone cannot establish joint audio/video E2E
+   improvement.
+
+These are campaign observations and workflow hypotheses. No controlled experiment
+has yet shown that they improve an optimizer's success rate or search efficiency.
+
+## Bringup qualification
+
+The repaired runtime generated one 2-step, 5-second Ref2VA smoke response
+(HTTP 200, 124 frames, 1344×768, 24 fps, stereo 32 kHz). This is neither
+a 50-step performance sample nor a model quality acceptance. The server and
+container returned zero, but all eight workers needed termination after the
+15-second graceful-exit budget; TBE subprocess and resource-tracker warnings
+followed. Lifecycle remains INCONCLUSIVE.
+
+An isolated import probe found that the installed vLLM runtime leaves fresh
+workers with no vLLM logging handler and an effective WARNING level until
+logging is explicitly configured. Pipeline profiling INFO messages are therefore
+missing from the initial launcher's logs. A diagnostic launcher applies the
+installed vLLM LoggingConfig in each spawned process. It is an instrumentation
+change and must not be credited as an inference speedup.
+
+## Portable request timing client
+
+`plan/run_client.py` adopts the multipart request contract from the pinned H3
+accuracy test. Install `requests` in an isolated environment and provide FFprobe.
+Start the server under the site's NPU reservation first; this HTTP client does
+not own or reserve accelerators. Use a fresh output directory for each arm and
+independent server lifecycle. For example:
+
+```bash
+python plan/run_client.py --base-url http://127.0.0.1:19421 \
+  --prompt <PROMPT_TXT> --video <REFERENCE_MP4> --audio <REFERENCE_MP3> \
+  --seconds 5 15 --steps 50 --seeds 0 --repeats 3 \
+  --quality lossless --output <NEW_ARM_DIRECTORY>
+```
+
+Use `--quality high` only for the isolated Cache-DiT arm. The client times upload
+through receipt of all response bytes; disk writes and FFprobe are outside the
+clock. It retains one warmup per duration, every response, and each failure, and
+stops on the first invalid request. Metadata checks are preliminary: run the
+frozen decoded-media validator separately. Repeated requests in one server are
+not independent process rounds, and the client does not qualify server teardown.
+The initial screening uses an earlier private runner with the same request and
+timing contract; do not relabel those runs as executions of this public script.
+
+## Dense screening evidence
+
+The first 50-step, 5-second dense arm completed its warmup and measured request.
+[Timing receipt](results/dense-screening.json): warmup 569.43 s, one measured
+request 403.49 s, with pipeline profiling enabled. These are pilot observations,
+not an unprofiled or statistically qualified baseline. Eight workers needed
+terminate and seven needed kill; the API server and container still returned 0.
+
+[Official reference video parity](results/official-video.json) passed with SSIM
+0.980571 and PSNR 42.63 dB. [Warmup-versus-measured media parity](results/baseline-repeat.json)
+also passed: SSIM 0.986017, PSNR 46.26 dB, LPIPS 0.01584, audio spectral cosine
+0.99961 and RMS ratio 1.00139. Repeated outputs are not byte-identical.
+
+Teardown stack samples repeatedly located rank-local text-encoder reconstruction
+in `restore_tensor_storage`, reached from DLO shutdown. The existing terminal
+path skips AllGather reconstruction but still copies rank-local weights. A
+downstream candidate skips terminal reconstruction for all managed blocks while
+retaining ordinary disable and startup rollback. Its 116 DLO CPU tests and
+applicable pre-commit checks pass. The cleanup-only NPU smoke removes the sampled
+reconstruction but still requires forced process termination; see
+[the partial result](results/shutdown-fixed-smoke.json) and [follow-up candidate](patch/README.md).
+This is a lifecycle candidate and has no claimed inference-latency benefit.
+
+## Cache-DiT screening evidence
+
+The existing `quality=high` policy completed both requests. Its
+[pilot receipt](results/cachedit-screening.json) records a 341.44 s warmup and
+212.75 s measured request, versus dense's 403.49 s: an observed single-sample
+47.27% reduction, with profiling enabled in both arms. This is not a final gain.
+[Matched media parity](results/cachedit-quality.json) passed: SSIM 0.985838,
+PSNR 46.08 dB, LPIPS 0.01615, audio spectral cosine 0.99775 and RMS ratio 1.00429.
+This qualifies one seed and duration only; longer clips and held-out seeds remain
+pending. Eight workers required terminate and seven required kill, so lifecycle
+remains unqualified despite zero server/container exit codes.
+
+The active policy logged `DBCache_F1B0_W4I1M0MC1_R0.04_N50_CFG0`.
+The runner's summary condition incorrectly requires a startup Cache-DiT backend
+even when request-owned Cache-DiT is active. Consequently no actual hit count is
+claimed from this run. The upstream implementation receives optimization credit;
+the downstream summary correction is observability work, not an inference gain.
+
+## HSDP feasibility evidence
+
+The [HSDP smoke receipt](results/hsdp-smoke.json) records one successful 2-step
+request (124 frames, stereo 32 kHz) at 190.18 s, including first-request work.
+This is not a 50-step performance or quality comparison. Per-rank model loading
+took 402.62–1178.93 s; startup native sampling located CPU BF16 weight copies.
+The full run's sampled peak reached 65,480 MiB on a device, including loading;
+it is not a steady-state active-tensor footprint or a 15-second capacity result.
+
+Teardown still required eight terminate and seven kill signals. The reply owner
+finished while peers were still in first-call audio decode, and several workers
+logged cleanup completion before their processes were terminated. Cleanup callback
+completion and process exit are separate evidence requirements.
+
+The existing pre-sharded HSDP loader is not a direct substitute for this native
+checkpoint: its documented contract excludes tensor layout transforms, while H3
+loading reorders grouped QKV weights. That path was not runtime-tested here.
+
+
+## MC2 cache screening
+
+The isolated `max_continuous_cached_steps=2` arm completed one warmup and one
+measured 50-step, 5-second request. [Receipt](results/cache2-screening.json):
+338.59 s warmup and 250.19 s measured, including cold peer work left after the
+first response. Both requests reused 28 of 50 steps. The measured denoise stage
+was 170.18 s and hot audio decode was 0.92 s. Do not rank this single sample as a
+steady-state comparison against the earlier MC1 pilot.
+
+[Decoded-media quality passed](results/cache2-quality.json): SSIM 0.985777,
+PSNR 46.05 dB, LPIPS 0.01624, audio cosine 0.99841, RMS ratio 1.00311; scoring
+exited 0. Under the diagnostic 60-second shutdown grace, the server/container
+exited 0 with no terminate/kill calls; client completion to container exit was
+27.24 s. Individual worker exit codes were not captured. This does not qualify
+production-default cleanup or final performance. MC4 and the remaining isolated
+arms are still running.
+
+
+MC4 also passed [matched media quality](results/cache4-quality.json): SSIM
+0.985651, PSNR 45.84 dB, LPIPS 0.01632, audio cosine 0.99755. Its
+[screening receipt](results/cache4-screening.json) records 303.95 s warmup,
+262.39 s measured E2E, and 162.50 s measured denoise. The larger peer cold tail
+means the E2E sample is not a steady-state ranking. Both requests reused 29
+steps, only one more than MC2. Diagnostic cleanup took 25.72 s with no forced
+signals and server/container exit 0; individual worker exit codes were not
+captured. Production qualification remains pending.
+
+
+## VAE residency screening
+
+Selecting only `dit` and `text_encoder` for offload, following upstream
+[#8577](https://github.com/vllm-project/vllm-omni/pull/8577), passed
+[matched media quality](results/resident-quality.json): SSIM 0.985969,
+PSNR 46.24 dB, LPIPS 0.01593, audio cosine 0.99932. The
+[receipt](results/resident-screening.json) records 500.52 s warmup, 458.52 s
+measured E2E, 371.60 s denoise and 4.34 s decode. The E2E sample includes peer
+cold-work tail and does not establish a steady-state gain. Driver HBM sampled
+peak was 26,912 MiB (10-second samples across the whole lifecycle).
+Diagnostic cleanup took 26.29 s with no forced signals and zero server/container
+exit codes; individual worker exits were not captured. The residency + upstream
+high-quality cache combination is being screened separately.
+
+
+The [residency + high-cache combination](results/resident-cachedit-screening.json)
+also passed [matched quality](results/resident-cachedit-quality.json): SSIM
+0.985825, PSNR 46.06 dB, LPIPS 0.01616, audio cosine 0.99744. It recorded
+317.03 s warmup and 261.40 s measured E2E (175.87 s denoise, 4.42 s decode),
+with the same single-warmup peer-tail limitation. Both requests reported 27
+cached steps. These numbers are not additive component gains or final ranking.
+
+## Installed Cache-DiT counter observation
+
+The high profile is configured as MC1, but its NPU summaries include adjacent
+cached steps. A [CPU-only probe](plan/probe_cache_counter.py) of the installed
+Cache-DiT 1.5.0 `CachedContext.add_cached_step` reproduces counters 1, 0, 2 for
+cache hits at steps 4, 6, 7 after explicitly simulating the manager reset at the
+intervening full-compute step. The [receipt](results/cache-counter-probe.json)
+pins the installed source and probe hashes and records exit 0. This is a narrow
+counter observation, not a full policy-correctness verdict or performance test.
+No backend patch was applied. Preserve both configured values and actual hit
+indices rather than treating the profile name as proof of a strict skip limit.
+
+The request field `quality=lossless` disables H3's request-owned Cache-DiT;
+it does not undo startup INT8 quantization or reference KV reuse. See the pinned
+[`MiniMaxH3QualityPolicy.resolve`](https://github.com/vllm-project/vllm-omni/blob/1e6d88ad44d3acede515896968ce54935883c919/vllm_omni/diffusion/models/minimax_h3/quality_policy.py).
+Numerical fidelity is established by the frozen media validator and the full
+runtime configuration, not by this request label.
+
+INT8 completed the same profiled, single-warmup screening cell. Its
+[receipt](results/int8-screening.json) records 557.18 s warmup and 411.45 s
+measured E2E, with 347.74 s measured denoising. This is not an accepted E2E
+gain: the sample still includes peer cold-work tail, and no repeated matched
+comparison has qualified it. The driver-sampled whole-run HBM peak was
+24,222 MiB; the response's allocator metric was 19,148 MiB. These metrics have
+different scopes and must not be compared as equivalent peaks.
+
+[Matched INT8 media quality](results/int8-quality.json) passed with SSIM
+0.976901, PSNR 35.44922 dB, LPIPS 0.03322, audio spectral cosine 0.98986 and
+RMS ratio 1.18767; the scoring container exited 0. PSNR has limited margin
+above the frozen 34 dB threshold. Combining INT8 with caches requires fresh
+output validation. Both server and container exited 0, with no terminate/kill
+under the diagnostic 60-second grace; individual worker exit codes were not
+captured. Cleanup took 28.96 s. This does not qualify production cleanup.
+INT8 uses the existing [PR #5706](https://github.com/vllm-project/vllm-omni/pull/5706)
+path; no new quantization implementation or isolated speedup is claimed.
+
+RainFusion at sparsity 0.8 from step 12 completed its
+[profiled pilot](results/rainfusion-screening.json): 502.18 s warmup,
+413.20 s measured E2E, and 335.01 s measured denoising. Runtime logs confirmed
+multi-video sparse attention for both reference and target spans; attention
+roles without a video segment stayed dense as designed. This is the existing
+[RainFusion path (#5706)](https://github.com/vllm-project/vllm-omni/pull/5706)
+with the baseline's [multi-video correction (#9241)](https://github.com/vllm-project/vllm-omni/pull/9241),
+not a new kernel contribution.
+
+[Matched RainFusion quality](results/rainfusion-quality.json) passed: SSIM
+0.979176, PSNR 40.883324 dB, LPIPS 0.02227, audio cosine 0.99641 and RMS
+ratio 0.98551; scoring exited 0. Driver-sampled whole-run peak was 23,974 MiB.
+Server/container exited 0 with no forced worker signals under diagnostic
+60-second grace, and cleanup took 26.84 s; individual worker exit codes were
+not captured. Its E2E sample is not lower than the earlier dense screening
+sample and still includes cold peer tail. No E2E gain, production cleanup
+qualification or combination quality is accepted from this pilot.
+
+The [reference-KV interval-2 attempt](results/reference-kv2-failure.json) failed
+its first warmup with HTTP 500. The first error was the executor's default
+600-second DLO execution-wave timeout; subsequent compiler-initialization
+errors appeared after forced shutdown began. The workers completed 50 denoising
+steps in about 555.99 s, but there was no valid output or measured request.
+That component timing is not successful E2E evidence or a quality result.
+
+Runtime counters showed 25 refresh and 25 reuse steps, with 167.09 GB H2D per
+rank and 6.68 GB pinned host KV storage per rank. This uses the existing
+[reference-KV implementation (#8072)](https://github.com/vllm-project/vllm-omni/pull/8072).
+No reference-KV performance gain is accepted. The failed attempt is retained;
+future 15-second comparisons must explicitly freeze sufficiently long,
+identical DLO wave deadlines for both arms. Changing a deadline is an execution
+configuration, not an optimization or a reason to discard the failure.
+
+The standalone [5-second baseline A1 plan](plan/formal-baseline-a1-5.json)
+was [withdrawn before execution](plan/formal-baseline-a1-5-withdrawal.json).
+It allocated no devices and produced no measurements. Accepted paired A/B must
+share one NPU reservation, so the complete formal campaign will be frozen and
+reserved together after candidate selection. The original plan remains as
+history, not evidence. Queued pilot scoring waits for the threshold timing job
+to finish; no standalone baseline remains in the queue.
+
+The [50-step HSDP screening attempt](results/hsdp-screening-failure.json)
+also failed the default 600-second execution RPC deadline and returned HTTP
+500. Only about 28 of 50 denoising steps completed before forced termination.
+The profiler's 579.16 s duration came from an interrupted call and must not be
+reported as a complete 50-step denoising latency. There is no valid output,
+measured request or quality result. Eight workers received terminate and kill.
+
+The timeout's error text says “DLO”, but this arm used `--use-hsdp` without
+DLO: the same deadline is passed by the ordinary single-group execution path.
+This is an execution-guard naming/scope observation, not a successful HSDP
+result. Model loading took 228.71–304.62 s per rank in this attempt versus up
+to 1178.93 s in the earlier smoke; no controlled load-time optimization explains
+that difference. Both attempts remain available. The source remains the
+existing [HSDP path (#1339)](https://github.com/vllm-project/vllm-omni/pull/1339).
+
+Second-round screening has finished. The warmed audio code A/B now holds the
+next reservation; its source revisions, two warmups, three measured requests,
+cache policy, and per-worker exit receipts remain frozen as published.
+
+[Held-out quality inputs](plan/heldout-quality.json) are frozen before any outputs
+from those cases are generated: original references at seeds 1 and 2, plus a
+different public family-dining video at seed 0. The latter reuses the official
+I2VA example as a Ref2VA input, with a campaign-authored voiceover prompt and
+the existing voice-reference audio. Every case needs its own matched dense
+output and the unchanged media gates. These are additional coverage checks,
+not an independent benchmark dataset or semantic-quality certification; their
+latencies must not be pooled with the original performance workload.
+
+The [warmed audio code-A/B baseline arm](results/audio-ab-baseline.json) completed
+two warmups (325.26/256.12 s) and three unprofiled MC2 measured requests
+(196.55/197.14/196.31 s). Mean was 196.67 s; the 0.43 s sample standard deviation
+is within one server, not independent-process uncertainty. All eight actual
+worker exit codes were zero, with no forced signals and server/container exit
+zero, under the explicitly diagnostic 60-second baseline grace. This is not
+baseline production-lifecycle qualification. Candidate and per-output quality
+results remain pending; no code speedup is accepted from this arm alone.
+
+The next [reference-KV residency pilot](plan/kv-residency-pilot.json) is frozen
+and waits for the current warmed pilots and their CPU quality scoring. The
+[optional implementation](patch/README.md#optional-device-resident-reference-kv)
+passes 13 CPU behavior tests, but has no NPU performance or quality verdict yet.
+Both host and device arms use the same longer execution deadline; changing the
+timeout is not an optimization benefit.
+
+The [audio-owner paired pilot](results/audio-owner-selection.json) is complete:
+three warmed measured requests averaged 196.67 s before and 199.09 s after,
+an observed 1.23% latency increase. This is one server pair, not a
+statistical-significance claim. The candidate's eight workers, server and
+container all exited zero without forced signals using the production NPU
+60-second grace. Baseline lifecycle passed only under the matched diagnostic
+grace. Per-output quality scoring remains pending.
+
+Audio-owner is rejected from the final optimization set because this pilot
+establishes no steady-state benefit. Its cold-start and CPU decode-count
+observations are retained, but are not substituted for the requested warmed
+E2E result. Frozen pilot worktrees remain unchanged; the final combined
+candidate must still be revalidated after removing this code.
+
+The initial warmed threshold timing sweep completed all nine measured requests.
+Separate receipts retain [0.04](results/threshold-cache4.json),
+[0.08](results/threshold-cache4t08.json), and
+[0.12](results/threshold-cache4t12.json), with actual worker exits. CPU media
+scoring is running after timing; these receipts do not infer output quality.
+
+A [bounded follow-up cache search](plan/cache-range-pilot.json) is frozen before
+any of its outputs: MC4/R0.12 control, MC8/R0.12, MC8/R0.24, MC8/R0.48. It runs
+only if every initial threshold output passes the unchanged gates, and only
+after earlier CPU scoring and the KV pilot finish. The same-source control
+isolates the reuse limit first, then the residual threshold. All variants keep
+50 steps and identical output specifications. This is an adaptive pilot, not an
+upstream recommendation or final acceptance. The four profile argument lists
+round-trip through the launcher without shell evaluation.
+
+[All 18 warmed media comparisons passed](results/warmed-quality-summary.json),
+with scoring exit zero and unchanged gates. This includes every threshold
+output against the original dense output, all three warmed audio baselines,
+and each audio candidate against both its matched baseline and original dense
+output. Native worker/server/container exits are recorded separately.
+
+The initial threshold means were 191.79 s (0.04), 148.21 s (0.08), and 142.26 s
+(0.12), with MC4 fixed. These are three requests in one server per arm, not
+independent-round uncertainty or the final original-baseline comparison.
+The bounded follow-up cache search's quality eligibility is satisfied, but it
+still waits for the intervening KV pilot and scoring. The audio-owner change
+remains rejected for lack of steady-state benefit despite passing media gates.
+
+## Completed five-second KV residency pilot
+
+[Full receipt](results/kv-residency-pilot.json): host interval 2 / device interval 2 / device interval 8 measured 593.24 / 327.13 / 268.77 seconds. All four quality comparisons passed and all three services recorded eight normal worker exits. The same-interval observation is a single-pair pilot, not repeated final qualification. Device residency removes reference-KV host transfers at the cost of a 6.68 GB/rank resident payload. Measured sampled HBM peaks are recorded separately. Source 4fc121ff3 holds the later-rejected audio-owner code common in all arms. Final first delivery is five seconds; fifteen seconds is deferred by the requester.
+
+## Bounded cache selection and first-delivery final plan
+
+The [four-profile search](results/cache-range-selection.json) completed with 12/12 quality PASS and clean worker lifecycles. Mean E2E: MC4/R0.12 142.26 s; MC8/R0.12 121.23 s; MC8/R0.24 106.73 s; MC8/R0.48 105.32 s. MC8/R0.48 is selected by the lowest observed passing mean; its 1.3% gap to R0.24 is not a statistical-significance claim. The [frozen five-second ABBA plan](plan/final-5s-abba.json) compares original c7f56f0 with c18fff65a in one reservation and checks three additional coverage pairs. Coverage is scored only after A1/B1 servers exit, before B2/A2 timing. Fifteen-second qualification is deferred.
+
+## First final attempt interrupted: nested shutdown budget
+
+The first final ABBA attempt was deliberately stopped after A1: [receipt](results/final-5s-abba-interrupted.json). A1 completed all eight requests, but the 30-second outer Orchestrator join ended before actual worker exit receipts were printed. Eight shutdown-complete callbacks and server/container exit zero are insufficient to mark lifecycle PASS. B1 startup was interrupted; B2/A2 were not run. The new regression reproduced this mismatch (one NPU failure, one non-NPU pass); after selecting a bounded 90-second outer NPU join, all 10 engine-output/shutdown tests pass. Replacement full ABBA must use a new frozen source and reservation; this A1 will not be spliced into it.

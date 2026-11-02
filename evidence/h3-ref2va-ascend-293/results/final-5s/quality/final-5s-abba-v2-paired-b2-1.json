@@ -1,0 +1,17 @@
+{
+  "verdict": "PASS",
+  "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+  "metrics": {
+    "ssim": 0.981806,
+    "psnr_db": 42.154759,
+    "lpips": 0.022761002648621798,
+    "audio_spectral_cosine": 0.9856365621089935,
+    "audio_rms_ratio": 1.0782369785894619,
+    "audio_samples": 165888
+  },
+  "inputs": {
+    "baseline": "d1af92da9391efcbabe3e66dc857291e6a25517faea0ee3103ab79b8607b6070",
+    "candidate": "d9df31ffac99eaecae7cc4abeac290f8e280ad6e0ab0c4212e955a26c27fdb7e",
+    "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+  }
+}

@@ -1,0 +1,365 @@
+{
+  "status": "pilot_complete_quality_pass_final_combination_pending",
+  "scope": "5-second single-pair screening, not repeated final qualification",
+  "source_revision": "4fc121ff3d6e7ccb1d3e35582fddf509e010dfa9",
+  "arms": {
+    "kv2": {
+      "timing": [
+        {
+          "duration_s": 5,
+          "seed": 0,
+          "expected_measured_requests": 1,
+          "completed": 1,
+          "failed": 0,
+          "missing": 0,
+          "samples_ms": [
+            593239.7556966171
+          ],
+          "mean_ms": 593239.7556966171,
+          "median_ms": 593239.7556966171,
+          "min_ms": 593239.7556966171,
+          "max_ms": 593239.7556966171,
+          "request_sample_stdev_ms": null,
+          "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+        }
+      ],
+      "lifecycle": {
+        "status": "pass",
+        "container_exit": 0,
+        "server_exit": 0,
+        "forced_signals": 0,
+        "host_cleanup_intervention": false,
+        "expected_workers": 8,
+        "workers": [
+          {
+            "name": "DiffusionWorker-0",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-1",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-2",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-3",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-4",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-5",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-6",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-7",
+            "exit_code": 0,
+            "alive": false
+          }
+        ]
+      },
+      "last_rank_kv_counters": {
+        "pid": "61)\u001b[0;0m",
+        "host_bytes": "6683443200",
+        "device_staging_bytes": "267337728",
+        "refresh_steps": "25",
+        "h2d_steps": "25",
+        "captured_layers": "1250",
+        "substituted_layers": "1250",
+        "block_cached_layers": "0",
+        "prefetched_layers": "1250",
+        "ready_wait_layers": "1250",
+        "h2d_bytes": "167086080000",
+        "projection_skipped_layers": "1250",
+        "projection_skipped_rows": "5827500",
+        "projection_total_rows": "12930000",
+        "cache_layout": "post_ulysses",
+        "host_quantization": "none",
+        "effective_host_quantization": "none",
+        "dequantized_layers": "0",
+        "quantization_fallbacks": "0",
+        "cache_residency": "host",
+        "device_resident_bytes": "0",
+        "device_reuse_steps": "0",
+        "d2h_bytes": "167086080000"
+      },
+      "sampled_peak_hbm_MiB": 24472,
+      "hbm_log_sha256": "e9b44a2f7b31ee0c758b7756c5f8fbfdc4bb8a5d809667d5e9c98b5b42df2002",
+      "service_log_sha256": "ea6b8c0abc9cc494f2cb591ca36c4402dddc41387cbb063c658e03dca38b750b"
+    },
+    "kvdevice2": {
+      "timing": [
+        {
+          "duration_s": 5,
+          "seed": 0,
+          "expected_measured_requests": 1,
+          "completed": 1,
+          "failed": 0,
+          "missing": 0,
+          "samples_ms": [
+            327126.7046686262
+          ],
+          "mean_ms": 327126.7046686262,
+          "median_ms": 327126.7046686262,
+          "min_ms": 327126.7046686262,
+          "max_ms": 327126.7046686262,
+          "request_sample_stdev_ms": null,
+          "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+        }
+      ],
+      "lifecycle": {
+        "status": "pass",
+        "container_exit": 0,
+        "server_exit": 0,
+        "forced_signals": 0,
+        "host_cleanup_intervention": false,
+        "expected_workers": 8,
+        "workers": [
+          {
+            "name": "DiffusionWorker-0",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-1",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-2",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-3",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-4",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-5",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-6",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-7",
+            "exit_code": 0,
+            "alive": false
+          }
+        ]
+      },
+      "last_rank_kv_counters": {
+        "pid": "62)\u001b[0;0m",
+        "host_bytes": "0",
+        "device_staging_bytes": "0",
+        "refresh_steps": "25",
+        "h2d_steps": "0",
+        "captured_layers": "1250",
+        "substituted_layers": "1250",
+        "block_cached_layers": "0",
+        "prefetched_layers": "0",
+        "ready_wait_layers": "0",
+        "h2d_bytes": "0",
+        "projection_skipped_layers": "1250",
+        "projection_skipped_rows": "5827500",
+        "projection_total_rows": "12930000",
+        "cache_layout": "post_ulysses",
+        "host_quantization": "none",
+        "effective_host_quantization": "none",
+        "dequantized_layers": "0",
+        "quantization_fallbacks": "0",
+        "cache_residency": "device",
+        "device_resident_bytes": "6683443200",
+        "device_reuse_steps": "25",
+        "d2h_bytes": "0"
+      },
+      "sampled_peak_hbm_MiB": 25624,
+      "hbm_log_sha256": "65029ee723bfdb7ca06885e085a427c3c649973c8856f894ef0e4ac455b24161",
+      "service_log_sha256": "396c2366fe5c2d776f562d4d09c0e508bcba74f6f243e4f48bb485b017a7d817"
+    },
+    "kvdevice8": {
+      "timing": [
+        {
+          "duration_s": 5,
+          "seed": 0,
+          "expected_measured_requests": 1,
+          "completed": 1,
+          "failed": 0,
+          "missing": 0,
+          "samples_ms": [
+            268772.8290297091
+          ],
+          "mean_ms": 268772.8290297091,
+          "median_ms": 268772.8290297091,
+          "min_ms": 268772.8290297091,
+          "max_ms": 268772.8290297091,
+          "request_sample_stdev_ms": null,
+          "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+        }
+      ],
+      "lifecycle": {
+        "status": "pass",
+        "container_exit": 0,
+        "server_exit": 0,
+        "forced_signals": 0,
+        "host_cleanup_intervention": false,
+        "expected_workers": 8,
+        "workers": [
+          {
+            "name": "DiffusionWorker-0",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-1",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-2",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-3",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-4",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-5",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-6",
+            "exit_code": 0,
+            "alive": false
+          },
+          {
+            "name": "DiffusionWorker-7",
+            "exit_code": 0,
+            "alive": false
+          }
+        ]
+      },
+      "last_rank_kv_counters": {
+        "pid": "65)\u001b[0;0m",
+        "host_bytes": "0",
+        "device_staging_bytes": "0",
+        "refresh_steps": "7",
+        "h2d_steps": "0",
+        "captured_layers": "350",
+        "substituted_layers": "2150",
+        "block_cached_layers": "0",
+        "prefetched_layers": "0",
+        "ready_wait_layers": "0",
+        "h2d_bytes": "0",
+        "projection_skipped_layers": "2150",
+        "projection_skipped_rows": "10023300",
+        "projection_total_rows": "22239600",
+        "cache_layout": "post_ulysses",
+        "host_quantization": "none",
+        "effective_host_quantization": "none",
+        "dequantized_layers": "0",
+        "quantization_fallbacks": "0",
+        "cache_residency": "device",
+        "device_resident_bytes": "6683443200",
+        "device_reuse_steps": "43",
+        "d2h_bytes": "0"
+      },
+      "sampled_peak_hbm_MiB": 24475,
+      "hbm_log_sha256": "88189dc7f3d8ddf3e9d386d200e312bdc00615ba739955bf2b4317776c2d8dae",
+      "service_log_sha256": "0a5497c494e984ce605ca9ba4037e72b20fb6f9462b851deadc423902360002f"
+    }
+  },
+  "same_interval_observed_latency_reduction_percent": 44.857588938136026,
+  "caveats": [
+    "One measured request per arm after two warmups; no statistical significance claim",
+    "Source includes subsequently rejected audio-owner code held common in all three arms",
+    "Sampled npu-smi HBM peak differs from request header peak; both retained in raw receipts",
+    "Device interval8 changes reuse frequency; its quality and speed cannot be attributed solely to residency"
+  ],
+  "quality": [
+    {
+      "label": "residentkv-dense-kv2",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "metrics": {
+        "ssim": 0.985422,
+        "psnr_db": 45.703702,
+        "lpips": 0.016824433114379644,
+        "audio_spectral_cosine": 0.9995904465516409,
+        "audio_rms_ratio": 1.0001346617317102,
+        "audio_samples": 165888
+      }
+    },
+    {
+      "label": "residentkv-dense-kvdevice2",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "metrics": {
+        "ssim": 0.985443,
+        "psnr_db": 45.716417,
+        "lpips": 0.016888589718409123,
+        "audio_spectral_cosine": 0.9995627303918203,
+        "audio_rms_ratio": 1.003565400384314,
+        "audio_samples": 165888
+      }
+    },
+    {
+      "label": "residentkv-dense-kvdevice8",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "metrics": {
+        "ssim": 0.984239,
+        "psnr_db": 44.352786,
+        "lpips": 0.018224670393993298,
+        "audio_spectral_cosine": 0.9989658693472544,
+        "audio_rms_ratio": 1.0184867783962976,
+        "audio_samples": 165888
+      }
+    },
+    {
+      "label": "residentkv-host-device-interval2",
+      "exit_code": 0,
+      "verdict": "PASS",
+      "metrics": {
+        "ssim": 0.98589,
+        "psnr_db": 46.178328,
+        "lpips": 0.016049161970224834,
+        "audio_spectral_cosine": 0.9996668299039205,
+        "audio_rms_ratio": 1.0034302767255996,
+        "audio_samples": 165888
+      }
+    }
+  ]
+}

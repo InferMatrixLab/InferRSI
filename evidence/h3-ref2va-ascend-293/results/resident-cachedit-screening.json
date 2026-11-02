@@ -1,0 +1,156 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Profile-enabled single-sample screening; no final speedup acceptance",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "diagnostic_shutdown_grace_s": 60.0,
+    "arm": "resident_cachedit",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--enable-diffusion-pipeline-profiler",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--enable-cache-dit-summary",
+      "--diffusion-offload-config",
+      "{\"mode\":\"layer\",\"components\":[\"dit\",\"text_encoder\"],\"layer_options\":{\"dit\":{\"weight_transfer\":\"allgather\"},\"text_encoder\":{\"weight_transfer\":\"rank-local\"}}}"
+    ]
+  },
+  "samples": [
+    {
+      "label": "measured-5-0",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 261396.18811570108,
+      "bytes": 6516341,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-ac409c904870ae5c",
+        "X-Inference-Time-S": "261.339",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":1.8310016579926014,\"MiniMaxH3Pipeline._encode_local_media\":7.079532498493791,\"MiniMaxH3Pipeline.diffuse\":175.87204570602626,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.123294656164944,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":0.9216546285897493,\"MiniMaxH3Pipeline.decode\":4.41552172228694,\"queue_wait_ms\":1.263563521206379,\"stage_0_gen_ms\":260191.07913970947}",
+        "X-Peak-Memory-MB": "21712.000"
+      },
+      "valid": true,
+      "output_sha256": "45a2b853125053c90aff3aa97f53f7285397751f31b29d4c7b74e94c84a89b90"
+    },
+    {
+      "label": "warmup-5",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 317028.80515903234,
+      "bytes": 6514309,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-98f014cef5558398",
+        "X-Inference-Time-S": "316.941",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":4.793905412778258,\"MiniMaxH3Pipeline._encode_local_media\":73.07442021649331,\"MiniMaxH3Pipeline.diffuse\":177.58894107025117,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.400909940712154,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":45.98730783816427,\"MiniMaxH3Pipeline.decode\":49.71842992771417,\"queue_wait_ms\":0.39002951234579086,\"stage_0_gen_ms\":315577.4669647217}",
+        "X-Peak-Memory-MB": "21392.000"
+      },
+      "valid": true,
+      "output_sha256": "d5db204e3c04bd6dff912bcbb35a6d8a735e6b19825cc4a34a36145ae44491fb"
+    }
+  ],
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 0,
+    "worker_kill_count": 0,
+    "client_complete_to_container_exit_s": 24.056511,
+    "worker_exit_codes": "Not individually captured; no forced termination or error traceback observed"
+  },
+  "raw_log_sha256": "401caf9902cc7ab032cdb77b128d16930e2293ef96a31e93261adf943f62b0e9",
+  "sampled_peak_mib_any_device": 27862,
+  "memory_scope": "10-second driver HBM samples across startup, requests and cleanup; not an exact active-tensor peak",
+  "cache_summaries_in_request_order": [
+    {
+      "cached_steps": 27,
+      "step_indices": [
+        4,
+        6,
+        7,
+        9,
+        10,
+        12,
+        13,
+        15,
+        16,
+        18,
+        19,
+        21,
+        22,
+        24,
+        25,
+        27,
+        28,
+        30,
+        31,
+        33,
+        34,
+        36,
+        37,
+        39,
+        40,
+        42,
+        44
+      ]
+    },
+    {
+      "cached_steps": 27,
+      "step_indices": [
+        4,
+        6,
+        7,
+        9,
+        10,
+        12,
+        13,
+        15,
+        16,
+        18,
+        19,
+        21,
+        22,
+        24,
+        25,
+        27,
+        28,
+        30,
+        31,
+        33,
+        34,
+        36,
+        37,
+        39,
+        40,
+        42,
+        44
+      ]
+    }
+  ],
+  "quality_result": "resident-cachedit-quality.json",
+  "verification_limits": "Raw logs and generated media are private campaign artifacts. Single-workload quality does not establish held-out quality. Diagnostic shutdown grace does not establish clean exit with production defaults. Final unprofiled independent AB/BA remains required.",
+  "quality_process_exit": 0,
+  "upstream_sources": [
+    "https://github.com/vllm-project/vllm-omni/pull/8577",
+    "https://github.com/vllm-project/vllm-omni/pull/5853"
+  ],
+  "notes": [
+    "Single-warmup pilot includes peer cold-work tail. No accepted steady-state E2E gain.",
+    "Configured upstream high profile has max_continuous_cached_steps=1; actual summaries show 27 hits including adjacent steps. See cache-counter-probe.json for installed-library counter semantics."
+  ]
+}

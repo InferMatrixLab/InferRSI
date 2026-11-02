@@ -1,0 +1,172 @@
+{
+  "status": "interrupted_not_qualified",
+  "job_exit_code": 143,
+  "reason": "A1 outer Orchestrator 30-second join timeout ends before inner NPU 60-second worker grace; actual worker exit receipts absent despite eight shutdown-complete callbacks and server/container exit0.",
+  "a1_summary": {
+    "run": "final-5s-abba-a1",
+    "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+    "configuration": {
+      "pipeline_profiler": false,
+      "heldout_quality_cases": true,
+      "diagnostic_shutdown_override": true,
+      "shutdown_mode": "diagnostic60",
+      "arm": "base",
+      "steps": 50,
+      "requests": 3,
+      "serve_args": [
+        "--num-gpus",
+        "8",
+        "--usp",
+        "8",
+        "--ring",
+        "1",
+        "--text-encoder-tp-size",
+        "8",
+        "--vae-parallel-mode",
+        "tile",
+        "--vae-use-tiling",
+        "--vae-patch-parallel-size",
+        "8",
+        "--enable-distributed-layerwise-offload",
+        "--disable-log-stats",
+        "--diffusion-attention-backend",
+        "FLASH_ATTN"
+      ],
+      "warmups_per_duration": 2,
+      "durations_s": [
+        5
+      ],
+      "dlo_wave_timeout_s": 14400.0,
+      "seeds": [
+        0
+      ],
+      "inputs_sha256": {
+        "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+        "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+        "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+      }
+    },
+    "runtime_settings_sha256": "b469bb52a10142bcd9b80820a11f0cb31eaa171cbe1a00bb7e2381127614194b",
+    "cells": [
+      {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 3,
+        "completed": 3,
+        "failed": 0,
+        "missing": 0,
+        "samples_ms": [
+          407420.09653523564,
+          400769.4433359429,
+          415363.9196669683
+        ],
+        "mean_ms": 407851.15317938227,
+        "median_ms": 407420.09653523564,
+        "min_ms": 400769.4433359429,
+        "max_ms": 415363.9196669683,
+        "request_sample_stdev_ms": 7306.78056445259,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      }
+    ],
+    "samples_including_warmups": [
+      {
+        "label": "measured-5-seed0-0",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 50,
+        "valid": true,
+        "e2e_ms": 407420.09653523564,
+        "http_status": 200,
+        "bytes": 6510603,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-8e3895374fd2cc73",
+          "X-Inference-Time-S": "407.352",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.4081903025507927,\"stage_0_gen_ms\":406443.3536529541}",
+          "X-Peak-Memory-MB": "19908.000"
+        },
+        "output_sha256": "135c14d78a994dd2b61c0dea7dc4d06b2a11a71dac00d8b5d61adea15ffc5f1b"
+      },
+      {
+        "label": "measured-5-seed0-1",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 50,
+        "valid": true,
+        "e2e_ms": 400769.4433359429,
+        "http_status": 200,
+        "bytes": 6511619,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-a60a59b0a0745136",
+          "X-Inference-Time-S": "400.699",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.4921630024909973,\"stage_0_gen_ms\":399816.349029541}",
+          "X-Peak-Memory-MB": "19908.000"
+        },
+        "output_sha256": "ff5106687c6a6c1b49ec367b4bce1002f7cc4c7327ca35515f5d7e49cecd6654"
+      },
+      {
+        "label": "measured-5-seed0-2",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 50,
+        "valid": true,
+        "e2e_ms": 415363.9196669683,
+        "http_status": 200,
+        "bytes": 6511420,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-8e2ccebf0ad2cfe4",
+          "X-Inference-Time-S": "415.296",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.37433020770549774,\"stage_0_gen_ms\":414486.8266582489}",
+          "X-Peak-Memory-MB": "19948.000"
+        },
+        "output_sha256": "4cd214c2133caa1086a1a91a404c5f901afab492c5d747f33ddf2822c7e90c4b"
+      },
+      {
+        "label": "warmup-5-0",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 50,
+        "valid": true,
+        "e2e_ms": 548931.0656450689,
+        "http_status": 200,
+        "bytes": 6511053,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-9453db9efac7bc5e",
+          "X-Inference-Time-S": "548.830",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.461062416434288,\"stage_0_gen_ms\":547612.5345230103}",
+          "X-Peak-Memory-MB": "19908.000"
+        },
+        "output_sha256": "de38539270044d2572d06b3d1c7b6ec1f2f76de126dfc7c6b0b6837721d5bc4e"
+      },
+      {
+        "label": "warmup-5-1",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 50,
+        "valid": true,
+        "e2e_ms": 449826.5792578459,
+        "http_status": 200,
+        "bytes": 6512015,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-b4b8b8b61ce93db7",
+          "X-Inference-Time-S": "449.752",
+          "X-Stage-Durations": "{\"queue_wait_ms\":1.688024029135704,\"stage_0_gen_ms\":448774.52301979065}",
+          "X-Peak-Memory-MB": "19948.000"
+        },
+        "output_sha256": "561d187cec3ec023638d8e5a56ecc89f47763c5c66cf573beef8e6d65d883875"
+      }
+    ],
+    "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+    "lifecycle": {
+      "status": "unknown",
+      "container_exit": 0,
+      "server_exit": 0,
+      "forced_signals": 0,
+      "host_cleanup_intervention": false,
+      "expected_workers": 8,
+      "workers": []
+    },
+    "service_log_sha256": "e5effc64650b1fceef2595ef76b38c08edeb9cb2a7752ed9e15922a81c294750"
+  },
+  "service_log_sha256": "e5effc64650b1fceef2595ef76b38c08edeb9cb2a7752ed9e15922a81c294750",
+  "next": "Align outer/inner budgets; freeze new source and matching diagnostic baseline budgets; repeat entire ABBA in a new reservation. Do not splice this A1 into the replacement campaign."
+}
