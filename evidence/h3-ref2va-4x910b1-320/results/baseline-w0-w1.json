@@ -1,0 +1,34 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "media_gate_verdict": "PASS",
+  "scope": "decoded media equality; unequal outputs require separate baseline-repeatability adjudication",
+  "exact_video": false,
+  "exact_audio": false,
+  "coverage": [
+    {
+      "expected_duration_s": 5.166666666666667,
+      "decoded_audio_end_s": 5.184
+    },
+    {
+      "expected_duration_s": 5.166666666666667,
+      "decoded_audio_end_s": 5.184
+    }
+  ],
+  "scorer_identity": {
+    "alexnet_sha256": "7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02",
+    "lpips_sha256": "df73285e35b22355a2df87cdb6b70b343713b667eddbda73e1977e0c860835c0"
+  },
+  "metrics": {
+    "ssim": 0.985956,
+    "psnr_db": 46.229862,
+    "lpips": 0.01582889360255532,
+    "audio_spectral_cosine": 0.9996266067028046,
+    "audio_rms_ratio": 1.0007995909660834,
+    "audio_samples": 165888
+  },
+  "inputs": {
+    "baseline": "0a92630ef195d304f559e2b7e973be363f539912d146af8e4c4eaa5308097fd2",
+    "candidate": "c30c23c6a753294914ef457789f70f5f0255d279d6233dc8d9fb1b2e82cdd483",
+    "gates": "aa4330075b6da7ab268e6ef092c42b0e037681695b54b238b09692c21d58bb9a"
+  }
+}

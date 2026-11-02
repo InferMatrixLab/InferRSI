@@ -1,0 +1,17 @@
+{
+  "status": "reproduced_failure_not_yet_fixed_on_four_cards",
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "service_log_sha256": "5f9d2174ff94ee46f2dbbf8ec274321fcfc7ad4e23f2640d551c23d3a8d0dd71",
+  "observed_sequence": [
+    "Worker event loops terminated.",
+    "After 15s, executor sent terminate to all four workers.",
+    "Each rank logged cleanup failure restoring a rank-local block: restore_tensor_storage -> restored.copy_(value) -> signal_handler -> SystemExit(143).",
+    "Executor then sent kill to all four workers; all four terminal receipts had exit_code=null and alive=true.",
+    "TBE subprocess and leaked semaphore/shared-memory warnings followed."
+  ],
+  "candidate_source": "https://github.com/vllm-project/vllm-omni/pull/9698",
+  "candidate_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+  "candidate_mechanism": "Terminal shutdown discards weights after stream drainage instead of rebuilding unused CPU weights; ordinary disable preserves restoration. NPU grace is 60s enclosed by 90s orchestration join.",
+  "claim_limit": "No forward-computation change or inference speedup claimed. Four-card candidate validation queued separately; no independent review claimed.",
+  "external_artifacts": "Original logs, model inputs, generated media and allocation details retained outside this public repository."
+}
