@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/54d4c89d4db82cbfc10d6096fe49bb077136e8b1/src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
-      "commit": "54d4c89d4db82cbfc10d6096fe49bb077136e8b1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a64da5f7bb3a532bfccaff86973c0bf117b4d930/src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
+      "commit": "a64da5f7bb3a532bfccaff86973c0bf117b4d930",
       "paths": [
         "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json",
@@ -38,7 +38,7 @@
   "checkout_ref": "checkout:skill-evolution-playbook",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/SKILL.md": "9cd37f21fe0d862069e4798edca8a04d59f8b840e55d521901594a63dddd9ba3",
-    "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json": "d3e790614e09d2d57acb24bfe8d2c2a524cc36bd667bd3867c557554bcbb605e",
+    "src/inferrsi/data/skill_library/methods/skill-evolution-playbook/metadata.json": "a5fe391d145eb5e7039f142fea7211135abbd8f3d8835bfbf83cc2b05d645da5",
     "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
   },
   "skill_metadata": {
@@ -85,7 +85,8 @@
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "searchspace_not_applicable": "SKILL.md §§ When should one trajectory update a skill?, How large should a skill edit be?, and When should skills split or merge? govern skill-text evolution and held-out evaluation, not hardware-resource state or control."
   },
   "applicability": {
     "scope": "Design choices for evolving agent skills from execution traces, drawn from Trace2Skill and SkillOpt: when a trajectory should update a skill, how conflicting lessons are handled, how negative evidence is preserved, how large an edit should be and when skills split or merge; for designing or operating a skill evolution pipeline",

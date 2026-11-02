@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/54d4c89d4db82cbfc10d6096fe49bb077136e8b1/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
-      "commit": "54d4c89d4db82cbfc10d6096fe49bb077136e8b1",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/a64da5f7bb3a532bfccaff86973c0bf117b4d930/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+      "commit": "a64da5f7bb3a532bfccaff86973c0bf117b4d930",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/metadata.json",
