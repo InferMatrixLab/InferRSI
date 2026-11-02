@@ -1,1 +1,0 @@
-Export x+1 using example torch.zeros(3) with torch.export.Dim min=6. Demonstrate what is inconsistent and how a bounded helper verifies both accepted and rejected inputs.

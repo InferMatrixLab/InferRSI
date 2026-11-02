@@ -1,1 +1,0 @@
-Adapt the source record_stream pattern into a tiny installed-package diagnostic, without private CUDA sleep calibration or pointer-reuse assumptions. What does a CPU-only result establish?

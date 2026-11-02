@@ -1,1 +1,0 @@
-My saved tensor is mutated through detach() before backward; separately two jagged tensors with equal lengths fail with j2/j3. Explain the first checks and safe fixes without making everything contiguous or disabling gradients.

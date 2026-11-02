@@ -1,7 +1,7 @@
 # InferRSI skill library
 
-The English-only library contains **142 skill documents**: 79 registered roots,
-21 separately indexed engine/router documents and 42 AREX graph sub-skills.
+The English-only library contains **124 skill documents**: 77 registered roots,
+21 separately indexed engine/router documents and 26 AREX graph sub-skills.
 Complete procedures, metadata, references, cases and source notices ship with the package.
 
 ## Browse by owner
@@ -9,7 +9,7 @@ Complete procedures, metadata, references, cases and source notices ship with th
 | Directory | Content |
 | --- | --- |
 | [Hardware](hardware/README.md) | Ascend (14 registered skills), CUDA (3) and host resource guidance (5), with retained source-depth navigation |
-| [Frameworks](frameworks/) | PyTorch and TorchNPU operating graphs, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
+| [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
 | [Workflows](workflows/) | Research, acceptance, evidence, source checking and skill lifecycle |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 79 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 77 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -73,25 +73,6 @@ existing owners. The [scope and source map](repositories/llama-cpp/audit-llama-r
 links all three responsibilities and their separate source snapshots.
 
 ## PyTorch compiler and checkpoint scope routing
-
-The [PyTorch operating graph](frameworks/pytorch/pytorch/SKILL.md) routes eight
-workflows across installation/build, tensor/autograd, training/data,
-compiler/export, memory/streams/graphs, distributed/checkpoint, profiling and
-custom operators. The [TorchNPU operating graph](frameworks/torch-npu/torch-npu/SKILL.md)
-routes eight Ascend adapter workflows, including PrivateUse1 dispatch,
-operator development, HCCL, precision and explicit compiler selection.
-Both are source-derived candidates; installed CPU observations do not qualify
-the pinned source build or the required accelerator and distributed backends.
-
-Their registered IDs are `pytorch` and `torch-npu`. Nested procedures and
-sidecars are packaged resources of those roots, rather than separate IDs:
-
-```bash
-inferrsi skills resource pytorch sub-skills/compiler-and-export/SKILL.md
-inferrsi skills resource torch-npu sub-skills/distributed-and-hccl/SKILL.md
-inferrsi read inferrsi.common.skills.pytorch --material
-inferrsi read inferrsi.ascend.skills.torch_npu --material
-```
 
 Choose by the affected responsibility within `pytorch/pytorch`. The compiler
 dependency card and DCP procedure retain different source snapshots and
@@ -156,7 +137,7 @@ scheduling/placement proposals remain separate from both implementation pins.
 
 Five repository entry skills, 15 focused sub-skills and one research router
 provide source-grounded procedures. These 21 documents are available through
-the links and catalog records below, separately from the 79-ID registry.
+the links and catalog records below, separately from the 77-ID registry.
 The registered ComfyUI and stable-diffusion.cpp audits are listed alongside
 these imports and use generated abstracts rather than runtime repository packs.
 

@@ -1,1 +1,0 @@
-A custom op returns x.clone().permute(2,0,1), while fake returns x.new_empty with the same output shape. Why can opcheck reject it even when values are right?

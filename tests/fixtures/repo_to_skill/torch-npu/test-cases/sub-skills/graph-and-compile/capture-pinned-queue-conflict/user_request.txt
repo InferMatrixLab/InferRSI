@@ -1,1 +1,0 @@
-My manual graph captures on the default stream with TASK_QUEUE_ENABLE=2 and expandable pin-memory enabled. Replay also uses a newly assigned input tensor. Give a minimal legal capture plan and correct updated-input check.

@@ -1,1 +1,0 @@
-A version-filtered op config names an ACLNN operator but the runtime lacks that symbol. Can I replace the wrapper with a raw call and skip its shape checks? Give the safe development sequence and boundaries.

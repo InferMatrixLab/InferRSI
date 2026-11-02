@@ -15,7 +15,7 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 127, "Knowledge is missing from the installation"
+assert len(records) == 125, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -40,7 +40,7 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
-assert len(skill_index) == 79, "Missing installed skill abstracts"
+assert len(skill_index) == 77, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
 assert "data/skill_library/hardware/ascend/ascend-operator-profiling/SKILL.md" in indexed.content
@@ -196,38 +196,12 @@ for record in skill_index:
     for relative, expected_hash in record["source_files"].items():
         resource = package.joinpath(*relative.removeprefix("src/inferrsi/").split("/"))
         assert resource.is_file(), relative
-        data = resource.read_bytes()
-        digest = hashlib.sha256(data).hexdigest()
-        # Preserve exact upstream notice bytes before allowing the existing
-        # platform-text newline equivalence for ordinary package resources.
-        if digest != expected_hash:
-            digest = hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
-        assert digest == expected_hash, relative
+        data = resource.read_bytes().replace(b"\r\n", b"\n")
+        assert hashlib.sha256(data).hexdigest() == expected_hash, relative
 registry = json.loads(library.joinpath("skill-index.json").read_text(encoding="utf-8"))["skills"]
-assert len(registry) == 79
+assert len(registry) == 77
 for entry in registry.values():
     assert library.joinpath(*entry["path"].split("/"), "SKILL.md").is_file()
-for framework, backend in (("pytorch", "common"), ("torch-npu", "ascend")):
-    identity = f"inferrsi.{backend}.skills.{framework.replace('-', '_')}"
-    framework_reader = KnowledgeReader()
-    graph = framework_reader.read(identity)
-    prefix = f"data/skill_library/frameworks/{framework}/{framework}/"
-    documents = [key for key in graph.content
-                 if key.startswith(prefix) and key.endswith("/SKILL.md")]
-    assert len(documents) == 9, f"Missing installed {framework} graph documents"
-    for document in documents:
-        metadata_path = document.removesuffix("SKILL.md") + "metadata.json"
-        metadata = json.loads(graph.content[metadata_path])
-        assert metadata["profile"] == "local-skill-v1"
-        assert metadata["status"] == "candidate"
-        assert metadata["disable-model-invocation"] is True
-        assert metadata["metadata"]["disco-role"] == "operating"
-    child_document = next(key for key in documents if "/sub-skills/" in key)
-    assert framework_reader.resource(
-        identity, child_document, revision=graph.revision,
-    ) == graph.content[child_document]
-    assert any(key.startswith(prefix + "scripts/") and key.endswith(".py")
-               for key in graph.content), f"Missing installed {framework} helpers"
 router = library.joinpath("workflows", "inference-engine-research")
 manifest = json.loads(
     router.joinpath("references", "source-manifest.json").read_text(encoding="utf-8")

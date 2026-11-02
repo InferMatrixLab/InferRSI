@@ -10,8 +10,8 @@
       "cuda": 3,
       "host": 5
     },
-    "registered_library_roots": 79,
-    "library_skill_documents": 142,
+    "registered_library_roots": 77,
+    "library_skill_documents": 124,
     "basis": "Local SKILL.md, metadata.json and retained owner references; library routing and the Reference Matrix only where the local entry omits historical provenance."
   },
   "conventions": {

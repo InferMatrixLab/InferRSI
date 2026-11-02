@@ -1,7 +1,0 @@
-{
-  "status": "PASS",
-  "files": 54,
-  "inspected_spans": 75,
-  "method": "git cat-file blob <exact-commit>:<path>; compare immutable SHA-256 and Git object OID; compare normalized actual-read spans; checkout hashes remain separate.",
-  "scope": "Provenance integrity only; no semantic correctness or backend execution proof."
-}

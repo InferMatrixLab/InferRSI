@@ -1,1 +1,0 @@
-After importing torch_npu, torch.npu exists but the first allocation fails. pip check is clean. Explain a bounded diagnostic path without dumping machine paths or reinstalling everything.

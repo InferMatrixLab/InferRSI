@@ -1,1 +1,0 @@
-I copied a custom Add extension that allocates empty_like(self) and returns grad, grad. Equal-shape eager cases pass but broadcasting and torch.compile fail. Specify the schema, Meta, gradient and validation changes before I build on NPU.

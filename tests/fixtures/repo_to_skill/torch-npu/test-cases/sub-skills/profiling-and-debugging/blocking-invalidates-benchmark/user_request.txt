@@ -1,1 +1,0 @@
-I enabled ASCEND_LAUNCH_BLOCKING=1 to locate an exception and measured better memory behavior. Can I keep that timing as a performance gain? Give a repeatable diagnostic versus benchmark procedure and sanitizer boundary.

@@ -1,1 +1,0 @@
-Our two-stream expert branch captures once, updates values and replays. The output changes only on the main branch and reserved memory stays high after del. Explain producer/consumer joins, static input storage, output reuse and allocator/capture lifetime, with checks before timing.
