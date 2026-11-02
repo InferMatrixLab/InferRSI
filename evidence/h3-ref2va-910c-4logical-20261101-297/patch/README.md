@@ -45,7 +45,11 @@ C14 is a prerequisite probe and has no adopted engine patch.
 
 [The experiment report](../results/report.md) records dispositions and limits.
 In particular, C21/C22/C23 failed frozen quality and are not promoted for use.
-No vLLM-Omni or MindIE-SD PR is delivered by this evidence-only tracking PR.
+The separate [vLLM-Omni Draft PR #9745](https://github.com/vllm-project/vllm-omni/pull/9745)
+ports C1 to main; [its native checks](../results/c1-upstream-main-native.json)
+passed 12 tests. New-base full-model/HTTP qualification remains pending. These
+historical patch files are unchanged and retain their original tested revisions.
+No MindIE-SD code contribution is included.
 MindIE-SD source, installed provider binaries and shared environments were not
 modified. Future upstream engine contributions require their own focused checks
 and review. [Source reconstruction notes](../plan/reproduction.md) state the
