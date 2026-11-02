@@ -10,6 +10,7 @@ environment, which is not mount-namespace confinement.
 
 import json
 import os
+import struct
 import subprocess
 import sys
 import tempfile
@@ -87,20 +88,100 @@ def runtime_roots() -> tuple[Path, ...]:
     return tuple(roots)
 
 
+def _elf_interpreter(executable: Path) -> str | None:
+    """PT_INTERP path recorded in the executable, or None for a static binary."""
+    data = executable.read_bytes()
+    if data[:4] != b"\x7fELF":
+        return None
+    endian = "<" if data[5] == 1 else ">"
+    if data[4] == 2:
+        phoff = struct.unpack_from(endian + "Q", data, 32)[0]
+        phentsize, phnum = struct.unpack_from(endian + "HH", data, 54)
+        header = endian + "IIQQQQ"
+    elif data[4] == 1:
+        phoff = struct.unpack_from(endian + "I", data, 28)[0]
+        phentsize, phnum = struct.unpack_from(endian + "HH", data, 42)
+        header = endian + "IIIIIIII"
+    else:
+        raise ConfinementUnavailable("unsupported ELF class")
+    for index in range(phnum):
+        start = phoff + index * phentsize
+        fields = struct.unpack_from(header, data, start)
+        if fields[0] != 3:
+            continue
+        offset, size = (fields[2], fields[5]) if data[4] == 2 else (fields[1], fields[4])
+        return data[offset : offset + size].split(b"\0", 1)[0].decode()
+    return None
+
+
+def _shared_libraries(executable: Path) -> tuple[str, ...]:
+    """Absolute libraries ldd resolves. The virtual dynamic linker object is skipped."""
+    completed = subprocess.run(
+        ["ldd", os.fspath(executable)], capture_output=True, text=True, check=False
+    )
+    if completed.returncode != 0:
+        raise ConfinementUnavailable(completed.stderr.strip() or "ldd failed")
+    found: list[str] = []
+    for line in completed.stdout.splitlines():
+        if "=>" in line:
+            token = line.split("=>", 1)[1].strip().split()[0]
+        else:
+            token = line.strip().split()[0]
+        if token.startswith("/"):
+            found.append(token)
+    return tuple(found)
+
+
+def runtime_files() -> tuple[Path, ...]:
+    """Loader and shared libraries that live outside the Python prefix."""
+    executable = Path(sys.executable)
+    names: list[Path] = []
+    interpreter = _elf_interpreter(executable)
+    if interpreter:
+        names.append(Path(interpreter))
+    elif executable.read_bytes()[:4] == b"\x7fELF":
+        return ()
+    for item in _shared_libraries(executable):
+        names.append(Path(item))
+    cache = Path("/etc/ld.so.cache")
+    if cache.is_file():
+        names.append(cache)
+    unique: list[Path] = []
+    for path in names:
+        if path not in unique:
+            unique.append(path)
+    return tuple(unique)
+
+
+def _covered(path: Path, covered: list[Path]) -> bool:
+    return any(path == root or root in path.parents for root in covered)
+
+
 def namespace_plan(
     writable: tuple[Path, ...], readable: tuple[Path, ...]
 ) -> dict:
     """Mount list for a fresh root. The host root itself is not an entry."""
-    mounts = [{"source": str(path), "mode": "rw"} for path in writable]
-    mounts.extend({"source": str(path), "mode": "ro"} for path in readable)
-    covered = list(writable) + list(readable)
+    mounts: list[dict] = []
+    covered: list[Path] = []
+
+    def add(path: Path, mode: str, *, directory: bool) -> None:
+        source = str(path)
+        if source == "/" or ".." in path.parts:
+            raise ConfinementUnavailable("refusing a mount plan that exposes the host root")
+        if any(item["source"] == source for item in mounts) or _covered(path, covered):
+            return
+        mounts.append({"source": source, "mode": mode})
+        if directory:
+            covered.append(path)
+
+    for path in writable:
+        add(path, "rw", directory=True)
+    for path in readable:
+        add(path, "ro", directory=True)
     for root in runtime_roots():
-        if any(root == path or path in root.parents or root in path.parents for path in covered):
-            continue
-        mounts.append({"source": str(root), "mode": "ro"})
-        covered.append(root)
-    if any(item["source"] == "/" for item in mounts):
-        raise ConfinementUnavailable("refusing a mount plan that exposes the host root")
+        add(root, "ro", directory=True)
+    for extra in runtime_files():
+        add(extra, "ro", directory=False)
     return {"mounts": mounts, "env": minimal_environment()}
 
 
@@ -252,6 +333,8 @@ class UnshareBackend:
                 timeout=remaining,
                 check=False,
             )
+        except subprocess.TimeoutExpired as exc:
+            raise ConfinementUnavailable("namespace command timed out") from exc
         finally:
             if config_path is not None:
                 config_path.unlink(missing_ok=True)
@@ -281,10 +364,15 @@ def enter_namespace(config_path: str) -> None:
     mount(["-t", "tmpfs", "tmpfs", str(jail)])
     for item in config["mounts"]:
         source = item["source"]
-        if source == "/":
+        source_path = Path(source)
+        if source == "/" or not source_path.is_absolute() or ".." in source_path.parts:
             raise SystemExit("refusing to mount the host root")
-        target = jail / Path(source).resolve().relative_to("/")
-        target.mkdir(parents=True, exist_ok=True)
+        target = jail.joinpath(*source_path.parts[1:])
+        if source_path.is_dir() and not source_path.is_symlink():
+            target.mkdir(parents=True, exist_ok=True)
+        else:
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.touch()
         mount(["--bind", source, str(target)])
         if item["mode"] == "ro":
             mount(["-o", "remount,bind,ro", str(target)])

@@ -9,6 +9,7 @@ import json
 import os
 import shutil
 import stat
+import subprocess
 import time
 from datetime import datetime, timezone
 from fnmatch import fnmatch
@@ -352,18 +353,35 @@ def _launch(
     build_dir.mkdir(parents=True, exist_ok=True)
     trial_dir.mkdir(parents=True, exist_ok=True)
 
-    def run(argv, cwd, writable, readable) -> None:
+    def run(stage: str, argv, cwd, writable, readable) -> None:
         remaining = min(seconds_remaining(lane["deadline_utc"], current()), 30)
-        confined_execute(
-            argv, cwd, writable, readable, time.monotonic() + remaining, backend=backend
-        )
+        try:
+            record = confined_execute(
+                argv, cwd, writable, readable, time.monotonic() + remaining, backend=backend
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise ConfinementUnavailable(f"{stage} timed out") from exc
+        if record.get("status") != "completed":
+            raise ConfinementUnavailable(f"{stage} {record.get('status')}")
 
     if plan["build"]:
-        run(tuple(plan["build"]), candidate, (candidate, build_dir), ())
+        run("build", tuple(plan["build"]), candidate, (candidate, build_dir), ())
     candidate_result = trial_dir / "candidate.json"
-    run(_command(plan["trial"], candidate_result), candidate, (trial_dir,), (candidate,))
+    run(
+        "candidate",
+        _command(plan["trial"], candidate_result),
+        candidate,
+        (trial_dir,),
+        (candidate,),
+    )
     incumbent_result = trial_dir / "incumbent.json"
-    run(_command(plan["trial"], incumbent_result), incumbent, (trial_dir,), (incumbent,))
+    run(
+        "incumbent",
+        _command(plan["trial"], incumbent_result),
+        incumbent,
+        (trial_dir,),
+        (incumbent,),
+    )
     return candidate_result, incumbent_result
 
 
@@ -378,7 +396,9 @@ def serve_ticket(
 ) -> dict:
     """Measure one ticket. A busy device leaves it queued and does not reserve an attempt."""
     def current() -> datetime:
-        return clock() if clock is not None else now
+        if clock is not None:
+            return clock()
+        return datetime.now(timezone.utc)
 
     plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
     result_path = round_dir / "results" / f"{ticket}.json"

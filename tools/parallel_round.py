@@ -55,7 +55,6 @@ def main(argv: list[str] | None = None) -> int:
             args.ticket,
             args.incumbent,
             backend=select_backend(),
-            now=datetime.now(timezone.utc),
         )
     else:
         result = ticket_status(args.round_dir, args.ticket)
