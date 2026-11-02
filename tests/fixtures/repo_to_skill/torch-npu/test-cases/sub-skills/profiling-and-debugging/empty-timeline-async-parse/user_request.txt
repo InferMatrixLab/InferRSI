@@ -1,0 +1,1 @@
+A scheduled profile has no memory timeline and asynchronous parsing fails although the trace directory exists. I only set profile_memory=True. Explain the required options, stepping and separate collection/analysis statuses.

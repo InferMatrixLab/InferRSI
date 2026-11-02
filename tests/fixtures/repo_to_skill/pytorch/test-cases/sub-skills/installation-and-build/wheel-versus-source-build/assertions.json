@@ -1,0 +1,26 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "installation-and-build",
+  "target_capability": "wheel-versus-source-build",
+  "difficulty": "advanced",
+  "origin": "synthetic",
+  "evidence_basis": [
+    "README.md",
+    "pyproject.toml",
+    "setup.py",
+    "cmake/EnvVarForwarding.cmake"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/installation-and-build/SKILL.md",
+    "sub-skills/installation-and-build/references/workflows.md",
+    "sub-skills/installation-and-build/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Separates CPU wheel/backend availability from a toolkit and from extension compilation.",
+    "Uses the current scikit-build-core/PEP517 recipe and forwarding rules rather than legacy setup.py build flags.",
+    "Chooses a new isolated build environment or reports missing prerequisites without mutating the existing one.",
+    "Withholds CUDA extension success until compilation and actual backend execution."
+  ]
+}

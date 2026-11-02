@@ -1,0 +1,1 @@
+A model works eagerly, recompiles when batch and Python scalar values change, then export with min batch 6 fails for an example batch of 3. I want dynamic deployment and proof it is faster. What can be concluded and what should I run?

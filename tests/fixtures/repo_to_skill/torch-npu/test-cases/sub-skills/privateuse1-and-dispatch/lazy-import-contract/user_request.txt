@@ -1,0 +1,1 @@
+Our startup regression test sees torch._inductor loaded after import torch_npu. Explain what should load at basic import and how to distinguish this from entering torch.compile; do not preload compilation in the diagnostic.

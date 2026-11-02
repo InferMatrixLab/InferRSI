@@ -1,0 +1,1 @@
+Moving a model to autocast fails with BCELoss; switching to a fused optimizer also changes resumed updates. Separate the loss correction, optimizer comparison and checkpoint/scaler/RNG checks without claiming convergence from one step.

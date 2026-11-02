@@ -1,0 +1,1 @@
+Prepare a plan to resume trusted FSDP2 training with AMP, uneven data shards and torch.compile. A checkpoint restored weights but optimizer momentum and sample progress differ, gradients are clipped each microbatch and one rank times out. Include validation before performance work.

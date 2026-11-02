@@ -1,0 +1,1 @@
+Use the bundled CPU profiler example to record exactly one wait/warmup/active cycle. Explain the profiler step placement and avoid treating the trace as a latency benchmark.

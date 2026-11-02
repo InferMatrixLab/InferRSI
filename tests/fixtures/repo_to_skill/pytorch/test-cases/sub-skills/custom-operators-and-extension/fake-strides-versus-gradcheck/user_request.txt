@@ -1,0 +1,1 @@
+My custom_op returns x.view_as(x) but mutates_args is empty, fake returns empty_like of the right shape, opcheck errors on alias/stride, and gradcheck passes. A CUDA backward assumes contiguous gradients. What must change before compilation?

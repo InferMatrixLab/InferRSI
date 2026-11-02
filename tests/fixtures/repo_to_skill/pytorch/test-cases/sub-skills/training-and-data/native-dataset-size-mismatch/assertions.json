@@ -1,0 +1,27 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "training-and-data",
+  "target_capability": "native-dataset-size-mismatch",
+  "difficulty": "advanced",
+  "origin": "native-derived",
+  "evidence_basis": [
+    "torch/utils/data/dataloader.py",
+    "docs/source/notes/modules.md",
+    "docs/source/notes/amp_examples.md",
+    "torch/utils/checkpoint.py",
+    "torch/nn/functional.py",
+    "aten/src/ATen/native/transformers/cuda/sdp_utils.cpp"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/training-and-data/SKILL.md",
+    "sub-skills/training-and-data/references/workflows.md",
+    "sub-skills/training-and-data/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Rejects unequal leading sample counts before concurrency.",
+    "Checks a single aligned sample and collated batch with num_workers=0.",
+    "Avoids presenting worker tuning as a data schema repair."
+  ]
+}

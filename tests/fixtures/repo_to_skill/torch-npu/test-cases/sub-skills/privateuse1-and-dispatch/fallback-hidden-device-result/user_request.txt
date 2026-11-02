@@ -1,0 +1,1 @@
+An unsupported operation returns an NPU tensor but warns that it ran on CPU. We need to prove the computation stays on NPU and handle the missing overload. How do we investigate without silently accepting fallback?

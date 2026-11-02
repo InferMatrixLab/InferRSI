@@ -1,0 +1,1 @@
+torch.compile(fn, backend="npu") works after a build that omitted TorchAir. Can I report compilation succeeded and compare it against eager timing? Explain how the other NPU compiler names differ.

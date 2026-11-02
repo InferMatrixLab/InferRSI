@@ -1,0 +1,40 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "torch-npu",
+  "target_capability": "hccl-amp-trace-state",
+  "difficulty": "advanced",
+  "case_kind": "synthetic-cross-capability",
+  "evidence_basis": [
+    "torch_npu/csrc/distributed/ProcessGroupHCCL.cpp",
+    "torch_npu/npu/amp/grad_scaler.py",
+    "torch_npu/profiler/scheduler.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/distributed-and-hccl/references/hccl.md",
+    "sub-skills/training-and-precision/references/training.md",
+    "sub-skills/profiling-and-debugging/references/profiling.md",
+    "SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/distributed-and-hccl/references/hccl.md supports 'host-side future state'",
+      "file": "sub-skills/distributed-and-hccl/references/hccl.md",
+      "contains": "host-side future state"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'skipped update'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "skipped update"
+    },
+    {
+      "statement": "sub-skills/profiling-and-debugging/references/profiling.md supports 'active interval'",
+      "file": "sub-skills/profiling-and-debugging/references/profiling.md",
+      "contains": "active interval"
+    },
+    {
+      "statement": "SKILL.md supports 'BLOCKED_REQUIRED_BACKEND'",
+      "file": "SKILL.md",
+      "contains": "BLOCKED_REQUIRED_BACKEND"
+    }
+  ]
+}

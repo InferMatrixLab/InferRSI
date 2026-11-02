@@ -1,0 +1,1 @@
+A tensor is created on stream A then used on B. I added record_stream(B) but still get wrong results. Show which ordering and lifetime obligations remain, including when it is safe to read on CPU.

@@ -1,0 +1,47 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "operator-development",
+  "target_capability": "missing-aclnn-symbol",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "op-plugin:op_plugin/ops/opapi/AddKernelNpuOpApi.cpp",
+    "op-plugin:torchnpugen/gen_op_plugin_functions.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/operator-development/references/development.md",
+    "sub-skills/operator-development/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/operator-development/references/development.md supports 'availability checks'",
+      "file": "sub-skills/operator-development/references/development.md",
+      "contains": "availability checks"
+    },
+    {
+      "statement": "sub-skills/operator-development/references/development.md supports 'alpha validation'",
+      "file": "sub-skills/operator-development/references/development.md",
+      "contains": "alpha validation"
+    },
+    {
+      "statement": "sub-skills/operator-development/references/development.md supports 'overlap'",
+      "file": "sub-skills/operator-development/references/development.md",
+      "contains": "overlap"
+    },
+    {
+      "statement": "sub-skills/operator-development/references/development.md supports 'CANN'",
+      "file": "sub-skills/operator-development/references/development.md",
+      "contains": "CANN"
+    },
+    {
+      "statement": "sub-skills/operator-development/references/development.md supports 'matching torchgen'",
+      "file": "sub-skills/operator-development/references/development.md",
+      "contains": "matching torchgen"
+    },
+    {
+      "statement": "sub-skills/operator-development/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/operator-development/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}

@@ -1,0 +1,1 @@
+Two ranks run an HCCL subgroup; one hangs after several steps. Someone suggests disabling watchdog and increasing every timeout. Give the first rank/sequence comparison and distinguish rendezvous, execution and process-group timeouts.

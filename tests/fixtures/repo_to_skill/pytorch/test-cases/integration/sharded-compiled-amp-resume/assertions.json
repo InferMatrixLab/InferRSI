@@ -1,0 +1,33 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "pytorch",
+  "target_capability": "sharded-compiled-amp-resume",
+  "difficulty": "advanced",
+  "origin": "synthetic-cross-route",
+  "evidence_basis": [
+    "README.md",
+    "docs/source/notes/cuda.md",
+    "docs/source/notes/amp_examples.md",
+    "docs/source/notes/ddp.md",
+    "torch/library.py",
+    "torch/export/__init__.py"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/installation-and-build/SKILL.md",
+    "sub-skills/tensor-dispatch-autograd/SKILL.md",
+    "sub-skills/training-and-data/SKILL.md",
+    "sub-skills/compiler-and-export/SKILL.md",
+    "sub-skills/memory-streams-and-graphs/SKILL.md",
+    "sub-skills/distributed-and-checkpoint/SKILL.md",
+    "sub-skills/profiling-and-debugging/SKILL.md",
+    "sub-skills/custom-operators-and-extension/SKILL.md"
+  ],
+  "assertions": [
+    "Covers distributed/checkpoint, training/data, compiler and profiling routes with explicit state/rank/shape contracts.",
+    "Restores optimizer/scaler/RNG/data progress as required and allocates intended sharded state.",
+    "Checks effective-batch scale/clipping and equal collective order on uneven rank work.",
+    "Keeps numerical correctness and actual device/multi-rank verification separate from compilation and throughput claims."
+  ]
+}

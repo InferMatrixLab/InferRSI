@@ -1,0 +1,28 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "tensor-dispatch-autograd",
+  "target_capability": "detached-alias-and-jagged-offsets",
+  "difficulty": "advanced",
+  "origin": "synthetic",
+  "evidence_basis": [
+    "docs/source/notes/autograd.md",
+    "aten/src/ATen/core/dispatch/Dispatcher.h",
+    "aten/src/ATen/core/dispatch/DispatchKeyExtractor.h",
+    "docs/source/sparse.md",
+    "docs/source/nested.md",
+    "docs/source/func.md"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/tensor-dispatch-autograd/SKILL.md",
+    "sub-skills/tensor-dispatch-autograd/references/workflows.md",
+    "sub-skills/tensor-dispatch-autograd/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Explains detach can share storage and saved-version checks can fail.",
+    "Locates and removes or correctly stages the offending mutation rather than using .data.",
+    "Distinguishes equal jagged lengths from the required shared offsets constituent.",
+    "Uses bounded alias/gradient and ragged checks and does not claim every nested operator is supported."
+  ]
+}

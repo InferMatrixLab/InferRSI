@@ -1,0 +1,33 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "pytorch",
+  "target_capability": "backend-snapshot-routing",
+  "difficulty": "advanced",
+  "origin": "synthetic",
+  "evidence_basis": [
+    "README.md",
+    "docs/source/notes/cuda.md",
+    "docs/source/notes/amp_examples.md",
+    "docs/source/notes/ddp.md",
+    "torch/library.py",
+    "torch/export/__init__.py"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/installation-and-build/SKILL.md",
+    "sub-skills/tensor-dispatch-autograd/SKILL.md",
+    "sub-skills/training-and-data/SKILL.md",
+    "sub-skills/compiler-and-export/SKILL.md",
+    "sub-skills/memory-streams-and-graphs/SKILL.md",
+    "sub-skills/distributed-and-checkpoint/SKILL.md",
+    "sub-skills/profiling-and-debugging/SKILL.md",
+    "sub-skills/custom-operators-and-extension/SKILL.md"
+  ],
+  "assertions": [
+    "Routes installation identity, profiling, training/data and compiler before tuning a hypothesis.",
+    "Keeps PyTorch and TorchNPU source identities independent rather than asserting a compatible pair.",
+    "Distinguishes source inventory and installed CPU diagnostics from target backend evidence.",
+    "Uses bundled resources rather than requiring the original distillation checkout."
+  ]
+}
