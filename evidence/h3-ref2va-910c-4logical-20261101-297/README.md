@@ -23,6 +23,12 @@ Start with the [experiment report and 24-direction ledger](results/report.md),
 [replay/availability notes](plan/reproduction.md). The inventory's publication
 hash map verifies available files; it does not qualify device or model behavior.
 
+Downstream code is tracked in [vLLM-Omni Draft PR #9745](https://github.com/vllm-project/vllm-omni/pull/9745).
+It ports only C1 to main, preserving newer piecewise/query-range dispatch, and
+passed [12 source-bound native tests](results/c1-upstream-main-native.json).
+The historical full-model C1 results remain tied to `be319692`; full-model
+quality and clean HTTP have not been rerun on the new upstream base.
+
 The scope is 5s/15s × lossless/lossy, 1344×768 at 24 FPS, 124/362 frames,
 original BF16 dense Ref2VA, 50 steps, four logical 910C devices. This is separate
 from the eight-device 910B1 campaign in #294 and the original eight-device requirement.
