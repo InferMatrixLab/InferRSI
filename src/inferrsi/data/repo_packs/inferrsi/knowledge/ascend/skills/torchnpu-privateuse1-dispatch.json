@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.torchnpu_privateuse1_dispatch",
+  "title": "torchnpu-privateuse1-dispatch",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Register TorchNPU as PyTorch PrivateUse1 under the name npu, including generated tensor methods, excluded quantized dtypes and the profiler activity alias. Use for backend identity, not for kernel coverage.",
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "privateuse1",
+    "dispatch"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/references/readset.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "2da7e2a0840bf23dcd6d0834619ba1a3b1bf4a81c538ddf537accb5fefb399af"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/SKILL.md"
+  },
+  "checkout_ref": "checkout:torchnpu-privateuse1-dispatch",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/SKILL.md": "2da7e2a0840bf23dcd6d0834619ba1a3b1bf4a81c538ddf537accb5fefb399af",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/metadata.json": "07e6b822e07b9f607b25bf8a1e714e3c79f462bc9994b34f644bcaed06e77e7d",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/references/readset.json": "02ddc17c4bfe85d14494f580cd2b4d58788e07abc92e23f63f770da540471383",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/references/source-notes.md": "344323cdc5cd97f858d5c44b9f8ef8cfa5305de3f57a5894de3bf4a52652d43c",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "torchnpu-privateuse1-dispatch",
+    "description": "Register TorchNPU as PyTorch PrivateUse1 under the name npu, including generated tensor methods, excluded quantized dtypes and the profiler activity alias. Use for backend identity, not for kernel coverage.",
+    "tags": [
+      "ascend",
+      "torchnpu",
+      "privateuse1",
+      "dispatch"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "TorchNPU PrivateUse1 rename and generated methods.",
+      "hardware": [
+        "Ascend NPU backend registration",
+        "kernels unread"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "TorchNPU PrivateUse1 rename and generated methods.",
+    "hardware": [
+      "Ascend NPU backend registration",
+      "kernels unread"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

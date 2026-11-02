@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.pytorch_dispatcher_and_custom_ops",
+  "title": "pytorch-dispatcher-and-custom-ops",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Separate PyTorch dispatcher registration from a custom-op schema before adding a backend kernel or an export boundary. Use for DispatchKey, PrivateUse1 and mutates_args, not for kernel performance.",
+  "tags": [
+    "pytorch",
+    "dispatcher",
+    "custom-op",
+    "privateuse1"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/SKILL.md",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/metadata.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/references/readset.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "cbaf41c28a4929a84af8b75d7c4b2417a0d35d45cf0600dd9d7f31a59d688cdd"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/SKILL.md"
+  },
+  "checkout_ref": "checkout:pytorch-dispatcher-and-custom-ops",
+  "source_files": {
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/SKILL.md": "cbaf41c28a4929a84af8b75d7c4b2417a0d35d45cf0600dd9d7f31a59d688cdd",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/metadata.json": "dd50a37fe99c044fc182676e7d34931cd4bf585fdcd012b22bc53465ddcdc294",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/references/readset.json": "716f806cc32a7d748d42bf768799a10f1e956211c79d09858baa183a9a60a88a",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/references/source-notes.md": "ed3356c07cf5c96afb029f1265f7ab50859e08a83718abdfaa0f96f51fdc5881",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "pytorch-dispatcher-and-custom-ops",
+    "description": "Separate PyTorch dispatcher registration from a custom-op schema before adding a backend kernel or an export boundary. Use for DispatchKey, PrivateUse1 and mutates_args, not for kernel performance.",
+    "tags": [
+      "pytorch",
+      "dispatcher",
+      "custom-op",
+      "privateuse1"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Dispatch registration and custom-op schema at PyTorch v2.15.0.",
+      "hardware": [
+        "backend-independent dispatcher",
+        "device kernels unread"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "Dispatch registration and custom-op schema at PyTorch v2.15.0.",
+    "hardware": [
+      "backend-independent dispatcher",
+      "device kernels unread"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

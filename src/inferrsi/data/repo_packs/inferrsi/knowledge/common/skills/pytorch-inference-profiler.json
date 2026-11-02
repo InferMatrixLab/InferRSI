@@ -1,0 +1,115 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.pytorch_inference_profiler",
+  "title": "pytorch-inference-profiler",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Schedule a PyTorch profiler window and separate CPU, CUDA and PrivateUse1 activities from shape-tracing copies. Use for what the trace can show, not for a measured speedup.",
+  "tags": [
+    "pytorch",
+    "profiler",
+    "kineto"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/SKILL.md",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/metadata.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/references/readset.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "4030382f3184dbc41b43e97f6616ff1dded0787b0abf141e4a2b2c2d9d3c5ea8"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/frameworks/pytorch/pytorch-inference-profiler/SKILL.md"
+  },
+  "checkout_ref": "checkout:pytorch-inference-profiler",
+  "source_files": {
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/SKILL.md": "4030382f3184dbc41b43e97f6616ff1dded0787b0abf141e4a2b2c2d9d3c5ea8",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/metadata.json": "74271ab7959fe504848c45ca5d037b69e3492ac76fdabcc32024beea76a6257c",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/references/readset.json": "541ff75cd443f7093d88ff0c7108dd6731340516163f5e543245d820b7292507",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/references/source-notes.md": "0fbaef81cd6d33d99f98a654e2678179faf53b12775e7a19f9f8bd9cbe183aae",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "pytorch-inference-profiler",
+    "description": "Schedule a PyTorch profiler window and separate CPU, CUDA and PrivateUse1 activities from shape-tracing copies. Use for what the trace can show, not for a measured speedup.",
+    "tags": [
+      "pytorch",
+      "profiler",
+      "kineto"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "PyTorch profiler schedule and activity limits at v2.15.0.",
+      "hardware": [
+        "CPU and CUDA activities",
+        "PrivateUse1 branch only"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "PyTorch profiler schedule and activity limits at v2.15.0.",
+    "hardware": [
+      "CPU and CUDA activities",
+      "PrivateUse1 branch only"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

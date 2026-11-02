@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.cuda.skills.pytorch_sdpa_backend_selection",
+  "title": "pytorch-sdpa-backend-selection",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "cuda",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Select PyTorch scaled-dot-product attention backends and flash-impl activation from the v2.15 context manager. Use for backend flags and priority, not for a measured attention speedup.",
+  "tags": [
+    "pytorch",
+    "sdpa",
+    "attention",
+    "cuda"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/SKILL.md",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/metadata.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/references/readset.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "4dd2a73245e6b409729c46f6907ae82b79daec27939e0ce0b1975e232a8897e6"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/SKILL.md"
+  },
+  "checkout_ref": "checkout:pytorch-sdpa-backend-selection",
+  "source_files": {
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/SKILL.md": "4dd2a73245e6b409729c46f6907ae82b79daec27939e0ce0b1975e232a8897e6",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/metadata.json": "fd7c6f3d1013e55e3ae436e210aaa56af76bdb00887bf011e8816dd873b120d6",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/references/readset.json": "196e3efbb424e851350a08532c936c546f276fc05d186aed244531abd9aec333",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/references/source-notes.md": "b610c00909f2b5d8d0fff96c0ade2c23ef171a2d8f245f282d39c274bbad971c",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "pytorch-sdpa-backend-selection",
+    "description": "Select PyTorch scaled-dot-product attention backends and flash-impl activation from the v2.15 context manager. Use for backend flags and priority, not for a measured attention speedup.",
+    "tags": [
+      "pytorch",
+      "sdpa",
+      "attention",
+      "cuda"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "SDPA backend flags and flash-impl activation at PyTorch v2.15.0.",
+      "hardware": [
+        "CUDA SDPA backends named by the API",
+        "selection function body unread"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "SDPA backend flags and flash-impl activation at PyTorch v2.15.0.",
+    "hardware": [
+      "CUDA SDPA backends named by the API",
+      "selection function body unread"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

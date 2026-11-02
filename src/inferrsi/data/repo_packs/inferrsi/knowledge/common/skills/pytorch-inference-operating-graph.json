@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.common.skills.pytorch_inference_operating_graph",
+  "title": "pytorch-inference-operating-graph",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "common",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Route a PyTorch inference question to the v2.15.0 dispatcher, SDPA, device-allocator, profiler or AOTInductor owner, or to an older host-copy, CUDA-graph or DCP owner. Use before treating those pins as one stack.",
+  "tags": [
+    "pytorch",
+    "inference",
+    "router",
+    "compile",
+    "dispatcher"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/SKILL.md",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/metadata.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/references/readset.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/references/source-notes.md",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/references/unread-inventory.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "cbf3032070fa34e12b3424253a589d1beb05fca26a339b37e99705d90d41a085"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/SKILL.md"
+  },
+  "checkout_ref": "checkout:pytorch-inference-operating-graph",
+  "source_files": {
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/SKILL.md": "cbf3032070fa34e12b3424253a589d1beb05fca26a339b37e99705d90d41a085",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/metadata.json": "dbe5a14b8b5a768d951cc55d66f4c292f307a37c7a6d57cf72334d0adb3f01f2",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/references/readset.json": "96b6a9da3659a24f4f0aed1ba4ba30875d79e443f0b069d09013b812646389a5",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/references/source-notes.md": "132fff2fe017a913996c614b9aed64e97a6c6d083df57ef763d7a3f434868766",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/references/unread-inventory.md": "82808b69df9d2a0b8c3dea18ed25adebcc478ea269daee87adea07c4a52a0aa2",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "pytorch-inference-operating-graph",
+    "description": "Route a PyTorch inference question to the v2.15.0 dispatcher, SDPA, device-allocator, profiler or AOTInductor owner, or to an older host-copy, CUDA-graph or DCP owner. Use before treating those pins as one stack.",
+    "tags": [
+      "pytorch",
+      "inference",
+      "router",
+      "compile",
+      "dispatcher"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md",
+      "references/unread-inventory.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Route PyTorch v2.15.0 inference questions without merging older pins.",
+      "hardware": [
+        "CUDA and CPU as named by the routed skills",
+        "not an NPU claim"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "Route PyTorch v2.15.0 inference questions without merging older pins.",
+    "hardware": [
+      "CUDA and CPU as named by the routed skills",
+      "not an NPU claim"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

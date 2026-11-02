@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
       "paths": [
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json",
@@ -36,7 +36,7 @@
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352",
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "96771fb6fecf5fc7773bb7cf84038d8eaf436add1a0362dc26110c82037f8320",
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
   },
   "skill_metadata": {
     "name": "calibrate-serving-simulation",

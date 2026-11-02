@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md",
@@ -38,7 +38,7 @@
   },
   "checkout_ref": "checkout:claim-contract",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e",
     "src/inferrsi/data/skill_library/workflows/claim-contract/SKILL.md": "3af1dbbe81d91cb05fc2ef15a2ae25d7592a08558e1a5535f49c52f33a488c55",
     "src/inferrsi/data/skill_library/workflows/claim-contract/metadata.json": "25c0137cf347f75d7ff8f8305d9ff5f055c6881ddf4b708f923c3176de16c153"
   },

@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 77 registered skills in `data/skill_library/`.
+Generated abstracts for all 89 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [ce1d889fc06e8dfe48327fac13cd3a871ebdcda8](https://github.com/InferMatrixLab/InferRSI/tree/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library).
+Source snapshot: [1725e65ea786b7734c3008f50fdc37fb54444230](https://github.com/InferMatrixLab/InferRSI/tree/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision ce1d889fc06e8dfe48327fac13cd3a871ebdcda8 --check
+python tools/build_skill_index.py --source-revision 1725e65ea786b7734c3008f50fdc37fb54444230 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -101,6 +101,12 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | common | candidate |
 | [plan-activation-residency](common/skills/plan-activation-residency.json) | common | candidate |
 | [project-maya](common/skills/project-maya.json) | common | candidate |
+| [pytorch-aot-inductor-inference](common/skills/pytorch-aot-inductor-inference.json) | common | candidate |
+| [pytorch-caching-allocator-and-streams](cuda/skills/pytorch-caching-allocator-and-streams.json) | cuda | candidate |
+| [pytorch-dispatcher-and-custom-ops](common/skills/pytorch-dispatcher-and-custom-ops.json) | common | candidate |
+| [pytorch-inference-operating-graph](common/skills/pytorch-inference-operating-graph.json) | common | candidate |
+| [pytorch-inference-profiler](common/skills/pytorch-inference-profiler.json) | common | candidate |
+| [pytorch-sdpa-backend-selection](cuda/skills/pytorch-sdpa-backend-selection.json) | cuda | candidate |
 | [reason-hopper-kernels](cuda/skills/reason-hopper-kernels.json) | cuda | candidate |
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | candidate |
@@ -108,7 +114,13 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [splash](common/skills/splash.json) | common | candidate |
 | [storage-io-measurement](common/skills/storage-io-measurement.json) | common | candidate |
 | [torchnpu-device-memory-lifecycle](ascend/skills/torchnpu-device-memory-lifecycle.json) | ascend | candidate |
+| [torchnpu-graph-capture](ascend/skills/torchnpu-graph-capture.json) | ascend | candidate |
+| [torchnpu-hccl-process-groups](ascend/skills/torchnpu-hccl-process-groups.json) | ascend | candidate |
+| [torchnpu-inference-operating-graph](ascend/skills/torchnpu-inference-operating-graph.json) | ascend | candidate |
 | [torchnpu-pinned-host-memory-lifecycle](ascend/skills/torchnpu-pinned-host-memory-lifecycle.json) | ascend | candidate |
+| [torchnpu-privateuse1-dispatch](ascend/skills/torchnpu-privateuse1-dispatch.json) | ascend | candidate |
+| [torchnpu-profiler-and-compile](ascend/skills/torchnpu-profiler-and-compile.json) | ascend | candidate |
+| [torchnpu-streams-and-events](ascend/skills/torchnpu-streams-and-events.json) | ascend | candidate |
 | [training-input-pipeline](common/skills/training-input-pipeline.json) | common | candidate |
 | [training-resource-budget](common/skills/training-resource-budget.json) | common | candidate |
 | [video-diffusion-optimization](common/skills/video-diffusion-optimization.json) | common | candidate |

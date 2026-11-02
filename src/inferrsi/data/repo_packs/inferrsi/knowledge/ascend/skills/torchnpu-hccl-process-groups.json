@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.torchnpu_hccl_process_groups",
+  "title": "torchnpu-hccl-process-groups",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Control TorchNPU HCCL process-group resume and reinit, and route uneven collectives through the NPU backend. Use for those control-plane contracts, not for fabric bandwidth or algorithm choice.",
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "hccl",
+    "collectives"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/references/readset.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "8e549c3ed8c9dfc0ff8278af128e2e4fc276808fc943e1c5e4c71eb20e18d0fc"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/SKILL.md"
+  },
+  "checkout_ref": "checkout:torchnpu-hccl-process-groups",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/SKILL.md": "8e549c3ed8c9dfc0ff8278af128e2e4fc276808fc943e1c5e4c71eb20e18d0fc",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/metadata.json": "34c4185c24d1a66bab60c40c107e7b4ba65210dcb4c98ce5c13d930c851fce5c",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/references/readset.json": "210d8a1571aa14c7a90d7faa01679ce7d6ba0df2de81c532dad7cb3f6853b1e3",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/references/source-notes.md": "931b4d7574450294bbfd4c84ffe985cbc45534e911bf017e50bf8f4f440136a2",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "torchnpu-hccl-process-groups",
+    "description": "Control TorchNPU HCCL process-group resume and reinit, and route uneven collectives through the NPU backend. Use for those control-plane contracts, not for fabric bandwidth or algorithm choice.",
+    "tags": [
+      "ascend",
+      "torchnpu",
+      "hccl",
+      "collectives"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "TorchNPU HCCL process-group resume, abort and uneven collective routing.",
+      "hardware": [
+        "Ascend HCCL via the Python wrapper",
+        "transport unread"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "TorchNPU HCCL process-group resume, abort and uneven collective routing.",
+    "hardware": [
+      "Ascend HCCL via the Python wrapper",
+      "transport unread"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

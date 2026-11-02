@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/metadata.json",
@@ -52,7 +52,7 @@
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/partitioning-after-fusion.md": "4d4cabe0991eab554dcfbd4fa9c8199e61fa4767709b0c4cd646e2588bb398a2",
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/papers-20261015/knowledge/attention-cost-model-boundaries.md": "5ed8f888443e38ccb72545b6025447aab7b92936f78c151fed680e582126239b",
     "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/sources.md": "53436e0de4e6dda2d29426591bf61f8526378cdc6f9ec7967b88b1bcd4c61e6f",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
   },
   "skill_metadata": {
     "name": "diagnose-attention-bottlenecks",

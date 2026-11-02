@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json",
@@ -45,7 +45,7 @@
     "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "4e6100dfb9fc7bc00b19915f4fd38ad509704f2a609c658adf4d632d4e05b6c1",
     "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
     "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
   },
   "skill_metadata": {
     "name": "audit-afd-p2p-exchanges",

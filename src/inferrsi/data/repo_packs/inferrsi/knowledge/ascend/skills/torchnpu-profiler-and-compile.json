@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.torchnpu_profiler_and_compile",
+  "title": "torchnpu-profiler-and-compile",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Configure TorchNPU profiler levels and Dynamo in-graph NPU APIs, and keep npugraphs registration separate from a measured compile speedup. Use for trace prerequisites and trace rules.",
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "profiler",
+    "dynamo"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/references/readset.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "7265a693d7cc9493654eb9d6c3e5f256351d54df841afc3f776d32a10ebbdd1f"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/SKILL.md"
+  },
+  "checkout_ref": "checkout:torchnpu-profiler-and-compile",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/SKILL.md": "7265a693d7cc9493654eb9d6c3e5f256351d54df841afc3f776d32a10ebbdd1f",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/metadata.json": "760b2fd0305d22ac28b1253363d7b107ffe558a3ecc3005e8e610391cb10da93",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/references/readset.json": "65e5f3a1bedeb807510b7c9c8292e137c3ae371519e819e850fa8c2cf0438a74",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/references/source-notes.md": "767fe9898bea680e48480a1e175ca49a4ec577a3cf8b9fd3d81e0ab1990db7ab",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "torchnpu-profiler-and-compile",
+    "description": "Configure TorchNPU profiler levels and Dynamo in-graph NPU APIs, and keep npugraphs registration separate from a measured compile speedup. Use for trace prerequisites and trace rules.",
+    "tags": [
+      "ascend",
+      "torchnpu",
+      "profiler",
+      "dynamo"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "TorchNPU profiler options and Dynamo trace rules.",
+      "hardware": [
+        "Ascend profiler names and Dynamo hooks",
+        "no trace collected"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "TorchNPU profiler options and Dynamo trace rules.",
+    "hardware": [
+      "Ascend profiler names and Dynamo hooks",
+      "no trace collected"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.cuda.skills.pytorch_caching_allocator_and_streams",
+  "title": "pytorch-caching-allocator-and-streams",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "cuda",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose PyTorch v2.15 CUDA caching-allocator settings, private graph pools and stream-pool aliasing. Use for device allocator and stream lifetime, not the v2.8 host-copy procedure.",
+  "tags": [
+    "pytorch",
+    "cuda",
+    "allocator",
+    "streams"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/SKILL.md",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/metadata.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/references/readset.json",
+        "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "ed6eae061aaa972a5bfac8bb8d6544a2e61e7ca4e5ceba5a09bc17ae6f96eaea"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/SKILL.md"
+  },
+  "checkout_ref": "checkout:pytorch-caching-allocator-and-streams",
+  "source_files": {
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/SKILL.md": "ed6eae061aaa972a5bfac8bb8d6544a2e61e7ca4e5ceba5a09bc17ae6f96eaea",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/metadata.json": "5427bf35fa6339f981cfb79a68854119e5b03d97d334e4ef8b6a4ce48a9d77c2",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/references/readset.json": "7b3495c12851e3a39865e2dde6b3942824615583993f2f95217df45c080b0c5b",
+    "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/references/source-notes.md": "07ed7f6e71ed04c385a9c426936aa672e21c56d5d09ce666e87ba7a64a7c5cac",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "pytorch-caching-allocator-and-streams",
+    "description": "Diagnose PyTorch v2.15 CUDA caching-allocator settings, private graph pools and stream-pool aliasing. Use for device allocator and stream lifetime, not the v2.8 host-copy procedure.",
+    "tags": [
+      "pytorch",
+      "cuda",
+      "allocator",
+      "streams"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "CUDA caching allocator settings and stream pools at PyTorch v2.15.0.",
+      "hardware": [
+        "CUDA devices for this allocator",
+        "host allocator remains the v2.8 owner"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "CUDA caching allocator settings and stream pools at PyTorch v2.15.0.",
+    "hardware": [
+      "CUDA devices for this allocator",
+      "host allocator remains the v2.8 owner"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.torchnpu_inference_operating_graph",
+  "title": "torchnpu-inference-operating-graph",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Route a TorchNPU inference question to PrivateUse1 registration, NPU graph capture, streams, HCCL process-group control or profiler and compile hooks. Use before combining those notes with the older allocator skills.",
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "router",
+    "inference"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/references/readset.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/references/source-notes.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/references/unread-inventory.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "2aad186b972404b734b65155f214944a01e2562ec52532bdc4cb0ecfc8a3b786"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/SKILL.md"
+  },
+  "checkout_ref": "checkout:torchnpu-inference-operating-graph",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/SKILL.md": "2aad186b972404b734b65155f214944a01e2562ec52532bdc4cb0ecfc8a3b786",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/metadata.json": "02ecce043bf232f586fd47b71c1c0fd95048666697be56e57b8397b7a9d6b45c",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/references/readset.json": "46aacff1953a1edd1678ae1c625d8763a740e7bc44cbd99142989a009eda8d1f",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/references/source-notes.md": "132fff2fe017a913996c614b9aed64e97a6c6d083df57ef763d7a3f434868766",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/references/unread-inventory.md": "ffc03e09fb23820412b5e6a7712feebbfd2318f4d4153a4644c42144c2393528",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "torchnpu-inference-operating-graph",
+    "description": "Route a TorchNPU inference question to PrivateUse1 registration, NPU graph capture, streams, HCCL process-group control or profiler and compile hooks. Use before combining those notes with the older allocator skills.",
+    "tags": [
+      "ascend",
+      "torchnpu",
+      "router",
+      "inference"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md",
+      "references/unread-inventory.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Route TorchNPU inference questions at the v26.2.0-pytorch2.14.0 tag.",
+      "hardware": [
+        "Ascend NPU as named by TorchNPU",
+        "not a tested PyTorch 2.15 pair"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "Route TorchNPU inference questions at the v26.2.0-pytorch2.14.0 tag.",
+    "hardware": [
+      "Ascend NPU as named by TorchNPU",
+      "not a tested PyTorch 2.15 pair"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

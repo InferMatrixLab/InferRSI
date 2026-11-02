@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.torchnpu_streams_and_events",
+  "title": "torchnpu-streams-and-events",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Order TorchNPU work with managed streams and events, and avoid external-stream APIs the wrapper rejects. Use for stream capability limits, not for allocator reuse or a measured overlap gain.",
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "streams",
+    "events"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/references/readset.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "34b237789cb85cd849562dfdbfbfa7f250eacf9a215c6e0347a4e4409c1ef693"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/torchnpu-streams-and-events/SKILL.md"
+  },
+  "checkout_ref": "checkout:torchnpu-streams-and-events",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/SKILL.md": "34b237789cb85cd849562dfdbfbfa7f250eacf9a215c6e0347a4e4409c1ef693",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/metadata.json": "e8800462018dd41e8a32c23df1dfb088a43ea70199c9e36639b32ef318cda075",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/references/readset.json": "3baae6a82193867a533e9989f6cd2a192b9bae4a50be0c5590fbc0f6266bd33c",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/references/source-notes.md": "54b1e9872a5d19ad77066c1ed722972c9db291d23d1a9c1221ac970f9ff8d3ed",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "torchnpu-streams-and-events",
+    "description": "Order TorchNPU work with managed streams and events, and avoid external-stream APIs the wrapper rejects. Use for stream capability limits, not for allocator reuse or a measured overlap gain.",
+    "tags": [
+      "ascend",
+      "torchnpu",
+      "streams",
+      "events"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "TorchNPU managed and external stream limits.",
+      "hardware": [
+        "Ascend NPU streams",
+        "task queue unread"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "TorchNPU managed and external stream limits.",
+    "hardware": [
+      "Ascend NPU streams",
+      "task queue unread"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

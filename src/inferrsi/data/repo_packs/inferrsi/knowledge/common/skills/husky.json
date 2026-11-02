@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/husky/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/husky/metadata.json",
@@ -51,7 +51,7 @@
     "src/inferrsi/data/skill_library/repositories/husky/references/troubleshooting.md": "3948711437d25822d389dd857c72dc7fcc15727c9048d2e3eae3317d97aca6dd",
     "src/inferrsi/data/skill_library/repositories/husky/references/verification-protocol.md": "83c5a966ed3f721b412b8d8417af8336c5a8c1e46044a888720936bf2f1deeab",
     "src/inferrsi/data/skill_library/repositories/husky/scripts/audit_evidence_card.py": "291e62701ef7a37a5bfab963ea4e20abb94245bc015584223a101f18b1490895",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
   },
   "skill_metadata": {
     "name": "husky",

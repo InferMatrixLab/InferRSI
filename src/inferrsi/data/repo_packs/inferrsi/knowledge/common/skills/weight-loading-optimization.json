@@ -29,8 +29,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
       "paths": [
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/methods/weight-loading-optimization/metadata.json",
@@ -53,7 +53,7 @@
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/fastsafetensors-transfer-readset.md": "5a39f14b102b0cee304541e011aa31e44e6b13527d1bee9987c3f3b66c064d3d",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/flare-preparation-boundary.md": "1d7922785a196bdbafdc9791fe79428465a5acc0292ca8f99446f8c764b35454",
     "src/inferrsi/data/skill_library/methods/weight-loading-optimization/references/llama-loading-readset.md": "6c640f28ee3f0253a17b81461c865cb9f947367002cb75bf72550c4572d02e97",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
   },
   "skill_metadata": {
     "name": "weight-loading-optimization",

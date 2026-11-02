@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/lithos-metal/LICENSE",
         "src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md",
@@ -81,7 +81,7 @@
     "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/metadata.json": "2fca222efac7752e29f236f40a0bc38275045826b55955687e39c64ffb69f58f",
     "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/references/troubleshooting.md": "52c6e27a76547475b5c66121f873f4d2c1662c811a69da64ce85614f1bd44749",
     "src/inferrsi/data/skill_library/repositories/lithos-metal/sub-skills/serving-cache/references/workflows.md": "298d27d3c748fe22774b872ed0465b707e53812379a7a538c95f25d1727fc796",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
   },
   "skill_metadata": {
     "name": "lithos-metal",

@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.torchnpu_graph_capture",
+  "title": "torchnpu-graph-capture",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Capture and replay a TorchNPU NPUGraph, including pool sharing, capture-error mode, the pre-capture sync and auto-dispatch update. Use for graph lifetime, not allocator tuning or a measured replay speedup.",
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "graph",
+    "npugraph"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1725e65ea786b7734c3008f50fdc37fb54444230/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/SKILL.md",
+      "commit": "1725e65ea786b7734c3008f50fdc37fb54444230",
+      "paths": [
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/SKILL.md",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/references/readset.json",
+        "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "06fb0e76e9a8aa508660ff8b92dafb79867b67b1e2c228b3da98c774c193e8dd"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/hardware/ascend/torchnpu-graph-capture/SKILL.md"
+  },
+  "checkout_ref": "checkout:torchnpu-graph-capture",
+  "source_files": {
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/SKILL.md": "06fb0e76e9a8aa508660ff8b92dafb79867b67b1e2c228b3da98c774c193e8dd",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/metadata.json": "078d8501fe0be5fc571774516df94f1aed6e9d99a45692f34e1733333c59b519",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/references/readset.json": "8cfc98b56b6cf88824d491da6c1f997d282eb38197bfd4aa67beeff09450927e",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/references/source-notes.md": "18c35c614137b1af2160f934b9a2eca8c20460afe265dd7ebf3d371b6c355aac",
+    "src/inferrsi/data/skill_library/skill-index.json": "8bf29f61c43a61a4d7105062784e072b5d3326f357cbe35000936bbcc428a37e"
+  },
+  "skill_metadata": {
+    "name": "torchnpu-graph-capture",
+    "description": "Capture and replay a TorchNPU NPUGraph, including pool sharing, capture-error mode, the pre-capture sync and auto-dispatch update. Use for graph lifetime, not allocator tuning or a measured replay speedup.",
+    "tags": [
+      "ascend",
+      "torchnpu",
+      "graph",
+      "npugraph"
+    ],
+    "status": "candidate",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "empirical_validation": "not_run",
+    "limitations": [
+      "Source-derived candidate; empirical validation not_run.",
+      "No benchmark, throughput, latency or quality number was measured for this extraction.",
+      "DisCo was not run. Static reading is not native, model or service verification."
+    ],
+    "provenance_readsets": [
+      "references/readset.json",
+      "references/source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "TorchNPU NPUGraph capture and replay contracts.",
+      "hardware": [
+        "Ascend NPU graph APIs",
+        "ACL runtime unread"
+      ],
+      "prerequisites": [
+        "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+      ]
+    },
+    "recommendations": [
+      "Read the pinned source notes before applying a symbol or environment key.",
+      "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+    ]
+  },
+  "applicability": {
+    "scope": "TorchNPU NPUGraph capture and replay contracts.",
+    "hardware": [
+      "Ascend NPU graph APIs",
+      "ACL runtime unread"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}
