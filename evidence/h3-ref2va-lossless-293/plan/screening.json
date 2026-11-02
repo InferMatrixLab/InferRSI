@@ -1,0 +1,53 @@
+{
+  "status": "frozen_screening_not_acceptance",
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/293#issuecomment-6573035907",
+  "source_revision": "098b51f6b96dd160a0959e74e8822422527ff06d",
+  "image_id": "sha256:7fc6c73bd19a6ef4ee8d6048009972234796a1fc1bd3067168a425343cc476f7",
+  "duration_s": 5,
+  "steps": 50,
+  "seed": 0,
+  "warmups": 2,
+  "measured_requests_per_server": 1,
+  "profiles": {
+    "allgather": {
+      "quality": "lossless",
+      "serve_args": [
+        "--diffusion-attention-backend",
+        "FLASH_ATTN"
+      ]
+    },
+    "ranklocal0": {
+      "quality": "lossless",
+      "serve_args": [
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--diffusion-offload-config",
+        "{\"mode\": \"layer\", \"components\": [\"dit\"], \"layer_options\": {\"dit\": {\"weight_transfer\": \"rank-local\", \"resident_layers\": 0}}}"
+      ]
+    },
+    "ranklocal16": {
+      "quality": "lossless",
+      "serve_args": [
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--diffusion-offload-config",
+        "{\"mode\": \"layer\", \"components\": [\"dit\"], \"layer_options\": {\"dit\": {\"weight_transfer\": \"rank-local\", \"resident_layers\": 16}}}"
+      ]
+    }
+  },
+  "source": "vLLM-Omni PR5929 component-selective DLO, ea3cf9989; campaign-authored 16-layer hypothesis",
+  "stop_policy": "Stop on first failed arm. No final acceptance from this screen. Final AB/BA at 5s and 15s required.",
+  "reservation": "one 8-card reservation, 6h hard, 315m soft, 100m per arm; 1200s HTTP and execution deadlines",
+  "quality": "No approximate cache, quantization, sparse attention, step reduction or reference-KV reuse. New coverage/authenticated-weight validator; nonidentical media remains INCONCLUSIVE pending matched repeatability adjudication.",
+  "script_sha256": {
+    "run_host.sh": "805c2b2cdf22b9ac85745c9755bf4b1bfa96f13a00e31125e1173d321affa30f",
+    "run_inner.sh": "d3a7ecd7108474a79e17783206e9b13fd85c8a6673d16751ed25cc9a435c9cf0",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+    "allgather.json": "5b4ffd4364a6324811b2ad3a24eb623b9d9eb85093da2e025008f37267d4eaab",
+    "ranklocal0.json": "a2d01ea417740660f9794823f9d934662046b9546a4859322dae173383d16baf",
+    "ranklocal16.json": "4ec8b91f3f7b1714cae759e39e1507e92afb81a46203ce7a3f2b5282d30c79f5",
+    "campaign.sh": "2baf792b332a95fa55f90cd5c64ece0db565b7548ccb3e898f6d941209458929",
+    "launch.sh": "980943b33d94fa844d443d4811d234aa27064f05d3ec04dd6374c3401e18ef45"
+  }
+}

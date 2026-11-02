@@ -1,6 +1,11 @@
 {
   "version": 1,
   "bundles": {
+    "h3-ref2va-lossless-293": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Model files, raw media, LPIPS weight files and host experiment logs are external. Weight digests are checked by the new scorer when explicitly supplied; inventory validation alone does not authenticate external weights or establish lossless quality."]
+    },
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [
