@@ -15,7 +15,7 @@ from inferrsi.harness.parallel_round import (
     submit,
     ticket_status,
 )
-from inferrsi.infra.confinement import FixtureBackend
+from inferrsi.infra.confinement import ConfinementUnavailable, FixtureBackend
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
 
 WHEN = datetime(2026, 10, 30, tzinfo=timezone.utc)
@@ -194,3 +194,124 @@ def test_two_acquires_do_not_share_one_device(tmp_path):
     assert failed.is_set()
     held.release()
     lease.acquire("cpu-1").release()
+
+
+def test_submit_rejects_symlink_without_reading_the_target(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    canary = tmp_path / "canary.txt"
+    canary.write_text("CANARY-SECRET", encoding="utf-8")
+    work = tmp_path / "work"
+    _tree(work, "8")
+    (work / "knobs" / "a.txt").unlink()
+    (work / "knobs" / "a.txt").symlink_to(canary)
+    rejected = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert rejected["submitted"] is False
+    assert rejected["reason"] == "symlink"
+    assert rejected["ticket"] is None
+    assert not (round_dir / "outbox").exists()
+    assert "CANARY-SECRET" not in json.dumps(rejected)
+
+
+def test_in_scope_deletion_is_rejected_before_hashing_and_serve_does_not_run(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    (work / "knobs" / "a.txt").unlink()
+    rejected = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert rejected == {
+        "submitted": False,
+        "outside": [],
+        "deleted": ["knobs/a.txt"],
+        "rejected": [],
+        "ticket": None,
+        "reason": "deletion",
+    }
+    ticket = "crafted-ticket"
+    overlay = round_dir / "outbox" / ticket
+    overlay.mkdir(parents=True)
+    (overlay / "manifest.json").write_text(
+        json.dumps({"ticket": ticket, "lane_id": "L1", "files": {}, "deleted": ["knobs/a.txt"]}),
+        encoding="utf-8",
+    )
+    served = serve_ticket(round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN)
+    assert served["status"] == "rejected"
+    assert served["reason"] == "deletion"
+    assert not (round_dir / "candidates").exists()
+
+
+def test_submit_after_deadline_is_refused_on_a_fresh_read(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    spec = _spec()
+    spec["lanes"][0]["deadline_utc"] = "2020-01-01T00:00:00+00:00"
+    round_dir = tmp_path / "round"
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    first = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    second = submit(round_dir, "L1", incumbent, work, now=WHEN)
+    assert first["submitted"] is False and second["submitted"] is False
+    assert "deadline" in first["reason"]
+    assert not (round_dir / "outbox").exists()
+
+
+def test_launch_after_deadline_cancels_before_claim(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    moments = [WHEN, datetime(2100, 1, 1, tzinfo=timezone.utc)]
+
+    def clock():
+        return moments.pop(0) if len(moments) > 1 else moments[0]
+
+    rejected = serve_ticket(
+        round_dir, ticket, incumbent, backend=FixtureBackend(), now=WHEN, clock=clock
+    )
+    assert rejected["status"] == "rejected"
+    assert "deadline" in rejected["reason"]
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    assert ledger["entries"][-1]["phase"] == "cancelled"
+    assert not (round_dir / "candidates" / ticket / "build-stamp").exists()
+
+
+def test_failure_after_claim_stays_unsettled_across_restart(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+
+    class StopAfterClaim:
+        name = "stop"
+
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            raise ConfinementUnavailable("stopped after claim")
+
+    first = serve_ticket(
+        round_dir, ticket, incumbent, backend=StopAfterClaim(), now=WHEN
+    )
+    assert first["status"] == "unsettled"
+    ledger_path = round_dir / "ledgers" / "L1.json"
+    ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in ledger["entries"]] == ["claimed"]
+    (round_dir / "results" / f"{ticket}.json").unlink()
+    second = serve_ticket(
+        round_dir, ticket, incumbent, backend=StopAfterClaim(), now=WHEN
+    )
+    assert second["status"] == "unsettled"
+    reloaded = json.loads(ledger_path.read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in reloaded["entries"]] == ["claimed"]
+    assert reloaded["entries"][0]["worst_case"] == ledger["entries"][0]["worst_case"]

@@ -167,18 +167,30 @@ def advance(
     raise BudgetError("No exact reservation for this plan/run")
 
 
-def ensure_open(deadline_utc: str, now: datetime) -> None:
-    """Refuse a new attempt after the lane deadline. Reservation does not check time."""
-    if type(deadline_utc) is not str:
-        raise BudgetError("deadline must be a timezone-aware timestamp")
+def _deadline(deadline_utc: str, now: datetime) -> datetime:
+    if type(deadline_utc) is not str or now.tzinfo is None:
+        raise BudgetError("deadline and now must be timezone-aware")
     try:
         deadline = datetime.fromisoformat(deadline_utc)
     except ValueError as exc:
         raise BudgetError("deadline must be a timezone-aware timestamp") from exc
-    if deadline.tzinfo is None or now.tzinfo is None:
+    if deadline.tzinfo is None:
         raise BudgetError("deadline and now must be timezone-aware")
-    if now > deadline:
+    return deadline
+
+
+def ensure_open(deadline_utc: str, now: datetime) -> None:
+    """Refuse a new attempt after the lane deadline. Reservation does not check time."""
+    if now > _deadline(deadline_utc, now):
         raise BudgetError("lane deadline passed")
+
+
+def seconds_remaining(deadline_utc: str, now: datetime) -> float:
+    """Seconds left until the same absolute cutoff. Zero or less is already closed."""
+    remaining = (_deadline(deadline_utc, now) - now).total_seconds()
+    if remaining <= 0:
+        raise BudgetError("lane deadline passed")
+    return remaining
 
 
 def empty_ledger(round_digest: str, lane_id: str, cap: int) -> Ledger:
@@ -190,7 +202,7 @@ def empty_ledger(round_digest: str, lane_id: str, cap: int) -> Ledger:
 
 
 def admit_attempt(
-    plan: dict, ledger: Ledger, lane_id: str, now: datetime
+    plan: dict, ledger: Ledger, lane_id: str, now: datetime, *, token: str | None = None
 ) -> tuple[Ledger, Binding]:
     """Read the lane contract, enforce the deadline, then reserve the next attempt."""
     lanes = [lane for lane in plan.get("lanes", []) if lane.get("id") == lane_id]
@@ -199,9 +211,10 @@ def admit_attempt(
     lane = lanes[0]
     ensure_open(lane["deadline_utc"], now)
     ordinal = len(ledger.entries) + 1
+    run_id = f"{lane_id}#{ordinal}" if token is None else f"{lane_id}#{ordinal}@{token}"
     binding = Binding(
         attempt_plan_digest(plan["round_digest"], lane_id, ordinal),
-        f"{lane_id}#{ordinal}",
+        run_id,
         lane["per_attempt_worst_case"],
     )
     return reserve(ledger, binding), binding

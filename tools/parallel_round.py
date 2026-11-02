@@ -42,7 +42,13 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "prepare":
         result = prepare(_load(args.spec), args.incumbent, args.round_dir)
     elif args.command == "submit":
-        result = submit(args.round_dir, args.lane, args.incumbent, args.work)
+        result = submit(
+            args.round_dir,
+            args.lane,
+            args.incumbent,
+            args.work,
+            now=datetime.now(timezone.utc),
+        )
     elif args.command == "serve":
         result = serve_ticket(
             args.round_dir,
