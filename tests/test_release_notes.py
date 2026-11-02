@@ -270,13 +270,15 @@ def test_completed_mixed_output_items_make_one_bounded_markdown_file(invocation,
     assert request.get_header("Accept") == "application/json"
     assert request.get_header("User-agent") == "inferrsi-release-notes/1"
     payload = json.loads(request.data)
-    assert payload["model"] == "gpt-6.1-terra" and payload["store"] is False
+    assert request.full_url == "https://api.deepseek.com/responses"
+    assert payload["model"] == "deepseek-flash" and payload["store"] is False
+    assert payload["reasoning"] == {"effort": "none"}
     assert payload["max_output_tokens"] == 1600
     assert "temperature" not in payload and "tools" not in payload
     assert KEY not in request.data.decode()
     assert "untrusted" in payload["instructions"]
     captured = capsys.readouterr()
-    assert captured.out == "GPT release overview generated.\n" and captured.err == ""
+    assert captured.out == "AI release overview generated.\n" and captured.err == ""
 
 
 @pytest.mark.parametrize("body", [
@@ -367,7 +369,42 @@ def test_cli_preserves_approved_yibu_base_and_explicit_model(invocation, base):
     request, _ = calls[0]
     assert request.full_url == "https://yibuapi.com/v1/responses"
     assert request.get_header("Authorization") == f"Bearer {KEY}"
-    assert json.loads(request.data)["model"] == "gpt-5.4-mini"
+    payload = json.loads(request.data)
+    assert payload["model"] == "gpt-5.4-mini" and "reasoning" not in payload
+
+
+@pytest.mark.parametrize("base", ["https://api.deepseek.com", "https://api.deepseek.com/"])
+def test_cli_uses_approved_deepseek_base_with_exact_default_model(invocation, base):
+    run, output, arguments = invocation
+    arguments += ["--base-url", base]
+    code, _, calls = run(completed())
+    assert code == 0 and output.is_file() and len(calls) == 1
+    request, _ = calls[0]
+    payload = json.loads(request.data)
+    assert request.full_url == "https://api.deepseek.com/responses"
+    assert payload["model"] == "deepseek-flash"
+    assert payload["reasoning"] == {"effort": "none"} and payload["store"] is False
+
+
+def test_openai_base_and_explicit_model_remain_unchanged(invocation):
+    run, output, arguments = invocation
+    arguments += ["--base-url", "https://api.openai.com/v1/", "--model", "gpt-6.1-terra"]
+    code, _, calls = run(completed())
+    assert code == 0 and output.is_file() and len(calls) == 1
+    request, _ = calls[0]
+    payload = json.loads(request.data)
+    assert request.full_url == "https://api.openai.com/v1/responses"
+    assert payload["model"] == "gpt-6.1-terra" and "reasoning" not in payload
+
+
+def test_deepseek_explicit_model_id_is_transmitted_without_alias_rewriting(invocation):
+    run, output, arguments = invocation
+    arguments += ["--model", "dsv4.1-flash-1017"]
+    code, _, calls = run(completed())
+    assert code == 0 and output.is_file() and len(calls) == 1
+    payload = json.loads(calls[0][0].data)
+    assert payload["model"] == "dsv4.1-flash-1017"
+    assert payload["reasoning"] == {"effort": "none"}
 
 
 @pytest.mark.parametrize("base", [
@@ -376,8 +413,11 @@ def test_cli_preserves_approved_yibu_base_and_explicit_model(invocation, base):
     "https://yibuapi.com/v1?token=fake-no-access", "https://yibuapi.com/v1#fragment",
     "https://yibuapi.com/v1/responses", "https://yibuapi.com:443/v1", " https://yibuapi.com/v1",
     "https://yibuapi.com/v1/../v1", "https://yibuapi.com/v1\\", "",
+    "http://api.deepseek.com", "https://api.deepseek.com/v1",
+    "https://operator:fake-no-access@api.deepseek.com", "https://api.deepseek.com?token=fake",
 ], ids=["http", "arbitrary-host", "suffix-host", "userinfo", "misleading-userinfo", "query",
-        "fragment", "full-endpoint", "port", "whitespace", "parent-path", "backslash", "empty"])
+        "fragment", "full-endpoint", "port", "whitespace", "parent-path", "backslash", "empty",
+        "deepseek-http", "deepseek-path", "deepseek-userinfo", "deepseek-query"])
 def test_unapproved_base_is_rejected_before_any_http_call(monkeypatch, base):
     monkeypatch.setattr(notes.urllib.request, "build_opener",
                         lambda *args: pytest.fail("No network"))

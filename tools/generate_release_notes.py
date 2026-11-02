@@ -12,15 +12,16 @@ import unicodedata
 import urllib.request
 from pathlib import Path
 
-DEFAULT_BASE_URL = "https://api.openai.com/v1"
-ALLOWED_BASE_URLS = frozenset({DEFAULT_BASE_URL, "https://yibuapi.com/v1"})
+DEFAULT_BASE_URL = "https://api.deepseek.com"
+ALLOWED_BASE_URLS = frozenset({DEFAULT_BASE_URL, "https://api.openai.com/v1",
+                              "https://yibuapi.com/v1"})
 ENDPOINT = DEFAULT_BASE_URL + "/responses"
-DEFAULT_MODEL = "gpt-6.1-terra"
+DEFAULT_MODEL = "deepseek-flash"
 MAX_SOURCE_BYTES = 48_000
 MAX_NOTES_BYTES = 20_000
 MAX_RESPONSE_BYTES = 131_072
 MAX_COMMITS = 100
-FALLBACK = "GPT release overview unavailable; using GitHub-generated notes."
+FALLBACK = "AI release overview unavailable; using GitHub-generated notes."
 INSTRUCTIONS = """Write a concise English Markdown overview of this software release.
 Use only the supplied source data, grouped under ## Features, ## Fixes and
 ## Compatibility; omit empty groups. Explain concrete user-visible changes and
@@ -233,6 +234,8 @@ def generate(source: str, model: str, key: str, base_url: str = DEFAULT_BASE_URL
         raise ValueError("Invalid model identity")
     payload = {"model": model, "instructions": INSTRUCTIONS, "input": source,
                "store": False, "max_output_tokens": 1600}
+    if endpoint == "https://api.deepseek.com/responses":
+        payload["reasoning"] = {"effort": "none"}
     request = urllib.request.Request(
         endpoint, data=json.dumps(payload).encode("utf-8"), method="POST",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
@@ -282,7 +285,7 @@ def main(argv: list[str] | None = None) -> int:
             temporary = Path(stream.name)
             stream.write(text.encode("utf-8"))
         os.replace(temporary, args.output)
-        print("GPT release overview generated.")
+        print("AI release overview generated.")
     except Exception:
         # Do not print HTTP bodies, credentials, source records or exception details.
         try:
