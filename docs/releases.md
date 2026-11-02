@@ -125,6 +125,8 @@ compatibility changes, with at most six bullets, 250 words of prose and one
 supplied commit link per bullet. It must not invent performance/quality or campaign PASS
 claims. The response is labeled **AI-generated summary** and prepended to the
 original GitHub changelog, preserving its PR links and source/evidence notice.
+When source metadata is truncated, the helper appends a fixed coverage notice
+from the source flags. The model is asked to leave coverage statements to the helper.
 Model output is read as a file and never executed as shell code.
 
 The helper makes one request using the
