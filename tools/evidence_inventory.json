@@ -7,6 +7,10 @@
         {
           "path": "plan/preflight-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/first-warmup-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [

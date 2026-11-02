@@ -1,0 +1,46 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "First cold warmup only; no speedup, losslessness or lifecycle acceptance",
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "devices": {
+    "type": "Ascend 910B1",
+    "count": 4
+  },
+  "workload": {
+    "duration_s": 5,
+    "steps": 50,
+    "seed": 0
+  },
+  "http_status": 200,
+  "e2e_ms": 965546.0942862555,
+  "bytes": 6515503,
+  "client_shape_check": true,
+  "media_sha256": "0a92630ef195d304f559e2b7e973be363f539912d146af8e4c4eaa5308097fd2",
+  "stream_fields": [
+    {
+      "codec_type": "video",
+      "width": 1344,
+      "height": 768,
+      "avg_frame_rate": "24/1",
+      "start_time": "0.000000",
+      "duration": "5.166667",
+      "nb_frames": "124"
+    },
+    {
+      "codec_type": "audio",
+      "sample_rate": "32000",
+      "channels": 2,
+      "avg_frame_rate": "0/0",
+      "start_time": "0.000000",
+      "duration": "5.175000",
+      "nb_frames": "163"
+    }
+  ],
+  "remaining": [
+    "Second warmup and measured request",
+    "Independent decoded media/audio coverage and repeatability",
+    "Actual four-worker exit receipts and source integrity recheck",
+    "15s baseline and all candidate comparisons"
+  ],
+  "external_artifacts": "Original media and runtime logs remain outside the repository."
+}

@@ -1,0 +1,18 @@
+{
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "source_file": "tests/e2e/accuracy/minimax_h3/test_minimax_h3_i2va_ref2va_similarity.py",
+  "prompt_sha256": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+  "comparisons": [
+    {
+      "constant": "I2VA_PROMPT",
+      "exact": false,
+      "stripped_equal": false
+    },
+    {
+      "constant": "REF2VA_PROMPT",
+      "exact": true,
+      "stripped_equal": true
+    }
+  ],
+  "scope": "Source/input identity only; no quality acceptance"
+}
