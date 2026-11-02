@@ -26,7 +26,7 @@ Release. It must not create code commits, edit repository files, create/update/
 delete code branches, create/approve/merge PRs or enable auto-merge. Configuration
 development and review are contributor work; they are not bot capabilities.
 
-Plan/build jobs have Contents read access. Only the publisher receives Contents
+Plan/build/notes jobs have Contents read access. Only the publisher receives Contents
 write; Pull requests permission is explicitly none. The publisher validates its
 tag/SHA inputs and never checks out or executes repository code. Regression
 tests execute its actual shell commands against a recording GitHub mock that
@@ -64,7 +64,12 @@ configuration does not silently change their access or existing branch rules.
    Its generated plugin metadata, bundled runtime and tag must have the same
    version. Verify every bundled runtime hash and exercise the extracted
    launcher/knowledge reads outside the checkout with isolated Python.
-4. A separate write job verifies the artifacts, source ancestry and release
+4. After a successful build, an optional read-only notes job calls the GPT API
+   with bounded change metadata for exactly the planned revision range. Its
+   Markdown summary is transferred as a separate artifact. Missing credentials,
+   API/validation errors and unavailable notes artifacts fall back to the
+   existing GitHub-generated notes.
+5. A separate write job verifies the artifacts, source ancestry and release
    state again. It creates the remote tag only after validation, creates an
    internal draft, uploads wheel/sdist/plugin ZIP/checksums and automatically publishes
    after confirming the attachments and tag identity. It does not execute
@@ -79,6 +84,39 @@ software changes; CPU/package checks do not establish campaign `PASS`, model
 quality or service performance. Such claims retain the acceptance and evidence
 requirements in [contributing](contributing.md#evidence-and-claims).
 
+## GPT release summaries
+
+To enable GPT summaries, add the Actions repository secret `OPENAI_API_KEY` under
+**Settings → Secrets and variables → Actions**. The key is injected only into
+the notes step. Do not put it in workflow source, command arguments, PR text or
+logs. OpenAI API access and usage are billed to the key's API project; GitHub
+Copilot access is not required.
+
+The default model is `gpt-5.4-mini`. Set the optional Actions repository variable
+`OPENAI_RELEASE_NOTES_MODEL` to another model available to your API project and
+compatible with the Responses API. No custom API endpoint is used. Without the
+secret, the workflow skips GPT and continues ordinary publication.
+
+The [notes helper](../tools/generate_release_notes.py) sends bounded commit
+subjects, source links and file-change statistics from the previous successful
+tag through the planned commit. It omits authors, email addresses, commit bodies
+and raw patches. Inputs are treated as source data, not executable instructions.
+The prompt asks for a concise English overview of software features, fixes and
+compatibility changes; it must not invent performance/quality or campaign PASS
+claims. The response is labeled **AI-generated summary** and prepended to the
+original GitHub changelog, preserving its PR links and source/evidence notice.
+Model output is read as a file and never executed as shell code.
+
+The helper makes one request to the
+[OpenAI Responses API](https://developers.openai.com/api/docs/guides/text), with
+bounded input/output, a timeout, no tools and `store: false`. That setting does
+not establish zero data retention. Missing credentials, failed/incomplete/refused
+or unusable responses leave no summary. The optional notes job or artifact may
+fail without skipping an otherwise valid publication; failed package checks and
+workflow cancellation still prevent publication. The AI job has no repository
+write permission, and the publisher receives no OpenAI key. There is no AI code
+commit, merge, account installation or update to an existing public Release.
+
 Each Release contains a Python wheel, source distribution, the versioned Codex
 plugin ZIP and `SHA256SUMS` covering all three packages. Extract the ZIP and
 follow the [Codex plugin installation guide](codex-plugin.md#install-from-the-release-zip).
@@ -92,13 +130,16 @@ wrapper is packaged; the downloaded ZIP is the only Codex plugin release asset.
 
 Merge the configuration into the default branch. GitHub Actions and the listed
 actions must be allowed by organization policy, and the publisher needs
-`contents: write`. No extra secret, PAT, GitHub App or repository-wide write
-default is needed. The workflow guards the canonical repository and default
+`contents: write`. Ordinary releases need no extra secret, PAT, GitHub App or
+repository-wide write default. GPT summaries additionally use the optional
+`OPENAI_API_KEY` secret described above. The workflow guards the canonical repository and default
 branch; copies must deliberately update that repository guard.
 
 Under **Actions → Release bot → Run workflow**, select the default branch and
 leave **dry_run** checked. It plans and builds the next release without creating
-a remote tag or Release; unchanged trees skip here too. Clearing **dry_run**
+a remote tag or Release; unchanged trees skip here too. With `OPENAI_API_KEY`
+configured, a changed-source dry run also makes the GPT request and uploads the
+summary artifact for inspection, consuming API usage. Clearing **dry_run**
 runs the same automatic publication immediately. It takes no version/tag input.
 
 ```bash
