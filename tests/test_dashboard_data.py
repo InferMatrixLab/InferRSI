@@ -684,3 +684,99 @@ def test_time_chart_marks_quality_failure_and_rollback_without_measurement(tmp_p
     )
     _, note = temporal_chart(load_dashboard(tmp_path))
     assert '1 result(s) have no recorded terminal timestamp' in note
+
+
+def test_optimization_details_commands_and_privacy(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    run(tmp_path, "run-a", 5, quality="completed", verified=True)
+    lock = tmp_path / "runs/run-a/run.lock.json"
+    data = json.loads(lock.read_text(encoding="utf-8"))
+    data["candidate_command"] = [
+        "/private/bin/python", "/private/trial.py", "--mode", "mtp", "--token", "s3cr3t",
+        "--api-key=rawkey", "-H", "Authorization: Bearer hidden", "--max-tokens", "128",
+        "unknown-private-value", "-c", "print('hidden source')",
+    ]
+    write_json(lock, data)
+    candidate(tmp_path, "a", "run-a", details={
+        "change_kind": "code", "summary": "Improve decode token=private-value",
+        "hypothesis": "Reduce launch overhead", "benchmark": "Paired trials",
+        "accuracy": "Evaluate a fixed test set", "code_locations": [
+            {"path": "vllm/tokenizer.py", "line_start": 5, "line_end": 8,
+             "revision": "a" * 40, "scope": "vllm", "note": "Decode path"},
+            {"path": "../private.py"},
+        ],
+        "commands": [{"label": "Candidate server", "argv": [
+            "python", "-m", "vllm.entrypoints.openai.api_server", "--speculative-config",
+            '{"method":"mtp","num_speculative_tokens":1}',
+        ]}],
+    })
+
+    row = load_dashboard(tmp_path)["candidates"][0]
+    command = row["commands"]["candidate"]
+    assert "trial.py" in command and "--mode mtp" in command and "--max-tokens 128" in command
+    for secret in ("/private", "s3cr3t", "rawkey", "Bearer hidden", "unknown-private-value",
+                   "hidden source", "private-value"):
+        assert secret not in json.dumps(row)
+    assert row["optimization"]["summary"] == "Improve decode token=[redacted]"
+    assert row["optimization"]["code_locations"][0]["path"] == "vllm/tokenizer.py"
+    assert row["optimization"]["code_locations"][0]["revision"] == "a" * 40
+    assert row["optimization"]["code_locations"][1]["path"] is None
+    assert '"method":"mtp"' in row["optimization"]["commands"][0]["argv"]
+    assert row["artifacts"]["run_lock"]["sha256"] == hashlib.sha256(lock.read_bytes()).hexdigest()
+    for args in (["python", "x.py", "--value", "--sk-abc123XYZ"],
+                 ["python", "x.py", "--size", "-1122334455667788"]):
+        display = dashboard_data._display_command(args)
+        assert "--sk-abc123XYZ" not in display
+        assert "-1122334455667788" not in display
+
+
+def test_trace_preserves_safe_event_fields_and_corrupt_source(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    run(tmp_path, "run-a", 5, quality="completed", verified=True)
+    events = tmp_path / "runs/run-a/events.jsonl"
+    events.write_text('bad-runner\n', encoding="utf-8")
+    trace = tmp_path / "candidates/a/trace.jsonl"
+    trace.parent.mkdir(parents=True)
+    event = {
+        "schema_version": 1, "campaign_id": "example", "candidate_id": "a",
+        "run_id": "run-a", "round": 1, "stage": "search", "type": "agent.tool",
+        "time": "2026-01-01T00:00:00Z", "name": "write_candidate", "request": 2,
+        "bytes": 100, "result_sha256": "b" * 64,
+        "usage": {"input_tokens": 10, "output_tokens": 2, "secret": "DO_NOT_EXPORT"},
+        "prompt": "DO_NOT_EXPORT", "reason": {"secret": "DO_NOT_EXPORT"},
+    }
+    trace.write_text(json.dumps(event) + '\n' + json.dumps({
+        **event, "type": "edit.artifact", "name": "ignored", "revision": 3,
+        "artifact": "candidate.py",
+    }) + '\n' + json.dumps({**event, "type": "agent.tool", "name": "submit_candidate"})
+                     + '\n' + json.dumps({
+                         **event, "name": "run_visible_benchmark",
+                         "reason": "provider_transport_error",
+                         "receipt": {"kind": "benchmark", "receipt_sha256": "c" * 64,
+                                     "feedback": {"verdict": "PASS", "quality_verdict": "PASS",
+                                                  "improvement_pct": 20.5,
+                                                  "baseline_values": [2.0],
+                                                  "candidate_values": [1.5],
+                                                  "secret": "DO_NOT_EXPORT"}},
+                     })
+                     + '\nbad-agent\n', encoding="utf-8")
+    candidate(tmp_path, "a", "run-a", round=1, agent_trace_ref={
+        "path": "candidates/a/trace.jsonl",
+        "sha256": hashlib.sha256(trace.read_bytes()).hexdigest(),
+    })
+
+    row = load_dashboard(tmp_path)["candidates"][0]
+    event = row["events"][0]
+    assert event["tool"] == "write_candidate"
+    assert event["details"]["request"] == 2 and event["details"]["bytes"] == 100
+    assert event["details"]["usage"] == {"input_tokens": 10, "output_tokens": 2}
+    assert event["details"]["result_sha256"] == "b" * 64
+    assert "DO_NOT_EXPORT" not in json.dumps(row)
+    assert row["events"][1]["type"] == "edit.artifact" and row["events"][1]["stage"] == "search"
+    assert row["events"][1]["details"]["artifact"] == "candidate.py"
+    assert row["events"][2]["tool"] == "submit_candidate"
+    receipt = row["events"][3]["details"]["recorded_receipt"]
+    assert receipt["quality_verdict"] == "PASS" and receipt["improvement_pct"] == 20.5
+    assert receipt["receipt_sha256"] == "c" * 64
+    assert row["events"][3]["details"]["reason"] == "provider_transport_error"
+    assert row["corrupt_event_sources"] == {"events": [1], "agent_trace": [5]}

@@ -9,7 +9,7 @@ import re
 import uuid
 from pathlib import Path
 
-from .dashboard_data import _file_ref, _inside, _object
+from .dashboard_data import _file_ref, _inside, _object, _relative_location, _safe_argv, _text
 
 
 def _identifier(value: str, name: str) -> str:
@@ -85,7 +85,7 @@ def _write_rounds(root: Path, path: Path, records: list[dict]) -> None:
 
 def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number: int,
                      title: str, agent_trace: str | None = None,
-                     profile: str | None = None) -> Path:
+                     profile: str | None = None, details: dict | None = None) -> Path:
     """Associate a run and optional explicit evidence without copying raw data."""
     root = Path(root).resolve()
     _identifier(candidate_id, "candidate_id")
@@ -94,6 +94,50 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
         raise ValueError("round must be a positive integer")
     if not isinstance(title, str) or not title.strip():
         raise ValueError("title is required")
+    if details is not None:
+        if not isinstance(details, dict) or set(details) - {
+            "change_kind", "summary", "hypothesis", "benchmark", "accuracy", "code_locations",
+            "commands"
+        }:
+            raise ValueError("candidate details contain unsupported fields")
+        if "change_kind" in details:
+            kind = details["change_kind"]
+            if not isinstance(kind, str) or kind not in {"code", "configuration", "mixed", "other"}:
+                raise ValueError("unknown candidate change kind")
+        for key in ("summary", "hypothesis", "benchmark", "accuracy"):
+            if key in details and (not isinstance(details[key], str) or len(details[key]) > 1500):
+                raise ValueError(f"{key} must be a string of at most 1500 characters")
+        locations = details.get("code_locations", [])
+        if not isinstance(locations, list) or len(locations) > 50:
+            raise ValueError("code_locations must be a list of at most 50 entries")
+        for location in locations:
+            if (not isinstance(location, dict) or set(location) - {
+                "path", "line_start", "line_end", "scope", "note", "revision"
+            } or _relative_location(location.get("path")) is None):
+                raise ValueError("code location must contain a safe relative path")
+            start, end = location.get("line_start"), location.get("line_end")
+            if ((start is not None and (type(start) is not int or not 0 < start <= 10_000_000))
+                    or (end is not None and (type(end) is not int or start is None
+                                             or not start <= end <= 10_000_000))):
+                raise ValueError("code location lines must be a valid positive range")
+            if "revision" in location and (not isinstance(location["revision"], str)
+                                           or not re.fullmatch(r"[a-fA-F0-9]{7,64}",
+                                                               location["revision"])):
+                raise ValueError("code location revision must be a hexadecimal revision")
+            for key in ("scope", "note"):
+                if key in location and (not isinstance(location[key], str)
+                                        or len(location[key]) > 1000):
+                    raise ValueError(f"code location {key} must be a string")
+        commands = details.get("commands", [])
+        if not isinstance(commands, list) or len(commands) > 20:
+            raise ValueError("commands must be a list of at most 20 entries")
+        for command in commands:
+            if (not isinstance(command, dict) or set(command) != {"label", "argv"}
+                    or not isinstance(command["label"], str) or len(command["label"]) > 120
+                    or not isinstance(command["argv"], list) or not 1 <= len(command["argv"]) <= 100
+                    or not all(isinstance(arg, str) and len(arg) <= 4096
+                               for arg in command["argv"])):
+                raise ValueError("each command needs a label and a bounded argument list")
     _, state = _object(root / "campaign.json", root)
     if state != "present":
         raise ValueError("campaign.json is missing or invalid")
@@ -105,6 +149,22 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
         raise ValueError("candidate directory escapes the campaign")
     metadata = {"candidate_id": candidate_id, "run_id": run_id,
                 "round": round_number, "title": title}
+    if details is not None:
+        sanitized = {key: _text(value, "", 1500) if key != "change_kind" else value
+                     for key, value in details.items()
+                     if key in ("change_kind", "summary", "hypothesis", "benchmark", "accuracy")}
+        if "code_locations" in details:
+            sanitized["code_locations"] = [
+                {key: _text(value, "", 1000) if key in ("scope", "note") else value
+                 for key, value in location.items()}
+                for location in details["code_locations"]
+            ]
+        if "commands" in details:
+            sanitized["commands"] = [
+                {"label": _text(command["label"], "", 120),
+                 "argv": _safe_argv(command["argv"])} for command in details["commands"]
+            ]
+        metadata["details"] = sanitized
     for key, value in (("agent_trace_ref", agent_trace), ("profile_ref", profile)):
         ref = _reference(root, value, key)
         if ref is not None:

@@ -1,7 +1,8 @@
 """Read recorded run and campaign evidence into a dashboard view model.
 
-Only known fields and explicitly referenced artifacts are exposed. Raw command
-lines, environments, error messages and log contents are deliberately omitted.
+Only known fields and explicitly referenced artifacts are exposed. Commands
+are reduced to a conservative display representation; environments, arbitrary
+error messages and log contents are deliberately omitted.
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ import hashlib
 import json
 import math
 import re
+import shlex
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
@@ -21,6 +23,7 @@ PHASE_STAGES = {
 EVENT_TYPES = {
     "agent.context", "agent.request", "agent.response", "agent.tool",
     "agent.completed", "agent.failed", "agent.protocol", "agent.reservation",
+    "edit.artifact", "edit.protocol", "edit.slot",
 }
 
 
@@ -33,7 +36,7 @@ def _number(value: object) -> float | None:
         return None
 
 
-def _text(value: object, default: str = "not_recorded") -> str:
+def _text(value: object, default: str = "not_recorded", limit: int = 240) -> str:
     if not isinstance(value, str) or not value:
         return default
     value = re.sub(r"https?://\S+", "[redacted-url]", value, flags=re.I)
@@ -45,7 +48,261 @@ def _text(value: object, default: str = "not_recorded") -> str:
         r"(?i)\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+",
         r"\1=[redacted]", value,
     )
-    return value[:240]
+    return value[:limit]
+
+
+_SENSITIVE_NAME = re.compile(
+    r"(?i)(?:password|passwd|token|secret|api[_-]?key|access[_-]?key|auth|credential|cookie|header)"
+)
+_SENSITIVE_PATH = re.compile(
+    r"(?i)(?:^|[/._-])(?:password|passwd|token|secret|api[_-]?key|credential|cookie)(?:$|[/._-])"
+)
+
+
+def _relative_location(value: object) -> str | None:
+    """Accept a source location, never a host path or a credential-like filename."""
+    if not isinstance(value, str) or not value or len(value) > 240:
+        return None
+    posix, windows = PurePosixPath(value), PureWindowsPath(value)
+    if (posix.is_absolute() or windows.is_absolute() or windows.drive or ".." in posix.parts
+            or ".." in windows.parts or "\\" in value or any(ord(c) < 32 for c in value)
+            or "://" in value or _text(value, "", 240) != value
+            or _SENSITIVE_PATH.search(value) or any(part.startswith(".") for part in posix.parts)):
+        return None
+    return posix.as_posix()
+
+
+def _optimization(candidate: dict) -> dict:
+    data = candidate.get("details")
+    data = data if isinstance(data, dict) else {}
+    kind = data.get("change_kind")
+    if kind not in ("code", "configuration", "mixed", "other"):
+        kind = None
+    locations = []
+    raw_locations = data.get("code_locations")
+    if isinstance(raw_locations, list):
+        for entry in raw_locations[:50]:
+            if not isinstance(entry, dict):
+                continue
+            path = _relative_location(entry.get("path"))
+            start = entry.get("line_start")
+            end = entry.get("line_end")
+            revision = entry.get("revision")
+            revision = (revision.lower() if isinstance(revision, str)
+                        and re.fullmatch(r"[a-fA-F0-9]{7,64}", revision) else None)
+            start = start if type(start) is int and 0 < start <= 10_000_000 else None
+            end = end if (start is not None and type(end) is int
+                          and start <= end <= 10_000_000) else None
+            locations.append({"path": path, "line_start": start, "line_end": end,
+                              "revision": revision,
+                              "scope": _text(entry.get("scope"), "Not recorded"),
+                              "note": _text(entry.get("note"), "Not recorded", 1000)})
+    commands = []
+    raw_commands = data.get("commands")
+    if isinstance(raw_commands, list):
+        for entry in raw_commands[:20]:
+            if isinstance(entry, dict):
+                command = _display_command(entry.get("argv"))
+                if command is not None:
+                    commands.append({"label": _text(entry.get("label"), "Caller-recorded command"),
+                                     "argv": command})
+    return {"kind": kind, "summary": _text(data.get("summary"), "Not recorded", 1500),
+            "hypothesis": _text(data.get("hypothesis"), "Not recorded", 1500),
+            "benchmark": _text(data.get("benchmark"), "Not recorded", 1500),
+            "accuracy": _text(data.get("accuracy"), "Not recorded", 1500),
+            "code_locations": locations, "commands": commands}
+
+
+def _safe_argv(value: object) -> list[str] | None:
+    """Keep useful argv structure without retaining arbitrary argument values."""
+    if not isinstance(value, list) or not value or len(value) > 100:
+        return None
+    if not all(isinstance(arg, str) and len(arg) <= 4096 for arg in value):
+        return None
+    safe_words = {"baseline", "candidate", "mtp", "quality-baseline", "quality-mtp", "smoke",
+                  "true", "false", "auto", "vllm", "float16", "bfloat16", "float32"}
+    safe_options = {"--mode", "--dtype", "--max-tokens", "--max-model-len",
+                    "--num-speculative-tokens", "--max-num-batched-tokens", "--input-len",
+                    "--output-len", "--batch-size", "--num-prompts", "--port",
+                    "--tensor-parallel-size", "--gpu-memory-utilization", "--max-num-seqs",
+                    "--generation-config"}
+    known_options = safe_options | {"-m", "--model", "--served-model-name", "--host", "--result",
+                                   "--speculative-config", "--disable-prefix-caching",
+                                   "--disable-log-requests", "--trust-remote-code",
+                                   "--enforce-eager",
+                                   "--dataset-name", "--dataset-path", "--backend", "--endpoint"}
+    result = []
+    hide_next = False
+    value_option = None
+    for index, arg in enumerate(value):
+        if hide_next:
+            result.append("[redacted]")
+            hide_next = False
+            value_option = None
+            continue
+        if arg in ("-H", "-c", "--header", "--data", "--data-raw"):
+            result.append(arg)
+            hide_next = True
+            continue
+        if arg.startswith("-"):
+            value_option = None
+            name, equal, val = arg.partition("=")
+            if not re.fullmatch(r"--?[A-Za-z0-9][A-Za-z0-9_-]*", name):
+                result.append("[redacted]")
+                continue
+            if _SENSITIVE_NAME.search(name) and name not in safe_options:
+                result.append("[sensitive-option]" + ("=[redacted]" if equal else ""))
+                hide_next = not equal
+                continue
+            if name not in known_options:
+                result.append("[redacted-option]")
+                continue
+            if equal:
+                safe = name in safe_options and (val in safe_words or re.fullmatch(r"[0-9.]+", val))
+                shown = val if safe else "[redacted]"
+                result.append(name + "=" + shown)
+            else:
+                result.append(name)
+                hide_next = bool(_SENSITIVE_NAME.search(name)) and name not in safe_options
+                accepts_value = name in safe_options or name == "--speculative-config"
+                value_option = name if accepts_value else None
+            continue
+        if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*=.*", arg):
+            result.append(arg.split("=", 1)[0] + "=[redacted]")
+            continue
+        base = PureWindowsPath(arg).name if "\\" in arg else PurePosixPath(arg).name
+        if (index == 0 and re.fullmatch(r"(?:python(?:[0-9.]+)?|vllm|pytest|bash|sh)", base)):
+            result.append(base)
+        elif (index == 1 and base.endswith(".py")
+              and re.fullmatch(r"[A-Za-z0-9_.-]{1,100}", base)
+              and not _SENSITIVE_NAME.search(base)):
+            result.append(base if base == arg else "[path]/" + base)
+        elif index == 2 and value[1] == "-m" and arg == "vllm.entrypoints.openai.api_server":
+            result.append(arg)
+        elif value_option == "--speculative-config":
+            try:
+                config = json.loads(arg)
+            except (ValueError, RecursionError):
+                config = None
+            if (isinstance(config, dict) and set(config) == {"method", "num_speculative_tokens"}
+                    and config.get("method") == "mtp"
+                    and type(config.get("num_speculative_tokens")) is int
+                    and 0 < config["num_speculative_tokens"] <= 128):
+                result.append(json.dumps(config, separators=(",", ":")))
+            else:
+                result.append("[redacted]")
+        elif value_option and (arg in safe_words or re.fullmatch(r"[0-9.]+", arg)):
+            result.append(arg)
+        else:
+            result.append("[redacted]")
+        value_option = None
+    return result
+
+
+def _display_command(value: object) -> str | None:
+    safe = _safe_argv(value)
+    return shlex.join(safe) if safe is not None else None
+
+
+def _event_details(record: dict) -> dict:
+    """Retain structured trace metadata, never arbitrary payloads or messages."""
+    details = {}
+    for key in ("request", "requests", "request_bytes", "bytes", "revision"):
+        value = record.get(key)
+        if type(value) is int and 0 <= value <= 1_000_000_000_000:
+            details[key] = value
+    for key in ("request_sha256", "result_sha256", "artifact_sha256", "sha256", "manifest_sha256",
+                "actor_sha256", "check_receipt", "benchmark_receipt"):
+        value = record.get(key)
+        if isinstance(value, str) and re.fullmatch(r"[a-fA-F0-9]{64}", value):
+            details[key] = value.lower()
+    usage = record.get("usage")
+    if isinstance(usage, dict):
+        keys = ("input_tokens", "output_tokens", "cached_input_tokens")
+        values = {key: usage[key] for key in keys
+                  if type(usage.get(key)) is int and 0 <= usage[key] <= 1_000_000_000_000}
+        if values:
+            details["usage"] = values
+    if record.get("client_kind") in ("anthropic-messages-agent-v1",
+                                     "anthropic-messages-full-context-v1",
+                                     "anthropic-messages-edit-check-v1"):
+        details["client_kind"] = record["client_kind"]
+    files = record.get("files")
+    if isinstance(files, list):
+        entries = []
+        for file in files[:50]:
+            if not isinstance(file, dict):
+                continue
+            path = _relative_location(file.get("path"))
+            size, digest = file.get("bytes"), file.get("sha256")
+            if (path and type(size) is int and 0 <= size <= 1_000_000_000_000
+                    and isinstance(digest, str) and re.fullmatch(r"[a-fA-F0-9]{64}", digest)):
+                entries.append({"path": path, "bytes": size, "sha256": digest.lower()})
+        if entries:
+            details["files"] = entries
+    reason = record.get("reason")
+    reasons = {"timeout", "interrupted", "agent_error", "edit_agent_error",
+               "readiness_or_worker_error", "request_bytes_limit", "input_token_limit",
+               "output_token_limit", "tool_call_limit", "invalid_tool_call",
+               "candidate_bytes_limit",
+               "credential_echo", "credential_in_payload", "deadline_exceeds_frozen_limit",
+               "feedback_bytes_limit", "incompatible_response", "invalid_candidate",
+               "invalid_credential_shape", "invalid_or_premature_answer", "invalid_response_json",
+               "invalid_tool_utf8", "invalid_visible_feedback", "invalid_workspace_file",
+               "missing_agent_tool_call", "missing_task", "protected_workspace_changed",
+               "provider_transport_error", "request_allocation_unavailable",
+               "request_authorization_denied", "request_limit", "response_bytes_limit",
+               "revision_retention_error", "stale_or_missing_receipt", "task_not_read",
+               "tool_read_limit", "transport_error", "unexposed_path", "unknown_usage",
+               "unsupported_tool", "visible_callback_error", "workspace_symlink"}
+    if isinstance(reason, str) and (reason in reasons
+                                    or re.fullmatch(r"http_[1-5][0-9]{2}", reason)):
+        details["reason"] = reason
+    for key, allowed in (("stop_reason", {"tool_use", "end_turn", "max_tokens", "stop_sequence",
+                                          "pause_turn", "refusal"}),
+                         ("state", {"running", "completed", "failed", "crashed", "timeout",
+                                    "cancelled"}),
+                         ("verdict", {"PASS", "FAIL", "INCONCLUSIVE"})):
+        value = record.get(key)
+        if isinstance(value, str) and value in allowed:
+            details[key] = value
+    path = _relative_location(record.get("path"))
+    if path is not None:
+        details["path"] = path
+    artifact = _relative_location(record.get("artifact"))
+    if artifact is not None:
+        details["artifact"] = artifact
+    receipt = record.get("receipt")
+    expected_kind = {"run_visible_checks": "checks", "run_visible_benchmark": "benchmark"}.get(
+        record.get("name") if isinstance(record.get("name"), str) else None
+    )
+    if isinstance(receipt, dict) and expected_kind and receipt.get("kind") == expected_kind:
+        summary = {"kind": expected_kind}
+        digest = receipt.get("receipt_sha256")
+        if isinstance(digest, str) and re.fullmatch(r"[a-fA-F0-9]{64}", digest):
+            summary["receipt_sha256"] = digest.lower()
+        feedback = receipt.get("feedback")
+        if isinstance(feedback, dict):
+            for key in ("verdict", "quality_verdict"):
+                value = feedback.get(key)
+                if isinstance(value, str) and value in {"PASS", "FAIL", "INCONCLUSIVE"}:
+                    summary[key] = value
+            improvement = _number(feedback.get("improvement_pct"))
+            if improvement is not None:
+                summary["improvement_pct"] = improvement
+            checks = feedback.get("checks")
+            if (isinstance(checks, dict) and len(checks) <= 1000
+                    and all(type(value) is bool for value in checks.values())):
+                summary["checks_total"] = len(checks)
+                summary["checks_passed"] = sum(checks.values())
+            for key in ("baseline_values", "candidate_values"):
+                values = feedback.get(key)
+                if isinstance(values, list) and len(values) <= 100:
+                    numbers = [_number(value) for value in values]
+                    if all(value is not None and value > 0 for value in numbers):
+                        summary[key] = numbers
+        details["recorded_receipt"] = summary
+    return details
 
 
 def _inside(root: Path, path: Path) -> bool:
@@ -205,8 +462,11 @@ def _events(path: Path, root: Path, expected: dict | None = None, unique_candida
             if record.get("side") in ("baseline", "candidate") else None,
             "trial": trial if isinstance(trial, int) and not isinstance(trial, bool)
             and 0 < trial <= 1_000_000 else None,
-            "tool": record.get("name") if record.get("name") in ("read_file", "submit_answer")
-            else None,
+            "tool": record.get("name") if record.get("name") in (
+                "read_file", "submit_answer", "submit_candidate", "write_candidate",
+                "run_visible_checks", "run_visible_benchmark",
+            ) else None,
+            "details": _event_details(record),
             "_declared_refs": record.get("refs") if isinstance(record.get("refs"), list) else [],
             "_link_state": link_state,
         })
@@ -252,7 +512,7 @@ def _environment_signature(environment: dict, devices: object, backend: object) 
 def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: float | None,
          campaign_id: object = None, unique_candidate: bool = False,
          candidate_ref: dict | None = None) -> dict:
-    lock, _ = _object(path / "run.lock.json", root)
+    lock, _, lock_ref = _object_snapshot(path / "run.lock.json", root, "run_lock")
     repositories, _ = _object(path / "repositories.lock.json", root)
     environment, _ = _object(path / "environment.json", root)
     evaluation, evaluation_state, evaluation_ref = _object_snapshot(
@@ -263,7 +523,9 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         path / "validation" / "execution.json", root, "quality"
     )
     events, corrupt, event_state, _, events_ref = _events(path / "events.jsonl", root)
+    corrupt_sources = {"events": list(corrupt), "agent_trace": []}
     refs = {
+        "run_lock": lock_ref,
         "events": events_ref,
         "evaluation": evaluation_ref,
         "status": status_ref,
@@ -311,6 +573,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                                    else "hash_mismatch" if agent_state == "changed"
                                    else "file_absent" if agent_state == "missing" else "corrupt"}
             agent_events = []
+            agent_corrupt = []
             agent_links = {"unlinked": [], "mismatched": []}
         for event in agent_events:
             event["source"] = "agent_trace"
@@ -321,6 +584,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
             else:
                 events.append(event)
         corrupt.extend(agent_corrupt)
+        corrupt_sources["agent_trace"] = agent_corrupt
     tool_events = [event for event in events if event["source"] == "agent_trace"
                    and event["type"] == "agent.tool"]
     refs["tool_calls"] = ({**refs["agent_trace"], "kind": "tool_calls"} if tool_events else {
@@ -404,7 +668,24 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         if evaluation.get("direction") in ("minimize", "maximize") else None,
         "verdict": verdict,
         "outcome": outcome, "events": events, "corrupt_event_lines": corrupt,
+        "corrupt_event_sources": corrupt_sources,
         "agent_trace_links": agent_links, "unlinked_agent_events": unlinked_events,
+        "optimization": _optimization(candidate),
+        "benchmark_context": {"scenario": _text(lock.get("scenario"), "Not recorded"),
+                              "workload": _text(lock.get("workload_id"), "Not recorded"),
+                              "repetitions": lock.get("repetitions")
+                              if type(lock.get("repetitions")) is int
+                              and 0 < lock["repetitions"] <= 1_000_000 else None,
+                              "baseline_samples": [_number(v)
+                                                   for v in baseline.get("values", [])[:100]]
+                              if isinstance(baseline.get("values"), list) else [],
+                              "candidate_samples": [_number(v)
+                                                    for v in measured.get("values", [])[:100]]
+                              if isinstance(measured.get("values"), list) else []},
+        "commands": {key: _display_command(lock.get(source)) for key, source in (
+            ("baseline", "baseline_command"), ("candidate", "candidate_command"),
+            ("accuracy", "validation_command"),
+        )},
         "candidate_metadata_state": (candidate_ref.get("missing_reason", "present")
                                      if candidate_ref else "not_applicable"),
         "artifacts": refs, "_comparison_signature": signature,

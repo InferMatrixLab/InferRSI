@@ -72,3 +72,42 @@ def test_round_decision_is_recorded_once_and_visible(tmp_path):
     assert load_dashboard(tmp_path)["candidates"][0]["decision"] == "rolled_back"
     with pytest.raises(ValueError, match="already has a decision"):
         record_decision(tmp_path, candidate_id="a", round_number=1, outcome="adopted")
+
+
+def test_record_cli_accepts_optimization_details_and_rejects_unsafe_location(tmp_path):
+    root = tmp_path / "campaign"
+    create_campaign(root, "example")
+    run = root / "runs/run-a"
+    run.mkdir(parents=True)
+    (run / "run.lock.json").write_text("{}", encoding="utf-8")
+    details = tmp_path / "details.json"
+    details.write_text(json.dumps({"change_kind": "code", "summary": "Reduce launch overhead",
+                                   "code_locations": [{"path": "src/engine.py", "line_start": 7}],
+                                   "commands": [{"label": "Benchmark",
+                                                 "argv": ["python", "bench.py", "--api-key",
+                                                          "FAKE_TEST_SECRET"]}]}),
+                       encoding="utf-8")
+    assert main(["campaign", "record", "--directory", str(root), "--candidate", "a",
+                 "--run-id", "run-a", "--round", "1", "--title", "First",
+                 "--details-json", str(details)]) == 0
+    row = load_dashboard(root)["candidates"][0]
+    assert row["optimization"]["summary"] == "Reduce launch overhead"
+    assert row["optimization"]["code_locations"][0]["line_start"] == 7
+    assert row["optimization"]["commands"][0]["argv"].startswith("python bench.py")
+    assert "FAKE_TEST_SECRET" not in (root / "candidates/a/candidate.json").read_text()
+    assert "FAKE_TEST_SECRET" not in json.dumps(row)
+    with pytest.raises(ValueError, match="safe relative path"):
+        record_candidate(root, candidate_id="b", run_id="run-a", round_number=1, title="Second",
+                         details={"code_locations": [{"path": "../private.py"}]})
+    assert not (root / "candidates/b/candidate.json").exists()
+
+
+def test_record_cli_rejects_excessively_nested_details_without_traceback(tmp_path, capsys):
+    details = tmp_path / "details.json"
+    details.write_text("[" * 4000 + "0" + "]" * 4000, encoding="utf-8")
+    with pytest.raises(SystemExit):
+        main(["campaign", "record", "--directory", str(tmp_path), "--candidate", "a",
+              "--run-id", "run-a", "--round", "1", "--title", "First",
+              "--details-json", str(details)])
+    error = capsys.readouterr().err
+    assert "too deeply nested" in error and "Traceback" not in error

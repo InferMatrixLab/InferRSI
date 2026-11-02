@@ -45,6 +45,42 @@ campaign-relative files; the recorder hashes them and does not copy them. The
 caller assigns IDs and must serialize campaign record updates. Neither command
 starts an agent or validates the experiment.
 
+To explain a candidate, pass `--details-json <FILE>` to `campaign record`.
+Supported fields are filtered and saved in the candidate record. The JSON can
+contain these optional fields (text is caller-supplied, not inferred or verified
+by the dashboard):
+
+```json
+{
+  "change_kind": "code",
+  "summary": "Reuse a recorded decode path",
+  "hypothesis": "Reduce launch overhead",
+  "benchmark": "Describe the workload and measurement method",
+  "accuracy": "Describe the dataset, checks and recorded result",
+  "commands": [
+    {"label": "Candidate server", "argv": ["python", "-m",
+     "vllm.entrypoints.openai.api_server", "--speculative-config",
+     "{\"method\":\"mtp\",\"num_speculative_tokens\":1}"]}
+  ],
+  "code_locations": [
+    {"scope": "engine repository", "path": "src/example.py",
+     "line_start": 10, "line_end": 15, "revision": "abcdef1234567",
+     "note": "Recorded change location"}
+  ]
+}
+```
+
+`change_kind` may be `code`, `configuration`, `mixed`, or `other`. Locations
+must be relative to the caller-described scope; optional line numbers and
+revision are not independently checked against a repository. A configuration
+change may have no code location. Existing candidate records can include the
+same `details` object. The recorder stores supplied commands only after
+conservative argument filtering; their displays are not runnable commands.
+Text fields receive basic redaction, which is not a general anonymizer, so
+callers must still supply only information safe to retain and share. Additional
+commands and their labels are caller-supplied and do not prove execution.
+Missing notes or locations are shown as not recorded.
+
 Record one decision for a round with `inferrsi campaign decide --directory
 <CAMPAIGN_DIRECTORY> --candidate <CANDIDATE_ID> --round <ROUND_NUMBER>
 --outcome <OUTCOME>`. Existing decisions are not overwritten.
@@ -87,12 +123,21 @@ The dashboard links a pre-run event when its campaign and uniquely identified
 candidate match; any supplied run and round must also match. Events with
 incomplete or ambiguous identity remain visibly unlinked and do not count as
 stage coverage or tool calls. Explicit mismatches are not attributed.
-The callback does not allocate IDs or intercept unrelated agents. Existing runner phases are mapped to execution and
-validation. The dashboard reads allowlisted event metadata; it does not include
-raw agent requests, arbitrary event messages, environment data, or raw logs.
+The callback does not allocate IDs or intercept unrelated agents. It writes the
+event object supplied by the caller verbatim: callers must remove secrets and
+private material before invoking it, and protect the trace file itself.
+Existing runner phases are mapped to execution and validation. The dashboard
+reads allowlisted event metadata, including recorded request counters, token
+usage, tool names, file manifests, hashes and selected check/benchmark receipt
+fields; it does not independently verify a receipt or include raw agent
+requests, arbitrary event messages, environment data, or raw logs. Runner and
+agent events are displayed together in timestamp order; timestamps without an
+explicit timezone are placed after timed events. Search and source filters apply
+to the trace, and corrupt lines identify their source file.
 For recorded execution events it identifies expected logs and their hashes,
 without embedding their contents. Trace line numbers and artifact references
-can be included in a local review export. Missing agent tool-call events and
+can be included in a local review export, including references attached to
+visible events. Missing agent tool-call events and
 corrupt round-record line numbers are also shown explicitly.
 
 The existing [summary chart](campaign-summary-chart.md) renderer is reused.
@@ -133,13 +178,23 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   differ across candidates are not represented as one shared band.
 - The review button creates a local Markdown download and displays its content
   for copying if a browser blocks downloads. It does not send or publish it.
+- The selected candidate shows the recorded baseline, candidate and validation
+  command argument structure from `run.lock.json`, with its source hash. Unknown
+  options and argument values, directories, credential-like options, inline
+  shell scripts and environment assignments are deliberately hidden. Python
+  script basenames may remain visible; review them before sharing. These displays are not runnable
+  commands. Caller-supplied benchmark and accuracy descriptions state what was
+  measured; they are not independently verified. A validation exit code does not
+  establish an accuracy result when no result was recorded.
+- Overview, diagnostics and charts show all candidates; candidate/run/stage
+  filters affect the candidate table, stage matrix and trace.
 - Existing non-dashboard files and symbolic-link outputs are never overwritten.
 
 ## Privacy
 
 The exporter does not traverse and link the entire run tree. It reads known
 records and explicit references, escapes data before embedding it in HTML, and
-withholds raw logs and environment values. Common addresses, URLs, paths and
+withholds raw logs, environments and arbitrary command arguments. Common addresses, URLs, paths and
 credential-shaped strings in displayed labels are replaced, but this is not a
 general anonymizer. IDs, relative artifact names and review text can still
 identify a person or contain secrets. Inspect and sanitize the actual HTML,

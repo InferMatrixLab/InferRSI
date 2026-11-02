@@ -12,7 +12,7 @@
   --blue:#5794f2; --green:#73bf69; --orange:#ff9830; --red:#f2495c; }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--bg); color:var(--ink); font:13px/1.5 "Segoe UI",sans-serif; }
-button, select, textarea { font:inherit; color:inherit; }
+button, select, textarea, input { font:inherit; color:inherit; }
 button, select { cursor:pointer; }
 button:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid #8bbcff; outline-offset:2px; }
 .top { min-height:45px; display:flex; gap:12px; align-items:center; padding:0 18px;
@@ -65,9 +65,19 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   border:1px solid var(--line); border-radius:2px; padding:8px; }
 .preview { white-space:pre-wrap; overflow-wrap:anywhere; max-height:260px; overflow:auto;
   border:1px solid var(--line); background:var(--bg); padding:8px; }
+.details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.detail-line { padding:7px 12px; border-bottom:1px solid #292e36; }
+.detail-line strong { display:block; color:var(--muted); font-size:11px; margin-bottom:3px; }
+.detail-line p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
+.detail-line code { display:block; white-space:pre-wrap; color:var(--ink); }
+.trace-tools { display:flex; gap:8px; flex-wrap:wrap; padding:8px 12px; }
+.trace-tools input, .trace-tools select { background:var(--bg); border:1px solid var(--line); padding:5px 7px; }
+.trace-tools input { flex:1 1 180px; min-width:0; }
+.trace-event summary { cursor:pointer; color:#bdd5ff; font-weight:600; overflow-wrap:anywhere; }
+.trace-event pre { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--muted); margin:6px 0; }
 .button { border:1px solid #477bd2; border-radius:2px; background:#315eac; padding:5px 12px; margin-top:8px; }
 .footnote { color:var(--muted); font-size:11px; margin:12px 0 0; }
-@media (max-width:900px) { .columns { grid-template-columns:1fr; } .top { flex-wrap:wrap; padding:10px 18px; } }
+@media (max-width:900px) { .columns, .details-grid { grid-template-columns:1fr; } .top { flex-wrap:wrap; padding:10px 18px; } }
 </style>
 </head>
 <body>
@@ -85,16 +95,21 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <div class="var"><span>metric</span><output id="metric-value"></output></div>
 </div>
 <main>
-  <div class="section-title">Overview <small id="overview-note"></small></div>
+  <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
   <div class="section-title">Workflow <small>Select a stage to filter candidates and trace</small></div>
   <div class="panel"><div id="workflow" class="flow"></div></div>
+  <div class="section-title">Selected optimization <small>Choose a candidate to inspect its recorded change and validation</small></div>
+  <div class="details-grid">
+    <section class="panel"><div class="panel-head"><h2>What changed</h2><small id="optimization-title"></small><small>Caller-recorded details</small></div><div id="optimization"></div></section>
+    <section class="panel"><div class="panel-head"><h2>Benchmark and accuracy</h2><small>Commands from run.lock.json are redacted</small></div><div id="benchmark"></div></section>
+  </div>
   <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
   <div class="columns">
     <div class="stack">
-      <section class="panel"><div class="panel-head"><h2>Performance trend</h2><small id="chart-note"></small></div>
+      <section class="panel"><div class="panel-head"><h2>Performance trend · all candidates</h2><small id="chart-note"></small></div>
         <div class="chart" id="chart">__DASHBOARD_CHART__</div></section>
-      <section class="panel"><div class="panel-head"><h2>Results and stages over time</h2></div>
+      <section class="panel"><div class="panel-head"><h2>Results and stages over time · all candidates</h2></div>
         <div class="chart" id="temporal-chart">__DASHBOARD_TEMPORAL__</div>
         <p class="footnote panel-body" id="temporal-note"></p></section>
       <section class="panel"><div class="panel-head"><h2>Stage coverage</h2><small>Recorded events; not a time axis</small></div>
@@ -104,8 +119,11 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p></section>
     </div>
     <div class="stack">
-      <section class="panel"><div class="panel-head"><h2>Diagnosis</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Trace</h2><small id="trace-title"></small></div><div id="trace"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Diagnosis · all candidates</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Trace</h2><small id="trace-title"></small></div>
+        <div class="trace-tools"><input id="trace-search" type="search" aria-label="Search trace" placeholder="Search event, tool, field or reference">
+          <select id="trace-source" aria-label="Trace source"><option value="">All sources</option><option value="events">Runner</option><option value="agent_trace">Agent</option></select></div>
+        <p id="trace-count" class="footnote panel-body" aria-live="polite"></p><div id="trace"></div></section>
       <section class="panel"><div class="panel-head"><h2>Evidence completeness</h2><small>Missing records are explicit</small></div><div id="evidence"></div></section>
       <section class="panel"><div class="panel-head"><h2>Human review</h2><small>Local Markdown export</small></div>
         <div class="panel-body"><label for="feedback" class="hint">Findings and suggested framework improvement</label>
@@ -130,9 +148,11 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const clear = el => { while (el.firstChild) el.removeChild(el.firstChild); };
   const option = (parent, value, text) => { const el = node('option', text); el.value = value; parent.appendChild(el); };
   const value = (n, suffix='') => typeof n === 'number' && Number.isFinite(n) ? `${n.toFixed(1)}${suffix}` : 'Not recorded';
+  const measurement = n => typeof n === 'number' && Number.isFinite(n) ? String(Number(n.toPrecision(7))) : 'Not recorded';
   const tone = status => ['passed','improved','PASS'].includes(status) ? 'good' : ['failed','quality_failed','regressed','rolled_back','FAIL'].includes(status) ? 'bad' : status === 'noise' ? 'warn' : 'missing';
   const pill = text => node('span', text.replaceAll('_',' '), `pill ${tone(text)}`);
   const item = (parent, title, detail, reference) => { const box=node('div',undefined,'item'); box.appendChild(node('strong',title)); if(detail) box.appendChild(node('small',detail)); if(reference) box.appendChild(node('code',reference)); parent.appendChild(box); return box; };
+  const detailLine = (parent, label, text, mono=false) => {const box=node('div',undefined,'detail-line');box.appendChild(node('strong',label));box.appendChild(node(mono?'code':'p',text || 'Not recorded'));parent.appendChild(box);};
   const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path} · sha256 ${ref.sha256}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
   const identity = (row, index) => row.candidate_id || row.run_id || `run ${index + 1}`;
   const missingRefs = row => {const seen=new Set();return [...Object.values(row.artifacts),...row.events.flatMap(event=>event.refs)].filter(ref=>{if(ref.state!=='missing')return false;const key=`${ref.kind}|${ref.path || ''}|${ref.missing_reason}`;if(seen.has(key))return false;seen.add(key);return true;});};
@@ -191,26 +211,63 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       cell(row.run_id || 'Not recorded');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
       const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
   }
+  function renderOptimization(row) {
+    const optimization=byId('optimization'), benchmark=byId('benchmark');clear(optimization);clear(benchmark);
+    byId('optimization-title').textContent=row?identity(row,selected):'No selection';
+    if(!row){detailLine(optimization,'Change','No matching candidate.');detailLine(benchmark,'Measurement','No matching candidate.');return;}
+    const info=row.optimization, context=row.benchmark_context;
+    detailLine(optimization,'Change type',info.kind || 'Not recorded');
+    detailLine(optimization,'What was changed',info.summary);
+    detailLine(optimization,'Why / hypothesis',info.hypothesis);
+    if(!info.code_locations.length)detailLine(optimization,'Code / configuration locations','Not recorded');
+    for(const location of info.code_locations){const lines=location.line_start===null?'':`:${location.line_start}${location.line_end===null?'':`-${location.line_end}`}`;const revision=location.revision?` · revision ${location.revision}`:'';detailLine(optimization,'Code / configuration location',`${location.scope} · ${location.path || '[redacted or invalid path]'}${lines}${revision}\n${location.note}`);}
+    const traceCount=`${row.events.length} linked events · ${row.unlinked_agent_events.length} unlinked`;
+    detailLine(optimization,'Trace coverage',traceCount);
+    const actions=node('div',undefined,'detail-line'),jump=node('button','Open selected trace','button');jump.type='button';jump.addEventListener('click',()=>{const target=byId('trace-search');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});});actions.appendChild(jump);optimization.appendChild(actions);
+    detailLine(benchmark,'Performance methodology · caller recorded',info.benchmark);
+    detailLine(benchmark,'Workload',`${context.scenario} · ${context.workload} · ${context.repetitions===null?'repetitions not recorded':`${context.repetitions} repetitions`}`);
+    detailLine(benchmark,'Recorded medians',`Baseline ${measurement(row.baseline_median)} · Candidate ${measurement(row.candidate_median)} ${row.metric_unit}`);
+    const samples=values=>values.length?values.map(measurement).join(', '):'Not recorded';
+    detailLine(benchmark,'Recorded samples',`Baseline: ${samples(context.baseline_samples)}\nCandidate: ${samples(context.candidate_samples)} ${row.metric_unit}`);
+    detailLine(benchmark,'Baseline command · redacted argv',row.commands.baseline || 'Not recorded',true);
+    detailLine(benchmark,'Candidate command · redacted argv',row.commands.candidate || 'Not recorded',true);
+    detailLine(benchmark,'Accuracy methodology / result · caller recorded',info.accuracy);
+    detailLine(benchmark,'Validation command · redacted argv',row.commands.accuracy || 'Not recorded',true);
+    for(const command of info.commands)detailLine(benchmark,`${command.label} · caller recorded, redacted argv`,command.argv,true);
+    detailLine(benchmark,'Recorded validation state',`${row.quality.replaceAll('_',' ')} · only the recorded validation command is covered`);
+    detailLine(benchmark,'Command evidence',refText(row.artifacts.run_lock),true);
+    if(row.artifacts.candidate_metadata)detailLine(benchmark,'Caller detail evidence',refText(row.artifacts.candidate_metadata),true);
+  }
+  function traceEvents(row) {
+    const all=[...row.events.map(event=>({...event,unlinked:false})),...row.unlinked_agent_events.map(event=>({...event,unlinked:true}))];
+    const term=byId('trace-search').value.trim().toLowerCase(), source=byId('trace-source').value;
+    const visible=all.filter(event=>(!stageSelect.value || event.stage===stageSelect.value) && (!source || event.source===source) && (!term || JSON.stringify(event).toLowerCase().includes(term)));
+    const timestamp=event=>{if(!event.time || !/(?:[zZ]|[+-]\d{2}:\d{2})$/.test(event.time))return null;const t=Date.parse(event.time);return Number.isFinite(t)?t:null;};
+    visible.sort((a,b)=>{const left=timestamp(a),right=timestamp(b);return left===null ? (right===null?0:1) : right===null?-1:left-right;});
+    return {visible,total:all.length};
+  }
   function renderDetail() {
     const trace=byId('trace'), evidence=byId('evidence');clear(trace);clear(evidence);
-    if(selected === null){byId('trace-title').textContent='No selection';item(trace,'NOT RECORDED','No matching candidate.');item(evidence,'NOT RECORDED');return;}
-    const row=data.candidates[selected];byId('trace-title').textContent=identity(row,selected);
-    const events=row.events.filter(e=>!stageSelect.value || e.stage===stageSelect.value);
+    const row=selected===null?null:data.candidates[selected];renderOptimization(row);
+    if(!row){byId('trace-title').textContent='No selection';byId('trace-count').textContent='';item(trace,'NOT RECORDED','No matching candidate.');item(evidence,'NOT RECORDED');return;}
+    byId('trace-title').textContent=identity(row,selected);
+    const {visible,total}=traceEvents(row);byId('trace-count').textContent=`${visible.length} of ${total} events · time order, unknown time last`;
     if(jumpNotice)item(trace,'TRACE LOCATION',jumpNotice);
-    if(!events.length)item(trace,'NOT RECORDED','No events for this stage.');
-    for(const event of events){const name=event.type || event.phase || 'unclassified event';const details=[event.time,event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const refs=event.refs.map(refText).join(' | ');const entry=item(trace,`${event.source}:${event.line} · ${name}`,details,refs);entry.id=`trace-${event.source}-${event.line}`;}
+    if(!visible.length)item(trace,'NOT RECORDED','No events match the current filters.');
+    for(const event of visible){const name=event.type || event.phase || 'unclassified event';const metadata=[event.time || 'Time not recorded',event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);entry.id=`trace-${event.source}-${event.line}`;entry.appendChild(node('summary',`${event.unlinked?'UNLINKED · ':''}${event.source}:${event.line} · ${name}`));entry.appendChild(node('small',metadata));entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : 'No additional structured fields recorded.'));entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);}
     if(row.artifacts.tool_calls.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
     if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
     if(row.agent_trace_links.mismatched.length)item(trace,'MISMATCHED AGENT EVENTS',`Lines ${row.agent_trace_links.mismatched.join(', ')}`).classList.add('missing-item');
-    for(const event of row.unlinked_agent_events){const detail=[event.time,event.stage].filter(Boolean).join(' · ');item(trace,`UNLINKED agent_trace:${event.line} · ${event.type || 'unclassified event'}`,detail,event.refs.map(refText).join(' | ')).classList.add('missing-item');}
-    if(row.corrupt_event_lines.length)item(trace,'CORRUPT EVENT LINES',row.corrupt_event_lines.join(', '));
+    for(const [source,lines] of Object.entries(row.corrupt_event_sources)){if(lines.length)item(trace,`CORRUPT ${source} LINES`,lines.join(', ')).classList.add('missing-item');}
     for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
   }
-  function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
+  function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';byId('trace-search').value='';byId('trace-source').value='';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){if(target.tagName==='DETAILS')target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
   function render(){const visible=filtered();renderWorkflow();renderTimeline(visible);renderRows(visible);renderDetail();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
+  byId('trace-search').addEventListener('input',renderDetail);
+  byId('trace-source').addEventListener('change',renderDetail);
   const redact = text => text.replace(/https?:\/\/\S+/gi,'[redacted-url]').replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/g,'[redacted-email]').replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,'[redacted-address]').replace(/\b[A-Za-z]:[\\/][^\s]+/g,'[redacted-path]').replace(/(^|\s)\/(?:[^\s/]+\/)*[^\s]+/g,'$1[redacted-path]').replace(/\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+/gi,'$1=[redacted]');
-  byId('export').addEventListener('click',()=>{const row=selected===null?null:data.candidates[selected];const refs=row?Object.values(row.artifacts).map(refText).join('\n- '):'Not recorded';const events=row?row.events.filter(e=>!stageSelect.value || e.stage===stageSelect.value).map(e=>`${e.source}:${e.line}`).join(', '):'';const feedback=redact(`# InferRSI review\n\nCampaign: ${data.campaign_id}\nRound: ${row && row.round!==null?row.round:'Not recorded'}\nCandidate: ${row?identity(row,selected):'Not recorded'}\nStage: ${stageSelect.value || 'all'}\nTrace: ${events || 'Not recorded'}\n\n## Findings and recommendation\n\n${byId('feedback').value || 'Not recorded'}\n\n## Evidence references\n\n- ${refs}\n`);const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+  byId('export').addEventListener('click',()=>{const row=selected===null?null:data.candidates[selected];const visible=row?traceEvents(row).visible:[];const refs=row?[...new Set([...Object.values(row.artifacts),...visible.flatMap(event=>event.refs)].map(refText))].join('\n- '):'Not recorded';const events=visible.map(e=>`${e.unlinked?'UNLINKED ':''}${e.source}:${e.line}`).join(', ');const feedback=redact(`# InferRSI review\n\nCampaign: ${data.campaign_id}\nRound: ${row && row.round!==null?row.round:'Not recorded'}\nCandidate: ${row?identity(row,selected):'Not recorded'}\nStage: ${stageSelect.value || 'all'}\nVisible trace: ${events || 'Not recorded'}\n\n## Recorded optimization\n\n${row?row.optimization.summary:'Not recorded'}\n\n## Findings and recommendation\n\n${byId('feedback').value || 'Not recorded'}\n\n## Evidence references\n\n- ${refs}\n`);const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   renderStats();renderDiagnostics();render();
 })();
 </script>

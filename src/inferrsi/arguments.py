@@ -133,6 +133,8 @@ def parser() -> argparse.ArgumentParser:
     record.add_argument("--run-id", required=True)
     record.add_argument("--round", type=int, required=True)
     record.add_argument("--title", required=True)
+    record.add_argument("--details-json", type=Path,
+                        help="JSON file describing the optimization and code locations")
     record.add_argument("--agent-trace", help="Existing campaign-relative JSONL trace")
     record.add_argument("--profile", help="Existing campaign-relative profile artifact")
     decision = campaign_actions.add_parser("decide", help="Record one round decision")

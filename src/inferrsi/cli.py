@@ -293,10 +293,22 @@ def main(argv: list[str] | None = None) -> int:
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
                                        noise=args.noise_pct, synthetic=args.synthetic)
             elif args.campaign_action == "record":
+                details = None
+                if args.details_json is not None:
+                    with args.details_json.open("rb") as stream:
+                        raw = stream.read(64 * 1024 + 1)
+                    if len(raw) > 64 * 1024:
+                        raise ValueError("candidate details exceed 64 KiB")
+                    try:
+                        details = json.loads(raw.decode("utf-8"))
+                    except (UnicodeDecodeError, RecursionError) as exc:
+                        raise ValueError(
+                            "candidate details are invalid or too deeply nested"
+                        ) from exc
                 path = record_candidate(args.directory, candidate_id=args.candidate,
                                         run_id=args.run_id, round_number=args.round,
                                         title=args.title, agent_trace=args.agent_trace,
-                                        profile=args.profile)
+                                        profile=args.profile, details=details)
             else:
                 path = record_decision(args.directory, candidate_id=args.candidate,
                                        round_number=args.round, outcome=args.outcome)
