@@ -40,8 +40,8 @@ Sources: [saved bytes and digest](https://github.com/IntelLabs/Xe-Forge/blob/6cd
 | --- | --- | --- |
 | Trial `source="measured"` | The benchmark tool recorded the outcome it printed. A later `trial result` write marks the record `reported` again. | A resolved ratio, independent oracle or calibrated timer. |
 | `ExternalResult.measured` | The external result contains a non-None `speedup`. This is a different meaning of measured. | Tool-origin qualification of a saved trial or a complete accepted measurement. |
-| `correctness="pass"` | The selected oracle accepted the candidate for the supplied workload. | Correctness of a baseline-only oracle or all valid inputs. |
-| Trial `status="completed"` | The record can be ranked, including a correct outcome with both times and no ratio. | A performance win or an InferRSI PASS. |
+| `correctness="pass"` | A recorded pass assertion for the supplied workload. A reported write can supply it without invoking an oracle; establish oracle acceptance from the actual result origin and evaluator receipt. | Independent oracle validation, correctness of a baseline-only oracle or all valid inputs. |
+| Trial `status="completed"` | The record can be ranked, including a pass-marked outcome with both times and no ratio. | A performance win or an InferRSI PASS. |
 
 The host protocol supplies correctness, baseline/trial times, an optional
 speedup, timer description and named verdict, ending with `DONE`. The adapter
@@ -63,7 +63,7 @@ Xe-Forge excludes a record from ranking when correctness is not `pass` or
 validation is `fail`. A missing validation result is not rejected by that
 predicate; rankability alone does not prove static validation ran.
 
-For a correct rankable record, its resolved ratio determines order when present.
+For a rankable record, its resolved ratio determines order when present.
 When both times are present and the ratio is absent, the source ranks it at
 parity. This keeps an unresolved comparison above a measured regression. A
 resolved parity result wins a tie against unresolved parity; time breaks further
