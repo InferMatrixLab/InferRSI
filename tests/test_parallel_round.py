@@ -1,9 +1,10 @@
 """Synthetic parallel round. Latency figures here are fixture inputs, not measurements."""
 
 import json
+import subprocess
 import sys
 import threading
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 import pytest
@@ -282,6 +283,69 @@ def test_launch_after_deadline_cancels_before_claim(tmp_path):
     ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
     assert ledger["entries"][-1]["phase"] == "cancelled"
     assert not (round_dir / "candidates" / ticket / "build-stamp").exists()
+
+
+def test_deadline_expiring_between_build_and_candidate_stops_the_trial(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    spec = _spec()
+    deadline = (WHEN + timedelta(seconds=10)).isoformat()
+    for lane in spec["lanes"]:
+        lane["deadline_utc"] = deadline
+    round_dir = tmp_path / "round"
+    prepare(spec, incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+    moments = [WHEN, WHEN, WHEN + timedelta(seconds=1), WHEN + timedelta(seconds=11)]
+
+    def clock():
+        return moments.pop(0)
+
+    class Counting:
+        name = "counting"
+
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            self.calls += 1
+            return {"status": "completed", "returncode": 0, "stdout": "", "stderr": ""}
+
+    backend = Counting()
+    rejected = serve_ticket(round_dir, ticket, incumbent, backend=backend, now=WHEN, clock=clock)
+    assert rejected["status"] == "unsettled"
+    assert "deadline" in rejected["reason"]
+    assert backend.calls == 1
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in ledger["entries"]] == ["claimed"]
+    assert ticket_status(round_dir, ticket)["status"] == "unsettled"
+
+
+def test_namespace_timeout_after_claim_is_an_unsettled_receipt(tmp_path):
+    incumbent = tmp_path / "incumbent"
+    _tree(incumbent, "10")
+    round_dir = tmp_path / "round"
+    prepare(_spec(), incumbent, round_dir)
+    work = tmp_path / "work"
+    _tree(work, "8")
+    ticket = submit(round_dir, "L1", incumbent, work, now=WHEN)["ticket"]
+
+    class TimesOut:
+        name = "timeout"
+
+        def run(self, *args, **kwargs):
+            del args, kwargs
+            raise subprocess.TimeoutExpired(["build"], 1)
+
+    result = serve_ticket(round_dir, ticket, incumbent, backend=TimesOut(), now=WHEN)
+    assert result["status"] == "unsettled"
+    assert "timed out" in result["reason"]
+    assert result["reason"].startswith("build")
+    ledger = json.loads((round_dir / "ledgers" / "L1.json").read_text(encoding="utf-8"))
+    assert [entry["phase"] for entry in ledger["entries"]] == ["claimed"]
+    assert ticket_status(round_dir, ticket)["status"] == "unsettled"
 
 
 def test_failure_after_claim_stays_unsettled_across_restart(tmp_path):
