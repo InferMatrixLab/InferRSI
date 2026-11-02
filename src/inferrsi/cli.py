@@ -280,6 +280,29 @@ def main(argv: list[str] | None = None) -> int:
                 _print({"report": str(write_report(directory))})
             return 0
 
+        if args.command == "dashboard":
+            from .harness.dashboard import write_dashboard
+
+            _print({"dashboard": str(write_dashboard(args.input, args.output))})
+            return 0
+
+        if args.command == "campaign":
+            from .harness.campaign_records import create_campaign, record_candidate, record_decision
+
+            if args.campaign_action == "init":
+                path = create_campaign(args.directory, args.id, target=args.target_pct,
+                                       noise=args.noise_pct, synthetic=args.synthetic)
+            elif args.campaign_action == "record":
+                path = record_candidate(args.directory, candidate_id=args.candidate,
+                                        run_id=args.run_id, round_number=args.round,
+                                        title=args.title, agent_trace=args.agent_trace,
+                                        profile=args.profile)
+            else:
+                path = record_decision(args.directory, candidate_id=args.candidate,
+                                       round_number=args.round, outcome=args.outcome)
+            _print({"record": str(path)})
+            return 0
+
         environment = inspect_environment(
             args.repo,
             args.repo_type,

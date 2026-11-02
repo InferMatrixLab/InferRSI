@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;">
+<title>InferRSI · Optimization dashboard</title>
+<style>
+:root { color-scheme: dark; --bg:#111217; --panel:#181b1f; --panel2:#1f2229;
+  --line:#30363e; --ink:#e2e6eb; --muted:#a0aab7; --dim:#8c97a6;
+  --blue:#5794f2; --green:#73bf69; --orange:#ff9830; --red:#f2495c; }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:13px/1.5 "Segoe UI",sans-serif; }
+button, select, textarea { font:inherit; color:inherit; }
+button, select { cursor:pointer; }
+button:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px solid #8bbcff; outline-offset:2px; }
+.top { min-height:45px; display:flex; gap:12px; align-items:center; padding:0 18px;
+  border-bottom:1px solid var(--line); }
+.logo { width:19px; height:19px; border-radius:5px; background:linear-gradient(135deg,#f9d949,#f05a28); }
+.crumb, .hint { color:var(--muted); } .crumb strong { color:var(--ink); font-weight:600; }
+.spacer { flex:1; } .badge { border:1px solid var(--line); padding:3px 8px; border-radius:2px; }
+.sample { color:#241d00; background:#fade2a; font-weight:700; border:0; }
+.vars { display:flex; gap:10px; flex-wrap:wrap; padding:13px 18px 5px; }
+.var { display:flex; align-items:stretch; min-height:29px; }
+.var label, .var span { background:var(--panel2); padding:5px 9px; border:1px solid var(--line); color:var(--muted); }
+.var select, .var output { min-width:120px; border:1px solid var(--line); border-left:0;
+  background:var(--bg); color:var(--ink); padding:4px 9px; }
+main { max-width:1600px; margin:auto; padding:0 18px 28px; }
+.section-title { font-size:15px; font-weight:600; margin:18px 0 8px; }
+.section-title small { font-size:11px; font-weight:400; color:var(--muted); margin-left:7px; }
+.panel { border:1px solid var(--line); background:var(--panel); border-radius:2px; min-width:0; }
+.panel-head { display:flex; align-items:baseline; gap:8px; padding:10px 12px 3px; }
+.panel-head h2 { font-size:13px; font-weight:600; margin:0; }
+.panel-head small { color:var(--muted); font-size:11px; }
+.panel-body { padding:8px 12px 12px; }
+.stats { display:grid; grid-template-columns:repeat(6,minmax(130px,1fr)); gap:8px; overflow-x:auto; }
+.stat { min-height:105px; padding:10px 12px; }
+.stat-label { color:var(--muted); } .stat-value { display:block; font-size:29px; font-weight:600; line-height:1.25; margin:4px 0; }
+.green { color:var(--green); } .orange { color:var(--orange); } .red { color:var(--red); }
+.flow { display:flex; gap:9px; overflow-x:auto; padding:10px 12px 12px; }
+.stage { flex:1 0 150px; text-align:left; background:var(--panel2); border:0; border-top:3px solid #566071; padding:8px 10px; }
+.stage.recorded { border-top-color:var(--green); } .stage.selected { box-shadow:inset 0 0 0 1px var(--blue); }
+.stage span { display:block; color:var(--muted); font-size:11px; margin-top:3px; }
+.columns { display:grid; grid-template-columns:minmax(0,2fr) minmax(320px,1fr); gap:8px; align-items:start; }
+.stack { display:grid; gap:8px; min-width:0; }
+.chart { padding:2px 8px 8px; overflow:auto; } .chart svg { width:100%; min-width:600px; height:auto; display:block; }
+.empty { color:var(--muted); padding:18px 12px; border:1px dashed #566071; margin:8px 12px 12px; }
+.scroll { overflow:auto; } table { border-collapse:collapse; width:100%; text-align:left; }
+th, td { border-bottom:1px solid #292e36; padding:7px 10px; white-space:nowrap; }
+th { color:var(--muted); font-size:11px; font-weight:500; background:#1d2026; }
+tbody tr.selected { background:#233047; } td button { background:none; border:0; padding:0; color:#a9caff; text-align:left; }
+.pill { display:inline-block; border:1px solid #596170; border-radius:2px; padding:1px 6px; font-size:11px; }
+.pill.good { color:var(--green); border-color:var(--green); } .pill.bad { color:var(--red); border-color:var(--red); }
+.pill.warn { color:var(--orange); border-color:var(--orange); } .pill.missing { border-style:dashed; color:#ff9ba7; }
+.item { padding:8px 12px; border-bottom:1px solid #292e36; overflow-wrap:anywhere; }
+.item:last-child { border-bottom:0; } .item small, .item code { display:block; color:var(--muted); margin-top:3px; }
+.item.missing-item { border-left:2px dashed var(--red); }
+code, .mono { font:11px/1.55 Consolas,monospace; overflow-wrap:anywhere; }
+.timeline { display:grid; grid-template-columns:130px repeat(6,minmax(95px,1fr)); gap:3px; min-width:730px; padding:8px 12px 12px; }
+.timeline > div { padding:5px; background:var(--panel2); color:var(--muted); font-size:11px; }
+.timeline .recorded { color:var(--green); } .timeline .missing { border:1px dashed #596170; }
+textarea { display:block; width:100%; min-height:85px; resize:vertical; background:var(--bg);
+  border:1px solid var(--line); border-radius:2px; padding:8px; }
+.preview { white-space:pre-wrap; overflow-wrap:anywhere; max-height:260px; overflow:auto;
+  border:1px solid var(--line); background:var(--bg); padding:8px; }
+.button { border:1px solid #477bd2; border-radius:2px; background:#315eac; padding:5px 12px; margin-top:8px; }
+.footnote { color:var(--muted); font-size:11px; margin:12px 0 0; }
+@media (max-width:900px) { .columns { grid-template-columns:1fr; } .top { flex-wrap:wrap; padding:10px 18px; } }
+</style>
+</head>
+<body>
+<header class="top">
+  <span class="logo" aria-hidden="true"></span>
+  <span class="crumb">Dashboards › InferRSI › <strong id="campaign-title"></strong></span>
+  <span class="spacer"></span><span id="sample" class="badge sample" hidden>SYNTHETIC DATA</span>
+  <span class="badge">READ ONLY · OFFLINE</span>
+</header>
+<div class="vars" aria-label="Dashboard filters">
+  <div class="var"><span>campaign</span><output id="campaign-value"></output></div>
+  <div class="var"><label for="run-filter">run</label><select id="run-filter"><option value="">All runs</option></select></div>
+  <div class="var"><label for="candidate-filter">candidate</label><select id="candidate-filter"><option value="">All candidates</option></select></div>
+  <div class="var"><label for="stage-filter">stage</label><select id="stage-filter"><option value="">All stages</option></select></div>
+  <div class="var"><span>metric</span><output id="metric-value"></output></div>
+</div>
+<main>
+  <div class="section-title">Overview <small id="overview-note"></small></div>
+  <div id="stats" class="stats" aria-label="Overview statistics"></div>
+  <div class="section-title">Workflow <small>Select a stage to filter candidates and trace</small></div>
+  <div class="panel"><div id="workflow" class="flow"></div></div>
+  <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
+  <div class="columns">
+    <div class="stack">
+      <section class="panel"><div class="panel-head"><h2>Performance trend</h2><small id="chart-note"></small></div>
+        <div class="chart" id="chart">__DASHBOARD_CHART__</div></section>
+      <section class="panel"><div class="panel-head"><h2>Results and stages over time</h2></div>
+        <div class="chart" id="temporal-chart">__DASHBOARD_TEMPORAL__</div>
+        <p class="footnote panel-body" id="temporal-note"></p></section>
+      <section class="panel"><div class="panel-head"><h2>Stage coverage</h2><small>Recorded events; not a time axis</small></div>
+        <div class="scroll"><div id="timeline" class="timeline"></div></div></section>
+      <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
+        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
+        <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p></section>
+    </div>
+    <div class="stack">
+      <section class="panel"><div class="panel-head"><h2>Diagnosis</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Trace</h2><small id="trace-title"></small></div><div id="trace"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Evidence completeness</h2><small>Missing records are explicit</small></div><div id="evidence"></div></section>
+      <section class="panel"><div class="panel-head"><h2>Human review</h2><small>Local Markdown export</small></div>
+        <div class="panel-body"><label for="feedback" class="hint">Findings and suggested framework improvement</label>
+          <textarea id="feedback" placeholder="Record your observation and recommendation."></textarea>
+          <button id="export" class="button" type="button">Export feedback · Markdown</button>
+          <pre id="feedback-preview" class="preview" hidden></pre>
+          <p class="footnote">Review the exported text before sharing. Common private values are redacted; free text can still contain sensitive information.</p></div></section>
+    </div>
+  </div>
+  <p class="footnote">A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.</p>
+</main>
+<script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
+<script>
+(() => {
+  'use strict';
+  const data = JSON.parse(document.getElementById('dashboard-data').textContent);
+  const byId = id => document.getElementById(id);
+  const stageNames = {diagnosis:'Diagnosis', knowledge:'Knowledge', search:'Candidate search', execution:'Execution', validation:'Validation', review:'Review'};
+  const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
+  let selected = null;
+  const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
+  const clear = el => { while (el.firstChild) el.removeChild(el.firstChild); };
+  const option = (parent, value, text) => { const el = node('option', text); el.value = value; parent.appendChild(el); };
+  const value = (n, suffix='') => typeof n === 'number' && Number.isFinite(n) ? `${n.toFixed(1)}${suffix}` : 'Not recorded';
+  const tone = status => ['passed','improved','PASS'].includes(status) ? 'good' : ['failed','quality_failed','regressed','rolled_back','FAIL'].includes(status) ? 'bad' : status === 'noise' ? 'warn' : 'missing';
+  const pill = text => node('span', text.replaceAll('_',' '), `pill ${tone(text)}`);
+  const item = (parent, title, detail, reference) => { const box=node('div',undefined,'item'); box.appendChild(node('strong',title)); if(detail) box.appendChild(node('small',detail)); if(reference) box.appendChild(node('code',reference)); parent.appendChild(box); return box; };
+  const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path} · sha256 ${ref.sha256}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
+  const identity = (row, index) => row.candidate_id || row.run_id || `run ${index + 1}`;
+  const missingRefs = row => {const seen=new Set();return [...Object.values(row.artifacts),...row.events.flatMap(event=>event.refs)].filter(ref=>{if(ref.state!=='missing')return false;const key=`${ref.kind}|${ref.path || ''}|${ref.missing_reason}`;if(seen.has(key))return false;seen.add(key);return true;});};
+  byId('campaign-title').textContent = data.campaign_id;
+  byId('campaign-value').textContent = data.campaign_id;
+  byId('sample').hidden = !data.synthetic;
+  byId('chart-note').textContent = data.chart_note;
+  if (!byId('chart').querySelector('svg')) byId('chart').appendChild(node('p',data.chart_note,'empty'));
+  byId('temporal-note').textContent = data.temporal_note;
+  byId('metric-value').textContent = data.candidates.length ? `${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}` : 'Not recorded';
+  for (const stage of data.stages) option(stageSelect, stage.name, stageNames[stage.name]);
+  const runs = [...new Set(data.candidates.map(row => row.run_id).filter(Boolean))];
+  for (const run of runs) option(runSelect, run, run);
+  data.candidates.forEach((row,index) => option(candidateSelect, String(index), identity(row,index)));
+  function filtered() {
+    return data.candidates.map((row,index) => ({row,index})).filter(({row,index}) =>
+      (!runSelect.value || row.run_id === runSelect.value) &&
+      (candidateSelect.value === '' || index === Number(candidateSelect.value)) &&
+      (!stageSelect.value || row.events.some(event => event.stage === stageSelect.value)));
+  }
+  function renderStats() {
+    const root=byId('stats'); clear(root); const rows=data.candidates, o=data.overview;
+    const missing=rows.flatMap(missingRefs).length;
+    const figures=[
+      ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'incompatible' ? 'Incompatible workloads' : 'Quality and source checks required','green'],
+      ['Target gap',value(o.target_gap_pct,' pp'),o.target_improvement_pct === null ? 'Target not recorded' : `Target ${value(o.target_improvement_pct,'%')}`,'orange'],
+      ['Candidate / run views',rows.length ? String(rows.length) : 'Not recorded','Recorded candidate or run views',''],
+      ['Within noise',rows.some(r=>['noise','improved','regressed'].includes(r.outcome)) ? String(rows.filter(r => r.outcome === 'noise').length) : 'Not recorded','Uses recorded noise band','orange'],
+      ['Failed / regressed',rows.some(r=>r.state !== 'not_recorded' || r.quality !== 'not_recorded') ? String(rows.filter(r => ['failed','quality_failed','regressed'].includes(r.outcome) || r.decision==='rolled_back').length) : 'Not recorded','Includes failures and rollbacks','red'],
+      ['Missing evidence',rows.length ? String(missing) : 'Not recorded','See completeness panel','red']
+    ];
+    for(const [label,number,note,colour] of figures){const box=node('div',undefined,'panel stat');box.appendChild(node('div',label,'stat-label'));box.appendChild(node('strong',number,`stat-value ${colour}`));box.appendChild(node('small',note,'hint'));root.appendChild(box);}
+    byId('overview-note').textContent = data.rounds === null ? 'Rounds not recorded' : `${data.rounds.length} recorded rounds${data.corrupt_round_lines.length ? ` · corrupt lines ${data.corrupt_round_lines.join(', ')}` : ''}`;
+  }
+  function renderWorkflow() {
+    const root=byId('workflow'); clear(root);
+    for(const [index,stage] of data.stages.entries()){
+      const button=node('button',undefined,`stage ${stage.state === 'recorded' ? 'recorded' : ''} ${stageSelect.value === stage.name ? 'selected' : ''}`);
+      button.type='button'; button.setAttribute('aria-pressed',String(stageSelect.value === stage.name));
+      button.appendChild(node('strong',`${index+1} ${stageNames[stage.name]}`));
+      button.appendChild(node('span',stage.state.replaceAll('_',' ')));
+      button.addEventListener('click',()=>{stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
+    }
+  }
+  function renderTimeline(visible) {
+    const root=byId('timeline');clear(root);root.appendChild(node('div','Candidate'));
+    for(const stage of data.stages) root.appendChild(node('div',stageNames[stage.name]));
+    for(const {row,index} of visible){root.appendChild(node('div',identity(row,index)));for(const stage of data.stages){const present=row.events.some(e=>e.stage===stage.name);const label=present?'RECORDED':stage.state==='not_applicable'?'NOT APPLICABLE':'NOT RECORDED';root.appendChild(node('div',label,present?'recorded':'missing'));}}
+  }
+  function renderRows(visible) {
+    const root=byId('candidate-rows');clear(root);byId('no-rows').hidden=visible.length>0;
+    if(!visible.some(x=>x.index===selected)) selected=visible.length ? visible[0].index : null;
+    for(const {row,index} of visible){const tr=node('tr');if(index===selected)tr.className='selected';
+      const cell=(text)=>{const td=node('td',text);tr.appendChild(td);return td;};
+      cell(row.round === null ? 'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.addEventListener('click',()=>{selected=index;render();});title.appendChild(btn);
+      cell(row.run_id || 'Not recorded');cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));const outcome=cell();outcome.appendChild(pill(row.outcome));if(row.decision==='rolled_back')outcome.appendChild(pill(row.decision));
+      const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
+  }
+  function renderDetail() {
+    const trace=byId('trace'), evidence=byId('evidence');clear(trace);clear(evidence);
+    if(selected === null){byId('trace-title').textContent='No selection';item(trace,'NOT RECORDED','No matching candidate.');item(evidence,'NOT RECORDED');return;}
+    const row=data.candidates[selected];byId('trace-title').textContent=identity(row,selected);
+    const events=row.events.filter(e=>!stageSelect.value || e.stage===stageSelect.value);
+    if(!events.length)item(trace,'NOT RECORDED','No events for this stage.');
+    for(const event of events){const name=event.type || event.phase || 'unclassified event';const details=[event.time,event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const refs=event.refs.map(refText).join(' | ');item(trace,`${event.source}:${event.line} · ${name}`,details,refs);}
+    if(row.artifacts.tool_calls.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
+    if(row.corrupt_event_lines.length)item(trace,'CORRUPT EVENT LINES',row.corrupt_event_lines.join(', '));
+    for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
+  }
+  function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics)item(root,d.kind.replaceAll('_',' '),d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));}
+  function render(){const visible=filtered();renderWorkflow();renderTimeline(visible);renderRows(visible);renderDetail();}
+  for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',render);
+  const redact = text => text.replace(/https?:\/\/\S+/gi,'[redacted-url]').replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/g,'[redacted-email]').replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,'[redacted-address]').replace(/\b[A-Za-z]:[\\/][^\s]+/g,'[redacted-path]').replace(/(^|\s)\/(?:[^\s/]+\/)*[^\s]+/g,'$1[redacted-path]').replace(/\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+/gi,'$1=[redacted]');
+  byId('export').addEventListener('click',()=>{const row=selected===null?null:data.candidates[selected];const refs=row?Object.values(row.artifacts).map(refText).join('\n- '):'Not recorded';const events=row?row.events.filter(e=>!stageSelect.value || e.stage===stageSelect.value).map(e=>`${e.source}:${e.line}`).join(', '):'';const feedback=redact(`# InferRSI review\n\nCampaign: ${data.campaign_id}\nRound: ${row && row.round!==null?row.round:'Not recorded'}\nCandidate: ${row?identity(row,selected):'Not recorded'}\nStage: ${stageSelect.value || 'all'}\nTrace: ${events || 'Not recorded'}\n\n## Findings and recommendation\n\n${byId('feedback').value || 'Not recorded'}\n\n## Evidence references\n\n- ${refs}\n`);const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+  renderStats();renderDiagnostics();render();
+})();
+</script>
+</body>
+</html>

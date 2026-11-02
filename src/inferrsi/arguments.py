@@ -111,6 +111,37 @@ def parser() -> argparse.ArgumentParser:
         child.add_argument("--run-id", required=True)
         child.add_argument("--output-dir", default="runs")
 
+    dashboard = commands.add_parser(
+        "dashboard", help="Export an offline dashboard for one run or recorded campaign"
+    )
+    dashboard.add_argument("--input", type=Path, required=True, help="Run or campaign directory")
+    dashboard.add_argument(
+        "--output", type=Path, help="HTML output (default: input/dashboard.html)"
+    )
+
+    campaign = commands.add_parser("campaign", help="Create local campaign correlation records")
+    campaign_actions = campaign.add_subparsers(dest="campaign_action", required=True)
+    create = campaign_actions.add_parser("init", help="Create a new campaign manifest")
+    create.add_argument("--directory", type=Path, required=True)
+    create.add_argument("--id", required=True)
+    create.add_argument("--target-pct", type=float)
+    create.add_argument("--noise-pct", type=float)
+    create.add_argument("--synthetic", action="store_true")
+    record = campaign_actions.add_parser("record", help="Associate a candidate with one run")
+    record.add_argument("--directory", type=Path, required=True)
+    record.add_argument("--candidate", required=True)
+    record.add_argument("--run-id", required=True)
+    record.add_argument("--round", type=int, required=True)
+    record.add_argument("--title", required=True)
+    record.add_argument("--agent-trace", help="Existing campaign-relative JSONL trace")
+    record.add_argument("--profile", help="Existing campaign-relative profile artifact")
+    decision = campaign_actions.add_parser("decide", help="Record one round decision")
+    decision.add_argument("--directory", type=Path, required=True)
+    decision.add_argument("--candidate", required=True)
+    decision.add_argument("--round", type=int, required=True)
+    decision.add_argument("--outcome", required=True,
+                          choices=("adopted", "rejected", "rolled_back", "no_gain", "noise"))
+
     skills = commands.add_parser(
         "skills", help="Read explicitly selected skills; never install or execute them"
     )
