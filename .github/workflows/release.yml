@@ -146,7 +146,8 @@ jobs:
         id: notes
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          OPENAI_MODEL: ${{ vars.OPENAI_RELEASE_NOTES_MODEL || 'gpt-5.4-mini' }}
+          OPENAI_MODEL: ${{ vars.OPENAI_RELEASE_NOTES_MODEL || 'gpt-6.1-terra' }}
+          OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL || 'https://api.openai.com/v1' }}
           GH_REPO: ${{ github.repository }}
           RELEASE_TAG: ${{ needs.plan.outputs.tag }}
           RELEASE_COMMIT: ${{ needs.plan.outputs.commit }}
@@ -155,7 +156,8 @@ jobs:
         run: |
           python tools/generate_release_notes.py --tag "$RELEASE_TAG" \
             --commit "$RELEASE_COMMIT" --previous-tag "$PREVIOUS_TAG" \
-            --model "$OPENAI_MODEL" --output "$RUNNER_TEMP/release-notes/ai-notes.md"
+            --model "$OPENAI_MODEL" --base-url "$OPENAI_BASE_URL" \
+            --output "$RUNNER_TEMP/release-notes/ai-notes.md"
           if [[ -s "$RUNNER_TEMP/release-notes/ai-notes.md" ]]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           else

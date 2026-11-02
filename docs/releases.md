@@ -89,13 +89,19 @@ requirements in [contributing](contributing.md#evidence-and-claims).
 To enable GPT summaries, add the Actions repository secret `OPENAI_API_KEY` under
 **Settings → Secrets and variables → Actions**. The key is injected only into
 the notes step. Do not put it in workflow source, command arguments, PR text or
-logs. OpenAI API access and usage are billed to the key's API project; GitHub
-Copilot access is not required.
+logs. API access and usage are billed by the selected provider for that key;
+GitHub Copilot access is not required.
 
-The default model is `gpt-5.4-mini`. Set the optional Actions repository variable
-`OPENAI_RELEASE_NOTES_MODEL` to another model available to your API project and
-compatible with the Responses API. No custom API endpoint is used. Without the
-secret, the workflow skips GPT and continues ordinary publication.
+The default model is `gpt-6.1-terra`. Set the optional Actions repository variable
+`OPENAI_RELEASE_NOTES_MODEL` to another model available to your API account and
+compatible with the Responses API. Set `OPENAI_BASE_URL` to select the approved
+HTTPS provider: `https://api.openai.com/v1` (the fallback) or
+`https://yibuapi.com/v1`. This repository uses Yibu and sends the configured key
+only to its `/responses` endpoint. Trailing slashes are normalized; other hosts,
+HTTP, userinfo, query strings and fragments are rejected before sending a key.
+Redirects remain disabled. Additional providers require a reviewed allowlist
+change. Without the secret, the workflow skips GPT and continues ordinary
+publication.
 
 The [notes helper](../tools/generate_release_notes.py) sends bounded commit
 subjects, source links and file-change statistics from the previous successful
@@ -111,8 +117,9 @@ claims. The response is labeled **AI-generated summary** and prepended to the
 original GitHub changelog, preserving its PR links and source/evidence notice.
 Model output is read as a file and never executed as shell code.
 
-The helper makes one request to the
-[OpenAI Responses API](https://developers.openai.com/api/docs/guides/text), with
+The helper makes one request using the
+[Responses API](https://developers.openai.com/api/docs/guides/text), supported by
+the [Yibu Responses endpoint](https://yibuapi.apifox.cn/6777341m0), with
 bounded input/output, a timeout, no tools and `store: false`. That setting does
 not establish zero data retention. Missing credentials, failed/incomplete/refused
 or unusable responses leave no summary. The optional notes job or artifact may
