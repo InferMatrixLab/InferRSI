@@ -1,0 +1,22 @@
+{
+  "source_repository": "InferMatrixLab/InferRSI",
+  "label": "InferRSI",
+  "environment": "repository CI",
+  "workflows": {
+    "gate": [
+      "^CI — (draft lane|ready / review lane|merge lane|knowledge declaration policy)$"
+    ],
+    "daily": [
+      "^CI — nightly lane$"
+    ],
+    "release": [
+      "^Release bot$"
+    ]
+  },
+  "branch_lines": [
+    {
+      "key": "main",
+      "ref": "main"
+    }
+  ]
+}

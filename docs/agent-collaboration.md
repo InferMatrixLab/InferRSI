@@ -8,6 +8,9 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 [contributing](contributing.md); the agent entry contract stays in
 [AGENTS](../AGENTS.md).
 
+For the optional hosted review bot and CI board, see the
+[agent-CI-Infra integration runbook](integrations/agent-ci-bot.md).
+
 ## Identity and authority
 
 - Humans and agents may propose Issues. Proposal origin, assignment and labels do not grant authority.
