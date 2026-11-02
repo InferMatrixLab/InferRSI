@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=69"]
+requires = ["setuptools>=80", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "inferrsi"
-version = "0.1.0"
+dynamic = ["version"]
 description = "CLI-first reproducible inference experiments and source-grounded tuning knowledge"
 readme = "README.md"
 license = "Apache-2.0"
@@ -24,6 +24,14 @@ namespaces = false
 
 [tool.setuptools.package-data]
 inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py"]
+
+[tool.setuptools_scm]
+version_file = "src/inferrsi/_version.py"
+tag_regex = '^v(?P<version>[0-9]+\.[0-9]+\.[0-9]+)$'
+
+[tool.inferrsi.release]
+initial_version = "0.1.0"
+prerelease = true
 
 [project.optional-dependencies]
 skills = ["PyYAML>=6.0"]
