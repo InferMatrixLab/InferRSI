@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e57c434b98137d3e517e15a65163b0e217d2116/src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
-      "commit": "1e57c434b98137d3e517e15a65163b0e217d2116",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
+      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/dwarfstar/LICENSE",
         "src/inferrsi/data/skill_library/repositories/dwarfstar/SKILL.md",
