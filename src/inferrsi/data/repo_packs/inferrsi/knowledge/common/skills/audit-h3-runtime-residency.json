@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ce1d889fc06e8dfe48327fac13cd3a871ebdcda8/src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
-      "commit": "ce1d889fc06e8dfe48327fac13cd3a871ebdcda8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/c6e91d437308ef8d5565528206fa554a3490e806/src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
+      "commit": "c6e91d437308ef8d5565528206fa554a3490e806",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/LICENSE",
         "src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
