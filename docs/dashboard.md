@@ -83,9 +83,10 @@ optional `stage` field (`diagnosis`, `knowledge`, `search`, `execution`,
 `inferrsi.harness.campaign_trace.CampaignTrace` instance as its existing event
 callback; it appends the original event with time and caller-supplied IDs. The
 caller associates the completed trace with `agent_trace_ref` using its SHA-256.
-The dashboard links an event to a run only when its campaign, candidate, run,
-round and stage envelope is complete and matches. Legacy or mismatched events
-remain visibly unlinked and do not count as stage coverage or tool calls.
+The dashboard links a pre-run event when its campaign and uniquely identified
+candidate match; any supplied run and round must also match. Events with
+incomplete or ambiguous identity remain visibly unlinked and do not count as
+stage coverage or tool calls. Explicit mismatches are not attributed.
 The callback does not allocate IDs or intercept unrelated agents. Existing runner phases are mapped to execution and
 validation. The dashboard reads allowlisted event metadata; it does not include
 raw agent requests, arbitrary event messages, environment data, or raw logs.

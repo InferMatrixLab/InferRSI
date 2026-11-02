@@ -139,7 +139,7 @@ def _explicit_ref(root: Path, value: object, kind: str) -> dict:
     return ref
 
 
-def _events(path: Path, root: Path, expected: dict | None = None
+def _events(path: Path, root: Path, expected: dict | None = None, unique_candidate: bool = False
             ) -> tuple[list[dict], list[int], str, dict[str, list[int]], dict]:
     unlinked = {"unlinked": [], "mismatched": []}
     raw, ref = _snapshot(root, path, "events")
@@ -167,15 +167,23 @@ def _events(path: Path, root: Path, expected: dict | None = None
             valid = (type(record.get("schema_version")) is int
                      and record["schema_version"] == 1
                      and all(isinstance(identity[key], str) and identity[key]
-                             for key in ("campaign_id", "candidate_id", "run_id"))
-                     and type(identity["round"]) is int and identity["round"] > 0
+                             for key in ("campaign_id", "candidate_id"))
+                     and all(isinstance(expected[key], str) and expected[key]
+                             for key in ("campaign_id", "candidate_id"))
+                     and unique_candidate
+                     and (identity["run_id"] is None or (
+                         isinstance(identity["run_id"], str) and identity["run_id"]
+                         and expected["run_id"] is not None))
+                     and (identity["round"] is None or (
+                         type(identity["round"]) is int and identity["round"] > 0
+                         and expected["round"] is not None))
                      and record.get("stage") in STAGES
                      and isinstance(record.get("time"), str) and bool(record["time"]))
             if any(value is not None and expected[key] is not None and value != expected[key]
                    for key, value in identity.items()):
                 unlinked["mismatched"].append(line_number)
                 continue
-            if not valid or any(value is None for value in expected.values()):
+            if not valid:
                 unlinked["unlinked"].append(line_number)
                 link_state = "unlinked"
         phase = record.get("phase")
@@ -242,7 +250,8 @@ def _environment_signature(environment: dict, devices: object, backend: object) 
 
 
 def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: float | None,
-         campaign_id: object = None) -> dict:
+         campaign_id: object = None, unique_candidate: bool = False,
+         candidate_ref: dict | None = None) -> dict:
     lock, _ = _object(path / "run.lock.json", root)
     repositories, _ = _object(path / "repositories.lock.json", root)
     environment, _ = _object(path / "environment.json", root)
@@ -262,6 +271,8 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "agent_trace": _explicit_ref(root, candidate.get("agent_trace_ref"), "agent_trace"),
         "profile": _explicit_ref(root, candidate.get("profile_ref"), "profile"),
     }
+    if candidate_ref is not None:
+        refs["candidate_metadata"] = candidate_ref
     def attach_declared(event: dict) -> None:
         for item in event.pop("_declared_refs", []):
             kind = item.get("kind") if isinstance(item, dict) else None
@@ -289,7 +300,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         expected = {"campaign_id": campaign_id, "candidate_id": candidate.get("candidate_id"),
                     "run_id": run_id, "round": candidate.get("round")}
         agent_events, agent_corrupt, agent_state, agent_links, agent_snapshot = _events(
-            root / refs["agent_trace"]["path"], root, expected
+            root / refs["agent_trace"]["path"], root, expected, unique_candidate
         )
         if (agent_state == "present" and
                 agent_snapshot.get("sha256") != refs["agent_trace"].get("sha256")):
@@ -393,6 +404,8 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "verdict": verdict,
         "outcome": outcome, "events": events, "corrupt_event_lines": corrupt,
         "agent_trace_links": agent_links, "unlinked_agent_events": unlinked_events,
+        "candidate_metadata_state": (candidate_ref.get("missing_reason", "present")
+                                     if candidate_ref else "not_applicable"),
         "artifacts": refs, "_comparison_signature": signature,
     }
 
@@ -416,6 +429,11 @@ def _rounds(path: Path, root: Path) -> tuple[list[dict] | None, str, list[int], 
         if (isinstance(row, dict) and isinstance(row.get("round"), int)
                 and not isinstance(row.get("round"), bool) and row["round"] > 0):
             record = {"round": row["round"]}
+            if isinstance(row.get("candidates"), list):
+                record["candidates"] = [item for item in row["candidates"]
+                                        if isinstance(item, str) and re.fullmatch(
+                                            r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", item
+                                        )]
             decision = row.get("decision")
             if (isinstance(decision, dict) and isinstance(decision.get("candidate_id"), str)
                     and decision.get("outcome") in (
@@ -442,32 +460,52 @@ def load_dashboard(source: Path) -> dict:
     noise = _number(noise_data.get("band_pct"))
     if noise is not None and noise < 0:
         noise = None
+    rounds, rounds_state, corrupt_round_lines, rounds_ref = (
+        (None, "missing", [], None) if single else _rounds(root / "rounds.jsonl", root)
+    )
     rows = []
     if single:
         rows.append(_run(root, root, {}, root.name, noise))
     else:
         candidate_root = root / "candidates"
+        entries = []
         if _inside(root, candidate_root) and candidate_root.is_dir():
             for directory in sorted(candidate_root.iterdir()):
                 if not directory.is_dir() or directory.is_symlink():
                     continue
-                metadata, state = _object(directory / "candidate.json", root)
+                metadata, state, metadata_ref = _object_snapshot(
+                    directory / "candidate.json", root, "candidate_metadata"
+                )
                 if state != "present":
-                    continue
+                    metadata = {"candidate_id": directory.name, "title": directory.name}
                 run_id = metadata.get("run_id")
                 if (not isinstance(run_id, str) or Path(run_id).name != run_id
                         or run_id in {".", ".."}):
                     run_id = None
-                run_path = root / "runs" / run_id if run_id else directory / "missing-run"
-                rows.append(_run(root, run_path, metadata, run_id, noise,
-                                 campaign.get("campaign_id")))
+                entries.append((directory, metadata, run_id, metadata_ref))
+        known = {entry[1].get("candidate_id") for entry in entries
+                 if isinstance(entry[1].get("candidate_id"), str)}
+        for round_record in rounds or []:
+            for candidate_id in round_record.get("candidates", []):
+                if candidate_id in known:
+                    continue
+                directory = candidate_root / candidate_id
+                _, _, metadata_ref = _object_snapshot(directory / "candidate.json", root,
+                                                        "candidate_metadata")
+                entries.append((directory, {"candidate_id": candidate_id, "title": candidate_id,
+                                            "round": round_record["round"]}, None, metadata_ref))
+                known.add(candidate_id)
+        for directory, metadata, run_id, metadata_ref in entries:
+            candidate_id = metadata.get("candidate_id")
+            unique = (isinstance(candidate_id, str) and bool(candidate_id) and
+                      sum(entry[1].get("candidate_id") == candidate_id for entry in entries) == 1)
+            run_path = root / "runs" / run_id if run_id else directory / "missing-run"
+            rows.append(_run(root, run_path, metadata, run_id, noise, campaign.get("campaign_id"),
+                             unique, metadata_ref))
         if not rows and _inside(root, root / "runs") and (root / "runs").is_dir():
             for directory in sorted((root / "runs").iterdir()):
                 if directory.is_dir() and not directory.is_symlink():
                     rows.append(_run(root, directory, {}, directory.name, noise))
-    rounds, rounds_state, corrupt_round_lines, rounds_ref = (
-        (None, "missing", [], None) if single else _rounds(root / "rounds.jsonl", root)
-    )
     decisions = {(item["round"], item["decision"]["candidate_id"]): item["decision"]["outcome"]
                  for item in (rounds or []) if "decision" in item}
     for row in rows:

@@ -130,6 +130,46 @@ def test_campaign_does_not_compare_different_workloads(tmp_path):
     assert overview["best_improvement_pct"] is None
 
 
+def test_incompatible_campaign_withholds_explicit_chain_chart(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    for name in ("a", "b"):
+        run(tmp_path, name, 5, quality="completed", verified=True)
+        candidate(tmp_path, name, name)
+    lock = tmp_path / "runs/b/run.lock.json"
+    data = json.loads(lock.read_text(encoding="utf-8"))
+    data["workload_id"] = "different-workload"
+    write_json(lock, data)
+    write_json(tmp_path / "summary-chart.json", {
+        "layout": "chain", "baseline": {"metrics": {"gain": 1}},
+        "metrics": [{"key": "gain"}], "axis": {"step": 0.5},
+        "points": [{"phase": "a", "label": "x", "values": {"gain": 2}}],
+    })
+
+    svg, note = _chart(tmp_path, load_dashboard(tmp_path))
+
+    assert not svg
+    assert "incompatible" in note
+
+
+def test_missing_and_corrupt_candidate_metadata_are_not_silently_dropped(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    run(tmp_path, "run-a", 5, quality="completed", verified=True)
+    candidate(tmp_path, "a", "run-a", round=1)
+    corrupt = tmp_path / "candidates/b/candidate.json"
+    corrupt.parent.mkdir(parents=True)
+    corrupt.write_text('{"candidate_id":', encoding="utf-8")
+    (tmp_path / "rounds.jsonl").write_text(json.dumps({
+        "round": 1, "candidates": ["a", "b", "c"],
+    }) + "\n", encoding="utf-8")
+
+    rows = {row["candidate_id"]: row for row in load_dashboard(tmp_path)["candidates"]}
+
+    assert set(rows) == {"a", "b", "c"}
+    assert rows["b"]["candidate_metadata_state"] == "corrupt"
+    assert rows["c"]["candidate_metadata_state"] == "file_absent"
+    assert rows["b"]["run_id"] is None and rows["c"]["run_id"] is None
+
+
 def test_best_gain_requires_a_recorded_zero_exit_code_and_completed_run(tmp_path):
     write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
     run(tmp_path, "a", 5, quality="completed", verified=True)
@@ -292,6 +332,34 @@ def test_trace_requires_matching_correlation_and_unknown_events_do_not_cover_a_s
     assert next(stage for stage in view["stages"] if stage["name"] == "validation")["state"] == (
         "stage_not_recorded"
     )
+
+
+def test_pre_run_trace_links_only_to_unique_matching_candidate(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "campaign"})
+    run(tmp_path, "run-a", 1, quality="completed", verified=True)
+    trace = tmp_path / "candidates/a/agent_trace.jsonl"
+    trace.parent.mkdir(parents=True)
+    event = {"type": "agent.context", "schema_version": 1, "campaign_id": "campaign",
+             "candidate_id": "a", "run_id": None, "round": 1, "stage": "diagnosis",
+             "time": "2026-01-01T00:00:00Z"}
+    trace.write_text(json.dumps(event) + "\n", encoding="utf-8")
+    candidate(tmp_path, "a", "run-a", round=1, agent_trace_ref={
+        "path": "candidates/a/agent_trace.jsonl",
+        "sha256": hashlib.sha256(trace.read_bytes()).hexdigest(),
+    })
+
+    view = load_dashboard(tmp_path)
+
+    assert next(stage for stage in view["stages"] if stage["name"] == "diagnosis")["state"] == (
+        "recorded"
+    )
+    assert view["candidates"][0]["events"][0]["stage"] == "diagnosis"
+    write_json(tmp_path / "candidates/b/candidate.json", {
+        "candidate_id": "a", "title": "duplicate", "run_id": "run-a", "round": 1,
+    })
+    row = load_dashboard(tmp_path)["candidates"][0]
+    assert row["agent_trace_links"]["unlinked"] == [1]
+    assert not row["events"]
 
 
 def test_trace_explicit_refs_are_checked_and_displayed(tmp_path):

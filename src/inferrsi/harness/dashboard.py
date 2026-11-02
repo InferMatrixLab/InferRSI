@@ -83,6 +83,8 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
     chart_file = source / "summary-chart.json"
     spec = None
     message = "Independent candidate results relative to their paired baselines."
+    if view["overview"]["comparison_state"] != "comparable":
+        return "", "Comparison evidence is missing, unsupported, or incompatible."
     if _inside(source, chart_file) and chart_file.is_file():
         try:
             if chart_file.stat().st_size <= 256 * 1024:
@@ -94,8 +96,6 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
         except (OSError, UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
             pass
     if spec is None:
-        if view["overview"]["comparison_state"] != "comparable":
-            return "", "Comparison evidence is missing, unsupported, or incompatible."
         trials = []
         for index, row in enumerate(view["candidates"], 1):
             gain = row["improvement_pct"]
