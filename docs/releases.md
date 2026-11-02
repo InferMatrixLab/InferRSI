@@ -64,7 +64,7 @@ configuration does not silently change their access or existing branch rules.
    Its generated plugin metadata, bundled runtime and tag must have the same
    version. Verify every bundled runtime hash and exercise the extracted
    launcher/knowledge reads outside the checkout with isolated Python.
-4. After a successful build, an optional read-only notes job calls the GPT API
+4. After a successful build, an optional read-only notes job calls the AI API
    with bounded change metadata for exactly the planned revision range. Its
    Markdown summary is transferred as a separate artifact. Missing credentials,
    API/validation errors and unavailable notes artifacts fall back to the
@@ -84,23 +84,30 @@ software changes; CPU/package checks do not establish campaign `PASS`, model
 quality or service performance. Such claims retain the acceptance and evidence
 requirements in [contributing](contributing.md#evidence-and-claims).
 
-## GPT release summaries
+## AI release summaries
 
-To enable GPT summaries, add the Actions repository secret `OPENAI_API_KEY` under
+To enable AI summaries, add the Actions repository secret `OPENAI_API_KEY` under
 **Settings → Secrets and variables → Actions**. The key is injected only into
 the notes step. Do not put it in workflow source, command arguments, PR text or
 logs. API access and usage are billed by the selected provider for that key;
 GitHub Copilot access is not required.
 
-The default model is `gpt-6.1-terra`. Set the optional Actions repository variable
+The default API model is `deepseek-flash`, documented by DeepSeek as
+[DeepSeek-V4.1-Flash-1017](https://api-docs.deepseek.com/quick_start/pricing/)
+when this configuration was added. This is a provider-managed alias, not a
+version pin; DeepSeek may upgrade its target. Set the optional Actions repository variable
 `OPENAI_RELEASE_NOTES_MODEL` to another model available to your API account and
 compatible with the Responses API. Set `OPENAI_BASE_URL` to select the approved
-HTTPS provider: `https://api.openai.com/v1` (the fallback) or
-`https://yibuapi.com/v1`. This repository uses Yibu and sends the configured key
-only to its `/responses` endpoint. Trailing slashes are normalized; other hosts,
+HTTPS provider: `https://api.deepseek.com` (the fallback),
+`https://api.openai.com/v1` or `https://yibuapi.com/v1`. This repository uses
+DeepSeek's official API and sends the configured key only to its `/responses`
+endpoint. The existing `OPENAI_*` setting names also apply to DeepSeek; use a key
+issued by the selected provider. The configured API model ID is sent unchanged;
+the helper does not substitute a model when it is unavailable. Trailing slashes
+are normalized; other hosts,
 HTTP, userinfo, query strings and fragments are rejected before sending a key.
 Redirects remain disabled. Additional providers require a reviewed allowlist
-change. Without the secret, the workflow skips GPT and continues ordinary
+change. Without the secret, the workflow skips AI generation and continues ordinary
 publication.
 
 The [notes helper](../tools/generate_release_notes.py) sends bounded commit
@@ -118,14 +125,15 @@ original GitHub changelog, preserving its PR links and source/evidence notice.
 Model output is read as a file and never executed as shell code.
 
 The helper makes one request using the
-[Responses API](https://developers.openai.com/api/docs/guides/text), supported by
-the [Yibu Responses endpoint](https://yibuapi.apifox.cn/6777341m0), with
-bounded input/output, a timeout, no tools and `store: false`. That setting does
+[Responses API](https://api-docs.deepseek.com/guides/responses_api/), with
+bounded input/output, a timeout, no tools and `store: false`. DeepSeek requests
+set reasoning effort to `none` for the short summary. DeepSeek ignores `store`
+and documents stateless Responses compatibility; this setting does
 not establish zero data retention. Missing credentials, failed/incomplete/refused
 or unusable responses leave no summary. The optional notes job or artifact may
 fail without skipping an otherwise valid publication; failed package checks and
 workflow cancellation still prevent publication. The AI job has no repository
-write permission, and the publisher receives no OpenAI key. There is no AI code
+write permission, and the publisher receives no API key. There is no AI code
 commit, merge, account installation or update to an existing public Release.
 
 Each Release contains a Python wheel, source distribution, the versioned Codex
@@ -142,7 +150,7 @@ wrapper is packaged; the downloaded ZIP is the only Codex plugin release asset.
 Merge the configuration into the default branch. GitHub Actions and the listed
 actions must be allowed by organization policy, and the publisher needs
 `contents: write`. Ordinary releases need no extra secret, PAT, GitHub App or
-repository-wide write default. GPT summaries additionally use the optional
+repository-wide write default. AI summaries additionally use the optional
 `OPENAI_API_KEY` secret described above. The workflow guards the canonical
 repository and default branch; copies must deliberately update that repository
 guard.
@@ -150,7 +158,7 @@ guard.
 Under **Actions → Release bot → Run workflow**, select the default branch and
 leave **dry_run** checked. It plans and builds the next release without creating
 a remote tag or Release; unchanged trees skip here too. With `OPENAI_API_KEY`
-configured, a changed-source dry run also makes the GPT request and uploads the
+configured, a changed-source dry run also makes the AI request and uploads the
 summary artifact for inspection, consuming API usage. Clearing **dry_run**
 runs the same automatic publication immediately. It takes no version/tag input.
 
