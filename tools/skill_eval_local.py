@@ -205,7 +205,8 @@ def capture(output: Path, authorization: str, task_id: str, condition: str, repe
     from tools import skill_eval_compare as compare
 
     record = {**entry, "verdict": verdict, "checks": checks, "elapsed_seconds": elapsed,
-              "observations": {"usage": normalize_usage(metadata["usage"]), "commands": [],
+              # Raw author logs are retained, not parsed into command observations.
+              "observations": {"usage": normalize_usage(metadata["usage"]), "commands": None,
                                "completed_turns": None, "errors": []},
               "execution_state": "author_reported", "inputs_unchanged": unchanged,
               "evaluation_error": error, "input_hashes": stage_record["input_hashes"],

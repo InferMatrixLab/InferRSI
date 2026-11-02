@@ -1,4 +1,5 @@
 * text=auto eol=lf
+.git_archival.txt export-subst
 
 # Preserve recorded evidence and historical validator bytes across checkouts.
 /evidence/** -text

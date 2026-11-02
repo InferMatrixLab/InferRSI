@@ -2,8 +2,8 @@
 
 Conventions for coordinating humans and agents through Issues and PRs, delivered
 per the collaboration RFC
-([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)). They are
-documentation only: no new automation, permissions, merge gates or CI lanes.
+([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)). They add no merge
+gates or CI lanes; the checks they mention are reports in the existing lanes.
 Campaign acceptance, DCO, CI lanes and evidence rules stay in
 [contributing](contributing.md); the agent entry contract stays in
 [AGENTS](../AGENTS.md).
@@ -180,13 +180,48 @@ flowchart LR
 - **Commit:** short descriptive subject; why/what when useful. Keep governing Issue references out of commit subjects, bodies and trailers — the PR body carries them. Preserve author identity and the required DCO sign-off (`git commit -s`); never invent a signing identity. Agent-assisted commits identify material agent contributors with `Agent-assisted-by: <actual agent name> (<role>)` trailers; repeat for multiple contributors and retain attribution when squashing. Protected knowledge contributions require the [current-head knowledge declaration](knowledge-model-policy.md) and use `Agent-assisted-by: <tool> / <model-id> [effort=<level>] (<role>)` when known. Unknown values stay truthful and do not satisfy admission; model/version remains optional for other work. The trailer is self-reported provenance, not cryptographic signing, independent review or approval; review attribution belongs on the revision-scoped review record.
 - **Squash merge:** the required integration method. Before an authorized merge, prepare a concise squash message: subject plus a short summary, no governing Issue references, no redundant intermediate-commit messages; preserve the required DCO sign-off and material `Agent-assisted-by` attribution. Never invent identities or sign-offs.
 
-Labels document coordination intent; they do not grant it. Reuse existing labels
-where adequate: type (`bug`, `enhancement`, `documentation`, optionally `rfc`),
-decision (`proposed`, `accepted`, `deferred`, at most one), coordination
-(`blocked`, with a blocker link). Do not duplicate native open/closed or
-review/check states with labels. Decision labels are synchronized with recorded
-decisions by an authorized owner or delegate; setting labels up is a separate
-decision, not part of these conventions.
+## Labels
+
+Labels document coordination intent; they do not grant it. [`labels.json`](../.github/labels.json)
+lists every repository label with its group and description, and every name has the form
+`group:value`. Do not duplicate native open/closed or review/check states with labels.
+
+| Group | Labels | Applied by | When |
+| --- | --- | --- | --- |
+| Type | exactly one `kind:*` per Issue, including `kind:bug`; Issues only (Issues created before the label change may keep two) | the creator; templates | at creation |
+| Area | one or more `area:*` | the creator | at creation |
+| Status | `status:proposed` (waiting for a decision) | the acting agent | the status block names a concrete question and its decision owner, and no decision is recorded |
+| Status | `status:accepted` or `status:deferred`, replacing `status:proposed` | the acting agent | only after the decision owner records that decision in a comment |
+| Priority | at most one `priority:P0/P1/P2`, only with `status:proposed` or `status:accepted` | the acting agent; the decision owner may change it | with `status:proposed`, how soon the owner should decide; with `status:accepted`, how soon work should start; removed at `status:deferred` |
+| Help | `help:wanted` | the creator or a maintainer | an Issue needs an owner or contributor |
+| Protected switch | `skill-eval:execute` | only the owner adds it; the owner or an agent may remove it | adding authorizes paid Skill Eval for one PR; removing revokes it |
+
+An Issue carries at most one `status:*` label. When the owner rejects a proposal, or its
+author withdraws it, the acting agent removes `status:proposed` and the Issue is closed as
+*not planned*. [Open Issues labeled `status:proposed`](https://github.com/InferMatrixLab/InferRSI/issues?q=is%3Aopen%20label%3A%22status%3Aproposed%22)
+are the pending decisions; the Issue facts and decision comments, not the label alone, decide
+each case.
+
+Removing `skill-eval:execute` revokes paid Skill Eval authorization; it is not label cleanup,
+and label maintenance never adds, removes, renames or deletes it. The controller rechecks the
+label before each paid request, so every check after the removal blocks its request. A request
+that passed its last check before the removal can still be sent, and removal does not cancel a
+request already sent or roll back budget already reserved or claimed. Only a new label event by
+the owner restores the authorization.
+
+Open `kind:task`, `kind:acceptance`, `kind:tracking` and `kind:rfc` Issues start with a
+three-line status block that the acting agent keeps current:
+
+```markdown
+**Current state:** <one sentence>
+**Decision needed:** <question>, from <decision owner> / none
+**Next action:** <who does what next>
+```
+
+Change labels by editing `labels.json` in a PR first, then applying that change to the
+repository. The nightly `safety-net` job reports drift between the repository labels and
+`labels.json`, and any label that an Issue template or `tools/skill_eval_*_config.json`
+references but `labels.json` lacks. No workflow writes labels.
 
 ## Evidence refresh — hypothetical example
 

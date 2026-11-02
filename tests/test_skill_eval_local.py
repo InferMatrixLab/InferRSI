@@ -64,6 +64,8 @@ def test_manual_handoff_keeps_artifact_and_author_provenance_separate(tmp_path, 
     assert "parser.py" in pair["candidate"]["evidence"]
     assert "author-execution.json" in pair["candidate"]["evidence"]
     assert pair["candidate"]["observations"]["usage"] is None
+    assert pair["candidate"]["observations"]["tool_calls"] is None
+    assert "Observed command count: unknown" in compare.markdown(result)
     assert not (output / "results/start.json").exists()
     with pytest.raises(ValueError, match="already started"):
         local.capture(output, digest, "parser", "candidate", 1, tmp_path / "candidate", head, logs)
@@ -100,6 +102,39 @@ def test_stale_head_and_missing_logs_are_not_accepted(tmp_path):
     (logs / "stdout.log").unlink()
     with pytest.raises(ValueError, match="Supply execution.json"):
         local.capture(output, digest, "parser", "baseline", 1, workspace, head, logs)
+
+
+@pytest.mark.parametrize("commands, completed_turns, expected", [
+    (None, None, None), ([], None, None), ([], 0, 0), ([{"synthetic": True}], 1, 1),
+])
+def test_import_command_count_preserves_unknown_and_observed_zero(
+        tmp_path, monkeypatch, commands, completed_turns, expected):
+    from inferrsi.harness.improvement import usage_totals
+
+    output, digest, head = prepared(tmp_path)
+    monkeypatch.setattr(engineering, "verify", fake_verify)
+    workspace = tmp_path / "baseline"
+    local.stage(output, digest, "parser", "baseline", 1, workspace, head)
+    original = local.capture(output, digest, "parser", "baseline", 1, workspace, head,
+                             submission(tmp_path, output))
+    path = output / original["pairs"][0]["baseline"]["evidence"]["result.json"]
+    record = compare.read_json(path)
+    assert record["observations"]["commands"] is None
+    # Synthetic legacy/unparsed and explicitly parsed controls, not real author logs.
+    record["observations"].update(commands=commands, completed_turns=completed_turns)
+    write_json(path, record)
+    receipt = path.parent / "receipt.json"
+    write_json(receipt, {"result_sha256": sha256(path)})
+    saved = path.read_bytes(), receipt.read_bytes()
+    result = compare.read_report(output)
+    trial = result["pairs"][0]["baseline"]
+    assert trial["observations"]["tool_calls"] == expected
+    assert usage_totals([trial])["tool_calls"] == expected
+    assert usage_totals([trial, {**trial, "observations": {"tool_calls": None}}])[
+        "tool_calls"] is None
+    rendered = "unknown" if expected is None else str(expected)
+    assert "Observed command count: " + rendered in compare.markdown(result)
+    assert saved == (path.read_bytes(), receipt.read_bytes())
 
 
 def test_unavailable_sandbox_remains_inconclusive(tmp_path, monkeypatch):

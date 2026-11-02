@@ -2,13 +2,21 @@
 name: Scoped task
 about: Propose a bounded issue for human or agent work; use Campaign acceptance for performance claims.
 title: "task: "
+labels:
+  - kind:task
 ---
 
 <!-- A proposal does not grant execution or merge authority.
 Use the existing Campaign acceptance form for formal model/performance gates.
-For bug reports, use the title form "bug: <observable symptom>".
+For bug reports, use the title form "bug: <observable symptom>" and replace
+the kind:task label with kind:bug.
 Unknown items may remain TBD while the issue is proposed.
+The acting agent keeps the three status lines below current.
 Conventions: docs/agent-collaboration.md -->
+
+**Current state:**
+**Decision needed:**
+**Next action:**
 
 ## Goal and acceptance
 
