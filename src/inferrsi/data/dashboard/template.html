@@ -234,7 +234,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     detailLine(benchmark,'Accuracy methodology / result · caller recorded',info.accuracy);
     detailLine(benchmark,'Validation command · redacted argv',row.commands.accuracy || 'Not recorded',true);
     for(const command of info.commands)detailLine(benchmark,`${command.label} · caller recorded, redacted argv`,command.argv,true);
-    detailLine(benchmark,'Recorded validation state',`${row.quality.replaceAll('_',' ')} · only the recorded validation command is covered`);
+    const validationNote=row.commands.accuracy?'only the recorded validation command is covered':'validation command not recorded in run.lock.json';
+    detailLine(benchmark,'Recorded validation state',`${row.quality.replaceAll('_',' ')} · ${validationNote}`);
     detailLine(benchmark,'Command evidence',refText(row.artifacts.run_lock),true);
     if(row.artifacts.candidate_metadata)detailLine(benchmark,'Caller detail evidence',refText(row.artifacts.candidate_metadata),true);
   }
