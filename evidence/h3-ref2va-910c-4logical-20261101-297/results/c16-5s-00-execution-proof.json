@@ -1,0 +1,100 @@
+{
+  "run": "c16-video-row-fp32-quality-5s-00-8600757a",
+  "source_commit": "e0a3462fcc44de698b5dedcf8ff2c99f9802f757",
+  "latency_diagnostic_ms": 197716.36760496767,
+  "clean_timing": false,
+  "cleanup_passed": true,
+  "helpers_unchanged": true,
+  "input_checks": {
+    "verdict": "PASS",
+    "checks": 134,
+    "failures": [],
+    "scope": "input/schedule/geometry/finite-state checks only; perceptual quality and latency acceptance are separate"
+  },
+  "counters_by_rank": {
+    "0": {
+      "full_steps": 17,
+      "partial_steps": 33,
+      "full_blocks": 850,
+      "partial_blocks": 1650,
+      "subset_attention_calls": 1650,
+      "subset_query_rows": 4083750,
+      "omitted_query_rows": 61538400,
+      "partial_mlp_rows": 4083750,
+      "peak_cache_bytes": 8039270400,
+      "closed": true,
+      "storage_dtype": "torch.float32",
+      "live_cache_bytes": 0
+    },
+    "1": {
+      "full_steps": 17,
+      "partial_steps": 33,
+      "full_blocks": 850,
+      "partial_blocks": 1650,
+      "subset_attention_calls": 1650,
+      "subset_query_rows": 4083750,
+      "omitted_query_rows": 61538400,
+      "partial_mlp_rows": 0,
+      "peak_cache_bytes": 10700390400,
+      "closed": true,
+      "storage_dtype": "torch.float32",
+      "live_cache_bytes": 0
+    },
+    "2": {
+      "full_steps": 17,
+      "partial_steps": 33,
+      "full_blocks": 850,
+      "partial_blocks": 1650,
+      "subset_attention_calls": 1650,
+      "subset_query_rows": 4083750,
+      "omitted_query_rows": 61538400,
+      "partial_mlp_rows": 0,
+      "peak_cache_bytes": 10700390400,
+      "closed": true,
+      "storage_dtype": "torch.float32",
+      "live_cache_bytes": 0
+    },
+    "3": {
+      "full_steps": 17,
+      "partial_steps": 33,
+      "full_blocks": 850,
+      "partial_blocks": 1650,
+      "subset_attention_calls": 1650,
+      "subset_query_rows": 4083750,
+      "omitted_query_rows": 61538400,
+      "partial_mlp_rows": 0,
+      "peak_cache_bytes": 10660608000,
+      "closed": true,
+      "storage_dtype": "torch.float32",
+      "live_cache_bytes": 0
+    }
+  },
+  "step4_range": {
+    "records": 200,
+    "elements": 10025164800,
+    "fp32_nonfinite": 0,
+    "counterfactual_fp16_nonfinite": 166071,
+    "max_abs_delta": 2232320.0
+  },
+  "quality_verdict": "FAIL",
+  "observed_checks": 39,
+  "failures": [
+    "5s-00:clap: similarity",
+    "5s-00: clap segment",
+    "5s-00: audio temporal envelope"
+  ],
+  "missing_samples": [
+    "5s-01",
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-00",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "media_sha256": "eeb8b2dca5c467f90680986a545d874ae6df8fa558ebd1816974af5e692f2951",
+  "features_sha256": "170179e1c4916ae9317456206091d9822496bad04b941c42bfe74abd82db0bd2",
+  "decision": "Reject fixed C16 profile on three observed audio violations; no5s01/15s expansion or clean performance qualification."
+}

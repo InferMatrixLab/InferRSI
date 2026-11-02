@@ -1,0 +1,58 @@
+{
+  "trial": "c11-modality-sigma-quality-5s-00-eb726462",
+  "source_commit": "61b8efa06e88372bc5ab87b9e2668a133eaac282",
+  "cache_configuration": {
+    "Fn_compute_blocks": 1,
+    "Bn_compute_blocks": 0,
+    "max_warmup_steps": 4,
+    "scm_steps_mask_policy": null,
+    "residual_diff_threshold": 0.08,
+    "max_continuous_cached_steps": 3,
+    "enable_taylorseer": false,
+    "minimax_h3_sigma_cache": true
+  },
+  "latency_diagnostic_ms": 171179.77748898556,
+  "clean_timing": false,
+  "input_checks_passed": 134,
+  "cleanup_passed": true,
+  "actual_middle_counts_by_rank": [
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    }
+  ],
+  "observed_quality_checks": 39,
+  "observed_failures": [
+    "5s-00:audio_caption_clap_cosine: adherence"
+  ],
+  "quality_verdict": "FAIL",
+  "missing_samples": [
+    "5s-01",
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-00",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "decision": "Reject original Fn1Bn0 for5s-00; frozen adherence failure is retained; Bn1 is a separate configuration.",
+  "performance_acceptance": "PENDING; diagnostic HTTP is not a clean paired gain"
+}

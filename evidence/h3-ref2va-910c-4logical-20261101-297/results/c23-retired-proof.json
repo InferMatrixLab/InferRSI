@@ -1,0 +1,31 @@
+{
+  "checked_at": "2026-11-02T15:48:59.537140+08:00",
+  "selected_logical_devices": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "selected_devices_idle": true,
+  "ports_free": {
+    "19193": true,
+    "19194": true,
+    "29597": true
+  },
+  "source_head": "6eb7bb094effb40853431208d1631effaf452a3f",
+  "source_clean": true,
+  "tested_files_unchanged": true,
+  "helper_and_validators": {
+    "scripts/h3_diagnostics.py": "514d1c735f204693be2af7e4f4fbbba064e2655a59b3c59ea62c35755802fae7",
+    "validator/strict_compare.py": "b83f2bff553ff6ca2970a16e25525cac5d9523612e9c05ea563852c814019028",
+    "quality-tools/score_media.py": "99f5a76436a3c8d37462fab83f63d24eae74b4458c30e5a00b60c19fde139f3e",
+    "quality-tools/compare_quality.py": "99e8e23463f8ce83b52a22de9cdc697ef4bbf14d910a0c67e76bfd01e94c4b3d"
+  },
+  "runtime_diagnostic_version": 17,
+  "charged_direction_families": 24,
+  "direction_ceiling": 24,
+  "deadline": "2026-11-03T01:19:00+08:00",
+  "candidate_quality_verdict": "FAIL",
+  "accepted_50pct_http_gain": false,
+  "scope": "Retire rejected C23 fixed profile; preserve evidence and original budget. No new search direction launched."
+}

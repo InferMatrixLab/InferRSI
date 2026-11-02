@@ -1,0 +1,79 @@
+{
+  "checked_at": "2026-11-02T06:55:00.775781+00:00",
+  "before_count": 24,
+  "after_count": 23,
+  "before_directions": [
+    "C0-upstream-migration",
+    "C1-BF16-attention-execution",
+    "C2-HSDP2-replicate2",
+    "C3-Cache-DiT-residual-reuse",
+    "C4-dense-BF16-attention-alternatives",
+    "C5-H3-Laser-video-queries-BF16-context",
+    "C6-Laser-input-range-scaling",
+    "C7-native-RainFusion-BF16",
+    "C8-reference-KV-device-refresh2",
+    "C9-TP4-resident-DiT",
+    "C10-H3-audio-cache-veto",
+    "C11-H3-modality-sigma-residual",
+    "C12-H3-state-aligned-residual",
+    "C13-C1-DLO-QKV-order",
+    "C14-A3-quantized-attention-prerequisites",
+    "C15-H3-target-video-row-cache",
+    "C16-H3-video-row-FP32-residual",
+    "C17-H3-video-temporal-window",
+    "C18-H3-video-global-pooled-context",
+    "C19-H3-video-shared-global-pool",
+    "C20-H3-video-variance-pool",
+    "C21-H3-video-row-FP32-residual",
+    "C21-H3-video-pre-gate-cache",
+    "C22-H3-video-row-FP32-residual"
+  ],
+  "canonical_directions": [
+    "C0-upstream-migration",
+    "C1-BF16-attention-execution",
+    "C2-HSDP2-replicate2",
+    "C3-Cache-DiT-residual-reuse",
+    "C4-dense-BF16-attention-alternatives",
+    "C5-H3-Laser-video-queries-BF16-context",
+    "C6-Laser-input-range-scaling",
+    "C7-native-RainFusion-BF16",
+    "C8-reference-KV-device-refresh2",
+    "C9-TP4-resident-DiT",
+    "C10-H3-audio-cache-veto",
+    "C11-H3-modality-sigma-residual",
+    "C12-H3-state-aligned-residual",
+    "C13-C1-DLO-QKV-order",
+    "C14-A3-quantized-attention-prerequisites",
+    "C15-H3-target-video-row-cache",
+    "C16-H3-video-row-FP32-residual",
+    "C17-H3-video-temporal-window",
+    "C18-H3-video-global-pooled-context",
+    "C19-H3-video-shared-global-pool",
+    "C20-H3-video-variance-pool",
+    "C21-H3-video-pre-gate-cache",
+    "C22-H3-video-pre-gate-sigma-secant"
+  ],
+  "aliases": {
+    "C21-H3-video-row-FP32-residual": "C21-H3-video-pre-gate-cache",
+    "C22-H3-video-row-FP32-residual": "C22-H3-video-pre-gate-sigma-secant"
+  },
+  "scope": "Controller label correction for two existing mechanisms; no new direction/budget approval inferred.",
+  "cost_policy": "Retain all raw attempts, failures and retries. Original start/deadline/device-hour ceiling unchanged; wall-clock accounting includes this repair.",
+  "source_binding": {
+    "C21": "d48fa51d03dd748568cbcf57ed40f533c691c9bd",
+    "C22": "7b0d12bfefdf05868e93e74bc91f04c70ee34128"
+  },
+  "retained_failed_model": "c22-video-pre-gate-secant-quality-5s-00-72202558",
+  "controllers": {
+    "C21": {
+      "before_sha256": "1ca526f2040b5c53d091068766dac0346c79268c4f5ae0b10674e8d2a97b3a40",
+      "after_sha256": "a3ab34ba341fad6b1e3041c8b06716cc669a3fe0171bad2b6e4a6693e54d0780",
+      "original_bytes": "run_c21_native_checks-before-family-alias.py"
+    },
+    "C22": {
+      "before_sha256": "3e58beffbe688a15cfa73a00ec8fbf20c6e78a25235a002422898f6506cae1d2",
+      "after_sha256": "4a9175a8f8db782df06f14af6a0329368da27ccb5ea776a02ce97ad86df0dd33",
+      "original_bytes": "run_c22_native_checks-before-family-alias.py"
+    }
+  }
+}

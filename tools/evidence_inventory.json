@@ -1,6 +1,22 @@
 {
   "version": 1,
   "bundles": {
+    "h3-ref2va-910c-4logical-20261101-297": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "results/publication-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "validator/frozen-snapshots.json",
+          "schema": "bundle-sha256"
+        }
+      ],
+      "external": [
+        "Original model/reference/scorer weights, raw media/tensors, full executor archives and private namespace/bootstrap runtime are not bundled. Source hashes and sanitized field projections do not make these artifacts publicly replayable."
+      ]
+    },
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [

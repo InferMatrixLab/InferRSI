@@ -1,0 +1,97 @@
+{
+  "scope": "Single real5s first-long-attention fixture,logical device count1; not whole-model performance",
+  "cases": [
+    {
+      "name": "bnsd_query_tiles2",
+      "bit_exact": true,
+      "unequal_elements": 0,
+      "compared_elements": 71269632,
+      "finite": true,
+      "reference_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "candidate_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "baseline_ms": [
+        71.68554002419114,
+        71.42315799137577,
+        71.29112700931728,
+        71.63919898448512,
+        71.81268103886396,
+        71.30170601885766,
+        71.39379699947312
+      ],
+      "candidate_ms": [
+        73.04394000675529,
+        72.85228901309893,
+        72.96156999655068,
+        73.32086301175877,
+        72.36289500724524,
+        72.75056897196919,
+        72.87441898370162
+      ],
+      "baseline_median_ms": 71.42315799137577,
+      "candidate_median_ms": 72.87441898370162,
+      "reduction_pct": -2.0319193846078276
+    },
+    {
+      "name": "bnsd_query_tiles4",
+      "bit_exact": true,
+      "unequal_elements": 0,
+      "compared_elements": 71269632,
+      "finite": true,
+      "reference_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "candidate_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "baseline_ms": [
+        71.867641992867,
+        71.62905996665359,
+        71.80321001214907,
+        71.19845598936081,
+        71.26071699894965,
+        71.53511798242107,
+        71.6239099856466
+      ],
+      "candidate_ms": [
+        73.54129396844655,
+        72.99410999985412,
+        73.14522104570642,
+        73.51523399120197,
+        73.63296498078853,
+        73.1829310534522,
+        73.33417201880366
+      ],
+      "baseline_median_ms": 71.6239099856466,
+      "candidate_median_ms": 73.33417201880366,
+      "reduction_pct": -2.387836734269033
+    },
+    {
+      "name": "bnsd_query_tiles8",
+      "bit_exact": true,
+      "unequal_elements": 0,
+      "compared_elements": 71269632,
+      "finite": true,
+      "reference_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "candidate_sha256": "7cabc1030b41d2e42c77aac352c20a2b676e194d1f9883b54d5c9b8f72b38c21",
+      "baseline_ms": [
+        71.52353797573596,
+        71.5064779506065,
+        71.6628700029105,
+        71.23498595319688,
+        71.53764902614057,
+        71.93902198923752,
+        72.01983203412965
+      ],
+      "candidate_ms": [
+        74.3553499924019,
+        75.21554798586294,
+        76.08375401468948,
+        75.20787802059203,
+        75.23201801814139,
+        75.40346903260797,
+        75.78394201118499
+      ],
+      "baseline_median_ms": 71.53764902614057,
+      "candidate_median_ms": 75.23201801814139,
+      "reduction_pct": -5.164230363023048
+    }
+  ],
+  "campaign_verdict": "INCONCLUSIVE",
+  "decision": "All three variants are bit-exact but slower; do not integrate."
+}
