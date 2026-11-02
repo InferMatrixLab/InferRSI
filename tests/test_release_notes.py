@@ -268,7 +268,7 @@ def test_completed_mixed_output_items_make_one_bounded_markdown_file(invocation,
     assert request.full_url == notes.ENDPOINT and request.method == "POST"
     assert request.get_header("Authorization") == f"Bearer {KEY}"
     payload = json.loads(request.data)
-    assert payload["model"] == "gpt-5.4-mini" and payload["store"] is False
+    assert payload["model"] == "gpt-6.1-terra" and payload["store"] is False
     assert payload["max_output_tokens"] == 1600
     assert "temperature" not in payload and "tools" not in payload
     assert KEY not in request.data.decode()
@@ -354,6 +354,42 @@ def test_redirects_are_refused_before_authorization_can_be_forwarded():
     with pytest.raises(ValueError, match="Redirects are not allowed"):
         notes.NoRedirect().redirect_request(request, None, 307, "redirect", {},
                                             "https://example.invalid/receive")
+
+
+@pytest.mark.parametrize("base", ["https://yibuapi.com/v1", "https://yibuapi.com/v1/"])
+def test_cli_preserves_approved_yibu_base_and_explicit_model(invocation, base):
+    run, output, arguments = invocation
+    arguments += ["--base-url", base, "--model", "gpt-5.4-mini"]
+    code, _, calls = run(completed())
+    assert code == 0 and output.is_file() and len(calls) == 1
+    request, _ = calls[0]
+    assert request.full_url == "https://yibuapi.com/v1/responses"
+    assert request.get_header("Authorization") == f"Bearer {KEY}"
+    assert json.loads(request.data)["model"] == "gpt-5.4-mini"
+
+
+@pytest.mark.parametrize("base", [
+    "http://yibuapi.com/v1", "https://example.invalid/v1", "https://yibuapi.com.evil.invalid/v1",
+    "https://operator:fake-no-access@yibuapi.com/v1", "https://api.openai.com@yibuapi.com/v1",
+    "https://yibuapi.com/v1?token=fake-no-access", "https://yibuapi.com/v1#fragment",
+    "https://yibuapi.com/v1/responses", "https://yibuapi.com:443/v1", " https://yibuapi.com/v1",
+    "https://yibuapi.com/v1/../v1", "https://yibuapi.com/v1\\", "",
+], ids=["http", "arbitrary-host", "suffix-host", "userinfo", "misleading-userinfo", "query",
+        "fragment", "full-endpoint", "port", "whitespace", "parent-path", "backslash", "empty"])
+def test_unapproved_base_is_rejected_before_any_http_call(monkeypatch, base):
+    monkeypatch.setattr(notes.urllib.request, "build_opener",
+                        lambda *args: pytest.fail("No network"))
+    with pytest.raises(ValueError, match="Unapproved API base URL"):
+        notes.generate("{}", notes.DEFAULT_MODEL, KEY, base)
+
+
+def test_invalid_cli_base_falls_back_without_network_or_stale_output(invocation, capsys):
+    run, output, arguments = invocation
+    output.write_text("stale", encoding="utf-8")
+    arguments += ["--base-url", "https://example.invalid/v1"]
+    code, _, calls = run(completed())
+    assert code == 0 and not output.exists() and calls == []
+    assert capsys.readouterr().out == notes.FALLBACK + "\n"
 
 
 def test_output_that_cannot_be_cleared_is_a_failure_not_stale_success(

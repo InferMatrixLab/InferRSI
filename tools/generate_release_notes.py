@@ -12,8 +12,10 @@ import unicodedata
 import urllib.request
 from pathlib import Path
 
-ENDPOINT = "https://api.openai.com/v1/responses"
-DEFAULT_MODEL = "gpt-5.4-mini"
+DEFAULT_BASE_URL = "https://api.openai.com/v1"
+ALLOWED_BASE_URLS = frozenset({DEFAULT_BASE_URL, "https://yibuapi.com/v1"})
+ENDPOINT = DEFAULT_BASE_URL + "/responses"
+DEFAULT_MODEL = "gpt-6.1-terra"
 MAX_SOURCE_BYTES = 48_000
 MAX_NOTES_BYTES = 20_000
 MAX_RESPONSE_BYTES = 131_072
@@ -218,13 +220,21 @@ def response_text(value: object) -> str:
     return text + "\n"
 
 
-def generate(source: str, model: str, key: str) -> str:
+def responses_endpoint(base_url: str) -> str:
+    normalized = base_url.rstrip("/")
+    if normalized not in ALLOWED_BASE_URLS:
+        raise ValueError("Unapproved API base URL")
+    return normalized + "/responses"
+
+
+def generate(source: str, model: str, key: str, base_url: str = DEFAULT_BASE_URL) -> str:
+    endpoint = responses_endpoint(base_url)
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}", model):
         raise ValueError("Invalid model identity")
     payload = {"model": model, "instructions": INSTRUCTIONS, "input": source,
                "store": False, "max_output_tokens": 1600}
     request = urllib.request.Request(
-        ENDPOINT, data=json.dumps(payload).encode("utf-8"), method="POST",
+        endpoint, data=json.dumps(payload).encode("utf-8"), method="POST",
         headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
     )
     with urllib.request.build_opener(NoRedirect()).open(request, timeout=45) as response:
@@ -252,6 +262,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--commit", required=True)
     parser.add_argument("--previous-tag", default="")
     parser.add_argument("--model", default=DEFAULT_MODEL)
+    parser.add_argument("--base-url", default=DEFAULT_BASE_URL)
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args(argv)
     temporary = None
@@ -263,7 +274,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         source = source_snapshot(args.tag, args.commit, args.previous_tag,
                                  os.environ.get("GH_REPO", ""))
-        text = generate(source.replace(key, "<REDACTED>"), args.model, key)
+        text = generate(source.replace(key, "<REDACTED>"), args.model, key, args.base_url)
         args.output.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.NamedTemporaryFile(dir=args.output.parent, prefix=".release-notes-",
                                          delete=False) as stream:
