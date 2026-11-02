@@ -43,6 +43,27 @@ bundle does not certify subjective sound quality, meaning, or lip synchronizatio
   keep the matched diagnostic baseline shutdown budget explicit. Do not add
   separate optimization percentages or claim a global optimum.
 
+## Screening update
+
+The [first screening attempt](results/screening-v1.json) completed one 5-second
+baseline measurement at **400.943 seconds HTTP E2E**, after two warmups. All eight
+workers exited with code 0. This single baseline is not a speedup measurement.
+The rank-local arm failed before inference because the harness combined a unified
+offload policy with a legacy offload flag; the third arm was not run.
+
+The replacement harness passed [actual shell argument assembly](results/argv-preflight-v2.json)
+and the [real configuration resolver](results/offload-resolution-v2.json) on CPU.
+The latter also shows that rank-local with zero resident layers selects the
+`layer_wise` backend, while 16 resident layers selects `distributed_layer_wise`.
+These are complete configuration candidates, not a pure collective comparison.
+The corrected campaign must rerun the baseline and both candidates together.
+
+[Candidate provenance](plan/candidate-sources-v2.json) distinguishes existing
+configuration mechanisms from the unqualified H3 NPU adaptation of QKV packing.
+No candidate gain, 15-second result, or audio-quality acceptance is claimed.
+Original frozen validator and screening files remain unchanged; these additions
+have their own hash manifest.
+
 ## Sources and attribution
 
 | Item | Source | Current evidence |
@@ -70,4 +91,4 @@ padding allowance is two AAC frames, not permission to truncate the expected
 audio duration. The process returns 0 for exact decoded parity, 1 for a failed
 media gate, and 2 for nonidentical outputs requiring further adjudication;
 execution errors do not establish a campaign verdict. Model files, media and
-host scripts/logs remain external. No completed 5/15-second E2E result is claimed.
+host scripts/logs remain external. No completed paired 5/15-second E2E qualification is claimed.

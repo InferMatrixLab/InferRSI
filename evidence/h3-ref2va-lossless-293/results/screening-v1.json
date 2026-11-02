@@ -1,0 +1,142 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "one baseline screening sample; no paired speedup and no audio-quality acceptance",
+  "source_sha": "098b51f6b96dd160a0959e74e8822422527ff06d",
+  "image_digest": "sha256:7fc6c73bd19a6ef4ee8d6048009972234796a1fc1bd3067168a425343cc476f7",
+  "physical_devices": "0,1,2,3,4,5,6,7",
+  "samples": [
+    {
+      "label": "warmup-5-0",
+      "e2e_ms": 547637.3106520623,
+      "http_status": 200,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-b30931e63ed04785",
+        "X-Inference-Time-S": "547.532",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.4670824855566025,\"stage_0_gen_ms\":546236.5500926971}",
+        "X-Peak-Memory-MB": "19908.000"
+      }
+    },
+    {
+      "label": "warmup-5-1",
+      "e2e_ms": 459427.02579218894,
+      "http_status": 200,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-8a7cc6966a1e6806",
+        "X-Inference-Time-S": "459.365",
+        "X-Stage-Durations": "{\"queue_wait_ms\":1.1879904195666313,\"stage_0_gen_ms\":458093.4302806854}",
+        "X-Peak-Memory-MB": "19948.000"
+      }
+    },
+    {
+      "label": "measured-5-seed0-0",
+      "e2e_ms": 400942.9486896843,
+      "http_status": 200,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-ab09df02b6d7997f",
+        "X-Inference-Time-S": "400.882",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.40886085480451584,\"stage_0_gen_ms\":399828.3169269562}",
+        "X-Peak-Memory-MB": "19908.000"
+      }
+    }
+  ],
+  "worker_exit_receipt": [
+    {
+      "name": "DiffusionWorker-0",
+      "pid": 60,
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-1",
+      "pid": 61,
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-2",
+      "pid": 62,
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-3",
+      "pid": 63,
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-4",
+      "pid": 64,
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-5",
+      "pid": 65,
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-6",
+      "pid": 66,
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-7",
+      "pid": 67,
+      "exit_code": 0,
+      "alive": false
+    }
+  ],
+  "baseline_service_exit": 0,
+  "baseline_container_exit": 0,
+  "ranklocal0": {
+    "status": "STARTUP_FAILURE",
+    "reason": "diffusion_offload_config cannot be combined with legacy enable_*_offload flags",
+    "service_exit": 1,
+    "container_exit": 1,
+    "inference_samples": 0
+  },
+  "ranklocal16": "NOT_RUN",
+  "job_exit": 1,
+  "external_artifacts": [
+    {
+      "arm": "allgather",
+      "name": "service.log",
+      "bytes": 190298,
+      "sha256": "8f83809d1fe577eb188a942d3102faf7b84ec2418bb9820e8c9a2fbfb464e05b"
+    },
+    {
+      "arm": "allgather",
+      "name": "runtime_settings.json",
+      "bytes": 1038,
+      "sha256": "011e702b39969659b02a76dd7c913080f57fd25b7780939728dbb21fa3bf437d"
+    },
+    {
+      "arm": "allgather",
+      "name": "source_revision.txt",
+      "bytes": 41,
+      "sha256": "22d450d68401cb99248018c8b3a8c948f3797938720dbb799ff890d54a8d95cf"
+    },
+    {
+      "arm": "ranklocal0",
+      "name": "service.log",
+      "bytes": 31582,
+      "sha256": "9a27256287efc201521996fb958698e73a973ad11efca5c39e81886722c02f5e"
+    },
+    {
+      "arm": "ranklocal0",
+      "name": "runtime_settings.json",
+      "bytes": 1221,
+      "sha256": "61a23b9978ae0a8de0f6256fe3ed91854572f49cddb3472b3689710f78d095c5"
+    },
+    {
+      "arm": "ranklocal0",
+      "name": "source_revision.txt",
+      "bytes": 41,
+      "sha256": "22d450d68401cb99248018c8b3a8c948f3797938720dbb799ff890d54a8d95cf"
+    }
+  ],
+  "lesson": "Assemble actual command arguments before reserving devices. A unified offload policy replaces the legacy flag; the engine correctly rejected conflicting configuration. Repeat all arms under a new reservation. A startup failure provides no speed or quality evidence."
+}
