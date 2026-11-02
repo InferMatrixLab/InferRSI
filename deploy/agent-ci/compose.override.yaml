@@ -1,0 +1,7 @@
+name: inferrsi-agent-ci
+services:
+  bot:
+    # Replace the upstream mappings; do not retain its public webhook binding.
+    ports: !override
+      - "127.0.0.1:${BOT_WEBHOOK_PORT:-8791}:8791"
+      - "127.0.0.1:${BOT_ADMIN_PORT:-8792}:8792"
