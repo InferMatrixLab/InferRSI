@@ -1,1 +1,0 @@
-I know only that my PyTorch model is slow and my separate TorchNPU checkout is newer. Find the relevant routes and tell me what evidence is needed before recommending compilation, pinned loaders or distributed training.

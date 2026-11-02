@@ -1,1 +1,0 @@
-Someone sent me a checkpoint to convert with torch_save_to_dcp. Can weights_only make this safe? My FSDP2 optimizer was constructed before fully_shard and I call forward directly. Plan a trusted resume on a new mesh and diagnose the hang after one rank throws.

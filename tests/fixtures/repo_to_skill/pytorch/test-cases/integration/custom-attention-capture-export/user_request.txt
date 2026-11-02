@@ -1,1 +1,0 @@
-An opaque attention custom op works on CPU but export needs a fake implementation, CUDA graph replay uses stale inputs and evaluation dropout is nonzero. Design a complete qualification path to an ONNX consumer without claiming CPU proves CUDA.

@@ -1,1 +1,0 @@
-My Windows IterableDataset repeats samples with four workers. I clip scaled gradients after every microbatch, use persistent_workers, and eval() still leaves SDPA stochastic. Produce a staged correction and a tiny no-download check.

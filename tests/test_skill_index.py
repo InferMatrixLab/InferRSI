@@ -21,7 +21,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
     records = search_knowledge(repo="inferrsi", limit=100)
     names = {record["name"] for record in skill_records(ROOT)}
     registry = json.loads((ROOT / "skill-index.json").read_text(encoding="utf-8"))["skills"]
-    assert len(records) == len(names) == 79
+    assert len(records) == len(names) == 77
     assert {record["skill_metadata"]["name"] for record in records} == names
     states = []
     for record in records:
@@ -39,7 +39,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
         }
         assert set(record["source_files"]) == set(record["sources"][0]["paths"])
         states.append(metadata.get("status"))
-    assert states.count("candidate") == 79
+    assert states.count("candidate") == 77
     profiling = next(r for r in records if r["title"] == "ascend-operator-profiling")
     assert profiling["skill_metadata"]["license"] == "UNKNOWN"
     assert profiling["skill_metadata"]["synced-commit"] == (
@@ -53,21 +53,12 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
     assert len(revisions) == 1
     # CI uses shallow checkouts. Compare the whole generated projection and its
     # text hashes without requiring the old source commit in the local object DB.
-    recorded_hashes = {
-        relative: digest
-        for record in records for relative, digest in record["source_files"].items()
+    source_files = {
+        relative: hashlib.sha256(
+            (PROJECT / relative).read_bytes().replace(b"\r\n", b"\n")
+        ).hexdigest()
+        for relative in source_inputs(ROOT)
     }
-    source_files = {}
-    for relative in source_inputs(ROOT):
-        data = (PROJECT / relative).read_bytes()
-        raw_hash = hashlib.sha256(data).hexdigest()
-        # Byte-preserved upstream notices can contain canonical CRLF. Ordinary
-        # text may instead have platform checkout newlines; match the recorded
-        # blob hash before trying that existing LF equivalence.
-        source_files[relative] = (
-            raw_hash if raw_hash == recorded_hashes.get(relative)
-            else hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
-        )
     generated = render_index(ROOT, revisions.pop(), source_files)
     destination = PROJECT / DESTINATION
     actual = {
@@ -196,7 +187,7 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
     assert reader.resolve("claim-contract") == "checkout:claim-contract"
     assert reader.read("claim-contract").metadata["kind"] == "skill"
     collected = reader.collect(repo="inferrsi", kind="knowledge", limit=100, material=True)
-    assert len(collected["items"]) == 79
+    assert len(collected["items"]) == 77
     assert not collected["collisions"] and not collected["omissions"]
     assert all(item["authority"] == "package" for item in collected["items"])
     assert all("record.json" in item["resources"] for item in collected["items"])
@@ -226,9 +217,9 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
 
 
 def test_hardware_filters_include_only_matching_and_shared_skills():
-    for backend, count in (("ascend", 74), ("cuda", 64), ("cpu", 59)):
+    for backend, count in (("ascend", 72), ("cuda", 63), ("cpu", 58)):
         records = search_knowledge(repo="inferrsi", backend=backend, limit=100)
         assert len(records) == count
         assert all(record["backend"] in (backend, "common") for record in records)
     assert not (PROJECT / "skills").exists()
-    assert len(list(ROOT.rglob("SKILL.md"))) == 142
+    assert len(list(ROOT.rglob("SKILL.md"))) == 124

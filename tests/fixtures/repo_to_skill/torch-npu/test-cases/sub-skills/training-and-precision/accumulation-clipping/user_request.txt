@@ -1,1 +1,0 @@
-I run four FP16 microbatches, call unscale_ and update after each, then clip once before SGD. Sometimes scaler is disabled on my test host. Give the correct step boundary and the evidence needed before calling AMP validated.

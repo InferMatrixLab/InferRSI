@@ -1,1 +1,0 @@
-A CPU timer reports a 20x CUDA gain while profiling raises memory use and the trace lacks device events. Design the smallest valid investigation without declaring a service improvement.

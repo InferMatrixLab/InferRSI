@@ -7,6 +7,3 @@
 # Reusable guidance is editable text, not a frozen evidence bundle.
 /evidence/README.md text eol=lf
 /evidence/_template/** text eol=lf
-
-# Retain this upstream license's original CRLF Git blob bytes.
-/src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text

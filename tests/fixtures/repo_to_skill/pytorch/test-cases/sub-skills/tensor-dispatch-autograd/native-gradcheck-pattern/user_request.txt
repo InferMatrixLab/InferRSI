@@ -1,1 +1,0 @@
-Use the bundled PyTorch graph to check a small differentiable scalar-tensor function in double precision, including second derivative support, without importing the upstream internal test harness.

@@ -1,1 +1,0 @@
-I have a TorchNPU 2.12 wheel and CANN 9.1 but want to build current master for PyTorch 2.14. Can I use the README pip commands unchanged? Give a version decision and checks before I touch the working environment.

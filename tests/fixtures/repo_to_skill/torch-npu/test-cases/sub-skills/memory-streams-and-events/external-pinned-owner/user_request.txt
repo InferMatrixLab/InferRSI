@@ -1,1 +1,0 @@
-We use an externally pinned host buffer for a nonblocking copy and release it immediately. host/device counters disagree after deleting tensors. Give an ownership table and a bounded check without forcing cache reuse.

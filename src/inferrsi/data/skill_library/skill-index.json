@@ -253,10 +253,6 @@
       "path": "repositories/project-maya",
       "backend": "common"
     },
-    "pytorch": {
-      "path": "frameworks/pytorch/pytorch",
-      "backend": "common"
-    },
     "reason-hopper-kernels": {
       "path": "hardware/cuda/reason-hopper-kernels",
       "backend": "cuda"
@@ -280,10 +276,6 @@
     "storage-io-measurement": {
       "path": "hardware/host/storage-io-measurement",
       "backend": "common"
-    },
-    "torch-npu": {
-      "path": "frameworks/torch-npu/torch-npu",
-      "backend": "ascend"
     },
     "torchnpu-device-memory-lifecycle": {
       "path": "hardware/ascend/torchnpu-device-memory-lifecycle",
