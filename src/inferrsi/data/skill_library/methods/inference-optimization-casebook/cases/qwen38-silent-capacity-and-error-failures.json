@@ -52,7 +52,7 @@
     "One engine, one card",
     "Behaviour past capacity not characterised beyond the failure itself",
     "No concurrency or multi-client qualification",
-    "The located public artifacts do not contain the literal failure index 993; the retained capacity-boundary run is job 1951 at 876 tokens",
+    "The retained capacity-boundary observation is job 1951, which failed after 876 tokens",
     "The empty-log mechanism is the cited server.py; a captured HTTP 400 empty body was not in that blob",
     "preparation.md is a later retained note of the headroom rule, not a new measurement for this case"
   ],

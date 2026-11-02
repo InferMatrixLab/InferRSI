@@ -89,7 +89,7 @@ Current owner-local records retain rejected directions alongside their limits:
 - [CUDA Graph state not accumulating](cases/qwen38-cuda-graph-state-not-accumulating.md):
   token ids matched while per-step logits diverged, so ids are not a correctness oracle.
 - [Silent capacity and error failures](cases/qwen38-silent-capacity-and-error-failures.md):
-  HTTP 200 with an error frame, HTTP 400 with an empty body, failure at token 993.
+  HTTP 200 with an error frame, HTTP 400 with an empty body, job 1951 failed after 876 tokens.
 - [Upstream FP8 kernels vs own Triton](cases/qwen38-upstream-fp8-kernels-vs-own-triton.md):
   a numerically cautious kernel ran 100x slower than the borrowed library.
 

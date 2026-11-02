@@ -12,7 +12,7 @@ each cost a debugging round.
 | --- | --- | --- |
 | HTTP 200 with an SSE `error` frame mid-stream | Decode ran past the configured graph bucket, the engine fell back or failed, and the wrapper kept the stream open | On every request, parse each SSE frame, reject an embedded `error` or a truncated stream, and require a terminal frame whose `finish_reason` is `stop` or `length`. When usage is present, check `completion_tokens` against it. A normal EOS/`stop` finish below `max_tokens` is success. Assert `completion_tokens` equals a frozen budget and `finish_reason == length` only on a capacity fixture that disables early stop |
 | HTTP 400, empty body, 0-byte server log | The error handler deliberately dropped all exceptions ("client addresses and arbitrary exceptions do not belong in service logs") | Log a structured line with exception type and a truncated message; never return an error status without a body |
-| Generation failed at token 993 with no message | The graph bucket was chosen from `prompt + headroom` with `headroom = 256`, while the request asked for 2048 output tokens | Validate bucket coverage against maximum output length, not against prompt slack, before starting the run |
+| Job 1951 failed after 876 tokens with no message | The graph bucket was chosen from `prompt + headroom` with `headroom = 256`, while the request asked for 2048 output tokens | Validate bucket coverage against maximum output length, not against prompt slack, before starting the run |
 
 Disposition: a serving layer must never convert an internal failure into a
 success response. Log the exception type to stderr even when the payload must be
@@ -41,4 +41,3 @@ the empty-log handler in
 where job 1951 fails after 876 tokens and a streamed error is reported as
 success; and the later headroom note in
 [preparation.md](https://github.com/InferMatrixLab/InferRSI/blob/d5e17195280249cd0bbd5ef87d79d8654cce7056/evidence/qwen38-h20-fp8-single-request-vllm032/results/full-context-graph/preparation.md).
-The literal index 993 is not in those artifacts.
