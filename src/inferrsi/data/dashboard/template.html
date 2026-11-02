@@ -229,12 +229,12 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     detailLine(benchmark,'Recorded medians',`Baseline ${measurement(row.baseline_median)} · Candidate ${measurement(row.candidate_median)} ${row.metric_unit}`);
     const samples=values=>values.length?values.map(measurement).join(', '):'Not recorded';
     detailLine(benchmark,'Recorded samples',`Baseline: ${samples(context.baseline_samples)}\nCandidate: ${samples(context.candidate_samples)} ${row.metric_unit}`);
-    detailLine(benchmark,'Baseline command · redacted argv',row.commands.baseline || 'Not recorded',true);
-    detailLine(benchmark,'Candidate command · redacted argv',row.commands.candidate || 'Not recorded',true);
+    detailLine(benchmark,'Baseline command · redacted argv',row.commands.baseline || 'Not recorded or unavailable for display',true);
+    detailLine(benchmark,'Candidate command · redacted argv',row.commands.candidate || 'Not recorded or unavailable for display',true);
     detailLine(benchmark,'Accuracy methodology / result · caller recorded',info.accuracy);
-    detailLine(benchmark,'Validation command · redacted argv',row.commands.accuracy || 'Not recorded',true);
+    detailLine(benchmark,'Validation command · redacted argv',row.commands.accuracy || 'Not recorded or unavailable for display',true);
     for(const command of info.commands)detailLine(benchmark,`${command.label} · caller recorded, redacted argv`,command.argv,true);
-    const validationNote=row.commands.accuracy?'only the recorded validation command is covered':'validation command not recorded in run.lock.json';
+    const validationNote=row.commands.accuracy?'only the recorded validation command is covered':'validation command not recorded or unavailable for display';
     detailLine(benchmark,'Recorded validation state',`${row.quality.replaceAll('_',' ')} · ${validationNote}`);
     detailLine(benchmark,'Command evidence',refText(row.artifacts.run_lock),true);
     if(row.artifacts.candidate_metadata)detailLine(benchmark,'Caller detail evidence',refText(row.artifacts.candidate_metadata),true);
