@@ -352,6 +352,46 @@ def test_byte_cap_includes_the_final_markdown_newline():
         notes.response_text(completed(exact + "x"))
 
 
+@pytest.mark.parametrize("flags,expected", [
+    ({}, False),
+    ({"commits_truncated": False, "file_statistics_truncated": False}, False),
+    ({"commits_truncated": True, "file_statistics_truncated": False}, True),
+    ({"commits_truncated": False, "file_statistics_truncated": True}, True),
+    ({"commits_truncated": True, "file_statistics_truncated": True}, True),
+], ids=["no-flags", "complete", "commits", "statistics", "both"])
+def test_coverage_notice_comes_from_source_flags_not_model_output(
+    invocation, monkeypatch, flags, expected,
+):
+    run, output, _ = invocation
+    monkeypatch.setattr(notes, "source_snapshot", lambda *args: json.dumps(flags))
+    code, _, _ = run(completed())
+    assert code == 0 and output.is_file()
+    text = output.read_text(encoding="utf-8")
+    notice = "Source context was truncated; this overview may omit changes."
+    assert text.count(notice) == int(expected)
+    if expected:
+        assert text.endswith(notice + "\n")
+
+
+@pytest.mark.parametrize("overflow", [False, True], ids=["exact-limit", "over-limit"])
+def test_coverage_notice_is_included_in_the_total_utf8_byte_budget(
+    invocation, monkeypatch, overflow,
+):
+    run, output, _ = invocation
+    monkeypatch.setattr(notes, "source_snapshot",
+                        lambda *args: '{"commits_truncated": true}')
+    suffix = "\nSource context was truncated; this overview may omit changes.\n"
+    prefix = "## Features\n"
+    budget = notes.MAX_NOTES_BYTES - len(suffix.encode()) - len(prefix.encode()) - 1
+    text = prefix + "知" * (budget // 3) + "x" * (budget % 3 + int(overflow))
+    code, _, _ = run(completed(text))
+    assert code == 0
+    if overflow:
+        assert not output.exists()
+    else:
+        assert len(output.read_bytes()) == notes.MAX_NOTES_BYTES
+
+
 def test_redirects_are_refused_before_authorization_can_be_forwarded():
     request = notes.urllib.request.Request(notes.ENDPOINT,
                                            headers={"Authorization": f"Bearer {KEY}"})
