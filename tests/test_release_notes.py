@@ -141,6 +141,81 @@ def test_git_output_is_bounded_before_capture(monkeypatch):
     assert len(value) == 1024 and truncated
 
 
+PRIVATE_METADATA = [
+    "operator@example.invalid", "operator@[2001:db8::7]",
+    "ssh://operator:fake-password@example.invalid/repo?token=fake-no-access",
+    "https://example.invalid/notes?api_key=fake-no-access",
+    "192.0.2.7", "192.0.2.10:8080", "192.0.2.10.",
+    "[2001:db8::7]", "2001:db8::7", "2001:db8::7.", "[2001:db8::7]:8080",
+    r"C:\Users\<USER>\configuration", r"\\example.invalid\share\configuration",
+    "/home/<USER>/.config", "/Users/<USER>/.config", "~/.config/private",
+    "sk-test-no-access-value", "ghp_test_no_access_value", "github_pat_test_no_access_value",
+    "OPENAI_API_KEY=fake-no-access", "password: fake-no-access", "Bearer fake-no-access",
+    "Bearer=fake-no-access", '{"api_key": "fake-no-access"}', "api key = fake-no-access",
+    "example.invalid.internal", "example.invalid.local",
+    "example.invalid.corp", "example.invalid.lan",
+]
+
+
+@pytest.mark.parametrize("private", PRIVATE_METADATA, ids=[
+    "email", "user-at-host", "credential-url", "query-url", "ipv4", "ipv4-port", "ipv4-period",
+    "ipv6-brackets", "ipv6", "ipv6-period", "ipv6-port",
+    "windows-home", "unc", "posix-home", "macos-home", "tilde-home", "openai-token",
+    "github-token", "github-pat", "api-key-assignment", "password-assignment", "bearer",
+    "bearer-assignment", "json-key-assignment", "spaced-key-assignment",
+    "internal-host", "local-host", "corp-host", "lan-host",
+])
+def test_recognizable_private_metadata_is_omitted_in_full(private):
+    text, redacted = notes.metadata_field(f"fix: metadata contains {private}")
+    assert redacted and text == "[REDACTED: private metadata]"
+    assert private not in text
+
+
+def test_plain_versions_and_public_change_descriptions_are_retained():
+    text = "fix: compatibility with v1.2.3 and Python 3.10"
+    assert notes.metadata_field(text) == (text, False)
+
+
+def test_mocked_api_receives_redacted_subjects_and_statistics_with_commit_provenance(
+    monkeypatch, capsys,
+):
+    def git(args, limit=256):
+        if args[0] == "rev-parse":
+            return SHA, False
+        if args[0] == "hash-object":
+            return "2" * 40, False
+        if args[0] == "log":
+            subject = "fix: operator@example.invalid at 192.0.2.7 token=fake-no-access"
+            return f"{SHA}\t{subject}\n", False
+        assert args[0] == "diff"
+        return ("2\t1\tdocs/public.md\n1\t0\t/home/<USER>/configuration\n"
+                "1\t0\t[2001:db8::7]\n"), False
+
+    captured = []
+
+    class Opener:
+        def open(self, request, timeout):
+            captured.append(json.loads(request.data))
+            response = io.BytesIO(json.dumps(completed()).encode())
+            response.status = 200
+            return response
+
+    monkeypatch.setattr(notes, "git", git)
+    monkeypatch.setattr(notes.urllib.request, "build_opener", lambda *args: Opener())
+    source = notes.source_snapshot("v0.1.1", SHA, "", "example/release")
+    notes.generate(source, notes.DEFAULT_MODEL, KEY)
+    sent = captured[0]["input"]
+    for private in ("operator@example.invalid", "192.0.2.7", "fake-no-access",
+                    "/home/<USER>/configuration", "2001:db8::7"):
+        assert private not in sent
+    value = json.loads(sent)
+    assert value["metadata_redacted"] is True
+    assert value["commits"][0]["sha"] == SHA
+    assert value["commits"][0]["url"] == f"https://github.com/example/release/commit/{SHA}"
+    assert "docs/public.md" in value["file_change_statistics"]
+    assert capsys.readouterr().out == ""
+
+
 @pytest.fixture
 def invocation(tmp_path, monkeypatch):
     output = tmp_path / "overview.md"
