@@ -235,7 +235,8 @@ def generate(source: str, model: str, key: str, base_url: str = DEFAULT_BASE_URL
                "store": False, "max_output_tokens": 1600}
     request = urllib.request.Request(
         endpoint, data=json.dumps(payload).encode("utf-8"), method="POST",
-        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json"},
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/json",
+                 "Accept": "application/json", "User-Agent": "inferrsi-release-notes/1"},
     )
     with urllib.request.build_opener(NoRedirect()).open(request, timeout=45) as response:
         if response.status != 200:

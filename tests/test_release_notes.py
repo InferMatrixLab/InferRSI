@@ -267,6 +267,8 @@ def test_completed_mixed_output_items_make_one_bounded_markdown_file(invocation,
     assert len(calls) == 1 and timeout == 45
     assert request.full_url == notes.ENDPOINT and request.method == "POST"
     assert request.get_header("Authorization") == f"Bearer {KEY}"
+    assert request.get_header("Accept") == "application/json"
+    assert request.get_header("User-agent") == "inferrsi-release-notes/1"
     payload = json.loads(request.data)
     assert payload["model"] == "gpt-6.1-terra" and payload["store"] is False
     assert payload["max_output_tokens"] == 1600
