@@ -174,6 +174,12 @@ and [source audit](../performance-ceiling-analysis/references/papers-20261015/re
 retain author-reported evidence and counterexamples. No local experiment is
 established by integrating these notes.
 
+For controlled kernel-agent comparisons, use the
+[JustGoal source reference](references/justgoal-evaluation-contracts.md).
+Keep model/budget/task scope, independent acceptance, released versus repaired
+artifacts and workspace/stream/cache contracts explicit. Its results remain
+author-reported; it adds no runner or device/performance qualification.
+
 ## Evidence trail requirements (InferRSI compatibility)
 
 A benchmark campaign that claims PASS under InferRSI's evidence framework
