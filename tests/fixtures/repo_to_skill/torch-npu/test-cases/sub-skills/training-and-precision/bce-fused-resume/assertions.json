@@ -1,0 +1,48 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "training-and-precision",
+  "target_capability": "bce-fused-resume",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "torch_npu/csrc/aten/AutoCastOps.cpp",
+    "torch_npu/optim/__init__.py",
+    "torch_npu/utils/serialization.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/training-and-precision/references/training.md",
+    "sub-skills/training-and-precision/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'logits-based'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "logits-based"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'hyperparameters'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "hyperparameters"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'RNG'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "RNG"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'checkpoint'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "checkpoint"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'convergence'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "convergence"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/training-and-precision/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}

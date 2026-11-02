@@ -1,0 +1,27 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "profiling-and-debugging",
+  "target_capability": "trace-overhead-and-enqueue-time",
+  "difficulty": "advanced",
+  "origin": "synthetic",
+  "evidence_basis": [
+    "torch/profiler/profiler.py",
+    "torch/utils/benchmark/utils/timer.py",
+    "torch/utils/collect_env.py",
+    "docs/source/notes/numerical_accuracy.md",
+    "docs/source/notes/randomness.md"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/profiling-and-debugging/SKILL.md",
+    "sub-skills/profiling-and-debugging/references/workflows.md",
+    "sub-skills/profiling-and-debugging/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Checks actual backend/profiler activities and capture window rather than assuming absent GPU work.",
+    "Explains shape/stack profiler reference retention and overhead.",
+    "Synchronizes the intended completion boundary and uses controlled replicated timing with separate cold compile.",
+    "Limits the conclusion to the measured scope and requires separate service evidence for a service claim."
+  ]
+}

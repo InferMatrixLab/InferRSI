@@ -1,0 +1,47 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "profiling-and-debugging",
+  "target_capability": "empty-timeline-async-parse",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "torch_npu/profiler/profiler.py",
+    "torch_npu/profiler/scheduler.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/profiling-and-debugging/references/profiling.md",
+    "sub-skills/profiling-and-debugging/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/profiling-and-debugging/references/profiling.md supports 'record_shapes=True'",
+      "file": "sub-skills/profiling-and-debugging/references/profiling.md",
+      "contains": "record_shapes=True"
+    },
+    {
+      "statement": "sub-skills/profiling-and-debugging/references/profiling.md supports 'with_stack=True'",
+      "file": "sub-skills/profiling-and-debugging/references/profiling.md",
+      "contains": "with_stack=True"
+    },
+    {
+      "statement": "sub-skills/profiling-and-debugging/references/profiling.md supports 'prof.step()'",
+      "file": "sub-skills/profiling-and-debugging/references/profiling.md",
+      "contains": "prof.step()"
+    },
+    {
+      "statement": "sub-skills/profiling-and-debugging/references/profiling.md supports 'retains original'",
+      "file": "sub-skills/profiling-and-debugging/references/profiling.md",
+      "contains": "retains original"
+    },
+    {
+      "statement": "sub-skills/profiling-and-debugging/references/profiling.md supports 'separate'",
+      "file": "sub-skills/profiling-and-debugging/references/profiling.md",
+      "contains": "separate"
+    },
+    {
+      "statement": "sub-skills/profiling-and-debugging/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/profiling-and-debugging/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}

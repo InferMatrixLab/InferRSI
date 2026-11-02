@@ -1,0 +1,99 @@
+{
+  "repository": "VectorSpaceLab/AREX-Skill",
+  "source_url": "https://github.com/VectorSpaceLab/AREX-Skill",
+  "commit": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+  "files": [
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/distill-ml-knowledge/SKILL.md",
+      "git_blob_oid": "89357d0f6ff94e8636f865ff78d7cc24bdba9093",
+      "git_blob_sha256": "6dd18e210086cc652b716e5dded4c90bf2db1b0c4d01ec8c5440fea4ab6572f4",
+      "checkout_sha256": "6dd18e210086cc652b716e5dded4c90bf2db1b0c4d01ec8c5440fea4ab6572f4",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/distill-ml-knowledge/references/task-and-construction-contract.md",
+      "git_blob_oid": "f4ec3722b5991996527b7769b47439ae3dde0415",
+      "git_blob_sha256": "b7cf656736ea94fb62b9b3b39eb015fa19a79740606163b3359c36b8a807914f",
+      "checkout_sha256": "b7cf656736ea94fb62b9b3b39eb015fa19a79740606163b3359c36b8a807914f",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/distill-ml-knowledge/references/construction-strategy-and-adequacy.md",
+      "git_blob_oid": "311d63af917f6a2e95b2b60c1f4e4f2a251f5367",
+      "git_blob_sha256": "484831bce45b59c55200f5d072bd9321e40d1cd3490515eec244fde1c37b792f",
+      "checkout_sha256": "484831bce45b59c55200f5d072bd9321e40d1cd3490515eec244fde1c37b792f",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/create-repo-skill/SKILL.md",
+      "git_blob_oid": "eb2042e789ff3c982ce57100835604433c8306ce",
+      "git_blob_sha256": "aa0b8d6c9ceb1d5a65e412a08640c7a236aceb8fcfd03517b0679d23a47f2da4",
+      "checkout_sha256": "aa0b8d6c9ceb1d5a65e412a08640c7a236aceb8fcfd03517b0679d23a47f2da4",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/repository-evidence.md",
+      "git_blob_oid": "78e85e90d7c3f88b28550fc211889437d8198eb9",
+      "git_blob_sha256": "ff5a30f7dba6c3b6787ee76afb39275f6b701b5e637e90062561408a8449670e",
+      "checkout_sha256": "ff5a30f7dba6c3b6787ee76afb39275f6b701b5e637e90062561408a8449670e",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/planning-and-writing.md",
+      "git_blob_oid": "5488576ed228b3a573b83b468726148923ef0353",
+      "git_blob_sha256": "35a1b4de99b62291c74b9cfaa8c06930836f5720d1c5d555bfe1a5ff3abaa15c",
+      "checkout_sha256": "35a1b4de99b62291c74b9cfaa8c06930836f5720d1c5d555bfe1a5ff3abaa15c",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/create-repo-skill/references/installed-package-inspection.md",
+      "git_blob_oid": "a5ba46be5314b1f500ed55c2d2ad514517fe35d7",
+      "git_blob_sha256": "197f7e23eb06c0b00a159ababb74a54b313f0c4fbb51bc1a071ac9f888ee0d18",
+      "checkout_sha256": "197f7e23eb06c0b00a159ababb74a54b313f0c4fbb51bc1a071ac9f888ee0d18",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/prepare-repo-skill-env/SKILL.md",
+      "git_blob_oid": "9b7af92822bab2e242e3cbeb45b6aa4bb5347798",
+      "git_blob_sha256": "d98fa8a503e37e85283b8d9603de4c1b5ca616304738383d235cf6df94110a6b",
+      "checkout_sha256": "d98fa8a503e37e85283b8d9603de4c1b5ca616304738383d235cf6df94110a6b",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/SKILL.md",
+      "git_blob_oid": "81f083e2c929cefa8dce4394d3eed026cdfbc1c0",
+      "git_blob_sha256": "3146b0a967ea53efbd3aa5e463af3be05fdfff1015da9e0a473e4a54889f3d19",
+      "checkout_sha256": "3146b0a967ea53efbd3aa5e463af3be05fdfff1015da9e0a473e4a54889f3d19",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/references/usability-test-cases.md",
+      "git_blob_oid": "92b1595c3e8af5d50f942bdf693f26c79b10e7e0",
+      "git_blob_sha256": "c54d03ba157327fa8522cb76d8b0607fbe825c701b760966d24e61dd075c97c4",
+      "checkout_sha256": "c54d03ba157327fa8522cb76d8b0607fbe825c701b760966d24e61dd075c97c4",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/references/evaluation-verification-and-handoff.md",
+      "git_blob_oid": "d2764064e49a431fd1bf2ec1178ab6fe6bda6e24",
+      "git_blob_sha256": "5ed7cac2ed810f9e25ef8783ba02373d85c3c7126e3412216f81817d15d439dd",
+      "checkout_sha256": "5ed7cac2ed810f9e25ef8783ba02373d85c3c7126e3412216f81817d15d439dd",
+      "use": "read portable workflow/reference; selected applicable stages"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/scripts/resolve_repo_license.mjs",
+      "git_blob_oid": "c0ba5b3a8d9bea2abeb6dba6f71e068b248b548b",
+      "git_blob_sha256": "eb5266080766f24be2d3a908f5110ae5ac6826ac8c4da5283e39a5d799706659",
+      "checkout_sha256": "eb5266080766f24be2d3a908f5110ae5ac6826ac8c4da5283e39a5d799706659",
+      "use": "read construction contract; resolver/validator source audited before execution"
+    },
+    {
+      "path": "cli/packages/coding-agent/src/disco/skills/verify-repo-skill/scripts/license-validation.mjs",
+      "git_blob_oid": "998893f4bf0c2d858ec0b67e3d95b4f2b1556c0e",
+      "git_blob_sha256": "e3f563219e80c063fb7c29f080c0d506982436a270a778f75f2dbe19544b09be",
+      "checkout_sha256": "e3f563219e80c063fb7c29f080c0d506982436a270a778f75f2dbe19544b09be",
+      "use": "read construction contract; resolver/validator source audited before execution"
+    }
+  ],
+  "note": "Public remote identity verified with git remote get-url; AREX construction evidence is separate from device evidence."
+}

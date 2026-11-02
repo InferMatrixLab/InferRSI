@@ -1,0 +1,212 @@
+{
+  "schema_version": 1,
+  "scope": "Verification-only license-structure adapter; final InferRSI tree is unchanged.",
+  "owner": "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu",
+  "official_validator": {
+    "url": "https://github.com/VectorSpaceLab/AREX-Skill/blob/ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6/cli/packages/coding-agent/src/disco/skills/verify-repo-skill/scripts/license-validation.mjs",
+    "sha256": "e3f563219e80c063fb7c29f080c0d506982436a270a778f75f2dbe19544b09be",
+    "copied_bytes_equal": true,
+    "entrypoint": "inspectRepoSkillLicenses imported with pathToFileURL"
+  },
+  "reproduction": [
+    "Copy the complete owner tree into a fresh scratch directory outside the library.",
+    "For each SKILL.md, require frontmatter keys exactly name and description and a local-skill-v1 sidecar; retain the original name/description header text.",
+    "Append only license, disable-model-invocation and metadata from that document's sidecar to the scratch YAML header, preserving the body bytes exactly.",
+    "Leave every other file unchanged and verify its SHA-256 against the original.",
+    "Install yaml 2.8.3 only beside an exact-byte copy of the pinned official validator; import its exported inspectRepoSkillLicenses with pathToFileURL and exit according to the returned valid flag for both original and projected trees."
+  ],
+  "direct_final_tree": {
+    "expected_destination_format_mismatch": true,
+    "reason": "InferRSI local-skill-v1 stores structured license fields in sidecars; the official AREX checker requires a literal frontmatter license.",
+    "actual_result": {
+      "valid": false,
+      "files": 9,
+      "value": null,
+      "status": "invalid",
+      "errors": [
+        "SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\distributed-and-hccl\\SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\graph-and-compile\\SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\installation-and-compatibility\\SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\memory-streams-and-events\\SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\operator-development\\SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\privateuse1-and-dispatch\\SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\profiling-and-debugging\\SKILL.md: frontmatter must contain a top-level license",
+        "sub-skills\\training-and-precision\\SKILL.md: frontmatter must contain a top-level license"
+      ]
+    }
+  },
+  "scratch_projection": {
+    "actual_result": {
+      "valid": true,
+      "files": 9,
+      "value": "NOASSERTION",
+      "status": "resolved",
+      "errors": []
+    },
+    "transformation": {
+      "format": "verification-only AREX frontmatter projection",
+      "source_tree_modified": false,
+      "unmodified_non_skill_files": 50,
+      "projected_skill_files": [
+        {
+          "path": "SKILL.md",
+          "source_sha256": "7e92d5c8d3d49ebe72613a2eac0855b8d7faa670277f6d1a1f6b84ed0fe7441b",
+          "projection_sha256": "c0ce3b9475ba638324fec41846a6f0c71e5f048c481cb00f2d2168c065f16f9b",
+          "body_sha256": "ada03fc25c7acd02b3c18b657d01558fea343204d35a6c67cf5ec470cdb6ef66",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/distributed-and-hccl/SKILL.md",
+          "source_sha256": "7fe7e11dba31a55268fe9649628f84c21adf6aab33e134716abeac0dffbb306e",
+          "projection_sha256": "c9ea96f1f90611592c7c22593cc159db5b3bbb92eb60139663357378b8214c9c",
+          "body_sha256": "c879905861d63f0db3cd15a396461a901b8b5782cf9a020534ceb48d7ff4d792",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/graph-and-compile/SKILL.md",
+          "source_sha256": "0b3217a1605d7a48c6bd4bd521e2b0258b76955ac80824c0014037020fdcdc48",
+          "projection_sha256": "9760e51bdc92fa415a059aa753adc997207a9a5012e0aa4cbf1d9e2dc1c044d5",
+          "body_sha256": "9af89da3e58e228c42aae128f4f1ca4c16ad151679b4bd34d4089bd322d8e863",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/installation-and-compatibility/SKILL.md",
+          "source_sha256": "bb324b9fb8e0056fcd3c63211d7e48f06f4dd4a9cdc8dd050bb5c156f23d6ba7",
+          "projection_sha256": "72457a300c9df70bbf95f29c6d3582d9f59d73d02a7275e71607322043062eb1",
+          "body_sha256": "02f01b7434bbb7294fe25b2486268d56245b9a8c1d32dc740c93f88607d08f99",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/memory-streams-and-events/SKILL.md",
+          "source_sha256": "2f45f2dca635d52859d2a9146aa01edb4381344d9996fa8436373c12ef4cd61d",
+          "projection_sha256": "d058dfe85dba3ced28dcf83b811145789d84a46f8fb8d71bc6699104f35facba",
+          "body_sha256": "bc4861e781609581de165197c1242da88eb0e762bccc60ccee00a4bbce676220",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/operator-development/SKILL.md",
+          "source_sha256": "ce24c7537f0722733a086d046a760578c7cc76f1a3d9030fcceda147513d5b93",
+          "projection_sha256": "06085ff759468190989759c8c00a4d9b6000c9f0be3c4ca83fdf6cae781fff37",
+          "body_sha256": "2b74230f5fb13628cf5d32ed84a98ec720ea962cddc86f97cc9e87f1180547b5",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/privateuse1-and-dispatch/SKILL.md",
+          "source_sha256": "9adda9cba726252229bf322fe7ea021864100a49330a196cb4abb563d86c83e9",
+          "projection_sha256": "b4b4db443019b87f500c7637dbe925a52261cfd9d935a2234b506ffb02e4fbdf",
+          "body_sha256": "d1c52a2005b6dbc4338596ea3561265f66d751f315004e4b416b67864aac98f2",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/profiling-and-debugging/SKILL.md",
+          "source_sha256": "621ddc124b4da8b06da5f0af187cfee8ce330d497495eab0b284c88ee47c403a",
+          "projection_sha256": "cba35570bf44d21df1ef83c7c92a2c2cf6d08fb5430a401f3bb03de601ff4e80",
+          "body_sha256": "c8b71b2f243de537b5cfe1aa7adf1bd08a2bf120f59fde370c6f4d7e6bbb5d69",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        },
+        {
+          "path": "sub-skills/training-and-precision/SKILL.md",
+          "source_sha256": "7d89e992b5cad7383e5513c067f4e590370197225208c8e97eee3be9eaf3332a",
+          "projection_sha256": "6442b0e1a4fadd1d936e9e6fa54c43da9fb88478cee75729f92b0683c81f6907",
+          "body_sha256": "c255631b176624ae6598a62203c18a796fa8af88aca27162084306a0d02d55f3",
+          "projected_fields": [
+            "license",
+            "disable-model-invocation",
+            "metadata"
+          ]
+        }
+      ],
+      "boundary": "Official AREX license validation applies to this projection only; InferRSI validates the final normalized source tree separately."
+    },
+    "unchanged_resource_sha256": {
+      "metadata.json": "d0fd35c69bea254ddc3c494d3ed61033c8ccdcb4262cbfa4f66a53c2ae70772f",
+      "references/NOTICE.md": "ae6554ebec75eadce7d3bcb7490d2be7e49ff923d9c29fdd93549bc6c94ca3af",
+      "references/capability-inventory.md": "e6bae7bbeecea8b16c9e911ac40aa385f181da855336e0ac1fe6d9ed1c3a52e9",
+      "references/licenses/op-plugin-LICENSE.txt": "325488df8d01b0601a46b395904b6ce72f4870cd608f49268904e994dab15f97",
+      "references/licenses/op-plugin-THIRD-PARTY.txt": "cb91e5fa816c6f6ff7a6a3cf32110c3402b1d4c76778de106130b227782013d0",
+      "references/licenses/source-identities.json": "f1ee46af6bfcea7e41959ceab981515cf902fe7f1d11998e69145cb86d897c37",
+      "references/licenses/torch-npu-LICENSE.txt": "99317d26c99c8037890c770fd67fa84cc78d210581ed563d3b1abe42976f47be",
+      "references/licenses/torch-npu-THIRD-PARTY.txt": "167f93c40acf8a26e4f6cc293df727c04ef869e54a10e7517ce2de60eaf2593f",
+      "references/licenses/torch-npu-docs-LICENSE.txt": "9e5f1b3c610b9c2da5c313bf81d577a7d1acec686bdb0384edefa6df0f90cd94",
+      "references/repo-provenance.md": "18cb87b57a1ffa25e0954f629ddc1fac3137a2ee2d5d362be30083e5bfc12dc9",
+      "references/repo-routing-metadata.json": "eeab2fedf7db673c0ce2d8f53641d4bcaa9b0fd84b0aa30cf746f894c548a268",
+      "references/source-manifest.json": "b1d4cbdad4cde3838d3bbc16ccede8c79825dd7280a3c3c081507d7f51e86726",
+      "references/source-map.md": "d64683d861c1cca6f61a5e90500f98c7f5dd9a7256035433c11e39cc44eaad15",
+      "references/source-script-inventory.md": "c43c83daa152856c4fab278f25d05504735e25c427231bcf177b72e01536819d",
+      "references/support-workflows.md": "002121bded102c51966754aff40c3f621cc2e69d35ff29fa187582d496bb8ce4",
+      "scripts/inspect_environment.py": "a157f5947217c5baadb2a4957a68c91fa1dbef343c97ac2f7f4d59bf1e4cb3b7",
+      "scripts/operator_contract.py": "45f076bb5353798d4b494f7b7e990796dfb1418d7ef44643521bd669bc348b32",
+      "scripts/runtime_smoke.py": "e5c7d587e54a6e4fd5dd8c45d5ef36990143ee40e24ff1680d49b7637894c248",
+      "sub-skills/distributed-and-hccl/metadata.json": "3d4783529a657997ce9942ad61e4bcdf9e65891fe1325ffdfba53e592165dc8d",
+      "sub-skills/distributed-and-hccl/references/hccl.md": "bd6b67c243032785f60f100d75c450885bfb1e6585af9100482fca3dfbe86919",
+      "sub-skills/distributed-and-hccl/references/source-map.md": "06bebd8bcae81b253573a4096a905cd264da2a75a9b13548f646c2ab9b698fd5",
+      "sub-skills/distributed-and-hccl/references/troubleshooting.md": "946650a1fa1c3f805328e3071ed7a0ed907b71af6a4d746d3fb4bad869d5aaad",
+      "sub-skills/graph-and-compile/metadata.json": "bbf071c25b3cee9e0ee5c420e6d702b43bb8bc26feeb0e460a12118ca96622dc",
+      "sub-skills/graph-and-compile/references/graphs.md": "ec9e13041eb2d5abf5e2055e667fcef79391dad0b32756b963efb69d2be7354c",
+      "sub-skills/graph-and-compile/references/source-map.md": "89aedad45ab2eb524053909060344e5b11d3b9923b7cff8d1e661a6a097b00f2",
+      "sub-skills/graph-and-compile/references/troubleshooting.md": "35be0f57c998a5a6ef24f46f67f3a37e17b0d519a2604a38ec0498b21f374437",
+      "sub-skills/installation-and-compatibility/metadata.json": "6046945dcde6d3e5f20748e58e6392cd906242c3130d59111cf3170fbda4fc8a",
+      "sub-skills/installation-and-compatibility/references/source-map.md": "b5266c944b0abd8bbb35d50aa6eddb9452725ba2308523f0bc8414dbc87f8802",
+      "sub-skills/installation-and-compatibility/references/stack.md": "4e9a8abbf45eff3b3e79de9b0fa0907479b77f729544cd1c772d2334606fca94",
+      "sub-skills/installation-and-compatibility/references/troubleshooting.md": "799214c15da2ce43f2f9ab37347e174fff3346c3e27507022efd7a2aa30fcef6",
+      "sub-skills/memory-streams-and-events/metadata.json": "425049f0312f22da960bcbe2ab40433a13b42f1090c6d4bfda06fc45b7240403",
+      "sub-skills/memory-streams-and-events/references/lifetimes.md": "bc5551f922534d1db0cb6ade6ea1dbbd4f26419cd9aa0b27f9aec9415d691743",
+      "sub-skills/memory-streams-and-events/references/source-map.md": "05114bd16d7cf22c5604a3f1885f44b8be225fa2644302a8ef805193a46601c2",
+      "sub-skills/memory-streams-and-events/references/troubleshooting.md": "b9d5d4d61087f27b2761c9184c99f98da583948c393f6a3c6d189b87ef9f1466",
+      "sub-skills/operator-development/metadata.json": "079e2a1079753a8177f5ad8812bcca6dc715c70a49132f53ce5b915710f02f26",
+      "sub-skills/operator-development/references/development.md": "70994e5deeb138ca3dce578a743515840a91ff6303f0328eaff6de8fc308313a",
+      "sub-skills/operator-development/references/source-map.md": "29863b23b49040728c4d928a149477aeb966da833cb4ce21a6bad5212ca30c9e",
+      "sub-skills/operator-development/references/troubleshooting.md": "0c9828b96ab7943ab0b7006ac8520e58072fe7f2544a78cb9111c1f224255c6d",
+      "sub-skills/privateuse1-and-dispatch/metadata.json": "cafa3c5d32454ae4fd2bb37d874e83bfcf5479e769c8c915f1db432e046fb8a5",
+      "sub-skills/privateuse1-and-dispatch/references/dispatch.md": "19d4a9120bd1fcf4aea2dcacbf8e66c0e9f3fc3ca5e56fc6c468a3721daff973",
+      "sub-skills/privateuse1-and-dispatch/references/source-map.md": "432913d63c0e1a54ad75da6b7e51489dfd4589a208a51b0a0245ba679cd29c4f",
+      "sub-skills/privateuse1-and-dispatch/references/troubleshooting.md": "193c7499076e77ba82772ac5d939cc377d9301f7e6825353b98df09f737c85cf",
+      "sub-skills/profiling-and-debugging/metadata.json": "008c7a128e6e73d86c4453d3b244afc90139929c24f8420ea5ed7aaaed519066",
+      "sub-skills/profiling-and-debugging/references/profiling.md": "f61c6f33cd9b63546c44ba14fed1ba48ce0f0318becf7a88fe9a1d658f5e83f9",
+      "sub-skills/profiling-and-debugging/references/source-map.md": "2550e9a28209a7df0a0d2f571af39985ca629c42a1be6f845e50fd265fc6ccb8",
+      "sub-skills/profiling-and-debugging/references/troubleshooting.md": "c60466ad74a0e36b6f74001a0ab756fd2dfc674d059e038fbcd63770038396c6",
+      "sub-skills/training-and-precision/metadata.json": "73e71cdcb98e187f1470eb71ec9030fa870e46d8cf6eaf396860b712c491aefa",
+      "sub-skills/training-and-precision/references/source-map.md": "3bfc78d9348f9a1072120f82d7a1a7f042b4fe2ce908a005e22716a797dc0c7b",
+      "sub-skills/training-and-precision/references/training.md": "0695532020c71d061ddf40ad16536621e004c23dd05d27aaa9f5b46101f6ef62",
+      "sub-skills/training-and-precision/references/troubleshooting.md": "0f7fb3879d51c793ca0fd6d14fd34352f94297f075295d01488ffab4c5fc0fa4"
+    }
+  },
+  "limitations": [
+    "The valid result applies only to the scratch projection and the upstream license-structure checker, not to the final tree under unmodified AREX rules.",
+    "NOASSERTION and the checker's resolved status are retained machine values; they grant no license or redistribution rights and do not replace source notices.",
+    "This check does not execute DisCo, import into its managed registry, qualify a backend/source build, verify model quality or establish performance or efficacy."
+  ]
+}

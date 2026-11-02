@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:ba7e31f3a665d2e4e6a4006a1e812086dbd95b5f8fb0130788c3831feddafe7b`
+- Input digest: `sha256:e36cf2e6e982084dbf4e52014a6342a61bc1b49151d52ac0bf03f8e7ea975cff`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -32,17 +32,17 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 77 |
-| By category | frameworks 3, hardware 22, methods 20, repositories 26, workflows 6 |
-| By backend | ascend 14, common 58, cuda 5 |
+| Registered skill ids | 79 |
+| By category | frameworks 5, hardware 22, methods 20, repositories 26, workflows 6 |
+| By backend | ascend 15, common 59, cuda 5 |
 | Recorded on a numbered SearchSpace resource layer | 49 |
-| Recorded only in a supplementary guidance table (†) | 13 |
+| Recorded only in a supplementary guidance table (†) | 15 |
 | Recorded on two or more resource layers | 24 |
-| Recorded in the Reference Matrix | 69 |
-| With a `metadata.json` sidecar | 77 |
+| Recorded in the Reference Matrix | 71 |
+| With a `metadata.json` sidecar | 79 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 124 |
-| Unregistered documents (excluded from every count above) | 47 |
+| `SKILL.md` documents in the library | 142 |
+| Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
 has an entry; that says the listing is exhaustive, not that inference
@@ -75,13 +75,15 @@ optimization is fully covered or that any procedure has measured benefit.
 | [torchnpu-device-memory-lifecycle](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md) | ascend | Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose ... | **unknown** | — | 1 Accelerator · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `67511c53cd4c88014f6123de7097677e60e85faa` ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
 | [torchnpu-pinned-host-memory-lifecycle](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md) | ascend | Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose ... | **unknown** | — | 2 RAM/Host · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `67511c53cd4c88014f6123de7097677e60e85faa` ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
 
-## Registered: Frameworks (3)
+## Registered: Frameworks (5)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
-| [dcp-async-save-performance](../src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md) | common | Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging ... | **unknown** | — | 1 Accelerator · Diagnose / Configure / Optimize<br>2 RAM/Host · Observe / Profile / Configure / Optimize / Verify<br>3 SSD · Observe / Profile / Configure / Optimize / Verify | 1 · Systems sources (C1 / DCP async-save-only approval — pytorch/pytorch @ ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
+| [dcp-async-save-performance](../src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md) | common | Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging ... | **unknown** | — | 1 Accelerator · Diagnose / Configure / Optimize<br>2 RAM/Host · Observe / Profile / Configure / Optimize / Verify † guidance: PyTorch framework source procedures<br>3 SSD · Observe / Profile / Configure / Optimize / Verify † guidance: PyTorch framework source procedures | 1 · Systems sources (C1 / DCP async-save-only approval — pytorch/pytorch @ ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
 | [diffusers-invocation-state](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md) | common | Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption ... | FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin ... | — | 2 RAM/Host † guidance: Diffusers invocation guidance (source-derived) | Diffusers invocation source extraction (huggingface/diffusers @ `aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e` ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | common | Diagnose MLX lazy evaluation, cross-stream ordering and array-buffer lifetimes when timing, memory use or asynchronous ... | MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual ... | — | 1 Accelerator † guidance: MLX framework guidance (source-derived) | MLX framework source extraction (ml-explore/mlx @ `bff10220c742907f0c68e55ff174aaea56f74e3d` (MIT)) | candidate · not_run · 1 readset(s) | no-eval |
+| [pytorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md) | common | Operate and diagnose PyTorch installation, tensors and autograd, training and data, compilation and export, accelerator ... | Major user workflows and selected deep mechanisms of pinned pytorch/pytorch source; exact ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: PyTorch framework source procedures<br>2 RAM/Host † guidance: PyTorch framework source procedures<br>3 SSD † guidance: PyTorch framework source procedures<br>4 Network † guidance: PyTorch framework source procedures | PyTorch framework operating graph (pytorch/pytorch @ `9a90a4fefcaafa63ac984621963a6fcc66aee68c`, source ...) | candidate · not_run · 1 readset(s) | no-eval |
+| [torch-npu](../src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md) | ascend | Operate and diagnose TorchNPU on Ascend across installation, PrivateUse1 dispatch, operator development, memory and ... | Source-grounded TorchNPU operation and diagnosis; qualify the selected installed stack ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: TorchNPU framework source procedures<br>2 RAM/Host † guidance: TorchNPU framework source procedures<br>4 Network † guidance: TorchNPU framework source procedures | TorchNPU framework operating graph (Ascend/pytorch @ `046934140b96836c3fcef14d0f39ae54dc0a06bf` ...) | candidate · not_run · 2 readset(s) | no-eval |
 
 ## Registered: Repositories (26)
 
@@ -152,13 +154,29 @@ optimization is fully covered or that any procedure has measured benefit.
 
 ## Documents outside the registry
 
-47 `SKILL.md` documents are not registered, so they have
+63 `SKILL.md` documents are not registered, so they have
 no stable id and no row above. They are engine entrypoints, their
 sub-skills, and the research router. Counting them would inflate coverage:
 an entrypoint routes to procedures below it rather than adding one.
 
 | Directory | Kind |
 |---|---|
+| `frameworks/pytorch/pytorch/sub-skills/compiler-and-export` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/installation-and-build` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/training-and-data` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/operator-development` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/training-and-precision` | sub-skill |
 | `repositories/dwarfstar/sub-skills/qualification` | sub-skill |
 | `repositories/dwarfstar/sub-skills/runtime-memory` | sub-skill |
 | `repositories/dwarfstar/sub-skills/serving-state` | sub-skill |
@@ -209,7 +227,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 77 of 77.
+- Registered ids resolve to an existing `SKILL.md`: 79 of 79.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 0.
@@ -222,7 +240,7 @@ an entrypoint routes to procedures below it rather than adding one.
 | `no-Reference-Matrix-row` | 8: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence, video-diffusion-optimization |
 | `no-sidecar` | 0: — |
 | `no-applicability` | 24: as listed in the Gaps column above |
-| `no-eval` | 75: as listed in the Gaps column above |
+| `no-eval` | 77: as listed in the Gaps column above |
 
 These are inventory gaps, not defects. A workflow skill may legitimately
 have no hardware resource layer; a candidate may legitimately be untested.

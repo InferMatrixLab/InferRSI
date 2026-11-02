@@ -1,0 +1,1 @@
+Our async all_reduce future is marked complete, so we immediately free buffers and time host submission. Results sometimes fail in a consumer stream. Explain HCCL work, stream and allocator boundaries and a tiny two-rank check.

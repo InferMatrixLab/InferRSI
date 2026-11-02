@@ -1,0 +1,265 @@
+{
+  "scope": "PyTorch author handoff runtime bytes; integration/review changes require refreshed applicable checks",
+  "files": [
+    {
+      "path": "LICENSE",
+      "sha256": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43",
+      "bytes": 3464
+    },
+    {
+      "path": "metadata.json",
+      "sha256": "b7563cebe8cb7e9d9f97a16aa6d3c3f07ed0bbced0fe20cbc570a49e3e2c5ca0",
+      "bytes": 5182
+    },
+    {
+      "path": "references/notices.md",
+      "sha256": "1928d322834e8fdccf061f830ba56fedc2c287ed1f25785763f213465c6e0baa",
+      "bytes": 1587
+    },
+    {
+      "path": "references/repo-provenance.md",
+      "sha256": "f86fba682b47f4030fe86700f4d21608d83ce5808abfb2c947dff867e589ec99",
+      "bytes": 2453
+    },
+    {
+      "path": "references/repo-routing-metadata.json",
+      "sha256": "908bed12129dabd490b58d958a208e720f93379ada7e70a52b78a1393457a310",
+      "bytes": 635
+    },
+    {
+      "path": "references/source-directory-coverage.md",
+      "sha256": "ecae69ea63b2b528dc2c2aa98df502be21c126b972e73ce6e7864b240ebc95b9",
+      "bytes": 7167
+    },
+    {
+      "path": "references/source-readset.json",
+      "sha256": "4fe665a587dfd9bb02db6dc8f701d7417946c46986c1f5b960701c67304d0529",
+      "bytes": 42664
+    },
+    {
+      "path": "references/source-script-map.md",
+      "sha256": "1d669129ae4e9e2d030763fcfa66aee683c5f457537ab76db9b711100d506dfa",
+      "bytes": 4896
+    },
+    {
+      "path": "references/troubleshooting.md",
+      "sha256": "55df7c1517e1cf9127548d789197659612858d39d7020341960128bcbc10cba8",
+      "bytes": 2257
+    },
+    {
+      "path": "references/upstream-NOTICE",
+      "sha256": "c2cc7bf0caec7652c2b460a8a470bea1677f241e4ab8e431df34cf17f5a9fec0",
+      "bytes": 23632
+    },
+    {
+      "path": "scripts/inspect_environment.py",
+      "sha256": "bfb0086d93b975086c87a9b84adc629c8f468c5c4b7ceeb686206415e5a3880f",
+      "bytes": 1948
+    },
+    {
+      "path": "SKILL.md",
+      "sha256": "c4bd561c73955f0c6e386b6cf3414ec772902711b2a5de6bd0613f49cbf71cb0",
+      "bytes": 4750
+    },
+    {
+      "path": "sub-skills/compiler-and-export/metadata.json",
+      "sha256": "0f6e522a6cdbf4f3699ac1f13ec7c1f5b03d1913659799e8936e09647f172987",
+      "bytes": 1884
+    },
+    {
+      "path": "sub-skills/compiler-and-export/references/troubleshooting.md",
+      "sha256": "ff1b48d2acbc13f80a530a4bb3b94fc7fb7b2e553f040f778d3edfe0aee67989",
+      "bytes": 1482
+    },
+    {
+      "path": "sub-skills/compiler-and-export/references/workflows.md",
+      "sha256": "3a68c6a183426df13ccaac999abd3e94e05b0784851c8238f435c737578f0b96",
+      "bytes": 9544
+    },
+    {
+      "path": "sub-skills/compiler-and-export/scripts/export_contract.py",
+      "sha256": "24457ab73ca4cf7fb33de6e2a735d1de3ed2fec36f76cb57f1f1e05136c0c509",
+      "bytes": 2309
+    },
+    {
+      "path": "sub-skills/compiler-and-export/SKILL.md",
+      "sha256": "a870cb530de2d2043ac70676222a37ada6be5e8d201a2003ea55dfc4bc45c11d",
+      "bytes": 1691
+    },
+    {
+      "path": "sub-skills/custom-operators-and-extension/metadata.json",
+      "sha256": "7b863d222739d5764a814eb65373c3c9ca90aec89e02373f9988d15002587a4c",
+      "bytes": 1792
+    },
+    {
+      "path": "sub-skills/custom-operators-and-extension/references/troubleshooting.md",
+      "sha256": "8383d490b1ffaeba3b77f07cc8eec76bf65aeee145177d7e17560d17754e747b",
+      "bytes": 1345
+    },
+    {
+      "path": "sub-skills/custom-operators-and-extension/references/workflows.md",
+      "sha256": "74d77673576f7951b1872615cddaac4ff6cf2a14d9f35e61ad801747cc9f0b1b",
+      "bytes": 7085
+    },
+    {
+      "path": "sub-skills/custom-operators-and-extension/scripts/custom_operator.py",
+      "sha256": "959ccc9dd18003bda5013c7726ba33e9c391b45c96598e76a087b956a36d6919",
+      "bytes": 1543
+    },
+    {
+      "path": "sub-skills/custom-operators-and-extension/SKILL.md",
+      "sha256": "d8e057495573baf418459993c7f4ac5763b60ab881b4997764293d6b50f8280d",
+      "bytes": 1710
+    },
+    {
+      "path": "sub-skills/distributed-and-checkpoint/metadata.json",
+      "sha256": "a3db54cd8b15cc9dc7e9cb6c04f2bc24557cdb3b6d63b3ff7fe2dc97ef3d7a2b",
+      "bytes": 2003
+    },
+    {
+      "path": "sub-skills/distributed-and-checkpoint/references/troubleshooting.md",
+      "sha256": "8afe03529f4586d131f003a20d95c610ac9d21abe625332e7ba0018b52e42b89",
+      "bytes": 1790
+    },
+    {
+      "path": "sub-skills/distributed-and-checkpoint/references/workflows.md",
+      "sha256": "d55c5e1b6d479f8947c5a8be42629370c4b8789a0af017f184d20f0006d29f39",
+      "bytes": 9827
+    },
+    {
+      "path": "sub-skills/distributed-and-checkpoint/scripts/rank_contract.py",
+      "sha256": "19494458f3866c11c9db4d97a90aeba338d3d5d7cf89179c1e4cb6ffd6fdc5cc",
+      "bytes": 3005
+    },
+    {
+      "path": "sub-skills/distributed-and-checkpoint/scripts/state_roundtrip.py",
+      "sha256": "f99df15d1b0a28ba99ce2fc9878374653d22c2e5fbfb449e4db89ce886b548e6",
+      "bytes": 1305
+    },
+    {
+      "path": "sub-skills/distributed-and-checkpoint/SKILL.md",
+      "sha256": "5325f039662563a6eaefccf36d2cf532f4424dd70666fde8f40d4d27a6f6db5e",
+      "bytes": 1688
+    },
+    {
+      "path": "sub-skills/installation-and-build/metadata.json",
+      "sha256": "25324903936db0142cf7da0d5caf172d2e4a3e58e12f827446cb7302cf08da8e",
+      "bytes": 1686
+    },
+    {
+      "path": "sub-skills/installation-and-build/references/troubleshooting.md",
+      "sha256": "96b1358821914d81c9eb3ec0d72cacd1e1ad0868d2e1790e68ea46281026f623",
+      "bytes": 1503
+    },
+    {
+      "path": "sub-skills/installation-and-build/references/workflows.md",
+      "sha256": "2ed61b4922760b5f7a366ec5a51a58cf33c37d3715cd5e094a769065fa57addf",
+      "bytes": 6084
+    },
+    {
+      "path": "sub-skills/installation-and-build/SKILL.md",
+      "sha256": "671bbebffd47b81966940bfec0765b981aa3e57593773ad089c90d16417acfe6",
+      "bytes": 1674
+    },
+    {
+      "path": "sub-skills/memory-streams-and-graphs/metadata.json",
+      "sha256": "5247f1482678c98cb4e52ea15decba5fe9d2dd29435ea101e49ec719d2561664",
+      "bytes": 1683
+    },
+    {
+      "path": "sub-skills/memory-streams-and-graphs/references/troubleshooting.md",
+      "sha256": "3398de27efe1d01457d204df8b5edba3cf7faf4a2fdf6052c74ea0af28fb1cd8",
+      "bytes": 1358
+    },
+    {
+      "path": "sub-skills/memory-streams-and-graphs/references/workflows.md",
+      "sha256": "f385877df2d8c6a97c1482aa3cbfba710342649d92c6856f44c34cbeb64af325",
+      "bytes": 6905
+    },
+    {
+      "path": "sub-skills/memory-streams-and-graphs/scripts/cuda_lifetimes.py",
+      "sha256": "1d9d8bb5d038e35ebcd46e97062e33cbdc9f57dd04366b91edd95edee0fedd3e",
+      "bytes": 1904
+    },
+    {
+      "path": "sub-skills/memory-streams-and-graphs/SKILL.md",
+      "sha256": "09a8e64a961ec27b72d3d9b8bfbd7545549f8bd17d3d6caef81b1cf72b2076f5",
+      "bytes": 1670
+    },
+    {
+      "path": "sub-skills/profiling-and-debugging/metadata.json",
+      "sha256": "0870cd3c14b16da9c5d461621e2301c2cc9236dc68dbe08312e09ab36c2a58ba",
+      "bytes": 1807
+    },
+    {
+      "path": "sub-skills/profiling-and-debugging/references/troubleshooting.md",
+      "sha256": "984c5116cd2ed0ecc93d0f6e6d324c8b6c34093c9c4dae33981e31ecc9c4ed9e",
+      "bytes": 1440
+    },
+    {
+      "path": "sub-skills/profiling-and-debugging/references/workflows.md",
+      "sha256": "79313a2fc9037132db87214be4df91e37ba2a9c90c861c18e7a0d6c72ee19585",
+      "bytes": 6949
+    },
+    {
+      "path": "sub-skills/profiling-and-debugging/scripts/profile_step.py",
+      "sha256": "4a475f0bb2d8a06fcdc87d8661b893338279ddf4a4a83609c64c1f9a73028d7c",
+      "bytes": 1668
+    },
+    {
+      "path": "sub-skills/profiling-and-debugging/SKILL.md",
+      "sha256": "7791883ade0d48b06ca0781e3da7499c1909edf31050aa48c4f78cd9554b64d5",
+      "bytes": 1685
+    },
+    {
+      "path": "sub-skills/tensor-dispatch-autograd/metadata.json",
+      "sha256": "8f8859e9fe1401326db1f84e8a6fa89447910337cafae8abcd1dce3a9debdb17",
+      "bytes": 1837
+    },
+    {
+      "path": "sub-skills/tensor-dispatch-autograd/references/troubleshooting.md",
+      "sha256": "4cf95feeab8a5cb87ea943158fd1a90c441979e834615050c8d88be686a845f1",
+      "bytes": 1437
+    },
+    {
+      "path": "sub-skills/tensor-dispatch-autograd/references/workflows.md",
+      "sha256": "93b699c5623710f411bb371084924ab3a45057ea4d59fcad36ee52ab0f26aa26",
+      "bytes": 7694
+    },
+    {
+      "path": "sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py",
+      "sha256": "e5d893e42e2b91e9dd376b4b870e603193c91b096957972e2a93fa49f484b0c1",
+      "bytes": 1212
+    },
+    {
+      "path": "sub-skills/tensor-dispatch-autograd/SKILL.md",
+      "sha256": "5515beb0b1e803ddad5e1c9fda40694b99cd00e98289de05ec1af3e4569d3196",
+      "bytes": 1682
+    },
+    {
+      "path": "sub-skills/training-and-data/metadata.json",
+      "sha256": "8e929683dbd9cb8541588653fc3d34d2ef175f08cf8d78b0f50906bc1e7dd0bf",
+      "bytes": 1851
+    },
+    {
+      "path": "sub-skills/training-and-data/references/troubleshooting.md",
+      "sha256": "4e5c687a20e8066a9673625fc780667f490f9558a343d4d7d47d7ad278180824",
+      "bytes": 1599
+    },
+    {
+      "path": "sub-skills/training-and-data/references/workflows.md",
+      "sha256": "791c86dc3c13c3c87da3c4144cafb082e84f9ba2978bb71dea99f0cf649fe727",
+      "bytes": 8606
+    },
+    {
+      "path": "sub-skills/training-and-data/scripts/tiny_training.py",
+      "sha256": "46af58f6ba0c7d69373efc416fcc2ae8dcada717ed29336ac84f84857b1240bb",
+      "bytes": 1878
+    },
+    {
+      "path": "sub-skills/training-and-data/SKILL.md",
+      "sha256": "32751dcf5afe68283ec4ce4a51a24331a30a3cde3a4960edb86107f6910dd106",
+      "bytes": 1679
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "memory-streams-and-events",
+  "target_capability": "external-pinned-owner",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "torch_npu/csrc/core/npu/CachingHostAllocator.cpp",
+    "torch_npu/csrc/core/npu/NPUCachingAllocator.cpp"
+  ],
+  "expected_skill_files": [
+    "sub-skills/memory-streams-and-events/references/lifetimes.md",
+    "sub-skills/memory-streams-and-events/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'externally pinned'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "externally pinned"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'host RAM'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "host RAM"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'event count'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "event count"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'reserved'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "reserved"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'owner'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "owner"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/memory-streams-and-events/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}

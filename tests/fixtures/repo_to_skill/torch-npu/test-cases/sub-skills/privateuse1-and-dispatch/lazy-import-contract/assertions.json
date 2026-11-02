@@ -1,0 +1,37 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "privateuse1-and-dispatch",
+  "target_capability": "lazy-import-contract",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "test/npu/test_import_contract.py",
+    "torch_npu/_init/core/module_loader.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+    "sub-skills/privateuse1-and-dispatch/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/references/dispatch.md supports 'fresh process'",
+      "file": "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "contains": "fresh process"
+    },
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/references/dispatch.md supports 'unloaded'",
+      "file": "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "contains": "unloaded"
+    },
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/references/dispatch.md supports 'Compiler initialization'",
+      "file": "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "contains": "Compiler initialization"
+    },
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/privateuse1-and-dispatch/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}

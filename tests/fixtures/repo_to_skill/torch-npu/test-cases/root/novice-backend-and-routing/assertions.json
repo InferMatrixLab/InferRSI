@@ -1,0 +1,41 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "torch-npu",
+  "target_capability": "novice-backend-and-routing",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "README.md",
+    "torch_npu/_init/registry/backend.py"
+  ],
+  "expected_skill_files": [
+    "SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "SKILL.md supports 'Installation and compatibility'",
+      "file": "SKILL.md",
+      "contains": "Installation and compatibility"
+    },
+    {
+      "statement": "SKILL.md supports 'Graph and compile'",
+      "file": "SKILL.md",
+      "contains": "Graph and compile"
+    },
+    {
+      "statement": "SKILL.md supports 'Distributed and HCCL'",
+      "file": "SKILL.md",
+      "contains": "Distributed and HCCL"
+    },
+    {
+      "statement": "SKILL.md supports 'Training and precision'",
+      "file": "SKILL.md",
+      "contains": "Training and precision"
+    },
+    {
+      "statement": "SKILL.md supports 'BLOCKED_REQUIRED_BACKEND'",
+      "file": "SKILL.md",
+      "contains": "BLOCKED_REQUIRED_BACKEND"
+    }
+  ]
+}

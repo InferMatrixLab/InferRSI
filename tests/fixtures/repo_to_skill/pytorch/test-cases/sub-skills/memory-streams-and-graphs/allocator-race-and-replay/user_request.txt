@@ -1,0 +1,1 @@
+A side-stream tensor is freed after enqueue, record_stream did not fix wrong values, and replay ignores my replacement Python input. Reserved memory stays high. Explain a correct sequence before tuning allocator flags.

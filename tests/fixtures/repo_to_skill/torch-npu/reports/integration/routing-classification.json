@@ -1,0 +1,42 @@
+{
+  "schema_version": "2.0",
+  "repo_id": "Ascend/pytorch",
+  "skill_id": "torch-npu",
+  "taxonomy_sha256": "f8c306386015711634ddbb43a5eb95d1f58909c3513ce2063ba42efdd583a431",
+  "routing_status": "classified",
+  "assignments": [
+    {
+      "area": "Training Infrastructure",
+      "family": "Tensor Computation and Autodiff"
+    }
+  ],
+  "source_url": "https://github.com/Ascend/pytorch",
+  "source_commit": "046934140b96836c3fcef14d0f39ae54dc0a06bf",
+  "deployment_target": "InferRSI local-skill-v1 candidate contribution; no managed import",
+  "assignment_evidence": [
+    {
+      "assignment": {
+        "area": "Training Infrastructure",
+        "family": "Tensor Computation and Autodiff"
+      },
+      "confidence": "high",
+      "rationale": "Core adapter implements PyTorch tensor dispatch, autograd, NPU operators and device memory/stream hooks; classification derives from implementation, not examples or dependency names.",
+      "evidence": [
+        {
+          "path": "torch_npu/_init/registry/backend.py",
+          "lines": [
+            46,
+            66
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/aten/VariableFallbackKernel.cpp",
+          "lines": [
+            206,
+            254
+          ]
+        }
+      ]
+    }
+  ]
+}

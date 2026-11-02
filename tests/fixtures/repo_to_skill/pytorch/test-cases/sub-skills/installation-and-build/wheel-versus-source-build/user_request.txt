@@ -1,0 +1,1 @@
+I have a CPU torch wheel and a CUDA toolkit on Windows. Build the current PyTorch checkout with custom CMake options, then tell me whether the installed wheel proves my CUDA extension works. Do not modify the existing environment.

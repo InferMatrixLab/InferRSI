@@ -1,0 +1,29 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "compiler-and-export",
+  "target_capability": "native-invalid-export-bound",
+  "difficulty": "advanced",
+  "origin": "native-derived",
+  "evidence_basis": [
+    "torch/__init__.py",
+    "torch/_dynamo/convert_frame.py",
+    "torch/_dynamo/guards.py",
+    "torch/_inductor/compile_fx.py",
+    "torch/_inductor/graph.py",
+    "torch/export/__init__.py",
+    "torch/onnx/__init__.py",
+    "torch/fx/__init__.py"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/compiler-and-export/SKILL.md",
+    "sub-skills/compiler-and-export/references/workflows.md",
+    "sub-skills/compiler-and-export/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Recognizes example dimension 3 is outside declared lower bound 6.",
+    "Makes the example and intended valid range consistent rather than disabling validation.",
+    "Uses the bundled export contract and preserves its --batch range/options."
+  ]
+}

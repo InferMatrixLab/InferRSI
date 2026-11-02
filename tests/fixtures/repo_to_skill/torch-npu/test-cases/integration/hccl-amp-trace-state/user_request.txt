@@ -1,0 +1,1 @@
+A sharded AMP job reports a completed all_reduce future, a skipped optimizer update and an empty NPU trace. Explain which work/scaler/profiler states to check and retain explicit blockers when only a Windows CPU host is available.

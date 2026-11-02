@@ -1,0 +1,48 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "torch-npu",
+  "target_capability": "updated-input-fork-join",
+  "difficulty": "advanced",
+  "case_kind": "native-derived",
+  "evidence_basis": [
+    "test/npu/test_aclgraph_multi_stream.py",
+    "torch_npu/csrc/core/npu/NPUGraph.cpp",
+    "torch_npu/csrc/core/npu/NPUCachingAllocator.cpp"
+  ],
+  "expected_skill_files": [
+    "sub-skills/graph-and-compile/references/graphs.md",
+    "sub-skills/memory-streams-and-events/references/lifetimes.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/graph-and-compile/references/graphs.md supports 'in place'",
+      "file": "sub-skills/graph-and-compile/references/graphs.md",
+      "contains": "in place"
+    },
+    {
+      "statement": "sub-skills/graph-and-compile/references/graphs.md supports 'non-default'",
+      "file": "sub-skills/graph-and-compile/references/graphs.md",
+      "contains": "non-default"
+    },
+    {
+      "statement": "sub-skills/graph-and-compile/references/graphs.md supports 'storage may be reused'",
+      "file": "sub-skills/graph-and-compile/references/graphs.md",
+      "contains": "storage may be reused"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'B.wait_stream(A)'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "B.wait_stream(A)"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'event count'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "event count"
+    },
+    {
+      "statement": "sub-skills/memory-streams-and-events/references/lifetimes.md supports 'private'",
+      "file": "sub-skills/memory-streams-and-events/references/lifetimes.md",
+      "contains": "private"
+    }
+  ]
+}

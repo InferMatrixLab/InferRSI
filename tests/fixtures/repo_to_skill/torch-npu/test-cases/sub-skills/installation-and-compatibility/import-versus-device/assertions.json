@@ -1,0 +1,37 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "installation-and-compatibility",
+  "target_capability": "import-versus-device",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "torch_npu/_init/registry/registry_manager.py",
+    "torch_npu/_init/core/module_loader.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/installation-and-compatibility/references/troubleshooting.md",
+    "sub-skills/installation-and-compatibility/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/installation-and-compatibility/references/troubleshooting.md supports 'lazy device initialization'",
+      "file": "sub-skills/installation-and-compatibility/references/troubleshooting.md",
+      "contains": "lazy device initialization"
+    },
+    {
+      "statement": "sub-skills/installation-and-compatibility/references/troubleshooting.md supports 'CANN'",
+      "file": "sub-skills/installation-and-compatibility/references/troubleshooting.md",
+      "contains": "CANN"
+    },
+    {
+      "statement": "sub-skills/installation-and-compatibility/references/troubleshooting.md supports 'fresh interpreter'",
+      "file": "sub-skills/installation-and-compatibility/references/troubleshooting.md",
+      "contains": "fresh interpreter"
+    },
+    {
+      "statement": "sub-skills/installation-and-compatibility/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/installation-and-compatibility/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}

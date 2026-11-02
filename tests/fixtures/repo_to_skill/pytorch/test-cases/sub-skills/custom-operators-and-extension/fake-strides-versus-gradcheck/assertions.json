@@ -1,0 +1,27 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "custom-operators-and-extension",
+  "target_capability": "fake-strides-versus-gradcheck",
+  "difficulty": "advanced",
+  "origin": "synthetic",
+  "evidence_basis": [
+    "torch/_library/custom_ops.py",
+    "torch/library.py",
+    "torch/utils/cpp_extension.py",
+    "docs/source/notes/extending.md",
+    "test/test_custom_ops.py"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/custom-operators-and-extension/SKILL.md",
+    "sub-skills/custom-operators-and-extension/references/workflows.md",
+    "sub-skills/custom-operators-and-extension/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Distinguishes output alias contract from mutation metadata and returns fresh output or correct supported schema.",
+    "Matches fake size/stride/dtype/device metadata without reading data.",
+    "Explains opcheck registration/functionalization and gradcheck derivative mathematics are separate.",
+    "Handles incoming gradient strides explicitly and requires target device/stream checks for the native kernel."
+  ]
+}

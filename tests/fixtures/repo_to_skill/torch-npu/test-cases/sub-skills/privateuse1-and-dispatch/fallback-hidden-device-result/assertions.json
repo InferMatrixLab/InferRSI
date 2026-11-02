@@ -1,0 +1,42 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "privateuse1-and-dispatch",
+  "target_capability": "fallback-hidden-device-result",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "torch_npu/csrc/aten/VariableFallbackKernel.cpp",
+    "test/npu/test_cpu_fallback_control.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+    "sub-skills/privateuse1-and-dispatch/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/references/dispatch.md supports 'TORCH_NPU_FALLBACK_CPU_DISABLE=1'",
+      "file": "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "contains": "TORCH_NPU_FALLBACK_CPU_DISABLE=1"
+    },
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/references/dispatch.md supports 'fresh-process'",
+      "file": "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "contains": "fresh-process"
+    },
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/references/dispatch.md supports 'intermediate'",
+      "file": "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "contains": "intermediate"
+    },
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/references/dispatch.md supports 'AutogradPrivateUse1'",
+      "file": "sub-skills/privateuse1-and-dispatch/references/dispatch.md",
+      "contains": "AutogradPrivateUse1"
+    },
+    {
+      "statement": "sub-skills/privateuse1-and-dispatch/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/privateuse1-and-dispatch/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}

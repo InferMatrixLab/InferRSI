@@ -1,0 +1,26 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "profiling-and-debugging",
+  "target_capability": "native-finite-schedule",
+  "difficulty": "advanced",
+  "origin": "native-derived",
+  "evidence_basis": [
+    "torch/profiler/profiler.py",
+    "torch/utils/benchmark/utils/timer.py",
+    "torch/utils/collect_env.py",
+    "docs/source/notes/numerical_accuracy.md",
+    "docs/source/notes/randomness.md"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/profiling-and-debugging/SKILL.md",
+    "sub-skills/profiling-and-debugging/references/workflows.md",
+    "sub-skills/profiling-and-debugging/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Uses a finite schedule with prof.step once per workload step.",
+    "Exports/summarizes on_trace_ready after the active cycle.",
+    "Separates CPU schedule instrumentation from device profiling or speed claims."
+  ]
+}

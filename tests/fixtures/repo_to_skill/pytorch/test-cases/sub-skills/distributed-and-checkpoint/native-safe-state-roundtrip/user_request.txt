@@ -1,0 +1,1 @@
+Check that a tiny self-created Linear state_dict can roundtrip on CPU with weights_only and mmap, including output equivalence. Do not accept any external checkpoint input.

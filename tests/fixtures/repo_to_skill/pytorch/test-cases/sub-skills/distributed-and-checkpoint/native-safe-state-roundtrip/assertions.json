@@ -1,0 +1,30 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "distributed-and-checkpoint",
+  "target_capability": "native-safe-state-roundtrip",
+  "difficulty": "advanced",
+  "origin": "native-derived",
+  "evidence_basis": [
+    "torch/distributed/distributed_c10d.py",
+    "torch/csrc/distributed/c10d/ProcessGroup.hpp",
+    "torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp",
+    "docs/source/notes/ddp.md",
+    "docs/source/distributed/fsdp.fully_shard.md",
+    "docs/source/distributed/tensor.md",
+    "torch/serialization.py",
+    "torch/distributed/checkpoint/format_utils.py",
+    "SECURITY.md"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "sub-skills/distributed-and-checkpoint/SKILL.md",
+    "sub-skills/distributed-and-checkpoint/references/workflows.md",
+    "sub-skills/distributed-and-checkpoint/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "Uses the bundled state_roundtrip helper and only its self-created temporary file.",
+    "Explicitly distinguishes value/state roundtrip from DCP trust or hostile-artifact safety.",
+    "Keeps map_location cpu and checks actual output equivalence."
+  ]
+}

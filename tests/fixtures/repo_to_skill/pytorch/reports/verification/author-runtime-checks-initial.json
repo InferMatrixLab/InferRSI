@@ -1,0 +1,185 @@
+{
+  "environment": {
+    "python": "3.12.6",
+    "torch": "2.15.0+cpu",
+    "torch_git_version": "d0f2af8b66b20da4baa50644c0cd3f887a2eae2e",
+    "numpy": "2.5.4",
+    "platform": "Windows CPU"
+  },
+  "source_commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+  "source_version": "2.16.0a0",
+  "checks": [
+    {
+      "id": "environment-cpu",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "scripts/inspect_environment.py",
+      "script_sha256": "bfb0086d93b975086c87a9b84adc629c8f468c5c4b7ceeb686206415e5a3880f",
+      "args": [
+        "--require-backend",
+        "cpu"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "status": "PASS",
+      "stdout": "{\n  \"status\": \"INSPECTED\",\n  \"python\": \"3.12.6\",\n  \"os\": \"Windows\",\n  \"machine\": \"AMD64\",\n  \"torch\": \"2.15.0+cpu\",\n  \"torch_git_version\": \"d0f2af8b66b20da4baa50644c0cd3f887a2eae2e\",\n  \"cuda_build\": null,\n  \"hip_build\": null,\n  \"backend_available\": {\n    \"cpu\": true,\n    \"cuda\": false,\n    \"rocm\": false,\n    \"mps\": false,\n    \"xpu\": false\n  },\n  \"scope\": \"Identity/availability only; no device operation or efficacy claim.\"\n}",
+      "stderr": "",
+      "elapsed_seconds": 2.75
+    },
+    {
+      "id": "tensor-contracts",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "sub-skills/tensor-dispatch-autograd/scripts/tensor_contracts.py",
+      "script_sha256": "e5d893e42e2b91e9dd376b4b870e603193c91b096957972e2a93fa49f484b0c1",
+      "args": [],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "status": "PASS",
+      "stdout": "{\"scope\": \"tiny_cpu_contract\", \"alias\": true, \"gradient\": true, \"sparse_duplicate_sum\": true, \"torch\": \"2.15.0+cpu\"}",
+      "stderr": "SKILL_DIR\\sub-skills\\tensor-dispatch-autograd\\scripts\\tensor_contracts.py:25: UserWarning: Sparse invariant checks are implicitly disabled. Memory errors (e.g. SEGFAULT) will occur when operating on a sparse tensor which violates the invariants, but checks incur performance overhead. To silence this warning, explicitly opt in or out. See `torch.sparse.check_sparse_tensor_invariants.__doc__` for guidance.  (Triggered internally at C:\\actions-runner\\_work\\pytorch\\pytorch\\aten\\src\\ATen\\Context.cpp:923.)\n  sparse = torch.sparse_coo_tensor([[1, 1]], [3., 4.], (3,)).coalesce()",
+      "elapsed_seconds": 4.125
+    },
+    {
+      "id": "training-update",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "sub-skills/training-and-data/scripts/tiny_training.py",
+      "script_sha256": "46af58f6ba0c7d69373efc416fcc2ae8dcada717ed29336ac84f84857b1240bb",
+      "args": [
+        "--steps",
+        "2"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "status": "PASS",
+      "stdout": "{\"scope\": \"tiny_cpu_update\", \"steps\": 2, \"losses\": [0.9084506034851074, 2.6479275226593018], \"weight_changed\": true, \"convergence_claim\": false}",
+      "stderr": "",
+      "elapsed_seconds": 5.078
+    },
+    {
+      "id": "export-roundtrip",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "sub-skills/compiler-and-export/scripts/export_contract.py",
+      "script_sha256": "cb07b087892428bdb66a82d54b82b1a7fd9ef5a208963ef8d15d25ff906f94c4",
+      "args": [
+        "--batch",
+        "3",
+        "--compile-backend",
+        "eager"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 0,
+      "status": "FAIL",
+      "stdout": "",
+      "stderr": "Traceback (most recent call last):\n  File \"SKILL_DIR\\sub-skills\\compiler-and-export\\scripts\\export_contract.py\", line 56, in <module>\n    raise SystemExit(main())\n                     ^^^^^^\n  File \"SKILL_DIR\\sub-skills\\compiler-and-export\\scripts\\export_contract.py\", line 41, in main\n    loaded(torch.zeros(9, 2))\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\fx\\graph_module.py\", line 1008, in call_wrapped\n    return self._wrapped_call(self, *args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\fx\\graph_module.py\", line 515, in __call__\n    raise e\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\fx\\graph_module.py\", line 501, in __call__\n    return super(self.cls, obj).__call__(*args, **kwargs)  # type: ignore[misc]\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\nn\\modules\\module.py\", line 1787, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\nn\\modules\\module.py\", line 1893, in _call_impl\n    return inner()\n           ^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\nn\\modules\\module.py\", line 1841, in inner\n    result = forward_call(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"<eval_with_key>.11\", line 6, in forward\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\nn\\modules\\module.py\", line 1787, in _wrapped_call_impl\n    return self._call_impl(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\nn\\modules\\module.py\", line 1798, in _call_impl\n    return forward_call(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\_dynamo\\external_utils.py\", line 215, in inner\n    return func(*args, **kwargs)\n           ^^^^^^^^^^^^^^^^^^^^^\n  File \"<string>\", line 3, in _\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\__init__.py\", line 2702, in _assert\n    raise AssertionError(message)\nAssertionError: Guard failed: x.size()[0] <= 8",
+      "elapsed_seconds": 5.953
+    },
+    {
+      "id": "state-roundtrip",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "sub-skills/distributed-and-checkpoint/scripts/state_roundtrip.py",
+      "script_sha256": "f99df15d1b0a28ba99ce2fc9878374653d22c2e5fbfb449e4db89ce886b548e6",
+      "args": [],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "status": "PASS",
+      "stdout": "{\"scope\": \"self_created_state_roundtrip\", \"weights_only\": true, \"mmap\": true, \"dcp_or_untrusted_artifacts_qualified\": false}",
+      "stderr": "",
+      "elapsed_seconds": 3.922
+    },
+    {
+      "id": "profiler-schedule",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "sub-skills/profiling-and-debugging/scripts/profile_step.py",
+      "script_sha256": "4a475f0bb2d8a06fcdc87d8661b893338279ddf4a4a83609c64c1f9a73028d7c",
+      "args": [],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "status": "PASS",
+      "stdout": "{\"scope\": \"tiny_cpu_profile\", \"trace_cycles\": 1, \"performance_claim\": false}",
+      "stderr": "USDT:2026-11-02 13:40:43 33928:20348 C:\\actions-runner\\_work\\pytorch\\pytorch\\third_party\\kineto\\libkineto\\src\\SyncActivityProfilerHandler.cpp:39] profiler_start\nUSDT:2026-11-02 13:40:43 33928:20348 C:\\actions-runner\\_work\\pytorch\\pytorch\\third_party\\kineto\\libkineto\\src\\SyncActivityProfilerHandler.cpp:46] profiler_stop",
+      "elapsed_seconds": 5.172
+    },
+    {
+      "id": "custom-registration",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "sub-skills/custom-operators-and-extension/scripts/custom_operator.py",
+      "script_sha256": "959ccc9dd18003bda5013c7726ba33e9c391b45c96598e76a087b956a36d6919",
+      "args": [
+        "--check-registration"
+      ],
+      "exit_code": 0,
+      "expected_exit_code": 0,
+      "status": "PASS",
+      "stdout": "{\"scope\": \"tiny_cpu_custom_op\", \"gradcheck\": true, \"registration\": {\"test_schema\": \"SUCCESS\", \"test_autograd_registration\": \"SUCCESS\", \"test_faketensor\": \"SUCCESS\", \"test_aot_dispatch_dynamic\": \"SUCCESS\"}, \"native_kernel_qualified\": false}",
+      "stderr": "",
+      "elapsed_seconds": 7.328
+    },
+    {
+      "id": "cuda-availability-block",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "scripts/inspect_environment.py",
+      "script_sha256": "bfb0086d93b975086c87a9b84adc629c8f468c5c4b7ceeb686206415e5a3880f",
+      "args": [
+        "--require-backend",
+        "cuda"
+      ],
+      "exit_code": 3,
+      "expected_exit_code": 3,
+      "status": "BLOCKED_REQUIRED_BACKEND",
+      "stdout": "{\n  \"status\": \"BLOCKED_REQUIRED_BACKEND\",\n  \"python\": \"3.12.6\",\n  \"os\": \"Windows\",\n  \"machine\": \"AMD64\",\n  \"torch\": \"2.15.0+cpu\",\n  \"torch_git_version\": \"d0f2af8b66b20da4baa50644c0cd3f887a2eae2e\",\n  \"cuda_build\": null,\n  \"hip_build\": null,\n  \"backend_available\": {\n    \"cpu\": true,\n    \"cuda\": false,\n    \"rocm\": false,\n    \"mps\": false,\n    \"xpu\": false\n  },\n  \"scope\": \"Identity/availability only; no device operation or efficacy claim.\"\n}",
+      "stderr": "",
+      "elapsed_seconds": 2.906
+    },
+    {
+      "id": "cuda-lifetime-block",
+      "kind": "bundled-adapted-diagnostic",
+      "script": "sub-skills/memory-streams-and-graphs/scripts/cuda_lifetimes.py",
+      "script_sha256": "1d9d8bb5d038e35ebcd46e97062e33cbdc9f57dd04366b91edd95edee0fedd3e",
+      "args": [
+        "--mode",
+        "graph"
+      ],
+      "exit_code": 3,
+      "expected_exit_code": 3,
+      "status": "BLOCKED_REQUIRED_BACKEND",
+      "stdout": "{\"status\": \"BLOCKED_REQUIRED_BACKEND\", \"required\": \"NVIDIA CUDA\"}",
+      "stderr": "",
+      "elapsed_seconds": 2.86
+    },
+    {
+      "id": "source-setup-help-deprecation",
+      "kind": "original-pinned-source-script-negative",
+      "source": "setup.py",
+      "source_commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+      "args": [
+        "--help"
+      ],
+      "exit_code": 1,
+      "expected_exit_code": 1,
+      "status": "PASS",
+      "stdout": "",
+      "stderr": "error: `python setup.py --help` is deprecated: PyTorch is built with\nscikit-build-core via the standard PEP 517 interface (pyproject.toml),\nand setup.py is no longer part of the build.\n\nDeprecation schedule:\n  PyTorch 2.14-2.15: install and develop forward to pip\n                     (current behavior); other commands fail\n  PyTorch 2.16-2.17: all commands fail with instructions\n  PyTorch 2.18:      setup.py is removed\n\nReplacement commands:\n  install:           spin install  (or: pip install --no-build-isolation -v .)\n  editable install:  spin develop  (or: pip install --no-build-isolation -v -e .)\n  wheel:             python -m build --wheel --no-isolation\n  sdist:             python -m build --sdist\n\nBuild customization through environment variables (DEBUG=1, USE_CUDA=0,\nMAX_JOBS=..., etc.) works unchanged with the replacement commands. See\nthe \"From Source\" section of README.md for details and\nhttps://github.com/pytorch/pytorch/issues/152276 for background.",
+      "elapsed_seconds": 0.078,
+      "scope": "Rejection/deprecation path only; no source build or torch native runtime executed."
+    },
+    {
+      "id": "two-rank-gloo-ddp",
+      "kind": "bundled-adapted-diagnostic-under-installed-launcher",
+      "script": "sub-skills/distributed-and-checkpoint/scripts/rank_contract.py",
+      "script_sha256": "19494458f3866c11c9db4d97a90aeba338d3d5d7cf89179c1e4cb6ffd6fdc5cc",
+      "launcher": "python -I -m torch.distributed.run --standalone --nnodes=1 --nproc-per-node=2",
+      "args": [
+        "--backend",
+        "gloo",
+        "--device",
+        "cpu"
+      ],
+      "exit_code": 1,
+      "status": "NATIVE_FAIL",
+      "stdout": "",
+      "stderr": "*****************************************\nSetting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. \n*****************************************\nTraceback (most recent call last):\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\elastic\\rendezvous\\c10d_rendezvous_backend.py\", line 156, in _create_tcp_store\n    store = TCPStore(\n            ^^^^^^^^^\ntorch.distributed.DistStoreError: use_libuv was requested but PyTorch was built without libuv support, run with USE_LIBUV=0 to disable it.\n\nThe above exception was the direct cause of the following exception:\n\nTraceback (most recent call last):\n  File \"<frozen runpy>\", line 198, in _run_module_as_main\n  File \"<frozen runpy>\", line 88, in _run_code\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\run.py\", line 1142, in <module>\n    main()\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\elastic\\multiprocessing\\errors\\__init__.py\", line 384, in wrapper\n    result = f(*args, **kwargs)\n             ^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\run.py\", line 1138, in main\n    run(args)\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\run.py\", line 1129, in run\n    elastic_launch(\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\launcher\\api.py\", line 197, in __call__\n    return launch_agent(\n           ^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\launcher\\api.py\", line 346, in launch_agent\n    rdzv_handler=rdzv_registry.get_rendezvous_handler(rdzv_parameters),\n                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\elastic\\rendezvous\\registry.py\", line 96, in get_rendezvous_handler\n    return handler_registry.create_handler(params)\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\elastic\\rendezvous\\api.py\", line 377, in create_handler\n    handler = creator(params)\n              ^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\elastic\\rendezvous\\registry.py\", line 46, in _create_c10d_handler\n    backend, store = create_backend(params)\n                     ^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\elastic\\rendezvous\\c10d_rendezvous_backend.py\", line 256, in create_backend\n    store = _create_tcp_store(params)\n            ^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"PRIVATE_INSPECTION\\inspection-cpu\\Lib\\site-packages\\torch\\distributed\\elastic\\rendezvous\\c10d_rendezvous_backend.py\", line 180, in _create_tcp_store\n    raise RendezvousConnectionError(\ntorch.distributed.elastic.rendezvous.api.RendezvousConnectionError: The connection to the C10d store has failed. See inner exception for details.",
+      "elapsed_seconds": 3.062,
+      "scope": "Installed2.15 CPU/Gloo and bundled workload only, not pinned2.16 native source, NCCL/FSDP2 or multi-node qualification."
+    }
+  ],
+  "limits": "No performance, target accelerator, full source build or all-repo test qualification; original source script negative and installed/adapted checks are explicitly different kinds."
+}

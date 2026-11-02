@@ -1,0 +1,47 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "training-and-precision",
+  "target_capability": "accumulation-clipping",
+  "difficulty": "advanced",
+  "case_kind": "synthetic",
+  "evidence_basis": [
+    "torch_npu/npu/amp/grad_scaler.py",
+    "test/npu/test_amp.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/training-and-precision/references/training.md",
+    "sub-skills/training-and-precision/SKILL.md"
+  ],
+  "assertions": [
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'once per optimizer'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "once per optimizer"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'accumulation'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "accumulation"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'is_enabled()'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "is_enabled()"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'before clipping'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "before clipping"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/references/training.md supports 'state'",
+      "file": "sub-skills/training-and-precision/references/training.md",
+      "contains": "state"
+    },
+    {
+      "statement": "sub-skills/training-and-precision/SKILL.md supports 'Inputs:'",
+      "file": "sub-skills/training-and-precision/SKILL.md",
+      "contains": "Inputs:"
+    }
+  ]
+}
