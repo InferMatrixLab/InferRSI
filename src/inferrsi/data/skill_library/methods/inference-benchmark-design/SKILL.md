@@ -24,6 +24,11 @@ before selecting tests or comparing chunk latency. It separates startup/steady g
 progress, stream-slot reuse, reset, EOU and EOF; its source tests and
 author benchmark reports are not local model or serving qualification.
 
+For treatment-enabled tuning comparisons or claimed protocol integrity, read
+[treatment delivery and trial validity](references/autotunebench-trial-validity.md).
+Trace feedback to the eligible consumer input and apply the frozen arm-validity
+precedence before interpreting benefit, saturation or a null.
+
 Freeze one primary objective, timing boundary, quality gates and sample/failure
 accounting before optimization. Recorded agent task scores and replay completion
 do not establish current task success; a VBench prompt workload does not compute
