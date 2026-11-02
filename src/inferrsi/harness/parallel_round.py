@@ -4,10 +4,13 @@ Directory diffs stand in for git clones. ``close`` and incumbent advancement are
 not implemented. A synthetic latency number is not a campaign verdict.
 """
 
+import hashlib
 import json
+import os
 import shutil
+import stat
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from fnmatch import fnmatch
 from pathlib import Path
 
@@ -21,8 +24,10 @@ from inferrsi.harness.round_budget import (
     admit_attempt,
     advance,
     empty_ledger,
+    ensure_open,
+    seconds_remaining,
 )
-from inferrsi.infra.artifacts import digest, sha256, write_json
+from inferrsi.infra.artifacts import digest, write_json
 from inferrsi.infra.confinement import ConfinementUnavailable, confined_execute
 from inferrsi.infra.device_lease import DeviceLease, LeaseError
 
@@ -38,12 +43,101 @@ def _match(path: str, patterns: list[str]) -> bool:
 
 
 def _files(root: Path) -> list[str]:
-    found = []
-    for path in sorted(root.rglob("*")):
-        if not path.is_file() or ".git" in path.parts:
+    hashes, _blocked = _snapshot(root)
+    return sorted(hashes)
+
+
+def _snapshot(root: Path) -> tuple[dict[str, str], list[str]]:
+    """Hash regular files without following links. Symlinks are reported, not read."""
+    hashes: dict[str, str] = {}
+    blocked: list[str] = []
+    root_fd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        _scan(root_fd, "", hashes, blocked)
+    finally:
+        os.close(root_fd)
+    return hashes, blocked
+
+
+def _scan(dirfd: int, prefix: str, hashes: dict[str, str], blocked: list[str]) -> None:
+    for name in os.listdir(dirfd):
+        if name in {".", "..", ".git"}:
             continue
-        found.append(path.relative_to(root).as_posix())
-    return found
+        relative = f"{prefix}/{name}" if prefix else name
+        try:
+            info = os.stat(name, dir_fd=dirfd, follow_symlinks=False)
+        except OSError:
+            blocked.append(relative)
+            continue
+        if stat.S_ISLNK(info.st_mode):
+            blocked.append(relative)
+            continue
+        if stat.S_ISDIR(info.st_mode):
+            try:
+                child = os.open(name, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
+            except OSError:
+                blocked.append(relative)
+                continue
+            try:
+                _scan(child, relative, hashes, blocked)
+            finally:
+                os.close(child)
+            continue
+        if not stat.S_ISREG(info.st_mode):
+            blocked.append(relative)
+            continue
+        try:
+            file_fd = os.open(name, os.O_RDONLY | os.O_NOFOLLOW, dir_fd=dirfd)
+        except OSError:
+            blocked.append(relative)
+            continue
+        try:
+            hasher = hashlib.sha256()
+            while True:
+                block = os.read(file_fd, 1024 * 1024)
+                if not block:
+                    break
+                hasher.update(block)
+            hashes[relative] = hasher.hexdigest()
+        finally:
+            os.close(file_fd)
+
+
+def _read_nofollow(root: Path, relative: str) -> bytes | None:
+    """Read one regular file through no-follow parent components, or return None."""
+    dirfd = os.open(root, os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        parts = relative.split("/")
+        for part in parts[:-1]:
+            try:
+                child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=dirfd)
+            except OSError:
+                return None
+            os.close(dirfd)
+            dirfd = child
+        try:
+            file_fd = os.open(parts[-1], os.O_RDONLY | os.O_NOFOLLOW, dir_fd=dirfd)
+        except OSError:
+            return None
+    finally:
+        os.close(dirfd)
+    try:
+        chunks = []
+        while True:
+            block = os.read(file_fd, 1024 * 1024)
+            if not block:
+                break
+            chunks.append(block)
+        return b"".join(chunks)
+    finally:
+        os.close(file_fd)
+
+
+def _refusal(reason: str, **fields) -> dict:
+    body = {"submitted": False, "outside": [], "deleted": [], "rejected": [], "ticket": None}
+    body.update(fields)
+    body["reason"] = reason
+    return body
 
 
 def _lane(plan: dict, lane_id: str) -> dict:
@@ -51,15 +145,6 @@ def _lane(plan: dict, lane_id: str) -> dict:
     if len(matches) != 1:
         raise RoundPlanError(f"unknown lane: {lane_id}")
     return matches[0]
-
-
-def _hashes(root: Path) -> dict[str, str]:
-    return {relative: sha256(root / relative) for relative in _files(root)}
-
-
-def _changed(incumbent: Path, work: Path) -> list[str]:
-    before, after = _hashes(incumbent), _hashes(work)
-    return sorted(path for path in set(before) | set(after) if before.get(path) != after.get(path))
 
 
 def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
@@ -125,30 +210,59 @@ def prepare(spec: dict, incumbent: Path, round_dir: Path) -> dict:
     return body
 
 
-def submit(round_dir: Path, lane_id: str, incumbent: Path, work: Path) -> dict:
+def submit(
+    round_dir: Path, lane_id: str, incumbent: Path, work: Path, *, now: datetime | None = None
+) -> dict:
     """Copy in-glob changes to the outbox. The same manifest always returns the same ticket."""
+    moment = now or datetime.now(timezone.utc)
     plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
     lane = _lane(plan, lane_id)
-    changed = _changed(incumbent, work)
+    try:
+        ensure_open(lane["deadline_utc"], moment)
+    except BudgetError as exc:
+        return _refusal(str(exc))
+    before, _incumbent_blocked = _snapshot(incumbent)
+    after, blocked = _snapshot(work)
+    changed = sorted(
+        path for path in set(before) | set(after) if before.get(path) != after.get(path)
+    )
+    known = set(before) | set(after) | set(changed)
+    linked = [
+        path
+        for path in blocked
+        if any(item == path or item.startswith(path + "/") for item in known)
+    ]
+    if linked:
+        return _refusal("symlink", rejected=sorted(linked))
+    deleted = [path for path in changed if path not in after and _match(path, lane["globs"])]
+    if deleted:
+        return _refusal("deletion", deleted=deleted)
     outside = [path for path in changed if not _match(path, lane["globs"])]
     if outside or not changed:
-        return {"submitted": False, "outside": outside, "ticket": None}
-    manifest = {path: sha256(work / path) for path in changed}
+        return _refusal("unchanged" if not changed else "outside", outside=outside)
+    manifest = {path: after[path] for path in changed}
     ticket = digest(
         {"round_digest": plan["round_digest"], "lane_id": lane_id, "manifest": manifest}
     )[:16]
     destination = round_dir / "outbox" / ticket
     if not destination.exists():
         destination.mkdir(parents=True)
-        for path in changed:
-            target = destination / path
-            target.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(work / path, target)
+        try:
+            for path in changed:
+                payload = _read_nofollow(work, path)
+                if payload is None:
+                    raise OSError(path)
+                target = destination / path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(payload)
+        except OSError:
+            shutil.rmtree(destination)
+            return _refusal("symlink", rejected=list(changed))
         write_json(
             destination / "manifest.json",
-            {"ticket": ticket, "lane_id": lane_id, "files": manifest},
+            {"ticket": ticket, "lane_id": lane_id, "files": manifest, "deleted": []},
         )
-    return {"submitted": True, "outside": [], "ticket": ticket}
+    return {"submitted": True, "outside": [], "deleted": [], "rejected": [], "ticket": ticket}
 
 
 def _ledger_path(round_dir: Path, lane_id: str) -> Path:
@@ -216,15 +330,72 @@ def _command(template: list[str], result: Path) -> tuple[str, ...]:
     return tuple(part.replace("{result}", str(result)) for part in template)
 
 
-def serve_ticket(round_dir: Path, ticket: str, incumbent: Path, *, backend, now: datetime) -> dict:
+def _record(round_dir: Path, ticket: str, **fields) -> dict:
+    body = {"ticket": ticket, "synthetic": True, **fields}
+    write_json(round_dir / "results" / f"{ticket}.json", body)
+    return body
+
+
+def _claimed_entry(ledger, ticket: str):
+    suffix = f"@{ticket}"
+    for entry in ledger.entries:
+        if entry.binding.run_id.endswith(suffix) and entry.phase == "claimed":
+            return entry
+    return None
+
+
+def _launch(
+    plan: dict, lane: dict, candidate: Path, incumbent: Path, trial_dir: Path, *, backend, current
+):
+    """Run build and both trials. Each start is bounded by the same absolute deadline."""
+    build_dir = candidate / "build-output"
+    build_dir.mkdir(parents=True, exist_ok=True)
+    trial_dir.mkdir(parents=True, exist_ok=True)
+
+    def run(argv, cwd, writable, readable) -> None:
+        remaining = min(seconds_remaining(lane["deadline_utc"], current()), 30)
+        confined_execute(
+            argv, cwd, writable, readable, time.monotonic() + remaining, backend=backend
+        )
+
+    if plan["build"]:
+        run(tuple(plan["build"]), candidate, (candidate, build_dir), ())
+    candidate_result = trial_dir / "candidate.json"
+    run(_command(plan["trial"], candidate_result), candidate, (trial_dir,), (candidate,))
+    incumbent_result = trial_dir / "incumbent.json"
+    run(_command(plan["trial"], incumbent_result), incumbent, (trial_dir,), (incumbent,))
+    return candidate_result, incumbent_result
+
+
+def serve_ticket(
+    round_dir: Path,
+    ticket: str,
+    incumbent: Path,
+    *,
+    backend,
+    now: datetime,
+    clock=None,
+) -> dict:
     """Measure one ticket. A busy device leaves it queued and does not reserve an attempt."""
+    def current() -> datetime:
+        return clock() if clock is not None else now
+
     plan = json.loads((round_dir / "round-plan.json").read_text(encoding="utf-8"))
     result_path = round_dir / "results" / f"{ticket}.json"
     if result_path.exists():
         return json.loads(result_path.read_text(encoding="utf-8"))
     overlay = round_dir / "outbox" / ticket
     manifest = json.loads((overlay / "manifest.json").read_text(encoding="utf-8"))
+    if manifest.get("deleted"):
+        return _record(round_dir, ticket, status="rejected", reason="deletion")
     lane = _lane(plan, manifest["lane_id"])
+    if _claimed_entry(_load_ledger(round_dir, plan, lane), ticket) is not None:
+        return _record(
+            round_dir,
+            ticket,
+            status="unsettled",
+            reason="claimed execution was not settled",
+        )
     try:
         held = DeviceLease(round_dir / "leases").acquire(plan["device_id"])
     except LeaseError:
@@ -232,68 +403,41 @@ def serve_ticket(round_dir: Path, ticket: str, incumbent: Path, *, backend, now:
     try:
         try:
             loaded = _load_ledger(round_dir, plan, lane)
-            ledger, binding = admit_attempt(plan, loaded, lane["id"], now)
+            ledger, binding = admit_attempt(plan, loaded, lane["id"], current(), token=ticket)
         except BudgetError as exc:
-            record = {"ticket": ticket, "status": "rejected", "reason": str(exc), "synthetic": True}
-            write_json(result_path, record)
-            return record
+            return _record(round_dir, ticket, status="rejected", reason=str(exc))
         _save_ledger(round_dir, ledger)
         candidate = round_dir / "candidates" / ticket
         trial_dir = round_dir / "trials" / ticket
-        build_dir = candidate / "build-output"
+        _materialize(incumbent, overlay, candidate)
         try:
-            _materialize(incumbent, overlay, candidate)
-            build_dir.mkdir(parents=True, exist_ok=True)
-            trial_dir.mkdir(parents=True, exist_ok=True)
-            if plan["build"]:
-                confined_execute(
-                    tuple(plan["build"]),
-                    candidate,
-                    (candidate, build_dir),
-                    (),
-                    time.monotonic() + 30,
-                    backend=backend,
-                )
-            candidate_result = trial_dir / "candidate.json"
-            confined_execute(
-                _command(plan["trial"], candidate_result),
-                candidate,
-                (trial_dir,),
-                (candidate,),
-                time.monotonic() + 30,
-                backend=backend,
-            )
-            incumbent_result = trial_dir / "incumbent.json"
-            confined_execute(
-                _command(plan["trial"], incumbent_result),
-                incumbent,
-                (trial_dir,),
-                (incumbent,),
-                time.monotonic() + 30,
-                backend=backend,
-            )
-        except ConfinementUnavailable as exc:
+            seconds_remaining(lane["deadline_utc"], current())
+        except BudgetError as exc:
             _save_ledger(round_dir, advance(ledger, binding, "cancelled"))
-            record = {"ticket": ticket, "status": "rejected", "reason": str(exc), "synthetic": True}
-            write_json(result_path, record)
-            return record
+            return _record(round_dir, ticket, status="rejected", reason=str(exc))
+        ledger = advance(ledger, binding, "claimed")
+        _save_ledger(round_dir, ledger)
+        try:
+            candidate_result, incumbent_result = _launch(
+                plan, lane, candidate, incumbent, trial_dir, backend=backend, current=current
+            )
+        except (ConfinementUnavailable, BudgetError) as exc:
+            return _record(round_dir, ticket, status="unsettled", reason=str(exc))
         candidate_body = json.loads(candidate_result.read_text(encoding="utf-8"))
         incumbent_body = json.loads(incumbent_result.read_text(encoding="utf-8"))
         candidate_metric = candidate_body["metrics"]["latency_ms"]
         incumbent_metric = incumbent_body["metrics"]["latency_ms"]
-        finished = advance(advance(ledger, binding, "claimed"), binding, "finished", actual_cost=0)
+        finished = advance(ledger, binding, "finished", actual_cost=0)
         _save_ledger(round_dir, finished)
-        record = {
-            "ticket": ticket,
-            "status": "measured",
-            "synthetic": True,
-            "candidate_latency_ms": candidate_metric,
-            "incumbent_latency_ms": incumbent_metric,
-            "gain_ms": incumbent_metric - candidate_metric,
-            "confinement": getattr(backend, "name", "unknown"),
-        }
-        write_json(result_path, record)
-        return record
+        return _record(
+            round_dir,
+            ticket,
+            status="measured",
+            candidate_latency_ms=candidate_metric,
+            incumbent_latency_ms=incumbent_metric,
+            gain_ms=incumbent_metric - candidate_metric,
+            confinement=getattr(backend, "name", "unknown"),
+        )
     finally:
         held.release()
 
