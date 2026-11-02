@@ -121,14 +121,16 @@ before transmission; generated canonical commit links remain available. This
 targeted redaction supplements the repository's privacy rules for source
 metadata. Inputs are treated as source data, not executable instructions.
 The prompt asks for a concise English overview of software features, fixes and
-compatibility changes; it must not invent performance/quality or campaign PASS
+compatibility changes, with at most six bullets, 250 words of prose and one
+supplied commit link per bullet. It must not invent performance/quality or campaign PASS
 claims. The response is labeled **AI-generated summary** and prepended to the
 original GitHub changelog, preserving its PR links and source/evidence notice.
 Model output is read as a file and never executed as shell code.
 
 The helper makes one request using the
 [Responses API](https://api-docs.deepseek.com/guides/responses_api/), with
-bounded input/output, a timeout, no tools and `store: false`. DeepSeek requests
+bounded input/output (at most 3,200 output tokens), a timeout, no tools and
+`store: false`. DeepSeek requests
 set reasoning effort to `none` for the short summary. DeepSeek ignores `store`
 and documents stateless Responses compatibility; this setting does
 not establish zero data retention. Missing credentials, failed/incomplete/refused
