@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "pytorch.common.compiler.aoti_export_deployment",
+  "tier": "dependency",
+  "repo": "pytorch",
+  "backend": "common",
+  "component": "compiler",
+  "scenario": "compiler.inference",
+  "title": "AOTInductor: export first, then match dtype, stride and dynamic dims",
+  "status": "imported",
+  "summary": "The v2.15 AOTInductor document packages a torch.export program for Python or C++ inference and requires matching dtype and stride except for dims marked dynamic.",
+  "tags": [
+    "torch_export",
+    "aot_inductor",
+    "inference"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/docs/source/user_guide/torch_compiler/torch.compiler_aot_inductor.md",
+      "type": "technical_document",
+      "commit": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "84f508ddc4df0b42a35b0713fc67e7d2bb904440e79dd01b8aee8af470a0a704"
+    },
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/docs/source/user_guide/torch_compiler/torch.compiler_cudagraph_trees.md",
+      "type": "technical_document",
+      "commit": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "0dbfcef13ad6baea52c6e989eaf6561440c02a26a6ef667da850439d3a88c6a5"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "CUDA or CPU as chosen by the AOTInductor document"
+    ],
+    "software": [
+      "pytorch/pytorch at 31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457"
+    ],
+    "conditions": [
+      "Deployment question is export and packaging, not CUDA-graph lifetime"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "aoti_compile_and_package consumes an exported program and writes a PT2 archive. The C++ example runs under c10::InferenceMode."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "The v2.15 CUDA-graph trees document has the same SHA-256 as the existing f15b476 compiler card. That is one-file identity, not a re-mined Inductor."
+    }
+  ],
+  "downstream_impact": [
+    "Inference packaging should record which dims were dynamic. A batch-size change is not evidence that rank or dtype may change.",
+    "vllm-ascend and TorchNPU do not inherit this CUDA-or-CPU packaging result."
+  ],
+  "recommendations": [
+    "Do not copy upstream dashboard numbers. max_autotune in the example is not a measured gain."
+  ],
+  "validation_plan": [
+    "A later authorized build would export one model, load the package, and compare eager outputs on a static shape and on the declared dynamic dim."
+  ],
+  "limitations": [
+    "No package was built. Export and Inductor implementations were not read. NPU packaging is not claimed."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

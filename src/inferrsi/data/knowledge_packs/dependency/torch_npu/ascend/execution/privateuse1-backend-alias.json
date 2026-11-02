@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "torch_npu.ascend.execution.privateuse1_backend_alias",
+  "tier": "dependency",
+  "repo": "torch_npu",
+  "backend": "ascend",
+  "component": "execution",
+  "scenario": "execution.inference",
+  "title": "TorchNPU renames PrivateUse1 to npu without initializing the runtime",
+  "status": "imported",
+  "summary": "TorchNPU registration renames PrivateUse1 to npu, generates tensor methods, and excludes five quantized dtypes. The registry comment says this path must not initialize the NPU runtime.",
+  "tags": [
+    "privateuse1",
+    "dispatch",
+    "npu"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/_init/registry/backend.py",
+      "type": "implementation",
+      "commit": "54e365d3e3614299bccd17f06916544c3880c9fc",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "fc24050fbd1968a2e70ee85f55c1f092098834fb1cf2d294de496927e1f26b40"
+    },
+    {
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/_init/registry/registry_manager.py",
+      "type": "implementation",
+      "commit": "54e365d3e3614299bccd17f06916544c3880c9fc",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "071bb7a9d30b6ceb7c628bd1d445d73f14e0ad95334ab4aa60a68dd048309955"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Ascend NPU through the TorchNPU PrivateUse1 alias"
+    ],
+    "software": [
+      "Ascend/pytorch at 54e365d3e3614299bccd17f06916544c3880c9fc"
+    ],
+    "conditions": [
+      "Question is backend identity or generated methods, not a kernel implementation"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "register_privateuse1_backend renames the backend to npu, registers torch.npu, and generates tensor, module and storage methods while listing quint8, quint4x2, quint2x4, qint32 and qint8 as unsupported."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "The registry manager says registration must not initialize the NPU runtime and raises if torch.npu is missing afterwards."
+    }
+  ],
+  "downstream_impact": [
+    "A missing torch.npu after import is a registration failure, not an allocator or graph bug.",
+    "PyTorch v2.15 custom_op device_types do not by themselves perform this rename."
+  ],
+  "recommendations": [
+    "Do not treat version.txt torch lines as a tested build against PyTorch v2.15.0."
+  ],
+  "validation_plan": [
+    "A later import check would confirm torch.npu exists and that the listed quantized dtypes lack generated methods, without claiming kernel parity."
+  ],
+  "limitations": [
+    "CANN package check body and op_plugin kernels were not read. No device was initialized."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

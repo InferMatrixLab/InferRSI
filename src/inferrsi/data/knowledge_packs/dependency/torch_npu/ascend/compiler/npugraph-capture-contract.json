@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "torch_npu.ascend.compiler.npugraph_capture_contract",
+  "tier": "dependency",
+  "repo": "torch_npu",
+  "backend": "ascend",
+  "component": "compiler",
+  "scenario": "compiler.inference",
+  "title": "TorchNPU NPUGraph capture synchronizes and does not prove replay speedup",
+  "status": "imported",
+  "summary": "Entering torch.npu.graph synchronizes and empties caches before capture. Replay and update have separate gates, and the npugraphs backend patches Inductor entry points.",
+  "tags": [
+    "npugraph",
+    "capture",
+    "inductor"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/npu/graphs.py",
+      "type": "implementation",
+      "commit": "54e365d3e3614299bccd17f06916544c3880c9fc",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "c60e597e5b341ce2b5c48dc694b1ef16c6bd7d86f212e351ffcf73438fe00893"
+    },
+    {
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/_compiler/_config.py",
+      "type": "implementation",
+      "commit": "54e365d3e3614299bccd17f06916544c3880c9fc",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "297066e2895f115f9414d8dabc96e2c11a8c3b0fac847a89f1f39f68b28a1d01"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Ascend NPU via TorchNPU at this tag"
+    ],
+    "software": [
+      "Ascend/pytorch at 54e365d3e3614299bccd17f06916544c3880c9fc; not a tested pair with PyTorch v2.15.0"
+    ],
+    "conditions": [
+      "Question is NPUGraph Python capture, not the older allocator pin or vLLM-Ascend ACLGraph"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "Capture entry synchronizes, optionally collects garbage when force_npugraph_gc is true, and empties device and host caches. The config default is false while its docstring calls true backward compatible."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "update requires auto_dispatch_capture. Sharing a pool with an explicit stream requires the same stream. relaxed capture mode does not error on the malloc actions global mode rejects."
+    }
+  ],
+  "downstream_impact": [
+    "vLLM-Ascend ACLGraph and TorchAir remain separate pins. Patching cudagraphify does not establish CUDA-graph semantics on NPU.",
+    "A capture that begins with a device sync should not be counted as overlapped launch without its own measurement."
+  ],
+  "recommendations": [
+    "Treat downstream impact as a transfer hypothesis. No replay latency was measured."
+  ],
+  "validation_plan": [
+    "A later authorized NPU run would compare capture_error_mode global versus relaxed on a known illegal malloc, and time replay only after a separate uncaptured baseline."
+  ],
+  "limitations": [
+    "ACL runtime and npu/_graph_tree.py were not read. No NPU execution."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

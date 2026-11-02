@@ -1,0 +1,79 @@
+{
+  "repository": "pytorch/pytorch",
+  "revision": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+  "release_label": "v2.15.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "AOTInductor export packaging documented at PyTorch v2.15.0.",
+  "files": [
+    {
+      "path": "docs/source/user_guide/torch_compiler/torch.compiler_aot_inductor.md",
+      "ranges": [
+        [
+          1,
+          213
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "export then AOTInductor package",
+      "blob": "c8ce9a66aa09a2972aa5444aee397ac4a55d0e2c",
+      "bytes": 7734,
+      "sha256": "84f508ddc4df0b42a35b0713fc67e7d2bb904440e79dd01b8aee8af470a0a704",
+      "line_count": 213,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/docs/source/user_guide/torch_compiler/torch.compiler_aot_inductor.md"
+    },
+    {
+      "path": "docs/source/user_guide/torch_compiler/torch.compiler_dynamo_overview.md",
+      "ranges": [
+        [
+          1,
+          334
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "Dynamo overview; not the guard implementation",
+      "blob": "7584be3daa6197e35373c2e630a8d4bf8f9e3c34",
+      "bytes": 14406,
+      "sha256": "bd84b21573ca8c0aa7eac7206793ff4861200338c7fd0d1eecc0484fe0e28c0c",
+      "line_count": 334,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/docs/source/user_guide/torch_compiler/torch.compiler_dynamo_overview.md"
+    },
+    {
+      "path": "docs/source/user_guide/torch_compiler/torch.compiler_cudagraph_trees.md",
+      "ranges": [
+        [
+          1,
+          337
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "byte-identical to the existing compiler card source",
+      "blob": "b085b0391de4474741f4f32c47952a52a9646327",
+      "bytes": 18939,
+      "sha256": "0dbfcef13ad6baea52c6e989eaf6561440c02a26a6ef667da850439d3a88c6a5",
+      "line_count": 337,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/docs/source/user_guide/torch_compiler/torch.compiler_cudagraph_trees.md"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          84
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-3-Clause text; Arm copyright year differs from the stored v2.8 notice",
+      "blob": "c23172f7aff0254e4f0f163fb2e6e355cbaec5f4",
+      "bytes": 3464,
+      "sha256": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43",
+      "line_count": 84,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/LICENSE"
+    }
+  ]
+}

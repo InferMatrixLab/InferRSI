@@ -1,0 +1,40 @@
+{
+  "tags": [
+    "pytorch",
+    "aotinductor",
+    "export",
+    "inference"
+  ],
+  "status": "candidate",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "empirical_validation": "not_run",
+  "limitations": [
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "provenance_readsets": [
+    "references/readset.json",
+    "references/source-notes.md"
+  ],
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "AOTInductor export packaging documented at PyTorch v2.15.0.",
+    "hardware": [
+      "CUDA or CPU as selected by the document",
+      "NPU not claimed"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ]
+}

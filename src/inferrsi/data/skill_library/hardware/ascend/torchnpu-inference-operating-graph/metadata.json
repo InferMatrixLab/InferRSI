@@ -1,0 +1,41 @@
+{
+  "tags": [
+    "ascend",
+    "torchnpu",
+    "router",
+    "inference"
+  ],
+  "status": "candidate",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "empirical_validation": "not_run",
+  "limitations": [
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "provenance_readsets": [
+    "references/readset.json",
+    "references/source-notes.md",
+    "references/unread-inventory.md"
+  ],
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Route TorchNPU inference questions at the v26.2.0-pytorch2.14.0 tag.",
+    "hardware": [
+      "Ascend NPU as named by TorchNPU",
+      "not a tested PyTorch 2.15 pair"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ]
+}

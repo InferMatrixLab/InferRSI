@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "id": "pytorch.cuda.attention.sdpa_backend_selection",
+  "tier": "dependency",
+  "repo": "pytorch",
+  "backend": "cuda",
+  "component": "attention",
+  "scenario": "attention.inference",
+  "title": "SDPA backends: restore previous flags and do not treat activation as a speedup",
+  "status": "imported",
+  "summary": "sdpa_kernel enables a named backend subset and restores the previous flags on exit. Flash implementations register without activating.",
+  "tags": [
+    "sdpa",
+    "flash_attention",
+    "cudnn"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/torch/nn/attention/__init__.py",
+      "type": "implementation",
+      "commit": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "d85fd0a44c0d4db9698488c7eab14b201ea3503bfb88d969fad57c8693018537"
+    },
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/torch/nn/attention/_registry.py",
+      "type": "implementation",
+      "commit": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "803f3957896ed9cc2d243e94f7546db4dcb5a19640d2fb259e2d0dc2b02f25f6"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "CUDA SDPA backends named by this API"
+    ],
+    "software": [
+      "pytorch/pytorch at 31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457"
+    ],
+    "conditions": [
+      "Caller uses scaled_dot_product_attention or a flash impl registry"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "The context manager restores the previous backend set. Its docstring also says exit enables all backends; the implementation is the restore."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "register_flash_attention_impl does not activate. activate_flash_attention_impl restores any previous override first. The C++ select_sdp_backend body was not in the inspected headers."
+    }
+  ],
+  "downstream_impact": [
+    "Serving stacks that wrap SDPA should log the enabled backend and priority rather than assume FLASH_ATTENTION won.",
+    "An NPU attention kernel is not implied by this CUDA registry."
+  ],
+  "recommendations": [
+    "Treat downstream impact as an InferRSI transfer hypothesis, not a kernel benchmark."
+  ],
+  "validation_plan": [
+    "Log current SDPA backends around one forward and compare numerics before any timing run."
+  ],
+  "limitations": [
+    "No shape, dtype or mask eligibility was established. No attention benchmark was run."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

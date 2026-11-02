@@ -1,0 +1,42 @@
+{
+  "tags": [
+    "pytorch",
+    "inference",
+    "router",
+    "compile",
+    "dispatcher"
+  ],
+  "status": "candidate",
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "empirical_validation": "not_run",
+  "limitations": [
+    "Source-derived candidate; empirical validation not_run.",
+    "No benchmark, throughput, latency or quality number was measured for this extraction.",
+    "DisCo was not run. Static reading is not native, model or service verification."
+  ],
+  "provenance_readsets": [
+    "references/readset.json",
+    "references/source-notes.md",
+    "references/unread-inventory.md"
+  ],
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Route PyTorch v2.15.0 inference questions without merging older pins.",
+    "hardware": [
+      "CUDA and CPU as named by the routed skills",
+      "not an NPU claim"
+    ],
+    "prerequisites": [
+      "Pinned source inspection only; no installed wheel, device run or campaign measurement."
+    ]
+  },
+  "recommendations": [
+    "Read the pinned source notes before applying a symbol or environment key.",
+    "Keep older PyTorch and TorchNPU owners at their own commits; this pin is not a combined stack."
+  ]
+}

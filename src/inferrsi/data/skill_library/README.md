@@ -1,6 +1,6 @@
 # InferRSI skill library
 
-The English-only library contains **124 skill documents**: 77 registered roots,
+The English-only library contains **136 skill documents**: 89 registered roots,
 21 separately indexed engine/router documents and 26 AREX graph sub-skills.
 Complete procedures, metadata, references, cases and source notices ship with the package.
 
@@ -8,7 +8,7 @@ Complete procedures, metadata, references, cases and source notices ship with th
 
 | Directory | Content |
 | --- | --- |
-| [Hardware](hardware/README.md) | Ascend (14 registered skills), CUDA (3) and host resource guidance (5), with retained source-depth navigation |
+| [Hardware](hardware/README.md) | Ascend (20 registered skills), CUDA (3) and host resource guidance (5), with retained source-depth navigation |
 | [Frameworks](frameworks/) | Framework-owned procedures, PyTorch distributed checkpointing and MLX evaluation/lifetimes |
 | [Repositories](repositories/) | Engine entry skills, focused procedures, references and cases |
 | [Methods](methods/) | Optimization, benchmarking, analysis, search and casebooks |
@@ -20,7 +20,7 @@ existing resource directory.
 
 ## Read registered skills
 
-[`skill-index.json`](skill-index.json) maps 77 stable skill IDs to their canonical
+[`skill-index.json`](skill-index.json) maps 89 stable skill IDs to their canonical
 paths and backend scopes. Install the optional `skills` extra for these commands:
 
 ```bash
@@ -95,6 +95,20 @@ recompilation, capture and steady-state replay; DCP measures
 [caller, staging, upload and step time](frameworks/pytorch/dcp-async-save-performance/SKILL.md#evidence-to-request-in-a-separately-authorized-measurement),
 including first-use versus reused buffers. These are owner-specific checks,
 not a combined compiler/checkpoint calling protocol or compatibility result.
+
+## PyTorch v2.15 and TorchNPU inference distillation
+
+A later bounded read, inspected 2026-11-02, adds a router and subsystem
+procedures at PyTorch `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` (`v2.15.0`) and
+TorchNPU `54e365d3e3614299bccd17f06916544c3880c9fc` (tag `v26.2.0-pytorch2.14.0`).
+Start at [pytorch-inference-operating-graph](frameworks/pytorch/pytorch-inference-operating-graph/SKILL.md)
+or [torchnpu-inference-operating-graph](hardware/ascend/torchnpu-inference-operating-graph/SKILL.md).
+The v2.15 CUDA-graph trees document matches the compiler card's SHA-256; that
+identity does not merge pins or re-mine Inductor. TorchNPU `version.txt` lists
+torch 2.15.0 among buildable lines and the tag name says 2.14.0. Neither is a
+tested pair. Allocator skills remain at `67511c53cd4c88014f6123de7097677e60e85faa`.
+All new procedures are candidate / not_run. DisCo was not executed. c10d,
+Inductor codegen, ACL runtime, HCCL transport and kernel sources stay unread.
 
 ## TensorRT-LLM source and responsibility routing
 

@@ -67,6 +67,16 @@ The primary compute and HBM resource. Most current work lives here.
 | **Diagnose / Optimize / Verify** | Attention IO, operation-class ceilings, output ownership, work supply, async dependencies and FP8 layout/accuracy | [diagnose-attention-bottlenecks](../src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md), `kernel-writing-guide` | [Author-reported attention cases](../src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/references/papers-20261015/cases/overlap-and-fp8-counter-signals.md); compiler/register and precision counter-signals | FlashAttention v2 / FA2 v1 / FA3 v2 | 🟢 (Accelerator only; no Ascend implementation claim) |
 | **Diagnose / Verify** | Diffusion stage/component-use readiness, retention and mutable request-scheduler aliases; client timeout/deletion versus worker/device completion | [audit-sglang-diffusion-lifetimes](../src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | Default ParallelExecutor and concrete rank/strategy must be traced; closing a use does not imply eviction or device cancellation | SGLang @ df13d5dce31a; bounded multimodal_gen source readset, separate from LLM/HiCache | 🟢 (candidate diagnosis; native/quality/performance not run) |
 
+| **Diagnose / Configure** | PyTorch v2.15 SDPA backend flags, priority and flash-impl activation versus restore | `pytorch-sdpa-backend-selection` | Exit docstring disagrees with the restore path; selection function body unread; no shape winner | pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` | Candidate; not_run; no measured attention gain |
+| **Diagnose / Configure** | PyTorch v2.15 CUDA caching-allocator keys, private pools versus capture notifications, and 32-wide stream aliasing | `pytorch-caching-allocator-and-streams` | Deprecated split-size wrappers are not a tuned value; host copy stays at v2.8; pool routing is not capture | pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` | Candidate; allocator cpp unread; not_run |
+| **Observe / Profile** | PyTorch profiler schedule, PrivateUse1 activity branch and shape-tracing retention | `pytorch-inference-profiler` | Warmup 0 warns of skew; a profiled step is not unprofiled latency | pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` | Candidate; Kineto unread; not_run |
+| **Configure / Verify** | AOTInductor export package, dynamic dims and dtype/stride match | `pytorch-aot-inductor-inference` | CUDA-graph document hash matches the older card; max_autotune is an example flag only | pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` | Candidate; no package built |
+| **Configure** | Dispatcher def versus impl, PrivateUse1 key and custom-op mutates_args | `pytorch-dispatcher-and-custom-ops` | unknown mutations are pessimistic; NPU rename is a different pin | pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` | Candidate; kernels unread |
+| **Diagnose / Configure / Verify** | TorchNPU NPUGraph sync-before-capture, pool/stream pairing, relaxed capture mode and update gate | `torchnpu-graph-capture` | force_npugraph_gc default false conflicts with its docstring; ACL runtime unread | Ascend/pytorch @ `54e365d3e3614299bccd17f06916544c3880c9fc` | Candidate; not_run |
+| **Configure** | TorchNPU PrivateUse1 rename to npu and excluded quantized dtypes | `torchnpu-privateuse1-dispatch` | Registration must not initialize runtime; version.txt is not a built wheel | Ascend/pytorch @ `54e365d3e3614299bccd17f06916544c3880c9fc` | Candidate; kernels unread |
+| **Diagnose / Configure** | TorchNPU managed versus external streams | `torchnpu-streams-and-events` | External streams reject capture, record_stream and synchronize | Ascend/pytorch @ `54e365d3e3614299bccd17f06916544c3880c9fc` | Candidate; task queue unread |
+| **Observe / Profile / Configure** | TorchNPU profiler level names and Dynamo in-graph NPU APIs | `torchnpu-profiler-and-compile` | set_device is skipped; current_device is guard-folded; no trace collected | Ascend/pytorch @ `54e365d3e3614299bccd17f06916544c3880c9fc` | Candidate; not_run |
+
 **Second-level targets in this row:** Kernel, Operator, KV Cache, Attention, Diffusion denoising steps, VAE/Codec, Graph compilation, Serving/Runtime admission, device-HBM allocator lifecycle, Training activation residency and pipeline scheduling
 
 ---
@@ -108,6 +118,8 @@ Host-side memory: CPU DRAM, pinned memory, page tables, PyTorch tensor lifecycle
 | **Diagnose / Optimize / Verify** | Host feature materialization, invariant reuse and assembly lifetime | [host-overhead-optimization](../src/inferrsi/data/skill_library/hardware/host/host-overhead-optimization/SKILL.md) | [Cross-layer procedure](../src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/redirect-cross-layer-optimization/procedure.md); local gain requires full-stack SLO verification | FlashVector v1, same source identity as Reference Matrix §2 | 🟢 (scoped host mechanism, not service gain) |
 | **Diagnose / Verify** | Host-side request/job records, scheduler-object sharing and output-finalizer task lifetime | [audit-sglang-diffusion-lifetimes](../src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md) | Req field is not proof of object isolation; socket close and store deletion do not establish worker termination; device HBM excluded | SGLang @ df13d5dce31a; same bounded source identity | 🟢 (source-derived candidate, no measured memory saving) |
 | **Diagnose / Verify** | Host-owned reader/task/result and slot prompt-token lifecycle under cancellation | `audit-llama-runtime-state` | Waiter removal, queued-work cleanup and slot release are distinct; stateful prompts may remain; no host byte-saving claim | llama.cpp @ 707616feb5f3; server queue/context source and cancellation test assertion | 🟢 (candidate lifecycle diagnosis; native server case not run) |
+
+| **Observe / Profile** | PyTorch profiler CPU activity and stack paths as host observations | `pytorch-inference-profiler` | with_stack records paths; record_shapes retains tensors; this is not a host-allocator change | pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` | Candidate; not a measured host saving |
 
 **Second-level targets:** PyTorch tensor lifecycle, request scheduling, KV cache CPU offload, TorchNPU pinned-host allocator lifecycle, CPU optimizer ownership and host feature assembly
 
@@ -168,6 +180,8 @@ Inter-device and inter-node communication: HCCL (Ascend), NCCL (CUDA), InfiniBan
 Host/device transfers and same-host IPC are excluded from this row. Network
 coverage above comes only from remote downloads, distributed agreement/replicas
 and collective-specific evidence.
+
+| **Diagnose / Configure** | TorchNPU HCCL resume versus abort and uneven collective routing | `torchnpu-hccl-process-groups` | is_hccl_available is a backend-list check; resume returns None; HCCL transport unread | Ascend/pytorch @ `54e365d3e3614299bccd17f06916544c3880c9fc` | Candidate; no multi-rank run |
 
 **Second-level targets:** AllReduce, AllGather, AllToAll, P2P ring; TP/SP/PP/EP collective patterns
 
@@ -575,6 +589,13 @@ This source-derived candidate adds no measured/green resource coverage. Matching
 configuration/ABI/SDK declarations are not native execution; qualification remains
 INCONCLUSIVE. Upstream CC BY-NC 4.0 rights are retained separately from API
 NOASSERTION and InferRSI's repository license.
+
+## PyTorch v2.15 and TorchNPU inference routers
+
+| Resource | Stage / mechanism | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator | Route v2.15 dispatcher, SDPA, allocator, profiler and AOTInductor questions away from older pins | `pytorch-inference-operating-graph` | Document-hash identity for one CUDA-graph page is not a combined stack. Candidate, not_run. c10d and Inductor codegen remain unread. |
+| Accelerator | Route TorchNPU graph, dispatch, streams, HCCL and profiler questions away from the older allocator pin | `torchnpu-inference-operating-graph` | Tag v26.2.0-pytorch2.14.0 is not a tested pair with PyTorch v2.15.0. Candidate, not_run. Native ACL and HCCL transport remain unread. |
 
 ## JustGoal controlled-evaluation guidance (source-derived)
 

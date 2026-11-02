@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:ae04f5ed5ce30207b66cf772dc2a4ff1ef4c29a9c7e6e1d3c0eec415e6e45dd7`
+- Input digest: `sha256:2ff5b3e078a314cbc6f16ad8ba4b0c9fbcd702c80a8bfa35614fca875483fadd`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -32,23 +32,23 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 77 |
-| By category | frameworks 3, hardware 22, methods 20, repositories 26, workflows 6 |
-| By backend | ascend 14, common 58, cuda 5 |
-| Recorded on a numbered SearchSpace resource layer | 49 |
-| Recorded only in a supplementary guidance table (†) | 13 |
-| Recorded on two or more resource layers | 24 |
-| Recorded in the Reference Matrix | 69 |
-| With a `metadata.json` sidecar | 77 |
+| Registered skill ids | 89 |
+| By category | frameworks 9, hardware 28, methods 20, repositories 26, workflows 6 |
+| By backend | ascend 20, common 62, cuda 7 |
+| Recorded on a numbered SearchSpace resource layer | 59 |
+| Recorded only in a supplementary guidance table (†) | 15 |
+| Recorded on two or more resource layers | 25 |
+| Recorded in the Reference Matrix | 81 |
+| With a `metadata.json` sidecar | 89 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 124 |
+| `SKILL.md` documents in the library | 136 |
 | Unregistered documents (excluded from every count above) | 47 |
 
 A complete inventory is not a coverage claim. Every registered row below
 has an entry; that says the listing is exhaustive, not that inference
 optimization is fully covered or that any procedure has measured benefit.
 
-## Registered: Hardware and platform (22)
+## Registered: Hardware and platform (28)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
@@ -73,15 +73,27 @@ optimization is fully covered or that any procedure has measured benefit.
 | [reason-hopper-kernels](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md) | cuda | Reason about Hopper SM90 CUDA GEMM kernels using TMA and mbarrier lifetimes, WGMMA warpgroup participation, register ... | Source-derived Hopper SM90/SM90a kernel reasoning for TMA/mbarrier, WGMMA ... | architectures, excluded_mechanisms | 1 Accelerator † guidance: Hopper kernel reasoning (source-derived) | 1 · Systems sources (NVlabs/kda @ `acdd79343c5e9d0c7cb96289f26fd3f1051ce785` → ...) | candidate · not_run · 3 readset(s) | no-eval |
 | [storage-io-measurement](../src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md) | common | Measure storage I/O for LLM/diffusion serving without conflating device metrics with application outcomes: match the ... | **unknown** | — | 3 SSD · Observe / Profile / Diagnose / Verify | 1 · Systems sources (axboe/fio @ acb7a302)<br>1 · Systems sources (sysstat/sysstat @ efd0c445) | candidate · not_run · 0 readset(s) | no-applicability, no-eval |
 | [torchnpu-device-memory-lifecycle](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md) | ascend | Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose ... | **unknown** | — | 1 Accelerator · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `67511c53cd4c88014f6123de7097677e60e85faa` ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
+| [torchnpu-graph-capture](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-graph-capture/SKILL.md) | ascend | Capture and replay a TorchNPU NPUGraph, including pool sharing, capture-error mode, the pre-capture sync and ... | TorchNPU NPUGraph capture and replay contracts. | 2 advice | 1 Accelerator · Diagnose / Configure / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `54e365d3e3614299bccd17f06916544c3880c9fc` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [torchnpu-hccl-process-groups](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-hccl-process-groups/SKILL.md) | ascend | Control TorchNPU HCCL process-group resume and reinit, and route uneven collectives through the NPU backend. Use for ... | TorchNPU HCCL process-group resume, abort and uneven collective routing. | 2 advice | 4 Network · Diagnose / Configure | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `54e365d3e3614299bccd17f06916544c3880c9fc` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [torchnpu-inference-operating-graph](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-inference-operating-graph/SKILL.md) | ascend | Route a TorchNPU inference question to PrivateUse1 registration, NPU graph capture, streams, HCCL process-group control ... | Route TorchNPU inference questions at the v26.2.0-pytorch2.14.0 tag. | 2 advice | 1 Accelerator † guidance: PyTorch v2.15 and TorchNPU inference routers | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `54e365d3e3614299bccd17f06916544c3880c9fc` ...) | candidate · not_run · 3 readset(s) | no-eval |
 | [torchnpu-pinned-host-memory-lifecycle](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md) | ascend | Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose ... | **unknown** | — | 2 RAM/Host · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `67511c53cd4c88014f6123de7097677e60e85faa` ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
+| [torchnpu-privateuse1-dispatch](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-privateuse1-dispatch/SKILL.md) | ascend | Register TorchNPU as PyTorch PrivateUse1 under the name npu, including generated tensor methods, excluded quantized ... | TorchNPU PrivateUse1 rename and generated methods. | 2 advice | 1 Accelerator · Configure | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `54e365d3e3614299bccd17f06916544c3880c9fc` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [torchnpu-profiler-and-compile](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-profiler-and-compile/SKILL.md) | ascend | Configure TorchNPU profiler levels and Dynamo in-graph NPU APIs, and keep npugraphs registration separate from a ... | TorchNPU profiler options and Dynamo trace rules. | 2 advice | 1 Accelerator · Observe / Profile / Configure | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `54e365d3e3614299bccd17f06916544c3880c9fc` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [torchnpu-streams-and-events](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-streams-and-events/SKILL.md) | ascend | Order TorchNPU work with managed streams and events, and avoid external-stream APIs the wrapper rejects. Use for stream ... | TorchNPU managed and external stream limits. | 2 advice | 1 Accelerator · Diagnose / Configure | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `54e365d3e3614299bccd17f06916544c3880c9fc` ...) | candidate · not_run · 2 readset(s) | no-eval |
 
-## Registered: Frameworks (3)
+## Registered: Frameworks (9)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
 | [dcp-async-save-performance](../src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md) | common | Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging ... | **unknown** | — | 1 Accelerator · Diagnose / Configure / Optimize<br>2 RAM/Host · Observe / Profile / Configure / Optimize / Verify<br>3 SSD · Observe / Profile / Configure / Optimize / Verify | 1 · Systems sources (C1 / DCP async-save-only approval — pytorch/pytorch @ ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
 | [diffusers-invocation-state](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md) | common | Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption ... | FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin ... | — | 2 RAM/Host † guidance: Diffusers invocation guidance (source-derived) | Diffusers invocation source extraction (huggingface/diffusers @ `aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e` ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | common | Diagnose MLX lazy evaluation, cross-stream ordering and array-buffer lifetimes when timing, memory use or asynchronous ... | MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual ... | — | 1 Accelerator † guidance: MLX framework guidance (source-derived) | MLX framework source extraction (ml-explore/mlx @ `bff10220c742907f0c68e55ff174aaea56f74e3d` (MIT)) | candidate · not_run · 1 readset(s) | no-eval |
+| [pytorch-aot-inductor-inference](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-aot-inductor-inference/SKILL.md) | common | Package a torch.export program with AOTInductor for Python or C++ inference, and keep dynamic dims, dtype and stride ... | AOTInductor export packaging documented at PyTorch v2.15.0. | 2 advice | 1 Accelerator · Configure / Verify | 1 · Systems sources (pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [pytorch-caching-allocator-and-streams](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-caching-allocator-and-streams/SKILL.md) | cuda | Diagnose PyTorch v2.15 CUDA caching-allocator settings, private graph pools and stream-pool aliasing. Use for device ... | CUDA caching allocator settings and stream pools at PyTorch v2.15.0. | 2 advice | 1 Accelerator · Diagnose / Configure | 1 · Systems sources (pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [pytorch-dispatcher-and-custom-ops](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-dispatcher-and-custom-ops/SKILL.md) | common | Separate PyTorch dispatcher registration from a custom-op schema before adding a backend kernel or an export boundary ... | Dispatch registration and custom-op schema at PyTorch v2.15.0. | 2 advice | 1 Accelerator · Configure | 1 · Systems sources (pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [pytorch-inference-operating-graph](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-operating-graph/SKILL.md) | common | Route a PyTorch inference question to the v2.15.0 dispatcher, SDPA, device-allocator, profiler or AOTInductor owner, or ... | Route PyTorch v2.15.0 inference questions without merging older pins. | 2 advice | 1 Accelerator † guidance: PyTorch v2.15 and TorchNPU inference routers | 1 · Systems sources (pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` ...) | candidate · not_run · 3 readset(s) | no-eval |
+| [pytorch-inference-profiler](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-inference-profiler/SKILL.md) | common | Schedule a PyTorch profiler window and separate CPU, CUDA and PrivateUse1 activities from shape-tracing copies. Use for ... | PyTorch profiler schedule and activity limits at v2.15.0. | 2 advice | 1 Accelerator · Observe / Profile<br>2 RAM/Host · Observe / Profile | 1 · Systems sources (pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` ...) | candidate · not_run · 2 readset(s) | no-eval |
+| [pytorch-sdpa-backend-selection](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch-sdpa-backend-selection/SKILL.md) | cuda | Select PyTorch scaled-dot-product attention backends and flash-impl activation from the v2.15 context manager. Use for ... | SDPA backend flags and flash-impl activation at PyTorch v2.15.0. | 2 advice | 1 Accelerator · Diagnose / Configure | 1 · Systems sources (pytorch/pytorch @ `31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457` ...) | candidate · not_run · 2 readset(s) | no-eval |
 
 ## Registered: Repositories (26)
 
@@ -209,7 +221,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 77 of 77.
+- Registered ids resolve to an existing `SKILL.md`: 89 of 89.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 0.
@@ -222,7 +234,7 @@ an entrypoint routes to procedures below it rather than adding one.
 | `no-Reference-Matrix-row` | 8: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence, video-diffusion-optimization |
 | `no-sidecar` | 0: — |
 | `no-applicability` | 24: as listed in the Gaps column above |
-| `no-eval` | 75: as listed in the Gaps column above |
+| `no-eval` | 87: as listed in the Gaps column above |
 
 These are inventory gaps, not defects. A workflow skill may legitimately
 have no hardware resource layer; a candidate may legitimately be untested.

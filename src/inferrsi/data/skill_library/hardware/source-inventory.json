@@ -4,14 +4,14 @@
   "local_inventory_review_date": "2026-10-30",
   "upstream_reads_performed_for_this_inventory": false,
   "scope": {
-    "registered_hardware_owners": 22,
+    "registered_hardware_owners": 28,
     "by_directory": {
-      "ascend": 14,
+      "ascend": 20,
       "cuda": 3,
       "host": 5
     },
-    "registered_library_roots": 77,
-    "library_skill_documents": 124,
+    "registered_library_roots": 89,
+    "library_skill_documents": 136,
     "basis": "Local SKILL.md, metadata.json and retained owner references; library routing and the Reference Matrix only where the local entry omits historical provenance."
   },
   "conventions": {
@@ -20,7 +20,7 @@
     "dates": "inspection_date is the source reading date recorded in the cited evidence, not this inventory review, a commit date or a sync date. null means not recorded.",
     "identity": "Historical prefixes, release tags and rolling URLs remain distinct from full Git revisions; resolution alone is not a semantic reread.",
     "license": "License notes report the retained declarations and their scope, including UNKNOWN or absent declarations. They do not grant rights or relicense mixed-source owners.",
-    "validation": "All 22 owner sidecars remain candidate with empirical_validation=not_run. Static source, packaging and link checks do not establish hardware compatibility, numerical quality, performance or agent efficacy.",
+    "validation": "All 28 owner sidecars remain candidate with empirical_validation=not_run. Static source, packaging and link checks do not establish hardware compatibility, numerical quality, performance or agent efficacy.",
     "maintenance": "Update the affected row when its owner evidence changes; full source paths, ranges, hashes and notices stay with the linked owner. This file adds no skill ID or runtime interface."
   },
   "owners": [
@@ -651,6 +651,138 @@
       ],
       "limits": [
         "No separate bundled readset, full SHA or source-byte receipt. Tool/device counters do not prove application bottlenecks, cold caches, loader behavior or gains; no benchmark/cache manipulation was performed."
+      ]
+    },
+    {
+      "id": "torchnpu-inference-operating-graph",
+      "owner": "ascend/torchnpu-inference-operating-graph",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch",
+          "channel": "direct implementation read",
+          "depth": "Bounded Python files at tag v26.2.0-pytorch2.14.0. Native ACL, HCCL and kernel bodies were not opened.",
+          "identity": "54e365d3e3614299bccd17f06916544c3880c9fc (full Git commit)",
+          "inspection_date": "2026-11-02",
+          "license_note": "Pinned LICENSE is BSD-style text including a 2020 Huawei notice and inherited PyTorch notices. GitHub SPDX API returned NOASSERTION. Paraphrase only.",
+          "evidence": [
+            "references/readset.json",
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Router over the 2026-11-02 tag readset. Does not re-read allocator cpp at 67511c53.",
+        "candidate; empirical_validation not_run"
+      ]
+    },
+    {
+      "id": "torchnpu-graph-capture",
+      "owner": "ascend/torchnpu-graph-capture",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch",
+          "channel": "direct implementation read",
+          "depth": "Bounded Python files at tag v26.2.0-pytorch2.14.0. Native ACL, HCCL and kernel bodies were not opened.",
+          "identity": "54e365d3e3614299bccd17f06916544c3880c9fc (full Git commit)",
+          "inspection_date": "2026-11-02",
+          "license_note": "Pinned LICENSE is BSD-style text including a 2020 Huawei notice and inherited PyTorch notices. GitHub SPDX API returned NOASSERTION. Paraphrase only.",
+          "evidence": [
+            "references/readset.json",
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Python NPUGraph capture, pool and npugraphs registration. ACL runtime and npu/_graph_tree.py unread.",
+        "candidate; empirical_validation not_run"
+      ]
+    },
+    {
+      "id": "torchnpu-privateuse1-dispatch",
+      "owner": "ascend/torchnpu-privateuse1-dispatch",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch",
+          "channel": "direct implementation read",
+          "depth": "Bounded Python files at tag v26.2.0-pytorch2.14.0. Native ACL, HCCL and kernel bodies were not opened.",
+          "identity": "54e365d3e3614299bccd17f06916544c3880c9fc (full Git commit)",
+          "inspection_date": "2026-11-02",
+          "license_note": "Pinned LICENSE is BSD-style text including a 2020 Huawei notice and inherited PyTorch notices. GitHub SPDX API returned NOASSERTION. Paraphrase only.",
+          "evidence": [
+            "references/readset.json",
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "PrivateUse1 rename, generated methods and dtype exclusions. Kernels unread.",
+        "candidate; empirical_validation not_run"
+      ]
+    },
+    {
+      "id": "torchnpu-streams-and-events",
+      "owner": "ascend/torchnpu-streams-and-events",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch",
+          "channel": "direct implementation read",
+          "depth": "Bounded Python files at tag v26.2.0-pytorch2.14.0. Native ACL, HCCL and kernel bodies were not opened.",
+          "identity": "54e365d3e3614299bccd17f06916544c3880c9fc (full Git commit)",
+          "inspection_date": "2026-11-02",
+          "license_note": "Pinned LICENSE is BSD-style text including a 2020 Huawei notice and inherited PyTorch notices. GitHub SPDX API returned NOASSERTION. Paraphrase only.",
+          "evidence": [
+            "references/readset.json",
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Managed versus external stream wrapper. Task queue unread.",
+        "candidate; empirical_validation not_run"
+      ]
+    },
+    {
+      "id": "torchnpu-hccl-process-groups",
+      "owner": "ascend/torchnpu-hccl-process-groups",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch",
+          "channel": "direct implementation read",
+          "depth": "Bounded Python files at tag v26.2.0-pytorch2.14.0. Native ACL, HCCL and kernel bodies were not opened.",
+          "identity": "54e365d3e3614299bccd17f06916544c3880c9fc (full Git commit)",
+          "inspection_date": "2026-11-02",
+          "license_note": "Pinned LICENSE is BSD-style text including a 2020 Huawei notice and inherited PyTorch notices. GitHub SPDX API returned NOASSERTION. Paraphrase only.",
+          "evidence": [
+            "references/readset.json",
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "HCCL resume/abort and uneven collective routing. Transport unread.",
+        "candidate; empirical_validation not_run"
+      ]
+    },
+    {
+      "id": "torchnpu-profiler-and-compile",
+      "owner": "ascend/torchnpu-profiler-and-compile",
+      "source_slices": [
+        {
+          "source": "Ascend/pytorch",
+          "channel": "direct implementation read",
+          "depth": "Bounded Python files at tag v26.2.0-pytorch2.14.0. Native ACL, HCCL and kernel bodies were not opened.",
+          "identity": "54e365d3e3614299bccd17f06916544c3880c9fc (full Git commit)",
+          "inspection_date": "2026-11-02",
+          "license_note": "Pinned LICENSE is BSD-style text including a 2020 Huawei notice and inherited PyTorch notices. GitHub SPDX API returned NOASSERTION. Paraphrase only.",
+          "evidence": [
+            "references/readset.json",
+            "references/source-notes.md"
+          ]
+        }
+      ],
+      "limits": [
+        "Profiler level names and Dynamo trace rules. No trace collected.",
+        "candidate; empirical_validation not_run"
       ]
     }
   ]

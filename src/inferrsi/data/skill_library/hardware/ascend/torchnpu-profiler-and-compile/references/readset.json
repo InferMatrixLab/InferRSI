@@ -1,0 +1,95 @@
+{
+  "repository": "Ascend/pytorch",
+  "revision": "54e365d3e3614299bccd17f06916544c3880c9fc",
+  "release_label": "v26.2.0-pytorch2.14.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "TorchNPU profiler options and Dynamo trace rules.",
+  "files": [
+    {
+      "path": "torch_npu/profiler/profiler.py",
+      "ranges": [
+        [
+          1,
+          422
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "profile schedule and export prerequisites",
+      "blob": "987acac398d3a780b851b6884fadbf6a40aa98df",
+      "bytes": 16065,
+      "sha256": "0207c6042c0155a1fe2b517d0ea536d39d5bc06b8fa5abdf1d6814e250c2fcec",
+      "line_count": 422,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/profiler/profiler.py"
+    },
+    {
+      "path": "torch_npu/profiler/experimental_config.py",
+      "ranges": [
+        [
+          1,
+          363
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "profiler level and AI Core metric names",
+      "blob": "9134c51e8f42ec362fdadae90816766ea3f1b67a",
+      "bytes": 13497,
+      "sha256": "b1ab142965e45968a45a79041fb4b87cb96037d04ea6deb72ac14e12941414a6",
+      "line_count": 363,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/profiler/experimental_config.py"
+    },
+    {
+      "path": "torch_npu/dynamo/trace_rule.py",
+      "ranges": [
+        [
+          1,
+          103
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "in-graph NPU APIs and set_device skip",
+      "blob": "beb957bea868c96982413dbd7471a99cf95c1c01",
+      "bytes": 4224,
+      "sha256": "bc886aa6ada5499ccf08a0cde7a67da201936c4caceb5e2dd2696a9fee4e7cae",
+      "line_count": 103,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/dynamo/trace_rule.py"
+    },
+    {
+      "path": "torch_npu/_compiler/_config.py",
+      "ranges": [
+        [
+          1,
+          10
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "force_npugraph_gc default",
+      "blob": "c2e0e8ac7ef3bdeba9c3aa76e21b9bdc6c0c0357",
+      "bytes": 359,
+      "sha256": "297066e2895f115f9414d8dabc96e2c11a8c3b0fac847a89f1f39f68b28a1d01",
+      "line_count": 10,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/_compiler/_config.py"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-style text; GitHub SPDX NOASSERTION",
+      "blob": "6fc1dcaa6c0ebee07d8ef69360a68ac82474c2b3",
+      "bytes": 3341,
+      "sha256": "99317d26c99c8037890c770fd67fa84cc78d210581ed563d3b1abe42976f47be",
+      "line_count": 78,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/LICENSE"
+    }
+  ]
+}

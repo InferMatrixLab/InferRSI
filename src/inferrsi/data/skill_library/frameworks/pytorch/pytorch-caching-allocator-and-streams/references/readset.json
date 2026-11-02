@@ -1,0 +1,95 @@
+{
+  "repository": "pytorch/pytorch",
+  "revision": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+  "release_label": "v2.15.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "CUDA caching allocator settings and stream pools at PyTorch v2.15.0.",
+  "files": [
+    {
+      "path": "c10/cuda/CUDAAllocatorConfig.h",
+      "ranges": [
+        [
+          1,
+          343
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "CUDA alloc-conf keys and one-time env parse",
+      "blob": "3bcbf9011ec87295008d965a1e60062201071804",
+      "bytes": 14185,
+      "sha256": "bc075c6201c3f5652a8ea48cb7ec826ad1529d06dc17f6f213ceddd433938c17",
+      "line_count": 343,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/cuda/CUDAAllocatorConfig.h"
+    },
+    {
+      "path": "c10/cuda/CUDAAllocatorConfig.cpp",
+      "ranges": [
+        [
+          1,
+          302
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "expandable_segments platform gate",
+      "blob": "2a9193b456ba03ed908d95f83e722fe089c140cd",
+      "bytes": 11041,
+      "sha256": "09b9c990b520cda3d73e2f838800d774a66091fd9d287ccca6cbeeda4363013a",
+      "line_count": 302,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/cuda/CUDAAllocatorConfig.cpp"
+    },
+    {
+      "path": "c10/cuda/CUDACachingAllocator.h",
+      "ranges": [
+        [
+          1,
+          614
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "recordStream and private-pool versus capture notifications",
+      "blob": "666f2a0c688e05db788f4d6f4bb64b145b1df28a",
+      "bytes": 20937,
+      "sha256": "7febedf78ba4c2252cad489b74a9e9a191fb4f3f8cf26a09da4454a1f6440f0d",
+      "line_count": 614,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/cuda/CUDACachingAllocator.h"
+    },
+    {
+      "path": "c10/cuda/CUDAStream.h",
+      "ranges": [
+        [
+          1,
+          300
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "per-device stream pools and round-robin aliasing",
+      "blob": "0af9638e2595e24b0d43a949656cf77eeb479175",
+      "bytes": 11007,
+      "sha256": "92a70f0bb3331b0042c34185eb42d4396797c2d6545713833c1fe53c41242a3d",
+      "line_count": 300,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/cuda/CUDAStream.h"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          84
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-3-Clause text; Arm copyright year differs from the stored v2.8 notice",
+      "blob": "c23172f7aff0254e4f0f163fb2e6e355cbaec5f4",
+      "bytes": 3464,
+      "sha256": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43",
+      "line_count": 84,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/LICENSE"
+    }
+  ]
+}

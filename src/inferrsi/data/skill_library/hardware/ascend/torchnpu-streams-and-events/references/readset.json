@@ -1,0 +1,47 @@
+{
+  "repository": "Ascend/pytorch",
+  "revision": "54e365d3e3614299bccd17f06916544c3880c9fc",
+  "release_label": "v26.2.0-pytorch2.14.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "TorchNPU managed and external stream limits.",
+  "files": [
+    {
+      "path": "torch_npu/npu/streams.py",
+      "ranges": [
+        [
+          1,
+          437
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "managed versus external streams and events",
+      "blob": "9b5561a54e6962aaaa37cb0bf1a1a391cc48edd4",
+      "bytes": 15569,
+      "sha256": "00123b33d129387678d110eb75dc1fa3a6e7cca28222c71291bb7376bc45912f",
+      "line_count": 437,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/npu/streams.py"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-style text; GitHub SPDX NOASSERTION",
+      "blob": "6fc1dcaa6c0ebee07d8ef69360a68ac82474c2b3",
+      "bytes": 3341,
+      "sha256": "99317d26c99c8037890c770fd67fa84cc78d210581ed563d3b1abe42976f47be",
+      "line_count": 78,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/LICENSE"
+    }
+  ]
+}

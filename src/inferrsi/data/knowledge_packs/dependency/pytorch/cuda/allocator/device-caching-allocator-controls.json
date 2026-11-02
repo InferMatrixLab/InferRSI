@@ -1,0 +1,80 @@
+{
+  "schema_version": 1,
+  "id": "pytorch.cuda.allocator.device_caching_allocator_controls",
+  "tier": "dependency",
+  "repo": "pytorch",
+  "backend": "cuda",
+  "component": "allocator",
+  "scenario": "allocator.inference",
+  "title": "CUDA caching allocator: separate env keys, private pools and stream aliasing",
+  "status": "imported",
+  "summary": "PyTorch v2.15 parses CUDA allocator settings once, routes some allocations into private pools without starting capture, and aliases low-priority streams after 32 distinct requests.",
+  "tags": [
+    "cuda",
+    "allocator",
+    "streams",
+    "cuda_graph"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/cuda/CUDAAllocatorConfig.h",
+      "type": "implementation",
+      "commit": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "bc075c6201c3f5652a8ea48cb7ec826ad1529d06dc17f6f213ceddd433938c17"
+    },
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/cuda/CUDACachingAllocator.h",
+      "type": "implementation",
+      "commit": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "7febedf78ba4c2252cad489b74a9e9a191fb4f3f8cf26a09da4454a1f6440f0d"
+    },
+    {
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/cuda/CUDAStream.h",
+      "type": "implementation",
+      "commit": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+      "accessed_at": "2026-11-02",
+      "content_sha256": "92a70f0bb3331b0042c34185eb42d4396797c2d6545713833c1fe53c41242a3d"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "CUDA devices using the pinned PyTorch caching allocator"
+    ],
+    "software": [
+      "pytorch/pytorch at 31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457; later revisions need reinspection"
+    ],
+    "conditions": [
+      "Question is device allocator or CUDA stream-pool behavior, not the v2.8 host-copy owner"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "CUDAAllocatorConfig reads PYTORCH_CUDA_ALLOC_CONF, then PYTORCH_HIP_ALLOC_CONF on ROCm, then PYTORCH_ALLOC_CONF, in a once-initialized static instance."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "beginAllocateToPool can run without cudaStreamBeginCapture. markCaptureBegin is a separate notification. Low-priority CUDA streams are a 32-wide round-robin pool."
+    }
+  ],
+  "downstream_impact": [
+    "vLLM CUDA graphs: a private mempool is not evidence that capture has started.",
+    "Host pinned-memory reuse stays on the v2.8 host-memory-management owner; this card does not replace it."
+  ],
+  "recommendations": [
+    "Treat downstream impact as an InferRSI transfer hypothesis, not an upstream performance result."
+  ],
+  "validation_plan": [
+    "Under a later authorized run, record the env before process start, compare pool id with and without capture, and check whether the 33rd low-priority stream aliases the first."
+  ],
+  "limitations": [
+    "CUDACachingAllocator.cpp and AcceleratorAllocatorConfig bodies were not read, so deprecated max_split_size numbers are not restated.",
+    "No local allocator or latency measurement. Imported and locally unverified."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

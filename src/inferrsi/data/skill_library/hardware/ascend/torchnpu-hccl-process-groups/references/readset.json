@@ -1,0 +1,63 @@
+{
+  "repository": "Ascend/pytorch",
+  "revision": "54e365d3e3614299bccd17f06916544c3880c9fc",
+  "release_label": "v26.2.0-pytorch2.14.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "TorchNPU HCCL process-group resume, abort and uneven collective routing.",
+  "files": [
+    {
+      "path": "torch_npu/distributed/distributed_c10d.py",
+      "ranges": [
+        [
+          1,
+          600
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "HCCL availability, reinit and uneven collectives",
+      "blob": "12fb1cf72a45e767e8351ffe2d016acb352c7101",
+      "bytes": 22403,
+      "sha256": "ee1eb259493008cf856bffb22e1ec9e3c287053798dd2e5d88d859e7c7505888",
+      "line_count": 600,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/distributed/distributed_c10d.py"
+    },
+    {
+      "path": "torch_npu/_init/registry/registry_manager.py",
+      "ranges": [
+        [
+          1,
+          142
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "registration must not init NPU runtime",
+      "blob": "23ec2526d6196040c13ff7398f53b587af887bcc",
+      "bytes": 5524,
+      "sha256": "071bb7a9d30b6ceb7c628bd1d445d73f14e0ad95334ab4aa60a68dd048309955",
+      "line_count": 142,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/_init/registry/registry_manager.py"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-style text; GitHub SPDX NOASSERTION",
+      "blob": "6fc1dcaa6c0ebee07d8ef69360a68ac82474c2b3",
+      "bytes": 3341,
+      "sha256": "99317d26c99c8037890c770fd67fa84cc78d210581ed563d3b1abe42976f47be",
+      "line_count": 78,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/LICENSE"
+    }
+  ]
+}

@@ -14,7 +14,14 @@ REPO_TYPES = ("vllm", "vllm_omni", "afd_plugin", "vllm_rlt", "strata", "sglang",
 KNOWLEDGE_SCOPES = {
     "contribution": (*REPO_TYPES, "vllm_ascend", "inferrsi"),
     "dependency": (
-        "flashinfer", "flashattention", "pytorch", "triton", "diffusers", "transformers", "mlx"
+        "flashinfer",
+        "flashattention",
+        "pytorch",
+        "torch_npu",
+        "triton",
+        "diffusers",
+        "transformers",
+        "mlx",
     ),
     "peer": (
         "sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit", "qwen3_tts_engine", "deepinfer"

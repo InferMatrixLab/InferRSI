@@ -1,0 +1,95 @@
+{
+  "repository": "pytorch/pytorch",
+  "revision": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+  "release_label": "v2.15.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "SDPA backend flags and flash-impl activation at PyTorch v2.15.0.",
+  "files": [
+    {
+      "path": "torch/nn/attention/__init__.py",
+      "ranges": [
+        [
+          1,
+          208
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "sdpa_kernel context and priority",
+      "blob": "170002200f1222191f97ba909ff250631ebf7a81",
+      "bytes": 7691,
+      "sha256": "d85fd0a44c0d4db9698488c7eab14b201ea3503bfb88d969fad57c8693018537",
+      "line_count": 208,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/torch/nn/attention/__init__.py"
+    },
+    {
+      "path": "torch/nn/attention/_registry.py",
+      "ranges": [
+        [
+          1,
+          137
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "flash impl register versus activate",
+      "blob": "7034c8983916df191db0503b3cf0598a3a7dd480",
+      "bytes": 4463,
+      "sha256": "803f3957896ed9cc2d243e94f7546db4dcb5a19640d2fb259e2d0dc2b02f25f6",
+      "line_count": 137,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/torch/nn/attention/_registry.py"
+    },
+    {
+      "path": "aten/src/ATen/native/transformers/sdp_utils_cpp.h",
+      "ranges": [
+        [
+          1,
+          626
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "select_sdp_backend_cpp declaration only",
+      "blob": "0cc296199aaf972141a148873c435c8a3d995097",
+      "bytes": 20369,
+      "sha256": "f3b44396f4978a728bb755ae13329fa9c2681f9d276310a88ab79a3acaadc2c1",
+      "line_count": 626,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/aten/src/ATen/native/transformers/sdp_utils_cpp.h"
+    },
+    {
+      "path": "aten/src/ATen/native/transformers/cuda/sdp_utils.h",
+      "ranges": [
+        [
+          1,
+          18
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "can_use_* declarations; selection body absent",
+      "blob": "72c460ad82987064078af8ef5a0cf4e0ace9a7d2",
+      "bytes": 681,
+      "sha256": "8ab30dcee1228ab8321aa9da742ec29720107366d0d975d0aff1f9b67977fa58",
+      "line_count": 18,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/aten/src/ATen/native/transformers/cuda/sdp_utils.h"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          84
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-3-Clause text; Arm copyright year differs from the stored v2.8 notice",
+      "blob": "c23172f7aff0254e4f0f163fb2e6e355cbaec5f4",
+      "bytes": 3464,
+      "sha256": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43",
+      "line_count": 84,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/LICENSE"
+    }
+  ]
+}

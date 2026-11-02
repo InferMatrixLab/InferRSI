@@ -1,8 +1,8 @@
 # Hardware skill navigation
 
-The existing **22 registered owners** comprise 14 Ascend, 3 CUDA and 5 host
+The existing **28 registered owners** comprise 20 Ascend, 3 CUDA and 5 host
 skills. Start with the question below, then read the selected procedure,
-`metadata.json` and its source references. All 22 remain **candidate** with
+`metadata.json` and its source references. All 28 remain **candidate** with
 empirical validation **not_run**.
 
 The [source inventory](source-inventory.json) describes the evidence actually
@@ -49,6 +49,12 @@ measured gain, compatible combined stack or new empirical coverage.
 | [CANN attribution and overlap](ascend/cann-attribution-overlap/SKILL.md) | Supplied skill/reference/script pack; import and later revisions remain separate, original lineage equivalence unknown |
 | [TorchNPU device memory](ascend/torchnpu-device-memory-lifecycle/SKILL.md) | Supplied bounded allocator/caller/docs/test readset; device HBM only |
 | [TorchNPU pinned host memory](ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md) | Supplied bounded host allocator/copy/docs/test readset; base-ATen and external-owner boundaries remain open |
+| [TorchNPU inference router](ascend/torchnpu-inference-operating-graph/SKILL.md) | 2026-11-02 route across the tag `54e365d3` readset; does not revalidate the older allocator pin |
+| [TorchNPU graph capture](ascend/torchnpu-graph-capture/SKILL.md) | Direct Python NPUGraph/capture read; ACL runtime and `npu/_graph_tree.py` unread |
+| [TorchNPU PrivateUse1](ascend/torchnpu-privateuse1-dispatch/SKILL.md) | Direct registration read; op_plugin kernels unread |
+| [TorchNPU streams](ascend/torchnpu-streams-and-events/SKILL.md) | Direct stream/event wrapper read; task-queue implementation unread |
+| [TorchNPU HCCL groups](ascend/torchnpu-hccl-process-groups/SKILL.md) | Direct Python process-group wrapper; HCCL transport unread |
+| [TorchNPU profiler and compile](ascend/torchnpu-profiler-and-compile/SKILL.md) | Direct profiler names and Dynamo trace rules; no trace collected |
 
 ## CUDA
 
@@ -78,7 +84,7 @@ does not clear a mirrored UNKNOWN declaration or a third-party payload.
 Hardware questions can cross framework, dependency and repository boundaries.
 Follow the existing owner below for its complete procedure, pinned evidence and
 validation limits. These links add no owner, source read or compatibility result
-to the 22-owner inventory.
+to the 28-owner inventory.
 
 | Need | Existing owner and retained boundary |
 | --- | --- |

@@ -213,6 +213,10 @@
       "path": "repositories/lily",
       "backend": "common"
     },
+    "lithos-metal": {
+      "path": "repositories/lithos-metal",
+      "backend": "common"
+    },
     "local-dream": {
       "path": "repositories/local-dream",
       "backend": "common"
@@ -253,6 +257,30 @@
       "path": "repositories/project-maya",
       "backend": "common"
     },
+    "pytorch-aot-inductor-inference": {
+      "path": "frameworks/pytorch/pytorch-aot-inductor-inference",
+      "backend": "common"
+    },
+    "pytorch-caching-allocator-and-streams": {
+      "path": "frameworks/pytorch/pytorch-caching-allocator-and-streams",
+      "backend": "cuda"
+    },
+    "pytorch-dispatcher-and-custom-ops": {
+      "path": "frameworks/pytorch/pytorch-dispatcher-and-custom-ops",
+      "backend": "common"
+    },
+    "pytorch-inference-operating-graph": {
+      "path": "frameworks/pytorch/pytorch-inference-operating-graph",
+      "backend": "common"
+    },
+    "pytorch-inference-profiler": {
+      "path": "frameworks/pytorch/pytorch-inference-profiler",
+      "backend": "common"
+    },
+    "pytorch-sdpa-backend-selection": {
+      "path": "frameworks/pytorch/pytorch-sdpa-backend-selection",
+      "backend": "cuda"
+    },
     "reason-hopper-kernels": {
       "path": "hardware/cuda/reason-hopper-kernels",
       "backend": "cuda"
@@ -281,8 +309,32 @@
       "path": "hardware/ascend/torchnpu-device-memory-lifecycle",
       "backend": "ascend"
     },
+    "torchnpu-graph-capture": {
+      "path": "hardware/ascend/torchnpu-graph-capture",
+      "backend": "ascend"
+    },
+    "torchnpu-hccl-process-groups": {
+      "path": "hardware/ascend/torchnpu-hccl-process-groups",
+      "backend": "ascend"
+    },
+    "torchnpu-inference-operating-graph": {
+      "path": "hardware/ascend/torchnpu-inference-operating-graph",
+      "backend": "ascend"
+    },
     "torchnpu-pinned-host-memory-lifecycle": {
       "path": "hardware/ascend/torchnpu-pinned-host-memory-lifecycle",
+      "backend": "ascend"
+    },
+    "torchnpu-privateuse1-dispatch": {
+      "path": "hardware/ascend/torchnpu-privateuse1-dispatch",
+      "backend": "ascend"
+    },
+    "torchnpu-profiler-and-compile": {
+      "path": "hardware/ascend/torchnpu-profiler-and-compile",
+      "backend": "ascend"
+    },
+    "torchnpu-streams-and-events": {
+      "path": "hardware/ascend/torchnpu-streams-and-events",
       "backend": "ascend"
     },
     "training-input-pipeline": {
@@ -303,10 +355,6 @@
     },
     "weight-loading-optimization": {
       "path": "methods/weight-loading-optimization",
-      "backend": "common"
-    },
-    "lithos-metal": {
-      "path": "repositories/lithos-metal",
       "backend": "common"
     }
   }

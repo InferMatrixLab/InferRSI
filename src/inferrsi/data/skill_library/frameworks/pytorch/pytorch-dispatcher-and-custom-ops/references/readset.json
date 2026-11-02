@@ -1,0 +1,79 @@
+{
+  "repository": "pytorch/pytorch",
+  "revision": "31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457",
+  "release_label": "v2.15.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "Dispatch registration and custom-op schema at PyTorch v2.15.0.",
+  "files": [
+    {
+      "path": "c10/core/DispatchKey.h",
+      "ranges": [
+        [
+          1,
+          730
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "PrivateUse1, AutocastPrivateUse1, BackendSelect, PythonDispatcher",
+      "blob": "f05fbebf6817def9be1590972a1befc1b2935a06",
+      "bytes": 31660,
+      "sha256": "28244b486fc2dedb3076ebed40f3ceec91f6a021ea7e151663f7a04645d6b106",
+      "line_count": 730,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/c10/core/DispatchKey.h"
+    },
+    {
+      "path": "aten/src/ATen/core/dispatch/Dispatcher.h",
+      "ranges": [
+        [
+          1,
+          958
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "dispatcher listener fires on def, not impl or fallback",
+      "blob": "55a69a5f052d285faffce70a290bf56bcf404dde",
+      "bytes": 34985,
+      "sha256": "ba331474be017bb3f9ded44999239328db0d480e8f9435d810a17e436a8a8689",
+      "line_count": 958,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/aten/src/ATen/core/dispatch/Dispatcher.h"
+    },
+    {
+      "path": "torch/_library/custom_ops.py",
+      "ranges": [
+        [
+          1,
+          1134
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "custom_op schema, mutates_args and device_types",
+      "blob": "6f7314b55ff741c5a699def7b20c26a090ce481d",
+      "bytes": 46920,
+      "sha256": "3642bab56287f2ad450e0c6f2cb5acdb0c1c7ac3c851e91fd6ade76c8d1751b6",
+      "line_count": 1134,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/torch/_library/custom_ops.py"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          84
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-3-Clause text; Arm copyright year differs from the stored v2.8 notice",
+      "blob": "c23172f7aff0254e4f0f163fb2e6e355cbaec5f4",
+      "bytes": 3464,
+      "sha256": "bd018feef8825e88181c84eb7e3aa4eafb8f08a20d9fd6ef948569610c4a3e43",
+      "line_count": 84,
+      "url": "https://github.com/pytorch/pytorch/blob/31a77fc9c0a7c6fff15a1ff58c743f53b1a9d457/LICENSE"
+    }
+  ]
+}

@@ -1,0 +1,79 @@
+{
+  "repository": "Ascend/pytorch",
+  "revision": "54e365d3e3614299bccd17f06916544c3880c9fc",
+  "release_label": "v26.2.0-pytorch2.14.0",
+  "source_channel": "official_repository",
+  "inspection_date": "2026-11-02",
+  "method": "AREX repo-to-skill adapted to InferRSI: scope, ground, construct, static verify. DisCo CLI was not executed.",
+  "method_source": "VectorSpaceLab/AREX-Skill docs/disco-workflows.md Creator sequence distill-ml-knowledge scope/ground/construct/verify; InferRSI method pin ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6 remains the previously recorded workflow commit and was not re-fetched as a new semantic pin.",
+  "acquisition": "Sparse or shallow git checkout of the immutable commit; full-file SHA-256 and git hash-object blob recorded. Ranges are the lines used for claims.",
+  "range_convention": "One-based inclusive lines.",
+  "empirical_validation": "not_run",
+  "scope": "TorchNPU NPUGraph capture and replay contracts.",
+  "files": [
+    {
+      "path": "torch_npu/npu/graphs.py",
+      "ranges": [
+        [
+          1,
+          1244
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "NPUGraph capture, replay, pool and update",
+      "blob": "fdd25a44ddd650604a5e4356e2716a333cecb7d6",
+      "bytes": 52683,
+      "sha256": "c60e597e5b341ce2b5c48dc694b1ef16c6bd7d86f212e351ffcf73438fe00893",
+      "line_count": 1244,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/npu/graphs.py"
+    },
+    {
+      "path": "torch_npu/_compiler/_config.py",
+      "ranges": [
+        [
+          1,
+          10
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "force_npugraph_gc default",
+      "blob": "c2e0e8ac7ef3bdeba9c3aa76e21b9bdc6c0c0357",
+      "bytes": 359,
+      "sha256": "297066e2895f115f9414d8dabc96e2c11a8c3b0fac847a89f1f39f68b28a1d01",
+      "line_count": 10,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/_compiler/_config.py"
+    },
+    {
+      "path": "torch_npu/utils/_graph_tree.py",
+      "ranges": [
+        [
+          1,
+          404
+        ]
+      ],
+      "source_type": "implementation_or_document",
+      "role": "npugraphs backend registration and inductor patch",
+      "blob": "1b9bc21e97a7d158b30b59939d777bedff8d7c89",
+      "bytes": 14422,
+      "sha256": "d296c012638f2a04db47d680d900bb18b880324c169da78e1da63a613be34a44",
+      "line_count": 404,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/torch_npu/utils/_graph_tree.py"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          78
+        ]
+      ],
+      "source_type": "license",
+      "role": "BSD-style text; GitHub SPDX NOASSERTION",
+      "blob": "6fc1dcaa6c0ebee07d8ef69360a68ac82474c2b3",
+      "bytes": 3341,
+      "sha256": "99317d26c99c8037890c770fd67fa84cc78d210581ed563d3b1abe42976f47be",
+      "line_count": 78,
+      "url": "https://github.com/Ascend/pytorch/blob/54e365d3e3614299bccd17f06916544c3880c9fc/LICENSE"
+    }
+  ]
+}

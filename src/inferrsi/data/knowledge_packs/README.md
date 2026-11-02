@@ -7,7 +7,7 @@ experiment; repository conventions stay with their owning repository.
 | Tier / CLI value | Sources | Learning output |
 | --- | --- | --- |
 | Contribution / `contribution` | vLLM, vLLM-Omni, vllm-ascend; legacy repository packs also retain imported Strata, SGLang and SGLang-Omni procedures | L2C blind attempt → comparison → scoped skill; separate performance evidence/candidates |
-| Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, Triton, Diffusers, Transformers, MLX | API/capability constraints and downstream impact; no blind coding session required |
+| Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, TorchNPU, Triton, Diffusers, Transformers, MLX | API/capability constraints and downstream impact; no blind coding session required |
 | Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT, Qwen3-TTS engine, DeepInfer | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
 
 This is an acquisition policy, not a ranking or fixed dependency graph.
@@ -162,6 +162,24 @@ IDs are separate from the existing inferrsi.common.skills discovery abstracts.
 MLX discovery does not qualify a backend or model, and the separate MLX-LM
 procedure/source identity is unchanged. Compiler/fusion and allocator policy are
 outside these three bounded observations.
+
+## PyTorch v2.15 and TorchNPU inference cards
+
+These dependency cards are a 2026-11-02 bounded read. They do not replace the
+compiler card at `f15b476814ebc5eade36fb40512e379ebf79dd60` or the TorchNPU
+allocator skills at `67511c53cd4c88014f6123de7097677e60e85faa`. All are
+`status=imported` and `locally_verified=false`.
+
+| Source | Card |
+| --- | --- |
+| dependency / pytorch | [CUDA caching allocator controls](dependency/pytorch/cuda/allocator/device-caching-allocator-controls.json) |
+| dependency / pytorch | [SDPA backend selection](dependency/pytorch/cuda/attention/sdpa-backend-selection.json) |
+| dependency / pytorch | [AOTInductor export deployment](dependency/pytorch/common/compiler/aoti-export-deployment.json) |
+| dependency / torch_npu | [NPUGraph capture contract](dependency/torch_npu/ascend/compiler/npugraph-capture-contract.json) |
+| dependency / torch_npu | [PrivateUse1 backend alias](dependency/torch_npu/ascend/execution/privateuse1-backend-alias.json) |
+
+Search with `--tier dependency --repo-type pytorch` or `--repo-type torch_npu`.
+`torch_npu` is a knowledge scope only. It is not a runtime `REPO_TYPES` target.
 
 ## Maintaining the tiers
 
