@@ -14,7 +14,7 @@ separate work, not an implemented capability of this knowledge base.
 ```text
 src/inferrsi/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (77 skills)
+  skill-index.json                   Stable IDs → categorized paths/backend (79 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
   repositories/<repo>/              Engine entry, sub-skills and focused complete skills
@@ -201,7 +201,7 @@ Complete procedures, sidecars, references and cases are packaged, with 14 Ascend
 repositories, methods or workflows. The 21 engine and research-router skills
 use the same ownership layout under `repositories/<engine>/` and
 `workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 124 `SKILL.md` files, all in English. The registered
+The library contains 142 `SKILL.md` files, all in English. The registered
 [Lithos Metal candidate](../src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md)
 adds three owner-local subskills for compiler/fusion, generation state and
 serving/cache contracts; it adds no executable repository target.
@@ -210,13 +210,36 @@ workflow's references; Strata design-space analysis belongs to Strata. The libra
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 77 registered skills into the contribution catalog. Its records
+projects the 79 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
 `cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-77-ID registry; engine procedures remain available through library navigation
+79-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
+
+The registered [PyTorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md)
+and [TorchNPU](../src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md)
+operating graphs each retain eight child procedures, their sidecars, references,
+scripts and source notices under one root. The children are available through
+root resource reads and complete normalized bundles; they add no separate
+registry IDs or executable repository targets. Earlier compiler, DCP and
+TorchNPU allocator owners retain their independent source revisions.
+All new profiles use `local-skill-v1`: only name and description are in YAML;
+the AREX license, invocation and operating-role fields remain in sidecars.
+An upstream AREX license check of a temporary frontmatter projection is distinct
+from final InferRSI format checks, backend execution and managed DisCo import.
+Required accelerator/distributed gaps remain `BLOCKED_REQUIRED_BACKEND`;
+installed-wheel CPU observations do not validate the pinned source build.
+
+Historical construction and verification records remain at the immutable
+original delivery: [PyTorch](https://github.com/InferMatrixLab/InferRSI/blob/e668cff3b12e46a0dae1a007099c521afa848152/tests/fixtures/repo_to_skill/pytorch/reports/final/author-handoff.md),
+[TorchNPU](https://github.com/InferMatrixLab/InferRSI/blob/e668cff3b12e46a0dae1a007099c521afa848152/tests/fixtures/repo_to_skill/torch-npu/reports/final/final-skill-report.md)
+and [independent review](https://github.com/InferMatrixLab/InferRSI/blob/e668cff3b12e46a0dae1a007099c521afa848152/tests/fixtures/repo_to_skill/framework-review/independent-review.md).
+These external records retain their original environments, native failures,
+backend gaps and verification scope. Repackaging the unchanged runtime bytes
+does not rerun those checks or establish new backend, quality or performance
+results. The process fixture trees are not part of this delivery.
 
 The registered [h3.c runtime audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
 owns MiniMax-H3 component/lifetime, AdaLN, precision/SSD mechanisms and the
