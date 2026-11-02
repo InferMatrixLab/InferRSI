@@ -1,0 +1,34 @@
+{
+  "scope": "Sampled device HBM max over startup, warmups, measured/coverage requests and teardown; not a per-request allocator peak. Cleanup wall time is descriptive for the combined configurations, not an isolated code ablation.",
+  "arms": {
+    "a1": {
+      "sampled_peak_hbm_MiB": 25687,
+      "cleanup_after_client_s": 33.924469,
+      "hbm_log_sha256": "0e43b3cb1f383db6ddf40da06f5d4be153b29c82dee3e5c1963ddb90ab43b60b",
+      "client_done": "2026-11-01T05:24:34,709416469+00:00",
+      "container_done": "2026-11-01T13:25:08,633885802+08:00"
+    },
+    "b1": {
+      "sampled_peak_hbm_MiB": 26317,
+      "cleanup_after_client_s": 24.107952,
+      "hbm_log_sha256": "cf174f4f443e7ca04fa5e0041583f0f866ff07f7b413c58307fc8bc6674e22cd",
+      "client_done": "2026-11-01T05:47:41,664209231+00:00",
+      "container_done": "2026-11-01T13:48:05,772161544+08:00"
+    },
+    "b2": {
+      "sampled_peak_hbm_MiB": 26650,
+      "cleanup_after_client_s": 27.743156,
+      "hbm_log_sha256": "dcd5c78e4b3c37c4e5d3441e1c254c393d9696177f06d8b46492d06a09a06a2f",
+      "client_done": "2026-11-01T06:09:29,813659838+00:00",
+      "container_done": "2026-11-01T14:09:57,556815323+08:00"
+    },
+    "a2": {
+      "sampled_peak_hbm_MiB": 25687,
+      "cleanup_after_client_s": 38.110587,
+      "hbm_log_sha256": "615769a65af6d9cdb5a41d2f955489b78afcfaabd03851563ea02c1d889a8a23",
+      "client_done": "2026-11-01T06:52:27,708718511+00:00",
+      "container_done": "2026-11-01T14:53:05,819305718+08:00"
+    }
+  },
+  "nominal_poll_interval_s": 10
+}

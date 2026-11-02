@@ -1,0 +1,46 @@
+{
+  "status": "PASS",
+  "checks": {
+    "comparable": "pass",
+    "correctness": "pass",
+    "lifecycle": "pass"
+  },
+  "metrics": [
+    {
+      "name": "Warm request E2E",
+      "unit": "s",
+      "direction": "lower",
+      "scenario": "5s request / C1 / 50 steps",
+      "before": {
+        "mean": 407.26865966028225,
+        "std": 15.513630835546966,
+        "n": 2
+      },
+      "after": {
+        "mean": 108.11973631304377,
+        "std": 2.0652502259107695,
+        "n": 2
+      },
+      "improvement_pct": 73.45247817417858,
+      "observation": "repeated trials"
+    },
+    {
+      "name": "Sampled peak HBM",
+      "unit": "GiB",
+      "direction": "lower",
+      "scenario": "Whole server / per device",
+      "before": {
+        "mean": 25.0849609375,
+        "std": 0.0,
+        "n": 2
+      },
+      "after": {
+        "mean": 25.86279296875,
+        "std": 0.22994781067882844,
+        "n": 2
+      },
+      "improvement_pct": -3.1007902830225405,
+      "observation": "repeated trials"
+    }
+  ]
+}

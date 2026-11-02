@@ -1,0 +1,44 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Terminal DLO discard patch: generated valid two-step media, but full process exit remains unqualified",
+  "source_revision": "3c4d5f8f1",
+  "configuration": {
+    "task": "ref2va",
+    "dlo": true,
+    "ulysses": 8,
+    "ring": 1,
+    "text_tp": 8,
+    "vae_tile_parallel": 8,
+    "pipeline_profiler": true
+  },
+  "request": {
+    "label": "smoke",
+    "steps": 2,
+    "seconds": 5,
+    "http_status": 200,
+    "e2e_ms": 154515.46663977206,
+    "bytes": 6690600,
+    "response_metrics": {
+      "X-Inference-Time-S": "154.424",
+      "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":5.188284388743341,\"MiniMaxH3Pipeline._encode_local_media\":61.126525959931314,\"MiniMaxH3Pipeline.diffuse\":16.412537282332778,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.5489854412153363,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":52.46384929865599,\"MiniMaxH3Pipeline.decode\":58.80530719831586,\"queue_wait_ms\":0.44711213558912277,\"stage_0_gen_ms\":153502.97093391418}",
+      "X-Peak-Memory-MB": "19716.000"
+    },
+    "valid": true
+  },
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 8,
+    "worker_kill_count": 7,
+    "client_complete_to_container_exit_s": 29.714022
+  },
+  "observations": [
+    "Rank zero received shutdown and disabled DLO within the same logged second; its worker cleanup callback completed about three seconds later.",
+    "Post-response stack samples no longer show rank-local weight reconstruction. Later samples are in torch_npu runtime_lifecycle._npu_shutdown.",
+    "Peers were still decoding audio after the reply owner returned, so terminal tensor discard alone does not qualify full process exit.",
+    "The second configuration screening round did not start: its prerequisite rejected the forced worker termination."
+  ],
+  "output_sha256": "6296c0fcc191cb79d6ff596e1756a6c0194fde0d2a7fcb41563f3d75937d2dab",
+  "raw_log_sha256": "8082e96b72ca716628b7d4c3bb0f0803a2dfb07a2c2c37d0a0fe9274ac76d48c",
+  "verification_limits": "This low-step smoke does not establish 50-step model quality or inference speedup. Raw logs/media remain private."
+}

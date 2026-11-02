@@ -1,0 +1,41 @@
+{
+  "status": "planned_not_executed",
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/293",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "hypothesis": "With MC2/MC4 at threshold 0.04 only 28/29 steps were reused, so adaptive threshold rather than consecutive reuse limit may bound latency. Test only threshold while keeping MC4 fixed.",
+  "upstream_source": "https://github.com/vllm-project/vllm-omni/pull/5853",
+  "threshold_values": [
+    0.04,
+    0.08,
+    0.12
+  ],
+  "changed_variable": "residual_diff_threshold",
+  "max_continuous_cached_steps": 4,
+  "Fn_compute_blocks": 1,
+  "Bn_compute_blocks": 0,
+  "max_warmup_steps": 4,
+  "enable_taylorseer": false,
+  "steps": 50,
+  "duration_s": 5,
+  "seed": 0,
+  "warmups_per_arm": 2,
+  "measured_requests_per_arm": 3,
+  "servers_per_arm": 1,
+  "order": [
+    "cache4",
+    "cache4t08",
+    "cache4t12"
+  ],
+  "profiler": false,
+  "cache_summary": false,
+  "shutdown": "Matched 60-second diagnostic override for all arms; capture individual worker exit codes",
+  "quality": "Unchanged frozen gates against the original dense output, not only against MC4. Every candidate measured output must pass.",
+  "scope": "Adaptive pilot, not final independent AB/BA or broad model quality; retains failures and all raw samples. Larger thresholds are campaign hypotheses, not upstream defaults.",
+  "script_sha256": {
+    "run_inner.sh": "9ca258bbc5b8261a63aa5a35b388e658898936a96e3f12909a907b3d785b7ea2",
+    "run_host.sh": "367dd5a67063815c0bc17e808bd82cf835f805cf45637a208490d64b0447a449",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "campaign.sh": "21be2b5daba1e584d75edaad568b7b1532c3c71122aaf6003e07ba6a06b83495",
+    "launch_durable.sh": "73ef4be6171a68ebcc9a93d7cb461279bb390a4fcf13cb020f275f1b478477eb"
+  }
+}

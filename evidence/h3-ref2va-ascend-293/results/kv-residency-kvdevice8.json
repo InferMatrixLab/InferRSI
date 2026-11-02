@@ -1,0 +1,172 @@
+{
+  "run": "residentkv-kvdevice8",
+  "source_revision": "4fc121ff3d6e7ccb1d3e35582fddf509e010dfa9",
+  "configuration": {
+    "pipeline_profiler": false,
+    "heldout_quality_cases": false,
+    "diagnostic_shutdown_override": false,
+    "shutdown_mode": "native",
+    "arm": "kvdevice8",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--kv-offload-config",
+      "{\"mode\":\"on\",\"kv_refresh_interval\":8,\"kv_cache_residency\":\"device\"}"
+    ],
+    "warmups_per_duration": 2,
+    "durations_s": [
+      5
+    ],
+    "dlo_wave_timeout_s": 14400.0,
+    "seeds": [
+      0
+    ],
+    "inputs_sha256": {
+      "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+      "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+      "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+    }
+  },
+  "runtime_settings_sha256": "a27403b4b90e4bb82ae6d4f4978fa651fc708d29a36b000f4702575c4572cd3d",
+  "cells": [
+    {
+      "duration_s": 5,
+      "seed": 0,
+      "expected_measured_requests": 1,
+      "completed": 1,
+      "failed": 0,
+      "missing": 0,
+      "samples_ms": [
+        268772.8290297091
+      ],
+      "mean_ms": 268772.8290297091,
+      "median_ms": 268772.8290297091,
+      "min_ms": 268772.8290297091,
+      "max_ms": 268772.8290297091,
+      "request_sample_stdev_ms": null,
+      "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+    }
+  ],
+  "samples_including_warmups": [
+    {
+      "label": "measured-5-seed0-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 268772.8290297091,
+      "http_status": 200,
+      "bytes": 6500413,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-ba16ac9f0f0e5468",
+        "X-Inference-Time-S": "268.706",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.42427144944667816,\"stage_0_gen_ms\":267523.74839782715}",
+        "X-Peak-Memory-MB": "19908.000"
+      },
+      "output_sha256": "aefca8d8f10e240cfbb5833f3003df472539f5baf38fb89617dae68208d3f73b"
+    },
+    {
+      "label": "warmup-5-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 375320.14280185103,
+      "http_status": 200,
+      "bytes": 6495480,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-9b64e4dab518f3ca",
+        "X-Inference-Time-S": "375.225",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.45297201722860336,\"stage_0_gen_ms\":374004.04143333435}",
+        "X-Peak-Memory-MB": "19908.000"
+      },
+      "output_sha256": "5ae4d0721825db407aa82a5ef9127a4e7e70d72ab127d437a7141cb28a647228"
+    },
+    {
+      "label": "warmup-5-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 268320.7435235381,
+      "http_status": 200,
+      "bytes": 6499828,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-9ea7d50a6b9aac81",
+        "X-Inference-Time-S": "268.255",
+        "X-Stage-Durations": "{\"queue_wait_ms\":1.2502232566475868,\"stage_0_gen_ms\":267231.67634010315}",
+        "X-Peak-Memory-MB": "19948.000"
+      },
+      "output_sha256": "50b1d2a2648151877c51ade9b48aeb2eee5d6e2424fc93fd345e6d80ff4b5c8a"
+    }
+  ],
+  "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+  "lifecycle": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 8,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-4",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-5",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-6",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-7",
+        "exit_code": 0,
+        "alive": false
+      }
+    ]
+  },
+  "service_log_sha256": "0a5497c494e984ce605ca9ba4037e72b20fb6f9462b851deadc423902360002f"
+}

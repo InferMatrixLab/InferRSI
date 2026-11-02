@@ -1,0 +1,215 @@
+{
+  "status": "PASS",
+  "scope": "All 18 frozen decoded-media comparisons from the warmed audio and initial threshold pilots; original reference input/seed0 only. Not semantic quality or final cross-duration/held-out acceptance.",
+  "comparisons": [
+    {
+      "label": "audio-ab-base-0",
+      "result": "warmed-quality/audio-ab-base-0.json",
+      "sha256": "a0cdeb2225eecf96e7590f8e0b31a62392ebf797cf2e6de28cdbd5432e0c47b5",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-matched-0",
+      "result": "warmed-quality/audio-ab-matched-0.json",
+      "sha256": "6530e1b515e31e139842d6b6bd42b87a4827cafd42d6f1d9440bb3b629ecb26b",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-dense-0",
+      "result": "warmed-quality/audio-ab-dense-0.json",
+      "sha256": "d65f5241c7cec7b754d91106416ef27e6bd3e5b5f3ffeee806ecb502aa2cbf65",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4-0",
+      "result": "warmed-quality/threshold-cache4-0.json",
+      "sha256": "27cb9c5cf9127ae92671fc2fff781c436c2bee79af93c6054448f807d4b3f60a",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4t08-0",
+      "result": "warmed-quality/threshold-cache4t08-0.json",
+      "sha256": "8c6156e75b09f20601f84eacd8e795dc0a97ef3e99fa7b32d69326c469b93446",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4t12-0",
+      "result": "warmed-quality/threshold-cache4t12-0.json",
+      "sha256": "a164d8794d27ad52ebe4a9789f7518e87758a234a8bd7abe8357ca442dcc4ff9",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-base-1",
+      "result": "warmed-quality/audio-ab-base-1.json",
+      "sha256": "788d90d74b6c7eefc2dbce67cca8a756e0d8ed1b448bd24b94096b5bb20c8c83",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-matched-1",
+      "result": "warmed-quality/audio-ab-matched-1.json",
+      "sha256": "ba2ec8f8eb246e1034b26d6d9a25f5a43fe9b10624a7efe396bece2cb4cd3277",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-dense-1",
+      "result": "warmed-quality/audio-ab-dense-1.json",
+      "sha256": "eccf9c81abb0454b3b6f179702f9c6545c59acfe3b3778bd3be76beacf8e9cb6",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4-1",
+      "result": "warmed-quality/threshold-cache4-1.json",
+      "sha256": "c30806d5ab7a9b7a98f7f0e273be8f75d6a05f9b1f176d1401f8bbdc4b5d56d9",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4t08-1",
+      "result": "warmed-quality/threshold-cache4t08-1.json",
+      "sha256": "62fbe528f04aadcfc0d32d5f1fd97d4251751d52814c5a59439f8ebec958c1f8",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4t12-1",
+      "result": "warmed-quality/threshold-cache4t12-1.json",
+      "sha256": "3601d3983a7c693e6eef4569d7a3e491cec0d9dcfdf40040795e5f96a0bae64f",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-base-2",
+      "result": "warmed-quality/audio-ab-base-2.json",
+      "sha256": "c8a9bf22773aaec72dfd8e17eb36ae5a8386741894b25c2734262146ecf4482b",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-matched-2",
+      "result": "warmed-quality/audio-ab-matched-2.json",
+      "sha256": "9f4f5915b8566a75c368cc5171fe363c8c750d1d6f61aec920daebf1e3c6e937",
+      "exit_code": 0
+    },
+    {
+      "label": "audio-ab-dense-2",
+      "result": "warmed-quality/audio-ab-dense-2.json",
+      "sha256": "1cea39075f1298b8ff261568850cb4b29aae487513ccac88b458710772aad341",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4-2",
+      "result": "warmed-quality/threshold-cache4-2.json",
+      "sha256": "52b3bb808815314f08749142d75ef46445827d606cb03cd4759d0be94db142c3",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4t08-2",
+      "result": "warmed-quality/threshold-cache4t08-2.json",
+      "sha256": "e08aa232334f68b5c1690c0ab35a42f398f2c1fe5d9a1833ffc5baad666d55f5",
+      "exit_code": 0
+    },
+    {
+      "label": "threshold-cache4t12-2",
+      "result": "warmed-quality/threshold-cache4t12-2.json",
+      "sha256": "fd36379e0a46ec8b2edd5d256d09cdd6fa41315b4cc8db168c9a84786258b134",
+      "exit_code": 0
+    }
+  ],
+  "threshold_profiles": {
+    "cache4": {
+      "mean_e2e_ms": 191794.51680835336,
+      "completed": 3,
+      "failed": 0,
+      "quality": "PASS",
+      "lifecycle": "pass",
+      "metric_ranges": {
+        "ssim": [
+          0.985566,
+          0.98567
+        ],
+        "psnr_db": [
+          45.669811,
+          45.839432
+        ],
+        "lpips": [
+          0.016304336570864244,
+          0.016345898613273617
+        ],
+        "audio_spectral_cosine": [
+          0.9976723293463389,
+          0.9989033838113149
+        ],
+        "audio_rms_ratio": [
+          1.0003537345856874,
+          1.0060959187593694
+        ],
+        "audio_samples": [
+          165888,
+          165888
+        ]
+      }
+    },
+    "cache4t08": {
+      "mean_e2e_ms": 148210.93446792415,
+      "completed": 3,
+      "failed": 0,
+      "quality": "PASS",
+      "lifecycle": "pass",
+      "metric_ranges": {
+        "ssim": [
+          0.985335,
+          0.985402
+        ],
+        "psnr_db": [
+          45.563083,
+          45.643441
+        ],
+        "lpips": [
+          0.017051824601367116,
+          0.017107217955673413
+        ],
+        "audio_spectral_cosine": [
+          0.9941556453704834,
+          0.9949530760447184
+        ],
+        "audio_rms_ratio": [
+          1.0241457066341366,
+          1.0258495240961987
+        ],
+        "audio_samples": [
+          165888,
+          165888
+        ]
+      }
+    },
+    "cache4t12": {
+      "mean_e2e_ms": 142260.19392007342,
+      "completed": 3,
+      "failed": 0,
+      "quality": "PASS",
+      "lifecycle": "pass",
+      "metric_ranges": {
+        "ssim": [
+          0.984953,
+          0.985059
+        ],
+        "psnr_db": [
+          45.210879,
+          45.354332
+        ],
+        "lpips": [
+          0.017875688037865104,
+          0.0179631503584284
+        ],
+        "audio_spectral_cosine": [
+          0.9942560692628225,
+          0.994510422150294
+        ],
+        "audio_rms_ratio": [
+          1.0340311319440731,
+          1.0381708250077397
+        ],
+        "audio_samples": [
+          165888,
+          165888
+        ]
+      }
+    }
+  }
+}

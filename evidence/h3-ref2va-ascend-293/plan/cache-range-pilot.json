@@ -1,0 +1,93 @@
+{
+  "status": "planned_conditional_not_executed",
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/293",
+  "source_revision": "c18fff65a1fedfa55e3f5f2c97b9422942197c8f",
+  "source": "https://github.com/vllm-project/vllm-omni/pull/5853",
+  "hypothesis": "Once the initial threshold sweep passes quality, test whether the reuse limit bounds the faster configuration, then widen only the residual threshold. This is a campaign-authored parameter search, not an upstream recommendation.",
+  "eligibility": "All nine measured outputs in the .04/.08/.12 threshold pilot must pass the unchanged frozen gates; otherwise skip this entire search. Wait for both warmed-pilot and KV-pilot CPU scoring to finish before reserving devices.",
+  "order": [
+    "control",
+    "mc8r12",
+    "mc8r24",
+    "mc8r48"
+  ],
+  "profiles": {
+    "control": {
+      "quality": "server-default",
+      "serve_args": [
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--cache-backend",
+        "cache_dit",
+        "--cache-config",
+        "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.12,\"max_continuous_cached_steps\":4,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+      ]
+    },
+    "mc8r12": {
+      "quality": "server-default",
+      "serve_args": [
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--cache-backend",
+        "cache_dit",
+        "--cache-config",
+        "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.12,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+      ]
+    },
+    "mc8r24": {
+      "quality": "server-default",
+      "serve_args": [
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--cache-backend",
+        "cache_dit",
+        "--cache-config",
+        "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.24,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+      ]
+    },
+    "mc8r48": {
+      "quality": "server-default",
+      "serve_args": [
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--cache-backend",
+        "cache_dit",
+        "--cache-config",
+        "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.48,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+      ]
+    }
+  },
+  "comparisons": [
+    "control to mc8r12 changes only reuse limit",
+    "mc8r12 to mc8r24 changes only residual threshold",
+    "mc8r24 to mc8r48 changes only residual threshold"
+  ],
+  "steps": 50,
+  "duration_s": 5,
+  "seed": 0,
+  "warmups_per_arm": 2,
+  "measured_requests_per_arm": 3,
+  "independent_servers_per_arm": 1,
+  "profiler": false,
+  "cache_summary": false,
+  "shutdown": "Native NPU 60-second path, every worker exit recorded",
+  "wave_timeout_s": 14400,
+  "http_timeout_s": 14400,
+  "reservation": "All four arms in ONE physical 0..7 reservation;2h hard,105min soft TERM,180s kill-after. Stop on a failed arm and retain all attempts.",
+  "quality": "Every measured output must pass the original dense-media gates; do not compare only to a lossy control. Score after timing. No gate is relaxed.",
+  "scope": "Bounded adaptive pilot, not final independent AB/BA or held-out acceptance; no predicted gain accepted.",
+  "image_id": "sha256:7fc6c73bd19a6ef4ee8d6048009972234796a1fc1bd3067168a425343cc476f7",
+  "script_sha256": {
+    "campaign.sh": "31a552a9a796ef652f8aa0012baddd59810888a5b7778071802c963c469b28ce",
+    "control.json": "b4c2aede74a5dcc43dfb9de2c6b5ea6b132b66103cfcc30866e5650ab33713ea",
+    "launch_durable.sh": "607e2198a0d608874d1ba4bf6083b1c196b65a6e41f705d0472ac222b4c69c8f",
+    "mc8r12.json": "e6715a85a57696916653332be9ae696e1fb4525b1e5de99c65a03a95bb3ba686",
+    "mc8r24.json": "fd3cee0431f65c78ae55a89cb65634b921743877f9479551138dec54eee5af7f",
+    "mc8r48.json": "72befe43e2837d88b0f37369a935847916600d6480b086f36ecf61b6e3d2b33c",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+    "run_host.sh": "2e82ab320402120e37442bb4452e4df64181c7fcf912baba783793e9c01a88f2",
+    "run_inner.sh": "d1241cac248a37daa4f69f983b5d0c5e02b61c69b4cf6c422a04cdc82e694138",
+    "wait_for_prior_scores.py": "31edeeb3091f9d453ca3576b0a054208747518e65927d2adf8a1ac639c062ad8"
+  }
+}
