@@ -1,0 +1,12 @@
+{
+  "head": "f278cb2bf4647aeb852d61bcc82d9fcc1420d64d",
+  "tree": "626aacaf0da39c527e1c20c09008e6e942119c5f",
+  "base": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+  "branch": "rsi/h3-297-video-pooled-context",
+  "files": {
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "1febc030a7917b6e10fe287014fe2aacef76ade7bf58ebb604fdedc36fb7c21d",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_pooled_context.py": "45a9ae5ba56858daee6a1088a8c8b1ed612ea9afd3c229c90a9b6db3c80a06b2"
+  },
+  "published": false,
+  "patch_base": "e89b1d40d37f7f72767892a56fa7980ea572ba8e"
+}

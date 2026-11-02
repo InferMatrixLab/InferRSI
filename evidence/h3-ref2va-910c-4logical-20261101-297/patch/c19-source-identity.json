@@ -1,0 +1,12 @@
+{
+  "head": "c896a8c98493d50e51ed6fa167e4b8d8c59b3ecb",
+  "tree": "367e7f05c2d640211ad4713cc0b62742b0b25a0a",
+  "base": "e89b1d40d37f7f72767892a56fa7980ea572ba8e",
+  "branch": "rsi/h3-297-video-global-pool",
+  "files": {
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "ddfd6d6822cc6a5528fc95539f7f98dfdeed25d5489da3ed5cf76e6076a5ec94",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_global_pool.py": "5457db550b59e3373be8f5f21873c1b78ac357a6ac170c2603ee531b50e91467"
+  },
+  "published": false,
+  "patch_base": "e89b1d40d37f7f72767892a56fa7980ea572ba8e"
+}

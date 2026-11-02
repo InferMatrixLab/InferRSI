@@ -1,0 +1,1847 @@
+{
+  "campaign_verdict": "INCONCLUSIVE",
+  "comparisons": [
+    {
+      "configuration_key": "audio-cache-guard",
+      "sample_id": "5s-00",
+      "comparison_sha256": "7e1ae17e18f57e1fa59c9e4eab199ea73ccdfcbc450be8d765f29b954dd98f6a",
+      "verdict": "FAIL",
+      "checks": 76,
+      "failures": [
+        "5s-00:clap: similarity",
+        "5s-00:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9661745814288535,
+            "background_consistency": 0.9675477634115917
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9991652965545654,
+              "min": 0.9982653260231018,
+              "p05": 0.9986943453550339
+            },
+            "clip": {
+              "mean": 0.9960272908210754,
+              "min": 0.9868044853210449,
+              "p05": 0.9926694452762603
+            },
+            "clap": {
+              "mean": 0.985465407371521,
+              "min": 0.985465407371521,
+              "p05": 0.985465407371521
+            }
+          },
+          "reduced_relative_error": 0.0007849554886155881,
+          "audio_rms_db": -0.30719158571507965,
+          "audio_envelope_relative_l2": 0.12341521943906826,
+          "motion_ratio": 0.9977740956441081
+        },
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.9199168895318256,
+            "background_consistency": 0.962323812692146
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9927577376365662,
+              "min": 0.978660523891449,
+              "p05": 0.9818145453929901
+            },
+            "clip": {
+              "mean": 0.9899253249168396,
+              "min": 0.9589802026748657,
+              "p05": 0.9826266527175903
+            },
+            "clap": {
+              "mean": 0.9935711026191711,
+              "min": 0.9935711026191711,
+              "p05": 0.9935711026191711
+            }
+          },
+          "reduced_relative_error": 0.004689916330921762,
+          "audio_rms_db": 0.08751117168316971,
+          "audio_envelope_relative_l2": 0.01751661659815182,
+          "motion_ratio": 1.001235231687485
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "audio-cache-guard",
+      "sample_id": "5s-01",
+      "comparison_sha256": "e9c8225f5437078f47ecbcbdd62bd6c5dc1c831dafb25cffa0b92fdda4e7bcfa",
+      "verdict": "INCONCLUSIVE",
+      "checks": 39,
+      "failures": [],
+      "missing": [
+        "5s-00",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.9199168895318256,
+            "background_consistency": 0.962323812692146
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9927577376365662,
+              "min": 0.978660523891449,
+              "p05": 0.9818145453929901
+            },
+            "clip": {
+              "mean": 0.9899253249168396,
+              "min": 0.9589802026748657,
+              "p05": 0.9826266527175903
+            },
+            "clap": {
+              "mean": 0.9935711026191711,
+              "min": 0.9935711026191711,
+              "p05": 0.9935711026191711
+            }
+          },
+          "reduced_relative_error": 0.004689916330921762,
+          "audio_rms_db": 0.08751117168316971,
+          "audio_envelope_relative_l2": 0.01751661659815182,
+          "motion_ratio": 1.001235231687485
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "audio-guard-bn0",
+      "sample_id": "5s-00",
+      "comparison_sha256": "1c06eb16613344654fd0d2d3e5f53faaebc8ae521e5a2fc6fde710db02f1a10e",
+      "verdict": "INCONCLUSIVE",
+      "checks": 39,
+      "failures": [],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9660068995099726,
+            "background_consistency": 0.9688905959691458
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9992567300796509,
+              "min": 0.9986443519592285,
+              "p05": 0.9990008890628814
+            },
+            "clip": {
+              "mean": 0.9961938261985779,
+              "min": 0.9860672950744629,
+              "p05": 0.9928072810173034
+            },
+            "clap": {
+              "mean": 0.9955079555511475,
+              "min": 0.9955079555511475,
+              "p05": 0.9955079555511475
+            }
+          },
+          "reduced_relative_error": 0.0013931467745854867,
+          "audio_rms_db": -0.0815295231710133,
+          "audio_envelope_relative_l2": 0.09144958691574608,
+          "motion_ratio": 0.9973141825132419
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "audio-guard-bn0",
+      "sample_id": "5s-01",
+      "comparison_sha256": "95c023ee20e9e7a32ac2d763b6dda759fa42bf0f21b819fab5a4d855a75ae694",
+      "verdict": "FAIL",
+      "checks": 76,
+      "failures": [
+        "5s-01:clap: similarity"
+      ],
+      "missing": [
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9660068995099726,
+            "background_consistency": 0.9688905959691458
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9992567300796509,
+              "min": 0.9986443519592285,
+              "p05": 0.9990008890628814
+            },
+            "clip": {
+              "mean": 0.9961938261985779,
+              "min": 0.9860672950744629,
+              "p05": 0.9928072810173034
+            },
+            "clap": {
+              "mean": 0.9955079555511475,
+              "min": 0.9955079555511475,
+              "p05": 0.9955079555511475
+            }
+          },
+          "reduced_relative_error": 0.0013931467745854867,
+          "audio_rms_db": -0.0815295231710133,
+          "audio_envelope_relative_l2": 0.09144958691574608,
+          "motion_ratio": 0.9973141825132419
+        },
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.9195573150627012,
+            "background_consistency": 0.9624702191449762
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9923730492591858,
+              "min": 0.9756415486335754,
+              "p05": 0.9809045672416687
+            },
+            "clip": {
+              "mean": 0.9897363781929016,
+              "min": 0.9703266620635986,
+              "p05": 0.979900699853897
+            },
+            "clap": {
+              "mean": 0.983326256275177,
+              "min": 0.983326256275177,
+              "p05": 0.983326256275177
+            }
+          },
+          "reduced_relative_error": 0.004576132925748447,
+          "audio_rms_db": 0.12675221378818413,
+          "audio_envelope_relative_l2": 0.028032476073448085,
+          "motion_ratio": 0.9837732598446114
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-balanced-008-max2",
+      "sample_id": "5s-00",
+      "comparison_sha256": "e760ac0f421d8188407b5e057720a938d984366e299dc324bbc3bb2c71259b14",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:clap: similarity",
+        "5s-00: clap segment",
+        "5s-00: audio temporal envelope"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9651354716076115,
+            "background_consistency": 0.966441892996067
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9980329871177673,
+              "min": 0.9964174628257751,
+              "p05": 0.997240173816681
+            },
+            "clip": {
+              "mean": 0.9923331141471863,
+              "min": 0.9756749868392944,
+              "p05": 0.9842084020376205
+            },
+            "clap": {
+              "mean": 0.9760740995407104,
+              "min": 0.9760740995407104,
+              "p05": 0.9760740995407104
+            }
+          },
+          "reduced_relative_error": 0.0003251645637818601,
+          "audio_rms_db": -0.3659990076999208,
+          "audio_envelope_relative_l2": 0.26497643494616335,
+          "motion_ratio": 0.9831136213720726
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-taylor2-004-max1-bn1",
+      "sample_id": "5s-01",
+      "comparison_sha256": "423b5e479f3519755109661cd48298f2e6d71ce803fbfcc4b1a5360696a7fc2a",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-01:clap: similarity",
+        "5s-01:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-00",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.9194389666483654,
+            "background_consistency": 0.9604502952680355
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9951377511024475,
+              "min": 0.9648282527923584,
+              "p05": 0.9873370617628098
+            },
+            "clip": {
+              "mean": 0.9926162362098694,
+              "min": 0.9726531505584717,
+              "p05": 0.9865877836942673
+            },
+            "clap": {
+              "mean": 0.9898052215576172,
+              "min": 0.9898052215576172,
+              "p05": 0.9898052215576172
+            }
+          },
+          "reduced_relative_error": 0.0034347801716203,
+          "audio_rms_db": -0.04559134981289249,
+          "audio_envelope_relative_l2": 0.01794616595761191,
+          "motion_ratio": 0.992853542121268
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-taylor2-008-max3",
+      "sample_id": "15s-00",
+      "comparison_sha256": "101ba21fcd0245a72b9003dadcae4a6f59525c044f1f117f51d73e5b826073f0",
+      "verdict": "FAIL",
+      "checks": 76,
+      "failures": [
+        "15s-00:dino: similarity",
+        "15s-00:clip: similarity",
+        "15s-00:clap: similarity",
+        "15s-00: dino lower tail",
+        "15s-00: clap segment"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9654010900152408,
+            "background_consistency": 0.9671699547670721
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9983525276184082,
+              "min": 0.9966764450073242,
+              "p05": 0.9975502401590347
+            },
+            "clip": {
+              "mean": 0.9948052167892456,
+              "min": 0.9867727160453796,
+              "p05": 0.9891456693410874
+            },
+            "clap": {
+              "mean": 0.9920889735221863,
+              "min": 0.9920889735221863,
+              "p05": 0.9920889735221863
+            }
+          },
+          "reduced_relative_error": 0.00018910790971873886,
+          "audio_rms_db": -0.2371983786171961,
+          "audio_envelope_relative_l2": 0.18912491681824536,
+          "motion_ratio": 0.9983713680460938
+        },
+        "15s-00": {
+          "seconds": "15",
+          "baseline": {
+            "subject_consistency": 0.8167167416157155,
+            "background_consistency": 0.8849122500320551
+          },
+          "candidate": {
+            "subject_consistency": 0.814778186318947,
+            "background_consistency": 0.9055140411424505
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9708892107009888,
+              "min": 0.8723620176315308,
+              "p05": 0.9347653150558471
+            },
+            "clip": {
+              "mean": 0.9714338779449463,
+              "min": 0.8665174245834351,
+              "p05": 0.9213008940219879
+            },
+            "clap": {
+              "mean": 0.979804515838623,
+              "min": 0.9607230424880981,
+              "p05": 0.963468861579895
+            }
+          },
+          "reduced_relative_error": 0.010967864267259823,
+          "audio_rms_db": 0.0547138050738972,
+          "audio_envelope_relative_l2": 0.07447108624639824,
+          "motion_ratio": 0.983092625811758
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-taylor2-008-max3",
+      "sample_id": "5s-00",
+      "comparison_sha256": "8a436513633dcc897d1f28607054928d04011cf0263abbbd41948ff29af9b232",
+      "verdict": "INCONCLUSIVE",
+      "checks": 39,
+      "failures": [],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9654010900152408,
+            "background_consistency": 0.9671699547670721
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9983525276184082,
+              "min": 0.9966764450073242,
+              "p05": 0.9975502401590347
+            },
+            "clip": {
+              "mean": 0.9948052167892456,
+              "min": 0.9867727160453796,
+              "p05": 0.9891456693410874
+            },
+            "clap": {
+              "mean": 0.9920889735221863,
+              "min": 0.9920889735221863,
+              "p05": 0.9920889735221863
+            }
+          },
+          "reduced_relative_error": 0.00018910790971873886,
+          "audio_rms_db": -0.2371983786171961,
+          "audio_envelope_relative_l2": 0.18912491681824536,
+          "motion_ratio": 0.9983713680460938
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-taylor2-008-max3",
+      "sample_id": "5s-01",
+      "comparison_sha256": "4fcb44d3efcf482968a4ba83da7de10dd96a722da392373e11f6d03415043069",
+      "verdict": "FAIL",
+      "checks": 113,
+      "failures": [
+        "5s-01:clap: similarity",
+        "5s-01: clap segment",
+        "5s-01:audio_caption_clap_cosine: adherence",
+        "15s-00:dino: similarity",
+        "15s-00:clip: similarity",
+        "15s-00:clap: similarity",
+        "15s-00: dino lower tail",
+        "15s-00: clap segment"
+      ],
+      "missing": [
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9654010900152408,
+            "background_consistency": 0.9671699547670721
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9983525276184082,
+              "min": 0.9966764450073242,
+              "p05": 0.9975502401590347
+            },
+            "clip": {
+              "mean": 0.9948052167892456,
+              "min": 0.9867727160453796,
+              "p05": 0.9891456693410874
+            },
+            "clap": {
+              "mean": 0.9920889735221863,
+              "min": 0.9920889735221863,
+              "p05": 0.9920889735221863
+            }
+          },
+          "reduced_relative_error": 0.00018910790971873886,
+          "audio_rms_db": -0.2371983786171961,
+          "audio_envelope_relative_l2": 0.18912491681824536,
+          "motion_ratio": 0.9983713680460938
+        },
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.9207581187166819,
+            "background_consistency": 0.9634070793787638
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9845563769340515,
+              "min": 0.9531147480010986,
+              "p05": 0.9630601137876511
+            },
+            "clip": {
+              "mean": 0.9853087663650513,
+              "min": 0.9452791810035706,
+              "p05": 0.9642424941062927
+            },
+            "clap": {
+              "mean": 0.9720799326896667,
+              "min": 0.9720799326896667,
+              "p05": 0.9720799326896667
+            }
+          },
+          "reduced_relative_error": 0.005717160930300574,
+          "audio_rms_db": 0.4509269168547554,
+          "audio_envelope_relative_l2": 0.09309591765214825,
+          "motion_ratio": 1.018571144526001
+        },
+        "15s-00": {
+          "seconds": "15",
+          "baseline": {
+            "subject_consistency": 0.8167167416157155,
+            "background_consistency": 0.8849122500320551
+          },
+          "candidate": {
+            "subject_consistency": 0.814778186318947,
+            "background_consistency": 0.9055140411424505
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9708892107009888,
+              "min": 0.8723620176315308,
+              "p05": 0.9347653150558471
+            },
+            "clip": {
+              "mean": 0.9714338779449463,
+              "min": 0.8665174245834351,
+              "p05": 0.9213008940219879
+            },
+            "clap": {
+              "mean": 0.979804515838623,
+              "min": 0.9607230424880981,
+              "p05": 0.963468861579895
+            }
+          },
+          "reduced_relative_error": 0.010967864267259823,
+          "audio_rms_db": 0.0547138050738972,
+          "audio_envelope_relative_l2": 0.07447108624639824,
+          "motion_ratio": 0.983092625811758
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-taylor2-008-max3-bn1",
+      "sample_id": "5s-01",
+      "comparison_sha256": "0ced9712635d0ffbd609b436a77f1652aae2e6d981c098b8d0477dc0dc9f3f24",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-01:clap: similarity",
+        "5s-01: clap segment"
+      ],
+      "missing": [
+        "5s-00",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.921592558787121,
+            "background_consistency": 0.9582489375176468
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9852516651153564,
+              "min": 0.9538165330886841,
+              "p05": 0.9698864668607712
+            },
+            "clip": {
+              "mean": 0.9861429929733276,
+              "min": 0.9640627503395081,
+              "p05": 0.9699478477239609
+            },
+            "clap": {
+              "mean": 0.973999559879303,
+              "min": 0.973999559879303,
+              "p05": 0.973999559879303
+            }
+          },
+          "reduced_relative_error": 0.003409284161307452,
+          "audio_rms_db": 0.20808666707388404,
+          "audio_envelope_relative_l2": 0.03845678935899298,
+          "motion_ratio": 1.0336753638251845
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-taylor2-008-max3-bn4",
+      "sample_id": "5s-01",
+      "comparison_sha256": "d2bf98312b742f1dada1e0acdb453bdc1759567902a878737b9464ad4dfc08f6",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-01:dino: similarity",
+        "5s-01:clip: similarity",
+        "5s-01:clap: similarity",
+        "5s-01: dino lower tail",
+        "5s-01: clap segment",
+        "5s-01:reference_dino_cosine: adherence",
+        "5s-01:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-00",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.9193919410065907,
+            "background_consistency": 0.9695822967261802
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9559677839279175,
+              "min": 0.917838454246521,
+              "p05": 0.9317350178956986
+            },
+            "clip": {
+              "mean": 0.9704718589782715,
+              "min": 0.937095046043396,
+              "p05": 0.9475325375795365
+            },
+            "clap": {
+              "mean": 0.9627834558486938,
+              "min": 0.9627834558486938,
+              "p05": 0.9627834558486938
+            }
+          },
+          "reduced_relative_error": 0.00828409810531098,
+          "audio_rms_db": 0.04268223342783043,
+          "audio_envelope_relative_l2": 0.06482673389999478,
+          "motion_ratio": 1.2091018487554375
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "cache-taylor3-008-max3-bn1",
+      "sample_id": "5s-01",
+      "comparison_sha256": "a20e4bd5b4c919bb5a65cd11d2bb0cc7dc6aa045ec2f3b1bd5a9c6e28489411b",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-01:clap: similarity",
+        "5s-01: clap segment"
+      ],
+      "missing": [
+        "5s-00",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-01": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9213417344461612,
+            "background_consistency": 0.9521126235888256
+          },
+          "candidate": {
+            "subject_consistency": 0.9205945810166801,
+            "background_consistency": 0.961419354124767
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9861611127853394,
+              "min": 0.9520018696784973,
+              "p05": 0.9690358877182007
+            },
+            "clip": {
+              "mean": 0.9868983626365662,
+              "min": 0.94464111328125,
+              "p05": 0.9714847385883332
+            },
+            "clap": {
+              "mean": 0.973813533782959,
+              "min": 0.973813533782959,
+              "p05": 0.973813533782959
+            }
+          },
+          "reduced_relative_error": 0.004568874106673343,
+          "audio_rms_db": 0.32023464803440704,
+          "audio_envelope_relative_l2": 0.048263250142338246,
+          "motion_ratio": 1.037731901309175
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "hybrid-laser-video-bf16-context",
+      "sample_id": "5s-00",
+      "comparison_sha256": "60c4356e41b34ff791043bf34179a1fa693780b70c273405e0011e19269017d6",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9661054570015853,
+            "background_consistency": 0.9678300546436776
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9992612600326538,
+              "min": 0.9987664222717285,
+              "p05": 0.9990039587020874
+            },
+            "clip": {
+              "mean": 0.9964061379432678,
+              "min": 0.986167848110199,
+              "p05": 0.9930137008428573
+            },
+            "clap": {
+              "mean": 0.9925766587257385,
+              "min": 0.9925766587257385,
+              "p05": 0.9925766587257385
+            }
+          },
+          "reduced_relative_error": 0.0008952785305148697,
+          "audio_rms_db": -0.04112309268137339,
+          "audio_envelope_relative_l2": 0.03829713389408406,
+          "motion_ratio": 0.9988179931035557
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "laser-scale256",
+      "sample_id": "5s-00",
+      "comparison_sha256": "91c2419327f5333f59b8d3f74cfc47d84634ad6e7d4f026e3abd61d422b9aad8",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9667792068264349,
+            "background_consistency": 0.9680149632740797
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.999154806137085,
+              "min": 0.9985394477844238,
+              "p05": 0.9986860930919648
+            },
+            "clip": {
+              "mean": 0.9963837265968323,
+              "min": 0.9901332855224609,
+              "p05": 0.9924647331237793
+            },
+            "clap": {
+              "mean": 0.9945911169052124,
+              "min": 0.9945911169052124,
+              "p05": 0.9945911169052124
+            }
+          },
+          "reduced_relative_error": 0.0013396714218789517,
+          "audio_rms_db": -0.11301796107390463,
+          "audio_envelope_relative_l2": 0.12640093834958974,
+          "motion_ratio": 1.0010309184980533
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "modality-sigma-fp32-anchor",
+      "sample_id": "15s-00",
+      "comparison_sha256": "1b75e2ea84298165d6c19e86b2a8e7ebd08835924c6e71832eed9b79d920f452",
+      "verdict": "FAIL",
+      "checks": 76,
+      "failures": [
+        "5s-00:audio_caption_clap_cosine: adherence",
+        "15s-00:dino: similarity",
+        "15s-00:clip: similarity",
+        "15s-00:clap: similarity",
+        "15s-00: dino lower tail",
+        "15s-00: clap segment"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9634841426116664,
+            "background_consistency": 0.9637262268764216
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9979137182235718,
+              "min": 0.9962100982666016,
+              "p05": 0.9968585044145584
+            },
+            "clip": {
+              "mean": 0.993086576461792,
+              "min": 0.9763539433479309,
+              "p05": 0.9824884951114654
+            },
+            "clap": {
+              "mean": 0.9918106198310852,
+              "min": 0.9918106198310852,
+              "p05": 0.9918106198310852
+            }
+          },
+          "reduced_relative_error": 0.002585273427929995,
+          "audio_rms_db": -0.1567548220318038,
+          "audio_envelope_relative_l2": 0.08416217762953182,
+          "motion_ratio": 1.0089539814707082
+        },
+        "15s-00": {
+          "seconds": "15",
+          "baseline": {
+            "subject_consistency": 0.8167167416157155,
+            "background_consistency": 0.8849122500320551
+          },
+          "candidate": {
+            "subject_consistency": 0.8073931144875502,
+            "background_consistency": 0.8748147027809534
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9541988372802734,
+              "min": 0.8350636959075928,
+              "p05": 0.9045321136713028
+            },
+            "clip": {
+              "mean": 0.9663479924201965,
+              "min": 0.8494424819946289,
+              "p05": 0.9202105909585953
+            },
+            "clap": {
+              "mean": 0.9531505703926086,
+              "min": 0.9011195302009583,
+              "p05": 0.9078725516796112
+            }
+          },
+          "reduced_relative_error": 0.011413283667940134,
+          "audio_rms_db": 0.1285537754516634,
+          "audio_envelope_relative_l2": 0.13562143033577656,
+          "motion_ratio": 1.0165335096317705
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "modality-sigma-fp32-anchor",
+      "sample_id": "5s-00",
+      "comparison_sha256": "5ea1cf7b5bdc342a7b298e0469dd4042cee7c981ba533df3510052538b65e8c0",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9634841426116664,
+            "background_consistency": 0.9637262268764216
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9979137182235718,
+              "min": 0.9962100982666016,
+              "p05": 0.9968585044145584
+            },
+            "clip": {
+              "mean": 0.993086576461792,
+              "min": 0.9763539433479309,
+              "p05": 0.9824884951114654
+            },
+            "clap": {
+              "mean": 0.9918106198310852,
+              "min": 0.9918106198310852,
+              "p05": 0.9918106198310852
+            }
+          },
+          "reduced_relative_error": 0.002585273427929995,
+          "audio_rms_db": -0.1567548220318038,
+          "audio_envelope_relative_l2": 0.08416217762953182,
+          "motion_ratio": 1.0089539814707082
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "modality-sigma-quadratic",
+      "sample_id": "5s-00",
+      "comparison_sha256": "4b795a65ab2165390844e117813b8efd24aec3d5b7b75cf5652f73576b0a8099",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9642229327341405,
+            "background_consistency": 0.9690693287345452
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9978399872779846,
+              "min": 0.9946956634521484,
+              "p05": 0.9965563297271729
+            },
+            "clip": {
+              "mean": 0.9933723211288452,
+              "min": 0.9708013534545898,
+              "p05": 0.9835974663496018
+            },
+            "clap": {
+              "mean": 0.9960051774978638,
+              "min": 0.9960051774978638,
+              "p05": 0.9960051774978638
+            }
+          },
+          "reduced_relative_error": 0.0005623687407243513,
+          "audio_rms_db": -0.141298705336359,
+          "audio_envelope_relative_l2": 0.08778629602289918,
+          "motion_ratio": 1.0088439516314678
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "modality-sigma-quadratic-bn1",
+      "sample_id": "5s-00",
+      "comparison_sha256": "6fde89564e6572398df194e82f7634af92020ff9a84d5f2d1383df18809354f7",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00: audio level"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9667953994215989,
+            "background_consistency": 0.9636606847852226
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.993774950504303,
+              "min": 0.9827978014945984,
+              "p05": 0.9883693248033524
+            },
+            "clip": {
+              "mean": 0.9904270172119141,
+              "min": 0.972300112247467,
+              "p05": 0.9838350206613541
+            },
+            "clap": {
+              "mean": 0.9939356446266174,
+              "min": 0.9939356446266174,
+              "p05": 0.9939356446266174
+            }
+          },
+          "reduced_relative_error": 0.0009054756694858051,
+          "audio_rms_db": -1.0007078553545243,
+          "audio_envelope_relative_l2": 0.19737799824495614,
+          "motion_ratio": 1.0067671166204435
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "rainfusion50-bf16-w8-tail8",
+      "sample_id": "5s-00",
+      "comparison_sha256": "7f64efe80fcca7b976e82a2cdd9f9876832c85b226de7f26992c7fe70d020864",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:clap: similarity",
+        "5s-00: clap segment",
+        "5s-00: audio temporal envelope"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9667071133125119,
+            "background_consistency": 0.9689083639683762
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9946473836898804,
+              "min": 0.9871225357055664,
+              "p05": 0.9900005757808685
+            },
+            "clip": {
+              "mean": 0.9907172918319702,
+              "min": 0.9721568822860718,
+              "p05": 0.9800667852163315
+            },
+            "clap": {
+              "mean": 0.9769790172576904,
+              "min": 0.9769790172576904,
+              "p05": 0.9769790172576904
+            }
+          },
+          "reduced_relative_error": 0.001764733412885843,
+          "audio_rms_db": -0.14111524718973395,
+          "audio_envelope_relative_l2": 0.2797538746282675,
+          "motion_ratio": 1.026263875056369
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "rainfusion80-bf16-w4-tail4",
+      "sample_id": "5s-00",
+      "comparison_sha256": "c739c5b0f2db605991f40a5d2c0adc7ced4d025717a581bbeed157f5f80a717e",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:dino: similarity",
+        "5s-00:clip: similarity",
+        "5s-00:clap: similarity",
+        "5s-00: clap segment",
+        "5s-00: audio level",
+        "5s-00: audio temporal envelope"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9632140490097728,
+            "background_consistency": 0.9603373892908174
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9794362187385559,
+              "min": 0.9407444000244141,
+              "p05": 0.9508843153715134
+            },
+            "clip": {
+              "mean": 0.9764617681503296,
+              "min": 0.9348478317260742,
+              "p05": 0.9474407732486725
+            },
+            "clap": {
+              "mean": 0.9637646079063416,
+              "min": 0.9637646079063416,
+              "p05": 0.9637646079063416
+            }
+          },
+          "reduced_relative_error": 0.00447892858239735,
+          "audio_rms_db": -2.173295241375743,
+          "audio_envelope_relative_l2": 0.36216840555897617,
+          "motion_ratio": 1.0477099329740793
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "refkv-device-refresh2",
+      "sample_id": "5s-00",
+      "comparison_sha256": "6682812c58757690b5114492834e68c54e17988e22834e45dd93856a3e4cfd27",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:clap: similarity"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9673074055008772,
+            "background_consistency": 0.9747018482142348
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9847110509872437,
+              "min": 0.937708854675293,
+              "p05": 0.9595070838928222
+            },
+            "clip": {
+              "mean": 0.9860638380050659,
+              "min": 0.9606876373291016,
+              "p05": 0.9736308753490448
+            },
+            "clap": {
+              "mean": 0.9891108274459839,
+              "min": 0.9891108274459839,
+              "p05": 0.9891108274459839
+            }
+          },
+          "reduced_relative_error": 0.005073789276672285,
+          "audio_rms_db": -0.11514590616150458,
+          "audio_envelope_relative_l2": 0.1555914434459509,
+          "motion_ratio": 0.8933582476698538
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "state-aligned-residual-v1",
+      "sample_id": "5s-00",
+      "comparison_sha256": "f4b14d6eba264c0c348cc01862c45ad62ed71409cadd5cd66465b85d63c89d60",
+      "verdict": "INCONCLUSIVE",
+      "checks": 39,
+      "failures": [],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "cosines": {
+            "dino": {
+              "mean": 1.0,
+              "min": 0.9999998211860657,
+              "p05": 0.9999998807907104
+            },
+            "clip": {
+              "mean": 1.0,
+              "min": 0.9999997615814209,
+              "p05": 0.9999998807907104
+            },
+            "clap": {
+              "mean": 1.0,
+              "min": 1.0,
+              "p05": 1.0
+            }
+          },
+          "reduced_relative_error": 0.0,
+          "audio_rms_db": 0.0,
+          "audio_envelope_relative_l2": 0.0,
+          "motion_ratio": 1.0
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "tp4-all-resident",
+      "sample_id": "5s-00",
+      "comparison_sha256": "7b9e4ba13d0b6c098c7c529e6d3f23a885559681114850ae551f7a6cdeee8684",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:audio_caption_clap_cosine: adherence"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.966968424678818,
+            "background_consistency": 0.9685012627907885
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9991623163223267,
+              "min": 0.9984581470489502,
+              "p05": 0.9986790925264358
+            },
+            "clip": {
+              "mean": 0.9960500597953796,
+              "min": 0.9835643768310547,
+              "p05": 0.991750293970108
+            },
+            "clap": {
+              "mean": 0.9936883449554443,
+              "min": 0.9936883449554443,
+              "p05": 0.9936883449554443
+            }
+          },
+          "reduced_relative_error": 0.001689280879494273,
+          "audio_rms_db": -0.5914884173619972,
+          "audio_envelope_relative_l2": 0.14660693414345288,
+          "motion_ratio": 0.9986264182059804
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "video-context-lse",
+      "sample_id": "5s-00",
+      "comparison_sha256": "2b3d31ae933c50c78571a71deee42a3a23ec6f4e6986b3fe4b1e76945544aa13",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:dino: similarity",
+        "5s-00:clip: similarity",
+        "5s-00:clap: similarity",
+        "5s-00: clap segment",
+        "5s-00:reference_dino_cosine: adherence",
+        "5s-00:audio_caption_clap_cosine: adherence",
+        "5s-00: audio level",
+        "5s-00: audio temporal envelope"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9650656626961096,
+            "background_consistency": 0.9708255100540999
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.97896808385849,
+              "min": 0.9462954998016357,
+              "p05": 0.9537913143634796
+            },
+            "clip": {
+              "mean": 0.9749853014945984,
+              "min": 0.9158563017845154,
+              "p05": 0.9535898625850677
+            },
+            "clap": {
+              "mean": 0.9371471405029297,
+              "min": 0.9371471405029297,
+              "p05": 0.9371471405029297
+            }
+          },
+          "reduced_relative_error": 0.001907417743306655,
+          "audio_rms_db": -6.375729760723826,
+          "audio_envelope_relative_l2": 0.5422772289154131,
+          "motion_ratio": 0.9732356030412213
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "video-pre-gate",
+      "sample_id": "5s-00",
+      "comparison_sha256": "f821a089e7bacbbd51d2debe40169d23db13cc5ff744b2237acc3474765bf68c",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:dino: similarity",
+        "5s-00:clip: similarity",
+        "5s-00:clap: similarity",
+        "5s-00: dino lower tail",
+        "5s-00: clap segment",
+        "5s-00:reference_dino_cosine: adherence",
+        "5s-00: audio temporal envelope"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9604354704298624,
+            "background_consistency": 0.9678790501462735
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9699685573577881,
+              "min": 0.9310290217399597,
+              "p05": 0.9455805897712708
+            },
+            "clip": {
+              "mean": 0.9705709218978882,
+              "min": 0.9431105852127075,
+              "p05": 0.9498869240283966
+            },
+            "clap": {
+              "mean": 0.9706100225448608,
+              "min": 0.9706100225448608,
+              "p05": 0.9706100225448608
+            }
+          },
+          "reduced_relative_error": 0.0020138274804530603,
+          "audio_rms_db": -0.20747782268393988,
+          "audio_envelope_relative_l2": 0.2799833627923924,
+          "motion_ratio": 1.121115241596866
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "video-pre-gate-secant",
+      "sample_id": "5s-00",
+      "comparison_sha256": "6a809a10611ec2231cc9da15514924d8c1a61ecb3a6abdcf8baad1425a0d357c",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:dino: similarity",
+        "5s-00:clip: similarity",
+        "5s-00:clap: similarity",
+        "5s-00: dino lower tail",
+        "5s-00: clap segment",
+        "5s-00:reference_clip_cosine: adherence",
+        "5s-00:reference_dino_cosine: adherence",
+        "5s-00:audio_caption_clap_cosine: adherence",
+        "5s-00: motion energy"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9611704327711245,
+            "background_consistency": 0.9549353379544204
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.9575454592704773,
+              "min": 0.9346060752868652,
+              "p05": 0.9436570793390274
+            },
+            "clip": {
+              "mean": 0.9614511132240295,
+              "min": 0.919788658618927,
+              "p05": 0.9337257981300354
+            },
+            "clap": {
+              "mean": 0.9732030630111694,
+              "min": 0.9732030630111694,
+              "p05": 0.9732030630111694
+            }
+          },
+          "reduced_relative_error": 0.008332383610497398,
+          "audio_rms_db": 0.5065753171403786,
+          "audio_envelope_relative_l2": 0.24859357669358687,
+          "motion_ratio": 1.2605876841404495
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "video-row-fp32",
+      "sample_id": "5s-00",
+      "comparison_sha256": "9226ab5741347e5928911c4e01a136c64f85bfc7406f812ff4a936b18a41c272",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:clap: similarity",
+        "5s-00: clap segment",
+        "5s-00: audio temporal envelope"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9644393346658567,
+            "background_consistency": 0.9664301145367507
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.997343897819519,
+              "min": 0.9954850673675537,
+              "p05": 0.9960428774356842
+            },
+            "clip": {
+              "mean": 0.9929363131523132,
+              "min": 0.9782494902610779,
+              "p05": 0.9856640666723251
+            },
+            "clap": {
+              "mean": 0.9739290475845337,
+              "min": 0.9739290475845337,
+              "p05": 0.9739290475845337
+            }
+          },
+          "reduced_relative_error": 0.0006915414043044125,
+          "audio_rms_db": -0.10083169173992401,
+          "audio_envelope_relative_l2": 0.2743734098838323,
+          "motion_ratio": 1.0172588417564994
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    },
+    {
+      "configuration_key": "video-temporal-window",
+      "sample_id": "5s-00",
+      "comparison_sha256": "f7f23452cea62d3ff53d6289a1b988e5279de9be52856c5ea7a4af849025ed40",
+      "verdict": "FAIL",
+      "checks": 39,
+      "failures": [
+        "5s-00:dino: similarity",
+        "5s-00:clip: similarity",
+        "5s-00:clap: similarity",
+        "5s-00: dino lower tail",
+        "5s-00: clap segment",
+        "5s-00:reference_clip_cosine: adherence",
+        "5s-00:reference_dino_cosine: adherence",
+        "5s-00:prompt_clip_cosine: adherence",
+        "5s-00: audio level",
+        "5s-00: audio temporal envelope",
+        "5s-00: motion energy"
+      ],
+      "missing": [
+        "5s-01",
+        "5s-02",
+        "5s-03",
+        "5s-04",
+        "15s-00",
+        "15s-01",
+        "15s-02",
+        "15s-03",
+        "15s-04"
+      ],
+      "observed": {
+        "5s-00": {
+          "seconds": "5",
+          "baseline": {
+            "subject_consistency": 0.9653875539457895,
+            "background_consistency": 0.9668180954650165
+          },
+          "candidate": {
+            "subject_consistency": 0.9351117109380117,
+            "background_consistency": 0.9415582151916938
+          },
+          "cosines": {
+            "dino": {
+              "mean": 0.8847789168357849,
+              "min": 0.7981574535369873,
+              "p05": 0.8222497254610062
+            },
+            "clip": {
+              "mean": 0.9208264350891113,
+              "min": 0.843837559223175,
+              "p05": 0.870898300409317
+            },
+            "clap": {
+              "mean": 0.06382762640714645,
+              "min": 0.06382762640714645,
+              "p05": 0.06382762640714645
+            }
+          },
+          "reduced_relative_error": 0.02874213896333196,
+          "audio_rms_db": -36.23827660321877,
+          "audio_envelope_relative_l2": 0.9866005095726371,
+          "motion_ratio": 5.481376339509837
+        }
+      },
+      "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+      "performance_acceptance": "separate"
+    }
+  ]
+}

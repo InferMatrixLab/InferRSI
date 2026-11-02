@@ -1,0 +1,62 @@
+{
+  "trial": "c11-sigma-fp32-quality-5s-00-7c7b2032",
+  "source_commit": "d4d25b420889965ab42459c96ab4a82389c9fa64",
+  "cache_configuration": {
+    "Fn_compute_blocks": 1,
+    "Bn_compute_blocks": 0,
+    "max_warmup_steps": 4,
+    "scm_steps_mask_policy": null,
+    "residual_diff_threshold": 0.08,
+    "max_continuous_cached_steps": 3,
+    "enable_taylorseer": false,
+    "minimax_h3_sigma_cache": true
+  },
+  "latency_diagnostic_ms": 169512.50694599003,
+  "clean_timing": false,
+  "input_checks_passed": 134,
+  "cleanup_passed": true,
+  "actual_middle_counts_by_rank": [
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    },
+    {
+      "computed": 22,
+      "predicted": 28,
+      "history_vetoes": 0
+    }
+  ],
+  "quality_contract_sha256": "b8fd9e634e6db5ebfbce3842f3360f1b2241a08119953ee71bfc26553dbbafed",
+  "quality_verdict": "FAIL",
+  "observed_checks": 39,
+  "observed_failures": [
+    "5s-00:audio_caption_clap_cosine: adherence"
+  ],
+  "missing_samples": [
+    "5s-01",
+    "5s-02",
+    "5s-03",
+    "5s-04",
+    "15s-00",
+    "15s-01",
+    "15s-02",
+    "15s-03",
+    "15s-04"
+  ],
+  "audio_caption_clap_cosine": 0.0498393215239048,
+  "media_sha256": "0d48934b0fec90326ae505deae54ce26a5f03733eaf0bca2e2fb5d13202c518b",
+  "features_sha256": "ff0b426c3e791ea782bf1d00cf2859f71678fd8c42289533f8f6f2842369133a",
+  "decision": "Reject5s-00 for frozenadherencefailure. No further predictorgrid. 15s requires independent qualification.",
+  "performance_acceptance": "PENDING; no clean pairedgain"
+}

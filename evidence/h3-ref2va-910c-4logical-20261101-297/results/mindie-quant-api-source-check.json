@@ -1,0 +1,10 @@
+{
+  "installed_label": "3.1.0",
+  "installed_source_revision": "UNKNOWN",
+  "installed_quant_attention_export_and_file": false,
+  "private_source_commit": "ee3920f9cd61030b90e5dcb1a0a432e52810251d",
+  "public_api_introduction_commit": "76f8761794a0837f4fae3b5efbe52ccdd9847816",
+  "public_api_introduction_date": "2026-09-14",
+  "source": "https://github.com/Ascend/MindIE-SD/commit/76f8761794a0837f4fae3b5efbe52ccdd9847816",
+  "decision": "The API exists in dev; a version label alone does not establish wheel contents or 910C native support."
+}
