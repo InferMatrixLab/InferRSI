@@ -20,9 +20,12 @@ DEFAULT_MODEL = "deepseek-flash"
 MAX_SOURCE_BYTES = 48_000
 MAX_NOTES_BYTES = 20_000
 MAX_RESPONSE_BYTES = 131_072
+MAX_OUTPUT_TOKENS = 3200
 MAX_COMMITS = 100
 FALLBACK = "AI release overview unavailable; using GitHub-generated notes."
 INSTRUCTIONS = """Write a concise English Markdown overview of this software release.
+Use at most six bullet points and at most 250 words of prose in total. Include
+no more than one supplied commit link per bullet point.
 Use only the supplied source data, grouped under ## Features, ## Fixes and
 ## Compatibility; omit empty groups. Explain concrete user-visible changes and
 link the relevant supplied commits. Do not invent performance, quality, PASS,
@@ -233,7 +236,7 @@ def generate(source: str, model: str, key: str, base_url: str = DEFAULT_BASE_URL
     if not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,99}", model):
         raise ValueError("Invalid model identity")
     payload = {"model": model, "instructions": INSTRUCTIONS, "input": source,
-               "store": False, "max_output_tokens": 1600}
+               "store": False, "max_output_tokens": MAX_OUTPUT_TOKENS}
     if endpoint == "https://api.deepseek.com/responses":
         payload["reasoning"] = {"effort": "none"}
     request = urllib.request.Request(

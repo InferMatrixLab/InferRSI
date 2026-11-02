@@ -273,7 +273,7 @@ def test_completed_mixed_output_items_make_one_bounded_markdown_file(invocation,
     assert request.full_url == "https://api.deepseek.com/responses"
     assert payload["model"] == "deepseek-flash" and payload["store"] is False
     assert payload["reasoning"] == {"effort": "none"}
-    assert payload["max_output_tokens"] == 1600
+    assert payload["max_output_tokens"] == 3200
     assert "temperature" not in payload and "tools" not in payload
     assert KEY not in request.data.decode()
     assert "untrusted" in payload["instructions"]
