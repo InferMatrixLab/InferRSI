@@ -581,3 +581,9 @@ NOASSERTION and InferRSI's repository license.
 | Resource context | Stage / scoped question | Canonical owner | Evidence boundary |
 | --- | --- | --- | --- |
 | Accelerator (methodology only) | Verify: same-model/budget/scope controls, independent complete-output correctness, released versus repaired counts and workspace/stream/cache timing contracts | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json); JustGoal repo + paired paper | Source-derived candidate support for benchmark verification only. Author-reported results; native/device/performance not_run, efficacy not_evaluated. No new hardware implementation, measured resource coverage, backend compatibility or RAM/Storage/Network/OS coverage; no full campaign runner. |
+
+## AutoTuneBench trial-validity guidance (source-derived)
+
+| Resource context | Stage / scoped question | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator (methodology only) | Verify: trace treatment to the eligible consumer, apply frozen arm validity before interpreting a null, and separate declared protocol, reached checks and persisted gate evidence | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json); AutoTuneBench repo + paired paper | Source-derived candidate / empirical not_run; paper measurements remain author-reported, efficacy not_evaluated. Contextual source bars are not InferRSI defaults. No new implementation, measured hardware/resource coverage, backend compatibility, or RAM/Storage/Network/OS coverage. |
