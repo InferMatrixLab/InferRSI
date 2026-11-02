@@ -588,6 +588,12 @@ NOASSERTION and InferRSI's repository license.
 | --- | --- | --- | --- |
 | Accelerator (methodology only) | Verify: trace treatment to the eligible consumer, apply frozen arm validity before interpreting a null, and separate declared protocol, reached checks and persisted gate evidence | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json); AutoTuneBench repo + paired paper | Source-derived candidate / empirical not_run; paper measurements remain author-reported, efficacy not_evaluated. Contextual source bars are not InferRSI defaults. No new implementation, measured hardware/resource coverage, backend compatibility, or RAM/Storage/Network/OS coverage. |
 
+## Xe-Forge trial-evidence guidance (source-derived)
+
+| Resource | Stage and mechanism | Source and owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator (methodology only) | Verify: bind saved candidate and comparator identities, distinguish tool origin from resolved performance, inspect host gate/ratio persistence, and follow manual versus measured-only delivery and baseline-oracle boundaries | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-trial-evidence.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/xeforge-source.json); Xe-Forge repo + paired paper | Source-derived candidate / empirical not_run; paper/README results remain author-reported, efficacy not_evaluated. No new implementation, measured hardware/resource coverage, backend compatibility, whole-model/service promotion or RAM/Storage/Network/OS coverage; draft extensions remain proposals. |
+
 ## TorchNPU framework source procedures
 
 | Resource | Stage / mechanism | Canonical owner | Evidence boundary |
