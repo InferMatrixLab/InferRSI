@@ -48,6 +48,13 @@ relates KV loading time to saved prefill work. Its paper-specific inequality
 screens a candidate; current cache validity, effective rates, exposed costs and
 service outcomes still require evidence.
 
+For throughput-oriented offline inference with CPU/disk offload, use the
+[FlexGen feasibility comparison](references/flexgen-offload-feasibility.md) to
+check joint weights/KV/activation placement, resident plus working-memory peaks,
+and exposed transfer/CPU costs against the latency objective. Its fitted,
+overlap-dependent prediction is separate from the L1 helper and requires
+current resource and execution evidence before a throughput recommendation.
+
 **FLOPs per forward pass:**
 
 For a linear projection of shape (batch × seq, in_channels, out_channels):
