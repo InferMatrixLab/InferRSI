@@ -1,11 +1,13 @@
 """Dashboard aggregation uses recorded evidence and keeps missing data explicit."""
 
+import hashlib
 import json
 from pathlib import Path
 
 import pytest
 
-from inferrsi.harness.dashboard import write_dashboard
+from inferrsi.harness import dashboard_data
+from inferrsi.harness.dashboard import _bounded_chain, _chart, write_dashboard
 from inferrsi.harness.dashboard_data import load_dashboard
 from inferrsi.harness.dashboard_timeline import temporal_chart
 
@@ -21,9 +23,19 @@ def run(root: Path, name: str, gain: float, *, quality: str, verified: bool) -> 
         "model": "example-model", "model_revision": "example-revision",
         "workload_id": "example-workload", "scenario": "http", "backend": "cuda",
         "comparison_scope": "http_e2e", "baseline_command": ["python", "bench.py"],
-        "device_ids": ["0"],
+        "validation_command": ["python", "validate.py"], "device_ids": ["0"],
     })
     write_json(directory / "repositories.lock.json", {"baseline": {"snapshot_hash": "a" * 64}})
+    write_json(directory / "environment.json", {
+        "host": {"platform": "synthetic-os"},
+        "target_python": {"environment": {"python": "synthetic-python", "packages": {
+            "vllm": "synthetic-version", "torch": "synthetic-version",
+        }}},
+        "device": {"status": "available", "selection_verified": True, "devices": [{
+            "index": "0", "uuid": "synthetic-device", "name": "synthetic-gpu",
+            "driver_version": "synthetic-driver",
+        }]},
+    })
     write_json(directory / "status.json", {"state": "completed", "run_dir": "/private/run"})
     write_json(directory / "evaluation.json", {
         "verdict": "PASS", "metric_key": "throughput", "metric_unit": "tokens/s",
@@ -145,6 +157,61 @@ def test_campaign_does_not_compare_different_baseline_snapshots(tmp_path):
     assert load_dashboard(tmp_path)["overview"]["comparison_state"] == "incompatible"
 
 
+@pytest.mark.parametrize("field", ["device", "model", "driver", "runtime", "validator",
+                                    "missing_environment", "unsupported_backend"])
+def test_campaign_does_not_compare_different_or_unverified_environments(tmp_path, field):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    for name in ("a", "b"):
+        run(tmp_path, name, 5, quality="completed", verified=True)
+        candidate(tmp_path, name, name)
+    environment_path = tmp_path / "runs/b/environment.json"
+    environment = json.loads(environment_path.read_text(encoding="utf-8"))
+    if field == "device":
+        environment["device"]["devices"][0]["uuid"] = "different-synthetic-device"
+    elif field == "model":
+        environment["device"]["devices"][0]["name"] = "different-synthetic-gpu"
+    elif field == "driver":
+        environment["device"]["devices"][0]["driver_version"] = "different-driver"
+    elif field == "runtime":
+        environment["target_python"]["environment"]["packages"]["vllm"] = "different-version"
+    elif field in ("validator", "unsupported_backend"):
+        lock = tmp_path / "runs/b/run.lock.json"
+        data = json.loads(lock.read_text(encoding="utf-8"))
+        if field == "validator":
+            data["validation_command"] = ["python", "other-validator.py"]
+        else:
+            data["backend"] = "cpu"
+        write_json(lock, data)
+    if field == "missing_environment":
+        environment_path.unlink()
+    else:
+        write_json(environment_path, environment)
+
+    view = load_dashboard(tmp_path)
+
+    assert view["overview"]["comparison_state"] == (
+        "unverified" if field in ("missing_environment", "unsupported_backend") else "incompatible"
+    )
+    assert view["overview"]["best_improvement_pct"] is None
+    assert "synthetic-device" not in json.dumps(view)
+
+
+@pytest.mark.parametrize("state,verdict", [("running", "PASS"), ("completed", "INCONCLUSIVE")])
+def test_unfinished_or_inconclusive_run_is_not_marked_improved(tmp_path, state, verdict):
+    run(tmp_path, "a", 10, quality="completed", verified=True)
+    write_json(tmp_path / "runs/a/status.json", {"state": state})
+    evaluation = tmp_path / "runs/a/evaluation.json"
+    data = json.loads(evaluation.read_text(encoding="utf-8"))
+    data["verdict"] = verdict
+    write_json(evaluation, data)
+
+    row = load_dashboard(tmp_path / "runs/a")["candidates"][0]
+
+    assert row["outcome"] == "unverified"
+    assert row["state"] == state
+    assert row["verdict"] == verdict
+
+
 def test_unmeasured_failed_candidate_does_not_hide_other_recorded_gains(tmp_path):
     write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
     run(tmp_path, "a", 5, quality="completed", verified=True)
@@ -193,6 +260,113 @@ def test_unsafe_and_mismatched_artifact_refs_are_not_followed(tmp_path):
     assert refs["a"]["missing_reason"] == "unsafe_path"
     assert refs["b"]["missing_reason"] == "hash_mismatch"
     assert "private contents" not in json.dumps(view)
+
+
+def test_trace_requires_matching_correlation_and_unknown_events_do_not_cover_a_stage(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "campaign"})
+    run(tmp_path, "run-a", 1, quality="completed", verified=True)
+    trace = tmp_path / "candidates/a/agent_trace.jsonl"
+    trace.parent.mkdir(parents=True)
+    common = {"schema_version": 1, "campaign_id": "campaign", "candidate_id": "a",
+              "run_id": "run-a", "round": 1, "stage": "search",
+              "time": "2026-01-01T00:00:00Z"}
+    records = [
+        {**common, "type": "agent.request"},
+        {**common, "type": "agent.tool", "candidate_id": "other"},
+        {"type": "agent.tool", "stage": "validation"},
+        {**common, "type": "unknown", "stage": "validation"},
+    ]
+    trace.write_text("".join(json.dumps(item) + "\n" for item in records), encoding="utf-8")
+    candidate(tmp_path, "a", "run-a", round=1, agent_trace_ref={
+        "path": "candidates/a/agent_trace.jsonl",
+        "sha256": hashlib.sha256(trace.read_bytes()).hexdigest(),
+    })
+
+    view = load_dashboard(tmp_path)
+    row = view["candidates"][0]
+
+    assert row["agent_trace_links"] == {"unlinked": [3], "mismatched": [2]}
+    assert [event["line"] for event in row["unlinked_agent_events"]] == [3]
+    assert row["artifacts"]["tool_calls"]["state"] == "missing"
+    assert [event["line"] for event in row["events"]] == [1, 4]
+    assert next(stage for stage in view["stages"] if stage["name"] == "validation")["state"] == (
+        "stage_not_recorded"
+    )
+
+
+def test_trace_explicit_refs_are_checked_and_displayed(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "campaign"})
+    run(tmp_path, "run-a", 1, quality="completed", verified=True)
+    profile = tmp_path / "profile.json"
+    profile.write_text('{"synthetic":true}', encoding="utf-8")
+    profile_hash = hashlib.sha256(profile.read_bytes()).hexdigest()
+    trace = tmp_path / "candidates/a/agent_trace.jsonl"
+    trace.parent.mkdir(parents=True)
+    event = {"type": "agent.tool", "schema_version": 1, "campaign_id": "campaign",
+             "candidate_id": "a", "run_id": "run-a", "round": 1, "stage": "search",
+             "time": "2026-01-01T00:00:00Z", "refs": [
+                 {"kind": "profile", "path": "profile.json", "sha256": profile_hash},
+                 {"kind": "log", "path": "../private", "sha256": "0" * 64},
+             ]}
+    trace.write_text(json.dumps(event) + "\n", encoding="utf-8")
+    candidate(tmp_path, "a", "run-a", round=1, agent_trace_ref={
+        "path": "candidates/a/agent_trace.jsonl",
+        "sha256": hashlib.sha256(trace.read_bytes()).hexdigest(),
+    })
+
+    refs = load_dashboard(tmp_path)["candidates"][0]["events"][0]["refs"]
+
+    assert any(ref.get("kind") == "profile" and ref.get("sha256") == profile_hash for ref in refs)
+    assert any(ref.get("kind") == "log" and ref.get("missing_reason") == "unsafe_path"
+               for ref in refs)
+
+
+def test_record_hash_matches_bytes_used_for_rendering_even_if_file_changes(tmp_path, monkeypatch):
+    write_json(tmp_path / "run.lock.json", {})
+    status = tmp_path / "status.json"
+    old = b'{"state":"completed"}'
+    status.write_bytes(old)
+    original = dashboard_data._snapshot
+
+    def changing_snapshot(root, path, kind):
+        data, ref = original(root, path, kind)
+        if path == status:
+            status.write_text('{"state":"failed"}', encoding="utf-8")
+        return data, ref
+
+    monkeypatch.setattr(dashboard_data, "_snapshot", changing_snapshot)
+    row = load_dashboard(tmp_path)["candidates"][0]
+
+    assert row["state"] == "completed"
+    assert row["artifacts"]["status"]["sha256"] == hashlib.sha256(old).hexdigest()
+
+
+def test_trace_changed_after_reference_check_is_not_linked(tmp_path, monkeypatch):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "campaign"})
+    run(tmp_path, "run-a", 1, quality="completed", verified=True)
+    trace = tmp_path / "candidates/a/agent_trace.jsonl"
+    trace.parent.mkdir(parents=True)
+    event = {"type": "agent.tool", "schema_version": 1, "campaign_id": "campaign",
+             "candidate_id": "a", "run_id": "run-a", "round": 1, "stage": "search",
+             "time": "2026-01-01T00:00:00Z"}
+    trace.write_text(json.dumps(event) + "\n", encoding="utf-8")
+    candidate(tmp_path, "a", "run-a", round=1, agent_trace_ref={
+        "path": "candidates/a/agent_trace.jsonl",
+        "sha256": hashlib.sha256(trace.read_bytes()).hexdigest(),
+    })
+    original = dashboard_data._snapshot
+
+    def changing_snapshot(root, path, kind):
+        if path == trace:
+            trace.write_text(json.dumps({**event, "candidate_id": "other"}) + "\n",
+                             encoding="utf-8")
+        return original(root, path, kind)
+
+    monkeypatch.setattr(dashboard_data, "_snapshot", changing_snapshot)
+    row = load_dashboard(tmp_path)["candidates"][0]
+
+    assert row["artifacts"]["agent_trace"]["missing_reason"] == "hash_mismatch"
+    assert not any(event["source"] == "agent_trace" for event in row["events"])
 
 
 def test_run_symlink_outside_campaign_is_not_read(tmp_path):
@@ -294,6 +468,53 @@ def test_unbounded_chart_axis_is_rejected(tmp_path):
     assert 'No measured candidate results recorded.' in html
 
 
+def test_branch_chart_preserves_large_latency_regression(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    run(tmp_path, "a", -200, quality="completed", verified=True)
+    candidate(tmp_path, "a", "a", title="large-regression")
+    evaluation = tmp_path / "runs/a/evaluation.json"
+    data = json.loads(evaluation.read_text(encoding="utf-8"))
+    data["direction"] = "minimize"
+    write_json(evaluation, data)
+
+    svg, _ = _chart(tmp_path, load_dashboard(tmp_path))
+
+    assert "large-regression" in svg
+    assert "-200" in svg
+
+
+@pytest.mark.parametrize("point,step", [(1.0000000000000002, 1e-17), (1.0, 1e-100)])
+def test_chain_axis_cannot_stall_or_expand_from_float_rounding(point, step):
+    assert not _bounded_chain({
+        "layout": "chain", "baseline": {"metrics": {"gain": 1}},
+        "metrics": [{"key": "gain"}], "axis": {"step": step},
+        "points": [{"phase": "a", "label": "x", "values": {"gain": point}}],
+    })
+
+
+def test_export_does_not_overwrite_evidence_or_follow_output_symlinks(tmp_path):
+    write_json(tmp_path / "run.lock.json", {})
+    evidence = tmp_path / "evaluation.json"
+    evidence.write_text('{"verdict":"PASS"}', encoding="utf-8")
+    with pytest.raises(ValueError, match="non-dashboard"):
+        write_dashboard(tmp_path, evidence)
+    assert evidence.read_text(encoding="utf-8") == '{"verdict":"PASS"}'
+    output = tmp_path / "dashboard.html"
+    try:
+        output.symlink_to(evidence)
+    except OSError:
+        pytest.skip("file symlinks are unavailable")
+    with pytest.raises(ValueError, match="symbolic link"):
+        write_dashboard(tmp_path)
+    assert evidence.read_text(encoding="utf-8") == '{"verdict":"PASS"}'
+
+
+def test_dashboard_can_be_regenerated(tmp_path):
+    write_json(tmp_path / "run.lock.json", {})
+    output = write_dashboard(tmp_path)
+    assert write_dashboard(tmp_path) == output
+
+
 def test_time_chart_uses_terminal_events_and_marks_quality_failure_and_missing_values(tmp_path):
     write_json(tmp_path / "campaign.json", {
         "campaign_id": "example", "goal": {"target_improvement_pct": 20},
@@ -346,7 +567,7 @@ def test_time_chart_does_not_invent_timestamps_or_compare_incompatible_runs(tmp_
     svg, note = temporal_chart(load_dashboard(tmp_path))
 
     assert 'data-kind="marker-improved"' not in svg
-    assert 'Incompatible candidate measurements are not plotted together' in note
+    assert 'incompatible candidate measurements are not plotted together' in note
     (tmp_path / "runs/a/events.jsonl").write_text('{"phase":"complete"}\n', encoding="utf-8")
     (tmp_path / "runs/b/events.jsonl").write_text('{"phase":"complete"}\n', encoding="utf-8")
     assert temporal_chart(load_dashboard(tmp_path))[0] == ""
@@ -364,3 +585,22 @@ def test_time_chart_escapes_untrusted_candidate_labels(tmp_path):
 
     assert '<script>' not in svg
     assert '&lt;script&gt;' in svg
+
+
+def test_time_chart_marks_quality_failure_and_rollback_without_measurement(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    run(tmp_path, "a", 1, quality="failed", verified=True)
+    (tmp_path / "runs/a/evaluation.json").unlink()
+    candidate(tmp_path, "a", "a", round=1)
+    (tmp_path / "runs/a/events.jsonl").write_text(
+        '{"time":"2026-01-01T00:00:00Z","phase":"complete"}\n', encoding="utf-8"
+    )
+    (tmp_path / "rounds.jsonl").write_text(json.dumps({
+        "round": 1, "decision": {"candidate_id": "a", "outcome": "rolled_back"},
+    }) + "\n", encoding="utf-8")
+
+    svg, _ = temporal_chart(load_dashboard(tmp_path))
+
+    assert 'data-kind="marker-quality_failed"' in svg
+    assert 'data-kind="marker-rollback"' in svg
+    assert 'no numeric result' in svg

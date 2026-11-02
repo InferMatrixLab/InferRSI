@@ -83,6 +83,9 @@ optional `stage` field (`diagnosis`, `knowledge`, `search`, `execution`,
 `inferrsi.harness.campaign_trace.CampaignTrace` instance as its existing event
 callback; it appends the original event with time and caller-supplied IDs. The
 caller associates the completed trace with `agent_trace_ref` using its SHA-256.
+The dashboard links an event to a run only when its campaign, candidate, run,
+round and stage envelope is complete and matches. Legacy or mismatched events
+remain visibly unlinked and do not count as stage coverage or tool calls.
 The callback does not allocate IDs or intercept unrelated agents. Existing runner phases are mapped to execution and
 validation. The dashboard reads allowlisted event metadata; it does not include
 raw agent requests, arbitrary event messages, environment data, or raw logs.
@@ -110,9 +113,12 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   and no recorded rollback. Successful validation
   covers only that command, not untested quality properties.
 - Multiple measured runs are summarized together only when their declared model,
-  model revision, workload, scenario, backend, device IDs, baseline source
-  snapshot and command, comparison scope, metric, unit and direction agree.
-  Otherwise the aggregate and shared chart are withheld.
+  model revision, workload, scenario, backend, verified physical CUDA device,
+  driver, host platform, target Python/packages, baseline source snapshot,
+  baseline and validation commands, comparison scope, metric, unit and direction
+  agree. Otherwise the aggregate and shared chart are withheld. Private device
+  identity is used only for the comparison and is not included in the export.
+  Cross-run comparison for other device backends is currently withheld.
 - Noise uses the campaign's declared band, or the larger recorded trial range
   when no band is supplied. It is descriptive; statistical significance is not
   established.
@@ -126,6 +132,7 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   differ across candidates are not represented as one shared band.
 - The review button creates a local Markdown download and displays its content
   for copying if a browser blocks downloads. It does not send or publish it.
+- Existing non-dashboard files and symbolic-link outputs are never overwritten.
 
 ## Privacy
 

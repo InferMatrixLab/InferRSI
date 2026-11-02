@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="generator" content="InferRSI dashboard">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; img-src data:;">
 <title>InferRSI · Optimization dashboard</title>
@@ -49,6 +50,7 @@ main { max-width:1600px; margin:auto; padding:0 18px 28px; }
 th, td { border-bottom:1px solid #292e36; padding:7px 10px; white-space:nowrap; }
 th { color:var(--muted); font-size:11px; font-weight:500; background:#1d2026; }
 tbody tr.selected { background:#233047; } td button { background:none; border:0; padding:0; color:#a9caff; text-align:left; }
+.diagnostic-button { background:none; border:0; padding:0; color:#a9caff; font-weight:600; text-align:left; }
 .pill { display:inline-block; border:1px solid #596170; border-radius:2px; padding:1px 6px; font-size:11px; }
 .pill.good { color:var(--green); border-color:var(--green); } .pill.bad { color:var(--red); border-color:var(--red); }
 .pill.warn { color:var(--orange); border-color:var(--orange); } .pill.missing { border-style:dashed; color:#ff9ba7; }
@@ -98,7 +100,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       <section class="panel"><div class="panel-head"><h2>Stage coverage</h2><small>Recorded events; not a time axis</small></div>
         <div class="scroll"><div id="timeline" class="timeline"></div></div></section>
       <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
-        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
+        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
         <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p></section>
     </div>
     <div class="stack">
@@ -123,7 +125,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const byId = id => document.getElementById(id);
   const stageNames = {diagnosis:'Diagnosis', knowledge:'Knowledge', search:'Candidate search', execution:'Execution', validation:'Validation', review:'Review'};
   const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
-  let selected = null;
+  let selected = null, jumpNotice = '';
   const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
   const clear = el => { while (el.firstChild) el.removeChild(el.firstChild); };
   const option = (parent, value, text) => { const el = node('option', text); el.value = value; parent.appendChild(el); };
@@ -155,7 +157,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const root=byId('stats'); clear(root); const rows=data.candidates, o=data.overview;
     const missing=rows.flatMap(missingRefs).length;
     const figures=[
-      ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'incompatible' ? 'Incompatible workloads' : 'Quality and source checks required','green'],
+      ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'incompatible' ? 'Incompatible records' : o.comparison_state === 'unverified' ? 'Comparison evidence missing or unsupported' : 'Quality and source checks required','green'],
       ['Target gap',value(o.target_gap_pct,' pp'),o.target_improvement_pct === null ? 'Target not recorded' : `Target ${value(o.target_improvement_pct,'%')}`,'orange'],
       ['Candidate / run views',rows.length ? String(rows.length) : 'Not recorded','Recorded candidate or run views',''],
       ['Within noise',rows.some(r=>['noise','improved','regressed'].includes(r.outcome)) ? String(rows.filter(r => r.outcome === 'noise').length) : 'Not recorded','Uses recorded noise band','orange'],
@@ -172,7 +174,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       button.type='button'; button.setAttribute('aria-pressed',String(stageSelect.value === stage.name));
       button.appendChild(node('strong',`${index+1} ${stageNames[stage.name]}`));
       button.appendChild(node('span',stage.state.replaceAll('_',' ')));
-      button.addEventListener('click',()=>{stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
+      button.addEventListener('click',()=>{jumpNotice='';stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
     }
   }
   function renderTimeline(visible) {
@@ -185,8 +187,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(!visible.some(x=>x.index===selected)) selected=visible.length ? visible[0].index : null;
     for(const {row,index} of visible){const tr=node('tr');if(index===selected)tr.className='selected';
       const cell=(text)=>{const td=node('td',text);tr.appendChild(td);return td;};
-      cell(row.round === null ? 'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.addEventListener('click',()=>{selected=index;render();});title.appendChild(btn);
-      cell(row.run_id || 'Not recorded');cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));const outcome=cell();outcome.appendChild(pill(row.outcome));if(row.decision==='rolled_back')outcome.appendChild(pill(row.decision));
+      cell(row.round === null ? 'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);
+      cell(row.run_id || 'Not recorded');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
       const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
   }
   function renderDetail() {
@@ -194,15 +196,19 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(selected === null){byId('trace-title').textContent='No selection';item(trace,'NOT RECORDED','No matching candidate.');item(evidence,'NOT RECORDED');return;}
     const row=data.candidates[selected];byId('trace-title').textContent=identity(row,selected);
     const events=row.events.filter(e=>!stageSelect.value || e.stage===stageSelect.value);
+    if(jumpNotice)item(trace,'TRACE LOCATION',jumpNotice);
     if(!events.length)item(trace,'NOT RECORDED','No events for this stage.');
-    for(const event of events){const name=event.type || event.phase || 'unclassified event';const details=[event.time,event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const refs=event.refs.map(refText).join(' | ');item(trace,`${event.source}:${event.line} · ${name}`,details,refs);}
+    for(const event of events){const name=event.type || event.phase || 'unclassified event';const details=[event.time,event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const refs=event.refs.map(refText).join(' | ');const entry=item(trace,`${event.source}:${event.line} · ${name}`,details,refs);entry.id=`trace-${event.source}-${event.line}`;}
     if(row.artifacts.tool_calls.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
+    if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
+    if(row.agent_trace_links.mismatched.length)item(trace,'MISMATCHED AGENT EVENTS',`Lines ${row.agent_trace_links.mismatched.join(', ')}`).classList.add('missing-item');
+    for(const event of row.unlinked_agent_events){const detail=[event.time,event.stage].filter(Boolean).join(' · ');item(trace,`UNLINKED agent_trace:${event.line} · ${event.type || 'unclassified event'}`,detail,event.refs.map(refText).join(' | ')).classList.add('missing-item');}
     if(row.corrupt_event_lines.length)item(trace,'CORRUPT EVENT LINES',row.corrupt_event_lines.join(', '));
     for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
   }
-  function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics)item(root,d.kind.replaceAll('_',' '),d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));}
+  function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
   function render(){const visible=filtered();renderWorkflow();renderTimeline(visible);renderRows(visible);renderDetail();}
-  for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',render);
+  for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
   const redact = text => text.replace(/https?:\/\/\S+/gi,'[redacted-url]').replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/g,'[redacted-email]').replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,'[redacted-address]').replace(/\b[A-Za-z]:[\\/][^\s]+/g,'[redacted-path]').replace(/(^|\s)\/(?:[^\s/]+\/)*[^\s]+/g,'$1[redacted-path]').replace(/\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+/gi,'$1=[redacted]');
   byId('export').addEventListener('click',()=>{const row=selected===null?null:data.candidates[selected];const refs=row?Object.values(row.artifacts).map(refText).join('\n- '):'Not recorded';const events=row?row.events.filter(e=>!stageSelect.value || e.stage===stageSelect.value).map(e=>`${e.source}:${e.line}`).join(', '):'';const feedback=redact(`# InferRSI review\n\nCampaign: ${data.campaign_id}\nRound: ${row && row.round!==null?row.round:'Not recorded'}\nCandidate: ${row?identity(row,selected):'Not recorded'}\nStage: ${stageSelect.value || 'all'}\nTrace: ${events || 'Not recorded'}\n\n## Findings and recommendation\n\n${byId('feedback').value || 'Not recorded'}\n\n## Evidence references\n\n- ${refs}\n`);const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
   renderStats();renderDiagnostics();render();

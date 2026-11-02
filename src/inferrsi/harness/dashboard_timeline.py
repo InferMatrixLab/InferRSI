@@ -127,7 +127,8 @@ def temporal_chart(view: dict) -> tuple[str, str]:
         gain, outcome = row["improvement_pct"], row["outcome"]
         if gain is not None and not comparable:
             continue
-        if gain is None and outcome != "failed":
+        if gain is None and outcome not in ("failed", "quality_failed") \
+                and row["decision"] != "rolled_back":
             continue
         px, py = x(stamp), y(gain) if gain is not None else 242
         label = f'{row["title"]}: {outcome.replace("_", " ")}'
@@ -157,14 +158,17 @@ def temporal_chart(view: dict) -> tuple[str, str]:
         px = x(stamp)
         svg.append(f'<line x1="{px:.1f}" x2="{px:.1f}" y1="394" y2="399" '
                    'stroke="#8e98a6"/>')
-        label = datetime.fromtimestamp(stamp, timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
+        try:
+            label = datetime.fromtimestamp(stamp, timezone.utc).strftime("%Y-%m-%d %H:%M:%SZ")
+        except (ValueError, OverflowError, OSError):
+            return "", "Recorded timestamps exceed the supported time-chart range."
         text(max(left, min(px - 60, right - 120)), 416, label)
     svg.append('</svg>')
     note = "Terminal events place results; stage dots are events, not durations."
     if untimed_results:
         note += f" {untimed_results} result(s) have no recorded terminal timestamp."
     if not comparable:
-        note += " Incompatible candidate measurements are not plotted together."
+        note += " Unverified or incompatible candidate measurements are not plotted together."
     elif measured and noise is None:
         note += " No common noise band recorded."
     return "".join(svg), note

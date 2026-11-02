@@ -56,16 +56,40 @@ def _inside(root: Path, path: Path) -> bool:
         return False
 
 
-def _object(path: Path, root: Path) -> tuple[dict, str]:
-    if not _inside(root, path):
-        return {}, "unsafe"
+def _snapshot(root: Path, path: Path, kind: str) -> tuple[bytes | None, dict]:
     try:
-        data = json.loads(path.read_text(encoding="utf-8"))
+        relative = path.resolve().relative_to(root.resolve()).as_posix()
+    except (OSError, ValueError):
+        return None, {"kind": kind, "state": "missing", "missing_reason": "unsafe_path"}
+    try:
+        data = path.read_bytes()
     except FileNotFoundError:
-        return {}, "missing"
-    except (OSError, UnicodeError, json.JSONDecodeError):
-        return {}, "corrupt"
-    return (data, "present") if isinstance(data, dict) else ({}, "corrupt")
+        return None, {"kind": kind, "path": relative, "state": "missing",
+                      "missing_reason": "file_absent"}
+    except OSError:
+        return None, {"kind": kind, "path": relative, "state": "missing",
+                      "missing_reason": "unreadable"}
+    return data, {"kind": kind, "path": relative, "state": "present",
+                  "sha256": hashlib.sha256(data).hexdigest()}
+
+
+def _object_snapshot(path: Path, root: Path, kind: str) -> tuple[dict, str, dict]:
+    raw, ref = _snapshot(root, path, kind)
+    if raw is None:
+        state = "unsafe" if ref["missing_reason"] == "unsafe_path" else "missing"
+        return {}, state, ref
+    try:
+        data = json.loads(raw.decode("utf-8"))
+        if not isinstance(data, dict):
+            raise ValueError("object required")
+    except (UnicodeError, json.JSONDecodeError, ValueError):
+        return {}, "corrupt", {**ref, "state": "missing", "missing_reason": "corrupt"}
+    return data, "present", ref
+
+
+def _object(path: Path, root: Path) -> tuple[dict, str]:
+    data, state, _ = _object_snapshot(path, root, "record")
+    return data, state
 
 
 def _file_ref(root: Path, path: Path, kind: str) -> dict:
@@ -115,15 +139,17 @@ def _explicit_ref(root: Path, value: object, kind: str) -> dict:
     return ref
 
 
-def _events(path: Path, root: Path) -> tuple[list[dict], list[int], str]:
-    if not _inside(root, path):
-        return [], [], "unsafe"
+def _events(path: Path, root: Path, expected: dict | None = None
+            ) -> tuple[list[dict], list[int], str, dict[str, list[int]], dict]:
+    unlinked = {"unlinked": [], "mismatched": []}
+    raw, ref = _snapshot(root, path, "events")
+    if raw is None:
+        state = "unsafe" if ref["missing_reason"] == "unsafe_path" else "missing"
+        return [], [], state, unlinked, ref
     try:
-        lines = path.read_text(encoding="utf-8").splitlines()
-    except FileNotFoundError:
-        return [], [], "missing"
-    except (OSError, UnicodeError):
-        return [], [], "corrupt"
+        lines = raw.decode("utf-8").splitlines()
+    except UnicodeError:
+        return [], [], "corrupt", unlinked, {**ref, "state": "missing", "missing_reason": "corrupt"}
     events, corrupt = [], []
     for line_number, line in enumerate(lines, 1):
         try:
@@ -133,12 +159,34 @@ def _events(path: Path, root: Path) -> tuple[list[dict], list[int], str]:
         except (json.JSONDecodeError, ValueError):
             corrupt.append(line_number)
             continue
+        link_state = "linked"
+        if expected is not None:
+            identity = {key: record.get(key) for key in (
+                "campaign_id", "candidate_id", "run_id", "round"
+            )}
+            valid = (type(record.get("schema_version")) is int
+                     and record["schema_version"] == 1
+                     and all(isinstance(identity[key], str) and identity[key]
+                             for key in ("campaign_id", "candidate_id", "run_id"))
+                     and type(identity["round"]) is int and identity["round"] > 0
+                     and record.get("stage") in STAGES
+                     and isinstance(record.get("time"), str) and bool(record["time"]))
+            if any(value is not None and expected[key] is not None and value != expected[key]
+                   for key, value in identity.items()):
+                unlinked["mismatched"].append(line_number)
+                continue
+            if not valid or any(value is None for value in expected.values()):
+                unlinked["unlinked"].append(line_number)
+                link_state = "unlinked"
         phase = record.get("phase")
         if phase not in (*PHASE_STAGES, "complete", "crashed"):
             phase = None
         kind = record.get("type")
         event_type = kind if isinstance(kind, str) and kind in EVENT_TYPES else None
-        stage = record.get("stage") if record.get("stage") in STAGES else PHASE_STAGES.get(phase)
+        stage = None
+        if phase is not None or event_type is not None:
+            stage = (record.get("stage") if record.get("stage") in STAGES
+                     else PHASE_STAGES.get(phase))
         time = record.get("time")
         if not isinstance(time, str) or not re.fullmatch(r"[0-9TtZz:+.\-]{10,40}", time):
             time = None
@@ -151,31 +199,78 @@ def _events(path: Path, root: Path) -> tuple[list[dict], list[int], str]:
             and 0 < trial <= 1_000_000 else None,
             "tool": record.get("name") if record.get("name") in ("read_file", "submit_answer")
             else None,
+            "_declared_refs": record.get("refs") if isinstance(record.get("refs"), list) else [],
+            "_link_state": link_state,
         })
-    return events, corrupt, "present"
+    return events, corrupt, "present", unlinked, ref
 
 
-def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: float | None) -> dict:
+def _environment_signature(environment: dict, devices: object, backend: object) -> tuple | None:
+    """Compare verified device/runtime identity privately; never expose it in the view."""
+    if backend != "cuda" or not isinstance(devices, list) or not devices:
+        return None
+    device = environment.get("device")
+    host = environment.get("host")
+    target = environment.get("target_python")
+    target = target.get("environment") if isinstance(target, dict) else None
+    if (not isinstance(device, dict) or device.get("status") != "available"
+            or device.get("selection_verified") is not True
+            or not isinstance(device.get("devices"), list)
+            or not isinstance(host, dict) or not isinstance(host.get("platform"), str)
+            or not host["platform"] or not isinstance(target, dict)
+            or not isinstance(target.get("python"), str) or not target["python"]
+            or not isinstance(target.get("packages"), dict)):
+        return None
+    packages = target["packages"]
+    if not all(isinstance(key, str) and (value is None or isinstance(value, str))
+               for key, value in packages.items()):
+        return None
+    if not all(isinstance(packages.get(key), str) and packages[key] for key in ("torch", "vllm")):
+        return None
+    selected = []
+    for identity in devices:
+        matches = [row for row in device["devices"] if isinstance(row, dict)
+                   and identity in (row.get("index"), row.get("uuid"))]
+        if len(matches) != 1:
+            return None
+        row = matches[0]
+        fields = tuple(row.get(key) for key in ("uuid", "name", "driver_version"))
+        if not all(isinstance(value, str) and value for value in fields):
+            return None
+        selected.append(fields)
+    return (host["platform"], target["python"], tuple(sorted(packages.items())), tuple(selected))
+
+
+def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: float | None,
+         campaign_id: object = None) -> dict:
     lock, _ = _object(path / "run.lock.json", root)
     repositories, _ = _object(path / "repositories.lock.json", root)
-    evaluation, evaluation_state = _object(path / "evaluation.json", root)
-    status, status_state = _object(path / "status.json", root)
-    validation, validation_state = _object(path / "validation" / "execution.json", root)
-    events, corrupt, event_state = _events(path / "events.jsonl", root)
+    environment, _ = _object(path / "environment.json", root)
+    evaluation, evaluation_state, evaluation_ref = _object_snapshot(
+        path / "evaluation.json", root, "evaluation"
+    )
+    status, status_state, status_ref = _object_snapshot(path / "status.json", root, "status")
+    validation, validation_state, quality_ref = _object_snapshot(
+        path / "validation" / "execution.json", root, "quality"
+    )
+    events, corrupt, event_state, _, events_ref = _events(path / "events.jsonl", root)
     refs = {
-        "events": _file_ref(root, path / "events.jsonl", "events"),
-        "evaluation": _file_ref(root, path / "evaluation.json", "evaluation"),
-        "status": _file_ref(root, path / "status.json", "status"),
-        "quality": _file_ref(root, path / "validation" / "execution.json", "quality"),
+        "events": events_ref,
+        "evaluation": evaluation_ref,
+        "status": status_ref,
+        "quality": quality_ref,
         "agent_trace": _explicit_ref(root, candidate.get("agent_trace_ref"), "agent_trace"),
         "profile": _explicit_ref(root, candidate.get("profile_ref"), "profile"),
     }
-    for key, parse_state in (("evaluation", evaluation_state), ("status", status_state),
-                             ("quality", validation_state), ("events", event_state)):
-        if parse_state in {"corrupt", "unsafe"}:
-            refs[key] = {**refs[key], "state": "missing", "missing_reason":
-                         "unsafe_path" if parse_state == "unsafe" else "corrupt"}
+    def attach_declared(event: dict) -> None:
+        for item in event.pop("_declared_refs", []):
+            kind = item.get("kind") if isinstance(item, dict) else None
+            if not isinstance(kind, str) or not re.fullmatch(r"[A-Za-z0-9_-]{1,40}", kind):
+                kind = "artifact"
+            event["refs"].append(_explicit_ref(root, item, kind))
+
     for event in events:
+        event.pop("_link_state", None)
         event["source"] = "events"
         event["refs"] = [refs["events"]]
         if event["phase"] == "measurement" and event["side"] and event["trial"]:
@@ -187,16 +282,33 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
             )
         elif event["phase"] == "quality_validation":
             event["refs"].append(refs["quality"])
+        attach_declared(event)
+    agent_links = {"unlinked": [], "mismatched": []}
+    unlinked_events = []
     if refs["agent_trace"]["state"] == "present":
-        agent_events, agent_corrupt, agent_state = _events(root / refs["agent_trace"]["path"], root)
-        if agent_state in {"corrupt", "unsafe"}:
+        expected = {"campaign_id": campaign_id, "candidate_id": candidate.get("candidate_id"),
+                    "run_id": run_id, "round": candidate.get("round")}
+        agent_events, agent_corrupt, agent_state, agent_links, agent_snapshot = _events(
+            root / refs["agent_trace"]["path"], root, expected
+        )
+        if (agent_state == "present" and
+                agent_snapshot.get("sha256") != refs["agent_trace"].get("sha256")):
+            agent_state = "changed"
+        if agent_state != "present":
             refs["agent_trace"] = {**refs["agent_trace"], "state": "missing",
                                    "missing_reason": "unsafe_path" if agent_state == "unsafe"
-                                   else "corrupt"}
+                                   else "hash_mismatch" if agent_state == "changed"
+                                   else "file_absent" if agent_state == "missing" else "corrupt"}
+            agent_events = []
+            agent_links = {"unlinked": [], "mismatched": []}
         for event in agent_events:
             event["source"] = "agent_trace"
             event["refs"] = [refs["agent_trace"]]
-        events.extend(agent_events)
+            attach_declared(event)
+            if event.pop("_link_state") == "unlinked":
+                unlinked_events.append(event)
+            else:
+                events.append(event)
         corrupt.extend(agent_corrupt)
     tool_events = [event for event in events if event["source"] == "agent_trace"
                    and event["type"] == "agent.tool"]
@@ -225,12 +337,16 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
     state = state_value if isinstance(state_value, str) and state_value in {
         "running", "completed", "failed", "crashed", "timeout", "cancelled", "termination_failed"
     } else "not_recorded"
+    verdict_value = evaluation.get("verdict")
+    verdict = verdict_value if verdict_value in ("PASS", "FAIL", "INCONCLUSIVE") else "not_recorded"
     if quality == "failed":
         outcome = "quality_failed"
     elif state in {"failed", "crashed", "timeout", "cancelled", "termination_failed"}:
         outcome = "failed"
     elif gain is None:
         outcome = "not_recorded"
+    elif state != "completed" or verdict not in ("PASS", "FAIL"):
+        outcome = "unverified"
     elif quality != "passed" or not verified:
         outcome = "unverified"
     elif noise is None:
@@ -246,13 +362,17 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
     repository = repositories.get("baseline")
     snapshot = repository.get("snapshot_hash") if isinstance(repository, dict) else None
     command, devices = lock.get("baseline_command"), lock.get("device_ids")
+    validator = lock.get("validation_command")
+    environment_signature = _environment_signature(environment, devices, lock.get("backend"))
     valid_sequences = all(
         isinstance(seq, list) and seq and all(isinstance(item, str) and item for item in seq)
-        for seq in (command, devices)
+        for seq in (command, devices, validator)
     )
-    signature = (tuple(signature_values) + (snapshot, tuple(command), tuple(devices))) if (
+    signature = (tuple(signature_values) + (snapshot, tuple(command), tuple(devices),
+                                              tuple(validator), environment_signature)) if (
         all(isinstance(value, str) and value for value in signature_values)
         and isinstance(snapshot, str) and snapshot and valid_sequences
+        and environment_signature is not None
     ) else None
     return {
         "candidate_id": _text(candidate_id) if isinstance(candidate_id, str) else None,
@@ -270,22 +390,22 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "metric_unit": _text(evaluation.get("metric_unit")),
         "direction": evaluation.get("direction")
         if evaluation.get("direction") in ("minimize", "maximize") else None,
-        "verdict": evaluation.get("verdict")
-        if evaluation.get("verdict") in ("PASS", "FAIL", "INCONCLUSIVE") else "not_recorded",
+        "verdict": verdict,
         "outcome": outcome, "events": events, "corrupt_event_lines": corrupt,
+        "agent_trace_links": agent_links, "unlinked_agent_events": unlinked_events,
         "artifacts": refs, "_comparison_signature": signature,
     }
 
 
-def _rounds(path: Path, root: Path) -> tuple[list[dict] | None, str, list[int]]:
-    if not _inside(root, path):
-        return None, "unsafe", []
+def _rounds(path: Path, root: Path) -> tuple[list[dict] | None, str, list[int], dict]:
+    raw, ref = _snapshot(root, path, "rounds")
+    if raw is None:
+        state = "unsafe" if ref["missing_reason"] == "unsafe_path" else "missing"
+        return None, state, [], ref
     try:
-        lines = path.read_text(encoding="utf-8").splitlines()
-    except FileNotFoundError:
-        return None, "missing", []
-    except (OSError, UnicodeError):
-        return None, "corrupt", []
+        lines = raw.decode("utf-8").splitlines()
+    except UnicodeError:
+        return None, "corrupt", [], {**ref, "state": "missing", "missing_reason": "corrupt"}
     result, corrupt = [], []
     for line_number, line in enumerate(lines, 1):
         try:
@@ -306,7 +426,7 @@ def _rounds(path: Path, root: Path) -> tuple[list[dict] | None, str, list[int]]:
             result.append(record)
         else:
             corrupt.append(line_number)
-    return result, "corrupt" if corrupt else "present", corrupt
+    return result, "corrupt" if corrupt else "present", corrupt, ref
 
 
 def load_dashboard(source: Path) -> dict:
@@ -339,13 +459,14 @@ def load_dashboard(source: Path) -> dict:
                         or run_id in {".", ".."}):
                     run_id = None
                 run_path = root / "runs" / run_id if run_id else directory / "missing-run"
-                rows.append(_run(root, run_path, metadata, run_id, noise))
+                rows.append(_run(root, run_path, metadata, run_id, noise,
+                                 campaign.get("campaign_id")))
         if not rows and _inside(root, root / "runs") and (root / "runs").is_dir():
             for directory in sorted((root / "runs").iterdir()):
                 if directory.is_dir() and not directory.is_symlink():
                     rows.append(_run(root, directory, {}, directory.name, noise))
-    rounds, rounds_state, corrupt_round_lines = (
-        (None, "missing", []) if single else _rounds(root / "rounds.jsonl", root)
+    rounds, rounds_state, corrupt_round_lines, rounds_ref = (
+        (None, "missing", [], None) if single else _rounds(root / "rounds.jsonl", root)
     )
     decisions = {(item["round"], item["decision"]["candidate_id"]): item["decision"]["outcome"]
                  for item in (rounds or []) if "decision" in item}
@@ -356,15 +477,17 @@ def load_dashboard(source: Path) -> dict:
         signature = row.pop("_comparison_signature")
         if row["improvement_pct"] is not None:
             signatures.append(signature)
-    comparable = len(signatures) < 2 or (
-        all(signature is not None for signature in signatures)
-        and len(set(signatures)) == 1
-    )
+    comparison_state = "comparable"
+    if len(signatures) >= 2:
+        if any(signature is None for signature in signatures):
+            comparison_state = "unverified"
+        elif len(set(signatures)) != 1:
+            comparison_state = "incompatible"
     valid_gains = [row["improvement_pct"] for row in rows if row["improvement_pct"] is not None
                    and row["quality"] == "passed" and row["source_verified"] is True
                    and row["state"] == "completed" and row["verdict"] in ("PASS", "FAIL")
                    and row["decision"] != "rolled_back"]
-    if not comparable:
+    if comparison_state != "comparable":
         valid_gains = []
     best = max(valid_gains) if valid_gains else None
     goal = campaign.get("goal") if isinstance(campaign.get("goal"), dict) else {}
@@ -373,26 +496,24 @@ def load_dashboard(source: Path) -> dict:
         target = rows[0]["minimum_improvement_pct"]
     diagnostics = []
     for row in rows:
+        identity = {"candidate_id": row["candidate_id"], "run_id": row["run_id"],
+                    "round": row["round"]}
         if row["outcome"] == "failed" and row["artifacts"]["status"]["state"] == "present":
-            diagnostics.append({"kind": "execution_failed", "candidate_id": row["candidate_id"],
+            diagnostics.append({**identity, "kind": "execution_failed",
                                 "refs": [row["artifacts"]["status"]]})
         elif row["outcome"] == "quality_failed" and row["improvement_pct"] is not None \
                 and row["improvement_pct"] > 0:
             refs = [row["artifacts"][key] for key in ("evaluation", "quality")]
             if all(ref["state"] == "present" for ref in refs):
-                diagnostics.append({"kind": "quality_failed_with_gain",
-                                    "candidate_id": row["candidate_id"], "refs": refs})
+                diagnostics.append({**identity, "kind": "quality_failed_with_gain", "refs": refs})
         if row["outcome"] in {"noise", "regressed"}:
             ref = row["artifacts"]["evaluation"]
             if ref["state"] == "present":
-                diagnostics.append({"kind": "within_noise" if row["outcome"] == "noise"
-                                    else "measured_regression", "candidate_id": row["candidate_id"],
-                                    "refs": [ref]})
+                diagnostics.append({**identity, "kind": "within_noise" if row["outcome"] == "noise"
+                                    else "measured_regression", "refs": [ref]})
         if row["decision"] == "rolled_back":
-            ref = _file_ref(root, root / "rounds.jsonl", "rounds")
-            if ref["state"] == "present":
-                diagnostics.append({"kind": "rolled_back", "candidate_id": row["candidate_id"],
-                                    "refs": [ref]})
+            if rounds_ref and rounds_ref["state"] == "present":
+                diagnostics.append({**identity, "kind": "rolled_back", "refs": [rounds_ref]})
     recorded = {event["stage"] for row in rows for event in row["events"] if event["stage"]}
     declared = campaign.get("stages_declared")
     if not isinstance(declared, list):
@@ -403,7 +524,7 @@ def load_dashboard(source: Path) -> dict:
         "rounds": rounds, "rounds_state": rounds_state,
         "corrupt_round_lines": corrupt_round_lines,
         "candidates": rows,
-        "overview": {"comparison_state": "comparable" if comparable else "incompatible",
+        "overview": {"comparison_state": comparison_state,
                      "best_improvement_pct": best, "target_improvement_pct": target,
                      "target_gap_pct": target - best if target is not None and best is not None
                      else None},

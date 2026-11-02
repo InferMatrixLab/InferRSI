@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import re
+import tempfile
 from importlib.resources import files
 from pathlib import Path
 
@@ -70,7 +72,11 @@ def _bounded_chain(spec: dict) -> bool:
     if not isinstance(axis, dict):
         return False
     step = _number(axis.get("step", 0.5))
-    return step is not None and step > 0 and (max(ratios) - min(ratios)) / step <= 150
+    if step is None or step <= 0 or max(ratios) + step == max(ratios):
+        return False
+    # The shared renderer adds a 1e-9 tolerance when iterating ticks. Include
+    # it in the bound, and leave room for floor/ceiling rounding.
+    return (max(ratios) - min(ratios) + 1e-9) / step + 3 <= 150
 
 
 def _chart(source: Path, view: dict) -> tuple[str, str]:
@@ -89,11 +95,11 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
             pass
     if spec is None:
         if view["overview"]["comparison_state"] != "comparable":
-            return "", "Candidate workloads or metrics cannot be compared."
+            return "", "Comparison evidence is missing, unsupported, or incompatible."
         trials = []
         for index, row in enumerate(view["candidates"], 1):
             gain = row["improvement_pct"]
-            if gain is None or 1 + gain / 100 <= 0:
+            if gain is None:
                 continue
             status = {"improved": "gain", "noise": "flat", "regressed": "regressed"}.get(
                 row["outcome"], "open"
@@ -105,7 +111,7 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
             return "", "No measured candidate results recorded."
         target = view["overview"]["target_improvement_pct"]
         gains = [row["improvement_pct"] for row in view["candidates"]
-                 if row["improvement_pct"] is not None and 1 + row["improvement_pct"] / 100 > 0]
+                 if row["improvement_pct"] is not None]
         if target is not None and 1 + target / 100 > 0:
             gains.append(target)
         spread = max([0.0, *gains]) - min([0.0, *gains])
@@ -122,7 +128,7 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
         }
     try:
         svg = build_svg(spec)
-    except (SpecError, TypeError, ValueError, OverflowError):
+    except (SpecError, TypeError, ValueError, OverflowError, ZeroDivisionError):
         return "", "The recorded chart specification is invalid or incomplete."
     # The shared renderer is unchanged. Adapt its fixed light palette for this panel.
     for light, dark in {
@@ -157,5 +163,26 @@ def write_dashboard(source: Path, destination: Path | None = None) -> Path:
     )
     output = Path(destination) if destination is not None else source / "dashboard.html"
     output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(document, encoding="utf-8")
+    if output.is_symlink():
+        raise ValueError("dashboard output cannot be a symbolic link")
+    if output.exists():
+        if not output.is_file():
+            raise ValueError("dashboard output is not a regular file")
+        if output.suffix.lower() != ".html":
+            raise ValueError("refusing to overwrite an existing non-dashboard file")
+        with output.open("r", encoding="utf-8", errors="replace") as existing:
+            if '<meta name="generator" content="InferRSI dashboard">' not in existing.read(1024):
+                raise ValueError("refusing to overwrite an existing non-dashboard file")
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=output.parent, prefix=".dashboard-",
+            suffix=".tmp", delete=False,
+        ) as stream:
+            temporary = Path(stream.name)
+            stream.write(document)
+        os.replace(temporary, output)
+    finally:
+        if temporary is not None and temporary.exists():
+            temporary.unlink()
     return output.resolve()

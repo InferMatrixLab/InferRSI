@@ -17,7 +17,10 @@ def test_record_candidates_in_one_round_and_reference_trace(tmp_path):
         (run / "run.lock.json").write_text("{}", encoding="utf-8")
     trace = tmp_path / "candidates/a/trace.jsonl"
     trace.parent.mkdir(parents=True)
-    trace.write_text('{"type":"agent.tool","stage":"search"}\n', encoding="utf-8")
+    trace.write_text(json.dumps({"type": "agent.tool", "stage": "search", "schema_version": 1,
+                                 "campaign_id": "campaign", "candidate_id": "a", "run_id": "a",
+                                 "round": 1, "time": "2026-01-01T00:00:00Z"}) + "\n",
+                     encoding="utf-8")
     record_candidate(tmp_path, candidate_id="a", run_id="a", round_number=1, title="First",
                      agent_trace="candidates/a/trace.jsonl")
     record_candidate(tmp_path, candidate_id="b", run_id="b", round_number=1, title="Second")
