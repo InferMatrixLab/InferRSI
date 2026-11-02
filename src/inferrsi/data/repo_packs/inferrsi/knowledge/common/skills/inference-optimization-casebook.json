@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/8115da15b9ef34978de500b08aa9f14ea790c35b/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "8115da15b9ef34978de500b08aa9f14ea790c35b",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/405033073d1140084da654c3701ac32cc4d1e4a1/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "405033073d1140084da654c3701ac32cc4d1e4a1",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
@@ -42,7 +42,7 @@
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "e6ff2de3835ad455df1c5bab7ad002d8489d8c7ef9abeab9660206f602cc8fe7"
+      "content_sha256": "f146497195d3c33a9a4a57488791b0e82d9d7122d0f0fe3a506a484c46c38286"
     }
   ],
   "index_type": "packaged-skill",
@@ -51,7 +51,7 @@
   },
   "checkout_ref": "checkout:inference-optimization-casebook",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "e6ff2de3835ad455df1c5bab7ad002d8489d8c7ef9abeab9660206f602cc8fe7",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md": "f146497195d3c33a9a4a57488791b0e82d9d7122d0f0fe3a506a484c46c38286",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "3319e23bbe2bd40e2d45fb89dc87bdc92d4df2b5ddd8086fcf84813b43885b7c",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "e88bbac5d253a8e7e3a3d5e21047f23f2970c11ac23887d4303ab94fca52dd27",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/drama3-rejected-directions.json": "2cc0a526fe0509551607a03e7626dd3d7844e643c4afb194837f75cddead8b12",
@@ -62,8 +62,8 @@
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen-b300-rejected-directions.md": "cce2930f544a0f78f21797fba4d8ded298e4a81f76c34d7977b0e31d361bc738",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.json": "7d02a7435560745d642dc1137859e2a56914327f1235c52e726b277fdf470a27",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-cuda-graph-state-not-accumulating.md": "8a51ed2c55d0aebff87fddfba8eb9cfbb415e014f7534d3fe58cbd72e8f5deb5",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.json": "54b686f7a1f935ace148c49ee7ec343343dc38877fe9d5a6efadf46ef1a6e27e",
-    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.md": "2f53bb0559231cc43da592fc47065209143e9d85e5b67eb129126f53c777953f",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.json": "fcd07aa35d5729d4486d1e34ec38f648a199828fa54e8d5261c490d9df56f27f",
+    "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-silent-capacity-and-error-failures.md": "50cb3fdf75415ec260ed8d6573a4a423af7c3ff6ac1e0dae2cce21ac873344f0",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.json": "07fbd0ff59a1fff168f48b7e8084f038bd855f9cb493913acc850bf7d492abd0",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/qwen38-upstream-fp8-kernels-vs-own-triton.md": "7b01b9719265430ed2be83e0535def09af5393035c714041fb16e6387ed0d6df",
     "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/metadata.json": "963488658f327d2379183d70357eabf832d70a6a70db2aa67f548493f4088d97",
