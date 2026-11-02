@@ -391,6 +391,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "run_id": _text(run_id) if run_id else None,
         "round": candidate.get("round") if isinstance(candidate.get("round"), int)
         and not isinstance(candidate.get("round"), bool) and candidate["round"] > 0 else None,
+        "round_state": candidate.get("_round_state", "not_recorded"),
         "state": state, "status_state": status_state, "evaluation_state": evaluation_state,
         "validation_state": validation_state, "event_state": event_state,
         "quality": quality, "source_verified": verified, "improvement_pct": gain,
@@ -469,6 +470,15 @@ def load_dashboard(source: Path) -> dict:
     else:
         candidate_root = root / "candidates"
         entries = []
+        candidate_rounds: dict[str, set[int]] = {}
+        for round_record in rounds or []:
+            names = list(round_record.get("candidates", []))
+            decision = round_record.get("decision")
+            if isinstance(decision, dict):
+                names.append(decision["candidate_id"])
+            for name in names:
+                if re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", name):
+                    candidate_rounds.setdefault(name, set()).add(round_record["round"])
         if _inside(root, candidate_root) and candidate_root.is_dir():
             for directory in sorted(candidate_root.iterdir()):
                 if not directory.is_dir() or directory.is_symlink():
@@ -485,18 +495,25 @@ def load_dashboard(source: Path) -> dict:
                 entries.append((directory, metadata, run_id, metadata_ref))
         known = {entry[1].get("candidate_id") for entry in entries
                  if isinstance(entry[1].get("candidate_id"), str)}
-        for round_record in rounds or []:
-            for candidate_id in round_record.get("candidates", []):
-                if candidate_id in known:
-                    continue
-                directory = candidate_root / candidate_id
-                _, _, metadata_ref = _object_snapshot(directory / "candidate.json", root,
-                                                        "candidate_metadata")
-                entries.append((directory, {"candidate_id": candidate_id, "title": candidate_id,
-                                            "round": round_record["round"]}, None, metadata_ref))
-                known.add(candidate_id)
+        for candidate_id in candidate_rounds:
+            if candidate_id in known:
+                continue
+            directory = candidate_root / candidate_id
+            _, _, metadata_ref = _object_snapshot(directory / "candidate.json", root,
+                                                    "candidate_metadata")
+            entries.append((directory, {"candidate_id": candidate_id, "title": candidate_id},
+                            None, metadata_ref))
+            known.add(candidate_id)
         for directory, metadata, run_id, metadata_ref in entries:
             candidate_id = metadata.get("candidate_id")
+            recorded_round = metadata.get("round")
+            possibilities = set(candidate_rounds.get(candidate_id, set())) \
+                if isinstance(candidate_id, str) else set()
+            if type(recorded_round) is int and recorded_round > 0:
+                possibilities.add(recorded_round)
+            metadata = {**metadata, "round": next(iter(possibilities)) if len(possibilities) == 1
+                        else None, "_round_state": "ambiguous" if len(possibilities) > 1 else
+                        "recorded" if possibilities else "not_recorded"}
             unique = (isinstance(candidate_id, str) and bool(candidate_id) and
                       sum(entry[1].get("candidate_id") == candidate_id for entry in entries) == 1)
             run_path = root / "runs" / run_id if run_id else directory / "missing-run"

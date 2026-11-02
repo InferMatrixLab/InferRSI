@@ -187,7 +187,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(!visible.some(x=>x.index===selected)) selected=visible.length ? visible[0].index : null;
     for(const {row,index} of visible){const tr=node('tr');if(index===selected)tr.className='selected';
       const cell=(text)=>{const td=node('td',text);tr.appendChild(td);return td;};
-      cell(row.round === null ? 'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
+      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
       cell(row.run_id || 'Not recorded');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
       const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
   }

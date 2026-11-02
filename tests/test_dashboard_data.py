@@ -160,6 +160,7 @@ def test_missing_and_corrupt_candidate_metadata_are_not_silently_dropped(tmp_pat
     corrupt.write_text('{"candidate_id":', encoding="utf-8")
     (tmp_path / "rounds.jsonl").write_text(json.dumps({
         "round": 1, "candidates": ["a", "b", "c"],
+        "decision": {"candidate_id": "b", "outcome": "rolled_back"},
     }) + "\n", encoding="utf-8")
 
     rows = {row["candidate_id"]: row for row in load_dashboard(tmp_path)["candidates"]}
@@ -168,6 +169,12 @@ def test_missing_and_corrupt_candidate_metadata_are_not_silently_dropped(tmp_pat
     assert rows["b"]["candidate_metadata_state"] == "corrupt"
     assert rows["c"]["candidate_metadata_state"] == "file_absent"
     assert rows["b"]["run_id"] is None and rows["c"]["run_id"] is None
+    assert rows["b"]["round"] == 1 and rows["b"]["decision"] == "rolled_back"
+    with (tmp_path / "rounds.jsonl").open("a", encoding="utf-8") as stream:
+        stream.write(json.dumps({"round": 2, "candidates": ["b"]}) + "\n")
+    ambiguous = {row["candidate_id"]: row for row in load_dashboard(tmp_path)["candidates"]}["b"]
+    assert ambiguous["round"] is None and ambiguous["round_state"] == "ambiguous"
+    assert ambiguous["decision"] == "not_recorded"
 
 
 def test_best_gain_requires_a_recorded_zero_exit_code_and_completed_run(tmp_path):
@@ -672,3 +679,8 @@ def test_time_chart_marks_quality_failure_and_rollback_without_measurement(tmp_p
     assert 'data-kind="marker-quality_failed"' in svg
     assert 'data-kind="marker-rollback"' in svg
     assert 'no numeric result' in svg
+    (tmp_path / "runs/a/events.jsonl").write_text(
+        '{"time":"2026-01-01T00:00:00Z","phase":"measurement"}\n', encoding="utf-8"
+    )
+    _, note = temporal_chart(load_dashboard(tmp_path))
+    assert '1 result(s) have no recorded terminal timestamp' in note
