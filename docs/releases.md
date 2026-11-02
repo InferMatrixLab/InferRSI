@@ -99,8 +99,12 @@ secret, the workflow skips GPT and continues ordinary publication.
 
 The [notes helper](../tools/generate_release_notes.py) sends bounded commit
 subjects, source links and file-change statistics from the previous successful
-tag through the planned commit. It omits authors, email addresses, commit bodies
-and raw patches. Inputs are treated as source data, not executable instructions.
+tag through the planned commit. It omits author metadata, commit bodies and raw
+patches. Recognizable email/IP literals, URLs, personal paths and common
+credential forms in selected metadata are replaced with labeled placeholders
+before transmission; generated canonical commit links remain available. This
+targeted redaction supplements the repository's privacy rules for source
+metadata. Inputs are treated as source data, not executable instructions.
 The prompt asks for a concise English overview of software features, fixes and
 compatibility changes; it must not invent performance/quality or campaign PASS
 claims. The response is labeled **AI-generated summary** and prepended to the
@@ -132,8 +136,9 @@ Merge the configuration into the default branch. GitHub Actions and the listed
 actions must be allowed by organization policy, and the publisher needs
 `contents: write`. Ordinary releases need no extra secret, PAT, GitHub App or
 repository-wide write default. GPT summaries additionally use the optional
-`OPENAI_API_KEY` secret described above. The workflow guards the canonical repository and default
-branch; copies must deliberately update that repository guard.
+`OPENAI_API_KEY` secret described above. The workflow guards the canonical
+repository and default branch; copies must deliberately update that repository
+guard.
 
 Under **Actions → Release bot → Run workflow**, select the default branch and
 leave **dry_run** checked. It plans and builds the next release without creating
