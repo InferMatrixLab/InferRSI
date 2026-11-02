@@ -1,6 +1,18 @@
 {
   "version": 1,
   "bundles": {
+    "h3-ref2va-4x910b1-320": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "plan/preflight-integrity.json",
+          "schema": "bundle-sha256"
+        }
+      ],
+      "external": [
+        "Original runtime scripts and logs, model and input bytes, physical allocation details and output media are external. No four-device performance or quality validation is claimed."
+      ]
+    },
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [

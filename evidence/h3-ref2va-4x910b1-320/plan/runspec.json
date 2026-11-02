@@ -1,0 +1,33 @@
+{
+  "status": "preflight_only",
+  "hardware": "4x Ascend 910B1 64GiB",
+  "baseline": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "workload": {
+    "width": 1344,
+    "height": 768,
+    "fps": 24,
+    "steps": 50,
+    "seed": 0,
+    "durations_s": [
+      5,
+      15
+    ],
+    "concurrency": 1
+  },
+  "preflight": {
+    "duration_s": 5,
+    "warmups": 2,
+    "measured": 1,
+    "limitation": "bringup and repeatability only; not formal speedup evidence"
+  },
+  "lossless": "No cache, quantization, sparse attention, distillation or reduced steps. Exact decoded parity is sufficient; nonidentical output is not accepted on perceptual thresholds alone. Assess baseline repeatability first.",
+  "later_validation": "Freeze individual candidate and final ABBA protocols before search; quality independent of timing; raw complete HTTP samples, stage diagnostics separately, all-rank memory and exits.",
+  "sources": [
+    "https://github.com/vllm-project/vllm-omni/pull/9698",
+    "https://github.com/InferMatrixLab/InferRSI/pull/318",
+    "https://github.com/vllm-project/vllm-omni/pull/5929",
+    "https://github.com/vllm-project/vllm-omni/pull/5764",
+    "https://github.com/vllm-project/vllm-omni/pull/4150"
+  ],
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/320"
+}
