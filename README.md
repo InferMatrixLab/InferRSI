@@ -131,18 +131,27 @@ branch changes.
 
 ### Use InferRSI in Codex
 
-Use a local Codex client with **Plugin Creator** and archive import support,
+Install the plugin in two steps. Use a local Codex client with ZIP upload support,
 Python 3.10+ and Git.
 
-1. Download `inferrsi-codex-plugin-vX.Y.Z.zip` and `SHA256SUMS` from the selected
-   [Release](https://github.com/InferMatrixLab/InferRSI/releases), then verify the
-   ZIP's SHA-256.
-2. Provide the ZIP to Plugin Creator and ask: **"Import this InferRSI plugin ZIP
-   as a private plugin."** Import uploads the archive to your account/workspace
-   and requires a network connection. The runtime and knowledge are bundled;
-   core operations need no separate pip install or InferRSI source checkout.
-3. Enable the returned plugin, then start a new conversation in the repository
-   you want to investigate.
+1. **Download the package from GitHub.** Open
+   [Releases](https://github.com/InferMatrixLab/InferRSI/releases) and download
+   `inferrsi-codex-plugin-vX.Y.Z.zip` from the selected version's assets.
+2. **Install it in Codex.** Open **Plugins → Add → Upload plugin archive**
+   (**插件 → 添加 → 上传插件压缩包** in the illustrated client), select the
+   downloaded ZIP, and follow the installation prompts. Enable InferRSI, then
+   start a new conversation in your target repository.
+
+[Watch the 46-second installation guide — Chinese audio and subtitles](docs/assets/inferrsi-codex-install-zh.mp4)
+
+<a href="docs/assets/inferrsi-codex-install-zh.mp4">
+  <img src="docs/assets/inferrsi-codex-install-poster.png" alt="Install InferRSI in two steps: download the ZIP from GitHub, then upload it through Codex Plugins → Add" width="720">
+</a>
+
+The runtime and knowledge are bundled; core operations need no separate pip
+install or InferRSI source checkout. The [plugin guide](docs/codex-plugin.md#install-from-the-release-zip)
+covers checksum verification and client compatibility. The video highlights the
+click order on the supplied Codex screenshot; it does not record a completed installation.
 
 Try a first task:
 

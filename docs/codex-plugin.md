@@ -29,13 +29,16 @@ The downloaded archive bundles the same-version InferRSI runtime and knowledge;
 installation requires no source checkout, package build or separate pip install.
 There is no marketplace catalog, registration step or distribution branch.
 
-In a Codex client with **Plugin Creator** available, provide the downloaded ZIP
-and ask: "Import this InferRSI plugin ZIP as a private plugin." For an existing
-InferRSI plugin, ask to update that plugin from the ZIP instead of creating a
-duplicate. Use the returned plugin link to enable it, then start a new
-conversation. The import uploads the archive to the account/workspace; it still
-requires a network connection. Here, offline package means the runtime and
-resources are included, not that the Codex client can operate air-gapped.
+In a Codex client with ZIP upload support, open **Plugins → Add → Upload plugin
+archive** (**插件 → 添加 → 上传插件压缩包** in the illustrated client). Select
+the downloaded `inferrsi-codex-plugin-vX.Y.Z.zip` and follow the installation
+prompts. Enable InferRSI, open your target repository and start a new conversation.
+
+[Watch the 46-second installation guide (Chinese audio and subtitles)](assets/inferrsi-codex-install-zh.mp4).
+The video uses an annotated screenshot to show the menu click order; it does not
+record a completed upload or installation. Exact labels and availability depend
+on the client and workspace permissions. Here, offline package describes the
+included runtime and resources; it does not guarantee offline client operation.
 
 Clients without archive import cannot install this package directly. The current
 Codex CLI's `plugin add` accepts marketplace selectors, not ZIP paths; do not pass
@@ -105,15 +108,17 @@ source owners. No new core dependencies or CI lanes are introduced.
 
 ## Updates, disable and uninstall
 
-Download and verify the new Release ZIP, then ask Plugin Creator to update the
-existing InferRSI plugin from that archive. Check the selected bundle with
+Download and verify the new Release ZIP, then use the client's supported update
+or replacement flow for the existing InferRSI plugin. Check the selected bundle with
 `--plugin-info` in a new conversation. Do not overwrite an installed cache or
 carry forward an old runtime by hand.
 
-Plugin Creator updates overlay existing files. Ask it to compare the old and new
-runtime manifests and explicitly delete removed runtime/resources while retaining
-the same plugin identity and audience; omitting a file from the ZIP alone does
-not remove its installed copy.
+For existing installations managed through Plugin Creator, its file updates
+overlay existing files. Compare the old and new runtime manifests and explicitly
+remove obsolete runtime/resources while retaining the same plugin identity and
+audience; omitting a file from that update archive alone does not remove its
+installed copy. This overlay behavior does not establish how the native ZIP
+upload UI handles replacement; verify the selected version in the target client.
 
 Disable InferRSI in the desktop plugin UI when you want to retain its installation
 but stop loading it. To uninstall, remove the selected InferRSI plugin in the
