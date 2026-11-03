@@ -132,7 +132,12 @@
     "method": "Stable-ID isolated author lanes, integrated runtime graph, assertion/helper/static and selected direct-compiler CPU verification; required accelerator/model blocks retained."
   },
   "applicability": {
-    "scope": "Model-specific dispatch/residency, API/native state and qualification investigation. Common catalog placement is not CPU inference or cross-device certification."
+    "scope": "Model-specific dispatch/residency, API/native state and qualification investigation. Common catalog placement is not CPU inference or cross-device certification.",
+    "prerequisites": "Access to the selected model-family runtime/state/qualification contract; native changes need frozen correctness/comparison requirements and the matching authorized CUDA/HIP/model resources.",
+    "input_contract": "Full source revision, actual executable/model family, model and asset identities, representation, compiler/runtime/device, rendered workload, sampling policy, single/parallel route, exact tokens/images and relevant completion observations.",
+    "produced_artifact": "A route/identity/evidence-class report with invariant, proposed check, actual result, counter-signal, missing resource and next authorized action; missing native requirements remain INCONCLUSIVE.",
+    "failure_modes": "Transferring coverage through a common facade or quantization name, confusing API history with native KV/private state, double-counting unified RAM/VRAM, or repairing a slot header to appear compatible can invalidate diagnosis.",
+    "refusal_point": "When required CUDA/HIP/model evidence is unavailable, retain BLOCKED_REQUIRED_BACKEND and an unverified/INCONCLUSIVE conclusion; exit-zero skips or CPU simulations cannot clear it."
   },
   "limitations": [
     "BLOCKED_REQUIRED_BACKEND: no actual CUDA/HIP/model/device, quantized payload, vision, parallel/state/restore or cancellation-cleanup evidence.",
@@ -145,5 +150,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Select the family-specific route and preserve the explicitly shallow Qwen coverage rather than transferring deeper GLM/DeepSeek/MiniMax evidence.",
+    "Separate shared weights, private conversation state, API history and native KV; count unified physical memory once.",
+    "Preserve exact token/image identities and completion boundaries before reuse, then test one falsifiable hypothesis without modifying slot headers to bypass compatibility."
+  ]
 }

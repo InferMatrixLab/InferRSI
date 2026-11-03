@@ -75,7 +75,11 @@
     "method": "Stable-ID bounded decode/prefill/qualification author lanes, whole-graph reconciliation, hard cases and offline helper/static/scaffold/wheel checks; compiler and actual Apple evidence not_run."
   },
   "applicability": {
-    "scope": "Selected native Metal paged decode/prefill layout/metadata/workspace and preparation/evidence investigation. Common catalog categorization is not CPU inference or hardware certification."
+    "scope": "Selected native Metal paged decode/prefill layout/metadata/workspace and preparation/evidence investigation. Common catalog categorization is not CPU inference or hardware certification.",
+    "prerequisites": "Access to the pinned Rust/Candle/MSL decode, prefill and qualification contracts; native comparisons need the matched Rust/Apple/Candle/shader stack and separately authorized frozen references.",
+    "input_contract": "mistral.rs/Candle/native artifact revisions, Rust toolchain, Apple SDK/OS/device, actual model/cache dtype and representation, shape/strides/offsets, block table, context and execution limits.",
+    "produced_artifact": "A source/build-bound route and invariant report with actual versus declared facts, safe support result, counter-signal and smallest next native check; unavailable Metal/kernel/model evidence remains blocked.",
+    "failure_modes": "Equating element counts with physical alias/layout identity, transferring decode geometry to prefill, or treating prewarm/pipeline preparation as actual dispatch can misclassify eligibility and native correctness."
   },
   "limitations": [
     "BLOCKED_REQUIRED_BACKEND: actual Rust/Candle/Apple Metal compilation, native tensor/cache/dispatch/parity/model/quality/service/performance evidence not_run.",
@@ -88,5 +92,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Select decode, prefill or qualification by the failed contract, then follow cache/metadata bytes from producer through view to native consumer.",
+    "Keep static predicates, pipeline preparation, kernel dispatch, numerical correctness and model/service outcomes as separate evidence steps; retain skipped or gated tests.",
+    "Use the matched Candle revision and native shader/build inputs; broad workspace tests can require model fixtures, tokens and downloads."
+  ]
 }

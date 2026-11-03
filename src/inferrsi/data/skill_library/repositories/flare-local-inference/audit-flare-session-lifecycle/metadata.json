@@ -63,7 +63,12 @@
     "method": "AREX scope/ground/construct/verify and repository evidence/usability methods adapted to InferRSI native owners and packaging; no DisCo runtime or managed import."
   },
   "applicability": {
-    "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification."
+    "scope": "Pinned Flare complete-session restore and admission audit for its NVIDIA SM120/SM121 research prototype. CUDA catalog scope is content classification, not device or backend qualification.",
+    "prerequisites": "Access to package/source identity and bounded restore traces, with preparation compatibility established before cache-state diagnosis. Running, freeing resources or changing configuration requires separate authority.",
+    "input_contract": "Execution ABI and prepared-contract version, ordinary/speculative configuration, model/layout identity, request IDs and consumed-token endpoints, GPU/host prefixes, continuation row, ticket/waiter identities, transfer events, fences and resource counts.",
+    "produced_artifact": "A checkpoint/ticket ownership table, five-outcome admission ledger and diagnosis identifying the earliest unsupported transition and smallest missing observation.",
+    "failure_modes": "A KV-only lookup hit can omit continuation state; admission can be mistaken for actual reuse; client cancellation can be mistaken for transfer completion; mixing absolute timestamps from client and native clocks can corrupt the diagnosis.",
+    "refusal_point": "Stop with an unresolved edge when package identity, layout, transfer completion or clock provenance is unknown."
   },
   "limitations": [
     "Source-only candidate; native Flare/model/GPU/service and skill efficacy were not evaluated.",
@@ -76,5 +81,10 @@
     "references/source-notes.md",
     "references/source-ledger.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Pair the immutable KV parent chain with the complete continuation row at the same consumed-token endpoint before calling a checkpoint restorable.",
+    "Distinguish lookup outcomes, destination reservation, ticket creation, transfer completion, publication and actual reused-token evidence.",
+    "Follow scheduler-owned tickets through waiter cancellation and check write/use fences before allowing storage reuse."
+  ]
 }

@@ -36,8 +36,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/fb4171e87b4c78d4d62c927f297374ed917949f5/src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
-      "commit": "fb4171e87b4c78d4d62c927f297374ed917949f5",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1bada78556d695a01cf2bc3b0c117f65855cc177/src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
+      "commit": "1bada78556d695a01cf2bc3b0c117f65855cc177",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/metadata.json",

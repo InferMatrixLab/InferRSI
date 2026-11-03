@@ -73,7 +73,12 @@
     "method": "User-approved native C adaptation and partial drafting; manual stable-ID subskill orchestration and integrated create/verify stages. Required-backend blocks disable automatic admission."
   },
   "applicability": {
-    "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification."
+    "scope": "Pinned DwarfStar source investigation and experiment planning; not arbitrary GGUF support or cross-backend qualification.",
+    "prerequisites": "Access to the pinned native-source contract and relevant memory/state/qualification route; native verification needs a compatible build, matching hardware/weights and task-specific execution authority.",
+    "input_contract": "Engine revision/patches, actual model artifact/representation, selected backend/build and topology, memory/storage budget, context/chunk/session count, image inputs, sampling/speculation policy, cache state and quality/service requirements.",
+    "produced_artifact": "A bounded executing-tuple report with observed signal, source-backed mechanism, alternate explanation, proposed falsifier, actual check outcome and unresolved backend/model/service gap.",
+    "failure_modes": "Inferring model support from flags, aliases, file mapping or quantization names can select the wrong graph; treating CPU bookkeeping or parser checks as native backend/service qualification can overstate the result.",
+    "refusal_point": "Stop at unavailable hardware/weights, unsafe exposure or the authorized budget; retain memory-guard refusals rather than disabling the guard to claim fit."
   },
   "limitations": [
     "Metal/CUDA/ROCm inference, actual model output, SSD runtime I/O, GPU recurrent rollback, physical distributed behavior, service quality/performance and skill efficacy remain unverified.",
@@ -85,5 +90,10 @@
     "references/repo-provenance.md",
     "references/source-identity.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Choose the memory, serving-state or qualification route by the observed symptom and identify the owner, validity key and release/rollback boundary.",
+    "Freeze comparison controls, test the smallest invariant first and retain fallback messages, cancellations, refusals and unavailable fixtures.",
+    "Base model support on the actual loaded artifact and graph; use native backend evidence for model, tensor-parallel or service conclusions."
+  ]
 }
