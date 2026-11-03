@@ -6,6 +6,8 @@
 
 ## 要解决的实际问题
 
+先读 [在现有 RSI 中的调用与验收](rsi-integration.md)：#252 同时为引擎候选比较和优化者评估提供共享任务。当前已验证的是组件及底层消费者通路，尚未完成正式 SkillEval 两臂入口、既有改进 controller 或 agent 收益的端到端验收。
+
 Workbench 和工程评估需要对同一个候选实现回答两个问题：计算是否正确，以及指定工作负载下测得什么性能。任务语义、输入、参考答案和计时规则应只有一份。搜索策略决定下一步尝试什么，消费者不能各自复制或修改题目答案。
 
 本次将这个模块命名为 **Engineering Benchmarks（工程基准）**。这是本次实现的命名，尚非维护者已接受的架构决策。
@@ -44,8 +46,8 @@ Profiling 保留为独立诊断操作，与 correctness 和配对 performance �
 
 公开子任务分别为 [#334 调研与决策](https://github.com/InferMatrixLab/InferRSI/issues/334)、[#335 共享接口](https://github.com/InferMatrixLab/InferRSI/issues/335)、[#336 首批任务](https://github.com/InferMatrixLab/InferRSI/issues/336)、[#337 消费者与验证](https://github.com/InferMatrixLab/InferRSI/issues/337)。四项均引用父任务 #252，保持打开供维护者评审与验收。当前提交账号无法写入原生父子关系，需维护者补充。
 
-四个子项的本地实施已完成。已交付共享 TaskPackage、两个真实 CPU 算子任务、独立正确性与 profiling、Workbench/SkillEval 接入，以及可复现实测工具。使用入口见 [工程基准文档](../../engineering-benchmarks.md)。
+四个子项已有组件实现：共享 TaskPackage、两个真实 CPU 算子任务、独立正确性与 profiling、Workbench 和 SkillEval 低层 verifier 接入，以及可复现实测工具。测量语义 review、可靠性能排序和系统接入验收分别追踪，不能把局部实现表述为整个 RSI 已经闭环。使用入口见 [工程基准文档](../../engineering-benchmarks.md)。
 
 建议先读本页理解范围，再读 01 看方案理由。要开始使用时，运行 `inferrsi benchmarks list` 和 `show softmax-cpu`，复制任务包中的示例候选到独立 implementation.py，按使用文档执行 check、profile、compare。修改任务协议应创建新比较，不能沿用旧身份。
 
-这完成的是用户委托的首批共享接口和 CPU 子集；#252 的维护者验收、目标硬件选择与后续覆盖仍单独记录，不在本地冒充已接受。
+这份交付覆盖共享接口和 CPU 子集的组件实现；正式 SkillEval 两臂接入、优化者收益和可靠性能排序尚未建立。#252 的维护者验收、目标硬件选择与后续覆盖仍单独记录，不在本地冒充已接受。

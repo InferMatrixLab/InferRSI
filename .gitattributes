@@ -10,6 +10,7 @@
 
 # Preserve the recorded utility probe's JSON/profile bytes and their SHA-256s.
 /docs/plans/issue-252/usefulness-summary.json -text whitespace=cr-at-eol
+/docs/plans/issue-252/replay-validation-summary.json -text whitespace=cr-at-eol
 /docs/plans/issue-252/usefulness-profiles/*.txt -text whitespace=cr-at-eol,-blank-at-eof
 
 # Retain this upstream license's original CRLF Git blob bytes.

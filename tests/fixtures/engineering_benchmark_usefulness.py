@@ -248,6 +248,8 @@ def run(args):
     workloads_match = bool(workloads) and all(
         result.get("workloads") == workloads for _, result in artifacts
     )
+    sequence = artifacts[0][1].get("input_sequence")
+    executed = artifacts[0][1].get("executed_calls")
     checks = {
         "valid_candidates_accepted": all(
             candidates[r]["correctness"] == candidates[r]["skilleval"] == "PASS" for r in ROLES[:2]
@@ -266,6 +268,14 @@ def run(args):
         ),
         "consumer_identities_match": identities_match,
         "actual_workloads_match": workloads_match,
+        "planned_input_sequences_match": bool(sequence)
+        and all(result.get("input_sequence") == sequence for _, result in artifacts),
+        "valid_executed_inputs_match": bool(executed)
+        and all(
+            result.get("executed_calls") == executed
+            for _, result in artifacts
+            if result.get("passed")
+        ),
         "comparison_quality_passed": all(m["final_quality_passed"] for m in measured.values()),
         "comparisons_complete": all(
             m["source_integrity"]
@@ -273,7 +283,7 @@ def run(args):
             and m["measured_calls"]
             == 2
             * plan["comparison"]["repetitions"]
-            * len(task.manifest["workloads"])
+            * len(task.manifest["measurement"]["case_ids"])
             * task.manifest["measurement"]["samples"]
             and all(
                 m[side] and m[side]["excluded_trials"] == 0 for side in ("baseline", "candidate")
@@ -293,6 +303,7 @@ def run(args):
         "identities": plan["identities"],
         "comparison": plan["comparison"],
         "workloads": workloads,
+        "input_sequence": sequence,
         "profiles": profiles,
         "candidates": candidates,
         "ordinary_smoke": smoke_result,

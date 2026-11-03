@@ -117,6 +117,7 @@ def main():
         frozen_identity = task.identity(candidate)
         record = {
             "task": name,
+            "adapter": task.manifest["adapter"],
             "identity": task.identity(candidate),
             "correctness": grade["verdict"],
             "profile_status": profile["status"],
@@ -138,6 +139,21 @@ def main():
             "all_workloads_match": all(
                 r["workloads"] == consumers[0]["workloads"] for r in consumers
             ),
+            "input_sequence": consumers[0]["input_sequence"],
+            "all_input_sequences_match": all(
+                r["input_sequence"] == consumers[0]["input_sequence"] for r in consumers
+            ),
+            "all_valid_executed_calls_match": all(
+                r["executed_calls"] == consumers[0]["executed_calls"]
+                for r in consumers
+                if r["passed"]
+            ),
+            "expected_measured_calls": (
+                2
+                * args.repetitions
+                * len(task.manifest["measurement"]["case_ids"])
+                * task.manifest["measurement"]["samples"]
+            ),
         }
         records.append(record)
         print(json.dumps(record), flush=True)
@@ -149,6 +165,9 @@ def main():
         and r["source_integrity"]
         and r["all_consumer_identities_match"]
         and r["all_workloads_match"]
+        and r["all_input_sequences_match"]
+        and r["all_valid_executed_calls_match"]
+        and r["measured_calls"] == r["expected_measured_calls"]
         and r["measurement_trials"] == 2 * args.repetitions
         for r in records
     )

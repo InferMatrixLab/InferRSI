@@ -180,7 +180,7 @@ def load_task(name: str | Path) -> TaskPackage:
         or type(data["schema_version"]) is not int
     ):
         raise ValueError("Invalid task fields")
-    if data["schema_version"] != 1 or data["adapter"] != "numpy-axis1-v1":
+    if data["schema_version"] != 1 or data["adapter"] != "numpy-axis1-v2":
         raise ValueError("Unsupported task schema or adapter")
     if not isinstance(data["id"], str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", data["id"]):
         raise ValueError("Invalid task id")
@@ -212,15 +212,33 @@ def load_task(name: str | Path) -> TaskPackage:
     metric = data["measurement"]
     if (
         not isinstance(metric, dict)
-        or set(metric) != {"key", "unit", "boundary", "aggregation", "warmups", "samples"}
+        or set(metric)
+        != {
+            "key",
+            "unit",
+            "boundary",
+            "aggregation",
+            "warmups",
+            "samples",
+            "input_sequence",
+            "case_ids",
+        }
         or metric["key"] != "metrics.suite_latency_ms"
         or metric["unit"] != "ms"
         or metric["boundary"] != "synchronous-compute-call"
         or metric["aggregation"] != "sum-of-per-case-medians"
+        or metric["input_sequence"] != "seeded-distinct-per-call-v1"
     ):
         raise ValueError("Unsupported measurement contract")
     for key in ("warmups", "samples"):
         _positive(metric[key], "measurement." + key, integer=True)
+    if (
+        not isinstance(metric["case_ids"], list)
+        or not metric["case_ids"]
+        or any(not isinstance(name, str) for name in metric["case_ids"])
+        or len(set(metric["case_ids"])) != len(metric["case_ids"])
+    ):
+        raise ValueError("Distinct measured case IDs are required")
     if not isinstance(data["workloads"], list) or not data["workloads"]:
         raise ValueError("Workloads are required")
     names = set()
@@ -250,6 +268,17 @@ def load_task(name: str | Path) -> TaskPackage:
             raise ValueError("Unknown distribution")
         if case["layout"] not in {"contiguous", "strided"}:
             raise ValueError("Unknown layout")
+    measured_cases = [case for case in data["workloads"] if case["id"] in metric["case_ids"]]
+    if [case["id"] for case in measured_cases] != metric["case_ids"]:
+        raise ValueError("Measured case IDs must follow workload order")
+    if any(case["distribution"] == "zeros" for case in measured_cases):
+        raise ValueError("Invariant zero workloads are correctness-only")
+    prepared_elements = sum(math.prod(case["shape"]) for case in data["workloads"])
+    prepared_elements += (metric["warmups"] + metric["samples"]) * sum(
+        math.prod(case["shape"]) for case in measured_cases
+    )
+    if prepared_elements > 1048576:
+        raise ValueError("Prepared input sequence exceeds the CPU workload bound")
     if (
         not isinstance(data["coverage"], list)
         or not data["coverage"]

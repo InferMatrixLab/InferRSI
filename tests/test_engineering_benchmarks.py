@@ -29,18 +29,24 @@ def read_result(execution):
 @pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
 def test_real_baseline_candidate_measurement_and_profile(name, tmp_path, numpy_runtime):
     task = load_task(name)
+    checked = []
+    measurement = task.manifest["measurement"]
+    expected_calls = len(task.manifest["workloads"]) + len(measurement["case_ids"]) * (
+        measurement["warmups"] + measurement["samples"]
+    )
     for role in ("baseline", "candidate"):
         candidate = task.root / (role + ".py")
         grade = grade_artifact(task, candidate, tmp_path / role, timeout_seconds=20)
         assert grade["verdict"] == "PASS"
-        assert len(grade["checks"]["assertions"]) == 24
+        assert len(grade["checks"]["assertions"]) == 4 * expected_calls
+        checked.append(json.loads((tmp_path / role / "result.json").read_text()))
     candidate = task.root / "candidate.py"
     measured = read_result(
         run_action(task, candidate, "measure", tmp_path / "timed", timeout_seconds=20)
     )
     assert measured["passed"]
     assert measured["metrics"]["suite_latency_ms"] > 0
-    assert len(measured["cases"]) == len(task.manifest["workloads"])
+    assert [case["id"] for case in measured["cases"]] == measurement["case_ids"]
     assert all(len(c["samples_ms"]) == 5 for c in measured["cases"])
     profile = read_result(
         run_action(task, candidate, "profile", tmp_path / "profile", timeout_seconds=20)
@@ -48,6 +54,76 @@ def test_real_baseline_candidate_measurement_and_profile(name, tmp_path, numpy_r
     assert "metrics" not in profile
     assert profile["diagnostic"]["performance_verdict"] is None
     assert "compute" in (tmp_path / "profile/profile.txt").read_text()
+    for result in [*checked, profile, measured]:
+        assert result["workloads"] == measured["workloads"]
+        assert result["input_sequence"] == measured["input_sequence"]
+        assert result["executed_calls"] == measured["executed_calls"]
+        assert len(result["executed_calls"]) == expected_calls
+        hashes = [call["input_sha256"] for call in result["executed_calls"]]
+        assert len(hashes) == len(set(hashes))
+    assert "zeros" not in measurement["case_ids"]
+    assert any(call["id"] == "zeros" for call in measured["executed_calls"])
+    for case in measured["cases"]:
+        assert case["sample_input_sha256"] == [
+            call["input_sha256"]
+            for call in measured["input_sequence"]
+            if call["id"] == case["id"] and call["phase"] == "measurement"
+        ]
+
+
+@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
+@pytest.mark.parametrize("key", ["id(x)", "x.tobytes()"])
+def test_timed_calls_cannot_hit_precheck_or_warmup_memo(name, key, tmp_path, numpy_runtime):
+    task = load_task(name)
+    candidate = tmp_path / "implementation.py"
+    operation = (
+        "y = np.exp(x-x.max(axis=1,keepdims=True)); y /= y.sum(axis=1,keepdims=True)"
+        if name == "softmax-cpu"
+        else "y = x / np.sqrt(np.mean(x*x,axis=1,keepdims=True) + np.float32(eps))"
+    )
+    candidate.write_text(
+        "import numpy as np\nfrom pathlib import Path\ncache = {}\n"
+        "def compute(x, *, eps):\n"
+        f"    key = {key}\n"
+        "    if key in cache:\n"
+        "        Path(__file__).with_suffix('.hits').write_text('cache hit')\n"
+        "        return cache[key]\n"
+        f"    {operation}\n"
+        "    cache[key] = y\n"
+        "    return y\n"
+    )
+    execution = run_action(task, candidate, "measure", tmp_path / "run", timeout_seconds=20)
+    result = read_result(execution)
+    assert execution["status"] == "completed" and result["passed"]
+    assert result["metrics"]["suite_latency_ms"] > 0
+    # Correct memoization remains valid, but every timed call must be a miss.
+    assert not candidate.with_suffix(".hits").exists()
+
+
+@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
+def test_shape_cached_output_replay_is_rejected_after_precheck(name, tmp_path, numpy_runtime):
+    task = load_task(name)
+    candidate = tmp_path / "implementation.py"
+    operation = (
+        "y = np.exp(x-x.max(axis=1,keepdims=True)); y /= y.sum(axis=1,keepdims=True)"
+        if name == "softmax-cpu"
+        else "y = x / np.sqrt(np.mean(x*x,axis=1,keepdims=True) + np.float32(eps))"
+    )
+    candidate.write_text(
+        "import numpy as np\ncache = {}\ndef compute(x, *, eps):\n"
+        "    key = (x.shape, x.strides)\n"
+        "    if key in cache: return cache[key]\n"
+        f"    {operation}\n"
+        "    cache[key] = y\n"
+        "    return y\n"
+    )
+    execution = run_action(task, candidate, "measure", tmp_path / "run", timeout_seconds=20)
+    result = read_result(execution)
+    assert execution["status"] == "failed" and not result["passed"]
+    assert "metrics" not in result
+    assert result["failed_call"]["case"] == "normal"
+    assert result["failed_call"]["phase"] == "warmup"
+    assert all(value for key, value in result["assertions"].items() if ".call-" not in key)
 
 
 @pytest.mark.parametrize(
@@ -124,6 +200,7 @@ def test_frozen_package_and_candidate_drift(tmp_path, numpy_runtime):
         ("schema_version", 2),
         ("schema_version", True),
         ("adapter", "unknown"),
+        ("adapter", "numpy-axis1-v1"),
         ("environment", {"backend": "cuda", "runtime": "numpy", "dtype": "float32"}),
         ("coverage", []),
         ("workloads", []),
@@ -145,6 +222,44 @@ def test_descriptor_does_not_mutate_task():
     manifest["oracle"]["axis"] = 0
     assert task.manifest["oracle"]["axis"] == 1
     assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-cpu"}
+
+
+@pytest.mark.parametrize(
+    "field,value",
+    [
+        ("input_sequence", "repeated"),
+        ("case_ids", []),
+        ("case_ids", ["missing"]),
+        ("case_ids", ["normal", "normal"]),
+        ("case_ids", ["normal", "zeros"]),
+        ("samples", 1000),
+    ],
+)
+def test_invalid_input_sequence_contract_rejected(field, value, tmp_path):
+    root = tmp_path / "package"
+    shutil.copytree(load_task("softmax-cpu").root, root)
+    document = json.loads((root / "task.json").read_text())
+    document["measurement"][field] = value
+    (root / "task.json").write_text(json.dumps(document))
+    with pytest.raises(ValueError):
+        load_task(root)
+
+
+def test_duplicate_generated_input_bytes_refuse_measurement(tmp_path, numpy_runtime):
+    root = tmp_path / "package"
+    shutil.copytree(load_task("softmax-cpu").root, root)
+    document = json.loads((root / "task.json").read_text())
+    # Same values under different layouts still prime a bytes-keyed memo.
+    document["workloads"][1]["seed"] = document["workloads"][0]["seed"]
+    (root / "task.json").write_text(json.dumps(document))
+    task = load_task(root)
+    execution = run_action(
+        task, root / "candidate.py", "measure", tmp_path / "run", timeout_seconds=20
+    )
+    result = read_result(execution)
+    assert execution["status"] == "failed"
+    assert result["status"] == "error" and "metrics" not in result
+    assert result["error_type"] == "ValueError"
 
 
 def test_real_workbench_reuses_frozen_task(tmp_path, numpy_runtime):
@@ -193,6 +308,12 @@ def test_real_workbench_reuses_frozen_task(tmp_path, numpy_runtime):
     ]
     identity = json.loads((run / "candidate/trial-001/result.json").read_text())["identity"]
     assert identity == task.identity(candidate)
+    baseline = json.loads((run / "baseline/trial-001/result.json").read_text())
+    for side in ("baseline", "candidate"):
+        for path in (run / side).glob("trial-*/result.json"):
+            result = json.loads(path.read_text())
+            assert result["input_sequence"] == baseline["input_sequence"]
+            assert result["executed_calls"] == baseline["executed_calls"]
 
 
 class RetainedControl:

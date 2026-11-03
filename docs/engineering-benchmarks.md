@@ -1,7 +1,7 @@
 # Shared engineering benchmarks
 
 The `benchmarks` command exposes versioned task packages for Workbench and
-offline artifact evaluation. The initial `numpy-axis1-v1` adapter supplies
+offline artifact evaluation. The `numpy-axis1-v2` adapter supplies
 Softmax and RMSNorm CPU adaptations of attributed KernelBench tasks. Packages
 own semantics, workload, oracle and metric. Consumers own comparison conditions;
 search policy and agent execution remain separate.
@@ -46,13 +46,26 @@ for four-dimensional arrays. Scalar double precision with math.fsum supplies the
 independent oracle. Numerical tolerances, shapes, seeds, warmups and sample counts
 are task-specific and fixed across both consumers.
 
-`check` evaluates all public cases. `measure` checks first, times real synchronous
-compute calls, and verifies every measured output outside the timer. Input
-generation, oracle, validation, startup and warmups are excluded; allocations
-inside compute are included. Every case retains its samples in milliseconds.
-The objective sums case medians for this fixed suite; it is not a universal
-score. Inspect per-case regressions before adopting a candidate. Repeated
-warm-cache calls do not characterize cold-start serving.
+`check` evaluates all six base cases plus the same varying-input sequence used
+by measurement and profiling. `measure` checks first, times synchronous compute
+calls, and verifies every invocation outside the timer. Inputs and references
+are prepared in advance; all input objects stay alive and every timed input has
+distinct bytes from precheck/warmup/other sampled inputs. This prevents an earlier
+call from priming an identity/content memo for a later timed call. It does not
+detect hostile code or public-suite overfitting.
+
+The task's `measurement.case_ids` declares five varying workloads. The invariant
+zero-input case remains a correctness case and contributes no timing score. Every
+result retains the planned `input_sequence` and actual `executed_calls`; each
+sample records its input hash. Invalid candidates may stop before the full
+sequence, so planned inputs must not be described as completed execution.
+
+Input generation, oracle, validation, startup and warmups are excluded; allocations
+inside compute are included. The objective sums the five per-case medians for this
+fixed suite, not a universal score. Inspect per-case regressions before adopting a
+candidate. This protocol does not establish cold-start serving or statistical
+resolution. The earlier `numpy-axis1-v1` repeated-input evidence remains historical;
+its task/grader identities and six-case scores cannot be pooled with v2.
 
 `profile` retains a separate CPU `profile.txt` with no performance metric/verdict.
 It is not a device timeline. Hardware adapters need their own synchronization,
@@ -65,6 +78,11 @@ controller-reviewed retained artifact; `skill_verifier.py` plugs into the existi
 The shared oracle independently grades actual implementation behavior. This
 offline handoff does not modify production engineering sandbox or paid execution.
 Live artifact production and skill/search benefit need separate controlled runs.
+
+This low-level verifier integration does not register these tasks with the existing
+`skill_eval_compare` adapter or the offline harness-improvement controller. See
+[the RSI integration audit](plans/issue-252/rsi-integration.md) for callers,
+decisions and the remaining end-to-end acceptance work.
 
 Exceptions, missing dependencies, drift and timeouts leave incomplete evidence.
 Wrong results emit no usable performance metric. Workbench statistics remain

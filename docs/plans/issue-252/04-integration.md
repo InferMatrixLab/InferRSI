@@ -4,6 +4,8 @@
 
 只有 schema 和几道题并不能完成 #252。需要证明同一任务包能用于现有 Workbench 和工程评估；该证明不等价于 agent 获益实验。
 
+[RSI 接入审计](rsi-integration.md)进一步区分：本次已调用的 `run_trial/verifier` 是低层接口，不等价于正式 `skill_eval_compare` 两臂入口或 `skill_eval_improve` 已支持这些工程任务。系统接入必须说明结果如何影响真实候选的筛选与接受。
+
 ## 计划
 
 - Workbench 接入复用 run_experiment、AB/BA、超时、源快照、结果和报告。

@@ -8,8 +8,9 @@ float32 NumPy array of the same shape. Preserve input values. Compute x / sqrt(m
 Use only NumPy, math and locally defined helpers. Source is reviewed/trusted;
 the evaluator is not a security sandbox for model-produced arbitrary code.
 
-The task JSON owns all six public inputs, seeds, layouts, numerical tolerances
-and timing policy. Baseline and example candidate are separate from the scalar
+The task JSON owns six base correctness workloads, seeds, layouts, numerical
+tolerances and the v2 timing policy. Five varying workloads have a frozen
+per-call input sequence; invariant zero inputs are correctness-only. Baseline and example candidate are separate from the scalar
 double-precision oracle. The oracle uses math.fsum and is not editable by a
 candidate. The task package and grader are content-frozen per comparison.
 
@@ -18,8 +19,12 @@ preservation outside the timed region. Input generation, reference computation,
 warmups, validation, process startup and profiling are excluded. Output allocation
 inside compute is included. Samples use perf_counter_ns and report milliseconds.
 Sum of per-case medians is only this task's fixed-suite objective, not a universal
-score. Retain every per-case sample to inspect regressions. Repeated calls describe
-a warm-cache CPU workload. No device synchronization is claimed.
+score. Retain every per-case sample and input hash to inspect regressions. Inputs
+are generated before timing and kept alive; each precheck, warmup and sampled
+input has distinct bytes. Baseline and candidate consume the same sequence.
+This prevents ordinary identity/content memo hits, not hostile-code execution.
+Small CPU timings still need repeatability qualification; no cold-start serving
+or device synchronization is claimed.
 
 All tests are public. This small subset cannot demonstrate production inference
 speedup, memory savings, or GPU/NPU support. A fresh task version and device

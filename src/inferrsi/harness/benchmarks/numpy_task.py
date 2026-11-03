@@ -14,8 +14,9 @@ import time
 from pathlib import Path
 
 
-def inputs(case, np):
-    rng = np.random.default_rng(case["seed"])
+def inputs(case, np, *, sequence=0):
+    seed = case["seed"] if sequence == 0 else np.random.SeedSequence([case["seed"], sequence])
+    rng = np.random.default_rng(seed)
     x = rng.standard_normal(case["shape"]).astype(np.float32)
     if case["distribution"] == "zeros":
         x.fill(0)
@@ -64,6 +65,16 @@ def check_output(output, x, original, expected, oracle, np):
     }
 
 
+def input_record(case, x):
+    return {
+        "id": case["id"],
+        "input_sha256": hashlib.sha256(x.tobytes()).hexdigest(),
+        "shape": list(x.shape),
+        "dtype": str(x.dtype),
+        "strides": list(x.strides),
+    }
+
+
 def evaluate(task, candidate: Path, action: str, result_dir: Path) -> dict:
     # Optional dependency is loaded only for execution, never task discovery.
     import numpy as np
@@ -76,25 +87,40 @@ def evaluate(task, candidate: Path, action: str, result_dir: Path) -> dict:
     if not callable(compute):
         raise ValueError("Candidate must define compute(x, *, eps)")
     oracle = manifest["oracle"]
-    checks, cases, workload_records = {}, [], []
-    prepared = []
+    measurement = manifest["measurement"]
+    checks, cases, workload_records, sequence_records, executed = {}, [], [], [], []
+    prepared, sequences = [], []
+    # Prepare all inputs/oracles before candidate calls. Keep every input alive:
+    # a previous call must not prime a later call's object/content memo entry.
     for case in manifest["workloads"]:
         x = inputs(case, np)
         original = x.copy()
         expected = reference(x, oracle, np)
-        workload_records.append(
-            {
-                "id": case["id"],
-                "input_sha256": hashlib.sha256(x.tobytes()).hexdigest(),
-                "shape": list(x.shape),
-                "dtype": str(x.dtype),
-                "strides": list(x.strides),
-            }
-        )
+        workload_records.append(input_record(case, x))
+        prepared.append((case, x, original, expected))
+    seen = {record["input_sha256"] for record in workload_records}
+    for case in manifest["workloads"]:
+        if case["id"] not in measurement["case_ids"]:
+            continue
+        calls = []
+        for index in range(measurement["warmups"] + measurement["samples"]):
+            x = inputs(case, np, sequence=index + 1)
+            record = input_record(case, x)
+            if record["input_sha256"] in seen:
+                raise ValueError("Input sequence repeats earlier input bytes")
+            seen.add(record["input_sha256"])
+            record.update(
+                call_index=index,
+                phase="warmup" if index < measurement["warmups"] else "measurement",
+            )
+            sequence_records.append(record)
+            calls.append((x, x.copy(), reference(x, oracle, np), record))
+        sequences.append((case, calls))
+    for (case, x, original, expected), record in zip(prepared, workload_records, strict=True):
+        executed.append({**record, "phase": "precheck"})
         output = compute(x, eps=oracle["eps"])
         assertions = check_output(output, x, original, expected, oracle, np)
         checks.update({case["id"] + "." + k: v for k, v in assertions.items()})
-        prepared.append((case, x, original, expected))
     result = {
         "status": "completed",
         "action": action,
@@ -109,26 +135,32 @@ def evaluate(task, candidate: Path, action: str, result_dir: Path) -> dict:
         },
         "coverage": manifest["coverage"],
         "workloads": workload_records,
+        "input_sequence": sequence_records,
+        "executed_calls": executed,
     }
-    if not result["passed"] or action == "check":
+    if not result["passed"]:
         return result
 
     # Correctness and profiling do not masquerade as a paired measurement.
     profiler = cProfile.Profile() if action == "profile" else None
-    measurement = manifest["measurement"]
-    for case, x, original, expected in prepared:
+    for case, calls in sequences:
         samples = []
-        for index in range(measurement["warmups"] + measurement["samples"]):
-            if profiler:
-                profiler.enable()
-            started = time.perf_counter_ns()
-            output = compute(x, eps=oracle["eps"])
-            elapsed = (time.perf_counter_ns() - started) / 1e6
-            if profiler:
-                profiler.disable()
+        for index, (x, original, expected, record) in enumerate(calls):
+            executed.append(record)
+            elapsed = None
+            if action == "check":
+                output = compute(x, eps=oracle["eps"])
+            else:
+                if profiler:
+                    profiler.enable()
+                started = time.perf_counter_ns()
+                output = compute(x, eps=oracle["eps"])
+                elapsed = (time.perf_counter_ns() - started) / 1e6
+                if profiler:
+                    profiler.disable()
             assertions = check_output(output, x, original, expected, oracle, np)
+            checks.update({f"{case['id']}.call-{index}.{k}": v for k, v in assertions.items()})
             if not all(assertions.values()):
-                checks.update({f"{case['id']}.call-{index}.{k}": v for k, v in assertions.items()})
                 result.update(
                     passed=False,
                     cases=cases,
@@ -142,13 +174,24 @@ def evaluate(task, candidate: Path, action: str, result_dir: Path) -> dict:
                     },
                 )
                 return result
-            if index >= measurement["warmups"]:
+            if action != "check" and index >= measurement["warmups"]:
                 if not math.isfinite(elapsed) or elapsed <= 0:
                     raise ValueError("Timer did not resolve a positive duration")
                 samples.append(elapsed)
-        cases.append(
-            {"id": case["id"], "samples_ms": samples, "median_ms": statistics.median(samples)}
-        )
+        if action != "check":
+            cases.append(
+                {
+                    "id": case["id"],
+                    "samples_ms": samples,
+                    "median_ms": statistics.median(samples),
+                    "sample_input_sha256": [
+                        record["input_sha256"]
+                        for _, _, _, record in calls[measurement["warmups"] :]
+                    ],
+                }
+            )
+    if action == "check":
+        return result
     if profiler:
         # Strip local installation paths from the textual profile before capture.
         with (result_dir / "profile.txt").open("w", encoding="utf-8") as stream:
