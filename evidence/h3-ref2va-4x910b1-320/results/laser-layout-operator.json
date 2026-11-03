@@ -1,0 +1,238 @@
+{
+  "direct_kernel": {
+    "scope": "Synthetic operator screening with H3 power-of-two range protection; not E2E or model parity",
+    "results": [
+      {
+        "shape": [
+          1,
+          7168,
+          56,
+          128
+        ],
+        "correctness": {
+          "exact": true,
+          "baseline_repeat_exact": true,
+          "finite": true,
+          "max_abs": 0.0,
+          "rmse": 0.0
+        },
+        "samples_ms": {
+          "baseline": [
+            9.854476898908615,
+            9.834175929427147,
+            9.79092437773943,
+            9.742514230310917,
+            9.776316583156586,
+            9.771064855158329,
+            9.77555476129055,
+            9.788784198462963,
+            9.799236431717873,
+            9.757215157151222
+          ],
+          "cast_layout": [
+            8.530852384865284,
+            8.644885383546352,
+            8.570043370127678,
+            8.491742424666882,
+            8.510331623256207,
+            8.513151668012142,
+            8.518451824784279,
+            8.516862988471985,
+            8.496102876961231,
+            8.522122167050838
+          ]
+        },
+        "medians_ms": {
+          "baseline": 9.782550390809774,
+          "cast_layout": 8.517657406628132
+        }
+      },
+      {
+        "shape": [
+          1,
+          82944,
+          14,
+          128
+        ],
+        "correctness": {
+          "exact": true,
+          "baseline_repeat_exact": true,
+          "finite": true,
+          "max_abs": 0.0,
+          "rmse": 0.0
+        },
+        "samples_ms": {
+          "baseline": [
+            208.24792608618736,
+            204.96544148772955,
+            207.66236074268818,
+            208.24297610670328,
+            207.45627488940954,
+            206.77380822598934,
+            206.74585737287998,
+            206.84252958744764,
+            204.79457546025515,
+            208.56887474656105
+          ],
+          "cast_layout": [
+            205.189885571599,
+            205.4846929386258,
+            204.60172090679407,
+            201.26039441674948,
+            204.10964731127024,
+            205.20443748682737,
+            202.72794272750616,
+            202.45688501745462,
+            203.74196860939264,
+            201.96919236332178
+          ]
+        },
+        "medians_ms": {
+          "baseline": 207.1494022384286,
+          "cast_layout": 203.92580796033144
+        }
+      }
+    ],
+    "target_achieved": false
+  },
+  "public_api": {
+    "scope": "Synthetic operator screening with H3 power-of-two range protection; not E2E or model parity",
+    "results": [
+      {
+        "shape": [
+          1,
+          7168,
+          56,
+          128
+        ],
+        "correctness": {
+          "exact": true,
+          "baseline_repeat_exact": true,
+          "finite": true,
+          "max_abs": 0.0,
+          "rmse": 0.0
+        },
+        "samples_ms": {
+          "baseline": [
+            9.922059252858162,
+            9.853486903011799,
+            9.81677696108818,
+            9.83054656535387,
+            9.747853502631187,
+            9.783096611499786,
+            9.84145700931549,
+            9.830947034060955,
+            9.845866821706295,
+            9.805765934288502
+          ],
+          "cast_layout": [
+            8.522382006049156,
+            8.459371514618397,
+            8.531883358955383,
+            8.571702986955643,
+            8.525983430445194,
+            8.516842499375343,
+            8.567123673856258,
+            8.523962460458279,
+            8.566753938794136,
+            8.619215339422226
+          ]
+        },
+        "medians_ms": {
+          "baseline": 9.830746799707413,
+          "cast_layout": 8.528933394700289
+        }
+      },
+      {
+        "shape": [
+          1,
+          82944,
+          14,
+          128
+        ],
+        "correctness": {
+          "exact": true,
+          "baseline_repeat_exact": true,
+          "finite": true,
+          "max_abs": 0.0,
+          "rmse": 0.0
+        },
+        "samples_ms": {
+          "baseline": [
+            207.88913685828447,
+            207.878396846354,
+            208.19944515824318,
+            207.34548289328814,
+            204.43772803992033,
+            207.66261219978333,
+            203.84030137211084,
+            208.46030209213495,
+            208.08132272213697,
+            207.4988279491663
+          ],
+          "cast_layout": [
+            203.95177323371172,
+            202.5738973170519,
+            202.17496808618307,
+            200.805451720953,
+            204.22998256981373,
+            201.39254722744226,
+            204.72058467566967,
+            203.91780324280262,
+            204.4507684186101,
+            205.00713121145964
+          ]
+        },
+        "medians_ms": {
+          "baseline": 207.77050452306867,
+          "cast_layout": 203.93478823825717
+        }
+      }
+    ],
+    "target_achieved": false
+  },
+  "direct_harness": {
+    "plan.json": "474cd7d0839818da775688f16df2f93a38f00221f83128023aa91ea43f347a25",
+    "probe.py": "64a08c74b147773dac4e73bcbf6a4482bd94309a80ef635be1c9e236d30489b6",
+    "run.sh": "0e48d682c3280b7e4328001ab7f9a32ec3319591f80dfbd82c19fb0a7be7259e"
+  },
+  "public_harness": {
+    "plan.json": "b7022f7c3c86cd52decd5ababb76321ccadf87e8a129fce8a0e9788fafeb5fde",
+    "probe.py": "6b2ff8f49ed92cf71e7394fe87d22c116b7111804c0417371faa7c6a839ea7d2",
+    "run.sh": "59a06d1fda4764aa16ced24a325bd30c67777bbca46ff08fbd4a3641a1fb0ccc"
+  },
+  "public_plan": {
+    "scope": "Prepared public-API followup, one reserved NPU synthetic screening",
+    "source": "Pinned image MindIE-SD3.1 AscendLaserAttention.la_preprocess_input plus PyTorch Tensor.to contiguous memory_format; original H3 flash_attn.py range protection",
+    "hypothesis": "Avoid separate dtype-preserving-stride copy then layout materialization, retaining original Laser arithmetic",
+    "shapes": [
+      [
+        1,
+        7168,
+        56,
+        128
+      ],
+      [
+        1,
+        82944,
+        14,
+        128
+      ]
+    ],
+    "unchanged": "BF16 inputs divided by256 before FP16 conversion, full dense Laser highprecisionTrue, same scale and BF16 output before multiplying256; no quantization or sparse approximation",
+    "candidate": "Transpose view plus explicit contiguous FP16 cast, then same PUBLIC attention_forward head_first=True; restore BF16 BSND before output scaling",
+    "baseline": "Original attention_forward manual Laser path",
+    "timing_scope": "Complete attention including input scaling, conversions, layout and contiguous output in both arms",
+    "warmups": 3,
+    "rounds": 5,
+    "order": "ABBA",
+    "acceptance": "Exact synthetic parity is only first gate; positive timing still requires real activation parity and model A/B",
+    "estimated_benefit": "Unknown; no30percent prediction"
+  },
+  "jobs_exit": [
+    0,
+    0
+  ],
+  "resource_scope": "Each on one reserved device; four-device campaign remained queued throughout both operator runs. No overlap with its model timing.",
+  "decision": "Exact finite synthetic outputs and small operator improvement; proceed to real-activation diagnostic, not final gain acceptance"
+}

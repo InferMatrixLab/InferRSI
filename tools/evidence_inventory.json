@@ -59,6 +59,10 @@
         {
           "path": "results/fia-v2-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/operator-followup-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [

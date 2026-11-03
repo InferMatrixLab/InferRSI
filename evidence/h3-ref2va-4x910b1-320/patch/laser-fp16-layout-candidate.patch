@@ -1,0 +1,152 @@
+diff --git a/docs/user_guide/diffusion/attention_backends/dense_backends.md b/docs/user_guide/diffusion/attention_backends/dense_backends.md
+index 2cb7019be..53535e65e 100644
+--- a/docs/user_guide/diffusion/attention_backends/dense_backends.md
++++ b/docs/user_guide/diffusion/attention_backends/dense_backends.md
+@@ -31,6 +31,21 @@ when a compatible package is installed.
+ vllm-omni serve <model> --diffusion-attention-backend FLASH_ATTN
+ ```
+ 
++### Experimental Ascend Laser input layout
++
++For the packed-prefix BF16 path with `MINDIE_SD_FA_TYPE=ascend_laser_attention`,
++`--additional-config '{"npu_laser_fp16_layout":true}'` requests a contiguous
++head-first FP16 cast before calling the public MindIE attention API. This
++combines dtype conversion with layout materialization while preserving the
++FP16 input and BF16 output conversion boundaries of MindIE-SD 3.1 Laser.
++Model-provided input scaling and valid-prefix slicing remain in effect.
++
++The option defaults to false. It is intended for the legacy FP16 Laser path;
++it does not preserve the arithmetic of newer native-BF16 Laser implementations.
++Synthetic operator parity is insufficient to establish model quality or
++end-to-end speedup. Validate the installed MindIE version and actual workload
++before enabling it.
++
+ ### FlashAttention 4 on Blackwell
+ 
+ Install the optional CUDA 13 extra:
+diff --git a/tests/diffusion/attention/test_flash_attn.py b/tests/diffusion/attention/test_flash_attn.py
+index 1da5894cc..1c6798ea3 100644
+--- a/tests/diffusion/attention/test_flash_attn.py
++++ b/tests/diffusion/attention/test_flash_attn.py
+@@ -1373,6 +1373,68 @@ def test_prefix_kv_slice_no_scaling_without_factor(monkeypatch):
+     torch.testing.assert_close(out, torch.ones(1, 8, 2, 4))
+ 
+ 
++@pytest.mark.cpu
++@pytest.mark.parametrize("input_scale", [1.0, 256.0])
++@pytest.mark.parametrize("dtype", [torch.bfloat16, torch.float32])
++def test_laser_fp16_layout_preserves_conversion_boundaries(monkeypatch, input_scale, dtype):
++    monkeypatch.setenv("MINDIE_SD_FA_TYPE", "ascend_laser_attention")
++    calls = []
++
++    def reference_adapter(query, key, value, *, head_first=False, **kwargs):
++        calls.append((query, key, value, head_first, kwargs))
++        output_dtype = query.dtype
++        tensors = (query, key, value) if head_first else (x.transpose(1, 2) for x in (query, key, value))
++        q, k, v = (x.to(torch.float16).contiguous() for x in tensors)
++        # A deterministic stand-in for the unchanged native kernel. This test
++        # checks the real adapter's dtype/layout/range boundaries, not Laser.
++        out = q.float() * 1.3 + k.float().mean(2, keepdim=True) + v.float().mean(2, keepdim=True)
++        out = out.to(torch.float16).to(output_dtype)
++        return out if head_first else out.transpose(1, 2)
++
++    _fake_mindiesd(monkeypatch, attention_forward=reference_adapter)
++    impl = _npu_impl()
++    q, k, v = (torch.randn(1, 16, 2, 4, dtype=dtype)[:, ::2] for _ in range(3))
++    cu = torch.tensor([0, 5, 8], dtype=torch.int32)
++    extra = {
++        "cu_seqlens_q": cu,
++        "cu_seqlens_k": cu,
++        "max_seqlen_q": 5,
++        "max_seqlen_k": 5,
++        "laser_input_scale": input_scale,
++    }
++    baseline = impl._forward_prefix_kv_slice_npu(q, k, v, extra)
++    impl.npu_laser_fp16_layout = True
++    candidate = impl._forward_prefix_kv_slice_npu(q, k, v, extra)
++    assert candidate.dtype == dtype and candidate.shape == q.shape
++    assert torch.equal(baseline, candidate)
++    cq, ck, cv, head_first, kwargs = calls[-1]
++    assert head_first is (dtype == torch.bfloat16)
++    if head_first:
++        assert all(x.is_contiguous() and x.dtype == torch.float16 for x in (cq, ck, cv))
++        assert cq.shape == (1, 2, 8, 4) and ck.shape == cv.shape == (1, 2, 5, 4)
++    assert kwargs["attn_mask"] is None
++    assert kwargs["scale"] == 0.5 * input_scale**2
++
++
++@pytest.mark.cpu
++def test_laser_fp16_layout_requires_boolean_config(monkeypatch):
++    from vllm_omni.diffusion.attention.backends import flash_attn
++
++    monkeypatch.setattr(
++        flash_attn,
++        "get_current_diffusion_config_or_none",
++        lambda: SimpleNamespace(additional_config={"npu_laser_fp16_layout": "false"}),
++    )
++    with pytest.raises(ValueError, match="must be a boolean"):
++        _npu_impl()
++    monkeypatch.setattr(
++        flash_attn,
++        "get_current_diffusion_config_or_none",
++        lambda: SimpleNamespace(additional_config={"npu_laser_fp16_layout": True}),
++    )
++    assert _npu_impl().npu_laser_fp16_layout is True
++
++
+ # --- Test group E: NPU piecewise block-causal attention ----------------------
+ #
+ # ``forward_fa_npu`` must honour ``full_attn_spans`` the way ``forward_cuda``
+diff --git a/vllm_omni/diffusion/attention/backends/flash_attn.py b/vllm_omni/diffusion/attention/backends/flash_attn.py
+index 87cb63121..cd9b95bf4 100644
+--- a/vllm_omni/diffusion/attention/backends/flash_attn.py
++++ b/vllm_omni/diffusion/attention/backends/flash_attn.py
+@@ -281,6 +281,10 @@ class FlashAttentionImpl(AttentionImpl[AttentionMetadata]):
+         self._kernel_variant = "fa4" if IS_FLASH_ATTN_4 else "aiter" if IS_AITER else None
+         cfg = get_current_diffusion_config_or_none()
+         self.fa_deterministic = bool(getattr(cfg, "fa_deterministic", False)) if cfg is not None else False
++        additional = getattr(cfg, "additional_config", None) or {}
++        self.npu_laser_fp16_layout = additional.get("npu_laser_fp16_layout", False)
++        if not isinstance(self.npu_laser_fp16_layout, bool):
++            raise ValueError("npu_laser_fp16_layout must be a boolean")
+         if backend_kwargs:
+             logger.warning("FlashAttentionImpl ignoring backend_kwargs: %s", list(backend_kwargs.keys()))
+ 
+@@ -1313,6 +1317,7 @@ class FlashAttentionImpl(AttentionImpl[AttentionMetadata]):
+         """
+         self._warn_fa_deterministic_non_dense("piecewise-npu")
+         logger.debug("Using piecewise NPU attention for mixed causal/full mask")
++        assert attn_metadata.full_attn_spans is not None
+         return piecewise_attn(
+             query,
+             key,
+@@ -1458,6 +1463,29 @@ class FlashAttentionImpl(AttentionImpl[AttentionMetadata]):
+         def _postprocess(out: torch.Tensor) -> torch.Tensor:
+             return out * input_scale if preserve_input_range else out
+ 
++        if self.npu_laser_fp16_layout and query.dtype == torch.bfloat16:
++            # Preserve the MindIE-SD 3.1 Laser FP16 conversion boundaries,
++            # while materializing BNSD during the cast instead of copying
++            # once for dtype and again for contiguous layout. Keep opt-in:
++            # newer native-BF16 Laser implementations have different math.
++            output_dtype = query.dtype
++            q, k, v = (
++                tensor.transpose(1, 2).to(dtype=torch.float16, memory_format=torch.contiguous_format)
++                for tensor in (query, key, value)
++            )
++            out = attention_forward(
++                q,
++                k,
++                v,
++                attn_mask=None,
++                head_first=True,
++                opt_mode="manual",
++                op_type="ascend_laser_attention",
++                layout=layout,
++                scale=scale,
++            )
++            return _postprocess(out.to(output_dtype).transpose(1, 2))
++
+         return _postprocess(
+             attention_forward(
+                 query,
