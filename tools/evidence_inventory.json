@@ -52,6 +52,11 @@
                     {"path": "plan/second-attempt-1200/integrity.json", "schema": "bundle-sha256"}],
       "external": ["Historical first-pair plan/source data and prospective single-additional-attempt budget data. First-run outputs are retained separately; no efficacy result is claimed."]
     },
+    "kv-actor-qualification-20261031": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": ["Fresh exact-revision hosted actor receipts for the updated K payload are retained as separate CI artifacts; this plan makes no provider calls and grants no live authorization."]
+    },
     "kv-actor-qualification-20261030": {
       "kind": "campaign",
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"},

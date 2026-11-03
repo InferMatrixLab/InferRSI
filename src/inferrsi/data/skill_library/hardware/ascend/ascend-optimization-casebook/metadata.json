@@ -19,5 +19,16 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Find source-derived prior cases for an already classified Ascend inference bottleneck, including fallback, memory traffic, exposed communication, graph startup and host scheduling gaps.",
+    "prerequisites": "A bottleneck classification from profiling and a check of the selected case preconditions/mechanism before applying it.",
+    "input_contract": "Bottleneck symptoms and matching profiler evidence, model/hardware/CANN/configuration context and, for a new case, measured before/after metrics.",
+    "produced_artifact": "A matching prior-art case and evidence requirements for a later measured application; a new case record requires a verified win or clear failure with a metric comparison.",
+    "refusal_point": "Do not add an INCONCLUSIVE case or one without a measured metric comparison; a subjective direction is insufficient evidence."
+  },
+  "recommendations": [
+    "Classify first, then check the matching case preconditions and use its owning procedure to apply and measure the candidate; the casebook itself does not perform profiling.",
+    "Keep profiler mechanism evidence and same-window end-to-end outcomes together, and retain locally_verified=false until the applied case has actually run."
+  ]
 }

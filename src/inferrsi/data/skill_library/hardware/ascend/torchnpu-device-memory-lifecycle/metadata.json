@@ -21,5 +21,16 @@
   "provenance_readsets": [
     "references/source-notes.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Diagnose TorchNPU device-HBM reuse, stream lifetimes, fragmentation and graph/private-pool retention before proposing allocator changes.",
+    "input_contract": "Allocation failure/size sequence, device and allocator path, installed versions/settings, stream and graph-pool timeline, retained tensor references and allocator statistics with synchronization boundaries.",
+    "produced_artifact": "A suspected allocator state transition with source evidence IDs, one eligible action, resource cost, counter-signals and a correctness-first verification/rollback plan.",
+    "refusal_point": "Missing evidence supports only a conditional proposal, not a diagnosed leak; stop when external/custom/shared allocation ownership is untraced and keep baseline settings for unsupported versions or live-tensor capacity pressure."
+  },
+  "recommendations": [
+    "Separate stream lifetime protection from producer/consumer ordering, and distinguish live tensors, pending events, inactive splits and private-pool retention before tuning.",
+    "Match split or expandable-segment proposals to the observed allocation pattern and actual feature gates; do not combine incompatible controls or import comment thresholds as defaults.",
+    "Treat cache release as synchronization/allocation work at a quiescent boundary; compare identical allocation sequences in fresh processes at the same synchronization points."
+  ]
 }

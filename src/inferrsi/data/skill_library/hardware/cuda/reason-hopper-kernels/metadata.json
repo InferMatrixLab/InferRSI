@@ -160,7 +160,10 @@
       "CLC",
       "two-SM MMA",
       "native NVFP4/block-scaled tcgen05 MMA"
-    ]
+    ],
+    "input_contract": "Device/compute capability, compiler target and selected implementation, kernel/library revisions, shapes/strides/alignment, numeric and grouping/epilogue semantics, correctness criterion and measurement boundary.",
+    "produced_artifact": "A source-qualified, reviewable hypothesis with one bounded change, resource/accuracy exchange, counter-signal, stop condition and next verification step.",
+    "failure_modes": "SM90 tags or import/dispatch guards can hide an unbuilt or unselected SM90a instruction path; extra stages or register caps can increase spills or lower residency."
   },
   "limitations": [
     "Native compilation, GPU correctness, numerical accuracy, profiling, performance, model/service behavior and skill efficacy were not run.",
@@ -178,5 +181,10 @@
     "../diagnose-attention-bottlenecks/SKILL.md",
     "../../../methods/kernel-writing-guide/SKILL.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "For WGMMA advice, confirm the compiled and selected SM90a path; do not transplant Blackwell-only instruction or memory mechanisms.",
+    "Resolve producer/consumer ownership and completion before tuning stage depth; budget live accumulators, padded shared memory, scales and epilogue storage together.",
+    "For later validation, check tails, short K, stage wraparound and grouped offsets against the frozen reference, inspect actual PTX/SASS resources, and include setup/conversion/reduction costs."
+  ]
 }
