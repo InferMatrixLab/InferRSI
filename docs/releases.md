@@ -128,6 +128,11 @@ original GitHub changelog, preserving its PR links and source/evidence notice.
 When source metadata is truncated, the helper appends a fixed coverage notice
 from the source flags. The model is asked to leave coverage statements to the helper.
 Model output is read as a file and never executed as shell code.
+Explicit URLs and Markdown links in model output must be simple inline links to
+canonical commit URLs present in the supplied source. Images, reference links,
+bare URL/email autolinks and unsupported or unverified link forms cause fallback.
+This gate validates generated link syntax; GitHub's own reference and custom
+autolink rendering remains repository policy.
 
 The helper makes one request using the
 [Responses API](https://api-docs.deepseek.com/guides/responses_api/), with
