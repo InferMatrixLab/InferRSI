@@ -1,53 +1,59 @@
-# #252 共享工程基准交付计划
+# #252：给 InferRSI 提供共享优化任务和独立评测
 
-本地实施依据为用户在 2026-11-03 的明确委托。重新读取的 [Issue 正文](https://github.com/InferMatrixLab/InferRSI/issues/252) 与全部两条评论仍未记录维护者对首批子集的验收。本目录记录可供维护者评审的实现与证据，不代替项目接受或关闭 Issue。
+**我们要交付一套可复用的优化任务和独立评测工具：Agent 交付实现，工具检查算得对不对、在固定条件下测得多快，InferRSI 再据此决定下一步。**
 
-基线为 `663f3b327998526a13aa31e72ad729025c18983c`。实现位于独立分支 `codex/issue252-engineering-benchmarks`，不改变其他工作区。
+本次模块称为 **Engineering Benchmarks（共享工程评测任务）**。它的输入是选定的任务包和候选实现，输出是正确性结果、独立 profile、原始计时及对应版本。名称是本次交付提议，正式范围仍待维护者接受。
 
-## 要解决的实际问题
+## 实际交付给使用者什么
 
-先读 [在现有 RSI 中的调用与验收](rsi-integration.md)：#252 同时为引擎候选比较和优化者评估提供共享任务。当前已验证的是组件及底层消费者通路，尚未完成正式 SkillEval 两臂入口、既有改进 controller 或 agent 收益的端到端验收。
+以当前 `rmsnorm-cpu` 为例：
 
-Workbench 和工程评估需要对同一个候选实现回答两个问题：计算是否正确，以及指定工作负载下测得什么性能。任务语义、输入、参考答案和计时规则应只有一份。搜索策略决定下一步尝试什么，消费者不能各自复制或修改题目答案。
+- **任务是什么：** 在规定的 CPU float32 输入上计算沿 axis=1 的 RMSNorm，保留 epsilon 和输入内容。
+- **Agent 可以改什么：** 独立 `implementation.py` 中的 `compute(x, *, eps)` 实现。
+- **Agent 交付什么：** 一份候选源码；输入、oracle、容差和计时规则来自受保护的任务包。
+- **谁检查：** `check` 使用独立参考答案验证；`profile` 生成单独诊断；`compare` 交给现有 Workbench 比较原版与候选版。
+- **结果如何发挥作用：** 错误实现不能获得可用性能分数；正确实现的计时和完整性证据供 RSI 判断是否保留。若计时无法分辨，继续记录“证据不足”，不能宣布优化成功。
 
-本次将这个模块命名为 **Engineering Benchmarks（工程基准）**。这是本次实现的命名，尚非维护者已接受的架构决策。
+一次真实对照中，省略 epsilon 的实现通过了普通输入冒烟，却被完整任务和 SkillEval 底层 verifier 一致拒绝。这证明了错误识别用途。该对照同时暴露计时噪声；可靠性能排序仍未建立，见[用途验证](usefulness.md)。之后还修复了重复输入导致缓存重放可被计时的问题，见 [v2 验证](replay-validation.md)。
 
-## 子项与执行顺序
+## 四个子任务分别做什么
 
-| 子项 | 要交付什么 | 如何证明有用 |
+**这四项是交付步骤，不是四个运行时模块。** 第一项决定做什么，第二项规定规则，第三项交付可执行任务，第四项接入已有系统。
+
+| 子任务 | 要交付的具体东西 | 谁使用、实际发挥什么作用 | 当前状态 |
+| --- | --- | --- | --- |
+| **① 选定第一批任务和复用方案** · [#334](https://github.com/InferMatrixLab/InferRSI/issues/334) · [详细说明](01-research.md) | 论文/开源对照、任务选择、复用和适配决定 | 开发者据此确定先做哪几题、复用哪些设计，以及当前硬件范围 | 调研与方案已完成，范围待维护者接受 |
+| **② 规定任务怎样提交、运行和判定** · [#335](https://github.com/InferMatrixLab/InferRSI/issues/335) · [详细说明](02-contract.md) | 统一任务格式、候选入口、check/profile/measure 接口和版本记录 | Workbench 与评估工具读取同一题目和裁判；题目或源码变更后不能继续当作原比较 | 已实现共享接口和内容冻结 |
+| **③ 把第一批任务做成可执行的包** · [#336](https://github.com/InferMatrixLab/InferRSI/issues/336) · [详细说明](03-tasks.md) | Softmax、RMSNorm CPU 任务；每题带输入、基线、独立参考答案和测量规则 | Agent 有明确修改对象，工具有真实可运行的正确性、诊断和测量任务 | 已实现并实测；可靠性能排序未建立 |
+| **④ 接入现有 RSI，并验证结果能被使用** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) · [详细说明](04-integration.md) | Workbench 绑定、离线 verifier、复现入口和证据记录 | 现有实验流程执行任务、拒绝错误实现并保留证据；后续用于评估不同技能产出的实现 | Workbench 和底层 verifier 已接通；正式 SkillEval 两臂接入未完成 |
+
+## 放在我们 RSI 的哪里
+
+同一套任务服务两种不同的比较：
+
+| RSI 要回答的问题 | 现有调用者 | #252 的作用 |
 | --- | --- | --- |
-| [01 调研和决策](01-research.md) | 一手论文、固定版本源码对照，选择及不选择的理由 | 每项决策对应接口、任务或验证行为 |
-| [02 共享接口](02-contract.md) | 任务包读取、身份冻结、命令生成、独立诊断 | 错误配置和任务漂移会被拒绝，能生成现有 RunSpec |
-| [03 首批任务](03-tasks.md) | 少量真实算子任务，独立 oracle，基线和候选接口 | 正确实现通过，典型错误被抓到，实际执行并计时 |
-| [04 消费者与验收](04-integration.md) | Workbench 和离线工程评估共享同一任务，复现入口和结果 | 真正调用现有执行器/评估器，保留原始样本、失败记录和诊断 |
+| 这个引擎实现是否正确、有可验证的改进？ | 主 Agent + Workbench | 提供共同工作负载、独立正确性检查和测量规则 |
+| 新 skill/知识是否帮助 Agent 产出更好的实现？ | SkillEval 两臂比较；后续衔接已有改进流程 | 两边产出的实现使用同一套任务和裁判，不随技能条件更换答案 |
 
-硬件尚未确定，按用户的“共享接口优先”约束先验证本机 CPU 子集。加速器适配不能用 CPU 结果冒充。通信、分布式拓扑、显存容量、GPU/NPU 计时不属于这个首批子集。
+第一条路径已有实际执行。第二条目前只验证了已审核产物经过底层 verifier 的通路；尚未比较旧/新技能如何影响真实 Agent 的交付。完整调用关系和分层验收见 [RSI 接入审计](rsi-integration.md)。
 
-## 与评论中的 Search Policy 的关系
+主 Agent 和 Search Policy 决定下一步尝试什么；任务包决定要算什么、怎样检查和测量。Profiling 是独立诊断，不冒充速度比较。它们在现有 RSI 中分工合作，#252 不负责另建搜索控制器。
 
-[RFC](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495138306) 提出了候选卡、准入、成本层级、轮次、负结果和停止规则。[维护者回复](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495720922) 明确要求保持它与 #252 独立，并修正增量贡献、诊断记录、搜索耗尽三个问题。本次交付任务和 oracle，不顺带实现这套搜索控制器。
+## 参考 AMD 项目时具体学什么
 
-Profiling 保留为独立诊断操作，与 correctness 和配对 performance 分开。它不伪造 baseline，也不产生性能胜负。本次 CPU profiling 只能解释 CPU 调用；设备 trace 由未来环境适配器提供。
+之前调研的 AMD 项目是 [AgentKernelArena](https://github.com/AMD-AGI/AgentKernelArena/blob/47c2658a07efc7c2c0f72751781a5b5690471b0b/README.md)。它明确描述：给 Agent GPU 优化任务，在工作区产出实现，由独立 evaluator 检查、计时并产生结果；外部系统负责训练或策略更新。
 
-## 完成标准
+本次借鉴它的[任务契约](https://github.com/AMD-AGI/AgentKernelArena/blob/47c2658a07efc7c2c0f72751781a5b5690471b0b/docs/how-to/add-task.md)：明确计算语义、可编辑实现、性能基线、正确性参考、工作负载和评测操作。我们把这层能力接到已有 InferRSI；当前交付范围是共享任务及其接口，不等同于 Arena 完整的 GPU/Agent 执行平台。
 
-- 每个子项有方案、理由、实际改动和验证记录。
-- 首批任务可从安装包读取，离开源码目录仍可使用。
-- 冻结任务、grader、候选和输入身份，保留失败与缺失状态。
-- 测量明确单位、边界、预热、重复与样本，不用文档或 CI 绿色代替真实任务运行。
-- 证明接口复用和错误识别；不宣称技能/agent/search 的收益、GPU/NPU 正确性或服务加速。
-- 正式 Issue 验收、维护者同意、独立 review 与本地实施完成分别报告。
+## 怎么开始使用和检查结果
 
-最终结果见 [验证记录](validation.md)。
+运行 `inferrsi benchmarks list`、`show rmsnorm-cpu`，将示例候选复制成独立 `implementation.py`，再按[使用文档](../../engineering-benchmarks.md)执行 `check`、`profile` 和 `compare`。共享接口优先，硬件尚未确定，所以目前只支持明确的 CPU 子集。
 
-[实际工程用途对照](usefulness.md)进一步验证了错误拦截和两个消费者的复用价值，并如实记录了原版对原版的计时噪声；可靠性能优选尚未建立。
+当前证据见 [v2 协议验证](replay-validation.md)；历史证据见 [v1 集成记录](validation.md) 和 [v1 用途对照](usefulness.md)。本地测试、组件实现、正式系统接入与维护者验收分别记录。GPU/NPU、通信/容量任务、真实 agent/skill/search 收益和可靠性能排序均不能由当前 CPU 结果代替。
 
-## 当前交付
+## 跟踪与范围
 
-公开子任务分别为 [#334 调研与决策](https://github.com/InferMatrixLab/InferRSI/issues/334)、[#335 共享接口](https://github.com/InferMatrixLab/InferRSI/issues/335)、[#336 首批任务](https://github.com/InferMatrixLab/InferRSI/issues/336)、[#337 消费者与验证](https://github.com/InferMatrixLab/InferRSI/issues/337)。四项均引用父任务 #252，保持打开供维护者评审与验收。当前提交账号无法写入原生父子关系，需维护者补充。
+实现及文档在 [Draft PR #338](https://github.com/InferMatrixLab/InferRSI/pull/338)，四个子任务保持打开。原生父子关系写入受账号权限限制，目前通过相互引用和父任务索引追踪。
 
-四个子项已有组件实现：共享 TaskPackage、两个真实 CPU 算子任务、独立正确性与 profiling、Workbench 和 SkillEval 低层 verifier 接入，以及可复现实测工具。测量语义 review、可靠性能排序和系统接入验收分别追踪，不能把局部实现表述为整个 RSI 已经闭环。使用入口见 [工程基准文档](../../engineering-benchmarks.md)。
-
-建议先读本页理解范围，再读 01 看方案理由。要开始使用时，运行 `inferrsi benchmarks list` 和 `show softmax-cpu`，复制任务包中的示例候选到独立 implementation.py，按使用文档执行 check、profile、compare。修改任务协议应创建新比较，不能沿用旧身份。
-
-这份交付覆盖共享接口和 CPU 子集的组件实现；正式 SkillEval 两臂接入、优化者收益和可靠性能排序尚未建立。#252 的维护者验收、目标硬件选择与后续覆盖仍单独记录，不在本地冒充已接受。
+初始基线为 `663f3b327998526a13aa31e72ad729025c18983c`，工作分支为 `codex/issue252-engineering-benchmarks`。本地实施与提交依据为用户的明确委托；这不等价于维护者已接受整个 #252。父 Issue 的 [Search Policy RFC](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495138306) 按[维护者范围意见](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495720922)保持独立。
