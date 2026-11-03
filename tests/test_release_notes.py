@@ -13,6 +13,7 @@ from tools import generate_release_notes as notes
 
 KEY = "sk-test-no-access-credential"
 SHA = "1" * 40
+COMMIT_URL = f"https://github.com/example/release/commit/{SHA}"
 
 
 def completed(text="## Features\n- Preserve source identity."):
@@ -279,6 +280,74 @@ def test_completed_mixed_output_items_make_one_bounded_markdown_file(invocation,
     assert "untrusted" in payload["instructions"]
     captured = capsys.readouterr()
     assert captured.out == "AI release overview generated.\n" and captured.err == ""
+
+
+def test_supplied_canonical_inline_links_preserve_prose_colons_and_inline_code(
+    invocation, monkeypatch,
+):
+    run, output, _ = invocation
+    context = {"repository": "example/release", "commits": [{"sha": SHA, "url": COMMIT_URL}]}
+    monkeypatch.setattr(notes, "source_snapshot", lambda *args: json.dumps(context))
+    text = f"## Features\n- Indexer: opt-in ranking for `platform_packs` ([change]({COMMIT_URL}))."
+    code, _, _ = run(completed(text))
+    assert code == 0 and output.read_text(encoding="utf-8") == text + "\n"
+
+
+@pytest.mark.parametrize("fragment", [
+    "![tracking](https://example.invalid/pixel)", f"![tracking]({COMMIT_URL})",
+    f"![image][ref]\n[ref]: {COMMIT_URL}", "[external](https://example.invalid/path)",
+    f"[unknown](https://github.com/example/release/commit/{'2' * 40})",
+    f"[other](https://github.com/other/release/commit/{SHA})",
+    f'[title]({COMMIT_URL} "title")', f"[angle](<{COMMIT_URL}>)",
+    f"[reference][ref]\n[ref]: {COMMIT_URL}", f"<{COMMIT_URL}>", COMMIT_URL,
+    "https://example.invalid/raw", "www.example.invalid", "operator@example.invalid",
+    "[mail](mailto:operator@example.invalid)", "[relative](../README.md)", "[anchor](#features)",
+    f"[escape](https://github\\.com/example/release/commit/{SHA})",
+    f"[entity](https&#58;//github.com/example/release/commit/{SHA})",
+    f"[encoded](https%3A%2F%2Fgithub.com/example/release/commit/{SHA})",
+    f"[userinfo](https://github.com@example.invalid/example/release/commit/{SHA})",
+    f"[suffix](https://github.com.example.invalid/example/release/commit/{SHA})",
+    f"[case](https://GITHUB.com/example/release/commit/{SHA})",
+    f"[fragment]({COMMIT_URL}#details)", f"[query]({COMMIT_URL}?redirect=example)",
+    f"[nested [label]]({COMMIT_URL})", f"[safe]({COMMIT_URL})https://example.invalid",
+    f"[https://example.invalid]({COMMIT_URL})", "@operator", "#123",
+    "&lt;https://example.invalid&gt;", "ftp://example.invalid", "[script](javascript:alert(1))",
+    "123https://example.invalid/embedded", "123www.example.invalid",
+], ids=[
+    "image", "canonical-image", "reference-image", "external-inline", "unknown-commit",
+    "other-repository", "title", "angle-target", "reference", "autolink", "bare-canonical",
+    "bare-external", "www", "email", "mailto", "relative", "anchor", "escaped-host",
+    "entity-protocol", "encoded-protocol", "userinfo", "host-suffix", "host-case", "fragment",
+    "query", "nested-label", "trailing-url", "url-label", "mention", "issue-reference",
+    "encoded-autolink", "ftp", "script", "embedded-url", "embedded-www",
+])
+def test_unsafe_or_unsupported_model_links_use_fallback_without_output(
+    invocation, monkeypatch, capsys, fragment,
+):
+    run, output, _ = invocation
+    context = {"repository": "example/release", "commits": [{"sha": SHA, "url": COMMIT_URL}]}
+    monkeypatch.setattr(notes, "source_snapshot", lambda *args: json.dumps(context))
+    output.write_text("stale", encoding="utf-8")
+    code, _, _ = run(completed("## Features\n- " + fragment))
+    assert code == 0 and not output.exists()
+    assert capsys.readouterr().out == notes.FALLBACK + "\n"
+
+
+@pytest.mark.parametrize("context", [
+    {"repository": "example/release", "commits": [{"sha": SHA,
+                                                   "url": "https://example.invalid/fake"}]},
+    {"repository": "example/../release", "commits": [{"sha": SHA, "url": COMMIT_URL}]},
+    {"repository": "example/release", "commits": [{"sha": "1" * 39, "url": COMMIT_URL}]},
+    {"repository": "example/release", "commits": [{"sha": "A" * 40, "url": COMMIT_URL}]},
+    {"repository": "example/release", "commits": [{"sha": "2" * 40, "url": COMMIT_URL}]},
+    {"commits": [{"sha": SHA, "url": COMMIT_URL}]},
+    {"repository": "example/release", "commits": "not-a-list"},
+    {"repository": "example/release", "commits": ["not-an-object"]},
+], ids=["external-source", "invalid-repository", "short-sha", "uppercase-sha", "url-sha-mismatch",
+        "missing-repository", "invalid-commits", "invalid-commit"])
+def test_forged_source_metadata_cannot_authorize_links(context):
+    with pytest.raises(ValueError):
+        notes.validate_overview_links(f"## Features\n- [change]({COMMIT_URL})\n", context)
 
 
 @pytest.mark.parametrize("body", [
