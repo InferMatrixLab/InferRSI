@@ -47,6 +47,10 @@
         {
           "path": "results/tp4-followup-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/hybrid-negative-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [

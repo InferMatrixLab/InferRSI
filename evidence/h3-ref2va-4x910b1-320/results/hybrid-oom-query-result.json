@@ -1,0 +1,399 @@
+{
+  "scope": "Failed hybrid model experiment and rejected synthetic dense operator changes",
+  "hybrid_control": {
+    "run": "tp2-sp2-screen-base0",
+    "source_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+    "configuration": {
+      "dense_kernel": "ascend_laser_attention",
+      "pipeline_profiler": false,
+      "heldout_quality_cases": false,
+      "diagnostic_shutdown_override": false,
+      "shutdown_mode": "native",
+      "arm": "base",
+      "steps": 5,
+      "requests": 1,
+      "serve_args": [
+        "--num-gpus",
+        "4",
+        "--usp",
+        "4",
+        "--ring",
+        "1",
+        "--text-encoder-tp-size",
+        "4",
+        "--vae-parallel-mode",
+        "tile",
+        "--vae-use-tiling",
+        "--vae-patch-parallel-size",
+        "4",
+        "--enable-distributed-layerwise-offload",
+        "--disable-log-stats",
+        "--diffusion-attention-backend",
+        "FLASH_ATTN"
+      ],
+      "warmups_per_duration": 1,
+      "durations_s": [
+        5
+      ],
+      "dlo_wave_timeout_s": 14400.0,
+      "seeds": [
+        0
+      ],
+      "inputs_sha256": {
+        "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+        "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+        "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+      }
+    },
+    "runtime_settings_sha256": "a2a956fdb49512b5c4b495706cc8b0ff4465e96348d21b9156ff48e8de826271",
+    "cells": [
+      {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 1,
+        "completed": 1,
+        "failed": 0,
+        "missing": 0,
+        "samples_ms": [
+          166571.69562019408
+        ],
+        "mean_ms": 166571.69562019408,
+        "median_ms": 166571.69562019408,
+        "min_ms": 166571.69562019408,
+        "max_ms": 166571.69562019408,
+        "request_sample_stdev_ms": null,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      }
+    ],
+    "samples_including_warmups": [
+      {
+        "label": "measured-5-seed0-0",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 5,
+        "valid": true,
+        "e2e_ms": 166571.69562019408,
+        "http_status": 200,
+        "bytes": 6621135,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-8a33f8f18397af24",
+          "X-Inference-Time-S": "166.503",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.5019530653953552,\"stage_0_gen_ms\":165265.2485370636}",
+          "X-Peak-Memory-MB": "19748.000"
+        },
+        "output_sha256": "1ae5d8ce267bf6c1e38e026224b1248c893af21c93c8e1162a2bc8dfe42c4059"
+      },
+      {
+        "label": "warmup-5",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 5,
+        "valid": true,
+        "e2e_ms": 253153.14952470362,
+        "http_status": 200,
+        "bytes": 6611456,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-866e4e0e70db2b20",
+          "X-Inference-Time-S": "253.060",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.39513036608695984,\"stage_0_gen_ms\":252115.53072929382}",
+          "X-Peak-Memory-MB": "19688.000"
+        },
+        "output_sha256": "8a7a5b3504a1c566d48b7e918ee57fb85011f13a356c9cb5346e6943a9c5f1ff"
+      }
+    ],
+    "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+    "lifecycle": {
+      "status": "pass",
+      "container_exit": 0,
+      "server_exit": 0,
+      "forced_signals": 0,
+      "host_cleanup_intervention": false,
+      "expected_workers": 4,
+      "workers": [
+        {
+          "name": "DiffusionWorker-0",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-1",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-2",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-3",
+          "exit_code": 0,
+          "alive": false
+        }
+      ]
+    },
+    "service_log_sha256": "c44b7127d73b90755e6062976ab3b6b27ce67f19e39dd91762e6f6a55d7698ed"
+  },
+  "hybrid_failed_candidate": {
+    "run": "tp2-sp2-screen-hybrid_a",
+    "source_revision": "0be853d46bcb1ae880d7582f4bed502ec29017af",
+    "configuration": {
+      "dense_kernel": "ascend_laser_attention",
+      "pipeline_profiler": false,
+      "heldout_quality_cases": false,
+      "diagnostic_shutdown_override": false,
+      "shutdown_mode": "native",
+      "arm": "base",
+      "steps": 5,
+      "requests": 1,
+      "serve_args": [
+        "--num-gpus",
+        "4",
+        "--tensor-parallel-size",
+        "2",
+        "--usp",
+        "2",
+        "--ring",
+        "1",
+        "--text-encoder-tp-size",
+        "4",
+        "--vae-parallel-mode",
+        "tile",
+        "--vae-use-tiling",
+        "--vae-patch-parallel-size",
+        "4",
+        "--disable-log-stats",
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--diffusion-offload-config",
+        "{\"mode\":\"module\",\"components\":[\"text_encoder\"]}"
+      ],
+      "warmups_per_duration": 1,
+      "durations_s": [
+        5
+      ],
+      "dlo_wave_timeout_s": 14400.0,
+      "seeds": [
+        0
+      ],
+      "inputs_sha256": {
+        "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+        "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+        "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+      }
+    },
+    "runtime_settings_sha256": "f2e5f4bf21917cbf6212edb8429f2bee25803542708a78e00f650fe42a0b305f",
+    "cells": [
+      {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 1,
+        "completed": 0,
+        "failed": 1,
+        "missing": 0,
+        "samples_ms": [],
+        "mean_ms": null,
+        "median_ms": null,
+        "min_ms": null,
+        "max_ms": null,
+        "request_sample_stdev_ms": null,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      }
+    ],
+    "samples_including_warmups": [
+      {
+        "label": "measured-5-seed0-0",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 5,
+        "valid": false,
+        "e2e_ms": 69119.12425234914,
+        "http_status": 500,
+        "bytes": 391,
+        "response_metrics": {},
+        "error": "HTTP 500: {\"error\":{\"message\":\"Video generation failed: NPU out of memory. Tried to allocate 1.15 GiB (NPU 1; 60.96 GiB total capacity; 57.82 GiB already allocated; 57.82 GiB current active; 334.45 MiB free; 57.89 GiB reserved in total by PyTorch).If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.\",\"type\":\"Internal Server Error\",\"param\":null,\"code\":500}}"
+      },
+      {
+        "label": "warmup-5",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 5,
+        "valid": true,
+        "e2e_ms": 253081.255200319,
+        "http_status": 200,
+        "bytes": 6619706,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-be30170c7b93d0f0",
+          "X-Inference-Time-S": "252.983",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.4733521491289139,\"stage_0_gen_ms\":251891.70956611633}",
+          "X-Peak-Memory-MB": "49898.000"
+        },
+        "output_sha256": "f724d39e65119c29533f8e411cad3f956c371b8e2ac4ba6702376d34ed198c8c"
+      }
+    ],
+    "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+    "lifecycle": {
+      "status": "fail",
+      "container_exit": 1,
+      "server_exit": 0,
+      "forced_signals": 4,
+      "host_cleanup_intervention": false,
+      "expected_workers": 4,
+      "workers": [
+        {
+          "name": "DiffusionWorker-0",
+          "exit_code": -15,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-1",
+          "exit_code": -15,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-2",
+          "exit_code": -15,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-3",
+          "exit_code": -15,
+          "alive": false
+        }
+      ]
+    },
+    "service_log_sha256": "662dd2c11a7d33cd98ce9e3a944724507853cf2b08e9cfbc7fa0abb74c7adb9d"
+  },
+  "failure_analysis": {
+    "location": "Second request, reference video VAE encoding; prior request DiT remains resident by explicit selection",
+    "allocation_requested_GiB": 1.15,
+    "active_GiB": 57.82,
+    "total_device_GiB": 60.96,
+    "scope": "Not a fragmentation diagnosis; active memory nearly exhausts capacity",
+    "first_request": "Warmup HTTP200; candidate measured request HTTP500, no measured media or speedup",
+    "lifecycle": "All workers and server exited zero without forced signals, but container exit1 means full lifecycle qualification fails",
+    "decision": "Stop incomplete ABBA; prepare separate component-offload configuration without changing frozen failed run"
+  },
+  "query_chunk_probe": {
+    "shape": [
+      1,
+      14,
+      82944,
+      128
+    ],
+    "results": [
+      {
+        "query_chunk": 41472,
+        "exact": false,
+        "finite": true,
+        "rmse": 7.101540177245624e-06,
+        "samples_ms": {
+          "baseline": [
+            202.1085973829031,
+            201.86828076839447,
+            201.55992452055216,
+            202.12047826498747,
+            201.94504410028458,
+            202.308832667768,
+            201.50060299783945,
+            201.9133735448122,
+            202.84561719745398,
+            202.27250270545483
+          ],
+          "candidate": [
+            202.77249533683062,
+            203.2938590273261,
+            201.1196231469512,
+            202.42144726216793,
+            203.15915532410145,
+            202.896848320961,
+            203.77180073410273,
+            203.56090553104877,
+            202.95233000069857,
+            203.2683091238141
+          ]
+        },
+        "medians_ms": {
+          "baseline": 202.02682074159384,
+          "candidate": 203.0557426624
+        }
+      },
+      {
+        "query_chunk": 20736,
+        "exact": false,
+        "finite": true,
+        "rmse": 7.0833234531164635e-06,
+        "samples_ms": {
+          "baseline": [
+            202.56038941442966,
+            202.16483995318413,
+            202.07379665225744,
+            202.0931877195835,
+            201.6310952603817,
+            201.81423984467983,
+            201.59291476011276,
+            201.80692989379168,
+            201.8639324232936,
+            202.01321505010128
+          ],
+          "candidate": [
+            202.11930759251118,
+            202.18290854245424,
+            204.36871703714132,
+            203.97595781832933,
+            202.9394693672657,
+            202.14044861495495,
+            202.19954010099173,
+            204.78882733732462,
+            203.69768980890512,
+            203.8127016276121
+          ]
+        },
+        "medians_ms": {
+          "baseline": 201.93857373669744,
+          "candidate": 203.3185795880854
+        }
+      },
+      {
+        "query_chunk": 6912,
+        "exact": false,
+        "finite": true,
+        "rmse": 7.014911261649104e-06,
+        "samples_ms": {
+          "baseline": [
+            202.6188112795353,
+            203.4319033846259,
+            202.13026739656925,
+            203.6263570189476,
+            202.2528424859047,
+            203.7888616323471,
+            202.421136200428,
+            203.36578134447336,
+            202.15090923011303,
+            203.4368123859167
+          ],
+          "candidate": [
+            205.0780951976776,
+            204.5427318662405,
+            204.13180999457836,
+            204.28764540702105,
+            203.92265636473894,
+            204.95968218892813,
+            203.92563473433256,
+            205.4731361567974,
+            203.65303754806519,
+            205.3725542500615
+          ]
+        },
+        "medians_ms": {
+          "baseline": 202.99229631200433,
+          "candidate": 204.41518863663077
+        }
+      }
+    ],
+    "scope": "Synthetic operator only, full dense keys and baseline precision",
+    "target_achieved": false
+  },
+  "query_decision": "All three schedules slower and not bit-exact; reject promotion",
+  "target_achieved": false
+}
