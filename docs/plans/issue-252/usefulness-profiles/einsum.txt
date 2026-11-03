@@ -1,0 +1,25 @@
+         1260 function calls in 0.001 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       42    0.000    0.000    0.001    0.000 implementation.py:2(compute)
+       42    0.000    0.000    0.000    0.000 _shape_base_impl.py:515(expand_dims)
+       42    0.000    0.000    0.000    0.000 einsumfunc.py:1244(einsum)
+       42    0.000    0.000    0.000    0.000 {built-in method numpy._core._multiarray_umath.c_einsum}
+       42    0.000    0.000    0.000    0.000 numeric.py:1431(normalize_axis_tuple)
+       42    0.000    0.000    0.000    0.000 _shape_base_impl.py:600(<listcomp>)
+       84    0.000    0.000    0.000    0.000 numeric.py:1480(<genexpr>)
+      210    0.000    0.000    0.000    0.000 einsumfunc.py:1236(_einsum_dispatcher)
+      126    0.000    0.000    0.000    0.000 {built-in method builtins.isinstance}
+       42    0.000    0.000    0.000    0.000 {method 'reshape' of 'numpy.ndarray' objects}
+       84    0.000    0.000    0.000    0.000 {built-in method time.perf_counter_ns}
+      126    0.000    0.000    0.000    0.000 {built-in method builtins.len}
+      126    0.000    0.000    0.000    0.000 {built-in method builtins.next}
+       42    0.000    0.000    0.000    0.000 {built-in method numpy.lib.array_utils.normalize_axis_index}
+       42    0.000    0.000    0.000    0.000 {built-in method numpy.asanyarray}
+       42    0.000    0.000    0.000    0.000 _shape_base_impl.py:511(_expand_dims_dispatcher)
+       42    0.000    0.000    0.000    0.000 {built-in method builtins.iter}
+       42    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+

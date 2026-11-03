@@ -38,6 +38,8 @@ Profiling 保留为独立诊断操作，与 correctness 和配对 performance �
 
 最终结果见 [验证记录](validation.md)。
 
+[实际工程用途对照](usefulness.md)进一步验证了错误拦截和两个消费者的复用价值，并如实记录了原版对原版的计时噪声；可靠性能优选尚未建立。
+
 ## 当前交付
 
 公开子任务分别为 [#334 调研与决策](https://github.com/InferMatrixLab/InferRSI/issues/334)、[#335 共享接口](https://github.com/InferMatrixLab/InferRSI/issues/335)、[#336 首批任务](https://github.com/InferMatrixLab/InferRSI/issues/336)、[#337 消费者与验证](https://github.com/InferMatrixLab/InferRSI/issues/337)。四项均引用父任务 #252，保持打开供维护者评审与验收。当前提交账号无法写入原生父子关系，需维护者补充。
