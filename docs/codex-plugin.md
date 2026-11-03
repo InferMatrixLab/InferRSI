@@ -34,7 +34,7 @@ archive** (**插件 → 添加 → 上传插件压缩包** in the illustrated cl
 the downloaded `inferrsi-codex-plugin-vX.Y.Z.zip` and follow the installation
 prompts. Enable InferRSI, open your target repository and start a new conversation.
 
-[Watch the 46-second installation guide (Chinese audio and subtitles)](assets/inferrsi-codex-install-zh.mp4).
+[Watch or download the 46-second installation guide (Chinese audio and subtitles)](assets/inferrsi-codex-install-zh.mp4?raw=1).
 The video uses an annotated screenshot to show the menu click order; it does not
 record a completed upload or installation. Exact labels and availability depend
 on the client and workspace permissions. Here, offline package describes the

@@ -142,9 +142,9 @@ Python 3.10+ and Git.
    downloaded ZIP, and follow the installation prompts. Enable InferRSI, then
    start a new conversation in your target repository.
 
-[Watch the 46-second installation guide — Chinese audio and subtitles](docs/assets/inferrsi-codex-install-zh.mp4)
+[Watch or download the 46-second installation guide — Chinese audio and subtitles](docs/assets/inferrsi-codex-install-zh.mp4?raw=1)
 
-<a href="docs/assets/inferrsi-codex-install-zh.mp4">
+<a href="docs/assets/inferrsi-codex-install-zh.mp4?raw=1">
   <img src="docs/assets/inferrsi-codex-install-poster.png" alt="Install InferRSI in two steps: download the ZIP from GitHub, then upload it through Codex Plugins → Add" width="720">
 </a>
 
