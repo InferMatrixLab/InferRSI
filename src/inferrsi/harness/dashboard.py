@@ -82,6 +82,7 @@ def _bounded_chain(spec: dict) -> bool:
 def _chart(source: Path, view: dict) -> tuple[str, str]:
     chart_file = source / "summary-chart.json"
     spec = None
+    recorded_title = False
     message = "Independent candidate results relative to their paired baselines."
     if view["overview"]["comparison_state"] != "comparable":
         return "", "Comparison evidence is missing, unsupported, or incompatible."
@@ -92,6 +93,7 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
                 if (isinstance(recorded, dict) and recorded.get("layout", "chain") == "chain"
                         and _bounded_chain(recorded)):
                     spec = _sanitize_spec(recorded)
+                    recorded_title = isinstance(recorded.get("title"), str)
                     message = "Recorded cumulative campaign steps."
         except (OSError, UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
             pass
@@ -136,6 +138,11 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
         "#8a8984": "#8e98a6", "#f1f1ee": "#20242c", "#e4e3df": "#343a45",
     }.items():
         svg = svg.replace(light, dark)
+    # The first title and text nodes are the caller-authored chart heading.
+    # Other chart labels can contain evidence states and must not use overlays.
+    if recorded_title:
+        svg = svg.replace("<title>", '<title data-narrative="">', 1)
+        svg = svg.replace("<text ", '<text data-narrative="" ', 1)
     return svg[svg.find("<svg"):], message
 
 

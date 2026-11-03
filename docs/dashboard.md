@@ -38,8 +38,11 @@ recorded text to its translation in each target language:
 
 Both language maps are optional. Each key must match the complete original
 field, including whitespace; the file is limited to 2 MiB and duplicate keys
-are rejected. Untranslated text remains in the original language. Commands,
-identifiers and structured event fields are kept as recorded. When a knowledge
+are rejected. The overlay applies only to explicitly marked caller-authored
+narrative fields; verdicts, quality, evidence states and other fixed UI labels
+use code-owned translations even if the overlay contains the same text.
+Untranslated text remains in the original language. Commands, identifiers,
+structured event fields and chart labels other than the recorded chart title are kept as recorded. When a knowledge
 context has a supplied translation, the page labels it as a translation and
 offers the complete original separately. The overlay is supplied and reviewed
 by the caller, not verified by InferRSI; review it for accuracy and sensitive
@@ -93,14 +96,18 @@ inferrsi campaign capture-context --directory <CAMPAIGN_DIRECTORY> --id r1-diagn
 ```
 
 Each call writes a new `knowledge/<id>.json` and prints its SHA-256; an
-existing id is never overwritten. The capture proves what InferRSI prepared,
-not that a model read it. Captured text comes from the selected knowledge
+existing id is never overwritten. The capture records what InferRSI prepared,
+not what a model read. Hash checks detect changes relative to the cited bytes
+and internal inconsistencies; they do not authenticate who produced a capture.
+The campaign root and its `knowledge` directory must remain trusted and stable
+while reading or writing. Captured text comes from the selected knowledge
 sources; review it before sharing if a store or checkout source was added.
 
 **2. Record the optimization log.** Write a JSON log (`schema_version: 2`) and
 record it with `campaign log`. Every call adds a numbered version
 (`optimization-log-vN.json`) and an entry in `optimization-log.jsonl`; earlier
-versions remain, and the newest one whose hash matches is shown.
+versions remain. The latest version is shown only when its hash matches;
+otherwise the dashboard reports the problem instead of silently falling back.
 
 ```sh
 inferrsi campaign log --directory <CAMPAIGN_DIRECTORY> --file <LOG_JSON>

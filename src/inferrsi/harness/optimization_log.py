@@ -14,11 +14,13 @@ import hashlib
 import json
 import os
 import re
+import stat
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 
 MAX_LOG_BYTES = 2 * 1024 * 1024
+MAX_INDEX_BYTES = 2 * 1024 * 1024
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
 OPTION_STATUSES = ("tried", "pruned", "untried")
 OUTCOMES = ("adopted", "rejected", "rolled_back", "no_gain", "noise", "pending")
@@ -57,6 +59,10 @@ def _text(value: object, where: str, *, required: bool = True, limit: int = 2000
                        f"of at most {limit} characters")
     if any(ord(char) < 32 and char not in "\n\r\t" for char in value):
         raise LogError(f"{where} contains control characters")
+    try:
+        value.encode("utf-8")
+    except UnicodeError as exc:
+        raise LogError(f"{where} must contain valid Unicode") from exc
     return value
 
 
@@ -289,28 +295,72 @@ def record_log(root: Path, source: Path) -> tuple[Path, str]:
             temporary.unlink()
     entry = {"version": number, "path": name, "sha256": digest,
              "recorded_at": datetime.now(timezone.utc).isoformat()}
-    with index_path.open("a", encoding="utf-8") as stream:
-        stream.write(json.dumps(entry, ensure_ascii=False) + "\n")
+    _append_index(index_path, (json.dumps(entry, ensure_ascii=False) + "\n").encode("utf-8"))
     return target, digest
+
+
+def _read_regular(path: Path, limit: int) -> bytes:
+    before = path.lstat()
+    if not stat.S_ISREG(before.st_mode) or not before.st_ino:
+        raise ValueError("unsafe log path")
+    flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+    flags |= getattr(os, "O_NONBLOCK", 0)
+    descriptor = os.open(path, flags)
+    with os.fdopen(descriptor, "rb") as stream:
+        opened = os.fstat(stream.fileno())
+        if (not stat.S_ISREG(opened.st_mode) or not opened.st_ino
+                or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)):
+            raise ValueError("unsafe log path")
+        return stream.read(limit + 1)
+
+
+def _append_index(path: Path, payload: bytes) -> None:
+    try:
+        before = path.lstat()
+    except FileNotFoundError:
+        before = None
+    if before is not None and (not stat.S_ISREG(before.st_mode) or not before.st_ino):
+        raise ValueError("unsafe optimization log index")
+    flags = os.O_WRONLY | os.O_APPEND | getattr(os, "O_BINARY", 0)
+    flags |= getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+    flags |= os.O_CREAT | (os.O_EXCL if before is None else 0)
+    descriptor = os.open(path, flags, 0o600)
+    with os.fdopen(descriptor, "ab") as stream:
+        opened = os.fstat(stream.fileno())
+        if (not stat.S_ISREG(opened.st_mode) or not opened.st_ino
+                or (before is not None and (opened.st_dev, opened.st_ino)
+                    != (before.st_dev, before.st_ino))):
+            raise ValueError("unsafe optimization log index")
+        stream.write(payload)
 
 
 def _index(path: Path) -> list[dict]:
     try:
-        lines = path.read_text(encoding="utf-8").splitlines()
+        raw = _read_regular(path, MAX_INDEX_BYTES)
     except FileNotFoundError:
         return []
+    except (OSError, ValueError) as exc:
+        raise ValueError("unsafe or unreadable optimization log index") from exc
+    if len(raw) > MAX_INDEX_BYTES:
+        raise ValueError("optimization log index is too large")
+    try:
+        lines = raw.decode("utf-8").splitlines()
+    except UnicodeError as exc:
+        raise ValueError("optimization log index is not UTF-8") from exc
     entries = []
     for number, line in enumerate(lines, 1):
         try:
             entry = json.loads(line)
         except ValueError as exc:
             raise ValueError(f"optimization-log.jsonl line {number} is invalid") from exc
+        if not isinstance(entry, dict):
+            raise ValueError(f"optimization-log.jsonl line {number} is invalid")
         entries.append(entry)
     return entries
 
 
 def read_latest_log(root: Path) -> tuple[dict | None, list[dict], str]:
-    """Return the newest log whose bytes match the index, every version, and a state."""
+    """Return the latest log if valid, the version list, and a state."""
     root = Path(root).resolve()
     try:
         versions = _index(root / "optimization-log.jsonl")
@@ -330,8 +380,8 @@ def read_latest_log(root: Path) -> tuple[dict | None, list[dict], str]:
             continue
         path = root / name
         try:
-            raw = path.read_bytes() if not path.is_symlink() else None
-        except OSError:
+            raw = _read_regular(path, MAX_LOG_BYTES)
+        except (OSError, ValueError):
             raw = None
         if raw is None:
             row["missing_reason"] = "file_absent"

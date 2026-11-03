@@ -876,13 +876,7 @@ def load_dashboard(source: Path) -> dict:
     else:
         from .optimization_story import build_story
 
-        story = build_story(root, rows, decisions)
-    if story["state"] == "present":
-        recorded.add("review")
-        recorded |= {retrieval["stage"] for retrieval in story["retrievals"]
-                     if retrieval["state"] == "verified"}
-        if story["search_space"]["dimensions"]:
-            recorded.add("search")
+        story = build_story(root, rows, decisions, campaign.get("campaign_id"))
     declared = campaign.get("stages_declared")
     if not isinstance(declared, list):
         declared = None

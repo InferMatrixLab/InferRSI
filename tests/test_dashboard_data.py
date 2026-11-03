@@ -152,6 +152,25 @@ def test_incompatible_campaign_withholds_explicit_chain_chart(tmp_path):
     assert "incompatible" in note
 
 
+def test_recorded_chart_title_alone_accepts_narrative_translations(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    run(tmp_path, "a", 5, quality="completed", verified=True)
+    candidate(tmp_path, "a", "a")
+    write_json(tmp_path / "summary-chart.json", {
+        "title": "Experiment trend", "layout": "chain",
+        "baseline": {"metrics": {"gain": 1}},
+        "metrics": [{"key": "gain"}], "axis": {"step": 0.5},
+        "points": [{"phase": "FAIL", "label": "FAIL", "values": {"gain": 2}}],
+    })
+
+    svg, _ = _chart(tmp_path, load_dashboard(tmp_path))
+
+    assert '<title data-narrative="">Experiment trend</title>' in svg
+    assert re.search(r'<text data-narrative="" [^>]*>Experiment trend</text>', svg)
+    assert svg.count('data-narrative=""') == 2
+    assert '>FAIL</text>' in svg
+
+
 def test_missing_and_corrupt_candidate_metadata_are_not_silently_dropped(tmp_path):
     write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
     run(tmp_path, "run-a", 5, quality="completed", verified=True)
@@ -589,6 +608,16 @@ def test_dashboard_can_be_regenerated(tmp_path):
     write_json(tmp_path / "run.lock.json", {})
     output = write_dashboard(tmp_path)
     assert write_dashboard(tmp_path) == output
+
+
+def test_performance_charts_precede_story_and_candidate_details(tmp_path):
+    write_json(tmp_path / "run.lock.json", {})
+    html = write_dashboard(tmp_path).read_text(encoding="utf-8")
+    main = html.split("<main>", 1)[1].split("</main>", 1)[0]
+    sections = ["Performance trend · all candidates",
+                "Results and stages over time · all candidates", "Optimization story",
+                "Candidate details"]
+    assert [main.index(section) for section in sections] == sorted(map(main.index, sections))
 
 
 def test_reviewed_translations_are_embedded_without_changing_evidence(tmp_path):

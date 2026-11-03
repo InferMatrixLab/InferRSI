@@ -258,6 +258,7 @@ def test_edited_log_is_not_shown(tmp_path):
     (lambda d: d["search_space"].update(state="partial"), "missing_reason"),
     (lambda d: d["summary"]["failures"][0].update(cause_stage="luck"), "cause_stage"),
     (lambda d: d["iterations"][0].update(context_ids=["nope"]), "unknown capture"),
+    (lambda d: d["goal"].update(statement="\ud800"), "valid Unicode"),
 ])
 def test_log_validation_names_the_bad_field(mutate, message):
     document = log_document("a" * 64)
@@ -292,3 +293,147 @@ def test_cli_capture_context_reports_relative_path(tmp_path, capsys):
 def test_single_run_story_is_not_applicable(tmp_path):
     make_run(tmp_path, "solo", 1.0)
     assert load_dashboard(tmp_path / "runs" / "solo")["story"]["state"] == "not_applicable"
+
+
+def test_round_checks_knowledge_against_its_named_capture(tmp_path):
+    create_campaign(tmp_path, "camp")
+    _, digest1 = capture_context(tmp_path, context_id="r1", reader=FakeReader(
+        [context("package:graphs", "Graphs.\n")],
+        items=[{"ref": "package:graphs"}, {"ref": "package:other"}]), context_bytes=4096)
+    _, digest2 = capture_context(tmp_path, context_id="r2", reader=FakeReader(
+        [context("package:other", "Only in the other capture.\n")]), context_bytes=4096)
+    document = log_document(digest1)
+    document["knowledge"].append({"context_id": "r2", "sha256": digest2,
+                                  "stage": "review", "purpose": "Later review",
+                                  "used_refs": [], "takeaways": []})
+    document["iterations"][0]["knowledge_refs"] = ["package:other"]
+    document["iterations"][0]["context_ids"] = ["r1"]
+    write_log(tmp_path, document)
+
+    checks = load_dashboard(tmp_path)["story"]["checks"]
+    assert any(check["where"] == "round 1" and "package:other" in check["message"]
+               and "omitted" in check["message"] for check in checks)
+
+
+def test_unavailable_named_capture_does_not_fall_back_to_another_capture(tmp_path):
+    create_campaign(tmp_path, "camp")
+    _, digest1 = capture_context(tmp_path, context_id="r1", reader=FakeReader(
+        [context("package:graphs", "Graphs.\n")]), context_bytes=4096)
+    _, digest2 = capture_context(tmp_path, context_id="r2", reader=FakeReader(
+        [context("package:graphs", "Other capture.\n")]), context_bytes=4096)
+    document = log_document(digest1)
+    document["knowledge"].append({"context_id": "r2", "sha256": digest2,
+                                  "stage": "review", "purpose": "Later review",
+                                  "used_refs": [], "takeaways": []})
+    write_log(tmp_path, document)
+    (tmp_path / "knowledge/r1.json").unlink()
+
+    checks = load_dashboard(tmp_path)["story"]["checks"]
+    assert any(check["where"] == "round 1" and "package:graphs" in check["message"]
+               and "not retrieved by the captures this round names" in check["message"]
+               for check in checks)
+
+
+def test_capture_identity_must_match_campaign_and_context_id(tmp_path):
+    digest = campaign(tmp_path)
+    document = log_document(digest)
+    path = tmp_path / "knowledge/r1.json"
+    capture = json.loads(path.read_text(encoding="utf-8"))
+    capture.update(campaign_id="another-campaign", context_id="another-context")
+    raw = json.dumps(capture).encode()
+    path.write_bytes(raw)
+    document["knowledge"][0]["sha256"] = hashlib.sha256(raw).hexdigest()
+    write_log(tmp_path, document)
+
+    retrieval = load_dashboard(tmp_path)["story"]["retrievals"][0]
+    assert retrieval["state"] == "identity_mismatch"
+    assert "assembled_text" not in retrieval
+
+
+def test_story_does_not_mark_technical_stages_as_recorded(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    stages = {stage["name"]: stage["state"] for stage in load_dashboard(tmp_path)["stages"]}
+    assert stages["diagnosis"] == "stage_not_recorded"
+    assert stages["search"] == "stage_not_recorded"
+    assert stages["review"] == "stage_not_recorded"
+
+
+def test_malformed_log_index_does_not_crash_dashboard(tmp_path):
+    create_campaign(tmp_path, "camp")
+    (tmp_path / "optimization-log.jsonl").write_text("null\n", encoding="utf-8")
+    assert load_dashboard(tmp_path)["story"]["state"] == "corrupt_index"
+
+
+def test_capture_rejects_symlinked_knowledge_directory(tmp_path):
+    root = tmp_path / "campaign"
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    create_campaign(root, "camp")
+    try:
+        (root / "knowledge").symlink_to(outside, target_is_directory=True)
+    except OSError:
+        pytest.skip("directory symlinks are unavailable")
+    with pytest.raises(ValueError, match="knowledge"):
+        capture_context(root, context_id="r1", reader=FakeReader([]), context_bytes=4096)
+    assert not list(outside.iterdir())
+
+
+def test_dashboard_withholds_capture_through_symlinked_directory(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    outside = tmp_path / "other-directory"
+    (tmp_path / "knowledge").rename(outside)
+    try:
+        (tmp_path / "knowledge").symlink_to(outside, target_is_directory=True)
+    except OSError:
+        pytest.skip("directory symlinks are unavailable")
+    retrieval = load_dashboard(tmp_path)["story"]["retrievals"][0]
+    assert retrieval["state"] == "unsafe_path"
+    assert "assembled_text" not in retrieval
+
+
+def test_log_index_symlink_is_not_read_or_appended(tmp_path):
+    root = tmp_path / "campaign"
+    create_campaign(root, "camp")
+    outside = tmp_path / "outside.jsonl"
+    outside.write_text("outside data\n", encoding="utf-8")
+    try:
+        (root / "optimization-log.jsonl").symlink_to(outside)
+    except OSError:
+        pytest.skip("file symlinks are unavailable")
+    assert load_dashboard(root)["story"]["state"] == "corrupt_index"
+    source = root / "input.json"
+    source.write_text(json.dumps(log_document("a" * 64)), encoding="utf-8")
+    with pytest.raises(ValueError, match="index"):
+        record_log(root, source)
+    assert outside.read_text(encoding="utf-8") == "outside data\n"
+
+
+def test_dashboard_withholds_log_from_another_campaign(tmp_path):
+    digest = campaign(tmp_path)
+    path, _ = write_log(tmp_path, log_document(digest))
+    document = json.loads(path.read_text(encoding="utf-8"))
+    document["campaign_id"] = "other-campaign"
+    raw = json.dumps(document).encode()
+    path.write_bytes(raw)
+    index = tmp_path / "optimization-log.jsonl"
+    entry = json.loads(index.read_text(encoding="utf-8"))
+    entry["sha256"] = hashlib.sha256(raw).hexdigest()
+    index.write_text(json.dumps(entry) + "\n", encoding="utf-8")
+    assert load_dashboard(tmp_path)["story"]["state"] == "identity_mismatch"
+
+
+def test_malformed_capture_envelope_is_withheld(tmp_path):
+    digest = campaign(tmp_path)
+    document = log_document(digest)
+    path = tmp_path / "knowledge/r1.json"
+    capture = json.loads(path.read_text(encoding="utf-8"))
+    capture["items"] = [None]
+    raw = json.dumps(capture).encode()
+    path.write_bytes(raw)
+    document["knowledge"][0]["sha256"] = hashlib.sha256(raw).hexdigest()
+    write_log(tmp_path, document)
+    retrieval = load_dashboard(tmp_path)["story"]["retrievals"][0]
+    assert retrieval["state"] == "invalid_format"
+    assert "assembled_text" not in retrieval

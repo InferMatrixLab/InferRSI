@@ -142,7 +142,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 <body>
 <header class="top">
   <span class="logo" aria-hidden="true"></span>
-  <span class="crumb">Dashboards › InferRSI › <strong id="campaign-title"></strong></span>
+  <span class="crumb">Dashboards › InferRSI › <strong id="campaign-title" data-no-translate></strong></span>
   <span class="spacer"></span><span id="sample" class="badge sample" hidden>SYNTHETIC DATA</span>
   <span class="badge">READ ONLY · OFFLINE</span>
   <div class="language-switch" role="group" aria-label="Language">
@@ -151,7 +151,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   </div>
 </header>
 <div class="vars" aria-label="Dashboard filters">
-  <div class="var"><span>campaign</span><output id="campaign-value"></output></div>
+  <div class="var"><span>campaign</span><output id="campaign-value" data-no-translate></output></div>
   <div class="var"><label for="run-filter">run</label><select id="run-filter"><option value="">All runs</option></select></div>
   <div class="var"><label for="candidate-filter">candidate</label><select id="candidate-filter"><option value="">All candidates</option></select></div>
   <div class="var"><label for="stage-filter">stage</label><select id="stage-filter"><option value="">All stages</option></select></div>
@@ -160,8 +160,6 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 <main>
   <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
-  <div class="section-title">Optimization story <small id="story-note"></small></div>
-  <section class="panel story" id="story" aria-label="Optimization story"></section>
   <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
   <div class="panel"><div id="workflow" class="flow"></div></div>
   <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
@@ -172,6 +170,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       <section class="panel"><div class="panel-head"><h2>Results and stages over time · all candidates</h2></div>
         <div class="chart" id="temporal-chart">__DASHBOARD_TEMPORAL__</div>
         <p class="footnote panel-body" id="temporal-note"></p></section>
+      <div class="section-title">Optimization story <small id="story-note"></small></div>
+      <section class="panel story" id="story" aria-label="Optimization story"></section>
       <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
         <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
         <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p>
@@ -179,7 +179,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     </div>
     <div class="stack">
       <section class="panel"><div class="panel-head"><h2>Diagnosis · all candidates</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Technical events</h2><small id="trace-title"></small></div>
+      <section class="panel"><div class="panel-head"><h2>Technical events</h2><small id="trace-title" data-no-translate></small></div>
         <div class="trace-tools"><input id="trace-search" type="search" aria-label="Search trace" placeholder="Search event, tool, field or reference">
           <select id="trace-source" aria-label="Trace source"><option value="">All sources</option><option value="events">Runner</option><option value="agent_trace">Agent</option></select></div>
         <p id="trace-count" class="footnote panel-body" aria-live="polite"></p><div id="trace"></div></section>
@@ -305,10 +305,14 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'hash_not_recorded':'未记录哈希', 'unreadable':'无法读取', 'unsafe_path':'不安全的路径',
     'invalid_format':'格式无效', 'identity_mismatch':'身份不匹配', 'identity_ambiguous':'身份不明确',
     'too_large':'文件过大', 'not_applicable':'不适用', 'redacted or invalid path':'路径已脱敏或无效',
+    'capture verified':'采集已校验', 'hash mismatch':'哈希不匹配', 'file absent':'文件缺失',
+    'identity mismatch':'身份不匹配', 'unsafe path':'不安全的路径', 'invalid format':'格式无效',
+    'assembly mismatch':'拼接内容不匹配', 'resource hash mismatch':'资源哈希不匹配', 'too large':'文件过大',
+    'latest hash mismatch':'最新版本哈希不匹配', 'corrupt index':'日志索引损坏',
     'Optimization story':'优化过程复盘', 'Goal':'目标', 'Metric':'指标', 'Target':'目标值', 'Constraints':'约束',
     'Optimization process':'优化过程', 'Knowledge context':'知识上下文', 'Search space':'搜索空间', 'Successes and failures':'成功与失败',
     'Hypothesis':'假设', 'Why this optimization':'为什么这样优化', 'Knowledge cited':'引用的知识', 'Observations':'观察',
-    'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行',
+    'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行', 'no gain value':'未记录提升数值',
     'Why it was retrieved':'为什么检索', 'What was taken from it':'从中得到了什么', 'Search request':'检索请求', 'Captured':'采集信息',
     'Selected by search':'检索选中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'实际使用',
     'Retrieved but not used':'检索到但未使用', 'Successes':'成功', 'Failures':'失败', 'Lessons for the framework':'对框架的改进建议',
@@ -316,6 +320,11 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'tried':'已尝试', 'pruned':'已排除', 'untried':'未尝试', 'adopted':'采纳', 'rejected':'拒绝', 'no gain':'无提升', 'pending':'待定',
     'No iterations recorded.':'未记录迭代。', 'No knowledge retrieval recorded.':'未记录知识检索。',
     'Narrative vs evidence · every reference resolved':'叙述与证据核对 · 所有引用都能对上',
+    'states a conclusion without evidence':'叙述中有结论，但没有关联证据',
+    'was selected by search but its text was omitted from the context':'被搜索选中，但文本未包含在上下文中',
+    'was not retrieved by any capture':'未被任何知识采集检索到',
+    'was not retrieved by the captures this round names':'未被本轮指定的知识采集检索到',
+    'marked tried, but no iteration lists a candidate for it':'标记为已尝试，但没有任何轮次列出对应候选方案',
     'Single runs have no campaign log':'单次运行没有任务日志',
     'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':'单次运行没有优化日志。请记录一个任务来说明每个优化的原因。'
   };
@@ -324,8 +333,6 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const originalText = new WeakMap(), originalAttributes = new WeakMap();
   function translated(text) {
     if (typeof text !== 'string') return text;
-    const supplied = (data.translations || {})[language] || {};
-    if (Object.prototype.hasOwnProperty.call(supplied, text)) return supplied[text];
     if (language !== 'zh') return text;
     if (Object.prototype.hasOwnProperty.call(chinese, text)) return chinese[text];
     const temporalPrefix='Terminal events place results; stage dots are events, not durations.';
@@ -369,12 +376,42 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       [/^(Successes|Failures) · (\d+)$/, m => `${translated(m[1])} · ${m[2]}`],
       [/^Cause: (.+)$/, m => `原因阶段：${translated(m[1])}`],
       [/^Expected: (.+)$/s, m => `预期：${m[1]}`],
-      [/^(.+) · (capture verified)$/, m => `${translated(m[1])} · 采集已校验`]
+      [/^(.+) · (capture verified)$/, m => `${translated(m[1])} · 采集已校验`],
+      [/^No usable optimization log \((.+)\)\. Record one with: (.+)$/, m => `没有可用的优化日志（${translated(m[1])}）。记录命令：${m[2]}`],
+      [/^quality (passed|failed|not recorded|missing|unknown)$/, m => `质量 ${translated(m[1])}`],
+      [/^(\d+) (tried|pruned|untried)$/, m => `${m[1]} ${translated(m[2])}`],
+      [/^(success|failure) (\d+):$/, m => `${m[1]==='success'?'成功':'失败'} ${m[2]}：`],
+      [/^round (\d+):$/, m => `第 ${m[1]} 轮：`],
+      [/^knowledge (.+):$/, m => `知识 ${m[1]}：`],
+      [/^search space (.+):$/, m => `搜索空间 ${m[1]}：`],
+      [/^capture (.+) is (.+); its text is not shown$/, m => `采集 ${m[1]} ${translated(m[2])}；其文本不会展示`],
+      [/^the log says (.+) was used, but it (.+)$/, m => `日志称使用了 ${m[1]}，但它${translated(m[2])}`],
+      [/^(.+) is cited, but it (.+)$/, m => `引用了 ${m[1]}，但它${translated(m[2])}`],
+      [/^cites (.+), which (.+)$/, m => `引用了 ${m[1]}，但它${translated(m[2])}`],
+      [/^evidence (.+) (was not retrieved by any capture|was selected by search but its text was omitted from the context)$/, m => `证据 ${m[1]} ${translated(m[2])}`],
+      [/^candidate (.+) has no (unique )?recorded run$/, m => `候选方案 ${m[1]} 没有${m[2]?'唯一的':''}运行记录`],
+      [/^candidate (.+) is recorded in round (\d+)$/, m => `候选方案 ${m[1]} 记录在第 ${m[2]} 轮`],
+      [/^the decision names (.+), which is not a candidate of this round$/, m => `决策指定了 ${m[1]}，但它不是本轮候选方案`],
+      [/^the log says (.+), rounds\.jsonl records (.+)$/, m => `日志记为${translated(m[1])}，rounds.jsonl 记为${translated(m[2])}`],
+      [/^(.+) is adopted but its recorded outcome is (.+)$/, m => `已采纳 ${m[1]}，但其记录结果为${translated(m[2])}`],
+      [/^marked (.+), but round (\d+) tried it$/, m => `标记为${translated(m[1])}，但第 ${m[2]} 轮已尝试`],
+      [/^evidence (.+) has no recorded run$/, m => `证据 ${m[1]} 没有运行记录`],
+      [/^evidence (.+) recorded (.+), not an improvement$/, m => `证据 ${m[1]} 的记录结果为${translated(m[2])}，并非提升`],
+      [/^(.+) recorded (.+), but no failure cites it$/, m => `${m[1]} 的记录结果为${translated(m[2])}，但失败总结未引用它`]
     ];
     for (const [pattern, format] of patterns) { const match=text.match(pattern); if(match)return format(match); }
     if (text.includes('\n')) return text.split('\n').map(translated).join('\n');
     if (text.includes(' · ')) return text.split(' · ').map(translated).join(' · ');
     return text;
+  }
+  // Only caller-authored narrative fields opt in to the translation overlay.
+  // Fixed UI text and evidence-derived statuses always use code-owned labels.
+  function translatedNarrative(text) {
+    if (typeof text !== 'string') return text;
+    const supplied = (data.translations || {})[language] || {};
+    if (Object.prototype.hasOwnProperty.call(supplied, text)) return supplied[text];
+    if (text.includes('\n')) return text.split('\n').map(translatedNarrative).join('\n');
+    return translated(text);
   }
   function localizePage() {
     document.documentElement.lang=language==='zh'?'zh-CN':'en';
@@ -387,7 +424,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       if(!parent || parent.closest('script,style,pre,code,textarea,[data-no-translate]'))continue;
       if(!originalText.has(text))originalText.set(text,text.nodeValue);
       const original=originalText.get(text), trimmed=original.trim();
-      if(trimmed){const direct=translated(original);text.nodeValue=direct===original?original.replace(trimmed,translated(trimmed)):direct;}
+      const translate=parent.closest('[data-narrative]') ? translatedNarrative : translated;
+      if(trimmed){const direct=translate(original);text.nodeValue=direct===original?original.replace(trimmed,translate(trimmed)):direct;}
     }
     for(const element of document.querySelectorAll('[aria-label],[placeholder]')) {
       if(!originalAttributes.has(element))originalAttributes.set(element,{});
@@ -402,14 +440,15 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
   let selected = null, jumpNotice = '';
   const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
+  const narrativeNode = (tag, text, cls) => {const el=node(tag,text,cls);el.setAttribute('data-narrative','');return el;};
   const clear = el => { while (el.firstChild) el.removeChild(el.firstChild); };
   const option = (parent, value, text) => { const el = node('option', text); el.value = value; parent.appendChild(el); };
   const value = (n, suffix='') => typeof n === 'number' && Number.isFinite(n) ? `${n.toFixed(1)}${suffix}` : 'Not recorded';
   const measurement = n => typeof n === 'number' && Number.isFinite(n) ? String(Number(n.toPrecision(7))) : 'Not recorded';
-  const tone = status => ['passed','improved','PASS'].includes(status) ? 'good' : ['failed','quality_failed','regressed','rolled_back','FAIL'].includes(status) ? 'bad' : status === 'noise' ? 'warn' : 'missing';
+  const tone = status => ['passed','improved','adopted','PASS'].includes(status) ? 'good' : ['failed','quality_failed','regressed','rejected','rolled_back','FAIL'].includes(status) ? 'bad' : ['noise','no_gain','pending'].includes(status) ? 'warn' : 'missing';
   const pill = text => node('span', text.replaceAll('_',' '), `pill ${tone(text)}`);
   const item = (parent, title, detail, reference) => { const box=node('div',undefined,'item'); box.appendChild(node('strong',title)); if(detail) box.appendChild(node('small',detail)); if(reference) box.appendChild(node('code',reference)); parent.appendChild(box); return box; };
-  const detailLine = (parent, label, text, mono=false) => {const box=node('div',undefined,'detail-line');box.appendChild(node('strong',label));box.appendChild(node(mono?'code':'p',text || 'Not recorded'));parent.appendChild(box);};
+  const detailLine = (parent, label, text, mono=false, narrative=false) => {const box=node('div',undefined,'detail-line');box.appendChild(node('strong',label));box.appendChild(narrative && text && text!=='Not recorded'?narrativeNode('p',text):node(mono?'code':'p',text || 'Not recorded'));parent.appendChild(box);};
   const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path} · sha256 ${ref.sha256}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
   const identity = (row, index) => row.candidate_id || row.run_id || `run ${index + 1}`;
   const missingRefs = row => {const seen=new Set();return [...Object.values(row.artifacts),...row.events.flatMap(event=>event.refs)].filter(ref=>{if(ref.state!=='missing')return false;const key=`${ref.kind}|${ref.path || ''}|${ref.missing_reason}`;if(seen.has(key))return false;seen.add(key);return true;});};
@@ -419,7 +458,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   byId('chart-note').textContent = data.chart_note;
   if (!byId('chart').querySelector('svg')) byId('chart').appendChild(node('p',data.chart_note,'empty'));
   byId('temporal-note').textContent = data.temporal_note;
-  byId('metric-value').textContent = data.candidates.length ? `${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}` : 'Not recorded';
+    byId('metric-value').textContent = data.candidates.length ? `${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}` : 'Not recorded';
+    if(data.candidates.length)byId('metric-value').setAttribute('data-no-translate','');
   for (const stage of data.stages) option(stageSelect, stage.name, stageNames[stage.name]);
   const runs = [...new Set(data.candidates.map(row => row.run_id).filter(Boolean))];
   for (const run of runs) option(runSelect, run, run);
@@ -459,8 +499,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(!visible.some(x=>x.index===selected)) selected=visible.length ? visible[0].index : null;
     for(const {row,index} of visible){const tr=node('tr');if(index===selected)tr.className='selected';
       const cell=(text)=>{const td=node('td',text);tr.appendChild(td);return td;};
-      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.setAttribute('aria-pressed',String(index===selected));btn.setAttribute('aria-controls','candidate-inspection');btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
-      cell(row.run_id || 'Not recorded');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
+      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=narrativeNode('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.setAttribute('aria-pressed',String(index===selected));btn.setAttribute('aria-controls','candidate-inspection');btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
+      const runCell=cell(row.run_id || 'Not recorded');if(row.run_id)runCell.setAttribute('data-no-translate','');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
       const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
   }
   function insight(parent, title, note, wide=false) {
@@ -472,13 +512,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   function recordedState(section) {
     if(!section)return 'Not recorded';
     const state=`Caller declared · ${section.state.replaceAll('_',' ')}`;
-    return section.missing_reason ? `${state} · ${section.missing_reason}` : state;
+    return section.missing_reason ? `${state} · ${translatedNarrative(section.missing_reason)}` : state;
   }
   function renderCandidate(row) {
     const root=byId('candidate-inspection');clear(root);
     if(!row){root.appendChild(node('p','No matching candidate.','empty'));return;}
     const heading=node('div',undefined,'candidate-heading');
-    heading.appendChild(node('h3',row.title));
+    heading.appendChild(narrativeNode('h3',row.title));
     heading.appendChild(node('small',`Candidate ${identity(row,selected)}`));
     if(data.synthetic)heading.appendChild(node('span','SYNTHETIC DATA','badge sample'));
     heading.appendChild(pill(row.verdict));
@@ -488,10 +528,10 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const info=row.optimization, context=row.benchmark_context;
     const optimization=insight(grid,'Change and rationale','Caller recorded',true);
     detailLine(optimization,'Change type',info.kind || 'Not recorded');
-    detailLine(optimization,'What was changed',info.summary);
-    detailLine(optimization,'Why / hypothesis',info.hypothesis);
+    detailLine(optimization,'What was changed',info.summary,false,true);
+    detailLine(optimization,'Why / hypothesis',info.hypothesis,false,true);
     if(!info.code_locations.length)detailLine(optimization,'Code / configuration locations','Not recorded');
-    for(const location of info.code_locations){const lines=location.line_start===null?'':`:${location.line_start}${location.line_end===null?'':`-${location.line_end}`}`;const revision=location.revision?` · revision ${location.revision}`:'';detailLine(optimization,'Code / configuration location',`${location.scope} · ${location.path || '[redacted or invalid path]'}${lines}${revision}\n${location.note}`);}
+    for(const location of info.code_locations){const lines=location.line_start===null?'':`:${location.line_start}${location.line_end===null?'':`-${location.line_end}`}`;const revision=location.revision?` · revision ${location.revision}`:'';detailLine(optimization,'Code / configuration location',`${translatedNarrative(location.scope)} · ${location.path || '[redacted or invalid path]'}${lines}${revision}\n${translatedNarrative(location.note)}`);}
     const trace=row.optimization_trace;
     const traceHeading=node('div',undefined,'trace-heading');
     traceHeading.appendChild(node('h4','Optimization trace'));
@@ -504,12 +544,12 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     detailLine(knowledge,'Capture status',recordedState(knowledgeContext));
     detailLine(knowledge,'Search queries',knowledgeContext && knowledgeContext.queries.length ? knowledgeContext.queries.join('\n') : 'Not recorded');
     if(knowledgeContext && knowledgeContext.sources.length){
-      for(const source of knowledgeContext.sources)detailLine(knowledge,'Selected source',`${source.ref} · ${translated('revision')} ${source.revision || translated('Not recorded')}${source.locator ? ` · ${translated(source.locator)}` : ''}`,true);
+      for(const source of knowledgeContext.sources)detailLine(knowledge,'Selected source',`${source.ref} · ${translated('revision')} ${source.revision || translated('Not recorded')}${source.locator ? ` · ${translatedNarrative(source.locator)}` : ''}`,true);
     }else detailLine(knowledge,'Selected sources','Not recorded');
     if(knowledgeContext && knowledgeContext.text){
       const fold=node('details',undefined,'context-detail');fold.open=true;
       fold.id='knowledge-context';
-      const contextText=translated(knowledgeContext.text);
+      const contextText=translatedNarrative(knowledgeContext.text);
       fold.appendChild(node('summary',contextText===knowledgeContext.text ? `View recorded context · ${knowledgeContext.state}` : 'Translated context · caller-supplied'));
       fold.appendChild(node('pre',contextText,'context-text'));knowledge.appendChild(fold);
       if(contextText!==knowledgeContext.text){
@@ -530,7 +570,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       }
       for(const option of space.items){
         const attempts=attemptsByOption.get(option.id) || 0;
-        detailLine(spacePanel,option.id,`${option.description}\n${attempts ? `${attempts} linked recorded attempt(s)` : 'No linked attempt recorded'}`);
+        detailLine(spacePanel,option.id,`${translatedNarrative(option.description)}\n${attempts ? `${attempts} linked recorded attempt(s)` : 'No linked attempt recorded'}`);
       }
     }else detailLine(spacePanel,'Options','Not recorded');
 
@@ -543,9 +583,9 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         const entry=node('div',undefined,'step');
         entry.appendChild(node('strong',`${step.sequence} · ${step.kind.replaceAll('_',' ')} · ${step.outcome.replaceAll('_',' ')}`));
         if(step.search_id)entry.appendChild(node('small',`Search option: ${step.search_id}`));
-        detailLine(entry,'Action',step.action);
-        detailLine(entry,'Why',step.motivation);
-        detailLine(entry,'Recorded result',step.result);
+        detailLine(entry,'Action',step.action,false,true);
+        detailLine(entry,'Why',step.motivation,false,true);
+        detailLine(entry,'Recorded result',step.result,false,true);
         const eventRef=step.event_ref;
         if(!eventRef)detailLine(entry,'Technical event','Not recorded');
         else {
@@ -575,21 +615,21 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const conclusion=trace && trace.summary;
     const conclusions=insight(grid,'Successes and failures','Caller conclusions; see evidence for verdicts',true);
     detailLine(conclusions,'Capture status',recordedState(conclusion));
-    detailLine(conclusions,'Success summary',conclusion && conclusion.successes.length ? conclusion.successes.join('\n\n') : 'Not recorded');
-    detailLine(conclusions,'Failure summary',conclusion && conclusion.failures.length ? conclusion.failures.join('\n\n') : 'Not recorded');
-    detailLine(conclusions,'Limitations',conclusion && conclusion.limitations.length ? conclusion.limitations.join('\n\n') : 'Not recorded');
+    detailLine(conclusions,'Success summary',conclusion && conclusion.successes.length ? conclusion.successes.map(translatedNarrative).join('\n\n') : 'Not recorded');
+    detailLine(conclusions,'Failure summary',conclusion && conclusion.failures.length ? conclusion.failures.map(translatedNarrative).join('\n\n') : 'Not recorded');
+    detailLine(conclusions,'Limitations',conclusion && conclusion.limitations.length ? conclusion.limitations.map(translatedNarrative).join('\n\n') : 'Not recorded');
 
     const benchmark=insight(grid,'Benchmark and accuracy','Measurements and redacted commands',true);
-    detailLine(benchmark,'Performance methodology · caller recorded',info.benchmark);
+    detailLine(benchmark,'Performance methodology · caller recorded',info.benchmark,false,true);
     detailLine(benchmark,'Workload',`${context.scenario} · ${context.workload} · ${context.repetitions===null?'repetitions not recorded':`${context.repetitions} repetitions`}`);
     detailLine(benchmark,'Recorded medians',`Baseline ${measurement(row.baseline_median)} · Candidate ${measurement(row.candidate_median)} ${row.metric_unit}`);
     const samples=values=>values.length?values.map(measurement).join(', '):'Not recorded';
     detailLine(benchmark,'Recorded samples',`Baseline: ${samples(context.baseline_samples)}\nCandidate: ${samples(context.candidate_samples)} ${row.metric_unit}`);
     detailLine(benchmark,'Baseline command · redacted argv',row.commands.baseline || 'Not recorded or unavailable for display',true);
     detailLine(benchmark,'Candidate command · redacted argv',row.commands.candidate || 'Not recorded or unavailable for display',true);
-    detailLine(benchmark,'Accuracy methodology / result · caller recorded',info.accuracy);
+    detailLine(benchmark,'Accuracy methodology / result · caller recorded',info.accuracy,false,true);
     detailLine(benchmark,'Validation command · redacted argv',row.commands.accuracy || 'Not recorded or unavailable for display',true);
-    for(const command of info.commands)detailLine(benchmark,`${command.label} · caller recorded, redacted argv`,command.argv,true);
+    for(const command of info.commands)detailLine(benchmark,`${translatedNarrative(command.label)} · caller recorded, redacted argv`,command.argv,true);
     const validationNote=row.commands.accuracy?'only the recorded validation command is covered':'validation command not recorded or unavailable for display';
     detailLine(benchmark,'Recorded validation state',`${row.quality.replaceAll('_',' ')} · ${validationNote}`);
     detailLine(benchmark,'Command evidence',refText(row.artifacts.run_lock),true);
@@ -651,24 +691,24 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       const box=node('section',undefined,`round ${outcome}`);
       const head=node('div',undefined,'round-head');
       head.appendChild(node('h3',`Round ${iteration.round}`));
-      head.appendChild(pill(outcome==='adopted'?'improved':outcome==='pending'?'not_recorded':outcome==='noise'||outcome==='no_gain'?'noise':'failed'));
+      head.appendChild(pill(outcome));
       head.appendChild(node('small',`Decision: ${outcome.replaceAll('_',' ')}${iteration.decision.candidate_id?` · ${iteration.decision.candidate_id}`:''}`,'hint'));
       box.appendChild(head);
       const grid=node('div',undefined,'round-grid');
-      detailLine(grid,'Hypothesis',iteration.hypothesis);
-      detailLine(grid,'Why this optimization',iteration.rationale);
+      detailLine(grid,'Hypothesis',iteration.hypothesis,false,true);
+      detailLine(grid,'Why this optimization',iteration.rationale,false,true);
       const refs=node('div',undefined,'detail-line');refs.appendChild(node('strong','Knowledge cited'));chips(refs,iteration.knowledge_refs);grid.appendChild(refs);
-      detailLine(grid,'Observations',(iteration.observations||[]).join('\n') || 'Not recorded');
-      detailLine(grid,'Decision reason',iteration.decision.reason);
-      detailLine(grid,'Next step',iteration.next_step || 'Not recorded');
+      detailLine(grid,'Observations',(iteration.observations||[]).map(translatedNarrative).join('\n') || 'Not recorded');
+      detailLine(grid,'Decision reason',iteration.decision.reason,false,true);
+      detailLine(grid,'Next step',iteration.next_step || 'Not recorded',false,true);
       box.appendChild(grid);
       for(const candidate of iteration.candidates){
         const line=node('div',undefined,'cand');
         const left=node('div');const link=node('button',candidate.candidate_id,'link');link.type='button';link.setAttribute('data-no-translate','');
         link.disabled=candidate.measured.state!=='recorded';link.addEventListener('click',()=>selectCandidate(candidate.candidate_id));
         left.appendChild(link);chips(left,candidate.option_ids);line.appendChild(left);
-        const middle=node('div');middle.appendChild(node('div',candidate.why,'why'));
-        if(candidate.expected)middle.appendChild(node('div',`Expected: ${candidate.expected}`,'exp'));line.appendChild(middle);
+        const middle=node('div');middle.appendChild(narrativeNode('div',candidate.why,'why'));
+        if(candidate.expected)middle.appendChild(node('div',`Expected: ${translatedNarrative(candidate.expected)}`,'exp'));line.appendChild(middle);
         const right=node('div');right.appendChild(node('small','Measured','hint'));right.appendChild(node('div',measuredText(candidate.measured)));line.appendChild(right);
         box.appendChild(line);
       }
@@ -681,12 +721,14 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       const box=node('section',undefined,'retrieval');
       const head=node('div',undefined,'round-head');
       const title=node('h3',retrieval.context_id);title.setAttribute('data-no-translate','');head.appendChild(title);
-      head.appendChild(pill(retrieval.state==='verified'?'passed':'failed'));
+      const status=pill(retrieval.state==='verified'?'passed':'failed');
+      status.textContent=retrieval.state==='verified'?'capture verified':retrieval.state.replaceAll('_',' ');
+      head.appendChild(status);
       head.appendChild(node('small',`${stageNames[retrieval.stage]} · ${retrieval.state==='verified'?'capture verified':retrieval.state.replaceAll('_',' ')}`,'hint'));
       box.appendChild(head);
       const grid=node('div',undefined,'round-grid');
-      detailLine(grid,'Why it was retrieved',retrieval.purpose);
-      detailLine(grid,'What was taken from it',retrieval.takeaways.join('\n') || 'Not recorded');
+      detailLine(grid,'Why it was retrieved',retrieval.purpose,false,true);
+      detailLine(grid,'What was taken from it',retrieval.takeaways.map(translatedNarrative).join('\n') || 'Not recorded');
       if(retrieval.state==='verified'){
         const request=retrieval.request||{};
         detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit} · context budget ${request.context_bytes} bytes`].filter(Boolean).join('\n'),true);
@@ -695,10 +737,10 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         const included=new Set(retrieval.contexts.map(context=>context.ref));
         chips(selectedBox,retrieval.items.map(item=>item.ref),new Set(retrieval.items.map(item=>item.ref).filter(ref=>!included.has(ref))));grid.appendChild(selectedBox);
         const omitted=[...retrieval.context_omissions.map(o=>`${o.ref} · ${o.reason}`),...retrieval.omissions.map(o=>`${o.id} · ${o.reason}`)];
-        detailLine(grid,'Left out of the context',omitted.join('\n') || 'Nothing omitted',true);
+        detailLine(grid,'Left out of the context',omitted.join('\n') || 'Nothing omitted',Boolean(omitted.length));
       }
       const used=node('div',undefined,'detail-line');used.appendChild(node('strong','Used'));chips(used,retrieval.used_refs);grid.appendChild(used);
-      if(retrieval.rejected_refs.length)detailLine(grid,'Retrieved but not used',retrieval.rejected_refs.map(r=>`${r.ref} — ${r.reason}`).join('\n'));
+      if(retrieval.rejected_refs.length)detailLine(grid,'Retrieved but not used',retrieval.rejected_refs.map(r=>`${r.ref} — ${translatedNarrative(r.reason)}`).join('\n'));
       box.appendChild(grid);
       if(retrieval.state==='verified'){
         const fold=node('details',undefined,'context-detail');
@@ -708,28 +750,32 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
           list.textContent=`${context.ref} @ ${context.revision.slice(0,19)} — ${context.resources.map(r=>`${r.path.split('/').slice(-2).join('/')} (${r.role}, ${r.bytes} B)`).join(', ')}`;
           list.setAttribute('data-no-translate','');fold.appendChild(list);
         }
-        fold.appendChild(node('pre',retrieval.assembled_text,'context-text'));box.appendChild(fold);
+        const contextText=translatedNarrative(retrieval.assembled_text);
+        if(contextText!==retrieval.assembled_text)fold.appendChild(node('p','Translated context · caller-supplied','translation-note'));
+        fold.appendChild(node('pre',contextText,'context-text'));
+        if(contextText!==retrieval.assembled_text){const original=node('details',undefined,'context-detail');original.appendChild(node('summary','View original recorded context'));original.appendChild(node('pre',retrieval.assembled_text,'context-text'));fold.appendChild(original);}
+        box.appendChild(fold);
       }else box.appendChild(node('p',`Context text withheld: ${retrieval.state.replaceAll('_',' ')} (${retrieval.path}).`,'empty'));
       body.appendChild(box);
     }
   }
   function renderSpace(body,story){
     const space=story.search_space;
-    body.appendChild(node('p',`${space.state.replaceAll('_',' ')}${space.missing_reason?` · ${space.missing_reason}`:''}`,'hint'));
+    body.appendChild(node('p',`${space.state.replaceAll('_',' ')}${space.missing_reason?` · ${translatedNarrative(space.missing_reason)}`:''}`,'hint'));
     for(const dimension of space.dimensions){
       const box=node('section',undefined,'retrieval');
-      const head=node('div',undefined,'round-head');head.appendChild(node('h3',dimension.name));
+      const head=node('div',undefined,'round-head');head.appendChild(narrativeNode('h3',dimension.name));
       const counts=['tried','pruned','untried'].map(s=>`${dimension.options.filter(o=>o.status===s).length} ${s}`).join(' · ');
       head.appendChild(node('small',counts,'hint'));box.appendChild(head);
-      if(dimension.rationale)box.appendChild(node('p',dimension.rationale,'panel-body'));
+      if(dimension.rationale)box.appendChild(narrativeNode('p',dimension.rationale,'panel-body'));
       const table=node('table',undefined,'space-table');const header=node('tr');
       for(const label of ['Option','Status','Reason','Tried in','Source'])header.appendChild(node('th',label));
       table.appendChild(header);
       for(const option of dimension.options){
         const tr=node('tr');
-        const name=node('td');name.appendChild(node('strong',option.id));name.appendChild(node('div',option.description,'hint'));tr.appendChild(name);
+        const name=node('td');name.appendChild(node('strong',option.id));name.appendChild(narrativeNode('div',option.description,'hint'));tr.appendChild(name);
         const status=node('td');status.appendChild(pill(option.status==='tried'?'passed':option.status==='pruned'?'failed':'not_recorded'));status.lastChild.textContent=option.status;tr.appendChild(status);
-        tr.appendChild(node('td',option.reason,'reason'));
+        tr.appendChild(narrativeNode('td',option.reason,'reason'));
         const used=node('td');for(const use of option.uses){const b=node('button',`R${use.round} ${use.candidate_id}`,'link');b.type='button';b.addEventListener('click',()=>selectCandidate(use.candidate_id));used.appendChild(b);used.appendChild(node('div',String(use.outcome||'not recorded').replaceAll('_',' '),'hint'));}
         if(!option.uses.length)used.appendChild(node('span','—','hint'));tr.appendChild(used);
         const src=node('td');chips(src,option.source_refs||[]);tr.appendChild(src);table.appendChild(tr);
@@ -739,13 +785,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   }
   function renderSummary(body,story){
     const summary=story.summary;
-    body.appendChild(node('p',`${summary.state.replaceAll('_',' ')}${summary.missing_reason?` · ${summary.missing_reason}`:''}`,'hint'));
+    body.appendChild(node('p',`${summary.state.replaceAll('_',' ')}${summary.missing_reason?` · ${translatedNarrative(summary.missing_reason)}`:''}`,'hint'));
     const grid=node('div',undefined,'summary-grid');
     for(const [key,label,cls] of [['successes','Successes','good-head'],['failures','Failures','bad-head']]){
       const box=node('section');box.appendChild(node('h3',`${label} · ${summary[key].length}`,cls));
       if(!summary[key].length)box.appendChild(node('p','None recorded','empty'));
       for(const entry of summary[key]){
-        const claim=node('div',undefined,'claim');claim.appendChild(node('p',entry.text));
+        const claim=node('div',undefined,'claim');claim.appendChild(narrativeNode('p',entry.text));
         if(entry.cause_stage)claim.appendChild(node('small',`Cause: ${stageNames[entry.cause_stage]}`,'hint'));
         const links=node('div');
         for(const link of entry.links){
@@ -758,8 +804,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     }
     body.appendChild(grid);
     const more=node('div',undefined,'round-grid');more.style.padding='10px 0 0';
-    detailLine(more,'Lessons for the framework',summary.lessons.join('\n') || 'Not recorded');
-    detailLine(more,'Limitations',summary.limitations.join('\n') || 'Not recorded');
+    detailLine(more,'Lessons for the framework',summary.lessons.map(translatedNarrative).join('\n') || 'Not recorded');
+    detailLine(more,'Limitations',summary.limitations.map(translatedNarrative).join('\n') || 'Not recorded');
     body.appendChild(more);
   }
   function renderStory(){
@@ -773,7 +819,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const latest=story.versions[story.versions.length-1];
     note.textContent=`Caller-authored narrative, cross-checked against captures and runs · log v${latest.version} of ${story.versions.length}`;
     const goal=node('div',undefined,'goal');goal.style.padding='10px 12px 0';
-    for(const [label,text] of [['Goal',story.goal.statement],['Metric',story.goal.metric],['Baseline',story.goal.baseline],['Target',story.goal.target],['Constraints',(story.goal.constraints||[]).join('; ')]]){if(!text)continue;const cell=node('div');cell.appendChild(node('strong',label));cell.appendChild(node('span',text));goal.appendChild(cell);}
+    for(const [label,text] of [['Goal',story.goal.statement],['Metric',story.goal.metric],['Baseline',story.goal.baseline],['Target',story.goal.target],['Constraints',(story.goal.constraints||[]).map(translatedNarrative).join('; ')]]){if(!text)continue;const cell=node('div');cell.appendChild(node('strong',label));cell.appendChild(narrativeNode('span',text));goal.appendChild(cell);}
     root.appendChild(goal);
     const checksBox=node('div',undefined,`checks${story.checks.length?'':' ok'}`);checksBox.style.margin='10px 12px 0';
     const errors=story.checks.filter(c=>c.severity==='error').length;
@@ -808,7 +854,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const row=selected===null?null:data.candidates[selected], visible=row?traceEvents(row).visible:[];
     const refs=row?[...new Set([...Object.values(row.artifacts),...visible.flatMap(event=>event.refs)].map(refText))].join('\n- '):translated('Not recorded');
     const events=visible.map(e=>`${e.unlinked?`${translated('UNLINKED')} `:''}${e.source}:${e.line}`).join(', ');
-    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n## ${translated('Recorded optimization')}\n\n${row?translated(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
+    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n## ${translated('Recorded optimization')}\n\n${row && row.optimization.summary!=='Not recorded'?translatedNarrative(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
   }
   byId('export').addEventListener('click',()=>{
     const feedback=buildFeedback();

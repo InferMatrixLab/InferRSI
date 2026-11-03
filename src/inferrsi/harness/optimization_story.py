@@ -19,7 +19,7 @@ _GOOD = {"improved"}
 _MEASURED_BAD = {"failed", "quality_failed", "regressed"}
 
 
-def _capture(root: Path, entry: dict) -> dict:
+def _capture(root: Path, entry: dict, campaign_id: str) -> dict:
     context_id = entry["context_id"]
     view = {"context_id": context_id, "stage": entry["stage"], "purpose": entry["purpose"],
             "used_refs": entry["used_refs"], "takeaways": entry["takeaways"],
@@ -27,8 +27,9 @@ def _capture(root: Path, entry: dict) -> dict:
             "path": f"knowledge/{context_id}.json", "expected_sha256": entry["sha256"].lower()}
     path = root / "knowledge" / f"{context_id}.json"
     try:
-        if path.is_symlink():
-            raise OSError
+        if (path.parent.is_symlink() or path.is_symlink()
+                or path.parent.resolve() != root / "knowledge"):
+            return {**view, "state": "unsafe_path"}
         with path.open("rb") as stream:
             raw = stream.read(MAX_CONTEXT_CAPTURE_BYTES + 1)
     except FileNotFoundError:
@@ -40,6 +41,8 @@ def _capture(root: Path, entry: dict) -> dict:
     document, state = verify_capture(raw)
     if document is None:
         return {**view, "state": state}
+    if document.get("campaign_id") != campaign_id or document.get("context_id") != context_id:
+        return {**view, "state": "identity_mismatch"}
     contexts = [{"ref": context["ref"], "revision": context["revision"],
                  "resources": [{"path": resource["path"], "role": resource.get("role"),
                                 "sha256": resource["sha256"],
@@ -57,45 +60,48 @@ def _capture(root: Path, entry: dict) -> dict:
             "assembled_sha256": document["assembled_sha256"]}
 
 
-def build_story(root: Path, rows: list[dict], decisions: dict) -> dict:
+def build_story(root: Path, rows: list[dict], decisions: dict, campaign_id: object) -> dict:
     """Return the dashboard's optimization story, or a not-recorded marker."""
     root = Path(root).resolve()
     log, versions, state = read_latest_log(root)
     if log is None:
         return {"state": state, "versions": versions}
+    if not isinstance(campaign_id, str) or log["campaign_id"] != campaign_id:
+        return {"state": "identity_mismatch", "versions": versions}
     checks: list[dict] = []
 
     def check(severity: str, where: str, message: str) -> None:
         checks.append({"severity": severity, "where": where, "message": message})
 
-    retrievals = [_capture(root, entry) for entry in log["knowledge"]]
-    captured_refs: dict[str, set[str]] = {}
+    retrievals = [_capture(root, entry, campaign_id) for entry in log["knowledge"]]
+    selected_by_capture: dict[str, set[str]] = {}
+    read_by_capture: dict[str, set[str]] = {}
     for retrieval in retrievals:
         if retrieval["state"] != "verified":
             check("error", f"knowledge {retrieval['context_id']}",
                   f"capture {retrieval['path']} is {retrieval['state'].replace('_', ' ')}; "
                   "its text is not shown")
             continue
-        refs = {context["ref"] for context in retrieval["contexts"]}
+        refs = {context["ref"] for context in retrieval["contexts"] if context["resources"]}
         selected = {item["ref"] for item in retrieval["items"] if isinstance(item.get("ref"), str)}
-        captured_refs[retrieval["context_id"]] = refs | selected
+        read_by_capture[retrieval["context_id"]] = refs
+        selected_by_capture[retrieval["context_id"]] = refs | selected
         for ref in retrieval["used_refs"]:
             if ref not in refs:
                 reason = ("was selected but its text was omitted from the context"
                           if ref in selected else "was not retrieved by this capture")
                 check("warning", f"knowledge {retrieval['context_id']}",
                       f"the log says {ref} was used, but it {reason}")
-    every_ref = set().union(*captured_refs.values()) if captured_refs else set()
-    # Only these texts were in front of the agent; a selected-but-omitted item was not.
-    read_refs = {context["ref"] for retrieval in retrievals if retrieval["state"] == "verified"
-                 for context in retrieval["contexts"]}
-
-    def unread(ref: str, scope: set[str] | None = None) -> str | None:
-        if ref in (read_refs if scope is None else scope & read_refs):
+    def unread(ref: str, context_ids: list[str] | None = None) -> str | None:
+        # A selection in one capture cannot borrow the text of another capture.
+        ids = selected_by_capture if context_ids is None else context_ids
+        selected = set().union(*(selected_by_capture.get(key, set()) for key in ids))
+        included = set().union(*(read_by_capture.get(key, set()) for key in ids))
+        if ref in included:
             return None
-        if ref in (every_ref if scope is None else scope):
+        if ref in selected:
             return "was selected by search but its text was omitted from the context"
-        return "was not retrieved by any capture" if scope is None else \
+        return "was not retrieved by any capture" if context_ids is None else \
             "was not retrieved by the captures this round names"
 
     by_candidate: dict[str, list[dict]] = {}
@@ -117,11 +123,9 @@ def build_story(root: Path, rows: list[dict], decisions: dict) -> dict:
     iterations = []
     for iteration in log["iterations"]:
         where = f"round {iteration['round']}"
-        allowed = set()
-        for context_id in iteration.get("context_ids", []):
-            allowed |= captured_refs.get(context_id, set())
+        context_ids = iteration.get("context_ids", [])
         for ref in iteration["knowledge_refs"]:
-            problem = unread(ref, allowed or None)
+            problem = unread(ref, context_ids if context_ids else None)
             if problem:
                 check("warning", where, f"{ref} is cited, but it {problem}")
         candidates = []

@@ -3,7 +3,8 @@
 The capture is produced by the same ``collect`` operation the agent uses, not by
 a caller narrative: every resource body keeps its recorded SHA-256 and the
 assembled text is re-derived from those resources when the dashboard loads it.
-It proves what InferRSI prepared, not that a model read it.
+It records what InferRSI prepared, not that a model read it. Hashes establish
+internal consistency, not an authenticated capture origin.
 """
 
 from __future__ import annotations
@@ -110,7 +111,11 @@ def capture_context(root: Path, *, context_id: str, reader, query: str = "",
     if len(payload) > MAX_CONTEXT_CAPTURE_BYTES:
         raise ValueError("captured context exceeds 4 MiB; lower --context-bytes or --limit")
     directory = root / "knowledge"
-    directory.mkdir(parents=True, exist_ok=True)
+    if directory.is_symlink() or directory.resolve() != directory:
+        raise ValueError("knowledge directory must not be a symbolic link")
+    directory.mkdir(exist_ok=True)
+    if directory.is_symlink() or directory.resolve() != directory:
+        raise ValueError("knowledge directory must not be a symbolic link")
     target = directory / f"{context_id}.json"
     temporary = directory / f".capture-{os.getpid()}-{uuid.uuid4().hex}.tmp"
     try:
@@ -134,8 +139,16 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
     except (UnicodeError, ValueError, RecursionError):
         return None, "invalid_format"
     if (not isinstance(document, dict) or document.get("kind") != CAPTURE_KIND
-            or document.get("schema_version") != 1
+            or type(document.get("schema_version")) is not int
+            or document["schema_version"] != 1
+            or not isinstance(document.get("campaign_id"), str)
+            or not isinstance(document.get("context_id"), str)
             or not isinstance(document.get("contexts"), list)
+            or not isinstance(document.get("request"), dict)
+            or any(not isinstance(document.get(key), list) for key in
+                   ("items", "omissions", "context_omissions"))
+            or any(not isinstance(item, dict) for key in
+                   ("items", "omissions", "context_omissions") for item in document[key])
             or not isinstance(document.get("assembled_text"), str)):
         return None, "invalid_format"
     try:
@@ -143,7 +156,8 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
             for key in ("ref", "revision"):
                 if not isinstance(context[key], str):
                     return None, "invalid_format"
-            if not isinstance(context["omissions"], list):
+            if (not isinstance(context["omissions"], list)
+                    or not isinstance(context["resources"], list)):
                 return None, "invalid_format"
             for resource in context["resources"]:
                 if not all(isinstance(resource.get(key), str)
@@ -157,10 +171,12 @@ def verify_capture(raw: bytes) -> tuple[dict | None, str]:
                         isinstance(omission.get(key), str) for key in ("path", "reason")):
                     return None, "invalid_format"
         assembled = assemble_context_text(document["contexts"])
-    except (KeyError, TypeError, AttributeError):
+    except (KeyError, TypeError, AttributeError, UnicodeError):
         return None, "invalid_format"
-    if (assembled != document["assembled_text"]
-            or hashlib.sha256(assembled.encode("utf-8")).hexdigest()
-            != document.get("assembled_sha256")):
+    try:
+        digest = hashlib.sha256(assembled.encode("utf-8")).hexdigest()
+    except UnicodeError:
+        return None, "invalid_format"
+    if assembled != document["assembled_text"] or digest != document.get("assembled_sha256"):
         return None, "assembly_mismatch"
     return document, "verified"
