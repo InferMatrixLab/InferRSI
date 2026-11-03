@@ -1,0 +1,10 @@
+{
+  "status": "withdrawn_before_execution",
+  "plan": "formal-baseline-a1-5.json",
+  "reason": "A complete accepted A/B must share one NPU reservation. This standalone baseline would not satisfy that comparison protocol.",
+  "allocated_devices": [],
+  "run_directory_created": false,
+  "job_exit_code": 1,
+  "measurements_produced": false,
+  "next_action": "Freeze and reserve the complete paired campaign after candidate selection. Do not reuse this unexecuted plan as measured evidence."
+}

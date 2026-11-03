@@ -1,0 +1,77 @@
+{
+  "status": "FAIL",
+  "scope": "Profile-enabled single-sample screening; no final speedup acceptance",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "diagnostic_shutdown_grace_s": 60.0,
+    "arm": "kv2",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--enable-diffusion-pipeline-profiler",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--kv-offload-config",
+      "{\"mode\":\"on\",\"kv_refresh_interval\":2}"
+    ]
+  },
+  "samples": [
+    {
+      "label": "warmup-5",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 500,
+      "e2e_ms": 675293.8158875331,
+      "bytes": 262,
+      "response_metrics": {},
+      "valid": false,
+      "error": "{\"error\":{\"message\":\"('EngineCore encountered an issue. See stack trace (above) for the root cause.', 'Stage-0 inline diffusion engine is dead')\",\"type\":\"InternalServerError\",\"param\":null,\"code\":500,\"request_id\":\"video_sync-9304465b88dc9f92\",\"error_stage_id\":0}}",
+      "output_sha256": "8bcdc8fe486484c9d28733d75677bee32a9baf2b602c51cf9519b38c7e0aafa4"
+    }
+  ],
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 1,
+    "worker_terminate_count": 8,
+    "worker_kill_count": 8,
+    "client_complete_to_container_exit_s": null
+  },
+  "raw_log_sha256": "54ec739bb86d2d0d424258d3e4d17ca5a8d34ef6c88bf13395ca1cec60fa0a9b",
+  "sampled_peak_mib_any_device": 23796,
+  "memory_scope": "10-second driver HBM samples across startup, requests and cleanup; not an exact active-tensor peak",
+  "cache_summaries_in_request_order": [],
+  "quality_result": null,
+  "verification_limits": "Raw logs and generated media are private campaign artifacts. Single-workload quality does not establish held-out quality. Diagnostic shutdown grace does not establish clean exit with production defaults. Final unprofiled independent AB/BA remains required.",
+  "failure": {
+    "primary_error": "DLO DP collective wave timed out after 600.0s; RPC call to execute_model timed out",
+    "error_time_utc": "2026-10-31T21:47:22Z",
+    "outcome": "First warmup HTTP 500; no valid media or measured request",
+    "secondary_errors": "Compiler initialization failures occurred after the executor started forced shutdown; not the first cause",
+    "denoising_observed_s": 555.991751,
+    "reference_kv_summary_per_rank": {
+      "host_bytes": 6683443200,
+      "device_staging_bytes": 267337728,
+      "refresh_steps": 25,
+      "h2d_steps": 25,
+      "h2d_bytes": 167086080000,
+      "host_quantization": "none"
+    },
+    "quality": "not evaluated: no valid output",
+    "retry_policy": "No silent retry or timeout relabelling. A future retry requires a separate frozen matched deadline; final 15s plans need an explicitly sufficient wave timeout."
+  }
+}

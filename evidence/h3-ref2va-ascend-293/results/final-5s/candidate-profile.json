@@ -1,0 +1,11 @@
+{
+  "quality": "server-default",
+  "serve_args": [
+    "--diffusion-attention-backend",
+    "FLASH_ATTN",
+    "--cache-backend",
+    "cache_dit",
+    "--cache-config",
+    "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.48,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+  ]
+}

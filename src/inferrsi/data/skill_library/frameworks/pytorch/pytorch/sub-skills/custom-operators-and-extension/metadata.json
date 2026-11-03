@@ -1,0 +1,51 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NOASSERTION",
+  "disable-model-invocation": true,
+  "metadata": {
+    "disco-role": "operating"
+  },
+  "tags": [
+    "pytorch",
+    "custom-operators-and-extension"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/pytorch/pytorch",
+      "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+      "paths": [
+        "torch/_library/custom_ops.py",
+        "torch/library.py",
+        "torch/utils/cpp_extension.py",
+        "docs/source/notes/extending.md",
+        "test/test_custom_ops.py"
+      ],
+      "readset": "../../references/source-readset.json"
+    }
+  ],
+  "applicability": {
+    "scope": "Implement or qualify PyTorch Python custom operators, FakeTensor and autograd registrations, C++ extensions, and backend dispatch integrations.",
+    "prerequisites": [
+      "An explicitly selected installed torch environment; actual devices for backend-specific checks."
+    ],
+    "input_contract": "A bounded model, tensor, data or environment reproduction and expected behavior.",
+    "produced_artifact": "Produce a schema, metadata and gradient contract with separate registration, numerical and backend checks.",
+    "failure_modes": [
+      "Transferring source facts to another wheel or backend without checking drift."
+    ],
+    "refusal_point": "Withhold backend success when the required device check cannot execute."
+  },
+  "limitations": [
+    "Source-supported procedures are not full-repository execution coverage.",
+    "Required unavailable backends retain BLOCKED_REQUIRED_BACKEND; no measured efficacy claim."
+  ],
+  "consumption_mode": "packaged"
+}

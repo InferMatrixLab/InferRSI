@@ -1,0 +1,32 @@
+{
+  "status": "planned_not_executed",
+  "scope": "Isolated audio-owner code pilot and production NPU cleanup qualification; not final overall AB/BA",
+  "baseline_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "candidate_revision": "ff6ac7b3fc242c9a2b1b3bed3e4cb6fa5ebdd9ba",
+  "arm": "MC2 cache; all other inference settings matched",
+  "steps": 50,
+  "duration_s": 5,
+  "seed": 0,
+  "warmups": 2,
+  "measured_requests_per_server": 3,
+  "independent_servers_per_arm": 1,
+  "order": [
+    "baseline",
+    "candidate"
+  ],
+  "profiler": false,
+  "cache_summary": false,
+  "native_shutdown_grace_s": 60,
+  "baseline_grace": "Diagnostic launcher override; baseline code default remains 15 s",
+  "candidate_grace": "Production NPU platform path, no grace override",
+  "exit_codes": "Capture every worker exit code after joins; require no forced signals and all exits 0",
+  "quality_gates": "Unchanged; compare matched 50-step outputs after both timing arms complete",
+  "acceptance": "One-pair screening only; final overall frozen combination requires independent AB/BA and both durations. Do not accept audio-owner as an E2E gain from cold smoke.",
+  "script_sha256": {
+    "run_inner.sh": "cfba7b687f7d25af9ef952174511ce41c0aa668b5ffe63a888eeee771175d806",
+    "run_host.sh": "d4217dd4c1df630e81e3bebe84bd7d4aa4143c803fe9604c8659a250e4df0cf4",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "campaign.sh": "b4651b8b9a16653154f518e09302cd0b2c90f968699906e905b92b4a45d6d179",
+    "launch_durable.sh": "32b322a6677718aebba2ede1b58eacf2670f15255c036e1a02dbd9884b456244"
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "status": "inputs_frozen_not_executed",
+  "purpose": "Additional decoded-media parity checks before accepting the selected configuration; not an independent benchmark dataset or semantic quality certification",
+  "frozen_before": "Any candidate output from these cases is generated or inspected",
+  "steps": 50,
+  "duration_s": 5,
+  "frames": 124,
+  "width": 1344,
+  "height": 768,
+  "fps": 24,
+  "quality_gates": "validator/gates.json unchanged",
+  "cases": [
+    {
+      "id": "original-seed1",
+      "reference": "existing campaign input video/audio and prompt",
+      "seed": 1
+    },
+    {
+      "id": "original-seed2",
+      "reference": "existing campaign input video/audio and prompt",
+      "seed": 2
+    },
+    {
+      "id": "family-seed0",
+      "seed": 0,
+      "input_video_source": "https://huggingface.co/MiniMaxAI/MiniMax-H3/resolve/main/assets/i2va.mp4",
+      "input_video_sha256": "5a5d6e0fcdda7e6a5d98cb92d9e5cb4b6b0b44d6e1dfd5a370d16dfaa79b9ae6",
+      "source_role": "Official generated I2VA example reused as a different Ref2VA input video, not an expected Ref2VA output",
+      "input_video_frames": 192,
+      "input_video_fps": 24,
+      "input_audio": "Original campaign voice-reference audio",
+      "input_audio_sha256": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454",
+      "prompt_file": "heldout-family-prompt.txt",
+      "prompt_sha256": "6a87fae5490842edd14871e42071eba358e58bcaabeed2a4b94c3ffbf02de327",
+      "prompt_origin": "Campaign-authored after visually inspecting the public example; not generated from candidate outputs"
+    }
+  ],
+  "comparison": "Generate paired original dense and selected-candidate outputs for each case with identical inputs/seeds/settings except the optimization. Score each separately against its own dense output. Do not mix case latency samples with the original workload.",
+  "measurement_status": "No NPU requests for these cases have been run."
+}

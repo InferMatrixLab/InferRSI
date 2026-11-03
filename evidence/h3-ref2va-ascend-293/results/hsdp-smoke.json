@@ -1,0 +1,59 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "2-step HSDP runtime feasibility only, not 50-step quality or performance",
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "source": "https://github.com/vllm-project/vllm-omni/pull/1339",
+  "configuration": {
+    "task": "ref2va",
+    "hsdp_shards": 8,
+    "hsdp_weight_load_strategy": "full",
+    "distributed_layerwise_offload": false,
+    "ulysses": 8,
+    "ring": 1,
+    "text_tp": 8,
+    "vae_tile_parallel": 8,
+    "pipeline_profiler": true
+  },
+  "request": {
+    "label": "smoke",
+    "steps": 2,
+    "seconds": 5,
+    "http_status": 200,
+    "e2e_ms": 190180.90895935893,
+    "bytes": 6705548,
+    "response_metrics": {
+      "X-Inference-Time-S": "190.082",
+      "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":3.7944825319573283,\"MiniMaxH3Pipeline._encode_local_media\":55.709552470594645,\"MiniMaxH3Pipeline.diffuse\":36.26913727633655,\"MiniMaxH3Pipeline.video_vae.decode_latent\":4.34991982858628,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":78.27482456434518,\"MiniMaxH3Pipeline.decode\":83.29958327487111,\"queue_wait_ms\":0.4343511536717415,\"stage_0_gen_ms\":188889.9483680725}",
+      "X-Peak-Memory-MB": "59328.000"
+    },
+    "valid": true
+  },
+  "model_load_seconds_per_rank_logged": [
+    402.616613,
+    474.854366,
+    551.390933,
+    636.553684,
+    661.269096,
+    1121.487853,
+    1122.390368,
+    1178.925248
+  ],
+  "sampled_peak_mib_any_device": 65480,
+  "memory_sampling_interval_s": 10,
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 8,
+    "worker_kill_count": 7,
+    "client_complete_to_container_exit_s": 27.167178
+  },
+  "diagnostics": [
+    "Startup native stack sampled CPU BF16 direct_copy_kernel during weight loading. This was outside request timing.",
+    "Every rank decodes audio; the reply owner finished before peers, some of which remained in first-call audio decoding during the shutdown grace period.",
+    "Several ranks logged shutdown complete before process termination; a completed worker cleanup callback does not establish process exit."
+  ],
+  "output_sha256": "efc3f017aef3f0601b35c2e45cefc222a2fe62ee51b790b68a916f1cf0742919",
+  "raw_log_sha256": "6b7fd12487ca3f2924ef2d05ffd696613869c94e64de6f9b041e9a1054c1b956",
+  "verification_limits": "Raw logs/media remain private. Peak header combines allocator statistics and is not an active-tensor-only memory measurement. No 15-second capacity or full-quality acceptance is inferred.",
+  "sampled_peak_scope": "whole run, including model loading; not a steady-state active-tensor footprint"
+}

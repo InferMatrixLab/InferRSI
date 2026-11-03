@@ -1,0 +1,39 @@
+{
+  "status": "planned",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/293",
+  "gate_sha256": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d",
+  "workload": {
+    "duration_s": 5,
+    "steps": 50,
+    "seed": 0,
+    "warmups": 1,
+    "measured_requests": 1,
+    "profiling": true
+  },
+  "arms": [
+    "cache2",
+    "cache4",
+    "resident",
+    "resident_cachedit",
+    "int8",
+    "rf",
+    "kv2",
+    "hsdp_if_smoke_generates"
+  ],
+  "cache_sweep": {
+    "source": "existing H3 quality=high profile and generic Cache-DiT configuration",
+    "changed_variable": "max_continuous_cached_steps",
+    "values": [
+      2,
+      4
+    ],
+    "Fn_compute_blocks": 1,
+    "Bn_compute_blocks": 0,
+    "max_warmup_steps": 4,
+    "residual_diff_threshold": 0.04,
+    "enable_taylorseer": false,
+    "quality_field": "omitted so the explicit server profile is selected"
+  },
+  "acceptance": "Pilot only. Qualify matched full media separately. Never sum isolated gains. Freeze final combination and run unprofiled independent AB/BA."
+}

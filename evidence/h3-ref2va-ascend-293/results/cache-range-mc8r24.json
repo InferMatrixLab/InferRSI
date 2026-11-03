@@ -1,0 +1,210 @@
+{
+  "run": "cache-range-mc8r24",
+  "source_revision": "c18fff65a1fedfa55e3f5f2c97b9422942197c8f",
+  "configuration": {
+    "pipeline_profiler": false,
+    "heldout_quality_cases": false,
+    "diagnostic_shutdown_override": false,
+    "shutdown_mode": "native",
+    "arm": "profile",
+    "steps": 50,
+    "requests": 3,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--cache-backend",
+      "cache_dit",
+      "--cache-config",
+      "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.24,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+    ],
+    "warmups_per_duration": 2,
+    "durations_s": [
+      5
+    ],
+    "dlo_wave_timeout_s": 14400.0,
+    "seeds": [
+      0
+    ],
+    "inputs_sha256": {
+      "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+      "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+      "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+    }
+  },
+  "runtime_settings_sha256": "597d49f1aa3aedba01e33504b2fecb30eba7c15fdbc2048b57219f2c3a6ff24a",
+  "cells": [
+    {
+      "duration_s": 5,
+      "seed": 0,
+      "expected_measured_requests": 3,
+      "completed": 3,
+      "failed": 0,
+      "missing": 0,
+      "samples_ms": [
+        106450.2551406622,
+        107631.55618682504,
+        106107.9015713185
+      ],
+      "mean_ms": 106729.90429960191,
+      "median_ms": 106450.2551406622,
+      "min_ms": 106107.9015713185,
+      "max_ms": 107631.55618682504,
+      "request_sample_stdev_ms": 799.3957630050069,
+      "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+    }
+  ],
+  "samples_including_warmups": [
+    {
+      "label": "measured-5-seed0-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 106450.2551406622,
+      "http_status": 200,
+      "bytes": 6585617,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-9f9a8513c668918a",
+        "X-Inference-Time-S": "106.387",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.37438981235027313,\"stage_0_gen_ms\":105431.10275268555}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "output_sha256": "5c1734cd9b5599cc87283953314daaf33c00fbe02d0839d24f0809ebbc74278f"
+    },
+    {
+      "label": "measured-5-seed0-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 107631.55618682504,
+      "http_status": 200,
+      "bytes": 6582057,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-93a66b69c94cf804",
+        "X-Inference-Time-S": "107.558",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.45110099017620087,\"stage_0_gen_ms\":106767.60816574097}",
+        "X-Peak-Memory-MB": "20188.000"
+      },
+      "output_sha256": "f27ee6a5b8379ffea07c282fd32c091095209eca54bb66c04b2269ed8226b4b8"
+    },
+    {
+      "label": "measured-5-seed0-2",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 106107.9015713185,
+      "http_status": 200,
+      "bytes": 6579955,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-83dca54b5e925145",
+        "X-Inference-Time-S": "106.044",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.42628124356269836,\"stage_0_gen_ms\":105012.15720176697}",
+        "X-Peak-Memory-MB": "20168.000"
+      },
+      "output_sha256": "f1d26585e2be96026659a501328bd1ee49128b6797488a3cae65b6eb5b16b145"
+    },
+    {
+      "label": "warmup-5-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 236727.90806088597,
+      "http_status": 200,
+      "bytes": 6578318,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-9fdd6756fe784695",
+        "X-Inference-Time-S": "236.633",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.6281258538365364,\"stage_0_gen_ms\":235737.46180534363}",
+        "X-Peak-Memory-MB": "20128.000"
+      },
+      "output_sha256": "18ea61ee0db5c545ca2ec37f278887d860d19f7094d9ea02a31a7562790f09dd"
+    },
+    {
+      "label": "warmup-5-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 171404.8485364765,
+      "http_status": 200,
+      "bytes": 6574245,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-94bd9688b1f6af37",
+        "X-Inference-Time-S": "171.332",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.5543651059269905,\"stage_0_gen_ms\":170429.15773391724}",
+        "X-Peak-Memory-MB": "20128.000"
+      },
+      "output_sha256": "297e6e00b2868bd1eef8617219578b71d21ee4a78e9f80910e28a7d3d02549dc"
+    }
+  ],
+  "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+  "lifecycle": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 8,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-4",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-5",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-6",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-7",
+        "exit_code": 0,
+        "alive": false
+      }
+    ]
+  },
+  "service_log_sha256": "12d6ef1dc1bc79fb01ef4e875106187450cc2db9ba0c9d3876886fdb7f5f0528"
+}
