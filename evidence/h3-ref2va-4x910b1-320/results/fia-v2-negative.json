@@ -1,0 +1,123 @@
+{
+  "result": {
+    "shape": [
+      1,
+      82944,
+      14,
+      128
+    ],
+    "results": [
+      {
+        "layout": "BNSD",
+        "exact": false,
+        "finite": true,
+        "rmse": 1.015155157801928e-05,
+        "max_abs": 0.000244140625,
+        "samples_ms": {
+          "laser": [
+            205.74555918574333,
+            205.79206943511963,
+            205.13240341097116,
+            205.32594807446003,
+            205.72339836508036,
+            206.46710880100727,
+            205.71401715278625,
+            206.80509693920612,
+            205.89589327573776,
+            206.51047956198454
+          ],
+          "BNSD": [
+            305.9376934543252,
+            305.43272010982037,
+            306.2054207548499,
+            304.99286856502295,
+            307.80734214931726,
+            305.1703432574868,
+            305.2462665364146,
+            305.47231063246727,
+            305.9161836281419,
+            307.32628982514143
+          ]
+        },
+        "medians_ms": {
+          "laser": 205.76881431043148,
+          "BNSD": 305.6942471303046
+        }
+      },
+      {
+        "layout": "BSND",
+        "exact": false,
+        "finite": true,
+        "rmse": 1.015155157801928e-05,
+        "max_abs": 0.000244140625,
+        "samples_ms": {
+          "laser": [
+            206.7936658859253,
+            206.5479401499033,
+            205.8420917019248,
+            206.9407505914569,
+            205.88553324341774,
+            205.11812344193459,
+            206.4286069944501,
+            206.60480111837387,
+            206.84279687702656,
+            206.2547318637371
+          ],
+          "BSND": [
+            312.1731160208583,
+            315.87875355035067,
+            312.876014970243,
+            314.0194145962596,
+            314.8815566673875,
+            316.0558082163334,
+            313.8117492198944,
+            313.7896480038762,
+            314.11886774003506,
+            314.2176205292344
+          ]
+        },
+        "medians_ms": {
+          "laser": 206.4882735721767,
+          "BSND": 314.0691411681473
+        }
+      }
+    ],
+    "scope": "Synthetic attention plus output layout materialization; not E2E or full model quality",
+    "target_achieved": false
+  },
+  "frozen_plan": {
+    "scope": "One-NPU synthetic screening, prepared not launched",
+    "source": "Pinned torch_npu2.10 _op_plugin_docs.py npu_fused_infer_attention_score_v2; separate API from previously rejected FIA v1",
+    "hypothesis": "Newer dense inference attention path and BSND-native layout may reduce dominant attention cost",
+    "shape": [
+      1,
+      82944,
+      14,
+      128
+    ],
+    "baseline": "Original Laser via head_first=False on contiguousBSND inputs, with final BSND contiguous output",
+    "candidates": [
+      "FIA_v2 BNSD",
+      "FIA_v2 BSND"
+    ],
+    "precision": "SameBF16 input toFP16 conversion andFP16 output toBF16 as baseline; inner_precise0; noquantization; fullwindow; sparse_mode0",
+    "warmups": 3,
+    "rounds": 5,
+    "order": "ABBA",
+    "quality": "Exact, finite, max error, RMSE; synthetic parity is not model qualification",
+    "timing_scope": "Includes conversions and final BSND contiguous output materialization on both arms",
+    "status": "Prepared only; no performance prediction"
+  },
+  "harness": {
+    "plan.json": "e2102e4f93ba2a478709708833b9d1993e53a7eb3889476db7748394af58826d",
+    "probe.py": "e52397d683d5d3e6810a7b16478203bee453ae0ea25b2d6a36f00a496263909b",
+    "run.sh": "0de0258f19c480c039df6cd5e33e7ca215c3f8806f0c678cf4d552a5e64c15e2"
+  },
+  "artifacts": {
+    "result.json": "e855969087a57d017a6acf58b1dfd5a5b7b8777ace016cbe2e9b1ed69e2c0a83",
+    "launch.log": "22a4aa8b6cdea9da299e1d15340369c093e2c916ee74eefd5da0380d179e7de8",
+    "job.exit_code": "9a271f2a916b0b6ee6cecb2426f0b3206ef074578be55d9bc94f6f3fe3ab86aa"
+  },
+  "job_exit": 0,
+  "decision": "Rejected: slower and nonexact; no model promotion or E2E gain"
+}
