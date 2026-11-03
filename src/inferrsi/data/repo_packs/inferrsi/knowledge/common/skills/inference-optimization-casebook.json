@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/fe3891c8db8c0fe38c8d5fd97b287ba19de82cf9/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
-      "commit": "fe3891c8db8c0fe38c8d5fd97b287ba19de82cf9",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f8a7e832feab05f8262ebe4057f34e2c8a48fd95/src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
+      "commit": "f8a7e832feab05f8262ebe4057f34e2c8a48fd95",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json",
