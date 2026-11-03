@@ -1,0 +1,53 @@
+{
+  "scope": "local CPU integration with authored controls",
+  "checks_succeeded": true,
+  "campaign_acceptance": "INCONCLUSIVE",
+  "agent_or_skill_benefit": "not measured",
+  "accelerator_qualification": "not run",
+  "tasks": [
+    {
+      "task": "rmsnorm-cpu",
+      "identity": {
+        "task_id": "rmsnorm-cpu",
+        "task_sha256": "903359c46cbbd4059325c2807532449d12beb3eec9931471c84510ba035b1677",
+        "grader_sha256": "e12a40fd37d402668a48f5adacbada6ce864e6aadfa882862f35f767e838b4b0",
+        "candidate_sha256": "28fe2fe3f25fdbd81811d16cf2897d5200c77c0dd5b3b9e65ff7d9e6a23123be",
+        "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+      },
+      "correctness": "PASS",
+      "profile_status": "completed",
+      "skilleval_good": "PASS",
+      "skilleval_bad": "FAIL",
+      "bad_measurement_status": "failed",
+      "measurement_trials": 6,
+      "measured_calls": 180,
+      "source_integrity": true,
+      "descriptive_workbench_verdict": "FAIL",
+      "workbench_run": "rmsnorm-cpu/workbench/20261103T141447Z-897e0a2641",
+      "all_consumer_identities_match": true,
+      "all_workloads_match": true
+    },
+    {
+      "task": "softmax-cpu",
+      "identity": {
+        "task_id": "softmax-cpu",
+        "task_sha256": "a0673d210792959bafa60851d2b9e33ded1ab5b7222076fb2858c27d125c6a2d",
+        "grader_sha256": "e12a40fd37d402668a48f5adacbada6ce864e6aadfa882862f35f767e838b4b0",
+        "candidate_sha256": "d36d5f8f69a38a0c034f7288c4613132b3b8a1dbf36bfe839690444616a9ff11",
+        "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+      },
+      "correctness": "PASS",
+      "profile_status": "completed",
+      "skilleval_good": "PASS",
+      "skilleval_bad": "FAIL",
+      "bad_measurement_status": "failed",
+      "measurement_trials": 6,
+      "measured_calls": 180,
+      "source_integrity": true,
+      "descriptive_workbench_verdict": "PASS",
+      "workbench_run": "softmax-cpu/workbench/20261103T141513Z-717a97f18d",
+      "all_consumer_identities_match": true,
+      "all_workloads_match": true
+    }
+  ]
+}

@@ -1,5 +1,10 @@
 # Operation guide
 
+Shared engineering tasks use `inferrsi benchmarks list|show|plan` for read-only
+inspection and `check|measure|profile|grade|compare` for explicit local execution.
+See the [engineering benchmark contract](engineering-benchmarks.md) for trusted
+source requirements, task identities, CPU coverage and offline SkillEval reuse.
+
 One concise map from an agent's intent to the supported entry point. This guide
 is navigation only: detailed contracts stay with their owning documents, and it
 is not a third primary matrix. The two authoritative matrices remain the

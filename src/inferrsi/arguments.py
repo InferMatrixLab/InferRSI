@@ -39,6 +39,9 @@ def parser() -> argparse.ArgumentParser:
     )
     root.add_argument("--version", action="version", version=__version__)
     commands = root.add_subparsers(dest="command", required=True)
+    from .harness.benchmarks.cli import add_parser
+
+    add_parser(commands)
     doctor = commands.add_parser(
         "doctor", help="Inspect a prepared local target without installing dependencies"
     )

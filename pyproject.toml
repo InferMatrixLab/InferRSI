@@ -23,7 +23,7 @@ where = ["src"]
 namespaces = false
 
 [tool.setuptools.package-data]
-inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py", "data/**/references/licenses/*.txt", "data/**/references/upstream-NOTICE"]
+inferrsi = ["data/**/*.json", "data/**/*.md", "data/**/LICENSE", "data/**/THIRD_PARTY_NOTICES", "data/**/scripts/*.py", "data/engineering_benchmarks/**/*.py", "data/**/references/licenses/*.txt", "data/**/references/upstream-NOTICE"]
 
 [tool.setuptools_scm]
 version_file = "src/inferrsi/_version.py"
@@ -35,8 +35,9 @@ prerelease = true
 
 [project.optional-dependencies]
 skills = ["PyYAML>=6.0"]
-dev = ["pytest>=7.4", "ruff>=0.6", "PyYAML>=6.0"]
+dev = ["pytest>=7.4", "ruff>=0.6", "PyYAML>=6.0", "numpy>=1.24"]
 image = ["numpy>=1.24", "Pillow>=10", "scikit-image>=0.21"]
+benchmarks = ["numpy>=1.24"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -9,11 +9,20 @@ from pathlib import Path
 import inferrsi
 from inferrsi.catalog import knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
+from inferrsi.harness.benchmarks import builtin_tasks, load_task
 from inferrsi.knowledge_operations import KnowledgeReader
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
+assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-cpu"}
+for benchmark_id in builtin_tasks():
+    benchmark = load_task(benchmark_id)
+    benchmark.assert_unchanged()
+    assert (benchmark.root / "baseline.py").is_file()
+    assert (benchmark.root / "candidate.py").is_file()
+    assert (benchmark.root / "LICENSE").is_file()
+
 records = knowledge_records()
 assert len(records) == 127, "Knowledge is missing from the installation"
 assert (

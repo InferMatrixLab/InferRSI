@@ -116,6 +116,17 @@ def main(argv: list[str] | None = None) -> int:
     argument_parser = parser()
     args = argument_parser.parse_args(argv)
     try:
+        if args.command == "benchmarks":
+            from .harness.benchmarks.cli import dispatch
+
+            result = dispatch(args)
+            _print(result)
+            if isinstance(result, dict):
+                if "verdict" in result:
+                    return 0 if result["verdict"] == "PASS" else 1
+                if "status" in result:
+                    return 0 if result["status"] == "completed" else 1
+            return 0
         if args.command == "skills":
             # Optional dependencies load only for the skills command; the core
             # CLI stays independent of them.
