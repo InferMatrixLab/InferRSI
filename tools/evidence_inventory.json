@@ -31,6 +31,10 @@
         {
           "path": "results/rejected-candidates-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/rejected-residency-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [
