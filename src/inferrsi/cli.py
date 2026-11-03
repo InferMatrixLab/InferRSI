@@ -287,11 +287,19 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         if args.command == "campaign":
-            from .harness.campaign_records import create_campaign, record_candidate, record_decision
+            from .harness.campaign_records import (
+                assemble_trace,
+                create_campaign,
+                record_candidate,
+                record_decision,
+            )
 
             if args.campaign_action == "init":
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
                                        noise=args.noise_pct, synthetic=args.synthetic)
+            elif args.campaign_action == "assemble-trace":
+                path = assemble_trace(args.directory, template=args.template,
+                                      context_file=args.context_file, output=args.output)
             elif args.campaign_action == "record":
                 details = None
                 if args.details_json is not None:

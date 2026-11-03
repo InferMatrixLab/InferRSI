@@ -127,6 +127,14 @@ def parser() -> argparse.ArgumentParser:
     create.add_argument("--target-pct", type=float)
     create.add_argument("--noise-pct", type=float)
     create.add_argument("--synthetic", action="store_true")
+    assemble = campaign_actions.add_parser(
+        "assemble-trace",
+        help="Insert an explicitly reviewed context file into a trace template",
+    )
+    assemble.add_argument("--directory", type=Path, required=True)
+    assemble.add_argument("--template", type=Path, required=True)
+    assemble.add_argument("--context-file", type=Path, required=True)
+    assemble.add_argument("--output", required=True, help="New JSON filename in the campaign root")
     record = campaign_actions.add_parser("record", help="Associate a candidate with one run")
     record.add_argument("--directory", type=Path, required=True)
     record.add_argument("--candidate", required=True)

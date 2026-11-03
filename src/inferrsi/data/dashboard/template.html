@@ -58,14 +58,30 @@ tbody tr.selected { background:#233047; } td button { background:none; border:0;
 .item:last-child { border-bottom:0; } .item small, .item code { display:block; color:var(--muted); margin-top:3px; }
 .item.missing-item { border-left:2px dashed var(--red); }
 code, .mono { font:11px/1.55 Consolas,monospace; overflow-wrap:anywhere; }
-.timeline { display:grid; grid-template-columns:130px repeat(6,minmax(95px,1fr)); gap:3px; min-width:730px; padding:8px 12px 12px; }
-.timeline > div { padding:5px; background:var(--panel2); color:var(--muted); font-size:11px; }
-.timeline .recorded { color:var(--green); } .timeline .missing { border:1px dashed #596170; }
 textarea { display:block; width:100%; min-height:85px; resize:vertical; background:var(--bg);
   border:1px solid var(--line); border-radius:2px; padding:8px; }
 .preview { white-space:pre-wrap; overflow-wrap:anywhere; max-height:260px; overflow:auto;
   border:1px solid var(--line); background:var(--bg); padding:8px; }
-.details-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.candidate-inspection { padding:12px; }
+.candidate-heading { display:flex; align-items:center; flex-wrap:wrap; gap:8px; padding-bottom:12px; }
+.candidate-heading h3 { font-size:15px; margin:0; }
+.candidate-heading small { color:var(--muted); }
+.insight-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.insight { background:#14171b; border:1px solid var(--line); min-width:0; }
+.insight.wide { grid-column:1 / -1; }
+.trace-heading { grid-column:1 / -1; padding:6px 0 0; }
+.trace-heading h4 { display:inline; margin:0; font-size:14px; }
+.trace-heading small { color:var(--muted); margin-left:8px; }
+.insight-head { display:flex; gap:8px; align-items:baseline; padding:10px 12px 4px; }
+.insight-head h4 { margin:0; font-size:13px; }
+.insight-head small { color:var(--muted); }
+.context-text { max-height:360px; overflow:auto; white-space:pre-wrap; overflow-wrap:anywhere;
+  color:var(--ink); background:#101217; padding:10px; margin:8px 12px 12px; border:1px solid var(--line); }
+.context-detail { margin:8px 12px 12px; }
+.context-detail summary { cursor:pointer; color:#bdd5ff; }
+.context-detail .context-text { margin:8px 0 0; }
+.step { margin:8px 12px; padding:8px 10px; border-left:2px solid #477bd2; background:var(--panel2); }
+.step strong, .step small { display:block; } .step small { color:var(--muted); }
 .detail-line { padding:7px 12px; border-bottom:1px solid #292e36; }
 .detail-line strong { display:block; color:var(--muted); font-size:11px; margin-bottom:3px; }
 .detail-line p { margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
@@ -77,7 +93,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .trace-event pre { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--muted); margin:6px 0; }
 .button { border:1px solid #477bd2; border-radius:2px; background:#315eac; padding:5px 12px; margin-top:8px; }
 .footnote { color:var(--muted); font-size:11px; margin:12px 0 0; }
-@media (max-width:900px) { .columns, .details-grid { grid-template-columns:1fr; } .top { flex-wrap:wrap; padding:10px 18px; } }
+@media (max-width:900px) { .columns, .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } }
 </style>
 </head>
 <body>
@@ -97,30 +113,24 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 <main>
   <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
-  <div class="section-title">Workflow <small>Select a stage to filter candidates and trace</small></div>
+  <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
   <div class="panel"><div id="workflow" class="flow"></div></div>
-  <div class="section-title">Selected optimization <small>Choose a candidate to inspect its recorded change and validation</small></div>
-  <div class="details-grid">
-    <section class="panel"><div class="panel-head"><h2>What changed</h2><small id="optimization-title"></small><small>Caller-recorded details</small></div><div id="optimization"></div></section>
-    <section class="panel"><div class="panel-head"><h2>Benchmark and accuracy</h2><small>Commands from run.lock.json are redacted</small></div><div id="benchmark"></div></section>
-  </div>
   <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
   <div class="columns">
     <div class="stack">
+      <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
+        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
+        <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p>
+        <div id="candidate-inspection" class="candidate-inspection" aria-live="polite"></div></section>
       <section class="panel"><div class="panel-head"><h2>Performance trend · all candidates</h2><small id="chart-note"></small></div>
         <div class="chart" id="chart">__DASHBOARD_CHART__</div></section>
       <section class="panel"><div class="panel-head"><h2>Results and stages over time · all candidates</h2></div>
         <div class="chart" id="temporal-chart">__DASHBOARD_TEMPORAL__</div>
         <p class="footnote panel-body" id="temporal-note"></p></section>
-      <section class="panel"><div class="panel-head"><h2>Stage coverage</h2><small>Recorded events; not a time axis</small></div>
-        <div class="scroll"><div id="timeline" class="timeline"></div></div></section>
-      <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
-        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
-        <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p></section>
     </div>
     <div class="stack">
       <section class="panel"><div class="panel-head"><h2>Diagnosis · all candidates</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
-      <section class="panel"><div class="panel-head"><h2>Trace</h2><small id="trace-title"></small></div>
+      <section class="panel"><div class="panel-head"><h2>Technical events</h2><small id="trace-title"></small></div>
         <div class="trace-tools"><input id="trace-search" type="search" aria-label="Search trace" placeholder="Search event, tool, field or reference">
           <select id="trace-source" aria-label="Trace source"><option value="">All sources</option><option value="events">Runner</option><option value="agent_trace">Agent</option></select></div>
         <p id="trace-count" class="footnote panel-body" aria-live="polite"></p><div id="trace"></div></section>
@@ -197,33 +207,125 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       button.addEventListener('click',()=>{jumpNotice='';stageSelect.value=stageSelect.value === stage.name ? '' : stage.name;render();}); root.appendChild(button);
     }
   }
-  function renderTimeline(visible) {
-    const root=byId('timeline');clear(root);root.appendChild(node('div','Candidate'));
-    for(const stage of data.stages) root.appendChild(node('div',stageNames[stage.name]));
-    for(const {row,index} of visible){root.appendChild(node('div',identity(row,index)));for(const stage of data.stages){const present=row.events.some(e=>e.stage===stage.name);const label=present?'RECORDED':stage.state==='not_applicable'?'NOT APPLICABLE':'NOT RECORDED';root.appendChild(node('div',label,present?'recorded':'missing'));}}
-  }
   function renderRows(visible) {
     const root=byId('candidate-rows');clear(root);byId('no-rows').hidden=visible.length>0;
     if(!visible.some(x=>x.index===selected)) selected=visible.length ? visible[0].index : null;
     for(const {row,index} of visible){const tr=node('tr');if(index===selected)tr.className='selected';
       const cell=(text)=>{const td=node('td',text);tr.appendChild(td);return td;};
-      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
+      cell(row.round === null ? row.round_state==='ambiguous'?'Ambiguous':'Not recorded' : String(row.round));const title=cell();const btn=node('button',row.title);btn.type='button';btn.setAttribute('aria-label',`Inspect ${identity(row,index)}`);btn.setAttribute('aria-pressed',String(index===selected));btn.setAttribute('aria-controls','candidate-inspection');btn.addEventListener('click',()=>{jumpNotice='';selected=index;render();});title.appendChild(btn);if(!['present','not_applicable'].includes(row.candidate_metadata_state))title.appendChild(pill(`metadata_${row.candidate_metadata_state}`));
       cell(row.run_id || 'Not recorded');cell(row.state.replaceAll('_',' '));cell().appendChild(pill(row.verdict));cell(value(row.improvement_pct,'%'));cell().appendChild(pill(row.quality));cell().appendChild(pill(row.outcome));cell(row.decision.replaceAll('_',' '));
       const refs=Object.values(row.artifacts);cell(`${refs.filter(r=>r.state==='present').length} present / ${refs.filter(r=>r.state==='missing').length} missing`);root.appendChild(tr);}
   }
-  function renderOptimization(row) {
-    const optimization=byId('optimization'), benchmark=byId('benchmark');clear(optimization);clear(benchmark);
-    byId('optimization-title').textContent=row?identity(row,selected):'No selection';
-    if(!row){detailLine(optimization,'Change','No matching candidate.');detailLine(benchmark,'Measurement','No matching candidate.');return;}
+  function insight(parent, title, note, wide=false) {
+    const section=node('section',undefined,`insight${wide?' wide':''}`);
+    const heading=node('div',undefined,'insight-head');heading.appendChild(node('h4',title));
+    if(note)heading.appendChild(node('small',note));section.appendChild(heading);parent.appendChild(section);
+    return section;
+  }
+  function recordedState(section) {
+    if(!section)return 'Not recorded';
+    const state=`Caller declared · ${section.state.replaceAll('_',' ')}`;
+    return section.missing_reason ? `${state} · ${section.missing_reason}` : state;
+  }
+  function renderCandidate(row) {
+    const root=byId('candidate-inspection');clear(root);
+    if(!row){root.appendChild(node('p','No matching candidate.','empty'));return;}
+    const heading=node('div',undefined,'candidate-heading');
+    heading.appendChild(node('h3',row.title));
+    heading.appendChild(node('small',`Candidate ${identity(row,selected)}`));
+    if(data.synthetic)heading.appendChild(node('span','SYNTHETIC DATA','badge sample'));
+    heading.appendChild(pill(row.verdict));
+    heading.appendChild(node('small','Narrative is caller recorded; verdicts and measurements are separate evidence.'));
+    root.appendChild(heading);
+    const grid=node('div',undefined,'insight-grid');root.appendChild(grid);
     const info=row.optimization, context=row.benchmark_context;
+    const optimization=insight(grid,'Change and rationale','Caller recorded',true);
     detailLine(optimization,'Change type',info.kind || 'Not recorded');
     detailLine(optimization,'What was changed',info.summary);
     detailLine(optimization,'Why / hypothesis',info.hypothesis);
     if(!info.code_locations.length)detailLine(optimization,'Code / configuration locations','Not recorded');
     for(const location of info.code_locations){const lines=location.line_start===null?'':`:${location.line_start}${location.line_end===null?'':`-${location.line_end}`}`;const revision=location.revision?` · revision ${location.revision}`:'';detailLine(optimization,'Code / configuration location',`${location.scope} · ${location.path || '[redacted or invalid path]'}${lines}${revision}\n${location.note}`);}
-    const traceCount=`${row.events.length} linked events · ${row.unlinked_agent_events.length} unlinked`;
-    detailLine(optimization,'Trace coverage',traceCount);
-    const actions=node('div',undefined,'detail-line'),jump=node('button','Open selected trace','button');jump.type='button';jump.addEventListener('click',()=>{const target=byId('trace-search');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});});actions.appendChild(jump);optimization.appendChild(actions);
+    const trace=row.optimization_trace;
+    const traceHeading=node('div',undefined,'trace-heading');
+    traceHeading.appendChild(node('h4','Optimization trace'));
+    traceHeading.appendChild(node('small',!trace ? 'Trace not recorded' : trace.run_id
+      ? `Caller bound this narrative to run ${trace.run_id}`
+      : 'Candidate-level narrative; no run binding recorded'));
+    grid.appendChild(traceHeading);
+    const knowledge=insight(grid,'Knowledge context','Caller-reviewed snapshot; not proof of model consumption',true);
+    const knowledgeContext=trace && trace.context;
+    detailLine(knowledge,'Capture status',recordedState(knowledgeContext));
+    detailLine(knowledge,'Search queries',knowledgeContext && knowledgeContext.queries.length ? knowledgeContext.queries.join('\n') : 'Not recorded');
+    if(knowledgeContext && knowledgeContext.sources.length){
+      for(const source of knowledgeContext.sources)detailLine(knowledge,'Selected source',`${source.ref} · revision ${source.revision || 'Not recorded'}${source.locator ? ` · ${source.locator}` : ''}`,true);
+    }else detailLine(knowledge,'Selected sources','Not recorded');
+    if(knowledgeContext && knowledgeContext.text){
+      const fold=node('details',undefined,'context-detail');fold.open=true;
+      fold.appendChild(node('summary',`View recorded context · ${knowledgeContext.state}`));
+      fold.appendChild(node('pre',knowledgeContext.text,'context-text'));knowledge.appendChild(fold);
+    }else detailLine(knowledge,'Context text','Not recorded');
+    if(row.artifacts.optimization_trace)detailLine(knowledge,'Trace evidence',refText(row.artifacts.optimization_trace),true);
+
+    const space=trace && trace.search_space;
+    const spacePanel=insight(grid,'Declared search space','Options are not necessarily attempts',true);
+    detailLine(spacePanel,'Capture status',recordedState(space));
+    if(space && space.items.length){
+      const attemptsByOption=new Map();
+      for(const step of trace.steps.items){
+        if(step.kind==='attempt' && step.search_id)attemptsByOption.set(step.search_id,(attemptsByOption.get(step.search_id) || 0)+1);
+      }
+      for(const option of space.items){
+        const attempts=attemptsByOption.get(option.id) || 0;
+        detailLine(spacePanel,option.id,`${option.description}\n${attempts ? `${attempts} linked recorded attempt(s)` : 'No linked attempt recorded'}`);
+      }
+    }else detailLine(spacePanel,'Options','Not recorded');
+
+    const narrative=trace && trace.steps;
+    const process=insight(grid,'Optimization process','Recorded order and rationale',true);
+    detailLine(process,'Capture status',recordedState(narrative));
+    if(narrative && narrative.items.length){
+      const linkedEvents=new Set(row.events.map(event=>`${event.source}:${event.line}`));
+      for(const step of narrative.items){
+        const entry=node('div',undefined,'step');
+        entry.appendChild(node('strong',`${step.sequence} · ${step.kind.replaceAll('_',' ')} · ${step.outcome.replaceAll('_',' ')}`));
+        if(step.search_id)entry.appendChild(node('small',`Search option: ${step.search_id}`));
+        detailLine(entry,'Action',step.action);
+        detailLine(entry,'Why',step.motivation);
+        detailLine(entry,'Recorded result',step.result);
+        const eventRef=step.event_ref;
+        if(!eventRef)detailLine(entry,'Technical event','Not recorded');
+        else {
+          const artifact=row.artifacts[eventRef.source];
+          const linked=linkedEvents.has(`${eventRef.source}:${eventRef.line}`);
+          const valid=linked && artifact && artifact.state==='present'
+            && artifact.sha256===eventRef.sha256.toLowerCase();
+          if(!valid)detailLine(entry,'Technical event','Unavailable, unlinked, or source hash mismatch');
+          else {
+            const action=node('div',undefined,'detail-line');
+            action.appendChild(node('strong','Technical event'));
+            const jump=node('button',`Open ${eventRef.source}:${eventRef.line}`,'button');
+            jump.type='button';
+            jump.addEventListener('click',()=>{
+              stageSelect.value='';byId('trace-search').value='';byId('trace-source').value='';
+              render();
+              const target=byId(`trace-${eventRef.source}-${eventRef.line}`);
+              if(target){target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}
+            });
+            action.appendChild(jump);entry.appendChild(action);
+          }
+        }
+        process.appendChild(entry);
+      }
+    }else detailLine(process,'Steps','Not recorded');
+
+    const conclusion=trace && trace.summary;
+    const conclusions=insight(grid,'Successes and failures','Caller conclusions; see evidence for verdicts',true);
+    detailLine(conclusions,'Capture status',recordedState(conclusion));
+    detailLine(conclusions,'Success summary',conclusion && conclusion.successes.length ? conclusion.successes.join('\n\n') : 'Not recorded');
+    detailLine(conclusions,'Failure summary',conclusion && conclusion.failures.length ? conclusion.failures.join('\n\n') : 'Not recorded');
+    detailLine(conclusions,'Limitations',conclusion && conclusion.limitations.length ? conclusion.limitations.join('\n\n') : 'Not recorded');
+
+    const benchmark=insight(grid,'Benchmark and accuracy','Measurements and redacted commands',true);
     detailLine(benchmark,'Performance methodology · caller recorded',info.benchmark);
     detailLine(benchmark,'Workload',`${context.scenario} · ${context.workload} · ${context.repetitions===null?'repetitions not recorded':`${context.repetitions} repetitions`}`);
     detailLine(benchmark,'Recorded medians',`Baseline ${measurement(row.baseline_median)} · Candidate ${measurement(row.candidate_median)} ${row.metric_unit}`);
@@ -249,7 +351,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   }
   function renderDetail() {
     const trace=byId('trace'), evidence=byId('evidence');clear(trace);clear(evidence);
-    const row=selected===null?null:data.candidates[selected];renderOptimization(row);
+    const row=selected===null?null:data.candidates[selected];
     if(!row){byId('trace-title').textContent='No selection';byId('trace-count').textContent='';item(trace,'NOT RECORDED','No matching candidate.');item(evidence,'NOT RECORDED');return;}
     byId('trace-title').textContent=identity(row,selected);
     const {visible,total}=traceEvents(row);byId('trace-count').textContent=`${visible.length} of ${total} events · time order, unknown time last`;
@@ -263,7 +365,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
   }
   function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';byId('trace-search').value='';byId('trace-source').value='';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){if(target.tagName==='DETAILS')target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
-  function render(){const visible=filtered();renderWorkflow();renderTimeline(visible);renderRows(visible);renderDetail();}
+  function render(){const visible=filtered();renderWorkflow();renderRows(visible);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
   byId('trace-search').addEventListener('input',renderDetail);
   byId('trace-source').addEventListener('change',renderDetail);

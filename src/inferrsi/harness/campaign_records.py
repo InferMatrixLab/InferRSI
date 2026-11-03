@@ -10,7 +10,12 @@ import uuid
 from pathlib import Path
 
 from .dashboard_data import _file_ref, _inside, _object, _relative_location, _safe_argv, _text
-from .optimization_trace import read_optimization_trace
+from .optimization_trace import (
+    MAX_OPTIMIZATION_TRACE_BYTES,
+    assemble_optimization_trace,
+    parse_optimization_trace,
+    read_optimization_trace,
+)
 
 
 def _identifier(value: str, name: str) -> str:
@@ -82,6 +87,39 @@ def _write_rounds(root: Path, path: Path, records: list[dict]) -> None:
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+def assemble_trace(root: Path, *, template: Path, context_file: Path, output: str) -> Path:
+    """Create a new caller-reviewed trace from exact context-file bytes."""
+    root = Path(root).resolve()
+    campaign, state = _object(root / "campaign.json", root)
+    if state != "present":
+        raise ValueError("campaign.json is missing or invalid")
+    _identifier(output, "trace output")
+    target = root / output
+
+    def read_input(path: Path) -> bytes:
+        try:
+            with Path(path).open("rb") as stream:
+                return stream.read(MAX_OPTIMIZATION_TRACE_BYTES + 1)
+        except OSError as exc:
+            raise ValueError("trace template or reviewed context is unreadable") from exc
+
+    payload = assemble_optimization_trace(read_input(template), read_input(context_file))
+    document = parse_optimization_trace(payload)
+    if document["campaign_id"] != campaign.get("campaign_id"):
+        raise ValueError("trace campaign identity does not match")
+    temporary = root / f".optimization-{os.getpid()}-{uuid.uuid4().hex}.tmp"
+    try:
+        with temporary.open("xb") as stream:
+            stream.write(payload)
+        os.link(temporary, target)
+    except FileExistsError as exc:
+        raise ValueError("trace output already exists") from exc
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+    return target
 
 
 def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number: int,
@@ -175,6 +213,7 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
         _, ref = read_optimization_trace(
             root, {"path": optimization_trace}, campaign_id=campaign.get("campaign_id"),
             candidate_id=candidate_id, round_number=round_number, unique_candidate=True,
+            run_id=run_id,
             require_hash=False,
         )
         if ref["state"] != "present":

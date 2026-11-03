@@ -514,17 +514,28 @@ def _environment_signature(environment: dict, devices: object, backend: object) 
 def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: float | None,
          campaign_id: object = None, unique_candidate: bool = False,
          candidate_ref: dict | None = None) -> dict:
-    lock, _, lock_ref = _object_snapshot(path / "run.lock.json", root, "run_lock")
-    repositories, _ = _object(path / "repositories.lock.json", root)
-    environment, _ = _object(path / "environment.json", root)
-    evaluation, evaluation_state, evaluation_ref = _object_snapshot(
-        path / "evaluation.json", root, "evaluation"
-    )
-    status, status_state, status_ref = _object_snapshot(path / "status.json", root, "status")
-    validation, validation_state, quality_ref = _object_snapshot(
-        path / "validation" / "execution.json", root, "quality"
-    )
-    events, corrupt, event_state, _, events_ref = _events(path / "events.jsonl", root)
+    if run_id is None:
+        def missing(kind: str) -> dict:
+            return {"kind": kind, "state": "missing", "missing_reason": "not_collected"}
+
+        lock = repositories = environment = evaluation = status = validation = {}
+        lock_ref, evaluation_ref, status_ref, quality_ref, events_ref = (
+            missing(kind) for kind in ("run_lock", "evaluation", "status", "quality", "events")
+        )
+        evaluation_state = status_state = validation_state = event_state = "missing"
+        events, corrupt = [], []
+    else:
+        lock, _, lock_ref = _object_snapshot(path / "run.lock.json", root, "run_lock")
+        repositories, _ = _object(path / "repositories.lock.json", root)
+        environment, _ = _object(path / "environment.json", root)
+        evaluation, evaluation_state, evaluation_ref = _object_snapshot(
+            path / "evaluation.json", root, "evaluation"
+        )
+        status, status_state, status_ref = _object_snapshot(path / "status.json", root, "status")
+        validation, validation_state, quality_ref = _object_snapshot(
+            path / "validation" / "execution.json", root, "quality"
+        )
+        events, corrupt, event_state, _, events_ref = _events(path / "events.jsonl", root)
     corrupt_sources = {"events": list(corrupt), "agent_trace": []}
     refs = {
         "run_lock": lock_ref,
@@ -540,7 +551,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
     optimization_trace, refs["optimization_trace"] = read_optimization_trace(
         root, candidate.get("optimization_trace_ref"), campaign_id=campaign_id,
         candidate_id=candidate.get("candidate_id"), round_number=candidate.get("round"),
-        unique_candidate=unique_candidate,
+        unique_candidate=unique_candidate, run_id=run_id,
         round_ambiguous=candidate.get("_round_state") == "ambiguous",
     )
     def attach_declared(event: dict) -> None:

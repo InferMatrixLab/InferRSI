@@ -8,9 +8,10 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 import stat
-from pathlib import Path, PurePosixPath, PureWindowsPath
+from pathlib import Path
 
 MAX_OPTIMIZATION_TRACE_BYTES = 2 * 1024 * 1024
 ATTRIBUTION = "caller_declared_not_proof_of_model_consumption"
@@ -92,7 +93,7 @@ def parse_optimization_trace(raw: bytes) -> dict:
         raise TraceError("invalid_format")
     required = {"schema_version", "reviewed_by_caller", "campaign_id", "candidate_id",
                 "context", "search_space", "steps", "summary"}
-    if not required <= set(value) or set(value) - (required | {"round"}):
+    if not required <= set(value) or set(value) - (required | {"round", "run_id"}):
         raise TraceError("invalid_format")
     if type(value["schema_version"]) is not int or value["schema_version"] != 1:
         raise TraceError("invalid_format")
@@ -103,6 +104,9 @@ def parse_optimization_trace(raw: bytes) -> dict:
             raise TraceError("invalid_format")
     round_number = value.get("round")
     if round_number is not None and (type(round_number) is not int or round_number < 1):
+        raise TraceError("invalid_format")
+    run_id = value.get("run_id")
+    if run_id is not None and (not isinstance(run_id, str) or not _IDENTIFIER.fullmatch(run_id)):
         raise TraceError("invalid_format")
 
     context = _section(value["context"], {"text", "queries", "sources"})
@@ -133,8 +137,11 @@ def parse_optimization_trace(raw: bytes) -> dict:
         raise TraceError("invalid_format")
     previous = 0
     for item in steps["items"]:
-        item = _object(item, {"sequence", "kind", "action", "motivation", "outcome", "result",
-                              "search_id"})
+        required_step = {"sequence", "kind", "action", "motivation", "outcome", "result",
+                         "search_id"}
+        if (not isinstance(item, dict) or not required_step <= set(item)
+                or set(item) - (required_step | {"event_ref"})):
+            raise TraceError("invalid_format")
         sequence = item["sequence"]
         if type(sequence) is not int or sequence <= previous:
             raise TraceError("invalid_format")
@@ -148,30 +155,73 @@ def parse_optimization_trace(raw: bytes) -> dict:
         search_id = _string(item["search_id"])
         if search_id and space["state"] == "complete" and search_id not in space_ids:
             raise TraceError("invalid_format")
+        if "event_ref" in item:
+            event = _object(item["event_ref"], {"source", "line", "sha256"})
+            if (event["source"] not in ("events", "agent_trace") or type(event["line"]) is not int
+                    or not 0 < event["line"] <= 10_000_000
+                    or not isinstance(event["sha256"], str)
+                    or not _SHA256.fullmatch(event["sha256"])):
+                raise TraceError("invalid_format")
 
     summary = _section(value["summary"], {"successes", "failures", "limitations"})
     for key in ("successes", "failures", "limitations"):
         _strings(summary[key])
-    return {**value, "round": round_number, "attribution": ATTRIBUTION}
+    return {**value, "round": round_number, "run_id": run_id, "attribution": ATTRIBUTION}
+
+
+def assemble_optimization_trace(template: bytes, context: bytes) -> bytes:
+    """Insert an explicitly reviewed UTF-8 context into a trace template.
+
+    This does not inspect an agent request or assert that a model consumed the
+    context. The template and context must both be reviewed by the caller.
+    """
+    if (not isinstance(template, bytes) or not isinstance(context, bytes)
+            or len(template) > MAX_OPTIMIZATION_TRACE_BYTES
+            or len(context) > MAX_OPTIMIZATION_TRACE_BYTES):
+        raise TraceError("too_large")
+    try:
+        value = json.loads(template.decode("utf-8"), object_pairs_hook=_unique_object,
+                           parse_constant=_constant)
+        text = context.decode("utf-8")
+    except (UnicodeError, ValueError, RecursionError) as exc:
+        if isinstance(exc, TraceError):
+            raise
+        raise TraceError("invalid_format") from exc
+    if not isinstance(value, dict) or value.get("reviewed_by_caller") is not True:
+        raise TraceError("not_reviewed")
+    section = value.get("context")
+    if not isinstance(section, dict) or section.get("text") != "":
+        raise TraceError("invalid_format")
+    section["text"] = text
+    try:
+        result = (json.dumps(value, ensure_ascii=False, allow_nan=False) + "\n").encode("utf-8")
+    except (TypeError, ValueError, UnicodeError, RecursionError) as exc:
+        raise TraceError("invalid_format") from exc
+    parse_optimization_trace(result)
+    return result
 
 
 def _read(root: Path, raw_path: object) -> tuple[bytes | None, dict]:
     if not isinstance(raw_path, str) or not raw_path:
         return None, _missing("not_collected")
-    posix, windows = PurePosixPath(raw_path), PureWindowsPath(raw_path)
-    if (posix.is_absolute() or windows.is_absolute() or windows.drive or "\\" in raw_path
-            or any(ord(char) < 32 for char in raw_path)
-            or ".." in posix.parts or ".." in windows.parts):
+    # The campaign root is the trust boundary. A single filename avoids
+    # resolving attacker-replaceable intermediate directories.
+    if not _IDENTIFIER.fullmatch(raw_path) or raw_path in {".", ".."}:
         return None, _missing("unsafe_path")
     try:
         root = Path(root).resolve()
-        path = root.joinpath(*posix.parts).resolve()
-        relative = path.relative_to(root).as_posix()
-        if path == root:
+        path = root / raw_path
+        before = path.lstat()
+        if not stat.S_ISREG(before.st_mode) or not before.st_ino:
             return None, _missing("unsafe_path")
-        if not stat.S_ISREG(path.stat().st_mode):
-            return None, _missing("unreadable")
-        with path.open("rb") as stream:
+        flags = os.O_RDONLY | getattr(os, "O_BINARY", 0) | getattr(os, "O_NOFOLLOW", 0)
+        flags |= getattr(os, "O_NONBLOCK", 0)
+        descriptor = os.open(path, flags)
+        with os.fdopen(descriptor, "rb") as stream:
+            opened = os.fstat(stream.fileno())
+            if (not stat.S_ISREG(opened.st_mode) or not opened.st_ino
+                    or (opened.st_dev, opened.st_ino) != (before.st_dev, before.st_ino)):
+                return None, _missing("unsafe_path")
             raw = stream.read(MAX_OPTIMIZATION_TRACE_BYTES + 1)
     except (ValueError, RuntimeError):
         return None, _missing("unsafe_path")
@@ -181,7 +231,7 @@ def _read(root: Path, raw_path: object) -> tuple[bytes | None, dict]:
         return None, _missing("unreadable")
     if len(raw) > MAX_OPTIMIZATION_TRACE_BYTES:
         return None, _missing("too_large")
-    return raw, {"kind": "optimization_trace", "state": "present", "path": relative,
+    return raw, {"kind": "optimization_trace", "state": "present", "path": raw_path,
                  "sha256": hashlib.sha256(raw).hexdigest()}
 
 
@@ -192,6 +242,7 @@ def _missing(reason: str) -> dict:
 def read_optimization_trace(root: Path, reference: object, *, campaign_id: object,
                             candidate_id: object, round_number: object,
                             unique_candidate: bool, round_ambiguous: bool = False,
+                            run_id: object = None,
                             require_hash: bool = True) -> tuple[dict | None, dict]:
     """Read, hash, validate and bind the exact same bounded snapshot."""
     if not isinstance(reference, dict):
@@ -223,6 +274,7 @@ def read_optimization_trace(root: Path, reference: object, *, campaign_id: objec
         return None, _missing("identity_ambiguous")
     if (not isinstance(campaign_id, str) or not isinstance(candidate_id, str)
             or value["campaign_id"] != campaign_id or value["candidate_id"] != candidate_id
-            or (value["round"] is not None and value["round"] != round_number)):
+            or (value["round"] is not None and value["round"] != round_number)
+            or (value["run_id"] is not None and value["run_id"] != run_id)):
         return None, _missing("identity_mismatch")
     return value, ref

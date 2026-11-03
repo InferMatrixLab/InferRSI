@@ -45,6 +45,113 @@ campaign-relative files; the recorder hashes them and does not copy them. The
 caller assigns IDs and must serialize campaign record updates. Neither command
 starts an agent or validates the experiment.
 
+### Capture the optimization trace
+
+The dashboard can show the assembled knowledge text and the caller's account of
+the search and optimization process for each candidate. Collect this while
+performing the work; old run logs and request hashes cannot reconstruct an
+unrecorded context or reasoning. The runtime does not intercept an unrelated
+agent or prove that a model received a prepared context.
+
+First save the exact assembled context that was prepared for the agent. For
+example, `inferrsi context ... --output <CONTEXT_FILE>` writes the text
+produced by that operation; a host agent that combines other material must save
+its own final assembly. Inspect the complete file and the narrative for
+credentials, private values and unrelated material **before** recording. If a
+safe copy omits or redacts anything, mark its state and explain the gap; do not
+call it the complete original. Public source attribution may be retained.
+
+Create a UTF-8 JSON template like the following. Every field shown is required
+except `round`, `run_id`, and `event_ref`. Values below are illustrative; record the actual search,
+attempts and conclusions, including failures and omissions. Set
+`reviewed_by_caller` to true only after reviewing the template and context.
+
+```json
+{
+  "schema_version": 1,
+  "reviewed_by_caller": true,
+  "campaign_id": "<CAMPAIGN_ID>",
+  "candidate_id": "<CANDIDATE_ID>",
+  "round": 1,
+  "run_id": "<RUN_ID>",
+  "context": {
+    "state": "complete",
+    "text": "",
+    "queries": ["<ACTUAL_QUERY>"],
+    "sources": [
+      {"ref": "<SELECTED_REFERENCE>", "revision": "<REVISION>", "locator": "<RESOURCE>"}
+    ],
+    "missing_reason": ""
+  },
+  "search_space": {
+    "state": "partial",
+    "items": [{"id": "option-a", "description": "<CONSIDERED_OPTION>"}],
+    "missing_reason": "<WHAT_WAS_NOT_RECORDED>"
+  },
+  "steps": {
+    "state": "partial",
+    "items": [
+      {"sequence": 1, "kind": "attempt", "action": "<ACTION>",
+       "motivation": "<WHY>", "outcome": "inconclusive", "result": "<RESULT>",
+       "search_id": "option-a",
+       "event_ref": {"source": "events", "line": 1, "sha256": "<EVENT_FILE_SHA256>"}}
+    ],
+    "missing_reason": "<WHAT_WAS_NOT_RECORDED>"
+  },
+  "summary": {
+    "state": "partial",
+    "successes": ["<SUCCESS_OR_OBSERVATION>"],
+    "failures": ["<FAILURE_OR_ROLLBACK>"],
+    "limitations": ["<EVIDENCE_LIMITATION>"],
+    "missing_reason": "<WHAT_WAS_NOT_RECORDED>"
+  }
+}
+```
+
+Each section state is `complete`, `partial` or `redacted`; partial and
+redacted sections require a nonempty `missing_reason`. The context text must
+be nonempty when complete. Empty lists indicate no entries were supplied.
+Source revisions and locators are caller-provided; use an empty string when
+unknown. Search-space entries describe options, not necessarily attempts.
+Steps have increasing sequence numbers, kinds `observation`, `attempt`, or
+`decision`, and outcomes `succeeded`, `failed`, `inconclusive`, `skipped`,
+or `not_recorded`. The `search_id` field is required; leave it empty when
+there is no linked option. An optional `event_ref` names the `events` or `agent_trace`
+source, its one-based line number and the source file's SHA-256; a jump is
+offered only when that exact linked event and hash are present. Narrative
+conclusions are not experiment verdicts. If `run_id` is omitted, the snapshot
+is candidate-level and is not asserted to describe the selected run.
+
+Insert the complete, reviewed context file without manually escaping or
+truncating it; this creates a **new** snapshot and never overwrites an existing
+file:
+
+```sh
+inferrsi campaign assemble-trace --directory <CAMPAIGN_DIRECTORY> \
+  --template <TRACE_TEMPLATE_JSON> --context-file <REVIEWED_CONTEXT_FILE> \
+  --output optimization-v1.json
+```
+
+Use `--optimization-trace optimization-v1.json` with `campaign record`.
+An existing candidate record may instead contain an explicit
+`optimization_trace_ref` with the snapshot filename and SHA-256:
+
+```json
+{"path": "optimization-v1.json", "sha256": "<SNAPSHOT_SHA256>"}
+```
+
+The CLI does not update an existing candidate's reference; use a new campaign
+record or explicitly update the record and its hash. Preserve earlier snapshots.
+After modifying a referenced file its hash no longer matches, so it is
+withheld rather than silently displayed.
+Alternatively, a caller may create the complete JSON itself. The entire JSON
+snapshot is limited to 2 MiB; larger snapshots are rejected, never silently
+truncated. Trace snapshots must be single files directly in the campaign root.
+Treat the campaign root itself as a trusted directory that is not concurrently
+replaced. IDs, optional round/run, filename and SHA-256 are
+checked before the content is shown. Source references in the narrative remain
+caller assertions; inspect the separate evidence artifacts for measured claims.
+
 To explain a candidate, pass `--details-json <FILE>` to `campaign record`.
 Supported fields are filtered and saved in the candidate record. The JSON can
 contain these optional fields (text is caller-supplied, not inferred or verified
@@ -90,6 +197,7 @@ Record one decision for a round with `inferrsi campaign decide --directory
   campaign.json
   rounds.jsonl
   summary-chart.json                 # optional, explicitly recorded chain
+  optimization-v1.json               # optional, reviewed narrative snapshot
   candidates/<candidate_id>/
     candidate.json
     agent_trace.jsonl                # optional, explicitly referenced and hashed
@@ -104,7 +212,7 @@ An undeclared stage is marked `not_applicable` when `stages_declared` is supplie
 otherwise a stage with no recorded events is marked `stage_not_recorded`.
 
 Each `candidate.json` may provide `candidate_id`, `title`, `round`, `run_id`,
-`agent_trace_ref`, and `profile_ref`. An explicit reference is an object with a
+`agent_trace_ref`, `optimization_trace_ref`, and `profile_ref`. An explicit reference is an object with a
 campaign-relative `path` and the file's SHA-256 in `sha256`. Missing references
 can instead specify `state: "missing"` and `missing_reason`. Paths escaping the
 campaign, including through symlinks, are rejected. A missing hash or hash
@@ -173,8 +281,8 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   measurement. Missing stages are not diagnosed as
   successful. Profiling interpretation, automatic root-cause attribution,
   automatic capture of unrelated agents and framework write-back are not implemented.
-- The stage matrix describes recorded coverage. The separate time chart does not
-  infer durations or result timestamps when they are missing. Noise bands that
+- The time chart does not infer durations or result timestamps when they are
+  missing. Noise bands that
   differ across candidates are not represented as one shared band.
 - The review button creates a local Markdown download and displays its content
   for copying if a browser blocks downloads. It does not send or publish it.
@@ -187,14 +295,16 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   measured; they are not independently verified. A validation exit code does not
   establish an accuracy result when no result was recorded.
 - Overview, diagnostics and charts show all candidates; candidate/run/stage
-  filters affect the candidate table, stage matrix and trace.
+  filters affect the candidate table and technical events.
 - Existing non-dashboard files and symbolic-link outputs are never overwritten.
 
 ## Privacy
 
 The exporter does not traverse and link the entire run tree. It reads known
 records and explicit references, escapes data before embedding it in HTML, and
-withholds raw logs, environments and arbitrary command arguments. Common addresses, URLs, paths and
+withholds raw logs, environments and arbitrary command arguments. Explicitly
+reviewed optimization trace snapshots are embedded with their supplied text;
+the exporter does not automatically sanitize that text. Common addresses, URLs, paths and
 credential-shaped strings in displayed labels are replaced, but this is not a
 general anonymizer. IDs, relative artifact names and review text can still
 identify a person or contain secrets. Inspect and sanitize the actual HTML,
