@@ -9,7 +9,48 @@ import yaml
 from inferrsi.model import anthropic_edit_agent as edit
 from tools import qualify_kv_edit_actor as qualify
 
-PLAN = qualify.ROOT / "evidence/kv-actor-qualification-20261030/plan/qualification-plan.json"
+PLAN = qualify.ROOT / "evidence/kv-actor-qualification-20261031/plan/qualification-plan.json"
+HISTORICAL = qualify.ROOT / "evidence/kv-actor-qualification-20261030"
+
+
+def test_historical_qualification_bundle_is_retained_byte_for_byte():
+    integrity = HISTORICAL / "plan/integrity.json"
+    assert qualify.task.file_hash(integrity) == (
+        "d6c018da4cf1cde265d9dce36cb4368d75953d2291acb1ef48ddb67d09d89336"
+    )
+    for name, digest in json.loads(integrity.read_text()).items():
+        assert qualify.task.file_hash(HISTORICAL / name) == digest
+
+
+def test_new_payload_plan_preserves_the_software_contract():
+    current = qualify.checked_plan(PLAN)
+    historical = json.loads((HISTORICAL / "plan/qualification-plan.json").read_text())
+    identity_fields = {"base_revision", "knowledge_revision", "knowledge_files_sha256"}
+    assert {k: v for k, v in current.items() if k not in identity_fields} == {
+        k: v for k, v in historical.items() if k not in identity_fields
+    }
+    assert current["knowledge_revision"] == "a04c599c49465b67ea40a1f0de622706ab3da955"
+    changed = {
+        name for name, digest in current["knowledge_files_sha256"].items()
+        if historical["knowledge_files_sha256"][name] != digest
+    }
+    assert changed == {"metadata.json"}
+
+
+def test_current_plan_rejects_metadata_drift(tmp_path, monkeypatch):
+    plan = qualify.checked_plan(PLAN)
+    owner = tmp_path / plan["knowledge_root"]
+    for name in plan["knowledge_files_sha256"]:
+        source = qualify.ROOT / plan["knowledge_root"] / name
+        target = owner / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(source.read_bytes())
+    monkeypatch.setattr(qualify, "ROOT", tmp_path)
+    qualify.checked_plan(PLAN)
+    metadata = owner / "metadata.json"
+    metadata.write_bytes(metadata.read_bytes() + b"\n")
+    with pytest.raises(ValueError, match="Pinned K bytes changed"):
+        qualify.checked_plan(PLAN)
 
 
 def identity():
@@ -150,6 +191,7 @@ def test_existing_ready_job_only_adds_secret_free_separate_receipt():
     assert job["runs-on"] == "ubuntu-22.04" and job["permissions"] == {"contents": "read"}
     commands = "\n".join(step.get("run", "") for step in job["steps"])
     assert "tools.qualify_kv_edit_actor" in commands and "env -i" in commands
+    assert f"--plan {PLAN.relative_to(qualify.ROOT).as_posix()}" in commands
     assert "secrets." not in commands and "send_message" not in commands
     assert "--privileged" not in commands and "sysctl" not in commands
     uploads = [s["with"] for s in job["steps"] if "upload-artifact" in s.get("uses", "")]

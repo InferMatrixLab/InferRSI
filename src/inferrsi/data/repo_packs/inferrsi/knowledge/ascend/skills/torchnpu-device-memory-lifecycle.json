@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/4c0888c1ec85d02f4b5d753e2389698652baf8b4/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
-      "commit": "4c0888c1ec85d02f4b5d753e2389698652baf8b4",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/metadata.json",
@@ -40,7 +40,7 @@
   "checkout_ref": "checkout:torchnpu-device-memory-lifecycle",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md": "8428df7157af024fa17cfe0b3818ed54bd9f468306dda46eb8d4f0edf4f3f230",
-    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/metadata.json": "c650dce88c07b636d68e063dbda4d319f6f7f3ecbcdd5e47f393cbfc3af7c71d",
+    "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/metadata.json": "02de593e638e71c6debb763b6b0d5a5596e0b810bbe48450ead28dc43de83f99",
     "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/references/source-notes.md": "80cba4d3a884e7ee2618326cf74b9f9c3a34e4d9cf443707f6bbe673f2d5ba65",
     "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
@@ -69,12 +69,29 @@
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Diagnose TorchNPU device-HBM reuse, stream lifetimes, fragmentation and graph/private-pool retention before proposing allocator changes.",
+      "input_contract": "Allocation failure/size sequence, device and allocator path, installed versions/settings, stream and graph-pool timeline, retained tensor references and allocator statistics with synchronization boundaries.",
+      "produced_artifact": "A suspected allocator state transition with source evidence IDs, one eligible action, resource cost, counter-signals and a correctness-first verification/rollback plan.",
+      "refusal_point": "Missing evidence supports only a conditional proposal, not a diagnosed leak; stop when external/custom/shared allocation ownership is untraced and keep baseline settings for unsupported versions or live-tensor capacity pressure."
+    },
+    "recommendations": [
+      "Separate stream lifetime protection from producer/consumer ordering, and distinguish live tensors, pending events, inactive splits and private-pool retention before tuning.",
+      "Match split or expandable-segment proposals to the observed allocation pattern and actual feature gates; do not combine incompatible controls or import comment thresholds as defaults.",
+      "Treat cache release as synchronization/allocation work at a quiescent boundary; compare identical allocation sequences in fresh processes at the same synchronization points."
+    ]
   },
-  "applicability": {},
+  "applicability": {
+    "scope": "Diagnose TorchNPU device-HBM reuse, stream lifetimes, fragmentation and graph/private-pool retention before proposing allocator changes.",
+    "input_contract": "Allocation failure/size sequence, device and allocator path, installed versions/settings, stream and graph-pool timeline, retained tensor references and allocator statistics with synchronization boundaries.",
+    "produced_artifact": "A suspected allocator state transition with source evidence IDs, one eligible action, resource cost, counter-signals and a correctness-first verification/rollback plan.",
+    "refusal_point": "Missing evidence supports only a conditional proposal, not a diagnosed leak; stop when external/custom/shared allocation ownership is untraced and keep baseline settings for unsupported versions or live-tensor capacity pressure."
+  },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Separate stream lifetime protection from producer/consumer ordering, and distinguish live tensors, pending events, inactive splits and private-pool retention before tuning.",
+    "Match split or expandable-segment proposals to the observed allocation pattern and actual feature gates; do not combine incompatible controls or import comment thresholds as defaults.",
+    "Treat cache release as synchronization/allocation work at a quiescent boundary; compare identical allocation sequences in fresh processes at the same synchronization points."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

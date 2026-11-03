@@ -24,5 +24,17 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Build, measure and diagnose one Ascend operator in isolation using msprof op, before interpreting system-level or multi-kernel performance.",
+    "prerequisites": "A built executable or test harness and access to real NPU hardware with msprof op for collection.",
+    "input_contract": "Operator executable/harness, collection settings and OPPROF output directory, plus the operator directory used to archive each measurement round.",
+    "produced_artifact": "Per-round raw CSV archives and observational min/average/max summaries, followed by a bottleneck interpretation and comparison of operator duration and core balance.",
+    "failure_modes": "Unwarmed or reduced-frequency runs distort timing; separately budgeting simultaneous GM reads/writes misses shared bandwidth, and tiny workloads can be dominated by launch overhead."
+  },
+  "recommendations": [
+    "Collect warmup and repeated measurements into a named round, preserve the raw CSVs, and distinguish the summary statistics from the subsequent bottleneck judgment.",
+    "Compare task duration, dominant pipeline ratios and per-core balance together; change one optimization point, rebuild as needed and archive the new round before deciding to keep it.",
+    "Check current versus rated frequency and shared read/write bandwidth before blaming the kernel; aggregate msprof ratios do not provide an instruction-by-instruction timeline."
+  ]
 }

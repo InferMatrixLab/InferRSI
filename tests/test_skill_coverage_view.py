@@ -31,6 +31,7 @@ def test_view_rows_copy_owner_state_without_promotion():
     rows, _, _, _, _ = coverage.collect(PROJECT)
     for row in rows:
         assert row["task"]
+        assert coverage.layer_state(row) != "conflict", row["id"]
         if not row["sidecar"]:
             # No sidecar means no owner state to copy; it must stay unknown.
             assert row["status"] == "unknown"
@@ -151,7 +152,7 @@ def test_absent_and_empty_applicability_are_both_unknown_but_distinct_from_na():
 
 
 def test_gaps_separate_unknown_applicability_from_a_declared_statement():
-    base = {"layers": {}, "rm": [], "sidecar": True, "eval": [],
+    base = {"layers": {}, "layer_exclusion": None, "rm": [], "sidecar": True, "eval": [],
             "conditions": coverage.conditions({"applicability": {"scope": "x"}})}
     assert "no-applicability" not in coverage.gaps(base)
     # A not-applicable-only declaration is a statement, not a missing field.
@@ -209,7 +210,8 @@ def test_na_only_declaration_keeps_its_marker_without_a_scope():
         "category": "methods", "task": "probe", "status": "candidate",
         "validation": "not_run", "readsets": 0, "sidecar": True,
         "conditions": coverage.conditions({"applicability": {"hardware": "not-applicable"}}),
-        "typed_conditions": [], "advice": 0, "layers": {}, "other_ss": [],
+        "typed_conditions": [], "advice": 0, "layers": {}, "layer_exclusion": None,
+        "other_ss": [],
         "rm": [], "eval": [],
     }]
     rendered = coverage.render(rows, [], 0, [], "digest")
@@ -217,6 +219,7 @@ def test_na_only_declaration_keeps_its_marker_without_a_scope():
     assert "N/A: hardware" in line
     assert "— (declared, no scope)" in line
     assert "0 advice" in line
+    assert "no-SearchSpace-layer" in coverage.gaps(rows[0])
 
 
 def test_list_valued_scope_is_rendered_not_treated_as_missing(tmp_path):
@@ -267,3 +270,67 @@ def test_recommendations_default_only_when_the_sidecar_is_silent():
     assert index_builder.recommendations({"recommendations": []}) == []
     own = ["Read the acceptance issue first."]
     assert index_builder.recommendations({"recommendations": own}) == own
+
+
+def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
+    from inferrsi.skill_catalog import skill_metadata
+    from tools import build_skill_index as index_builder
+
+    library = tmp_path / coverage.LIBRARY
+    names = ("unknown", "process", "covered", "guidance", "conflict")
+    registry = {name: {"path": f"methods/{name}", "backend": "common"} for name in names}
+    reason = "Checks claim wording.\nSee SKILL.md, Procedure."
+    display_reason = "Checks claim wording. See SKILL.md, Procedure."
+    for name in names:
+        directory = library / registry[name]["path"]
+        directory.mkdir(parents=True)
+        (directory / "SKILL.md").write_text(
+            f"---\nname: {name}\ndescription: Test procedure\n---\n"
+            "## Procedure\nCheck claim wording.\n", encoding="utf-8",
+        )
+        metadata = {"status": "candidate", "empirical_validation": "not_run"}
+        if name in ("process", "conflict"):
+            metadata["searchspace_not_applicable"] = reason
+        (directory / "metadata.json").write_text(json.dumps(metadata), encoding="utf-8")
+    (library / "skill-index.json").write_text(json.dumps({
+        "schema_version": 1, "skills": registry,
+    }), encoding="utf-8")
+    (tmp_path / "docs").mkdir()
+    (tmp_path / coverage.REFERENCE).write_text("", encoding="utf-8")
+    (tmp_path / coverage.SEARCHSPACE).write_text(
+        "## 1 · Graphics Card / Accelerator\n"
+        "| Stage | Skill |\n|---|---|\n"
+        "| Diagnose | `covered` |\n| Observe | `conflict` |\n"
+        "## Procedure guidance\n| Resource | Skill |\n|---|---|\n"
+        "| RAM / Host Memory | `guidance` |\n", encoding="utf-8",
+    )
+    collected = coverage.collect(tmp_path)
+    rows = {row["id"]: row for row in collected[0]}
+    assert {name: coverage.layer_state(row) for name, row in rows.items()} == {
+        "unknown": "unknown", "process": "not-applicable", "covered": "covered",
+        "guidance": "supplementary", "conflict": "conflict",
+    }
+    assert "no-SearchSpace-layer" in coverage.gaps(rows["unknown"])
+    assert "no-SearchSpace-layer" not in coverage.gaps(rows["process"])
+    assert "conflicting-SearchSpace-layer" in coverage.gaps(rows["conflict"])
+    rendered = coverage.render(*collected)
+    assert "| Recorded on a numbered SearchSpace resource layer | 1 |" in rendered
+    assert "| Recorded only in a supplementary guidance table (†) | 1 |" in rendered
+    assert "| Resource layers explicitly not applicable | 1 |" in rendered
+    assert "| Conflicting resource-layer declarations | 1 |" in rendered
+    assert f"N/A: {display_reason}" in rendered
+    assert f"**CONFLICT**: N/A ({display_reason})<br>Matrix: 1 Accelerator" in rendered
+    assert "wording.\nSee" not in rendered
+    assert "| **unknown** |" in rendered
+    assert skill_metadata(library, "process")["searchspace_not_applicable"] == reason
+    hashes = {
+        f"{coverage.LIBRARY.as_posix()}/{path.relative_to(library).as_posix()}":
+        hashlib.sha256(path.read_bytes()).hexdigest()
+        for path in library.rglob("*") if path.is_file()
+    }
+    outputs = index_builder.render_index(library, "test-source", hashes)
+    record = json.loads(outputs["common/skills/process.json"])
+    assert record["skill_metadata"]["searchspace_not_applicable"] == reason
+    assert record["skill_metadata"]["status"] == "candidate"
+    assert record["skill_metadata"]["empirical_validation"] == "not_run"
+    assert record["verification"]["locally_verified"] is False
