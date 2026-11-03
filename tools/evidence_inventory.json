@@ -35,6 +35,10 @@
         {
           "path": "results/rejected-residency-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/pinned-interruption-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [

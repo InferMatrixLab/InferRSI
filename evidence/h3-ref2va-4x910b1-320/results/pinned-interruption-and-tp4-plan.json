@@ -1,0 +1,57 @@
+{
+  "scope": "Interrupted diagnostic and next configuration plan; no qualified lossless gain",
+  "target_achieved": false,
+  "pinned_diagnostic": {
+    "baseline_source": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+    "experimental_source": "10551bba495e5e2c2d9d1889134c75ba93a8916f",
+    "source_publication": "Local isolated diagnostic commit; not promoted to enginePR",
+    "change": "DiffusersPipelineLoader constructor sets existing _force_canonical_load=True to exercise canonical loader and pinned host masters; not a production default proposal",
+    "configuration": "SP4, originalLaser, rank-local24resident DiT blocks",
+    "baseline_ms": 174885.30493341386,
+    "baseline_lifecycle": "pass",
+    "candidate_completed_requests": 0,
+    "candidate_performance": "not_measured",
+    "quality": "not_scored_missing_output",
+    "cpu_tests": "5 pinned resident-group tests passed",
+    "startup_observation": "Three ranks ready while rank0 spent multiple minutes in torch.zeros(pin_memory=True), native stack aclrtMallocHost/halMemAlloc/ioctl. Root cause unknown.",
+    "manual_stop_correction": "Rank0 subsequently completed initialization and warmup started while the stop decision was being executed. This is an interrupted screening, not proof of permanent deadlock or initialization failure.",
+    "exit_code": 137,
+    "cleanup": "Docker initially reported missing exit event; later container and workerPIDs disappeared and reservation released before nextexperiment.",
+    "verdict": "INCONCLUSIVE; neither accepted nor rejected on performance"
+  },
+  "next_tp4_plan": {
+    "scope": "5step5s adaptiveABBA screening only; full50step5s15s acceptance still required",
+    "source": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+    "sources": [
+      "https://github.com/vllm-project/vllm-omni/pull/5691"
+    ],
+    "control": "SP4 TP1 AllGather DiT streaming and layer encoder offload",
+    "candidate": "TP4 SP1 device-resident DiT and module-only text encoder offload",
+    "hypothesis": "Shard DiT weights across4devices to avoid repeated denoise weight streaming",
+    "numerical_caveat": "Dense BF16 weights and steps preserved, but TP floating-point reductions differ; no losslessness assumed",
+    "precision": "BF16 noquant/cache/sparse/referenceKVreuse",
+    "sequence": [
+      "base0",
+      "tp4a",
+      "tp4b",
+      "base1"
+    ],
+    "adaptive_rejection": "After first candidate reject if measured E2E exceeds control by20percent or request/lifecycle fails; incompleteABBA recorded",
+    "warmups_per_server": 1,
+    "measured_per_server": 1,
+    "timing": "Run only after pinned-screen timing and CPUquality terminal receipt; allTPscreenarms inone4cardreservation",
+    "estimated_dit_weights_per_rank_gib": 16,
+    "estimate_limitation": "Does not include activations, othermodelcomponents, allocator reserve; actualHBM required"
+  },
+  "raw_hashes": {
+    "pinned-screen/plan.json": "ff803f5655192d1484ebea016950517420607f507346264bdf6324ce3e034cc0",
+    "pinned-screen/startup-abort.json": "a6782b2125ea35002f5470783f4dd6b8d4e49453685ab921b0830ef9d9fd0343",
+    "pinned-screen/startup-rank0-stack.txt": "4ac73dabe3b9157fd2216766d94465b661dffabb5c39af558e35a0329966b364",
+    "pinned-screen/startup-rank0-native-stack.txt": "19fc0d519665e4c5df32d4968c0f54c0fe26e6756a90675deaa06061345fdeba",
+    "pinned-screen/startup-abort-stop.log": "4d965d8a7e1bbdb46bf1f7d4ad73e6287becf0fd4394b2c0e53ca853e802d2fc",
+    "pinned-screen/quality-summary.json": "916558d2d4ae8056abbea2b84d39876015e5e921981093398258aafc13d9b163",
+    "pinned-screen/job.exit_code": "e3b9c2844b5a5c2677b3a2279db2ec8487491dd9a23d6b22fac153391b3bb63c",
+    "pinned-cpu-check-v2.log": "b378dbe39f615ff4e462381d4700b7ae8ea05452f3eee4c13047eea33ee4cc79",
+    "tp4-screen/manifest.json": "fe97722e9b85bef71ab233b2f0dd858330db8769a2ec9dee28f344190f398e27"
+  }
+}
