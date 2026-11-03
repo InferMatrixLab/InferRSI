@@ -17,6 +17,37 @@ Omit `--output` to write `dashboard.html` in the input directory. Open the file
 in a browser. Filters and review export work locally. A generated snapshot does
 not update as an experiment runs; regenerate it to show new records.
 
+### Live observation
+
+To observe a run or campaign while its records are being written, start the
+optional read-only server on that machine:
+
+```sh
+inferrsi dashboard --input <RUN_OR_CAMPAIGN_DIRECTORY> --live --port 8765
+```
+
+Open the printed URL in a browser. The page checks for recorded changes about
+every three seconds without reloading and keeps the language, filters, selected
+candidate, expanded details and review text where possible. The header shows
+the last successful check and warns when refresh fails; the last view remains
+visible while it retries. Press Ctrl-C to stop the server. `--translations`
+also works in live mode. Use the original command without `--live` whenever an
+offline HTML snapshot is needed.
+
+The server binds to `127.0.0.1` and serves only the dashboard and its view data,
+not the experiment directory. For a remote machine, use an SSH local port
+forward, for example `ssh -N -L 127.0.0.1:8765:127.0.0.1:8765 <remote>`.
+The server has no authentication: other users on the same host can access its
+loopback port. Review recorded context before exposing a forwarded port or
+sharing a snapshot.
+
+Live mode reads the same files as the offline export; it does not start an
+experiment, capture an agent's reasoning, or create records. A running result
+can be incomplete, and concurrently written files do not form a transactional
+snapshot. Benchmark verdicts and metrics appear only once recorded. Context,
+search space and narrative must be captured and updated by the caller during
+the experiment.
+
 ### Language
 
 The header switches the offline interface, chart labels and review export between

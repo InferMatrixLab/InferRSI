@@ -189,9 +189,8 @@ def _translations(path: Path | None) -> dict:
     return result
 
 
-def write_dashboard(source: Path, destination: Path | None = None,
-                    translations: Path | None = None) -> Path:
-    """Write one offline HTML document, excluding raw logs and environment data."""
+def dashboard_snapshot(source: Path, translations: Path | None = None) -> dict:
+    """Read one view and its charts from the currently recorded evidence."""
     source = Path(source).resolve()
     view = load_dashboard(source)
     chart, chart_note = _chart(source, view)
@@ -199,6 +198,12 @@ def write_dashboard(source: Path, destination: Path | None = None,
     view["chart_note"] = chart_note
     view["temporal_note"] = temporal_note
     view["translations"] = _translations(translations)
+    return {"data": view, "chart": chart, "temporal": temporal}
+
+
+def render_dashboard(snapshot: dict, *, live: bool = False) -> str:
+    """Render a snapshot; only the local live view enables same-origin requests."""
+    view = {**snapshot["data"], "live": live}
     payload = json.dumps(view, ensure_ascii=False, allow_nan=False)
     # The JSON data block cannot terminate its script element or create markup.
     payload = (payload.replace("&", "\\u0026").replace("<", "\\u003c")
@@ -207,12 +212,21 @@ def write_dashboard(source: Path, destination: Path | None = None,
     template = files("inferrsi").joinpath("data", "dashboard", "template.html").read_text(
         encoding="utf-8"
     )
-    replacements = {"__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": chart,
-                    "__DASHBOARD_TEMPORAL__": temporal}
-    document = re.sub(
+    if live:
+        template = template.replace("img-src data:;", "img-src data:; connect-src 'self';")
+    replacements = {"__DASHBOARD_DATA__": payload, "__DASHBOARD_CHART__": snapshot["chart"],
+                    "__DASHBOARD_TEMPORAL__": snapshot["temporal"]}
+    return re.sub(
         r"__DASHBOARD_(?:DATA|CHART|TEMPORAL)__", lambda match: replacements[match.group()],
         template,
     )
+
+
+def write_dashboard(source: Path, destination: Path | None = None,
+                    translations: Path | None = None) -> Path:
+    """Write one offline HTML document, excluding raw logs and environment data."""
+    source = Path(source).resolve()
+    document = render_dashboard(dashboard_snapshot(source, translations))
     output = Path(destination) if destination is not None else source / "dashboard.html"
     output.parent.mkdir(parents=True, exist_ok=True)
     if output.is_symlink():

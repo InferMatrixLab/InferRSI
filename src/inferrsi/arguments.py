@@ -121,6 +121,10 @@ def parser() -> argparse.ArgumentParser:
     dashboard.add_argument(
         "--translations", type=Path, help="Reviewed bilingual text overlay in JSON"
     )
+    dashboard.add_argument(
+        "--live", action="store_true", help="Serve a live read-only view on loopback"
+    )
+    dashboard.add_argument("--port", type=int, help="Live loopback port (default: 8765)")
 
     campaign = commands.add_parser("campaign", help="Create local campaign correlation records")
     campaign_actions = campaign.add_subparsers(dest="campaign_action", required=True)

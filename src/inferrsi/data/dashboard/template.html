@@ -20,6 +20,7 @@ button:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px
 .logo { width:19px; height:19px; border-radius:5px; background:linear-gradient(135deg,#f9d949,#f05a28); }
 .crumb, .hint { color:var(--muted); } .crumb strong { color:var(--ink); font-weight:600; }
 .spacer { flex:1; } .badge { border:1px solid var(--line); padding:3px 8px; border-radius:2px; }
+.live-status { color:var(--green); font-size:11px; } .live-status.disconnected { color:var(--orange); }
 .language-switch { display:flex; border:1px solid var(--line); border-radius:2px; overflow:hidden; }
 .language-switch button { border:0; background:transparent; color:var(--muted); padding:4px 9px; }
 .language-switch button[aria-pressed="true"] { background:#315eac; color:#fff; }
@@ -144,7 +145,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <span class="logo" aria-hidden="true"></span>
   <span class="crumb">Dashboards › InferRSI › <strong id="campaign-title" data-no-translate></strong></span>
   <span class="spacer"></span><span id="sample" class="badge sample" hidden>SYNTHETIC DATA</span>
-  <span class="badge">READ ONLY · OFFLINE</span>
+  <span id="mode-badge" class="badge">READ ONLY · OFFLINE</span>
+  <span id="live-status" class="live-status" aria-live="off" data-no-translate hidden></span>
   <div class="language-switch" role="group" aria-label="Language">
     <button id="language-en" type="button" lang="en" aria-pressed="true">English</button>
     <button id="language-zh" type="button" lang="zh-CN" aria-pressed="false">中文</button>
@@ -199,12 +201,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 <script>
 (() => {
   'use strict';
-  const data = JSON.parse(document.getElementById('dashboard-data').textContent);
+  let data = JSON.parse(document.getElementById('dashboard-data').textContent);
+  const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
     'Language':'语言', 'InferRSI · Optimization dashboard':'InferRSI · 优化看板',
     'Dashboards › InferRSI ›':'看板 › InferRSI ›', 'SYNTHETIC DATA':'合成数据',
-    'READ ONLY · OFFLINE':'只读 · 离线', 'Dashboard filters':'看板筛选',
+    'READ ONLY · OFFLINE':'只读 · 离线', 'READ ONLY · LIVE':'只读 · 实时', 'Dashboard filters':'看板筛选',
     'campaign':'任务', 'run':'运行', 'candidate':'候选方案', 'stage':'阶段', 'metric':'指标',
     'All runs':'全部运行', 'All candidates':'全部候选方案', 'All stages':'全部阶段',
     'Overview · all candidates':'概览 · 全部候选方案', 'Overview statistics':'概览统计',
@@ -452,6 +455,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const refText = ref => ref.state === 'present' ? `${ref.kind}: ${ref.path} · sha256 ${ref.sha256}` : `${ref.kind}: MISSING · ${ref.missing_reason}`;
   const identity = (row, index) => row.candidate_id || row.run_id || `run ${index + 1}`;
   const missingRefs = row => {const seen=new Set();return [...Object.values(row.artifacts),...row.events.flatMap(event=>event.refs)].filter(ref=>{if(ref.state!=='missing')return false;const key=`${ref.kind}|${ref.path || ''}|${ref.missing_reason}`;if(seen.has(key))return false;seen.add(key);return true;});};
+  if(liveMode)byId('mode-badge').textContent='READ ONLY · LIVE';
   byId('campaign-title').textContent = data.campaign_id;
   byId('campaign-value').textContent = data.campaign_id;
   byId('sample').hidden = !data.synthetic;
@@ -744,6 +748,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       box.appendChild(grid);
       if(retrieval.state==='verified'){
         const fold=node('details',undefined,'context-detail');
+        fold.dataset.liveKey=`story-context:${retrieval.context_id}`;
         fold.appendChild(node('summary',`Full assembled context · ${retrieval.contexts.reduce((n,c)=>n+c.resources.length,0)} resources · sha256 ${retrieval.assembled_sha256.slice(0,12)}`));
         for(const context of retrieval.contexts){
           const list=node('div',undefined,'hint');list.style.margin='6px 0';
@@ -753,7 +758,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         const contextText=translatedNarrative(retrieval.assembled_text);
         if(contextText!==retrieval.assembled_text)fold.appendChild(node('p','Translated context · caller-supplied','translation-note'));
         fold.appendChild(node('pre',contextText,'context-text'));
-        if(contextText!==retrieval.assembled_text){const original=node('details',undefined,'context-detail');original.appendChild(node('summary','View original recorded context'));original.appendChild(node('pre',retrieval.assembled_text,'context-text'));fold.appendChild(original);}
+        if(contextText!==retrieval.assembled_text){const original=node('details',undefined,'context-detail');original.dataset.liveKey=`story-original:${retrieval.context_id}`;original.appendChild(node('summary','View original recorded context'));original.appendChild(node('pre',retrieval.assembled_text,'context-text'));fold.appendChild(original);}
         box.appendChild(fold);
       }else box.appendChild(node('p',`Context text withheld: ${retrieval.state.replaceAll('_',' ')} (${retrieval.path}).`,'empty'));
       body.appendChild(box);
@@ -848,6 +853,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(byId('knowledge-context') && contextOpen!==undefined)byId('knowledge-context').open=contextOpen;
     if(byId('original-context') && originalOpen!==undefined)byId('original-context').open=originalOpen;
     if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
+    if(liveMode)showLiveStatus();
   });
   const redact = text => text.replace(/https?:\/\/\S+/gi,'[redacted-url]').replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/g,'[redacted-email]').replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,'[redacted-address]').replace(/\b[A-Za-z]:[\\/][^\s]+/g,'[redacted-path]').replace(/(^|\s)\/(?:[^\s/]+\/)*[^\s]+/g,'$1[redacted-path]').replace(/\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+/gi,'$1=[redacted]');
   function buildFeedback(){
@@ -861,6 +867,68 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
   });
   renderStats();renderDiagnostics();render();
+  let liveConnected=false, liveAttempted=false, lastChecked=null, liveEtag=null, missingFilter=null;
+  function showLiveStatus(){
+    const status=byId('live-status');status.hidden=false;
+    status.classList.toggle('disconnected',!liveConnected);
+    const checked=lastChecked ? new Date(lastChecked).toLocaleTimeString(language==='zh'?'zh-CN':'en-US',{hour12:false}) : '';
+    status.textContent=!liveAttempted ? (language==='zh'?'正在连接':'Connecting') : liveConnected
+      ? `${language==='zh'?'已连接 · 最近检查':'Connected · checked'} ${checked}`
+      : `${language==='zh'?'连接或读取失败，正在重试':'Connection or refresh failed, retrying'}${checked?` · ${language==='zh'?'上次检查':'last checked'} ${checked}`:''}`;
+  }
+  function matchingIndex(previous){
+    if(!previous)return -1;
+    const candidates=data.candidates;
+    const unique=predicate=>{const indexes=[];candidates.forEach((row,index)=>{if(predicate(row))indexes.push(index);});return indexes.length===1?indexes[0]:-1;};
+    const exact=unique(row=>row.candidate_id===previous.candidate_id && row.run_id===previous.run_id && row.round===previous.round);
+    if(exact>=0)return exact;
+    if(previous.candidate_id)return unique(row=>row.candidate_id===previous.candidate_id);
+    return previous.run_id?unique(row=>row.run_id===previous.run_id):-1;
+  }
+  function applySnapshot(snapshot){
+    const filterRow=candidateSelect.value==='__missing__'?missingFilter
+      :candidateSelect.value===''?null:data.candidates[Number(candidateSelect.value)];
+    const previousSelected=selected===null?null:data.candidates[selected];
+    const previousRun=runSelect.value;
+    const details=new Map([...document.querySelectorAll('details[id],details[data-live-key]')].map(el=>[el.id || el.dataset.liveKey,el.open]));
+    const scrollX=window.scrollX, scrollY=window.scrollY;
+    data=snapshot.data;
+    clear(runSelect);option(runSelect,'','All runs');
+    const runs=[...new Set(data.candidates.map(row=>row.run_id).filter(Boolean))];
+    if(previousRun && !runs.includes(previousRun))runs.push(previousRun);
+    for(const run of runs)option(runSelect,run,run);
+    runSelect.value=previousRun;
+    clear(candidateSelect);option(candidateSelect,'','All candidates');
+    data.candidates.forEach((row,index)=>option(candidateSelect,String(index),identity(row,index)));
+    const filterIndex=matchingIndex(filterRow);
+    missingFilter=filterRow && filterIndex<0?filterRow:null;
+    if(missingFilter)option(candidateSelect,'__missing__',identity(missingFilter,0));
+    candidateSelect.value=missingFilter?'__missing__':filterIndex<0?'':String(filterIndex);
+    const selectedIndex=matchingIndex(previousSelected);selected=selectedIndex<0?null:selectedIndex;
+    byId('campaign-title').textContent=data.campaign_id;byId('campaign-value').textContent=data.campaign_id;
+    byId('sample').hidden=!data.synthetic;
+    byId('metric-value').textContent=data.candidates.length?`${data.candidates[0].metric_key} · ${data.candidates[0].metric_unit}`:'Not recorded';
+    if(data.candidates.length)byId('metric-value').setAttribute('data-no-translate','');else byId('metric-value').removeAttribute('data-no-translate');
+    byId('chart').innerHTML=snapshot.chart;
+    byId('chart-note').textContent=data.chart_note;
+    if(!snapshot.chart)byId('chart').appendChild(node('p',data.chart_note,'empty'));
+    byId('temporal-chart').innerHTML=snapshot.temporal;byId('temporal-note').textContent=data.temporal_note;
+    renderStats();renderDiagnostics();render();
+    for(const el of document.querySelectorAll('details[id],details[data-live-key]')){const key=el.id || el.dataset.liveKey;if(details.has(key))el.open=details.get(key);}
+    window.scrollTo(scrollX,scrollY);
+    if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
+  }
+  async function pollLive(){
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);
+    try{
+      const headers=liveEtag?{'If-None-Match':liveEtag}:{};
+      const response=await fetch('/api/state',{headers,cache:'no-store',signal:controller.signal});
+      if(response.status!==304){if(!response.ok)throw new Error('snapshot unavailable');const snapshot=await response.json();applySnapshot(snapshot);liveEtag=response.headers.get('ETag');}
+      liveConnected=true;lastChecked=Date.now();
+    }catch(_){liveConnected=false;}
+    finally{clearTimeout(timeout);liveAttempted=true;showLiveStatus();setTimeout(pollLive,3000);}
+  }
+  if(liveMode){showLiveStatus();pollLive();}
 })();
 </script>
 </body>
