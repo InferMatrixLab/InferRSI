@@ -52,5 +52,17 @@
   "provenance_readsets": [
     "references/cannbot-stage-evidence.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Interpret Ascend CANN profiling evidence from step breakdown through kernel/utilization/communication analysis, and assess execution/validator evidence in automated optimization-stage reports.",
+    "prerequisites": "Usable warm-state captures with representative steps, required files and non-null utilization columns; healthy cards and a consistent valid topology for multi-card comparisons.",
+    "input_contract": "CANN step/kernel/utilization/communication outputs with verified column semantics; for stage acceptance, the loaded candidate, baseline, quality-validator output and comparable measurements.",
+    "produced_artifact": "An evidence-qualified bottleneck classification and optimization direction; stage conclusions retain missing-execution/validator INCONCLUSIVE or observed gate-failure FAIL.",
+    "failure_modes": "Summing concurrent communication durations double-counts overlap; misidentified columns can drop communication, and a successful export can still lack usable utilization data."
+  },
+  "recommendations": [
+    "Start from the step-level computing/communication/overlap/free breakdown and stop deepening the analysis once the bottleneck is located; do not sum concurrent streams as wall time.",
+    "Inspect actual column headers and enum values on the installed CANN version, then verify files and non-null metrics before interpreting utilization heuristics.",
+    "Use same-window interleaved baseline/candidate measurements on shared machines; progress markers, hashes and source-derived thresholds do not substitute for quality and execution evidence."
+  ]
 }
