@@ -9,50 +9,112 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# R6 Byte Budgets (Refs #273, F5/R6)
+# Proposed R6 Byte Budgets (Refs #273, F5/R6 - under discussion)
 # Per-file budget: 512 KiB for files tracked in evidence/
 PER_FILE_MAX_BYTES = 512 * 1024
 # Per-PR net evidence addition budget: 2.0 MiB
 PER_PR_EVIDENCE_MAX_BYTES = 2 * 1024 * 1024
 
+RELEASE_ASSET_URL_PATTERN = re.compile(
+    r"^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+/releases/download/[^/]+/[^/]+$"
+)
+
 ADVICE = (
-    "Evidence byte budget exceeded. Large raw artifacts must be stored outside "
-    "Git as GitHub Release assets, recording their URL, SHA-256, byte count, "
-    "and retention owner in tools/evidence_inventory.json. See working rule 3 "
-    "in docs/agent-collaboration.md and Issue #273."
+    "Evidence byte budget exceeded. Large raw artifacts should be stored outside "
+    "Git as GitHub Release assets, recording their downloadable asset URL, "
+    "SHA-256 digest, byte count, and retention owner in tools/evidence_inventory.json. "
+    "See discussion in Issue #273 (Remedy R6)."
 )
 
 
-def get_changed_files(
+def get_git_object_size(root: Path, obj_ref: str) -> int:
+    """Return byte size of a git blob object using git cat-file -s."""
+    try:
+        res = subprocess.run(
+            ["git", "cat-file", "-s", obj_ref],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        return int(res.stdout.strip())
+    except (subprocess.SubprocessError, ValueError):
+        return 0
+
+
+def get_changed_files_with_net_sizes(
     base_ref: str | None = None,
     repo_root: Path | None = None,
-) -> list[tuple[str, int]]:
-    """Return list of (relative_path, file_size_bytes) for added or modified files."""
+) -> list[tuple[str, int, int]]:
+    """Return list of (rel_path, current_size_bytes, net_addition_bytes).
+
+    If base_ref is supplied, uses git diff --raw against base_ref.
+    If base_ref fails or is missing, raises ValueError (no silent fallback in CI).
+    If base_ref is None, falls back to inspecting local git status.
+    """
     root = repo_root or ROOT
-    files: list[tuple[str, int]] = []
+    results: list[tuple[str, int, int]] = []
 
     if base_ref:
-        try:
-            # Get added (A), copied (C), or modified (M) files relative to base_ref
-            res = subprocess.run(
-                ["git", "diff", "--name-only", "--diff-filter=ACM", f"{base_ref}...HEAD"],
-                cwd=root,
-                capture_output=True,
-                text=True,
-                check=True,
+        # Validate base_ref exists before diffing
+        rev_check = subprocess.run(
+            ["git", "rev-parse", "--verify", base_ref],
+            cwd=root,
+            capture_output=True,
+            text=True,
+        )
+        if rev_check.returncode != 0:
+            raise ValueError(
+                f"Base ref '{base_ref}' cannot be resolved. "
+                "Ensure target base ref is fetched before checking diff."
             )
-            rel_paths = [p.strip() for p in res.stdout.splitlines() if p.strip()]
-        except (subprocess.SubprocessError, FileNotFoundError):
-            rel_paths = get_local_git_changed_files(root)
+
+        res = subprocess.run(
+            ["git", "diff", "--raw", f"{base_ref}...HEAD"],
+            cwd=root,
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+
+        for line in res.stdout.splitlines():
+            line = line.strip()
+            if not line.startswith(":"):
+                continue
+            # Format: :mode_src mode_dst sha_src sha_dst status\tpath (or path1\tpath2 for rename)
+            header, _, path_part = line.partition("\t")
+            parts = header.split()
+            if len(parts) < 5:
+                continue
+            sha_src, status = parts[2], parts[4]
+            rel_path = path_part.split("\t")[0].strip('"').replace("\\", "/")
+
+            full_path = root / rel_path
+            current_size = full_path.stat().st_size if full_path.is_file() else 0
+
+            # Calculate true net delta
+            if status.startswith("A"):
+                net_addition = current_size
+            elif status.startswith("M"):
+                src_size = get_git_object_size(root, sha_src)
+                net_addition = max(0, current_size - src_size)
+            elif status.startswith("D"):
+                net_addition = 0
+            else:
+                net_addition = current_size
+
+            results.append((rel_path, current_size, net_addition))
+
     else:
-        rel_paths = get_local_git_changed_files(root)
+        # Local development fallback without base ref
+        local_paths = get_local_git_changed_files(root)
+        for rel_path in local_paths:
+            full_path = root / rel_path
+            if full_path.is_file():
+                sz = full_path.stat().st_size
+                results.append((rel_path.replace("\\", "/"), sz, sz))
 
-    for rel_path in rel_paths:
-        full_path = root / rel_path
-        if full_path.is_file():
-            files.append((rel_path.replace("\\", "/"), full_path.stat().st_size))
-
-    return files
+    return results
 
 
 def get_local_git_changed_files(root: Path) -> list[str]:
@@ -81,39 +143,40 @@ def get_local_git_changed_files(root: Path) -> list[str]:
 
 
 def check_file_budgets(
-    changed_files: list[tuple[str, int]],
+    file_records: list[tuple[str, int, int]],
     per_file_limit: int = PER_FILE_MAX_BYTES,
     per_pr_limit: int = PER_PR_EVIDENCE_MAX_BYTES,
     allowlist: set[str] | None = None,
 ) -> tuple[list[str], int]:
-    """Check changed files against per-file and per-PR evidence budgets."""
+    """Check file records (rel_path, current_size, net_addition) against budgets."""
     violations: list[str] = []
-    total_evidence_bytes = 0
+    total_net_evidence_bytes = 0
     allowed = allowlist or set()
 
-    for rel_path, size in changed_files:
+    for rel_path, current_size, net_addition in file_records:
         norm_path = rel_path.replace("\\", "/")
         if norm_path in allowed:
             continue
 
         if norm_path.startswith("evidence/"):
-            total_evidence_bytes += size
-            if size > per_file_limit:
+            total_net_evidence_bytes += net_addition
+            if current_size > per_file_limit:
                 violations.append(
-                    f"file {norm_path}: {size:,} bytes exceeds limit of {per_file_limit:,} bytes"
+                    f"file {norm_path}: {current_size:,} bytes exceeds per-file limit "
+                    f"of {per_file_limit:,} bytes"
                 )
 
-    if total_evidence_bytes > per_pr_limit:
+    if total_net_evidence_bytes > per_pr_limit:
         violations.append(
-            f"evidence net addition: {total_evidence_bytes:,} bytes "
-            f"exceeds per-PR limit of {per_pr_limit:,} bytes"
+            f"evidence net addition: +{total_net_evidence_bytes:,} bytes "
+            f"exceeds per-PR net limit of {per_pr_limit:,} bytes"
         )
 
-    return violations, total_evidence_bytes
+    return violations, total_net_evidence_bytes
 
 
 def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
-    """Verify that external asset entries record url, sha256, bytes, and retention_owner."""
+    """Verify external asset entries record downloadable URL, sha256, bytes, and owner."""
     errors: list[str] = []
     if not manifest_path.exists():
         return errors
@@ -147,8 +210,11 @@ def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
                     errors.append(f"{prefix}: missing required field '{field}'")
 
             url = asset.get("url", "")
-            if not isinstance(url, str) or not url.startswith("https://"):
-                errors.append(f"{prefix}: url must be a valid https URL")
+            if not isinstance(url, str) or not RELEASE_ASSET_URL_PATTERN.match(url):
+                errors.append(
+                    f"{prefix}: url must point to a downloadable GitHub Release asset "
+                    f"(https://github.com/<owner>/<repo>/releases/download/<tag>/<filename>)"
+                )
 
             sha = asset.get("sha256", "")
             if not isinstance(sha, str) or not sha_re.match(sha):
@@ -187,21 +253,30 @@ def main() -> int:
 
     violations: list[str] = []
 
-    if args.files is not None:
-        file_list: list[tuple[str, int]] = []
-        for p_str in args.files:
-            p = Path(p_str)
-            if p.is_file():
-                rel = str(p.relative_to(ROOT) if p.is_relative_to(ROOT) else p).replace("\\", "/")
-                file_list.append((rel, p.stat().st_size))
-        diff_violations, _ = check_file_budgets(file_list, args.max_file_bytes, args.max_pr_bytes)
-        violations.extend(diff_violations)
-    else:
-        changed_files = get_changed_files(args.base)
-        diff_violations, _ = check_file_budgets(
-            changed_files, args.max_file_bytes, args.max_pr_bytes
-        )
-        violations.extend(diff_violations)
+    try:
+        if args.files is not None:
+            file_list: list[tuple[str, int, int]] = []
+            for p_str in args.files:
+                p = Path(p_str)
+                if p.is_file():
+                    rel = str(
+                        p.relative_to(ROOT) if p.is_relative_to(ROOT) else p
+                    ).replace("\\", "/")
+                    sz = p.stat().st_size
+                    file_list.append((rel, sz, sz))
+            diff_violations, _ = check_file_budgets(
+                file_list, args.max_file_bytes, args.max_pr_bytes
+            )
+            violations.extend(diff_violations)
+        else:
+            changed_records = get_changed_files_with_net_sizes(args.base)
+            diff_violations, _ = check_file_budgets(
+                changed_records, args.max_file_bytes, args.max_pr_bytes
+            )
+            violations.extend(diff_violations)
+    except Exception as exc:
+        print(f"evidence-budget error: {exc}", file=sys.stderr)
+        return 1
 
     inv_path = ROOT / args.inventory
     if inv_path.exists():
