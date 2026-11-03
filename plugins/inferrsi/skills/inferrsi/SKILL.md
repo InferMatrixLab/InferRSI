@@ -77,6 +77,15 @@ available. If the context or reasoning was not captured, state that it is
 missing instead of inferring it from a verdict. The optional campaign trace
 format and association workflow are documented in `docs/dashboard.md`.
 
+For a campaign, retrieve knowledge through `campaign capture-context` (one
+capture per retrieval) instead of a bare `collect`, so the exact context is kept.
+After each round, update the campaign optimization log and record it with
+`campaign log`: the hypothesis, why this optimization was chosen, which
+knowledge it relied on, the search options tried, pruned or left untried and
+why, the decision and its reason. At the end, write success and failure
+summaries that cite `candidate:<id>` evidence and name the failing stage.
+Resolve every **Narrative vs evidence** warning the dashboard shows, or explain it.
+
 For a bilingual dashboard, prepare and review a translation overlay for the
 recorded narrative, including the knowledge context, search space, decisions,
 benchmark and quality descriptions. Supply it to `dashboard --translations` as

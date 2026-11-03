@@ -73,7 +73,64 @@ campaign-relative files; the recorder hashes them and does not copy them. The
 caller assigns IDs and must serialize campaign record updates. Neither command
 starts an agent or validates the experiment.
 
-### Capture the optimization trace
+### Record the optimization story (campaign trace)
+
+The **Optimization story** section is the campaign-level trace a reviewer reads
+to understand the whole optimization: what knowledge was retrieved and why, the
+declared search space and how it was narrowed, each round's hypothesis and
+reason, the decision, and the success and failure summaries. It has two parts.
+
+**1. Capture the knowledge context while working.** Run the same retrieval the
+agent uses through `campaign capture-context`. It calls `collect` with a context
+budget and keeps the complete envelope: the request, everything search selected,
+everything left out and why, and every resource body with its SHA-256. The
+dashboard re-derives the assembled text from those resources and withholds a
+capture whose bytes or hashes no longer match.
+
+```sh
+inferrsi campaign capture-context --directory <CAMPAIGN_DIRECTORY> --id r1-diagnosis \
+  --relevance '<WHAT_THE_PROFILE_SHOWED>' --backend <BACKEND> --context-bytes 65536
+```
+
+Each call writes a new `knowledge/<id>.json` and prints its SHA-256; an
+existing id is never overwritten. The capture proves what InferRSI prepared,
+not that a model read it. Captured text comes from the selected knowledge
+sources; review it before sharing if a store or checkout source was added.
+
+**2. Record the optimization log.** Write a JSON log (`schema_version: 2`) and
+record it with `campaign log`. Every call adds a numbered version
+(`optimization-log-vN.json`) and an entry in `optimization-log.jsonl`; earlier
+versions remain, and the newest one whose hash matches is shown.
+
+```sh
+inferrsi campaign log --directory <CAMPAIGN_DIRECTORY> --file <LOG_JSON>
+```
+
+| Field | Content |
+| --- | --- |
+| `goal` | `statement`, `metric`, optional `baseline`, `target`, `constraints` |
+| `knowledge[]` | `context_id` and `sha256` of a capture, `stage`, `purpose` (why it was retrieved), `used_refs`, `takeaways`, optional `rejected_refs[]` with `ref` and `reason` |
+| `search_space` | `state`, `missing_reason`, `dimensions[]` with `id`, `name`, optional `rationale`, and `options[]` (`id`, `description`, `status` = `tried`/`pruned`/`untried`, `reason`, optional `source_refs`) |
+| `iterations[]` | `round` (increasing), `hypothesis`, `rationale` (why this optimization), `knowledge_refs`, optional `context_ids`, `observations`, `next_step`; `candidates[]` with `candidate_id`, `option_ids` (`<dimension>.<option>`), `why`, optional `expected`; `decision` with `outcome` (`adopted`, `rejected`, `rolled_back`, `no_gain`, `noise`, `pending`), `reason`, optional `candidate_id` |
+| `summary` | `state`, `missing_reason`, `successes[]` and `failures[]` with `text` and `evidence` (`candidate:<id>` or a knowledge ref), failures may name a `cause_stage`; `lessons`, `limitations` |
+
+Set `reviewed_by_caller` to true only after reviewing the text for private
+values. Validation errors name the offending field.
+
+The narrative is caller-authored. The dashboard does not verify reasoning; it
+resolves every reference and lists each disagreement under **Narrative vs
+evidence**:
+
+- a cited knowledge ref that no capture retrieved, or that search selected but
+  whose text was omitted from the context;
+- a decision that differs from `rounds.jsonl`, or an adopted candidate whose
+  recorded outcome is not an improvement;
+- a search option marked `tried` that no round tried, or the reverse;
+- a success whose evidence did not improve, and a recorded failure, regression
+  or rollback that no failure summary cites;
+- a capture that is missing, edited or fails its hash checks (its text is withheld).
+
+### Per-candidate narrative (schema version 1)
 
 The dashboard can show the assembled knowledge text and the caller's account of
 the search and optimization process for each candidate. Collect this while

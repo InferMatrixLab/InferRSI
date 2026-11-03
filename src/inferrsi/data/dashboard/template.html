@@ -97,6 +97,45 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .trace-event pre { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--muted); margin:6px 0; }
 .button { border:1px solid #477bd2; border-radius:2px; background:#315eac; padding:5px 12px; margin-top:8px; }
 .footnote { color:var(--muted); font-size:11px; margin:12px 0 0; }
+.story { padding:4px 0 10px; }
+.story-tabs { display:flex; gap:2px; flex-wrap:wrap; padding:8px 12px 0; border-bottom:1px solid var(--line); }
+.story-tabs button { background:none; border:0; border-bottom:2px solid transparent; color:var(--muted); padding:6px 12px; }
+.story-tabs button[aria-selected="true"] { color:#a9caff; border-bottom-color:var(--blue); font-weight:600; }
+.story-tabs .count { margin-left:6px; font-size:11px; color:var(--dim); }
+.story-body { padding:10px 12px 0; }
+.goal { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:8px; margin-bottom:10px; }
+.goal div { background:var(--panel2); padding:8px 10px; }
+.goal strong { display:block; color:var(--muted); font-size:11px; font-weight:500; }
+.checks { margin:0 0 10px; border:1px solid #6b3a21; background:#22170f; }
+.checks.ok { border-color:#2f4b2b; background:#141d13; }
+.checks h3 { margin:0; padding:7px 10px; font-size:12px; }
+.checks li { padding:2px 0; }
+.checks ul { margin:0; padding:0 10px 8px 28px; }
+.sev-error { color:var(--red); } .sev-warning { color:var(--orange); }
+.round { border-left:3px solid #477bd2; background:#14171b; margin:0 0 10px; }
+.round.adopted { border-left-color:var(--green); } .round.rejected, .round.rolled_back { border-left-color:var(--red); }
+.round.no_gain, .round.noise { border-left-color:var(--orange); }
+.round-head { display:flex; gap:10px; align-items:baseline; flex-wrap:wrap; padding:8px 12px 2px; }
+.round-head h3 { margin:0; font-size:14px; }
+.round-grid { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 16px; padding:0 12px 6px; }
+.round-grid .detail-line { padding-left:0; padding-right:0; }
+.cand { display:grid; grid-template-columns:150px 1fr auto; gap:4px 12px; padding:6px 12px; border-top:1px solid #292e36; align-items:start; }
+.cand button.link { background:none; border:0; padding:0; color:#a9caff; text-align:left; font-weight:600; }
+.cand .why { color:var(--ink); white-space:pre-wrap; }
+.cand .exp { color:var(--muted); font-size:11px; }
+.chip { display:inline-block; border:1px solid var(--line); border-radius:2px; padding:0 6px; margin:2px 4px 2px 0; font:11px Consolas,monospace; color:#b9c2ce; background:#1a1d23; }
+.chip.missing { border-style:dashed; border-color:var(--red); color:#ff9ba7; }
+.space-table td { white-space:normal; vertical-align:top; }
+.space-table td.reason { color:var(--muted); min-width:260px; }
+.retrieval { background:#14171b; border:1px solid var(--line); margin:0 0 10px; }
+.retrieval .round-grid { padding-top:4px; }
+.summary-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+.summary-grid section { background:#14171b; border:1px solid var(--line); }
+.summary-grid h3 { margin:0; padding:8px 12px; font-size:13px; }
+.summary-grid .good-head { color:var(--green); } .summary-grid .bad-head { color:var(--red); }
+.claim { padding:7px 12px; border-top:1px solid #292e36; }
+.claim p { margin:0 0 3px; white-space:pre-wrap; }
+@media (max-width:900px) { .round-grid, .summary-grid { grid-template-columns:1fr; } .cand { grid-template-columns:1fr; } }
 @media (max-width:900px) { .columns, .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } .stat-value { font-size:24px; white-space:nowrap; } }
 </style>
 </head>
@@ -121,6 +160,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 <main>
   <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
+  <div class="section-title">Optimization story <small id="story-note"></small></div>
+  <section class="panel story" id="story" aria-label="Optimization story"></section>
   <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
   <div class="panel"><div id="workflow" class="flow"></div></div>
   <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
@@ -263,7 +304,20 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'file_absent':'文件缺失', 'not_collected':'未采集', 'hash_mismatch':'哈希不匹配',
     'hash_not_recorded':'未记录哈希', 'unreadable':'无法读取', 'unsafe_path':'不安全的路径',
     'invalid_format':'格式无效', 'identity_mismatch':'身份不匹配', 'identity_ambiguous':'身份不明确',
-    'too_large':'文件过大', 'not_applicable':'不适用', 'redacted or invalid path':'路径已脱敏或无效'
+    'too_large':'文件过大', 'not_applicable':'不适用', 'redacted or invalid path':'路径已脱敏或无效',
+    'Optimization story':'优化过程复盘', 'Goal':'目标', 'Metric':'指标', 'Target':'目标值', 'Constraints':'约束',
+    'Optimization process':'优化过程', 'Knowledge context':'知识上下文', 'Search space':'搜索空间', 'Successes and failures':'成功与失败',
+    'Hypothesis':'假设', 'Why this optimization':'为什么这样优化', 'Knowledge cited':'引用的知识', 'Observations':'观察',
+    'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行',
+    'Why it was retrieved':'为什么检索', 'What was taken from it':'从中得到了什么', 'Search request':'检索请求', 'Captured':'采集信息',
+    'Selected by search':'检索选中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'实际使用',
+    'Retrieved but not used':'检索到但未使用', 'Successes':'成功', 'Failures':'失败', 'Lessons for the framework':'对框架的改进建议',
+    'None recorded':'未记录', 'Option':'选项', 'Status':'状态', 'Reason':'原因', 'Tried in':'尝试于', 'Source':'知识来源',
+    'tried':'已尝试', 'pruned':'已排除', 'untried':'未尝试', 'adopted':'采纳', 'rejected':'拒绝', 'no gain':'无提升', 'pending':'待定',
+    'No iterations recorded.':'未记录迭代。', 'No knowledge retrieval recorded.':'未记录知识检索。',
+    'Narrative vs evidence · every reference resolved':'叙述与证据核对 · 所有引用都能对上',
+    'Single runs have no campaign log':'单次运行没有任务日志',
+    'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':'单次运行没有优化日志。请记录一个任务来说明每个优化的原因。'
   };
   let language = 'en';
   try { if (localStorage.getItem('inferrsi.dashboard.language') === 'zh') language = 'zh'; } catch (_) { /* file storage may be disabled */ }
@@ -306,7 +360,16 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       [/^revision (.+)$/, m => `修订版本 ${m[1]}`],
       [/^(.+?): (Diagnosis|Knowledge|Candidate search|Execution|Validation|Review) · (.+)$/, m => `${translated(m[1])}：${translated(m[2])} · ${m[3]}`],
       [/^(.+?): (improved|regressed|failed|quality failed|noise)(.*)$/, m => `${translated(m[1])}：${translated(m[2])}${m[3]}`],
-      [/^(\d+) result\(s\) have no recorded terminal timestamp\.$/, m => `${m[1]} 个结果未记录终止时间戳。`]
+      [/^(\d+) result\(s\) have no recorded terminal timestamp\.$/, m => `${m[1]} 个结果未记录终止时间戳。`],
+      [/^Round (\d+)$/, m => `第 ${m[1]} 轮`],
+      [/^Decision: (.+)$/, m => `决策：${translated(m[1].split(' · ')[0])}${m[1].includes(' · ')?' · '+m[1].split(' · ').slice(1).join(' · '):''}`],
+      [/^Narrative vs evidence · (\d+) conflicts, (\d+) warnings$/, m => `叙述与证据核对 · ${m[1]} 处冲突，${m[2]} 处警告`],
+      [/^Caller-authored narrative, cross-checked against captures and runs · log v(\d+) of (\d+)$/, m => `调用方撰写的叙述，已与知识采集和运行记录核对 · 日志第 ${m[1]} 版，共 ${m[2]} 版`],
+      [/^Full assembled context · (\d+) resources · sha256 (.+)$/, m => `完整拼接上下文 · ${m[1]} 个资源 · sha256 ${m[2]}`],
+      [/^(Successes|Failures) · (\d+)$/, m => `${translated(m[1])} · ${m[2]}`],
+      [/^Cause: (.+)$/, m => `原因阶段：${translated(m[1])}`],
+      [/^Expected: (.+)$/s, m => `预期：${m[1]}`],
+      [/^(.+) · (capture verified)$/, m => `${translated(m[1])} · 采集已校验`]
     ];
     for (const [pattern, format] of patterns) { const match=text.match(pattern); if(match)return format(match); }
     if (text.includes('\n')) return text.split('\n').map(translated).join('\n');
@@ -568,7 +631,163 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
   }
   function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';byId('trace-search').value='';byId('trace-source').value='';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){if(target.tagName==='DETAILS')target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
-  function render(){const visible=filtered();renderWorkflow();renderRows(visible);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();localizePage();}
+  let storyTab='iterations';
+  const chips=(parent,refs,missing=new Set())=>{const box=node('div');for(const ref of refs){const chip=node('span',ref,`chip${missing.has(ref)?' missing':''}`);chip.setAttribute('data-no-translate','');box.appendChild(chip);}if(!refs.length)box.appendChild(node('span','None recorded','hint'));parent.appendChild(box);return box;};
+  function selectCandidate(candidateId){
+    const index=data.candidates.findIndex(row=>row.candidate_id===candidateId);
+    if(index<0)return;
+    runSelect.value='';stageSelect.value='';candidateSelect.value='';selected=index;jumpNotice='';render();
+    const target=byId('candidate-inspection');target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
+  }
+  function measuredText(result){
+    if(!result || result.state!=='recorded')return result && result.state==='ambiguous'?'Ambiguous':'No recorded run';
+    const gain=typeof result.improvement_pct==='number'?`${result.improvement_pct>=0?'+':''}${result.improvement_pct.toFixed(1)}%`:'no gain value';
+    return `${gain} · ${String(result.outcome).replaceAll('_',' ')} · quality ${String(result.quality).replaceAll('_',' ')}`;
+  }
+  function renderIterations(body,story){
+    if(!story.iterations.length){body.appendChild(node('p','No iterations recorded.','empty'));return;}
+    for(const iteration of story.iterations){
+      const outcome=iteration.decision.outcome;
+      const box=node('section',undefined,`round ${outcome}`);
+      const head=node('div',undefined,'round-head');
+      head.appendChild(node('h3',`Round ${iteration.round}`));
+      head.appendChild(pill(outcome==='adopted'?'improved':outcome==='pending'?'not_recorded':outcome==='noise'||outcome==='no_gain'?'noise':'failed'));
+      head.appendChild(node('small',`Decision: ${outcome.replaceAll('_',' ')}${iteration.decision.candidate_id?` · ${iteration.decision.candidate_id}`:''}`,'hint'));
+      box.appendChild(head);
+      const grid=node('div',undefined,'round-grid');
+      detailLine(grid,'Hypothesis',iteration.hypothesis);
+      detailLine(grid,'Why this optimization',iteration.rationale);
+      const refs=node('div',undefined,'detail-line');refs.appendChild(node('strong','Knowledge cited'));chips(refs,iteration.knowledge_refs);grid.appendChild(refs);
+      detailLine(grid,'Observations',(iteration.observations||[]).join('\n') || 'Not recorded');
+      detailLine(grid,'Decision reason',iteration.decision.reason);
+      detailLine(grid,'Next step',iteration.next_step || 'Not recorded');
+      box.appendChild(grid);
+      for(const candidate of iteration.candidates){
+        const line=node('div',undefined,'cand');
+        const left=node('div');const link=node('button',candidate.candidate_id,'link');link.type='button';link.setAttribute('data-no-translate','');
+        link.disabled=candidate.measured.state!=='recorded';link.addEventListener('click',()=>selectCandidate(candidate.candidate_id));
+        left.appendChild(link);chips(left,candidate.option_ids);line.appendChild(left);
+        const middle=node('div');middle.appendChild(node('div',candidate.why,'why'));
+        if(candidate.expected)middle.appendChild(node('div',`Expected: ${candidate.expected}`,'exp'));line.appendChild(middle);
+        const right=node('div');right.appendChild(node('small','Measured','hint'));right.appendChild(node('div',measuredText(candidate.measured)));line.appendChild(right);
+        box.appendChild(line);
+      }
+      body.appendChild(box);
+    }
+  }
+  function renderKnowledge(body,story){
+    if(!story.retrievals.length){body.appendChild(node('p','No knowledge retrieval recorded.','empty'));return;}
+    for(const retrieval of story.retrievals){
+      const box=node('section',undefined,'retrieval');
+      const head=node('div',undefined,'round-head');
+      const title=node('h3',retrieval.context_id);title.setAttribute('data-no-translate','');head.appendChild(title);
+      head.appendChild(pill(retrieval.state==='verified'?'passed':'failed'));
+      head.appendChild(node('small',`${stageNames[retrieval.stage]} · ${retrieval.state==='verified'?'capture verified':retrieval.state.replaceAll('_',' ')}`,'hint'));
+      box.appendChild(head);
+      const grid=node('div',undefined,'round-grid');
+      detailLine(grid,'Why it was retrieved',retrieval.purpose);
+      detailLine(grid,'What was taken from it',retrieval.takeaways.join('\n') || 'Not recorded');
+      if(retrieval.state==='verified'){
+        const request=retrieval.request||{};
+        detailLine(grid,'Search request',[request.query?`query: ${request.query}`:'',request.relevance?`relevance: ${request.relevance}`:'',request.ids&&request.ids.length?`ids: ${request.ids.join(', ')}`:'',request.backend?`backend: ${request.backend}`:'',`limit ${request.limit} · context budget ${request.context_bytes} bytes`].filter(Boolean).join('\n'),true);
+        detailLine(grid,'Captured',`${retrieval.captured_at || 'Time not recorded'} · ${retrieval.captured_by || ''} · ${retrieval.context_bytes_used ?? 0} bytes of context`,true);
+        const selectedBox=node('div',undefined,'detail-line');selectedBox.appendChild(node('strong','Selected by search'));
+        const included=new Set(retrieval.contexts.map(context=>context.ref));
+        chips(selectedBox,retrieval.items.map(item=>item.ref),new Set(retrieval.items.map(item=>item.ref).filter(ref=>!included.has(ref))));grid.appendChild(selectedBox);
+        const omitted=[...retrieval.context_omissions.map(o=>`${o.ref} · ${o.reason}`),...retrieval.omissions.map(o=>`${o.id} · ${o.reason}`)];
+        detailLine(grid,'Left out of the context',omitted.join('\n') || 'Nothing omitted',true);
+      }
+      const used=node('div',undefined,'detail-line');used.appendChild(node('strong','Used'));chips(used,retrieval.used_refs);grid.appendChild(used);
+      if(retrieval.rejected_refs.length)detailLine(grid,'Retrieved but not used',retrieval.rejected_refs.map(r=>`${r.ref} — ${r.reason}`).join('\n'));
+      box.appendChild(grid);
+      if(retrieval.state==='verified'){
+        const fold=node('details',undefined,'context-detail');
+        fold.appendChild(node('summary',`Full assembled context · ${retrieval.contexts.reduce((n,c)=>n+c.resources.length,0)} resources · sha256 ${retrieval.assembled_sha256.slice(0,12)}`));
+        for(const context of retrieval.contexts){
+          const list=node('div',undefined,'hint');list.style.margin='6px 0';
+          list.textContent=`${context.ref} @ ${context.revision.slice(0,19)} — ${context.resources.map(r=>`${r.path.split('/').slice(-2).join('/')} (${r.role}, ${r.bytes} B)`).join(', ')}`;
+          list.setAttribute('data-no-translate','');fold.appendChild(list);
+        }
+        fold.appendChild(node('pre',retrieval.assembled_text,'context-text'));box.appendChild(fold);
+      }else box.appendChild(node('p',`Context text withheld: ${retrieval.state.replaceAll('_',' ')} (${retrieval.path}).`,'empty'));
+      body.appendChild(box);
+    }
+  }
+  function renderSpace(body,story){
+    const space=story.search_space;
+    body.appendChild(node('p',`${space.state.replaceAll('_',' ')}${space.missing_reason?` · ${space.missing_reason}`:''}`,'hint'));
+    for(const dimension of space.dimensions){
+      const box=node('section',undefined,'retrieval');
+      const head=node('div',undefined,'round-head');head.appendChild(node('h3',dimension.name));
+      const counts=['tried','pruned','untried'].map(s=>`${dimension.options.filter(o=>o.status===s).length} ${s}`).join(' · ');
+      head.appendChild(node('small',counts,'hint'));box.appendChild(head);
+      if(dimension.rationale)box.appendChild(node('p',dimension.rationale,'panel-body'));
+      const table=node('table',undefined,'space-table');const header=node('tr');
+      for(const label of ['Option','Status','Reason','Tried in','Source'])header.appendChild(node('th',label));
+      table.appendChild(header);
+      for(const option of dimension.options){
+        const tr=node('tr');
+        const name=node('td');name.appendChild(node('strong',option.id));name.appendChild(node('div',option.description,'hint'));tr.appendChild(name);
+        const status=node('td');status.appendChild(pill(option.status==='tried'?'passed':option.status==='pruned'?'failed':'not_recorded'));status.lastChild.textContent=option.status;tr.appendChild(status);
+        tr.appendChild(node('td',option.reason,'reason'));
+        const used=node('td');for(const use of option.uses){const b=node('button',`R${use.round} ${use.candidate_id}`,'link');b.type='button';b.addEventListener('click',()=>selectCandidate(use.candidate_id));used.appendChild(b);used.appendChild(node('div',String(use.outcome||'not recorded').replaceAll('_',' '),'hint'));}
+        if(!option.uses.length)used.appendChild(node('span','—','hint'));tr.appendChild(used);
+        const src=node('td');chips(src,option.source_refs||[]);tr.appendChild(src);table.appendChild(tr);
+      }
+      const wrap=node('div',undefined,'scroll');wrap.appendChild(table);box.appendChild(wrap);body.appendChild(box);
+    }
+  }
+  function renderSummary(body,story){
+    const summary=story.summary;
+    body.appendChild(node('p',`${summary.state.replaceAll('_',' ')}${summary.missing_reason?` · ${summary.missing_reason}`:''}`,'hint'));
+    const grid=node('div',undefined,'summary-grid');
+    for(const [key,label,cls] of [['successes','Successes','good-head'],['failures','Failures','bad-head']]){
+      const box=node('section');box.appendChild(node('h3',`${label} · ${summary[key].length}`,cls));
+      if(!summary[key].length)box.appendChild(node('p','None recorded','empty'));
+      for(const entry of summary[key]){
+        const claim=node('div',undefined,'claim');claim.appendChild(node('p',entry.text));
+        if(entry.cause_stage)claim.appendChild(node('small',`Cause: ${stageNames[entry.cause_stage]}`,'hint'));
+        const links=node('div');
+        for(const link of entry.links){
+          if(link.ref.startsWith('candidate:')){const b=node('button',`${link.ref.slice(10)} · ${measuredText(link)}`,'chip');b.type='button';b.disabled=link.state!=='recorded';b.addEventListener('click',()=>selectCandidate(link.ref.slice(10)));links.appendChild(b);}
+          else{const c=node('span',link.ref,`chip${link.state==='recorded'?'':' missing'}`);c.setAttribute('data-no-translate','');links.appendChild(c);}
+        }
+        claim.appendChild(links);box.appendChild(claim);
+      }
+      grid.appendChild(box);
+    }
+    body.appendChild(grid);
+    const more=node('div',undefined,'round-grid');more.style.padding='10px 0 0';
+    detailLine(more,'Lessons for the framework',summary.lessons.join('\n') || 'Not recorded');
+    detailLine(more,'Limitations',summary.limitations.join('\n') || 'Not recorded');
+    body.appendChild(more);
+  }
+  function renderStory(){
+    const root=byId('story');clear(root);const story=data.story||{state:'not_recorded',versions:[]};
+    const note=byId('story-note');
+    if(story.state!=='present'){
+      note.textContent=story.state==='not_applicable'?'Single runs have no campaign log':'Not recorded';
+      root.appendChild(node('p',story.state==='not_applicable'?'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':`No usable optimization log (${story.state.replaceAll('_',' ')}). Record one with: inferrsi campaign log --directory <CAMPAIGN> --file <LOG.json>`,'empty'));
+      return;
+    }
+    const latest=story.versions[story.versions.length-1];
+    note.textContent=`Caller-authored narrative, cross-checked against captures and runs · log v${latest.version} of ${story.versions.length}`;
+    const goal=node('div',undefined,'goal');goal.style.padding='10px 12px 0';
+    for(const [label,text] of [['Goal',story.goal.statement],['Metric',story.goal.metric],['Baseline',story.goal.baseline],['Target',story.goal.target],['Constraints',(story.goal.constraints||[]).join('; ')]]){if(!text)continue;const cell=node('div');cell.appendChild(node('strong',label));cell.appendChild(node('span',text));goal.appendChild(cell);}
+    root.appendChild(goal);
+    const checksBox=node('div',undefined,`checks${story.checks.length?'':' ok'}`);checksBox.style.margin='10px 12px 0';
+    const errors=story.checks.filter(c=>c.severity==='error').length;
+    checksBox.appendChild(node('h3',story.checks.length?`Narrative vs evidence · ${errors} conflicts, ${story.checks.length-errors} warnings`:'Narrative vs evidence · every reference resolved'));
+    if(story.checks.length){const list=node('ul');for(const c of story.checks){const li=node('li',undefined,`sev-${c.severity}`);li.appendChild(node('strong',`${c.where}: `));li.appendChild(node('span',c.message));list.appendChild(li);}checksBox.appendChild(list);}
+    root.appendChild(checksBox);
+    const tabs=node('div',undefined,'story-tabs');tabs.setAttribute('role','tablist');
+    const options=[['iterations','Optimization process',story.iterations.length],['knowledge','Knowledge context',story.retrievals.length],['space','Search space',story.search_space.dimensions.reduce((n,d)=>n+d.options.length,0)],['summary','Successes and failures',story.summary.successes.length+story.summary.failures.length]];
+    for(const [id,label,count] of options){const b=node('button',label);b.type='button';b.setAttribute('role','tab');b.setAttribute('aria-selected',String(storyTab===id));b.appendChild(node('span',String(count),'count'));b.addEventListener('click',()=>{storyTab=id;renderStory();localizePage();});tabs.appendChild(b);}
+    root.appendChild(tabs);
+    const body=node('div',undefined,'story-body');body.setAttribute('role','tabpanel');root.appendChild(body);
+    ({iterations:renderIterations,knowledge:renderKnowledge,space:renderSpace,summary:renderSummary})[storyTab](body,story);
+  }
+  function render(){const visible=filtered();renderStory();renderWorkflow();renderRows(visible);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();localizePage();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
   byId('trace-search').addEventListener('input',()=>{renderDetail();localizePage();});
   byId('trace-source').addEventListener('change',()=>{renderDetail();localizePage();});

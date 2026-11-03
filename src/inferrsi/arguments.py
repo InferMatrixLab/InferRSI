@@ -150,6 +150,32 @@ def parser() -> argparse.ArgumentParser:
     record.add_argument("--profile", help="Existing campaign-relative profile artifact")
     record.add_argument("--optimization-trace",
                         help="Caller-reviewed campaign-relative optimization trace JSON")
+    capture = campaign_actions.add_parser(
+        "capture-context",
+        help="Run collect and keep the exact knowledge context it assembled",
+    )
+    capture.add_argument("--directory", type=Path, required=True)
+    capture.add_argument("--id", required=True, help="New context id, e.g. r1-diagnosis")
+    capture.add_argument("query", nargs="?", default="")
+    capture.add_argument("--relevance", help="Lexical cue for packaged skill selection")
+    capture.add_argument("--relevance-method", choices=RELEVANCE_METHODS,
+                         default="weighted-lexical-v1")
+    capture.add_argument("--id-ref", action="append", dest="ids", metavar="ID",
+                         help="Exact knowledge identity to include (repeatable)")
+    capture.add_argument("--kind", choices=("skill", "knowledge", "case"))
+    capture.add_argument("--repo-type", dest="knowledge_repo", choices=KNOWLEDGE_REPOS)
+    capture.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
+    capture.add_argument("--backend", choices=BACKENDS)
+    capture.add_argument("--scenario")
+    capture.add_argument("--limit", type=int, default=5)
+    capture.add_argument("--context-bytes", type=int, default=65536)
+    capture.add_argument("--skill-root", type=Path)
+    capture.add_argument("--store", type=Path)
+    log = campaign_actions.add_parser(
+        "log", help="Record a new version of the campaign optimization log"
+    )
+    log.add_argument("--directory", type=Path, required=True)
+    log.add_argument("--file", type=Path, required=True, help="Optimization log JSON")
     decision = campaign_actions.add_parser("decide", help="Record one round decision")
     decision.add_argument("--directory", type=Path, required=True)
     decision.add_argument("--candidate", required=True)

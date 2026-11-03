@@ -871,6 +871,18 @@ def load_dashboard(source: Path) -> dict:
             if rounds_ref and rounds_ref["state"] == "present":
                 diagnostics.append({**identity, "kind": "rolled_back", "refs": [rounds_ref]})
     recorded = {event["stage"] for row in rows for event in row["events"] if event["stage"]}
+    if single:
+        story = {"state": "not_applicable", "versions": []}
+    else:
+        from .optimization_story import build_story
+
+        story = build_story(root, rows, decisions)
+    if story["state"] == "present":
+        recorded.add("review")
+        recorded |= {retrieval["stage"] for retrieval in story["retrievals"]
+                     if retrieval["state"] == "verified"}
+        if story["search_space"]["dimensions"]:
+            recorded.add("search")
     declared = campaign.get("stages_declared")
     if not isinstance(declared, list):
         declared = None
@@ -888,4 +900,5 @@ def load_dashboard(source: Path) -> dict:
                     "not_applicable" if declared is not None and stage not in declared else
                     "stage_not_recorded"} for stage in STAGES],
         "diagnostics": diagnostics,
+        "story": story,
     }

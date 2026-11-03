@@ -294,6 +294,28 @@ def main(argv: list[str] | None = None) -> int:
                 record_decision,
             )
 
+            if args.campaign_action == "capture-context":
+                from .harness.knowledge_capture import capture_context
+
+                sources = ("package",) + (("checkout",) if args.skill_root else ()) + (
+                    ("store",) if args.store else ())
+                path, digest = capture_context(
+                    args.directory, context_id=args.id, reader=_knowledge_reader(args),
+                    query=args.query, relevance=args.relevance,
+                    relevance_method=args.relevance_method, ids=args.ids, kind=args.kind,
+                    repo=args.knowledge_repo, tier=args.tier, backend=args.backend,
+                    scenario=args.scenario, limit=args.limit,
+                    context_bytes=args.context_bytes, sources=sources,
+                )
+                _print({"context": path.relative_to(Path(args.directory).resolve()).as_posix(),
+                        "sha256": digest})
+                return 0
+            if args.campaign_action == "log":
+                from .harness.optimization_log import record_log
+
+                path, digest = record_log(args.directory, args.file)
+                _print({"log": path.name, "sha256": digest})
+                return 0
             if args.campaign_action == "init":
                 path = create_campaign(args.directory, args.id, target=args.target_pct,
                                        noise=args.noise_pct, synthetic=args.synthetic)

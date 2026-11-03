@@ -1,0 +1,294 @@
+"""The optimization story keeps captured knowledge exact and flags narrative conflicts."""
+
+import copy
+import hashlib
+import json
+from pathlib import Path
+
+import pytest
+
+from inferrsi.cli import main
+from inferrsi.harness.campaign_records import create_campaign, record_candidate, record_decision
+from inferrsi.harness.dashboard import write_dashboard
+from inferrsi.harness.dashboard_data import load_dashboard
+from inferrsi.harness.knowledge_capture import capture_context, verify_capture
+from inferrsi.harness.optimization_log import LogError, parse_optimization_log, record_log
+from inferrsi.knowledge_operations import KnowledgeReader
+
+
+class FakeReader:
+    """Mimics KnowledgeReader.collect's context envelope."""
+
+    def __init__(self, contexts, items=None, omissions=None):
+        self.contexts, self.items = contexts, items
+        self.context_omissions = omissions or []
+
+    def collect(self, query="", **options):
+        return {"items": self.items or [{"ref": c["ref"], "revision": c["revision"],
+                                          "title": c["ref"], "kind": "knowledge"}
+                                         for c in self.contexts],
+                "omissions": [], "contexts": copy.deepcopy(self.contexts),
+                "context_omissions": self.context_omissions,
+                "context_bytes": sum(c["content_bytes"] for c in self.contexts),
+                "context_budget": {"max_bytes": options["context_bytes"]},
+                "selection": {"cue": options.get("relevance")}}
+
+
+def context(ref, text):
+    return {"ref": ref, "revision": "sha256:" + "1" * 64,
+            "content_bytes": len(text.encode()),
+            "resources": [{"path": f"skills/{ref.split(':')[1]}/SKILL.md", "role": "core",
+                           "sha256": hashlib.sha256(text.encode()).hexdigest(),
+                           "content": text, "locator": "whole-resource"}],
+            "omissions": [{"path": "skills/x/metadata.json", "reason": "not_context_resource"}],
+            "sources": []}
+
+
+def write_json(path: Path, value: dict) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value), encoding="utf-8")
+
+
+def make_run(root: Path, name: str, gain: float, quality: str = "completed") -> None:
+    directory = root / "runs" / name
+    write_json(directory / "run.lock.json", {"workload_id": "w", "scenario": "http"})
+    write_json(directory / "status.json", {"state": "completed"})
+    write_json(directory / "evaluation.json", {
+        "verdict": "PASS", "metric_key": "throughput", "metric_unit": "tokens/s",
+        "direction": "maximize", "improvement_pct": gain,
+        "baseline": {"median": 100, "range_pct_of_median": 0.5},
+        "candidate": {"median": 100 + gain, "range_pct_of_median": 0.5},
+        "source_integrity": {"verified": True}})
+    write_json(directory / "validation" / "execution.json",
+               {"status": quality, "returncode": 0 if quality == "completed" else 1})
+
+
+def campaign(tmp_path):
+    create_campaign(tmp_path, "camp", noise=1.5)
+    _, digest = capture_context(tmp_path, context_id="r1", reader=FakeReader([
+        context("package:graphs", "Capture repeated decode launches.\n"),
+        context("package:kv", "Tune the KV block size.\n")]),
+        relevance="decode launch", context_bytes=4096)
+    make_run(tmp_path, "run-a", 4.0)
+    make_run(tmp_path, "run-b", 3.0, quality="failed")
+    record_candidate(tmp_path, candidate_id="a", run_id="run-a", round_number=1, title="A")
+    record_candidate(tmp_path, candidate_id="b", run_id="run-b", round_number=2, title="B")
+    record_decision(tmp_path, candidate_id="a", round_number=1, outcome="adopted")
+    return digest
+
+
+def log_document(digest):
+    return {
+        "schema_version": 2, "reviewed_by_caller": True, "campaign_id": "camp",
+        "goal": {"statement": "Raise decode throughput", "metric": "tokens/s"},
+        "knowledge": [{"context_id": "r1", "sha256": digest, "stage": "diagnosis",
+                       "purpose": "Find launch overhead fixes", "used_refs": ["package:graphs"],
+                       "takeaways": ["Graphs remove repeated launches"],
+                       "rejected_refs": [{"ref": "package:kv", "reason": "Not the bottleneck"}]}],
+        "search_space": {"state": "complete", "missing_reason": "", "dimensions": [
+            {"id": "launch", "name": "Launch", "options": [
+                {"id": "graph", "description": "CUDA graph", "status": "tried",
+                 "reason": "Profile shows launches", "source_refs": ["package:graphs"]},
+                {"id": "fuse", "description": "Fusion", "status": "untried",
+                 "reason": "Out of budget"}]},
+            {"id": "precision", "name": "Precision", "options": [
+                {"id": "fp8", "description": "FP8 KV", "status": "tried",
+                 "reason": "Memory bound"}]}]},
+        "iterations": [
+            {"round": 1, "hypothesis": "Launches dominate", "rationale": "Profile",
+             "knowledge_refs": ["package:graphs"], "context_ids": ["r1"],
+             "candidates": [{"candidate_id": "a", "option_ids": ["launch.graph"],
+                             "why": "Direct fix"}],
+             "decision": {"outcome": "adopted", "candidate_id": "a", "reason": "+4%"}},
+            {"round": 2, "hypothesis": "KV memory", "rationale": "Next bottleneck",
+             "knowledge_refs": [],
+             "candidates": [{"candidate_id": "b", "option_ids": ["precision.fp8"],
+                             "why": "Halve KV bytes"}],
+             "decision": {"outcome": "rejected", "candidate_id": "b",
+                          "reason": "Quality failed"}}],
+        "summary": {"state": "complete", "missing_reason": "",
+                    "successes": [{"text": "Graphs helped", "evidence": ["candidate:a"]}],
+                    "failures": [{"text": "FP8 broke quality", "evidence": ["candidate:b"],
+                                  "cause_stage": "search"}],
+                    "lessons": ["Gate precision changes on quality first"],
+                    "limitations": ["One workload"]}}
+
+
+def write_log(tmp_path, document):
+    path = tmp_path / "log-input.json"
+    path.write_text(json.dumps(document), encoding="utf-8")
+    return record_log(tmp_path, path)
+
+
+def test_capture_keeps_exact_context_and_detects_tampering(tmp_path):
+    create_campaign(tmp_path, "camp")
+    path, digest = capture_context(tmp_path, context_id="r1",
+                                   reader=FakeReader([context("package:g", "Body </script>\n")]),
+                                   context_bytes=4096)
+    raw = path.read_bytes()
+    assert hashlib.sha256(raw).hexdigest() == digest
+    document, state = verify_capture(raw)
+    assert state == "verified"
+    assert "--- begin context package:g" in document["assembled_text"]
+    assert "Body </script>" in document["assembled_text"]
+    tampered = json.loads(raw)
+    tampered["contexts"][0]["resources"][0]["content"] = "Edited\n"
+    assert verify_capture(json.dumps(tampered).encode())[1] == "resource_hash_mismatch"
+    tampered = json.loads(raw)
+    tampered["assembled_text"] += "extra"
+    assert verify_capture(json.dumps(tampered).encode())[1] == "assembly_mismatch"
+    with pytest.raises(ValueError, match="already exists"):
+        capture_context(tmp_path, context_id="r1", reader=FakeReader([]), context_bytes=1)
+
+
+def test_capture_matches_real_collect_output(tmp_path):
+    create_campaign(tmp_path, "camp")
+    path, _ = capture_context(tmp_path, context_id="real", reader=KnowledgeReader(),
+                              relevance="kv cache block size", context_bytes=40000, limit=2)
+    document, state = verify_capture(path.read_bytes())
+    assert state == "verified"
+    assert document["contexts"], "the packaged library should supply a context"
+    assert document["request"]["sources"] == ["package"]
+
+
+def test_story_joins_log_with_captures_and_runs_without_conflicts(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    story = load_dashboard(tmp_path)["story"]
+    assert story["state"] == "present"
+    assert story["checks"] == []
+    retrieval = story["retrievals"][0]
+    assert retrieval["state"] == "verified"
+    assert "Capture repeated decode launches." in retrieval["assembled_text"]
+    first = story["iterations"][0]["candidates"][0]["measured"]
+    assert first["outcome"] == "improved" and first["improvement_pct"] == 4.0
+    options = {o["qualified_id"]: o for d in story["search_space"]["dimensions"]
+               for o in d["options"]}
+    assert options["launch.graph"]["uses"][0]["candidate_id"] == "a"
+    assert options["launch.fuse"]["uses"] == []
+
+
+def test_story_flags_narrative_that_disagrees_with_evidence(tmp_path):
+    digest = campaign(tmp_path)
+    document = log_document(digest)
+    document["knowledge"][0]["used_refs"].append("package:never-retrieved")
+    document["iterations"][1]["decision"] = {"outcome": "adopted", "candidate_id": "b",
+                                             "reason": "Looked fine"}
+    document["search_space"]["dimensions"][0]["options"][1]["status"] = "tried"
+    document["summary"]["successes"].append({"text": "FP8 worked",
+                                             "evidence": ["candidate:b"]})
+    document["summary"]["failures"] = []
+    write_log(tmp_path, document)
+    messages = [check["message"] for check in load_dashboard(tmp_path)["story"]["checks"]]
+    assert any("package:never-retrieved" in m and "was not retrieved" in m for m in messages)
+    assert any("b is adopted but its recorded outcome is quality failed" in m for m in messages)
+    assert any("marked tried, but no iteration" in m for m in messages)
+    assert any("candidate:b recorded quality failed, not an improvement" in m for m in messages)
+    assert any("b recorded quality failed, but no failure cites it" in m for m in messages)
+
+
+def test_citing_selected_but_omitted_knowledge_is_flagged(tmp_path):
+    create_campaign(tmp_path, "camp")
+    reader = FakeReader([context("package:graphs", "Graphs.\n")],
+                        items=[{"ref": "package:graphs"}, {"ref": "package:kernels"}],
+                        omissions=[{"ref": "package:kernels", "reason": "context_limit"}])
+    _, digest = capture_context(tmp_path, context_id="r1", reader=reader, context_bytes=64)
+    make_run(tmp_path, "run-a", 4.0)
+    record_candidate(tmp_path, candidate_id="a", run_id="run-a", round_number=1, title="A")
+    document = log_document(digest)
+    document["knowledge"][0].pop("rejected_refs")
+    document["iterations"] = document["iterations"][:1]
+    document["iterations"][0]["knowledge_refs"] = ["package:kernels"]
+    document["search_space"]["dimensions"] = document["search_space"]["dimensions"][:1]
+    document["summary"]["failures"] = []
+    write_log(tmp_path, document)
+    checks = load_dashboard(tmp_path)["story"]["checks"]
+    assert {"severity": "warning", "where": "round 1",
+            "message": "package:kernels is cited, but it was selected by search but its "
+                       "text was omitted from the context"} in checks
+
+
+def test_round_decision_conflict_with_rounds_file_is_an_error(tmp_path):
+    digest = campaign(tmp_path)
+    document = log_document(digest)
+    document["iterations"][0]["decision"]["outcome"] = "rolled_back"
+    write_log(tmp_path, document)
+    checks = load_dashboard(tmp_path)["story"]["checks"]
+    assert {"severity": "error", "where": "round 1",
+            "message": "the log says rolled back, rounds.jsonl records adopted"} in checks
+
+
+def test_tampered_capture_text_is_withheld(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    path = tmp_path / "knowledge" / "r1.json"
+    path.write_bytes(path.read_bytes().replace(b"Capture repeated", b"Capture CHANGED"))
+    story = load_dashboard(tmp_path)["story"]
+    assert story["retrievals"][0]["state"] == "hash_mismatch"
+    assert "assembled_text" not in story["retrievals"][0]
+    assert story["checks"][0]["severity"] == "error"
+
+
+def test_log_versions_are_kept_and_latest_wins(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    second = log_document(digest)
+    second["summary"]["lessons"] = ["Revised lesson"]
+    write_log(tmp_path, second)
+    story = load_dashboard(tmp_path)["story"]
+    assert [v["version"] for v in story["versions"]] == [1, 2]
+    assert story["summary"]["lessons"] == ["Revised lesson"]
+    assert (tmp_path / "optimization-log-v1.json").exists()
+
+
+def test_edited_log_is_not_shown(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    path = tmp_path / "optimization-log-v1.json"
+    path.write_text(path.read_text().replace("Graphs helped", "Everything worked"))
+    story = load_dashboard(tmp_path)["story"]
+    assert story["state"] == "latest_hash_mismatch"
+
+
+@pytest.mark.parametrize("mutate, message", [
+    (lambda d: d.update(reviewed_by_caller=False), "reviewed_by_caller"),
+    (lambda d: d["iterations"].reverse(), "round must increase"),
+    (lambda d: d["iterations"][0]["candidates"][0]["option_ids"].append("launch.missing"),
+     "unknown option"),
+    (lambda d: d["search_space"].update(state="partial"), "missing_reason"),
+    (lambda d: d["summary"]["failures"][0].update(cause_stage="luck"), "cause_stage"),
+    (lambda d: d["iterations"][0].update(context_ids=["nope"]), "unknown capture"),
+])
+def test_log_validation_names_the_bad_field(mutate, message):
+    document = log_document("a" * 64)
+    mutate(document)
+    with pytest.raises(LogError, match=message):
+        parse_optimization_log(json.dumps(document).encode())
+
+
+def test_cli_capture_log_and_dashboard_escape_untrusted_text(tmp_path, capsys):
+    digest = campaign(tmp_path)
+    document = log_document(digest)
+    document["iterations"][0]["rationale"] = "</script><script>alert(1)</script>"
+    source = tmp_path / "input.json"
+    source.write_text(json.dumps(document), encoding="utf-8")
+    assert main(["campaign", "log", "--directory", str(tmp_path), "--file", str(source)]) == 0
+    assert json.loads(capsys.readouterr().out)["log"] == "optimization-log-v1.json"
+    html = write_dashboard(tmp_path).read_text(encoding="utf-8")
+    assert "<script>alert(1)" not in html
+    assert '"assembled_text"' in html
+
+
+def test_cli_capture_context_reports_relative_path(tmp_path, capsys):
+    create_campaign(tmp_path, "camp")
+    assert main(["campaign", "capture-context", "--directory", str(tmp_path), "--id", "r1",
+                 "--relevance", "kv cache block size", "--context-bytes", "40000",
+                 "--limit", "2"]) == 0
+    output = json.loads(capsys.readouterr().out)
+    assert output["context"] == "knowledge/r1.json"
+    assert str(tmp_path) not in json.dumps(output)
+
+
+def test_single_run_story_is_not_applicable(tmp_path):
+    make_run(tmp_path, "solo", 1.0)
+    assert load_dashboard(tmp_path / "runs" / "solo")["story"]["state"] == "not_applicable"
