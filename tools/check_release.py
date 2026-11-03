@@ -1,6 +1,7 @@
 """Plan daily versioned releases and validate their packages without publishing."""
 
 import argparse
+import ast
 import hashlib
 import json
 import os
@@ -90,8 +91,10 @@ def check_sdist(path: Path) -> None:
                 raise ValueError("Source distribution includes repository-only material")
 
 
-def check_plugin(path: Path, tag: str) -> None:
+def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
     version = release_version(tag)
+    if host not in {"codex", "workswarm"}:
+        raise ValueError("Unknown plugin host")
     with zipfile.ZipFile(path) as archive:
         names = archive.namelist()
         if len(names) != len(set(names)):
@@ -121,19 +124,39 @@ def check_plugin(path: Path, tag: str) -> None:
         if roots != {"inferrsi"}:
             raise ValueError("Plugin ZIP must contain one standalone inferrsi plugin")
         plugin = "inferrsi"
-        allowed = {"plugin.json", "skills", "runtime", "LICENSE", "README.md"}
+        metadata_file = "plugin.json" if host == "codex" else "manifest.json"
+        allowed = {metadata_file, "skills", "runtime", "LICENSE", "README.md"}
+        if host == "workswarm":
+            allowed.add("tools")
         if any(len(PurePosixPath(name).parts) > 1
                and PurePosixPath(name).parts[1] not in allowed for name in names):
             raise ValueError("Plugin ZIP includes a marketplace or unrelated wrapper")
-        metadata = json.loads(archive.read(f"{plugin}/plugin.json"))
+        metadata = json.loads(archive.read(f"{plugin}/{metadata_file}"))
         manifest = json.loads(archive.read(f"{plugin}/runtime/manifest.json"))
-        if metadata.get("$schema") != "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json":
-            raise ValueError("Plugin manifest must use the portable plugin schema")
+        if host == "codex":
+            if metadata.get("$schema") != "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json":
+                raise ValueError("Plugin manifest must use the portable plugin schema")
+            identity = metadata["name"]
+        else:
+            if (metadata.get("package_type") != "plugin"
+                    or metadata.get("skills") != [{"dir": "./skills/inferrsi", "mode": "all"}]
+                    or len(metadata.get("tools", [])) != 1
+                    or metadata["tools"][0].get("file") != "tools/runtime_info_tool.py"
+                    or metadata["tools"][0].get("class") != "InferRSIRuntimeInfoTool"):
+                raise ValueError("WorkSwarm manifest must declare the native skill and locator")
+            try:
+                locator = ast.parse(archive.read(f"{plugin}/tools/runtime_info_tool.py"))
+            except (SyntaxError, ValueError) as error:
+                raise ValueError("WorkSwarm locator must be valid Python") from error
+            if not any(isinstance(node, ast.ClassDef) and node.name == "InferRSIRuntimeInfoTool"
+                       for node in locator.body):
+                raise ValueError("WorkSwarm locator must define the declared tool class")
+            identity = metadata["id"]
         archive.getinfo(f"{plugin}/skills/inferrsi/SKILL.md")
         archive.getinfo(f"{plugin}/README.md")
         archive.getinfo(f"{plugin}/LICENSE")
         check_versions(tag, metadata["version"], manifest["runtime_version"])
-        if metadata["name"] != "inferrsi" or manifest["plugin_version"] != version:
+        if identity != "inferrsi" or manifest["plugin_version"] != version:
             raise ValueError("Plugin identity/version does not match the release")
         prefix = f"{plugin}/runtime/"
         actual = {name[len(prefix):] for name in names
@@ -166,7 +189,9 @@ def check_plugin(path: Path, tag: str) -> None:
                                             capture_output=True, text=True, encoding="utf-8",
                                             timeout=45)
                 except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
-                    raise ValueError("Extracted Codex plugin failed isolated validation") from error
+                    raise ValueError(
+                        f"Extracted {host} plugin failed isolated validation"
+                    ) from error
                 return json.loads(result.stdout)
 
             info = invoke("--plugin-info")
@@ -195,6 +220,7 @@ def main() -> None:
     plugin = commands.add_parser("plugin")
     plugin.add_argument("path", type=Path)
     plugin.add_argument("--tag", required=True)
+    plugin.add_argument("--host", choices=("codex", "workswarm"), default="codex")
     args = parser.parse_args()
     try:
         if args.command == "plan":
@@ -212,7 +238,7 @@ def main() -> None:
         elif args.command == "sdist":
             check_sdist(args.path)
         elif args.command == "plugin":
-            check_plugin(args.path, args.tag)
+            check_plugin(args.path, args.tag, args.host)
         else:
             from importlib.metadata import version
 

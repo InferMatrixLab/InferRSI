@@ -59,14 +59,16 @@ configuration does not silently change their access or existing branch rules.
    environment outside the checkout. Check tag/distribution/runtime parity and
    generate `SHA256SUMS`. `MANIFEST.in` limits sdist contents to package sources
    and build metadata; repository evidence/workflows are not release payload.
-   Reuse `tools/build_codex_plugin.py` to build the self-contained
-   `inferrsi-codex-plugin-vX.Y.Z.zip` installer from the same source revision.
-   Its generated plugin metadata, bundled runtime and tag must have the same
-   version. Verify every bundled runtime hash and exercise the extracted
-   launcher/knowledge reads outside the checkout with isolated Python.
+   Reuse `tools/build_codex_plugin.py` and `tools/build_workswarm_plugin.py` to
+   build `inferrsi-codex-plugin-vX.Y.Z.zip` and
+   `inferrsi-workswarm-plugin-vX.Y.Z.zip` from the same source revision.
+   Each archive's generated host metadata, bundled runtime and tag must have
+   the same version. Check its native entrypoints, verify every bundled runtime
+   hash and exercise the extracted launcher/knowledge reads outside the checkout
+   with isolated Python. These CPU checks do not run WorkSwarm's SDK or UI.
 4. A separate write job verifies the artifacts, source ancestry and release
    state again. It creates the remote tag only after validation, creates an
-   internal draft, uploads wheel/sdist/plugin ZIP/checksums and automatically publishes
+   internal draft, uploads wheel/sdist/both plugin ZIPs/checksums and automatically publishes
    after confirming the attachments and tag identity. It does not execute
    repository code. These operations stay in the same workflow: tag events
    created with `GITHUB_TOKEN` do not trigger another workflow.
@@ -80,13 +82,16 @@ quality or service performance. Such claims retain the acceptance and evidence
 requirements in [contributing](contributing.md#evidence-and-claims).
 
 Each Release contains a Python wheel, source distribution, the versioned Codex
-plugin ZIP and `SHA256SUMS` covering all three packages. Extract the ZIP and
-follow the [Codex plugin installation guide](codex-plugin.md#install-from-the-release-zip).
-The ZIP contains one standalone plugin, complete bundled runtime
-and knowledge, licenses and installation README. Plugin build failure or a
-missing/corrupt installer blocks publication. It does not update a plugin branch,
-account installation or marketplace listing. No marketplace catalog or installation
-wrapper is packaged; the downloaded ZIP is the only Codex plugin release asset.
+and WorkSwarm plugin ZIPs and `SHA256SUMS` covering all four packages. Choose
+the archive for your host and follow the
+[Codex guide](codex-plugin.md#install-from-the-release-zip) or
+[WorkSwarm guide](workswarm-plugin.md#download-and-install).
+Each ZIP contains one standalone plugin, complete bundled runtime and knowledge,
+licenses and an installation README. The hosts use different manifests; their
+ZIPs are not interchangeable. Either plugin's build failure or a missing/corrupt
+installer blocks publication. Publication does not update a plugin branch,
+account installation or marketplace listing. No marketplace catalog or
+installation wrapper is packaged.
 
 ## Setup and manual checks
 

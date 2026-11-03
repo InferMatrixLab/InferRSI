@@ -5,16 +5,23 @@ inference bottleneck, prepare a comparison or inspect existing evidence. This
 is the openJiuwen adapter slice of [RFC #152](https://github.com/InferMatrixLab/InferRSI/issues/152).
 DSH, three-host acceptance and measured usability remain separate work.
 
-## Build and install
+## Download and install
 
-From the InferRSI source checkout:
+From the [GitHub Releases](https://github.com/InferMatrixLab/InferRSI/releases)
+page, download `inferrsi-workswarm-plugin-v<version>.zip` and `SHA256SUMS` for
+the same version. Verify the archive's SHA-256 against that file. Select the
+WorkSwarm archive; the Codex ZIP has a different native manifest. Release builds
+stamp the native manifest and bundled runtime with the same release version.
+
+For a local build from the InferRSI source checkout:
 
 ```text
 python tools/build_workswarm_plugin.py
 ```
 
-The deliverable is `dist/workswarm-plugin.zip`. Its inspectable package directory
-is `dist/workswarm-plugin/inferrsi/`. The ZIP has exactly one native package root:
+The local deliverable is `dist/workswarm-plugin.zip`. Its inspectable package
+directory is `dist/workswarm-plugin/inferrsi/`. Both local and release ZIPs have
+exactly one native package root:
 
 ```text
 inferrsi/
@@ -39,7 +46,7 @@ archives are never overwritten. Building does not register the plugin in a host.
 In the WorkSwarm v0.2.7 web/desktop UI:
 
 1. Open **Extensions (扩展) → My extensions (我的扩展) → Plugins (插件)**.
-2. Choose **Create (创建) → Upload file (上传文件创建)** and select the built ZIP.
+2. Choose **Create (创建) → Upload file (上传文件创建)** and select the WorkSwarm ZIP.
 3. Confirm import and installation, then check that InferRSI is installed.
 4. In a conversation in your target project, choose **+ → Extensions → Plugins**
    and select InferRSI.

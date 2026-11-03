@@ -161,34 +161,43 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
     assert json.loads(info.stdout)["content_sha256"] == manifest["content_sha256"]
 
 
-@pytest.fixture(scope="module")
-def release_distribution(tmp_path_factory):
-    root = tmp_path_factory.mktemp("codex-release")
+@pytest.fixture(scope="module", params=["codex", "workswarm"])
+def release_distribution(tmp_path_factory, request):
+    host = request.param
+    root = tmp_path_factory.mktemp(host + "-release")
     project = root / "source"
-    for directory in ("src/inferrsi", "plugins/inferrsi"):
+    directories = ["src/inferrsi", "plugins/inferrsi"]
+    if host == "workswarm":
+        directories.append("plugins/workswarm/inferrsi")
+    for directory in directories:
         shutil.copytree(_io_path(PROJECT / directory), _io_path(project / directory),
                         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     (project / "docs").mkdir()
-    shutil.copyfile(PROJECT / "docs/codex-plugin.md", project / "docs/codex-plugin.md")
+    readme = f"docs/{host}-plugin.md"
+    shutil.copyfile(PROJECT / readme, project / readme)
     shutil.copyfile(PROJECT / "LICENSE", project / "LICENSE")
     (project / "src/inferrsi/_version.py").write_text(
         '__version__ = version = "0.2.0"\n', encoding="utf-8",
     )
-    template = (project / "plugins/inferrsi/plugin.json").read_bytes()
-    result = build_plugin(root / "inferrsi-codex-plugin-v0.2.0", project=project,
-                          release_version="0.2.0")
+    metadata = ("plugins/inferrsi/plugin.json" if host == "codex"
+                else "plugins/workswarm/inferrsi/manifest.json")
+    template = (project / metadata).read_bytes()
+    builder = build_plugin if host == "codex" else build_workswarm_plugin
+    result = builder(root / f"inferrsi-{host}-plugin-v0.2.0", project=project,
+                     release_version="0.2.0")
+    result.update(host=host, metadata=metadata)
     return project, template, result
 
 
 def test_release_archive_is_installable_and_all_versions_match(release_distribution):
     project, template, result = release_distribution
-    check_plugin(Path(result["archive"]), "v0.2.0")
-    assert (project / "plugins/inferrsi/plugin.json").read_bytes() == template
+    check_plugin(Path(result["archive"]), "v0.2.0", result["host"])
+    assert (project / result["metadata"]).read_bytes() == template
     with zipfile.ZipFile(result["archive"]) as archive:
-        name = "inferrsi/plugin.json"
+        name = "inferrsi/" + Path(result["metadata"]).name
         assert json.loads(archive.read(name))["version"] == "0.2.0"
     with pytest.raises(ValueError, match="agree exactly"):
-        check_plugin(Path(result["archive"]), "v0.2.1")
+        check_plugin(Path(result["archive"]), "v0.2.1", result["host"])
 
 
 def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp_path):
@@ -201,7 +210,7 @@ def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp
                 data += b"\n"
             destination.writestr(member, data)
     with pytest.raises(ValueError, match="checksum mismatch"):
-        check_plugin(changed, "v0.2.0")
+        check_plugin(changed, "v0.2.0", release_distribution[2]["host"])
 
 
 @pytest.mark.parametrize("replacement", [
@@ -243,7 +252,7 @@ def test_release_archive_rejects_unverified_runtime_modules(release_distribution
     with zipfile.ZipFile(changed, "a") as archive:
         archive.writestr("inferrsi/runtime/hashlib.py", b"")
     with pytest.raises(ValueError, match="outside the bundled runtime"):
-        check_plugin(changed, "v0.2.0")
+        check_plugin(changed, "v0.2.0", release_distribution[2]["host"])
 
 
 @pytest.mark.parametrize("extra", [
@@ -255,14 +264,16 @@ def test_release_archive_rejects_marketplace_wrappers(release_distribution, tmp_
     with zipfile.ZipFile(changed, "a") as archive:
         archive.writestr(extra, "{}")
     with pytest.raises(ValueError, match="standalone|marketplace"):
-        check_plugin(changed, "v0.2.0")
+        check_plugin(changed, "v0.2.0", release_distribution[2]["host"])
 
 
 def test_release_builder_rejects_mismatched_version_before_writing(release_distribution, tmp_path):
     project = release_distribution[0]
     output = tmp_path / "wrong-version"
+    builder = (build_plugin if release_distribution[2]["host"] == "codex"
+               else build_workswarm_plugin)
     with pytest.raises(ValueError, match="match the built runtime"):
-        build_plugin(output, project=project, release_version="0.2.1")
+        builder(output, project=project, release_version="0.2.1")
     assert not output.exists() and not output.with_suffix(".zip").exists()
 
 
