@@ -1,0 +1,131 @@
+{
+  "run": "lifecycle-control-15s-preflight",
+  "source_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+  "configuration": {
+    "pipeline_profiler": false,
+    "heldout_quality_cases": false,
+    "diagnostic_shutdown_override": false,
+    "shutdown_mode": "native",
+    "arm": "base",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "4",
+      "--usp",
+      "4",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "4",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "4",
+      "--enable-distributed-layerwise-offload",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN"
+    ],
+    "warmups_per_duration": 1,
+    "durations_s": [
+      15
+    ],
+    "dlo_wave_timeout_s": 14400.0,
+    "seeds": [
+      0
+    ],
+    "inputs_sha256": {
+      "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+      "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+      "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+    }
+  },
+  "runtime_settings_sha256": "2c493e74e84b1911631ae3ec516241b08699396643f825620851cb80e9698cad",
+  "cells": [
+    {
+      "duration_s": 15,
+      "seed": 0,
+      "expected_measured_requests": 1,
+      "completed": 1,
+      "failed": 0,
+      "missing": 0,
+      "samples_ms": [
+        2475905.6189153343
+      ],
+      "mean_ms": 2475905.6189153343,
+      "median_ms": 2475905.6189153343,
+      "min_ms": 2475905.6189153343,
+      "max_ms": 2475905.6189153343,
+      "request_sample_stdev_ms": null,
+      "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+    }
+  ],
+  "samples_including_warmups": [
+    {
+      "label": "measured-15-seed0-0",
+      "seconds": 15,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 2475905.6189153343,
+      "http_status": 200,
+      "bytes": 16710840,
+      "response_metrics": {
+        "X-Inference-Time-S": "2475.811",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.5407044664025307,\"stage_0_gen_ms\":2473616.728067398}",
+        "X-Peak-Memory-MB": "20768.000"
+      },
+      "output_sha256": "99f24d2e633a3d6ccfa64ba0b97909790b54b572c6cdba6648b96baff1b8e210"
+    },
+    {
+      "label": "warmup-15",
+      "seconds": 15,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 2597199.9981971458,
+      "http_status": 200,
+      "bytes": 16690782,
+      "response_metrics": {
+        "X-Inference-Time-S": "2597.061",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.4240507259964943,\"stage_0_gen_ms\":2594380.5537223816}",
+        "X-Peak-Memory-MB": "20548.000"
+      },
+      "output_sha256": "93c0b94392b6f8e75d8e788f007d801283983f16c2f105938dae92758aa0cf23"
+    }
+  ],
+  "quality": "See baseline15-repeatability-v2.json; media coverage PASS under model40Hz audio contract, exact decoded equality false, INCONCLUSIVE.",
+  "lifecycle": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 4,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      }
+    ]
+  },
+  "service_log_sha256": "226387533cc675bc5e63b27c9f7513725f3a7242abc030a8b56454a25ca82b70"
+}

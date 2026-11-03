@@ -23,6 +23,10 @@
         {
           "path": "plan/acceptance-30pct-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/baseline15-profile-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [
