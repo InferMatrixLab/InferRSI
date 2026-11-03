@@ -59,7 +59,13 @@ def evaluate(
     if validation is None:
         incomplete.append("quality validation command was not supplied")
     elif validation.get("status") == "failed":
-        failed.append(f"quality validation: {validation.get('status')}")
+        code = validation.get("returncode")
+        if spec.validation_inconclusive_exit_code is not None and (
+            code == spec.validation_inconclusive_exit_code
+        ):
+            incomplete.append(f"quality validation: insufficient evidence (exit code {code})")
+        else:
+            failed.append(f"quality validation: {validation.get('status')}")
     elif validation.get("status") != "completed":
         incomplete.append(f"quality validation: {validation.get('status')}")
     if integrity is None or not integrity.get("verified"):
