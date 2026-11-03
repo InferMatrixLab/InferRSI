@@ -127,15 +127,48 @@ Requires **Python 3.10+**. Licensed under [Apache-2.0](LICENSE).
 
 **InferRSI is a Developer Preview (pre-release), with no API stability promise.**
 The [daily release bot](docs/releases.md) publishes a version when the default
-branch changes. This preview is not on PyPI. Download the wheel and `SHA256SUMS`
-from the selected [Release](https://github.com/InferMatrixLab/InferRSI/releases),
-verify its checksum, then install the downloaded wheel:
+branch changes.
+
+### Use InferRSI in Codex
+
+Use a local Codex client with **Plugin Creator** and archive import support,
+Python 3.10+ and Git.
+
+1. Download `inferrsi-codex-plugin-vX.Y.Z.zip` and `SHA256SUMS` from the selected
+   [Release](https://github.com/InferMatrixLab/InferRSI/releases), then verify the
+   ZIP's SHA-256.
+2. Provide the ZIP to Plugin Creator and ask: **"Import this InferRSI plugin ZIP
+   as a private plugin."** Import uploads the archive to your account/workspace
+   and requires a network connection. The runtime and knowledge are bundled;
+   core operations need no separate pip install or InferRSI source checkout.
+3. Enable the returned plugin, then start a new conversation in the repository
+   you want to investigate.
+
+Try a first task:
+
+> Use InferRSI to research this engine's memory bottleneck. Find relevant
+> knowledge and explain what is needed for a controlled comparison.
+
+Or inspect existing evidence:
+
+> Use InferRSI to inspect the existing run I provide and explain its verdict,
+> missing evidence and next action.
+
+Setup checks readiness without starting benchmarks. Experiments run locally on
+the prepared target machine using your accepted gates and budget. See the
+[plugin guide](docs/codex-plugin.md#install-from-the-release-zip) for installation,
+updates and troubleshooting.
+
+### Use the CLI
+
+This preview is not on PyPI. Download the wheel and `SHA256SUMS` from the selected
+[Release](https://github.com/InferMatrixLab/InferRSI/releases), verify its checksum,
+then install the downloaded wheel:
 
 ```bash
 python -m pip install "<download-directory>/inferrsi-<version>-py3-none-any.whl"
 ```
 
-For Codex, use the [standalone plugin ZIP](docs/codex-plugin.md#install-from-the-release-zip).
 For CLI development from this checkout:
 
 ```bash
