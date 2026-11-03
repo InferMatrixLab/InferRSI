@@ -54,8 +54,9 @@ Both seed and agent paths append returned evaluation results before selecting
 the best legal score. The JSONL stores configuration, result, source, timestamp
 and notes; results carry rejection reason and, after a projector call, command,
 return code, duration and an output tail. The final best-summary JSON is a
-selection view, not the full trial record. Loading deduplicates by configuration
-and skips malformed/incomplete lines. Retention therefore covers the evaluated
+selection view, not the full trial record. Loading appends valid rows, records their configuration signatures and skips
+malformed/incomplete lines. The signature set lets later seed/agent calls skip
+configurations already evaluated; it does not remove duplicate stored rows. Retention therefore covers the evaluated
 results written by these paths, not every proposed or prefiltered candidate.
 ([History](https://github.com/AMD-AGI/Infera/blob/ff1136e4a51998eba2933ed63cfb9c10120f86ea/infera/projection/agents/tuning_agent/history.py#L16-L92),
 [seed retention and selection](https://github.com/AMD-AGI/Infera/blob/ff1136e4a51998eba2933ed63cfb9c10120f86ea/infera/projection/agents/tuning_agent/cli.py#L173-L263),

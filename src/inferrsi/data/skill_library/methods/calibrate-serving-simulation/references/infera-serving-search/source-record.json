@@ -248,16 +248,16 @@
     {
       "id": "I3",
       "type": "source_observation",
-      "claim": "Returned evaluated trial results include rejected results and are appended to JSONL before best selection; incomplete input rows may be skipped during load",
+      "claim": "Returned evaluated trial results include rejected results and are appended to JSONL before best selection; load retains all valid rows, including duplicates, and records configuration signatures for future evaluation skips; malformed or incomplete rows can be skipped during load",
       "paths": [
         "infera/projection/agents/tuning_agent/history.py",
         "infera/projection/agents/tuning_agent/cli.py",
         "infera/projection/agents/tuning_agent/inference_agent.py"
       ],
       "locators": [
-        "history.py43-81",
-        "cli.py183-186,222-263",
-        "inference_agent.py355-356"
+        "history.py43-84",
+        "cli.py175-186,222-263",
+        "inference_agent.py343-356"
       ]
     },
     {
