@@ -1,6 +1,6 @@
 # InferRSI skill discovery index
 
-Generated abstracts for all 77 registered skills in `data/skill_library/`.
+Generated abstracts for all 79 registered skills in `data/skill_library/`.
 Their complete procedures, references and cases ship in the same package.
 `skill-index.json` maps stable skill IDs to categorized directories. The
 reference and searchspace matrices
@@ -15,7 +15,7 @@ These are knowledge abstracts (`--kind knowledge`), with namespaced package
 IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA
 procedures use their corresponding backend; shared methods use `common`.
 
-Source snapshot: [df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8](https://github.com/InferMatrixLab/InferRSI/tree/df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8/src/inferrsi/data/skill_library).
+Source snapshot: [fb4171e87b4c78d4d62c927f297374ed917949f5](https://github.com/InferMatrixLab/InferRSI/tree/fb4171e87b4c78d4d62c927f297374ed917949f5/src/inferrsi/data/skill_library).
 
 ```bash
 inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50
@@ -29,7 +29,7 @@ contain the current input paths and bytes (Git checkout filters are respected).
 
 ```bash
 python tools/build_skill_index.py --source-revision <committed-source-revision>
-python tools/build_skill_index.py --source-revision df149c73c7a8f2e90fdb7ad56a55707b95b3b4d8 --check
+python tools/build_skill_index.py --source-revision fb4171e87b4c78d4d62c927f297374ed917949f5 --check
 ```
 
 `--check` detects missing, stale and unexpected generated records without writing.
@@ -101,12 +101,14 @@ References and cases ship with their owning skill, not as duplicate knowledge ab
 | [performance-ceiling-analysis](common/skills/performance-ceiling-analysis.json) | common | candidate |
 | [plan-activation-residency](common/skills/plan-activation-residency.json) | common | candidate |
 | [project-maya](common/skills/project-maya.json) | common | candidate |
+| [pytorch](common/skills/pytorch.json) | common | candidate |
 | [reason-hopper-kernels](cuda/skills/reason-hopper-kernels.json) | cuda | candidate |
 | [repository-evolution-analysis](common/skills/repository-evolution-analysis.json) | common | candidate |
 | [rsi-evidence](common/skills/rsi-evidence.json) | common | candidate |
 | [skill-evolution-playbook](common/skills/skill-evolution-playbook.json) | common | candidate |
 | [splash](common/skills/splash.json) | common | candidate |
 | [storage-io-measurement](common/skills/storage-io-measurement.json) | common | candidate |
+| [torch-npu](ascend/skills/torch-npu.json) | ascend | candidate |
 | [torchnpu-device-memory-lifecycle](ascend/skills/torchnpu-device-memory-lifecycle.json) | ascend | candidate |
 | [torchnpu-pinned-host-memory-lifecycle](ascend/skills/torchnpu-pinned-host-memory-lifecycle.json) | ascend | candidate |
 | [training-input-pipeline](common/skills/training-input-pipeline.json) | common | candidate |
