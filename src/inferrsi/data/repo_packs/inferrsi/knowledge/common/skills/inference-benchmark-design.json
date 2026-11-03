@@ -24,7 +24,10 @@
     "image-generation",
     "video-generation",
     "asr",
-    "stream-boundaries"
+    "stream-boundaries",
+    "treatment-delivery",
+    "trial-validity",
+    "protocol-audit"
   ],
   "origin": [
     "external"
@@ -32,11 +35,13 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e95689d89c957c24c23742366e1b723d735b1448/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
-      "commit": "e95689d89c957c24c23742366e1b723d735b1448",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2def9b3eaca539e5f79da3dc51164ab58da12319/src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
+      "commit": "2def9b3eaca539e5f79da3dc51164ab58da12319",
       "paths": [
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json",
+        "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md",
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md",
@@ -44,7 +49,7 @@
         "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "a977e81fb83e3e476f66dc97133f1a60a35983bdfaec538ad5063defda41d4b7"
+      "content_sha256": "7fd7f557f5c99ca4ec4c46f2d97e67ecf280f5f0fdf071871a14cc08a7cb1c84"
     }
   ],
   "index_type": "packaged-skill",
@@ -53,14 +58,16 @@
   },
   "checkout_ref": "checkout:inference-benchmark-design",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "a977e81fb83e3e476f66dc97133f1a60a35983bdfaec538ad5063defda41d4b7",
-    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "8dc73e54267ecb13158e26273602935c82e300942744bb109a991ae4b653046b",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md": "7fd7f557f5c99ca4ec4c46f2d97e67ecf280f5f0fdf071871a14cc08a7cb1c84",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/metadata.json": "a646de55162cb8160f3f0947cab4b6ecac81927c3225019044b3f909087ba048",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json": "bc343ece2bf40c4e8aa4bd8d84f32465d00633255557feda5fe7799ce24e8688",
+    "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md": "cb3a7a5d94d056f868af07f92a16a6fef31eafd3199ed07ae79e93798e320b1d",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/benchmark-commands.md": "0898424e0bff3a6246e1eeeda6abd6c5bd974c047fe32f3bbd5ab9d31ce17cd3",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/cache-aware-asr-stream-boundaries.md": "4e0ea9c1bf6b096a49a91ad5266e90b8a456f4f5aca15eba8ac270a53c2309b5",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-evaluation-contracts.md": "d25df795fd301e8a1bb436e5f8122d0bac2441c43104e59a3b310fd5a64f2f3e",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/justgoal-source.json": "60f2784384ea1a3b08a2ecafb60207d8e3707247dc7bc177b95b463d81f1cc16",
     "src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/task-benchmark-selection.md": "0d4bb080a754e26846e81680023db0dff5e6a4c96be4327c411c3b72ac4ef8e2",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "inference-benchmark-design",
@@ -80,7 +87,10 @@
       "image-generation",
       "video-generation",
       "asr",
-      "stream-boundaries"
+      "stream-boundaries",
+      "treatment-delivery",
+      "trial-validity",
+      "protocol-audit"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -256,14 +266,58 @@
         "readset": "references/justgoal-source.json",
         "license": "UNKNOWN",
         "scope": "Complete 21-page paper and appendices: controlled comparison, independent correctness, repair/coverage and timing evidence; author-reported, no PDF/figure redistribution"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/li-ch/autotunebench",
+        "commit": "64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f",
+        "paths": [
+          "ARTIFACT.md",
+          "README.md",
+          "CITATION.cff",
+          "LICENSE",
+          "config/protocol.yaml",
+          "pdb/ingest_validate.py",
+          "pdb/store.py",
+          "agents/loop.py",
+          "agents/adapter.py",
+          "orchestrator/cli.py",
+          "gates/g2_runtime.py",
+          "gates/g3_correctness.py",
+          "gates/g5_graduation.py",
+          "gates/schema.py",
+          "harness/kernel_bench.py",
+          "figs/plot_cand_ab_saturation.py",
+          "scripts/kernelbench_tabulate.py",
+          "experiments/kernelbench_l1/results/README.md",
+          "experiments/kernelbench_l1/results/TABLE.md",
+          "experiments/astra_parity/README.md",
+          "observability/iterations.jsonl",
+          "experiments/kernelbench_l1/kernelbench_tasks/UPSTREAM_LICENSE",
+          "experiments/kernelbench_l1/kernelbench_tasks/README.md"
+        ],
+        "readset": "references/autotunebench-trial-validity.md"
+      },
+      {
+        "type": "paper",
+        "id": "arxiv:2609.18123",
+        "version": "v1",
+        "url": "https://arxiv.org/abs/2609.18123v1",
+        "sections": [
+          "1-8",
+          "References",
+          "Figures 1-6",
+          "Tables 1-7"
+        ],
+        "readset": "references/autotunebench-trial-validity.md"
       }
     ],
     "empirical_validation": "not_run",
     "applicability": {
-      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail",
+      "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports",
       "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
-      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule",
-      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend",
+      "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records",
+      "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts",
       "failure_modes": [
         "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
         "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -272,15 +326,19 @@
         "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
         "A quality pass is taken to certify that the timed work actually occurred",
         "Best-seen results are reported as delivered without restarting and validating the final code/config artifact",
-        "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test"
+        "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
+        "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
+        "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
+        "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran"
       ],
-      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold"
+      "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports"
     },
     "recommendations": [
       "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
       "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
       "Use the replay trace that matches the actual deployment pattern.",
-      "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results."
+      "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
+      "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null."
     ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
@@ -288,14 +346,17 @@
       "Task benchmark knowledge is distilled from issue #60 with selected pinned-source rechecks; no all-task runtime qualification or optimization benefit is established.",
       "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
       "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
-      "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner."
+      "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
+      "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
     ],
     "provenance_readsets": [
       "references/task-benchmark-selection.md",
       "references/benchmark-commands.md",
       "references/cache-aware-asr-stream-boundaries.md",
       "references/justgoal-evaluation-contracts.md",
-      "references/justgoal-source.json"
+      "references/justgoal-source.json",
+      "references/autotunebench-trial-validity.md",
+      "references/autotunebench-source.json"
     ],
     "references": [
       "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
@@ -305,10 +366,10 @@
     "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."
   },
   "applicability": {
-    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail",
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports",
     "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
-    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule",
-    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts",
     "failure_modes": [
       "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
       "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -317,15 +378,19 @@
       "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
       "A quality pass is taken to certify that the timed work actually occurred",
       "Best-seen results are reported as delivered without restarting and validating the final code/config artifact",
-      "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test"
+      "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
+      "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
+      "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
+      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran"
     ],
-    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold"
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports"
   },
   "recommendations": [
     "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
     "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
     "Use the replay trace that matches the actual deployment pattern.",
-    "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results."
+    "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
+    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
@@ -337,7 +402,8 @@
     "Task benchmark knowledge is distilled from issue #60 with selected pinned-source rechecks; no all-task runtime qualification or optimization benefit is established.",
     "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
     "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
-    "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner."
+    "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
+    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
   ],
   "verification": {
     "locally_verified": false,

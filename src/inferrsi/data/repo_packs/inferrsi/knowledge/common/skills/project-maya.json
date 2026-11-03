@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e95689d89c957c24c23742366e1b723d735b1448/src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md",
-      "commit": "e95689d89c957c24c23742366e1b723d735b1448",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2def9b3eaca539e5f79da3dc51164ab58da12319/src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md",
+      "commit": "2def9b3eaca539e5f79da3dc51164ab58da12319",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/project-maya/LICENSE",
         "src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md",
@@ -83,7 +83,7 @@
     "src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/serving-state/references/native-state.md": "e5a7ee5e777998db0fb5422cf5b1ab18dbd67b4cbbfcfd6628ed6e40d8709c61",
     "src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/serving-state/references/troubleshooting.md": "97dea7b2d26fe165d2f64a1a63c91d099dddb2d3b95c16b667f5173b3ffa9d2d",
     "src/inferrsi/data/skill_library/repositories/project-maya/sub-skills/serving-state/scripts/request_template.py": "d91b03fbbd7003012a92bd7259d39604b9a91ee5707da2d3366e7c0fb47edd6a",
-    "src/inferrsi/data/skill_library/skill-index.json": "b5a9f05bd8179644f3fea79d7eb04fe4a8baad9e8d68aa8d0f1db213cf633317"
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "project-maya",
