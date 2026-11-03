@@ -12,6 +12,8 @@
 /docs/plans/issue-252/usefulness-summary.json -text whitespace=cr-at-eol
 /docs/plans/issue-252/replay-validation-summary.json -text whitespace=cr-at-eol
 /docs/plans/issue-252/usefulness-profiles/*.txt -text whitespace=cr-at-eol,-blank-at-eof
+/docs/plans/issue-252/replay-measurements.json -text
+/docs/plans/issue-252/replay-profiles/*.txt -text whitespace=cr-at-eol,-blank-at-eof
 
 # Retain this upstream license's original CRLF Git blob bytes.
 /src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text

@@ -1,0 +1,19 @@
+         525 function calls in 0.000 seconds
+
+   Ordered by: cumulative time
+
+   ncalls  tottime  percall  cumtime  percall filename:lineno(function)
+       35    0.000    0.000    0.000    0.000 implementation.py:6(compute)
+       35    0.000    0.000    0.000    0.000 fromnumeric.py:3699(mean)
+       35    0.000    0.000    0.000    0.000 _methods.py:115(_mean)
+       35    0.000    0.000    0.000    0.000 {method 'reduce' of 'numpy.ufunc' objects}
+       35    0.000    0.000    0.000    0.000 _methods.py:73(_count_reduce_items)
+       70    0.000    0.000    0.000    0.000 {built-in method time.perf_counter_ns}
+       70    0.000    0.000    0.000    0.000 {built-in method builtins.issubclass}
+       70    0.000    0.000    0.000    0.000 {built-in method builtins.isinstance}
+       35    0.000    0.000    0.000    0.000 fromnumeric.py:3694(_mean_dispatcher)
+       35    0.000    0.000    0.000    0.000 {built-in method numpy.asanyarray}
+       35    0.000    0.000    0.000    0.000 {built-in method numpy.lib.array_utils.normalize_axis_index}
+       35    0.000    0.000    0.000    0.000 {method 'disable' of '_lsprof.Profiler' objects}
+
+

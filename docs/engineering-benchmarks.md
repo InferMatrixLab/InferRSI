@@ -26,6 +26,12 @@ Workbench. Single-action output directories must be new. These are example
 budgets, not campaign acceptance gates. The supplied Git checkout identifies
 the source context; task and candidate files are additionally bound by hashes.
 
+`compare` returns the retained `status.json` alongside `run_dir`. Its exit code
+matches Workbench: PASS is 0, FAIL is 1, and INCONCLUSIVE is 2. A completed
+comparison missing its gain gate is FAIL; an incorrect candidate that prevents
+measurement leaves the comparison INCONCLUSIVE, even though artifact correctness
+grading can independently report FAIL. Inspect the retained state and errors.
+
 The candidate is a reviewed self-contained Python file with `compute(x, *, eps)`.
 Use NumPy, math and local helpers. `load_task("softmax-cpu").root` locates its
 baseline and example candidate. Copy `candidate.py` to `implementation.py` before
@@ -103,3 +109,6 @@ bundles contain resolved paths; review/redact a copy before sharing.
 See [#252 research and subtask plans](plans/issue-252/README.md). Formal Issue
 acceptance, independent review, accelerator qualification, communication and
 memory-capacity coverage remain distinct from this local CPU subset.
+
+For a Chinese walkthrough of each component and an RMSNorm example, start with
+[the reading guide](plans/issue-252/walkthrough.md).

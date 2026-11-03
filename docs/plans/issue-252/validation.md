@@ -2,11 +2,11 @@
 
 本页保留 **v1 历史运行**（六个计时 case、重复输入）的原始记录，不能代表后续 v2 变化输入协议。当前 RSI 接入边界见 [接入审计](rsi-integration.md)，协议修复与新证据见 [v2 验证](replay-validation.md)。旧数值、身份与 verdict 不重写或合并到新结果。
 
-验证日期 2026-11-03。实现基于 `663f3b327998526a13aa31e72ad729025c18983c`，具体新增内容以当前工作区和结果中的内容哈希为准。本记录说明共享任务子集的功能与集成，不是项目维护者的验收决定。
+验证日期 2026-11-03。实现基于 `663f3b327998526a13aa31e72ad729025c18983c`，对应初始实现 [d0ce9d7](https://github.com/Bounty-hunter/InferRSI/tree/d0ce9d785e1bead9124eed1cf3f6e9f2e0cf05db)；实际运行文件的身份以结果中的内容哈希为准。本记录说明共享任务子集的功能与集成，不是项目维护者的验收决定。
 
 ## 实际运行结果
 
-最终原始目录名为 `inferrsi-252-validation-final`，保留在仓库外的本地 outputs 目录。可用 `tools/engineering_benchmark_validate.py` 重建一份新记录。该次执行使用 Windows、Python 3.11.18、NumPy 2.4.6。
+最终原始目录名为 `inferrsi-252-validation-final`，保留在仓库外的本地 outputs 目录。重放这套 v1 协议须使用上述原始版本的 `tools/engineering_benchmark_validate.py`、任务包和 grader，并核对记录中的文件身份；新执行产生自己的记录，不会重建原始计时值。当前分支的工具执行 v2 协议，不能用于复现本页的样本数量或身份。该次执行使用 Windows、Python 3.11.18、NumPy 2.4.6。
 
 [可公开的原始汇总](validation-summary.json) 保留任务/候选/grader/runtime 身份、执行数量、原始 verdict 和覆盖状态，不包含个人路径。完整原始日志和样本仍在本地，公开汇总不能代替独立重放或正式 campaign 验收。
 

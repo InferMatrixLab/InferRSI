@@ -40,6 +40,6 @@
 
 消费链为“同一 task.json 和 grader → Workbench 性能比较 / SkillEval 独立正确性验证”。后者是离线保留产物交接，不是在线 agent 写代码的新 sandbox。是否由技能帮助产出更好代码，需要未来真实 agent、匹配预算和对照条件的实验。
 
-运行方法和数据目录说明见 [使用文档](../../engineering-benchmarks.md)，最终结果见 [验证记录](validation.md)。
+运行方法和数据目录说明见 [使用文档](../../engineering-benchmarks.md)，当前协议的实际结果见 [v2 验证](replay-validation.md)。早期安装包检查和 v1 集成结果另存于[历史验证记录](validation.md)。
 
 补充[实际工程用途对照](usefulness.md)把预先固定的 no-epsilon、einsum 和 unchanged 实现接入同一任务，证明普通冒烟漏检会被完整任务拒绝。它也暴露了计时稳定性限制：同一代码的比较出现大幅差异，可靠性能排序仍待后续协议验证，不能作为已完成的验收项。

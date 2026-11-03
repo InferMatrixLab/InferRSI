@@ -121,6 +121,9 @@ def main(argv: list[str] | None = None) -> int:
 
             result = dispatch(args)
             _print(result)
+            if args.benchmark_action == "compare":
+                verdict = result["status"].get("verdict")
+                return 0 if verdict == "PASS" else (1 if verdict == "FAIL" else 2)
             if isinstance(result, dict):
                 if "verdict" in result:
                     return 0 if result["verdict"] == "PASS" else 1

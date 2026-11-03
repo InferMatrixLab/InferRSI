@@ -316,6 +316,56 @@ def test_real_workbench_reuses_frozen_task(tmp_path, numpy_runtime):
             assert result["executed_calls"] == baseline["executed_calls"]
 
 
+@pytest.mark.parametrize(
+    "case,expected_code,expected_state,expected_verdict",
+    [
+        ("unmet-gain", 1, "completed", "FAIL"),
+        ("wrong-output", 2, "failed", "INCONCLUSIVE"),
+        ("timeout", 2, "timeout", "INCONCLUSIVE"),
+    ],
+)
+def test_compare_cli_reports_retained_workbench_outcome(
+    case, expected_code, expected_state, expected_verdict, tmp_path, numpy_runtime, capsys
+):
+    from inferrsi.cli import main
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    candidate = repo / "implementation.py"
+    candidate.write_text(
+        "import numpy as np\ndef compute(x, *, eps): return np.zeros_like(x)\n"
+        if case == "wrong-output"
+        else (load_task("softmax-cpu").root / "candidate.py").read_text(),
+        encoding="utf-8",
+    )
+    subprocess.run(["git", "-C", str(repo), "add", "."], check=True)
+    subprocess.run(
+        [
+            "git", "-C", str(repo), "-c", "user.name=Fixture", "-c",
+            "user.email=fixture@example.invalid", "commit", "-qm", "fixture",
+        ],
+        check=True,
+    )
+    code = main(
+        [
+            "benchmarks", "compare", "softmax-cpu", "--candidate", str(candidate),
+            "--repo", str(repo), "--output-dir", str(tmp_path / "runs"),
+            "--repetitions", "1", "--max-minutes", "1e-10" if case == "timeout" else "1",
+            # A complete positive-latency comparison cannot reach a 100% reduction.
+            "--min-improvement-pct", "100",
+        ]
+    )
+    response = json.loads(capsys.readouterr().out)
+    run_dir = Path(response["run_dir"])
+    retained = json.loads((run_dir / "status.json").read_text())
+    evaluation = json.loads((run_dir / "evaluation.json").read_text())
+    assert response["status"] == retained
+    assert retained["state"] == expected_state
+    assert retained["verdict"] == evaluation["verdict"] == expected_verdict
+    assert code == expected_code
+
+
 class RetainedControl:
     """Local authored control for the real trial machinery; no model or token usage."""
 

@@ -1,5 +1,6 @@
 """CLI-first engineering benchmark operations; all execution is explicit."""
 
+import json
 import math
 from pathlib import Path
 
@@ -68,6 +69,7 @@ def dispatch(args) -> dict | list:
         atomic_write_json(run_dir / "task.lock.json", task.manifest)
         return {
             "run_dir": str(run_dir),
+            "status": json.loads((run_dir / "status.json").read_text(encoding="utf-8")),
             "scope": "local-artifact-comparison",
             "campaign_acceptance": "not established",
         }

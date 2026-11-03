@@ -1,0 +1,1742 @@
+{
+  "scope": "Read-only export of the original 2026-11-03 UTC v2 integration; no new run",
+  "protocol": "numpy-axis1-v2",
+  "source_summary": "replay-validation-summary.json",
+  "source_summary_sha256": "a9e9d7d17f3de30344229332056071ab6450b283fbe3272352f48b68855f4842",
+  "provenance": "Measurements predate ce84506e; task/grader bytes match the frozen identities published there. No evidence is rebound to a later source revision.",
+  "transformation": "Retain all 12 trials and 300 samples unchanged; project result fields to omit repeated assertions/input records and local paths. Evaluations and stripped-path profiles are retained unchanged. Original full-result hashes identify local source files; those full files are not published.",
+  "campaign_acceptance": "INCONCLUSIVE",
+  "timing_qualification": "not established",
+  "agent_or_skill_benefit": "not measured",
+  "measured_calls": 300,
+  "tasks": [
+    {
+      "task": "rmsnorm-cpu",
+      "trials": [
+        {
+          "side": "baseline",
+          "trial": "trial-001",
+          "source_result": "rmsnorm-cpu/workbench/20261103T155814Z-bd60e491cc/baseline/trial-001/result.json",
+          "source_sha256": "7d7f50721b3fdcf42621799a05d416707b4eb8ba2616958ffe40a7cacf438296",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "rmsnorm-cpu",
+            "task_sha256": "2f5006180baf11c9a9623006768bad776f5fc38ee281ef36edb3cec7cdfdcafc",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "c7bc1a3f3ec2e2396a0b2788d1f7b21c059341a7853effaf6f7131c81da292aa",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.045700000000000005
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0145,
+                0.0126,
+                0.012,
+                0.0119,
+                0.0117
+              ],
+              "median_ms": 0.012,
+              "sample_input_sha256": [
+                "51a6cac6657663a2ab66b41f37cba11829be73d68df9e906e927666233d89e1a",
+                "12f9092d31c8d7d0153acf8079592b7ea1f1d1558ae6b50f5af9ec0bd0e56ce9",
+                "297705faef78ed9b8a8d51f6eff03fcba6526feb9bb77c33aa837a32c4cf75c0",
+                "68ba7eb4bbccf67b5758645d05f7a85e004d92da1a8be1e8d39e0aeca7f7ce2c",
+                "ca3502d85d4700396578ccbf4638632bd23f603d791589837331b38ec4ec55cf"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0155,
+                0.016,
+                0.0158,
+                0.016,
+                0.0154
+              ],
+              "median_ms": 0.0158,
+              "sample_input_sha256": [
+                "705550de58cc58bfe2ce1f830a65d543976c2f71543486aa0a983088a3786430",
+                "0bbd05e24e6de4443792eb690faec6afaba4c65ceac5bcd753fa2f926d5e6375",
+                "03d3174b17cb53cd0436a8408ea98de17210cb7874afe6b668f30c540d6c914f",
+                "93eac27d07f54549fd25311b063b637ef354554181f4e6faa192011b65aa57bd",
+                "68331b9f3c40076f596c078c9e7b1c89028feee70ecd3642fbe545a7710b7e5b"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0065,
+                0.0068,
+                0.0064,
+                0.0065,
+                0.006
+              ],
+              "median_ms": 0.0065,
+              "sample_input_sha256": [
+                "f36c9462377ab6c85ac6f68612c7a1c58ab8a846061148ea888587fddb4d5e4d",
+                "c32613e6ae17d46edd7d4f73527e062b1447078c8df04efd2d794b1f44153f31",
+                "4739f5f8a1fd07c2f63b2f97ec3c65e5d113e54a4dcedc74bb725898e60c6060",
+                "bb893bbfa7115d0a41c431b1b4111f2a0310df6f768cb8e29a87e4167f958345",
+                "708d9ada93034d9b004f3186f6c3bc1e901ffbf437211c1ab154f4b5387860ba"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0062,
+                0.0061,
+                0.0061,
+                0.0064,
+                0.0071
+              ],
+              "median_ms": 0.0062,
+              "sample_input_sha256": [
+                "506d98ed53de0d20d52a5942c3067e279b921ca129b57208b83ceafb47dc4b25",
+                "5f249c72a4c7117dabcbd2dd2d1b7a2cabe3f87b06c49ebb620956ac29265bdd",
+                "b56fbbc49d0413e07e8c9aea36f26a57d4abc388c3c3fedc8d22d203e6668a10",
+                "bbf84b16454a3d4ad3de7ac8575eaafd547262a1760514508a7904d5d1a824ec",
+                "89ece9030dff7498f71151d54449d68d5cf3d8d59c7c836420620d075eb2450f"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0052,
+                0.0054,
+                0.0054,
+                0.0049,
+                0.0051
+              ],
+              "median_ms": 0.0052,
+              "sample_input_sha256": [
+                "464f72712d23c5b975837e0202084eeefaf2ba52afba221ce1f8f7efd0918539",
+                "944a49da54546c2c9ef02c69319a85ae375162b878b07263ee5915afc6dee7c9",
+                "655b8711036934bd9719e2381e7fced7b30152bda63b10b646d698086251e7ea",
+                "2ab0e8b098f645c5373f8e61498c934897c187fb39898b42d9f41db2d4450552",
+                "fdc4a30d5b12857410f0846fcb0c42371a020409b57aad1c80a9cbad55b6a5f6"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "baseline",
+          "trial": "trial-002",
+          "source_result": "rmsnorm-cpu/workbench/20261103T155814Z-bd60e491cc/baseline/trial-002/result.json",
+          "source_sha256": "c167e1d49bb7a2381287fba0ce1d716ca55c3469a90c1f53b95d86049464d67b",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "rmsnorm-cpu",
+            "task_sha256": "2f5006180baf11c9a9623006768bad776f5fc38ee281ef36edb3cec7cdfdcafc",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "c7bc1a3f3ec2e2396a0b2788d1f7b21c059341a7853effaf6f7131c81da292aa",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.0453
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0134,
+                0.0127,
+                0.0115,
+                0.0112,
+                0.0104
+              ],
+              "median_ms": 0.0115,
+              "sample_input_sha256": [
+                "51a6cac6657663a2ab66b41f37cba11829be73d68df9e906e927666233d89e1a",
+                "12f9092d31c8d7d0153acf8079592b7ea1f1d1558ae6b50f5af9ec0bd0e56ce9",
+                "297705faef78ed9b8a8d51f6eff03fcba6526feb9bb77c33aa837a32c4cf75c0",
+                "68ba7eb4bbccf67b5758645d05f7a85e004d92da1a8be1e8d39e0aeca7f7ce2c",
+                "ca3502d85d4700396578ccbf4638632bd23f603d791589837331b38ec4ec55cf"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0156,
+                0.0148,
+                0.0149,
+                0.0152,
+                0.015
+              ],
+              "median_ms": 0.015,
+              "sample_input_sha256": [
+                "705550de58cc58bfe2ce1f830a65d543976c2f71543486aa0a983088a3786430",
+                "0bbd05e24e6de4443792eb690faec6afaba4c65ceac5bcd753fa2f926d5e6375",
+                "03d3174b17cb53cd0436a8408ea98de17210cb7874afe6b668f30c540d6c914f",
+                "93eac27d07f54549fd25311b063b637ef354554181f4e6faa192011b65aa57bd",
+                "68331b9f3c40076f596c078c9e7b1c89028feee70ecd3642fbe545a7710b7e5b"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0059,
+                0.0156,
+                0.0093,
+                0.0074,
+                0.0064
+              ],
+              "median_ms": 0.0074,
+              "sample_input_sha256": [
+                "f36c9462377ab6c85ac6f68612c7a1c58ab8a846061148ea888587fddb4d5e4d",
+                "c32613e6ae17d46edd7d4f73527e062b1447078c8df04efd2d794b1f44153f31",
+                "4739f5f8a1fd07c2f63b2f97ec3c65e5d113e54a4dcedc74bb725898e60c6060",
+                "bb893bbfa7115d0a41c431b1b4111f2a0310df6f768cb8e29a87e4167f958345",
+                "708d9ada93034d9b004f3186f6c3bc1e901ffbf437211c1ab154f4b5387860ba"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0066,
+                0.0061,
+                0.0057,
+                0.0063,
+                0.0073
+              ],
+              "median_ms": 0.0063,
+              "sample_input_sha256": [
+                "506d98ed53de0d20d52a5942c3067e279b921ca129b57208b83ceafb47dc4b25",
+                "5f249c72a4c7117dabcbd2dd2d1b7a2cabe3f87b06c49ebb620956ac29265bdd",
+                "b56fbbc49d0413e07e8c9aea36f26a57d4abc388c3c3fedc8d22d203e6668a10",
+                "bbf84b16454a3d4ad3de7ac8575eaafd547262a1760514508a7904d5d1a824ec",
+                "89ece9030dff7498f71151d54449d68d5cf3d8d59c7c836420620d075eb2450f"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0055,
+                0.0053,
+                0.005,
+                0.0051,
+                0.005
+              ],
+              "median_ms": 0.0051,
+              "sample_input_sha256": [
+                "464f72712d23c5b975837e0202084eeefaf2ba52afba221ce1f8f7efd0918539",
+                "944a49da54546c2c9ef02c69319a85ae375162b878b07263ee5915afc6dee7c9",
+                "655b8711036934bd9719e2381e7fced7b30152bda63b10b646d698086251e7ea",
+                "2ab0e8b098f645c5373f8e61498c934897c187fb39898b42d9f41db2d4450552",
+                "fdc4a30d5b12857410f0846fcb0c42371a020409b57aad1c80a9cbad55b6a5f6"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "baseline",
+          "trial": "trial-003",
+          "source_result": "rmsnorm-cpu/workbench/20261103T155814Z-bd60e491cc/baseline/trial-003/result.json",
+          "source_sha256": "fd967164167654667c47ad3934ffa4dd54993f01cf5c0f0681d87d2653f8c951",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "rmsnorm-cpu",
+            "task_sha256": "2f5006180baf11c9a9623006768bad776f5fc38ee281ef36edb3cec7cdfdcafc",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "c7bc1a3f3ec2e2396a0b2788d1f7b21c059341a7853effaf6f7131c81da292aa",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.04800000000000001
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.016,
+                0.0145,
+                0.0134,
+                0.0123,
+                0.0123
+              ],
+              "median_ms": 0.0134,
+              "sample_input_sha256": [
+                "51a6cac6657663a2ab66b41f37cba11829be73d68df9e906e927666233d89e1a",
+                "12f9092d31c8d7d0153acf8079592b7ea1f1d1558ae6b50f5af9ec0bd0e56ce9",
+                "297705faef78ed9b8a8d51f6eff03fcba6526feb9bb77c33aa837a32c4cf75c0",
+                "68ba7eb4bbccf67b5758645d05f7a85e004d92da1a8be1e8d39e0aeca7f7ce2c",
+                "ca3502d85d4700396578ccbf4638632bd23f603d791589837331b38ec4ec55cf"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0162,
+                0.0167,
+                0.0159,
+                0.017,
+                0.0157
+              ],
+              "median_ms": 0.0162,
+              "sample_input_sha256": [
+                "705550de58cc58bfe2ce1f830a65d543976c2f71543486aa0a983088a3786430",
+                "0bbd05e24e6de4443792eb690faec6afaba4c65ceac5bcd753fa2f926d5e6375",
+                "03d3174b17cb53cd0436a8408ea98de17210cb7874afe6b668f30c540d6c914f",
+                "93eac27d07f54549fd25311b063b637ef354554181f4e6faa192011b65aa57bd",
+                "68331b9f3c40076f596c078c9e7b1c89028feee70ecd3642fbe545a7710b7e5b"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0066,
+                0.0075,
+                0.0063,
+                0.0066,
+                0.0063
+              ],
+              "median_ms": 0.0066,
+              "sample_input_sha256": [
+                "f36c9462377ab6c85ac6f68612c7a1c58ab8a846061148ea888587fddb4d5e4d",
+                "c32613e6ae17d46edd7d4f73527e062b1447078c8df04efd2d794b1f44153f31",
+                "4739f5f8a1fd07c2f63b2f97ec3c65e5d113e54a4dcedc74bb725898e60c6060",
+                "bb893bbfa7115d0a41c431b1b4111f2a0310df6f768cb8e29a87e4167f958345",
+                "708d9ada93034d9b004f3186f6c3bc1e901ffbf437211c1ab154f4b5387860ba"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0065,
+                0.0064,
+                0.0062,
+                0.0062,
+                0.0067
+              ],
+              "median_ms": 0.0064,
+              "sample_input_sha256": [
+                "506d98ed53de0d20d52a5942c3067e279b921ca129b57208b83ceafb47dc4b25",
+                "5f249c72a4c7117dabcbd2dd2d1b7a2cabe3f87b06c49ebb620956ac29265bdd",
+                "b56fbbc49d0413e07e8c9aea36f26a57d4abc388c3c3fedc8d22d203e6668a10",
+                "bbf84b16454a3d4ad3de7ac8575eaafd547262a1760514508a7904d5d1a824ec",
+                "89ece9030dff7498f71151d54449d68d5cf3d8d59c7c836420620d075eb2450f"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0055,
+                0.0054,
+                0.0053,
+                0.0054,
+                0.0052
+              ],
+              "median_ms": 0.0054,
+              "sample_input_sha256": [
+                "464f72712d23c5b975837e0202084eeefaf2ba52afba221ce1f8f7efd0918539",
+                "944a49da54546c2c9ef02c69319a85ae375162b878b07263ee5915afc6dee7c9",
+                "655b8711036934bd9719e2381e7fced7b30152bda63b10b646d698086251e7ea",
+                "2ab0e8b098f645c5373f8e61498c934897c187fb39898b42d9f41db2d4450552",
+                "fdc4a30d5b12857410f0846fcb0c42371a020409b57aad1c80a9cbad55b6a5f6"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "candidate",
+          "trial": "trial-001",
+          "source_result": "rmsnorm-cpu/workbench/20261103T155814Z-bd60e491cc/candidate/trial-001/result.json",
+          "source_sha256": "5a886688a35a8f033a09da2390ac5375212efe9c7c965c26e8509fb11bd19daa",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "rmsnorm-cpu",
+            "task_sha256": "2f5006180baf11c9a9623006768bad776f5fc38ee281ef36edb3cec7cdfdcafc",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "28fe2fe3f25fdbd81811d16cf2897d5200c77c0dd5b3b9e65ff7d9e6a23123be",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.1256
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0146,
+                0.0129,
+                0.0122,
+                0.0343,
+                0.0158
+              ],
+              "median_ms": 0.0146,
+              "sample_input_sha256": [
+                "51a6cac6657663a2ab66b41f37cba11829be73d68df9e906e927666233d89e1a",
+                "12f9092d31c8d7d0153acf8079592b7ea1f1d1558ae6b50f5af9ec0bd0e56ce9",
+                "297705faef78ed9b8a8d51f6eff03fcba6526feb9bb77c33aa837a32c4cf75c0",
+                "68ba7eb4bbccf67b5758645d05f7a85e004d92da1a8be1e8d39e0aeca7f7ce2c",
+                "ca3502d85d4700396578ccbf4638632bd23f603d791589837331b38ec4ec55cf"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0149,
+                0.0147,
+                0.1118,
+                0.061,
+                0.0512
+              ],
+              "median_ms": 0.0512,
+              "sample_input_sha256": [
+                "705550de58cc58bfe2ce1f830a65d543976c2f71543486aa0a983088a3786430",
+                "0bbd05e24e6de4443792eb690faec6afaba4c65ceac5bcd753fa2f926d5e6375",
+                "03d3174b17cb53cd0436a8408ea98de17210cb7874afe6b668f30c540d6c914f",
+                "93eac27d07f54549fd25311b063b637ef354554181f4e6faa192011b65aa57bd",
+                "68331b9f3c40076f596c078c9e7b1c89028feee70ecd3642fbe545a7710b7e5b"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0208,
+                0.0191,
+                0.0219,
+                0.0218,
+                0.0213
+              ],
+              "median_ms": 0.0213,
+              "sample_input_sha256": [
+                "f36c9462377ab6c85ac6f68612c7a1c58ab8a846061148ea888587fddb4d5e4d",
+                "c32613e6ae17d46edd7d4f73527e062b1447078c8df04efd2d794b1f44153f31",
+                "4739f5f8a1fd07c2f63b2f97ec3c65e5d113e54a4dcedc74bb725898e60c6060",
+                "bb893bbfa7115d0a41c431b1b4111f2a0310df6f768cb8e29a87e4167f958345",
+                "708d9ada93034d9b004f3186f6c3bc1e901ffbf437211c1ab154f4b5387860ba"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0211,
+                0.0205,
+                0.0197,
+                0.021,
+                0.0253
+              ],
+              "median_ms": 0.021,
+              "sample_input_sha256": [
+                "506d98ed53de0d20d52a5942c3067e279b921ca129b57208b83ceafb47dc4b25",
+                "5f249c72a4c7117dabcbd2dd2d1b7a2cabe3f87b06c49ebb620956ac29265bdd",
+                "b56fbbc49d0413e07e8c9aea36f26a57d4abc388c3c3fedc8d22d203e6668a10",
+                "bbf84b16454a3d4ad3de7ac8575eaafd547262a1760514508a7904d5d1a824ec",
+                "89ece9030dff7498f71151d54449d68d5cf3d8d59c7c836420620d075eb2450f"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0184,
+                0.0175,
+                0.0164,
+                0.0175,
+                0.0163
+              ],
+              "median_ms": 0.0175,
+              "sample_input_sha256": [
+                "464f72712d23c5b975837e0202084eeefaf2ba52afba221ce1f8f7efd0918539",
+                "944a49da54546c2c9ef02c69319a85ae375162b878b07263ee5915afc6dee7c9",
+                "655b8711036934bd9719e2381e7fced7b30152bda63b10b646d698086251e7ea",
+                "2ab0e8b098f645c5373f8e61498c934897c187fb39898b42d9f41db2d4450552",
+                "fdc4a30d5b12857410f0846fcb0c42371a020409b57aad1c80a9cbad55b6a5f6"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "candidate",
+          "trial": "trial-002",
+          "source_result": "rmsnorm-cpu/workbench/20261103T155814Z-bd60e491cc/candidate/trial-002/result.json",
+          "source_sha256": "80db25ef61f6ee371214574d4003f0dc561a9c73f8884dfb969036a55f6ad908",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "rmsnorm-cpu",
+            "task_sha256": "2f5006180baf11c9a9623006768bad776f5fc38ee281ef36edb3cec7cdfdcafc",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "28fe2fe3f25fdbd81811d16cf2897d5200c77c0dd5b3b9e65ff7d9e6a23123be",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.0436
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0148,
+                0.014,
+                0.0121,
+                0.0124,
+                0.0116
+              ],
+              "median_ms": 0.0124,
+              "sample_input_sha256": [
+                "51a6cac6657663a2ab66b41f37cba11829be73d68df9e906e927666233d89e1a",
+                "12f9092d31c8d7d0153acf8079592b7ea1f1d1558ae6b50f5af9ec0bd0e56ce9",
+                "297705faef78ed9b8a8d51f6eff03fcba6526feb9bb77c33aa837a32c4cf75c0",
+                "68ba7eb4bbccf67b5758645d05f7a85e004d92da1a8be1e8d39e0aeca7f7ce2c",
+                "ca3502d85d4700396578ccbf4638632bd23f603d791589837331b38ec4ec55cf"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0144,
+                0.0136,
+                0.0137,
+                0.015,
+                0.0133
+              ],
+              "median_ms": 0.0137,
+              "sample_input_sha256": [
+                "705550de58cc58bfe2ce1f830a65d543976c2f71543486aa0a983088a3786430",
+                "0bbd05e24e6de4443792eb690faec6afaba4c65ceac5bcd753fa2f926d5e6375",
+                "03d3174b17cb53cd0436a8408ea98de17210cb7874afe6b668f30c540d6c914f",
+                "93eac27d07f54549fd25311b063b637ef354554181f4e6faa192011b65aa57bd",
+                "68331b9f3c40076f596c078c9e7b1c89028feee70ecd3642fbe545a7710b7e5b"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0074,
+                0.0068,
+                0.0071,
+                0.0057,
+                0.0056
+              ],
+              "median_ms": 0.0068,
+              "sample_input_sha256": [
+                "f36c9462377ab6c85ac6f68612c7a1c58ab8a846061148ea888587fddb4d5e4d",
+                "c32613e6ae17d46edd7d4f73527e062b1447078c8df04efd2d794b1f44153f31",
+                "4739f5f8a1fd07c2f63b2f97ec3c65e5d113e54a4dcedc74bb725898e60c6060",
+                "bb893bbfa7115d0a41c431b1b4111f2a0310df6f768cb8e29a87e4167f958345",
+                "708d9ada93034d9b004f3186f6c3bc1e901ffbf437211c1ab154f4b5387860ba"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0068,
+                0.0059,
+                0.0056,
+                0.0057,
+                0.0068
+              ],
+              "median_ms": 0.0059,
+              "sample_input_sha256": [
+                "506d98ed53de0d20d52a5942c3067e279b921ca129b57208b83ceafb47dc4b25",
+                "5f249c72a4c7117dabcbd2dd2d1b7a2cabe3f87b06c49ebb620956ac29265bdd",
+                "b56fbbc49d0413e07e8c9aea36f26a57d4abc388c3c3fedc8d22d203e6668a10",
+                "bbf84b16454a3d4ad3de7ac8575eaafd547262a1760514508a7904d5d1a824ec",
+                "89ece9030dff7498f71151d54449d68d5cf3d8d59c7c836420620d075eb2450f"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.005,
+                0.0053,
+                0.0048,
+                0.0048,
+                0.0048
+              ],
+              "median_ms": 0.0048,
+              "sample_input_sha256": [
+                "464f72712d23c5b975837e0202084eeefaf2ba52afba221ce1f8f7efd0918539",
+                "944a49da54546c2c9ef02c69319a85ae375162b878b07263ee5915afc6dee7c9",
+                "655b8711036934bd9719e2381e7fced7b30152bda63b10b646d698086251e7ea",
+                "2ab0e8b098f645c5373f8e61498c934897c187fb39898b42d9f41db2d4450552",
+                "fdc4a30d5b12857410f0846fcb0c42371a020409b57aad1c80a9cbad55b6a5f6"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "candidate",
+          "trial": "trial-003",
+          "source_result": "rmsnorm-cpu/workbench/20261103T155814Z-bd60e491cc/candidate/trial-003/result.json",
+          "source_sha256": "26671faef9a4cb403d1c731747143218a5da07f83f69eb34c3cb492bdc3ebc41",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "rmsnorm-cpu",
+            "task_sha256": "2f5006180baf11c9a9623006768bad776f5fc38ee281ef36edb3cec7cdfdcafc",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "28fe2fe3f25fdbd81811d16cf2897d5200c77c0dd5b3b9e65ff7d9e6a23123be",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.0439
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0143,
+                0.0128,
+                0.0127,
+                0.0126,
+                0.0119
+              ],
+              "median_ms": 0.0127,
+              "sample_input_sha256": [
+                "51a6cac6657663a2ab66b41f37cba11829be73d68df9e906e927666233d89e1a",
+                "12f9092d31c8d7d0153acf8079592b7ea1f1d1558ae6b50f5af9ec0bd0e56ce9",
+                "297705faef78ed9b8a8d51f6eff03fcba6526feb9bb77c33aa837a32c4cf75c0",
+                "68ba7eb4bbccf67b5758645d05f7a85e004d92da1a8be1e8d39e0aeca7f7ce2c",
+                "ca3502d85d4700396578ccbf4638632bd23f603d791589837331b38ec4ec55cf"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0138,
+                0.0135,
+                0.0138,
+                0.0142,
+                0.0135
+              ],
+              "median_ms": 0.0138,
+              "sample_input_sha256": [
+                "705550de58cc58bfe2ce1f830a65d543976c2f71543486aa0a983088a3786430",
+                "0bbd05e24e6de4443792eb690faec6afaba4c65ceac5bcd753fa2f926d5e6375",
+                "03d3174b17cb53cd0436a8408ea98de17210cb7874afe6b668f30c540d6c914f",
+                "93eac27d07f54549fd25311b063b637ef354554181f4e6faa192011b65aa57bd",
+                "68331b9f3c40076f596c078c9e7b1c89028feee70ecd3642fbe545a7710b7e5b"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0065,
+                0.0063,
+                0.0061,
+                0.006,
+                0.0062
+              ],
+              "median_ms": 0.0062,
+              "sample_input_sha256": [
+                "f36c9462377ab6c85ac6f68612c7a1c58ab8a846061148ea888587fddb4d5e4d",
+                "c32613e6ae17d46edd7d4f73527e062b1447078c8df04efd2d794b1f44153f31",
+                "4739f5f8a1fd07c2f63b2f97ec3c65e5d113e54a4dcedc74bb725898e60c6060",
+                "bb893bbfa7115d0a41c431b1b4111f2a0310df6f768cb8e29a87e4167f958345",
+                "708d9ada93034d9b004f3186f6c3bc1e901ffbf437211c1ab154f4b5387860ba"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0064,
+                0.0058,
+                0.0056,
+                0.0058,
+                0.0066
+              ],
+              "median_ms": 0.0058,
+              "sample_input_sha256": [
+                "506d98ed53de0d20d52a5942c3067e279b921ca129b57208b83ceafb47dc4b25",
+                "5f249c72a4c7117dabcbd2dd2d1b7a2cabe3f87b06c49ebb620956ac29265bdd",
+                "b56fbbc49d0413e07e8c9aea36f26a57d4abc388c3c3fedc8d22d203e6668a10",
+                "bbf84b16454a3d4ad3de7ac8575eaafd547262a1760514508a7904d5d1a824ec",
+                "89ece9030dff7498f71151d54449d68d5cf3d8d59c7c836420620d075eb2450f"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0055,
+                0.0054,
+                0.0054,
+                0.0051,
+                0.0051
+              ],
+              "median_ms": 0.0054,
+              "sample_input_sha256": [
+                "464f72712d23c5b975837e0202084eeefaf2ba52afba221ce1f8f7efd0918539",
+                "944a49da54546c2c9ef02c69319a85ae375162b878b07263ee5915afc6dee7c9",
+                "655b8711036934bd9719e2381e7fced7b30152bda63b10b646d698086251e7ea",
+                "2ab0e8b098f645c5373f8e61498c934897c187fb39898b42d9f41db2d4450552",
+                "fdc4a30d5b12857410f0846fcb0c42371a020409b57aad1c80a9cbad55b6a5f6"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        }
+      ],
+      "evaluation": {
+        "verdict": "PASS",
+        "reasons": [],
+        "metric_key": "metrics.suite_latency_ms",
+        "metric_unit": "ms",
+        "comparison_scope": "rmsnorm-cpu:synchronous-compute-call",
+        "direction": "minimize",
+        "min_improvement_pct": 0,
+        "baseline": {
+          "values": [
+            0.045700000000000005,
+            0.0453,
+            0.04800000000000001
+          ],
+          "median": 0.045700000000000005,
+          "min": 0.0453,
+          "max": 0.04800000000000001,
+          "range_pct_of_median": 5.908096280087545,
+          "excluded_trials": 0
+        },
+        "candidate": {
+          "values": [
+            0.1256,
+            0.0436,
+            0.0439
+          ],
+          "median": 0.0439,
+          "min": 0.0436,
+          "max": 0.1256,
+          "range_pct_of_median": 186.78815489749428,
+          "excluded_trials": 0
+        },
+        "improvement_pct": 3.938730853391691,
+        "measurement_method": "Alternating AB/BA sequential trials; median and range are descriptive only.",
+        "quality_contract": "Exit zero covers only the supplied validation command; inspect its logs and coverage.",
+        "source_integrity": {
+          "verified": true,
+          "reason": "Git source snapshots unchanged",
+          "command_checks": 7
+        },
+        "statistical_significance": "not established"
+      },
+      "source_evaluation_sha256": "a488026ab37d256990f631aa1e44e0b9300784de3d9f063c8ca9c385854c0f41",
+      "profile": {
+        "path": "replay-profiles/rmsnorm-cpu.txt",
+        "sha256": "7e566463a8200a0a777902642c4686bcc88aae6e836871b5804b5996f9426064",
+        "copied_without_byte_changes": true,
+        "compute_calls": 35
+      }
+    },
+    {
+      "task": "softmax-cpu",
+      "trials": [
+        {
+          "side": "baseline",
+          "trial": "trial-001",
+          "source_result": "softmax-cpu/workbench/20261103T155842Z-9466b60fa9/baseline/trial-001/result.json",
+          "source_sha256": "e9138fab5651d7c7f54d4dd55a058d7df47e599f63e2c140479c8cf3a9f3b963",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "softmax-cpu",
+            "task_sha256": "88b56ab74d5dfd449e7f0a908df4ebc64c88adcb0be8ece0ace924de382b372a",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "19ebd40f558705986eaad7c1dc49e97faeb0056530689e9697ff1e05b13fd7ab",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.044000000000000004
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0145,
+                0.0141,
+                0.0129,
+                0.0139,
+                0.0139
+              ],
+              "median_ms": 0.0139,
+              "sample_input_sha256": [
+                "78bfd0e8bfa10afbffe87f26d4c710897fb136cbfb7b13ad73b972d0147f309b",
+                "9b43630dbbb0ae53a4c0cdb5583f0ae2be837d7a7da9d90f9d27fba2ed7ba77f",
+                "8f787cdc0e3cedeb2c2fe76b0fd900aa49f28501223f615bf803d5c75942160c",
+                "6527163cb056b965d7fc5847083a5815e4d7303d0c33f4296c4a85ad249617eb",
+                "b76ac149343dc83a7f95bf9dd6e0ce7be2959c503e6d22f94c68043c43b748d0"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0148,
+                0.0151,
+                0.0153,
+                0.0148,
+                0.0148
+              ],
+              "median_ms": 0.0148,
+              "sample_input_sha256": [
+                "dcd2a3deded615bc4ee4c934c5d8781d96c4c2cc2f8326a452eb8e00351546f0",
+                "00a0dc1c4c7da3ec6f26bdf0c35a420189c6558cd9eacc648cbf6fa8d3769cd0",
+                "82520f59795b6a807d273a8ba01f32dd2c69453cba7770b64f0bd2cb89b3f4f8",
+                "f32aa5df4959debd6def00d24037967ee64dded4920b3d1fd2c04180f191395b",
+                "45067806d3546e89d7a10b9b617e50e68f9d2f92bd14ae658a6ebfcd51ec5c37"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0058,
+                0.006,
+                0.0059,
+                0.0056,
+                0.0059
+              ],
+              "median_ms": 0.0059,
+              "sample_input_sha256": [
+                "b5ae111c8be7a197ab3ab72a59c69beecd87b18ef36446939aa7b3fa4834834a",
+                "fbd8f4570afde9b79dd09298256acf8e79f04290eff642543acb01e1502d2c99",
+                "191f57996b6ed1226c55254f22e32818e07602a454ae138b2913611cbf02187c",
+                "2d42f9307851b1a6173a3c2c4ebe7e8e438aee880050390c535f610bb1138021",
+                "f69f0bc72652225e55bad8d41fed79fe341de1a2d1cc8ec1646c1210da883edf"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0051,
+                0.0052,
+                0.0052,
+                0.0051,
+                0.0053
+              ],
+              "median_ms": 0.0052,
+              "sample_input_sha256": [
+                "3fe6bfb8d005793e54db5a1ccb2e24cdaad209e2ddc91c110f49c013ffd8f944",
+                "13fb1d6d82d253db4548d77a71e7c9c54ca21691965fa753da89b00cc20eb5be",
+                "96e6fb5b0fcb2568103b2c250b613636e4dfa839deba002cf8234e246d72d6c9",
+                "27506b1ca2344d32a03d995f375753fb8dd0ddd4939ccc771594658077f08299",
+                "d29ae435fc0c1c9bb32c59810098138b0c56e738a527d32a50391c5a2edda7c4"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0043,
+                0.0042,
+                0.0041,
+                0.0042,
+                0.0043
+              ],
+              "median_ms": 0.0042,
+              "sample_input_sha256": [
+                "6d6d4ca219d17c233d601a71cd900ca65158815fc88572c7f97791013d53c9ee",
+                "7beaee4b5d6ffe22a955b399456a8396e604547983df2aef8eab43cae84df769",
+                "d9706bf157d4b33a98a426b510c9ba2a0d43b983b9331a2f5696b204be8fc4c5",
+                "b0a367d4b838550486dc3e540ad707ff3fe9c016dd56efdcbf0398761c083c74",
+                "5d47f80ea8679048808669d912c4d904be07ea6609e412d6243550ccca01c200"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "baseline",
+          "trial": "trial-002",
+          "source_result": "softmax-cpu/workbench/20261103T155842Z-9466b60fa9/baseline/trial-002/result.json",
+          "source_sha256": "128420def0c712683758bed15189b6cf97ef2ca26c2a79bc95cdfbe3bbf50170",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "softmax-cpu",
+            "task_sha256": "88b56ab74d5dfd449e7f0a908df4ebc64c88adcb0be8ece0ace924de382b372a",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "19ebd40f558705986eaad7c1dc49e97faeb0056530689e9697ff1e05b13fd7ab",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.045500000000000006
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0146,
+                0.014,
+                0.0133,
+                0.0152,
+                0.0137
+              ],
+              "median_ms": 0.014,
+              "sample_input_sha256": [
+                "78bfd0e8bfa10afbffe87f26d4c710897fb136cbfb7b13ad73b972d0147f309b",
+                "9b43630dbbb0ae53a4c0cdb5583f0ae2be837d7a7da9d90f9d27fba2ed7ba77f",
+                "8f787cdc0e3cedeb2c2fe76b0fd900aa49f28501223f615bf803d5c75942160c",
+                "6527163cb056b965d7fc5847083a5815e4d7303d0c33f4296c4a85ad249617eb",
+                "b76ac149343dc83a7f95bf9dd6e0ce7be2959c503e6d22f94c68043c43b748d0"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0162,
+                0.0167,
+                0.0165,
+                0.0167,
+                0.0166
+              ],
+              "median_ms": 0.0166,
+              "sample_input_sha256": [
+                "dcd2a3deded615bc4ee4c934c5d8781d96c4c2cc2f8326a452eb8e00351546f0",
+                "00a0dc1c4c7da3ec6f26bdf0c35a420189c6558cd9eacc648cbf6fa8d3769cd0",
+                "82520f59795b6a807d273a8ba01f32dd2c69453cba7770b64f0bd2cb89b3f4f8",
+                "f32aa5df4959debd6def00d24037967ee64dded4920b3d1fd2c04180f191395b",
+                "45067806d3546e89d7a10b9b617e50e68f9d2f92bd14ae658a6ebfcd51ec5c37"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0056,
+                0.0061,
+                0.0056,
+                0.0056,
+                0.0058
+              ],
+              "median_ms": 0.0056,
+              "sample_input_sha256": [
+                "b5ae111c8be7a197ab3ab72a59c69beecd87b18ef36446939aa7b3fa4834834a",
+                "fbd8f4570afde9b79dd09298256acf8e79f04290eff642543acb01e1502d2c99",
+                "191f57996b6ed1226c55254f22e32818e07602a454ae138b2913611cbf02187c",
+                "2d42f9307851b1a6173a3c2c4ebe7e8e438aee880050390c535f610bb1138021",
+                "f69f0bc72652225e55bad8d41fed79fe341de1a2d1cc8ec1646c1210da883edf"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0058,
+                0.0056,
+                0.0048,
+                0.0052,
+                0.0052
+              ],
+              "median_ms": 0.0052,
+              "sample_input_sha256": [
+                "3fe6bfb8d005793e54db5a1ccb2e24cdaad209e2ddc91c110f49c013ffd8f944",
+                "13fb1d6d82d253db4548d77a71e7c9c54ca21691965fa753da89b00cc20eb5be",
+                "96e6fb5b0fcb2568103b2c250b613636e4dfa839deba002cf8234e246d72d6c9",
+                "27506b1ca2344d32a03d995f375753fb8dd0ddd4939ccc771594658077f08299",
+                "d29ae435fc0c1c9bb32c59810098138b0c56e738a527d32a50391c5a2edda7c4"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0047,
+                0.004,
+                0.0043,
+                0.0041,
+                0.0041
+              ],
+              "median_ms": 0.0041,
+              "sample_input_sha256": [
+                "6d6d4ca219d17c233d601a71cd900ca65158815fc88572c7f97791013d53c9ee",
+                "7beaee4b5d6ffe22a955b399456a8396e604547983df2aef8eab43cae84df769",
+                "d9706bf157d4b33a98a426b510c9ba2a0d43b983b9331a2f5696b204be8fc4c5",
+                "b0a367d4b838550486dc3e540ad707ff3fe9c016dd56efdcbf0398761c083c74",
+                "5d47f80ea8679048808669d912c4d904be07ea6609e412d6243550ccca01c200"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "baseline",
+          "trial": "trial-003",
+          "source_result": "softmax-cpu/workbench/20261103T155842Z-9466b60fa9/baseline/trial-003/result.json",
+          "source_sha256": "cb51e799d2270c94c1a552fc00dcaf832fcf7d8afca3f1c53584e27d4bd45129",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "softmax-cpu",
+            "task_sha256": "88b56ab74d5dfd449e7f0a908df4ebc64c88adcb0be8ece0ace924de382b372a",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "19ebd40f558705986eaad7c1dc49e97faeb0056530689e9697ff1e05b13fd7ab",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.1093
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0332,
+                0.0326,
+                0.0302,
+                0.0324,
+                0.0305
+              ],
+              "median_ms": 0.0324,
+              "sample_input_sha256": [
+                "78bfd0e8bfa10afbffe87f26d4c710897fb136cbfb7b13ad73b972d0147f309b",
+                "9b43630dbbb0ae53a4c0cdb5583f0ae2be837d7a7da9d90f9d27fba2ed7ba77f",
+                "8f787cdc0e3cedeb2c2fe76b0fd900aa49f28501223f615bf803d5c75942160c",
+                "6527163cb056b965d7fc5847083a5815e4d7303d0c33f4296c4a85ad249617eb",
+                "b76ac149343dc83a7f95bf9dd6e0ce7be2959c503e6d22f94c68043c43b748d0"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0341,
+                0.0344,
+                0.0343,
+                0.0335,
+                0.0343
+              ],
+              "median_ms": 0.0343,
+              "sample_input_sha256": [
+                "dcd2a3deded615bc4ee4c934c5d8781d96c4c2cc2f8326a452eb8e00351546f0",
+                "00a0dc1c4c7da3ec6f26bdf0c35a420189c6558cd9eacc648cbf6fa8d3769cd0",
+                "82520f59795b6a807d273a8ba01f32dd2c69453cba7770b64f0bd2cb89b3f4f8",
+                "f32aa5df4959debd6def00d24037967ee64dded4920b3d1fd2c04180f191395b",
+                "45067806d3546e89d7a10b9b617e50e68f9d2f92bd14ae658a6ebfcd51ec5c37"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0157,
+                0.0163,
+                0.0154,
+                0.0314,
+                0.0191
+              ],
+              "median_ms": 0.0163,
+              "sample_input_sha256": [
+                "b5ae111c8be7a197ab3ab72a59c69beecd87b18ef36446939aa7b3fa4834834a",
+                "fbd8f4570afde9b79dd09298256acf8e79f04290eff642543acb01e1502d2c99",
+                "191f57996b6ed1226c55254f22e32818e07602a454ae138b2913611cbf02187c",
+                "2d42f9307851b1a6173a3c2c4ebe7e8e438aee880050390c535f610bb1138021",
+                "f69f0bc72652225e55bad8d41fed79fe341de1a2d1cc8ec1646c1210da883edf"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.014,
+                0.015,
+                0.0144,
+                0.0152,
+                0.0156
+              ],
+              "median_ms": 0.015,
+              "sample_input_sha256": [
+                "3fe6bfb8d005793e54db5a1ccb2e24cdaad209e2ddc91c110f49c013ffd8f944",
+                "13fb1d6d82d253db4548d77a71e7c9c54ca21691965fa753da89b00cc20eb5be",
+                "96e6fb5b0fcb2568103b2c250b613636e4dfa839deba002cf8234e246d72d6c9",
+                "27506b1ca2344d32a03d995f375753fb8dd0ddd4939ccc771594658077f08299",
+                "d29ae435fc0c1c9bb32c59810098138b0c56e738a527d32a50391c5a2edda7c4"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0127,
+                0.0123,
+                0.0113,
+                0.0113,
+                0.011
+              ],
+              "median_ms": 0.0113,
+              "sample_input_sha256": [
+                "6d6d4ca219d17c233d601a71cd900ca65158815fc88572c7f97791013d53c9ee",
+                "7beaee4b5d6ffe22a955b399456a8396e604547983df2aef8eab43cae84df769",
+                "d9706bf157d4b33a98a426b510c9ba2a0d43b983b9331a2f5696b204be8fc4c5",
+                "b0a367d4b838550486dc3e540ad707ff3fe9c016dd56efdcbf0398761c083c74",
+                "5d47f80ea8679048808669d912c4d904be07ea6609e412d6243550ccca01c200"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "candidate",
+          "trial": "trial-001",
+          "source_result": "softmax-cpu/workbench/20261103T155842Z-9466b60fa9/candidate/trial-001/result.json",
+          "source_sha256": "3dd12e1fd31a06c3bcf07a42317b2caf8db41afb4406a3dc5ff210a15c724b35",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "softmax-cpu",
+            "task_sha256": "88b56ab74d5dfd449e7f0a908df4ebc64c88adcb0be8ece0ace924de382b372a",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "d36d5f8f69a38a0c034f7288c4613132b3b8a1dbf36bfe839690444616a9ff11",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.0426
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0136,
+                0.0133,
+                0.0125,
+                0.0119,
+                0.0119
+              ],
+              "median_ms": 0.0125,
+              "sample_input_sha256": [
+                "78bfd0e8bfa10afbffe87f26d4c710897fb136cbfb7b13ad73b972d0147f309b",
+                "9b43630dbbb0ae53a4c0cdb5583f0ae2be837d7a7da9d90f9d27fba2ed7ba77f",
+                "8f787cdc0e3cedeb2c2fe76b0fd900aa49f28501223f615bf803d5c75942160c",
+                "6527163cb056b965d7fc5847083a5815e4d7303d0c33f4296c4a85ad249617eb",
+                "b76ac149343dc83a7f95bf9dd6e0ce7be2959c503e6d22f94c68043c43b748d0"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.015,
+                0.0147,
+                0.0146,
+                0.0152,
+                0.0144
+              ],
+              "median_ms": 0.0147,
+              "sample_input_sha256": [
+                "dcd2a3deded615bc4ee4c934c5d8781d96c4c2cc2f8326a452eb8e00351546f0",
+                "00a0dc1c4c7da3ec6f26bdf0c35a420189c6558cd9eacc648cbf6fa8d3769cd0",
+                "82520f59795b6a807d273a8ba01f32dd2c69453cba7770b64f0bd2cb89b3f4f8",
+                "f32aa5df4959debd6def00d24037967ee64dded4920b3d1fd2c04180f191395b",
+                "45067806d3546e89d7a10b9b617e50e68f9d2f92bd14ae658a6ebfcd51ec5c37"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0058,
+                0.0059,
+                0.0058,
+                0.0056,
+                0.0058
+              ],
+              "median_ms": 0.0058,
+              "sample_input_sha256": [
+                "b5ae111c8be7a197ab3ab72a59c69beecd87b18ef36446939aa7b3fa4834834a",
+                "fbd8f4570afde9b79dd09298256acf8e79f04290eff642543acb01e1502d2c99",
+                "191f57996b6ed1226c55254f22e32818e07602a454ae138b2913611cbf02187c",
+                "2d42f9307851b1a6173a3c2c4ebe7e8e438aee880050390c535f610bb1138021",
+                "f69f0bc72652225e55bad8d41fed79fe341de1a2d1cc8ec1646c1210da883edf"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0053,
+                0.005,
+                0.005,
+                0.0055,
+                0.0054
+              ],
+              "median_ms": 0.0053,
+              "sample_input_sha256": [
+                "3fe6bfb8d005793e54db5a1ccb2e24cdaad209e2ddc91c110f49c013ffd8f944",
+                "13fb1d6d82d253db4548d77a71e7c9c54ca21691965fa753da89b00cc20eb5be",
+                "96e6fb5b0fcb2568103b2c250b613636e4dfa839deba002cf8234e246d72d6c9",
+                "27506b1ca2344d32a03d995f375753fb8dd0ddd4939ccc771594658077f08299",
+                "d29ae435fc0c1c9bb32c59810098138b0c56e738a527d32a50391c5a2edda7c4"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0041,
+                0.0039,
+                0.0108,
+                0.005,
+                0.0043
+              ],
+              "median_ms": 0.0043,
+              "sample_input_sha256": [
+                "6d6d4ca219d17c233d601a71cd900ca65158815fc88572c7f97791013d53c9ee",
+                "7beaee4b5d6ffe22a955b399456a8396e604547983df2aef8eab43cae84df769",
+                "d9706bf157d4b33a98a426b510c9ba2a0d43b983b9331a2f5696b204be8fc4c5",
+                "b0a367d4b838550486dc3e540ad707ff3fe9c016dd56efdcbf0398761c083c74",
+                "5d47f80ea8679048808669d912c4d904be07ea6609e412d6243550ccca01c200"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "candidate",
+          "trial": "trial-002",
+          "source_result": "softmax-cpu/workbench/20261103T155842Z-9466b60fa9/candidate/trial-002/result.json",
+          "source_sha256": "232c9351a68fa3776912588492578172618bb3a396d2bf1c66159f393a7c1f7a",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "softmax-cpu",
+            "task_sha256": "88b56ab74d5dfd449e7f0a908df4ebc64c88adcb0be8ece0ace924de382b372a",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "d36d5f8f69a38a0c034f7288c4613132b3b8a1dbf36bfe839690444616a9ff11",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.0422
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0137,
+                0.013,
+                0.0128,
+                0.0136,
+                0.0125
+              ],
+              "median_ms": 0.013,
+              "sample_input_sha256": [
+                "78bfd0e8bfa10afbffe87f26d4c710897fb136cbfb7b13ad73b972d0147f309b",
+                "9b43630dbbb0ae53a4c0cdb5583f0ae2be837d7a7da9d90f9d27fba2ed7ba77f",
+                "8f787cdc0e3cedeb2c2fe76b0fd900aa49f28501223f615bf803d5c75942160c",
+                "6527163cb056b965d7fc5847083a5815e4d7303d0c33f4296c4a85ad249617eb",
+                "b76ac149343dc83a7f95bf9dd6e0ce7be2959c503e6d22f94c68043c43b748d0"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0148,
+                0.014,
+                0.0146,
+                0.0153,
+                0.0143
+              ],
+              "median_ms": 0.0146,
+              "sample_input_sha256": [
+                "dcd2a3deded615bc4ee4c934c5d8781d96c4c2cc2f8326a452eb8e00351546f0",
+                "00a0dc1c4c7da3ec6f26bdf0c35a420189c6558cd9eacc648cbf6fa8d3769cd0",
+                "82520f59795b6a807d273a8ba01f32dd2c69453cba7770b64f0bd2cb89b3f4f8",
+                "f32aa5df4959debd6def00d24037967ee64dded4920b3d1fd2c04180f191395b",
+                "45067806d3546e89d7a10b9b617e50e68f9d2f92bd14ae658a6ebfcd51ec5c37"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0055,
+                0.0057,
+                0.0055,
+                0.0055,
+                0.0056
+              ],
+              "median_ms": 0.0055,
+              "sample_input_sha256": [
+                "b5ae111c8be7a197ab3ab72a59c69beecd87b18ef36446939aa7b3fa4834834a",
+                "fbd8f4570afde9b79dd09298256acf8e79f04290eff642543acb01e1502d2c99",
+                "191f57996b6ed1226c55254f22e32818e07602a454ae138b2913611cbf02187c",
+                "2d42f9307851b1a6173a3c2c4ebe7e8e438aee880050390c535f610bb1138021",
+                "f69f0bc72652225e55bad8d41fed79fe341de1a2d1cc8ec1646c1210da883edf"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0051,
+                0.0054,
+                0.0051,
+                0.0051,
+                0.0053
+              ],
+              "median_ms": 0.0051,
+              "sample_input_sha256": [
+                "3fe6bfb8d005793e54db5a1ccb2e24cdaad209e2ddc91c110f49c013ffd8f944",
+                "13fb1d6d82d253db4548d77a71e7c9c54ca21691965fa753da89b00cc20eb5be",
+                "96e6fb5b0fcb2568103b2c250b613636e4dfa839deba002cf8234e246d72d6c9",
+                "27506b1ca2344d32a03d995f375753fb8dd0ddd4939ccc771594658077f08299",
+                "d29ae435fc0c1c9bb32c59810098138b0c56e738a527d32a50391c5a2edda7c4"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0041,
+                0.0039,
+                0.0041,
+                0.004,
+                0.004
+              ],
+              "median_ms": 0.004,
+              "sample_input_sha256": [
+                "6d6d4ca219d17c233d601a71cd900ca65158815fc88572c7f97791013d53c9ee",
+                "7beaee4b5d6ffe22a955b399456a8396e604547983df2aef8eab43cae84df769",
+                "d9706bf157d4b33a98a426b510c9ba2a0d43b983b9331a2f5696b204be8fc4c5",
+                "b0a367d4b838550486dc3e540ad707ff3fe9c016dd56efdcbf0398761c083c74",
+                "5d47f80ea8679048808669d912c4d904be07ea6609e412d6243550ccca01c200"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        },
+        {
+          "side": "candidate",
+          "trial": "trial-003",
+          "source_result": "softmax-cpu/workbench/20261103T155842Z-9466b60fa9/candidate/trial-003/result.json",
+          "source_sha256": "5c937be24fb41fa0960c7beceac63b83eef26f4bb8d85706875a96b2a2c7994b",
+          "status": "completed",
+          "passed": true,
+          "identity": {
+            "task_id": "softmax-cpu",
+            "task_sha256": "88b56ab74d5dfd449e7f0a908df4ebc64c88adcb0be8ece0ace924de382b372a",
+            "grader_sha256": "0b75b5bbe7fc048293a6c8b4c2e9a35d1cbf63c27b16b420f3f49da3efb57407",
+            "candidate_sha256": "d36d5f8f69a38a0c034f7288c4613132b3b8a1dbf36bfe839690444616a9ff11",
+            "runtime_sha256": "2141480b7ee5ecc2ccc6bd0032db5c6cd6816403a8f2e790abb187e41b1ab844"
+          },
+          "environment": {
+            "backend": "cpu",
+            "python": "3.11.18",
+            "numpy": "2.4.6",
+            "os": "Windows",
+            "machine": "AMD64"
+          },
+          "measurement": {
+            "aggregation": "sum-of-per-case-medians",
+            "boundary": "synchronous-compute-call",
+            "case_ids": [
+              "normal",
+              "strided",
+              "large",
+              "tiny",
+              "singleton"
+            ],
+            "input_sequence": "seeded-distinct-per-call-v1",
+            "key": "metrics.suite_latency_ms",
+            "samples": 5,
+            "unit": "ms",
+            "warmups": 2
+          },
+          "metrics": {
+            "suite_latency_ms": 0.044800000000000006
+          },
+          "cases": [
+            {
+              "id": "normal",
+              "samples_ms": [
+                0.0143,
+                0.0172,
+                0.0136,
+                0.0144,
+                0.014
+              ],
+              "median_ms": 0.0143,
+              "sample_input_sha256": [
+                "78bfd0e8bfa10afbffe87f26d4c710897fb136cbfb7b13ad73b972d0147f309b",
+                "9b43630dbbb0ae53a4c0cdb5583f0ae2be837d7a7da9d90f9d27fba2ed7ba77f",
+                "8f787cdc0e3cedeb2c2fe76b0fd900aa49f28501223f615bf803d5c75942160c",
+                "6527163cb056b965d7fc5847083a5815e4d7303d0c33f4296c4a85ad249617eb",
+                "b76ac149343dc83a7f95bf9dd6e0ce7be2959c503e6d22f94c68043c43b748d0"
+              ]
+            },
+            {
+              "id": "strided",
+              "samples_ms": [
+                0.0156,
+                0.0153,
+                0.0151,
+                0.0154,
+                0.0147
+              ],
+              "median_ms": 0.0153,
+              "sample_input_sha256": [
+                "dcd2a3deded615bc4ee4c934c5d8781d96c4c2cc2f8326a452eb8e00351546f0",
+                "00a0dc1c4c7da3ec6f26bdf0c35a420189c6558cd9eacc648cbf6fa8d3769cd0",
+                "82520f59795b6a807d273a8ba01f32dd2c69453cba7770b64f0bd2cb89b3f4f8",
+                "f32aa5df4959debd6def00d24037967ee64dded4920b3d1fd2c04180f191395b",
+                "45067806d3546e89d7a10b9b617e50e68f9d2f92bd14ae658a6ebfcd51ec5c37"
+              ]
+            },
+            {
+              "id": "large",
+              "samples_ms": [
+                0.0059,
+                0.0062,
+                0.0058,
+                0.006,
+                0.006
+              ],
+              "median_ms": 0.006,
+              "sample_input_sha256": [
+                "b5ae111c8be7a197ab3ab72a59c69beecd87b18ef36446939aa7b3fa4834834a",
+                "fbd8f4570afde9b79dd09298256acf8e79f04290eff642543acb01e1502d2c99",
+                "191f57996b6ed1226c55254f22e32818e07602a454ae138b2913611cbf02187c",
+                "2d42f9307851b1a6173a3c2c4ebe7e8e438aee880050390c535f610bb1138021",
+                "f69f0bc72652225e55bad8d41fed79fe341de1a2d1cc8ec1646c1210da883edf"
+              ]
+            },
+            {
+              "id": "tiny",
+              "samples_ms": [
+                0.0052,
+                0.0053,
+                0.0052,
+                0.005,
+                0.0056
+              ],
+              "median_ms": 0.0052,
+              "sample_input_sha256": [
+                "3fe6bfb8d005793e54db5a1ccb2e24cdaad209e2ddc91c110f49c013ffd8f944",
+                "13fb1d6d82d253db4548d77a71e7c9c54ca21691965fa753da89b00cc20eb5be",
+                "96e6fb5b0fcb2568103b2c250b613636e4dfa839deba002cf8234e246d72d6c9",
+                "27506b1ca2344d32a03d995f375753fb8dd0ddd4939ccc771594658077f08299",
+                "d29ae435fc0c1c9bb32c59810098138b0c56e738a527d32a50391c5a2edda7c4"
+              ]
+            },
+            {
+              "id": "singleton",
+              "samples_ms": [
+                0.0042,
+                0.004,
+                0.0039,
+                0.004,
+                0.004
+              ],
+              "median_ms": 0.004,
+              "sample_input_sha256": [
+                "6d6d4ca219d17c233d601a71cd900ca65158815fc88572c7f97791013d53c9ee",
+                "7beaee4b5d6ffe22a955b399456a8396e604547983df2aef8eab43cae84df769",
+                "d9706bf157d4b33a98a426b510c9ba2a0d43b983b9331a2f5696b204be8fc4c5",
+                "b0a367d4b838550486dc3e540ad707ff3fe9c016dd56efdcbf0398761c083c74",
+                "5d47f80ea8679048808669d912c4d904be07ea6609e412d6243550ccca01c200"
+              ]
+            }
+          ],
+          "assertions_passed": 164,
+          "planned_and_executed_input_sequence_matches_summary": true
+        }
+      ],
+      "evaluation": {
+        "verdict": "PASS",
+        "reasons": [],
+        "metric_key": "metrics.suite_latency_ms",
+        "metric_unit": "ms",
+        "comparison_scope": "softmax-cpu:synchronous-compute-call",
+        "direction": "minimize",
+        "min_improvement_pct": 0,
+        "baseline": {
+          "values": [
+            0.044000000000000004,
+            0.045500000000000006,
+            0.1093
+          ],
+          "median": 0.045500000000000006,
+          "min": 0.044000000000000004,
+          "max": 0.1093,
+          "range_pct_of_median": 143.5164835164835,
+          "excluded_trials": 0
+        },
+        "candidate": {
+          "values": [
+            0.0426,
+            0.0422,
+            0.044800000000000006
+          ],
+          "median": 0.0426,
+          "min": 0.0422,
+          "max": 0.044800000000000006,
+          "range_pct_of_median": 6.1032863849765375,
+          "excluded_trials": 0
+        },
+        "improvement_pct": 6.373626373626387,
+        "measurement_method": "Alternating AB/BA sequential trials; median and range are descriptive only.",
+        "quality_contract": "Exit zero covers only the supplied validation command; inspect its logs and coverage.",
+        "source_integrity": {
+          "verified": true,
+          "reason": "Git source snapshots unchanged",
+          "command_checks": 7
+        },
+        "statistical_significance": "not established"
+      },
+      "source_evaluation_sha256": "2015ce893c327c7c5c65800d1f7b1e81c630e94c4e8dca0b98b513c573e462c7",
+      "profile": {
+        "path": "replay-profiles/softmax-cpu.txt",
+        "sha256": "a0d40fe469c8bb794dd2a7c9a918fc4e0d98c0f0f1fb378e96ea21e6547e37d1",
+        "copied_without_byte_changes": true,
+        "compute_calls": 35
+      }
+    }
+  ]
+}
