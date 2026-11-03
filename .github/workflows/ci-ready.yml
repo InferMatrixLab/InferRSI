@@ -68,6 +68,22 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: python3 tools/check_pr_references.py
 
+  evidence-budget:
+    # Enforces per-file (512 KiB) and per-PR (2.0 MiB) byte budgets on evidence/ (Refs #273, R6)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Verify evidence byte budgets
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: python3 tools/check_evidence_budget.py --base "$BASE_SHA"
+
   kv-task-qualification:
     # Bounded software-control qualification; not a branch-protection or efficacy gate.
     if: github.event.pull_request.draft == false
