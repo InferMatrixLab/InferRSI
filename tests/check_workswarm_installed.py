@@ -8,33 +8,27 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import logging
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
-
-
-def extended_path(path: Path) -> Path:
-    path = path.resolve()
-    if os.name == "nt" and not str(path).startswith("\\\\?\\"):
-        return Path("\\\\?\\UNC\\" + str(path)[2:] if str(path).startswith("\\\\")
-                    else "\\\\?\\" + str(path))
-    return path
 
 
 def check(archive: Path, host_source: Path) -> dict:
     archive = archive.resolve()
     host_source = host_source.resolve()
     # Resolve explicit inputs before changing cwd. Host imports can create logs.
-    with tempfile.TemporaryDirectory(
-        prefix="irsi-host-", dir=extended_path(Path(tempfile.gettempdir())),
-    ) as scratch:
+    with tempfile.TemporaryDirectory(prefix="irsi-host-") as scratch:
         previous_cwd = Path.cwd()
         os.chdir(scratch)
-        data = extended_path(Path(scratch) / "host-data")
+        data = (Path(scratch) / "host-data").resolve()
+        assert not str(data).startswith("\\\\?\\")
         os.environ["JIUWENSWARM_DATA_DIR"] = str(data)
         sys.path.insert(0, str(host_source))
         sys.dont_write_bytecode = True
@@ -79,8 +73,14 @@ def check(archive: Path, host_source: Path) -> dict:
 
                 runtime = installed / "runtime"
                 manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))
-                for name, digest in manifest["files"].items():
-                    assert hashlib.sha256((runtime / name).read_bytes()).hexdigest() == digest
+                payload_bytes = (runtime / "payload.zip").read_bytes()
+                assert hashlib.sha256(payload_bytes).hexdigest() == manifest["payload_sha256"]
+                assert hashlib.sha256((runtime / "launcher.py").read_bytes()).hexdigest() == (
+                    manifest["launcher_sha256"])
+                with zipfile.ZipFile(io.BytesIO(payload_bytes)) as payload:
+                    assert set(payload.namelist()) == set(manifest["files"])
+                    for name, digest in manifest["files"].items():
+                        assert hashlib.sha256(payload.read(name)).hexdigest() == digest
                 rendered = Path(scratch) / f"rendered-{cycle}.json"
                 handoff = subprocess.run(
                     [sys.executable, "-X", "utf8",
@@ -101,6 +101,7 @@ def check(archive: Path, host_source: Path) -> dict:
                     result = subprocess.run(
                         [sys.executable, "-I", "-S", "-X", "utf8", str(launcher), *args],
                         cwd=workspace, capture_output=True, text=True, encoding="utf-8", timeout=45,
+                        env=dict(os.environ, LOCALAPPDATA=str(Path(scratch) / "runtime-cache")),
                     )
                     assert result.returncode == expected, (
                         "Installed CLI returned an unexpected code"
@@ -127,6 +128,7 @@ def check(archive: Path, host_source: Path) -> dict:
                 "content_sha256": info["content_sha256"],
                 "completed_cycles": cycle + 1,
                 "checks": ["import", "install", "card discovery", "selection metadata",
+                           "ordinary host data root without extended-length prefix",
                            "installed file hashes", "model-rendered skill and locator handoff",
                            "native extension unload", "isolated launcher", "exact revision read",
                            "stale revision rejection", "uninstall", "reinstall",
@@ -138,6 +140,14 @@ def check(archive: Path, host_source: Path) -> dict:
             # close them before TemporaryDirectory removes its Windows tree.
             logging.shutdown()
             os.chdir(previous_cwd)
+            # The host root above is deliberately ordinary. Only our private
+            # expanded cache needs extended paths during Windows scratch cleanup.
+            cache = Path(scratch) / "runtime-cache"
+            if cache.exists() and os.name == "nt":
+                assert cache.resolve().is_relative_to(Path(scratch).resolve())
+                value = str(cache.resolve())
+                shutil.rmtree("\\\\?\\UNC\\" + value[2:] if value.startswith("\\\\")
+                              else "\\\\?\\" + value)
 
 
 if __name__ == "__main__":

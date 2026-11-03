@@ -20,7 +20,7 @@ def build_plugin(
     return build_bundle(
         output, project=project, release_version=release_version,
         template_path="plugins/workswarm/inferrsi", metadata_file="manifest.json",
-        readme="docs/workswarm-plugin.md", nested=True,
+        readme="docs/workswarm-plugin.md", nested=True, compact_runtime=True,
     )
 
 

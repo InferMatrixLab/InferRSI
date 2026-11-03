@@ -27,7 +27,9 @@ class InferRSIRuntimeInfoTool(Tool):
             root = Path(__file__).resolve().parent.parent
             launcher = root / "skills/inferrsi/scripts/inferrsi.py"
             if (not launcher.is_file()
-                    or not (root / "runtime/inferrsi/__init__.py").is_file()):
+                    or not (root / "runtime/payload.zip").is_file()
+                    or not (root / "runtime/launcher.py").is_file()
+                    or not (root / "runtime/manifest.json").is_file()):
                 return {
                     "success": False,
                     "error": "InferRSI bundle is incomplete; reinstall the built WorkSwarm ZIP.",

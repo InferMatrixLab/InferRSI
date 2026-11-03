@@ -30,7 +30,8 @@ inferrsi/
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
   runtime/manifest.json
-  runtime/inferrsi/
+  runtime/payload.zip
+  runtime/launcher.py
   LICENSE
   README.md
 ```
@@ -39,7 +40,11 @@ The native manifest declares `package_type: plugin`, `id: inferrsi`, one
 skill with `mode: all` and the read-only `inferrsi_runtime_info` tool. Codex
 uses a different installation manifest; use the
 archive built for your host. Both builders copy the same canonical runtime,
-knowledge, resource notices and launcher. The source template alone is incomplete.
+knowledge, resource notices and shared launcher. WorkSwarm keeps that runtime
+tree inside `runtime/payload.zip`, so its importer never copies deep resource
+paths. The entry bootstrap verifies every payload file, its content identity
+and the shared launcher before using a private per-user runtime cache. The
+source template alone is incomplete.
 Choose a fresh `--output <directory>` for another build; existing outputs and
 archives are never overwritten. Building does not register the plugin in a host.
 
@@ -89,9 +94,10 @@ python -X utf8 "<PLUGIN_ROOT>/skills/inferrsi/scripts/inferrsi.py" --plugin-info
 python -X utf8 "<PLUGIN_ROOT>/skills/inferrsi/scripts/inferrsi.py" --help
 ```
 
-`--plugin-info` reports runtime/plugin versions and the build's content identity;
-it does not verify every installed file. The bundle manifest records per-file
-SHA-256 values. A missing runtime has a reinstall/build repair path. Knowledge
+`--plugin-info` reports runtime/plugin versions and the build's content identity.
+The WorkSwarm bootstrap verifies the payload and cached files before every
+invocation. The bundle manifest records per-file SHA-256 values. A missing or
+modified runtime fails with a repair message. Knowledge
 reads retain their qualified identity, exact revision and attribution; stale
 revisions are rejected rather than silently replaced.
 
@@ -125,6 +131,18 @@ Duplicate package IDs are rejected; do not bypass the host registry. Use the
 native uninstall action to remove the package. Keep experiment evidence outside
 the package directory. Uninstall does not cancel an owned run or delete evidence
 in target directories. The adapter adds no service, hook or scheduler.
+
+The verified runtime cache is under `%LOCALAPPDATA%/InferRSI/workswarm-runtime/`
+on Windows, or `~/.cache/InferRSI/workswarm-runtime/` elsewhere. It is independent
+of the host profile and target repository. Content-addressed entries are
+published atomically and verified before use, including concurrent first use.
+The shared launcher runs in the same foreground process, preserving cancellation,
+cwd and exit codes. The cache persists after commands and uninstall so paths
+returned by `skills reference` and `skills resource` remain usable. After all
+owned invocations finish, that cache directory can be removed to reclaim space;
+the next invocation rebuilds its required entry. Modified cache entries are
+rejected rather than executed. Remove the affected entry and retry from a
+verified package to repair it. No host configuration or Windows policy is changed.
 
 ## Compatibility and verification
 
@@ -165,30 +183,30 @@ subprocess so its SDK log handles close before the parent removes the temporary
 profile. The replay invokes no model and does not change the desktop user's profile.
 
 Windows v0.2.7's importer stages and copies the entire package under its data
-root. The canonical knowledge tree contains deep paths, so native import may
-fail with `WinError 206` / `WinError 3` when the host process does not support
-extended-length paths. The builder's Windows path support does not repair the
-host's later copy. An isolated backend can be checked with a process-local
-extended-length absolute `JIUWENSWARM_DATA_DIR`; this is not proof that an
-existing desktop instance uses that spelling. Do not relocate user data or
-change global Windows policy merely to test a package.
+root. The earlier unpacked layout reproduced `WinError 206` / missing-file
+errors in the desktop's ordinary profile. The compact outer package avoids
+those deep import paths; the bootstrap uses extended-length paths only for
+its own verified Windows cache. Native lifecycle checks use an ordinary data
+root without a `\\?\` prefix, rather than masking the importer failure by
+changing the host environment.
 
 Validation on **2026-11-03, Windows / Python 3.12**:
 
 | Check | Observed scope |
 | --- | --- |
 | Official v0.2.7 validator | Quality, static checks and real hot-load passed with zero errors/warnings; one skill and one read-only locator bound |
-| Native backend lifecycle | Two import/install/uninstall cycles completed using an extended-length isolated data root; reinstall, selection metadata and unrelated registry/evidence preservation checked |
+| Native backend lifecycle | Ordinary isolated data-root import/install/uninstall replay; reinstall, selection metadata and unrelated registry/evidence preservation checks |
 | Model-facing bootstrap | Native skill discovery and locator ToolMessages resolve the installed launcher; isolated CLI invocation, unknown-argument rejection and extension unload checked without calling a model |
 | Extracted runtime | Both host distributions exercise canonical bytes/notices, isolated exact knowledge reads, stale-revision rejection, optional dependency guidance, preview without execution and synthetic CPU run/status/report for all three verdicts |
-| Desktop UI, LLM dispatch, cancellation/reconnect | Not exercised |
+| Running desktop backend | Compact ZIP imported and installed through the running desktop's native RPCs in its unchanged default profile; installed launcher and resource reads checked |
+| Desktop click workflow, LLM dispatch, cancellation/reconnect | UI error text inspected; click automation unavailable, so a complete UI installation journey and model/cancellation tests remain unverified |
 
 Plain unbuilt source reports runtime version `0+unknown`; `--plugin-info`
 reports that development state explicitly. A versioned build can use
 `--release-version <version>` only when the already-built runtime agrees;
 this stamps generated host metadata without modifying canonical source bytes.
 
-Actual desktop/LLM journeys,
+Actual end-to-end desktop/LLM journeys,
 cancellation/reconnect, other host releases and Linux/macOS installation require
 their own verification. Packaging or hot-load success alone does not complete
 the RFC or demonstrate a usability improvement.

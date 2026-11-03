@@ -41,9 +41,23 @@ def _version(path: Path) -> str:
     raise ValueError("Runtime __version__ is missing")
 
 
+def _zip_tree(root: Path, destination: Path, prefix: str = "") -> None:
+    with zipfile.ZipFile(destination, "x", compression=zipfile.ZIP_DEFLATED) as bundle:
+        for path in sorted(root.rglob("*")):
+            if path.is_file():
+                info = zipfile.ZipInfo(
+                    prefix + path.relative_to(root).as_posix(),
+                    date_time=(1980, 1, 1, 0, 0, 0),
+                )
+                info.compress_type = zipfile.ZIP_DEFLATED
+                info.external_attr = 0o100644 << 16
+                bundle.writestr(info, path.read_bytes())
+
+
 def build_bundle(
     output: Path, *, template_path: str, metadata_file: str, readme: str,
     project: Path = PROJECT, release_version: str | None = None, nested: bool = False,
+    compact_runtime: bool = False,
 ) -> dict:
     """Create a fresh distribution; never replace user configuration or earlier builds."""
     output = output.resolve()
@@ -76,9 +90,9 @@ def build_bundle(
         shutil.copyfile(project / readme, plugin / "README.md")
         launcher = plugin / "skills/inferrsi/scripts/inferrsi.py"
         launcher.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(
-            project / "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py", launcher,
-        )
+        shared_launcher = project / "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py"
+        if not compact_runtime:
+            shutil.copyfile(shared_launcher, launcher)
         runtime = plugin / "runtime"
         hashes = {}
         for path in sorted(source.rglob("*")):
@@ -111,24 +125,26 @@ def build_bundle(
         if release_version is not None:
             metadata["version"] = release_version
             _json(plugin / metadata_file, metadata)
-        _json(runtime / "manifest.json", {
+        manifest = {
             "schema_version": 1,
             "plugin_version": metadata["version"],
             "runtime_version": runtime_version,
             "content_sha256": hashlib.sha256(identity.encode("utf-8")).hexdigest(),
             "files": hashes,
-        })
+        }
+        if compact_runtime:
+            # The host must never copy the deep canonical tree during import/install.
+            # Only the bootstrap expands it, using extended paths on Windows.
+            payload = runtime / "payload.zip"
+            _zip_tree(runtime / "inferrsi", payload, "inferrsi/")
+            manifest["payload_sha256"] = hashlib.sha256(payload.read_bytes()).hexdigest()
+            manifest["launcher_sha256"] = hashlib.sha256(shared_launcher.read_bytes()).hexdigest()
+            shutil.copyfile(shared_launcher, runtime / "launcher.py")
+            assert (runtime / "inferrsi").resolve().is_relative_to(Path(staging).resolve())
+            shutil.rmtree(runtime / "inferrsi")
+        _json(runtime / "manifest.json", manifest)
         # Stable ZIP metadata makes repeated builds of identical bytes comparable.
-        with zipfile.ZipFile(archive, "x", compression=zipfile.ZIP_DEFLATED) as bundle:
-            for path in sorted(plugin.rglob("*")):
-                if path.is_file():
-                    info = zipfile.ZipInfo(
-                        (Path("inferrsi") / path.relative_to(plugin)).as_posix(),
-                        date_time=(1980, 1, 1, 0, 0, 0),
-                    )
-                    info.compress_type = zipfile.ZIP_DEFLATED
-                    info.external_attr = 0o100644 << 16
-                    bundle.writestr(info, path.read_bytes())
+        _zip_tree(plugin, archive, "inferrsi/")
         shutil.copytree(plugin, _io_path(package))
     return {
         "plugin": str(package),

@@ -1,5 +1,6 @@
 """Native WorkSwarm packaging, with common runtime journeys in test_codex_plugin."""
 
+import io
 import json
 import shutil
 import zipfile
@@ -58,6 +59,9 @@ def test_native_manifest_and_shared_launcher(tmp_path):
         PROJECT / "plugins/workswarm/inferrsi/tools/runtime_info_tool.py"
     ).read_bytes()
     assert (plugin / "skills/inferrsi/scripts/inferrsi.py").read_bytes() == (
+        PROJECT / "plugins/workswarm/inferrsi/skills/inferrsi/scripts/inferrsi.py"
+    ).read_bytes()
+    assert (plugin / "runtime/launcher.py").read_bytes() == (
         PROJECT / "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py"
     ).read_bytes()
     assert (plugin / "README.md").read_bytes() == (
@@ -68,6 +72,10 @@ def test_native_manifest_and_shared_launcher(tmp_path):
         assert "inferrsi/manifest.json" in archive.namelist()
         assert "inferrsi/plugin.json" not in archive.namelist()
         assert not any("marketplace" in name for name in archive.namelist())
+        # Reproduce the host's long staging prefix without requiring global long-path policy.
+        assert max(map(len, archive.namelist())) + 170 < 260
+        assert not any(name.startswith("inferrsi/runtime/inferrsi/")
+                       for name in archive.namelist())
         for name in archive.namelist():
             assert archive.read(name) == (plugin / name.removeprefix("inferrsi/")).read_bytes()
 
@@ -98,6 +106,7 @@ def test_builder_rejects_source_directory_output(tmp_path, directory):
 def test_version_stamp_keeps_canonical_inputs_unchanged(tmp_path):
     project = tmp_path / "source"
     for name in ("plugins/workswarm/inferrsi/manifest.json", "docs/workswarm-plugin.md",
+                 "plugins/workswarm/inferrsi/skills/inferrsi/scripts/inferrsi.py",
                  "plugins/workswarm/inferrsi/tools/runtime_info_tool.py",
                  "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py", "LICENSE"):
         target = project / name
@@ -114,7 +123,8 @@ def test_version_stamp_keeps_canonical_inputs_unchanged(tmp_path):
         manifest = json.loads(archive.read("inferrsi/runtime/manifest.json"))
         assert metadata["version"] == manifest["plugin_version"] == "1.2.3"
         assert manifest["runtime_version"] == "1.2.3"
-        assert archive.read("inferrsi/runtime/inferrsi/__init__.py") == source.read_bytes()
+        with zipfile.ZipFile(io.BytesIO(archive.read("inferrsi/runtime/payload.zip"))) as payload:
+            assert payload.read("inferrsi/__init__.py") == source.read_bytes()
     assert template.read_bytes() == original
     output = tmp_path / "wrong-version"
     with pytest.raises(ValueError, match="match the built runtime"):

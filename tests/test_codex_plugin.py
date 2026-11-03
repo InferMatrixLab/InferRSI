@@ -1,7 +1,9 @@
 """Exercise a distributed plugin outside a checkout, without site packages."""
 
 import hashlib
+import io
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -37,15 +39,26 @@ def invoke(distribution, cwd, *args):
     return subprocess.run(
         [sys.executable, "-I", "-S", "-X", "utf8", str(launcher), *args],
         cwd=cwd, capture_output=True, text=True, encoding="utf-8", timeout=45,
+        env=dict(os.environ, LOCALAPPDATA=str(distribution.parent / "runtime-cache")),
     )
+
+
+def runtime_bytes(plugin):
+    runtime = plugin / "runtime"
+    if (runtime / "payload.zip").is_file():
+        with zipfile.ZipFile(runtime / "payload.zip") as archive:
+            return {name: archive.read(name) for name in archive.namelist()}
+    return {path.relative_to(runtime).as_posix(): path.read_bytes()
+            for path in (runtime / "inferrsi").rglob("*") if path.is_file()}
 
 
 def test_bundle_preserves_canonical_bytes_and_license(distribution):
     plugin = distribution
     runtime = plugin / "runtime"
     manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))
+    bundled = runtime_bytes(plugin)
     for name, digest in manifest["files"].items():
-        actual = (runtime / name).read_bytes()
+        actual = bundled[name]
         assert hashlib.sha256(actual).hexdigest() == digest
         assert actual == _io_path(PROJECT / "src" / name).read_bytes()
     assert (plugin / "LICENSE").read_bytes() == (PROJECT / "LICENSE").read_bytes()
@@ -63,13 +76,12 @@ def test_bundle_contains_all_declared_package_data(distribution):
         for pattern in patterns for path in source.glob(pattern) if path.is_file()
     }
     assert "data/skill_library/repositories/splash/THIRD_PARTY_NOTICES" in expected
-    runtime = distribution / "runtime"
     installed = {
-        path.relative_to(runtime / "inferrsi").as_posix()
-        for path in (runtime / "inferrsi/data").rglob("*") if path.is_file()
+        name.removeprefix("inferrsi/")
+        for name in runtime_bytes(distribution) if name.startswith("inferrsi/data/")
     }
     assert expected == installed
-    manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads((distribution / "runtime/manifest.json").read_text(encoding="utf-8"))
     assert {f"inferrsi/{name}" for name in expected} <= manifest["files"].keys()
 
 
@@ -107,6 +119,29 @@ def test_entry_workflow_selects_packaged_skill_projections(distribution, tmp_pat
     assert envelope["items"]
     assert all(item["authority"] == "package" for item in envelope["items"])
     assert all(item["kind"] == "knowledge" for item in envelope["items"])
+
+
+@pytest.mark.parametrize(("action", "resource"), [
+    ("reference", "../../../hardware/host/host-memory-management/SKILL.md"),
+    ("resource", "metadata.json"),
+])
+def test_returned_skill_paths_survive_process_exit_and_later_invocations(
+    distribution, tmp_path, action, resource,
+):
+    pytest.importorskip("yaml")
+    launcher = distribution / "skills/inferrsi/scripts/inferrsi.py"
+    result = subprocess.run(
+        [sys.executable, "-I", "-X", "utf8", str(launcher), "skills", action,
+         "pytorch", resource], cwd=tmp_path, capture_output=True, text=True,
+        encoding="utf-8", timeout=45,
+        env=dict(os.environ, LOCALAPPDATA=str(distribution.parent / "runtime-cache")),
+    )
+    assert result.returncode == 0, result.stderr
+    path = Path(json.loads(result.stdout)["path"])
+    assert path.is_file()
+    original = path.read_bytes()
+    assert invoke(distribution, tmp_path, "--plugin-info").returncode == 0
+    assert path.read_bytes() == original
 
 
 def test_missing_runtime_has_repair_guidance(tmp_path):
@@ -203,12 +238,26 @@ def test_release_archive_is_installable_and_all_versions_match(release_distribut
 def test_release_archive_rejects_changed_runtime_bytes(release_distribution, tmp_path):
     original = release_distribution[2]["archive"]
     changed = tmp_path / "changed.zip"
-    with zipfile.ZipFile(original) as source, zipfile.ZipFile(changed, "w") as destination:
-        for member in source.infolist():
-            data = source.read(member.filename)
-            if member.filename.endswith("runtime/inferrsi/__init__.py"):
-                data += b"\n"
-            destination.writestr(member, data)
+    with zipfile.ZipFile(original) as source:
+        contents = {name: source.read(name) for name in source.namelist()}
+    payload_name = "inferrsi/runtime/payload.zip"
+    if payload_name in contents:
+        buffer = io.BytesIO()
+        with zipfile.ZipFile(io.BytesIO(contents[payload_name])) as payload:
+            with zipfile.ZipFile(buffer, "w") as destination:
+                for name in payload.namelist():
+                    data = payload.read(name) + (b"\n" if name == "inferrsi/__init__.py" else b"")
+                    destination.writestr(name, data)
+        contents[payload_name] = buffer.getvalue()
+        manifest_name = "inferrsi/runtime/manifest.json"
+        manifest = json.loads(contents[manifest_name])
+        manifest["payload_sha256"] = hashlib.sha256(contents[payload_name]).hexdigest()
+        contents[manifest_name] = json.dumps(manifest).encode()
+    else:
+        contents["inferrsi/runtime/inferrsi/__init__.py"] += b"\n"
+    with zipfile.ZipFile(changed, "w") as destination:
+        for name, data in contents.items():
+            destination.writestr(name, data)
     with pytest.raises(ValueError, match="checksum mismatch"):
         check_plugin(changed, "v0.2.0", release_distribution[2]["host"])
 

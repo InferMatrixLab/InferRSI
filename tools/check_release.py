@@ -3,6 +3,7 @@
 import argparse
 import ast
 import hashlib
+import io
 import json
 import os
 import re
@@ -91,38 +92,43 @@ def check_sdist(path: Path) -> None:
                 raise ValueError("Source distribution includes repository-only material")
 
 
+def _standalone_entries(archive: zipfile.ZipFile) -> list[str]:
+    names = archive.namelist()
+    if len(names) != len(set(names)):
+        raise ValueError("Plugin ZIP must contain one standalone inferrsi plugin")
+    roots = set()
+    destinations = set()
+    spellings = {}
+    for member in archive.infolist():
+        name = PurePosixPath(member.filename)
+        canonical = name.as_posix() + ("/" if member.is_dir() else "")
+        if (not name.parts or name.is_absolute() or ".." in name.parts
+                or "\\" in member.filename or ":" in member.filename
+                or member.filename != canonical
+                or name.as_posix().casefold() in destinations
+                or any(part.endswith((".", " ")) or re.search(r'[<>"|?*]', part)
+                       or re.fullmatch(r"con|prn|aux|nul|com[1-9]|lpt[1-9]",
+                                       part.split(".")[0], re.IGNORECASE)
+                       for part in name.parts)
+                or stat.S_ISLNK(member.external_attr >> 16)):
+            raise ValueError("Unsafe plugin ZIP entry")
+        destinations.add(name.as_posix().casefold())
+        for depth in range(1, len(name.parts) + 1):
+            prefix = "/".join(name.parts[:depth])
+            if spellings.setdefault(prefix.casefold(), prefix) != prefix:
+                raise ValueError("Unsafe plugin ZIP directory alias")
+        roots.add(name.parts[0])
+    if roots != {"inferrsi"}:
+        raise ValueError("Plugin ZIP must contain one standalone inferrsi plugin")
+    return names
+
+
 def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
     version = release_version(tag)
     if host not in {"codex", "workswarm"}:
         raise ValueError("Unknown plugin host")
     with zipfile.ZipFile(path) as archive:
-        names = archive.namelist()
-        if len(names) != len(set(names)):
-            raise ValueError("Plugin ZIP must contain one standalone inferrsi plugin")
-        roots = set()
-        destinations = set()
-        spellings = {}
-        for member in archive.infolist():
-            name = PurePosixPath(member.filename)
-            canonical = name.as_posix() + ("/" if member.is_dir() else "")
-            if (not name.parts or name.is_absolute() or ".." in name.parts
-                    or "\\" in member.filename or ":" in member.filename
-                    or member.filename != canonical
-                    or name.as_posix().casefold() in destinations
-                    or any(part.endswith((".", " ")) or re.search(r'[<>"|?*]', part)
-                           or re.fullmatch(r"con|prn|aux|nul|com[1-9]|lpt[1-9]",
-                                           part.split(".")[0], re.IGNORECASE)
-                           for part in name.parts)
-                    or stat.S_ISLNK(member.external_attr >> 16)):
-                raise ValueError("Unsafe plugin ZIP entry")
-            destinations.add(name.as_posix().casefold())
-            for depth in range(1, len(name.parts) + 1):
-                prefix = "/".join(name.parts[:depth])
-                if spellings.setdefault(prefix.casefold(), prefix) != prefix:
-                    raise ValueError("Unsafe plugin ZIP directory alias")
-            roots.add(name.parts[0])
-        if roots != {"inferrsi"}:
-            raise ValueError("Plugin ZIP must contain one standalone inferrsi plugin")
+        names = _standalone_entries(archive)
         plugin = "inferrsi"
         metadata_file = "plugin.json" if host == "codex" else "manifest.json"
         allowed = {metadata_file, "skills", "runtime", "LICENSE", "README.md"}
@@ -162,13 +168,28 @@ def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
         actual = {name[len(prefix):] for name in names
                   if name.startswith(prefix) and name != prefix + "manifest.json"
                   and not name.endswith("/")}
+        if host == "workswarm":
+            if actual != {"payload.zip", "launcher.py"}:
+                raise ValueError("Unexpected file outside the bundled runtime package")
+            payload_bytes = archive.read(prefix + "payload.zip")
+            if (hashlib.sha256(payload_bytes).hexdigest() != manifest["payload_sha256"]
+                    or hashlib.sha256(archive.read(prefix + "launcher.py")).hexdigest()
+                    != manifest["launcher_sha256"]):
+                raise ValueError("Plugin bundled runtime checksum mismatch")
+            with zipfile.ZipFile(io.BytesIO(payload_bytes)) as payload:
+                payload_names = _standalone_entries(payload)
+                runtime_bytes = {name: payload.read(name) for name in payload_names
+                                 if not name.endswith("/")}
+        else:
+            runtime_bytes = {name: archive.read(prefix + name) for name in actual}
+        actual = set(runtime_bytes)
         if any(not name.startswith("inferrsi/") for name in actual):
             raise ValueError("Unexpected file outside the bundled runtime package")
         hashes = manifest["files"]
         if not hashes or set(hashes) != actual:
             raise ValueError("Plugin manifest must cover every bundled runtime file")
         for name, digest in hashes.items():
-            if hashlib.sha256(archive.read(prefix + name)).hexdigest() != digest:
+            if hashlib.sha256(runtime_bytes[name]).hexdigest() != digest:
                 raise ValueError("Plugin bundled runtime checksum mismatch")
         identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
         if hashlib.sha256(identity.encode("utf-8")).hexdigest() != manifest["content_sha256"]:
@@ -187,7 +208,9 @@ def check_plugin(path: Path, tag: str, host: str = "codex") -> None:
                 try:
                     result = subprocess.run(command + list(args), cwd=staging, check=True,
                                             capture_output=True, text=True, encoding="utf-8",
-                                            timeout=45)
+                                            timeout=45,
+                                            env=dict(os.environ, LOCALAPPDATA=str(
+                                                destination / "runtime-cache")))
                 except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as error:
                     raise ValueError(
                         f"Extracted {host} plugin failed isolated validation"
