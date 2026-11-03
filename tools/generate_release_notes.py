@@ -270,7 +270,7 @@ def validate_overview_links(text: str, context: object) -> None:
 
     remainder = re.sub(r"\[([^\[\]\n()]+)\]\(([^()\s]+)\)", inline_link, text)
     if ("[" in remainder or "]" in remainder
-            or re.search(r"[A-Za-z][A-Za-z0-9+.-]*:\S|www\.|@|#\d", remainder,
+            or re.search(r":\S|www\.|@|#\d", remainder,
                          re.IGNORECASE)):
         raise ValueError("Unsupported or unbound overview link")
 

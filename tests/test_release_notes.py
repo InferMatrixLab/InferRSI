@@ -293,6 +293,15 @@ def test_supplied_canonical_inline_links_preserve_prose_colons_and_inline_code(
     assert code == 0 and output.read_text(encoding="utf-8") == text + "\n"
 
 
+def test_long_plain_ascii_overview_at_byte_limit_is_accepted(invocation):
+    run, output, _ = invocation
+    prefix = "## Features\n"
+    text = prefix + "x" * (notes.MAX_NOTES_BYTES - len(prefix) - 1)
+    code, _, _ = run(completed(text))
+    assert code == 0 and output.read_bytes() == (text + "\n").encode()
+    assert len(output.read_bytes()) == notes.MAX_NOTES_BYTES
+
+
 @pytest.mark.parametrize("fragment", [
     "![tracking](https://example.invalid/pixel)", f"![tracking]({COMMIT_URL})",
     f"![image][ref]\n[ref]: {COMMIT_URL}", "[external](https://example.invalid/path)",
