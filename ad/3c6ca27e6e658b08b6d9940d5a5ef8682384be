@@ -1,0 +1,55 @@
+tests/test_aisbench_adapter.py
+  s_bdf42c2b7e6c00::t_fe350ff8323472 7,37,68,71,224-227,229-249,254-258,272-279
+  s_bdf42c2b7e6c00::t_e55324de0b72d1 1-5,8-15,22,27,32-36,38-41,64-67,69-70,81-87,94,100-121,126-142,170-175,187-191,203-223
+  s_bdf42c2b7e6c00::t_e63c21471fec7d 16-21,28-31,42-63,72-80,88-93,95-99,122-125,143-154,156-161,166-169,176-186,192-202
+  s_bdf42c2b7e6c00::t_5ae250d07566e4 155
+  s_bdf42c2b7e6c00::t_60db9be013ce90 162
+  s_bdf42c2b7e6c00::t_1b9f56e8e549e4 23-26
+  s_bdf42c2b7e6c00::t_50acae6c3601a4 6,163-165,228,250-253,259-271
+docs/aisbench.md
+  s_bdf42c2b7e6c00::t_bf3583770a7674 9
+  s_bdf42c2b7e6c00::t_e40bde9082450d 74-75
+  s_bdf42c2b7e6c00::t_0e39f334ec0c4b 13,63-65
+  s_bdf42c2b7e6c00::t_7a3e31e5dbe6bf 61
+  s_bdf42c2b7e6c00::t_f85986307f0c72 1-6,8,10-12,14-29,31-60,62,66-72
+  s_bdf42c2b7e6c00::t_e5ce2feb498431 30
+  s_bdf42c2b7e6c00::t_722de3157a100f 73
+  s_bdf42c2b7e6c00::t_b836ca22628015 7
+examples/aisbench_adapter.py
+  s_bdf42c2b7e6c00::t_8ac3171ab9232c 11,136,146-149,151-154
+  s_bdf42c2b7e6c00::t_33901004d209b0 1-10,12-66,68-76,86-93,102-113,118-120,122-131,150,155-165,170-178,184,191-206,214,219-222,226-229,231-236
+  s_bdf42c2b7e6c00::t_67d99531b6f705 132-134
+  s_bdf42c2b7e6c00::t_60db9be013ce90 67,81,181
+  s_bdf42c2b7e6c00::t_5ae250d07566e4 215-218,223-225,230
+  s_bdf42c2b7e6c00::t_8abac2f63374a7 83,121
+  s_bdf42c2b7e6c00::t_45369be11689f6 77-80,82,84-85,94-101,114-117,135,137-145,166-169,179-180,182-183,185-190,207-213
+docs/operations.md
+  s_bdf42c2b7e6c00::t_e5ce2feb498431 212-213
+docs/quickstart.md
+  s_bdf42c2b7e6c00::t_f85986307f0c72 108-109
+  s_bdf42c2b7e6c00::t_e5ce2feb498431 94
+src/inferrsi/arguments.py
+  s_bdf42c2b7e6c00::t_605a850f99f5e8 84-88,298
+src/inferrsi/harness/evaluation.py
+  s_bdf42c2b7e6c00::t_934f2dc4039699 62-68
+src/inferrsi/runspec.py
+  s_bdf42c2b7e6c00::t_3ec699e07a5351 36,73-80
+tests/test_runtime.py
+  s_bdf42c2b7e6c00::t_20de20cdaff11a 107-126
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "ad3c6ca27e6e658b08b6d9940d5a5ef8682384be",
+  "prompts": {},
+  "sessions": {
+    "s_bdf42c2b7e6c00": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a19a98-e8ee-75a2-acbb-8e0c453d3b99",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
