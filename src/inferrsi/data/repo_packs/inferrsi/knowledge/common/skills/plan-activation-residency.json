@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ca32733bfbbaf2ff32bca3e7e4fbad41fe588a90/src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
-      "commit": "ca32733bfbbaf2ff32bca3e7e4fbad41fe588a90",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1bada78556d695a01cf2bc3b0c117f65855cc177/src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
+      "commit": "1bada78556d695a01cf2bc3b0c117f65855cc177",
       "paths": [
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json",
