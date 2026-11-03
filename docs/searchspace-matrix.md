@@ -588,6 +588,12 @@ NOASSERTION and InferRSI's repository license.
 | --- | --- | --- | --- |
 | Accelerator (methodology only) | Verify: trace treatment to the eligible consumer, apply frozen arm validity before interpreting a null, and separate declared protocol, reached checks and persisted gate evidence | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-trial-validity.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/autotunebench-source.json); AutoTuneBench repo + paired paper | Source-derived candidate / empirical not_run; paper measurements remain author-reported, efficacy not_evaluated. Contextual source bars are not InferRSI defaults. No new implementation, measured hardware/resource coverage, backend compatibility, or RAM/Storage/Network/OS coverage. |
 
+## NInfer state and completion validation (source-derived)
+
+| Resource context | Stage / scoped question | Canonical owner | Evidence boundary |
+| --- | --- | --- | --- |
+| Accelerator / Host / service boundary (methodology only) | Observe / Verify: freeze coupled checkpoint and same-block state oracle; distinguish zero accepted drafts from zero adopted inputs, logical commit from device retirement, and selected steady intervals from complete-cohort/termination accounting | [inference-benchmark-design reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-state-and-completion-contracts.md) and [source record](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/ninfer-source.json); NInfer `1882c6adbc98043fcf89f3589aa5addb3742777a` | Source-derived candidate / empirical not_run; unexecuted test definitions and historical author results with a separate execution revision. No new implementation, measured hardware/resource coverage, backend compatibility, native state/model/quality/performance result or service acceptance; efficacy not_evaluated. |
+
 ## TorchNPU framework source procedures
 
 | Resource | Stage / mechanism | Canonical owner | Evidence boundary |
