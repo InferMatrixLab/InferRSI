@@ -15,6 +15,10 @@
         {
           "path": "results/baseline-complete-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/lifecycle-diagnostic-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [
