@@ -10,8 +10,10 @@ from pathlib import Path
 
 import pytest
 
-from tools.build_codex_plugin import PROJECT, _io_path, _version, build_plugin
+from tools.build_codex_plugin import build_plugin
+from tools.build_workswarm_plugin import build_plugin as build_workswarm_plugin
 from tools.check_release import check_plugin
+from tools.plugin_bundle import PROJECT, _io_path, _version
 
 try:
     import tomllib
@@ -19,10 +21,11 @@ except ModuleNotFoundError:  # Python 3.10: pytest supplies tomli.
     import tomli as tomllib
 
 
-@pytest.fixture(scope="module")
-def distribution(tmp_path_factory):
-    root = tmp_path_factory.mktemp("codex-plugin") / "distribution"
-    result = build_plugin(root)
+@pytest.fixture(scope="module", params=["codex", "workswarm"])
+def distribution(tmp_path_factory, request):
+    root = tmp_path_factory.mktemp(request.param + "-plugin") / "distribution"
+    builder = build_plugin if request.param == "codex" else build_workswarm_plugin
+    result = builder(root)
     extracted = _io_path(root.parent / "extracted")
     with zipfile.ZipFile(result["archive"]) as archive:
         archive.extractall(extracted)
