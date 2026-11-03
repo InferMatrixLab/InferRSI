@@ -1,0 +1,91 @@
+{
+  "operator_plan": {
+    "scope": "Four-rank operator-only screen for TP4 row projections; prepared not launched",
+    "source": "Pinned torch_npu2.10 installed _op_plugin_docs.py npu_mm_all_reduce_base, and H3 RowParallelLinear projections",
+    "hypothesis": "Overlap row-projection matrix multiplication with SUM collective while retaining full BF16 computation",
+    "shapes": [
+      [
+        82944,
+        1792,
+        5376
+      ],
+      [
+        82944,
+        3584,
+        5376
+      ]
+    ],
+    "baseline": "F.linear then HCCL all_reduce SUM",
+    "candidate": "npu_mm_all_reduce_base unquantized BF16, default comm_turn, one HCCL domain",
+    "hardware_constraint": "Four local910B1, operator requires supported HCCS all-mesh; reject execution errors without fallback or semantic substitution",
+    "warmups": 3,
+    "rounds": 5,
+    "order": "ABBA",
+    "metrics": "Per-sample maximum rank wall time after device synchronization; timing aggregation excluded",
+    "parity": "Exact, finite, max error and RMSE on each rank; no model promotion from synthetic timing alone",
+    "prohibited": "No quantization, reduced precision, sparse math or approximation"
+  },
+  "operator_harness": {
+    "plan.json": "8f404508254c42ff481462901b3e5259e446a3accbdb96a48d64e7bd6c662b67",
+    "probe.py": "3485694142898fe5662d41578276545c48a14900f42d643fe8e2839ea0f5d1c1",
+    "run.sh": "c83930154752e699b0ef4aff5f3176a60f33f1a52fcde8fd1eb7fe61ba10492d"
+  },
+  "topology_preflight": {
+    "source": "Read-only npu-smi info -t topo, 2026-11-03",
+    "result": "All distinct NPU pairs reported HCCS connectivity; satisfies documented mesh connectivity prerequisite, not operator execution qualification",
+    "device_identifiers": "Omitted from public summary",
+    "execution": "No operator executed in this preflight"
+  },
+  "queue_revision": {
+    "scope": "Independent task dispatch queue screening; five-step adaptive ABBA only",
+    "source": "https://www.hiascend.com/document/detail/en/Pytorch/2610/apiref/ENV/docs/en/environment_variable_reference/TASK_QUEUE_ENABLE.md",
+    "observed_baseline": "Pinned image/container TASK_QUEUE_ENABLE=1; OMP_NUM_THREADS=1; ASCEND_LAUNCH_BLOCKING unset",
+    "hypothesis": "Move workspace management into second-level dispatch queue, reducing host dispatch gaps without changing model math",
+    "hardware": "Four local910B1 under one reservation",
+    "source_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+    "arms": {
+      "base0": 1,
+      "queue2a": 2,
+      "queue2b": 2,
+      "base1": 1
+    },
+    "order": [
+      "base0",
+      "queue2a",
+      "queue2b",
+      "base1"
+    ],
+    "steps": 5,
+    "duration_s": 5,
+    "warmups": 1,
+    "measured": 1,
+    "same_settings": "SP4 TP1, textTP4, VAEtile4, DLO, BF16, OriginalLaser, seed0 and frozen input hashes",
+    "admission": "Continue second pair only if first clean pair candidate E2E at least3percent lower; otherwise retain incomplete ABBA as short screening without final rejection proof",
+    "quality": "Independent CPU scoring after model reservation ends; numerical scheduling parity must be measured",
+    "acceptance": "No30percent or losslessness claim from configuration documentation or this short screening",
+    "revision": "v2: unchanged model arms; a separate fused projection operator probe precedes this model campaign within one reservation. Original unstarted queue canceled prospectively after diagnostic overlap analysis."
+  },
+  "queue_harness": {
+    "admit_second_pair.py": "c68f3c39632620be23b381b19259017128af76a85d81cf69bf510eb20182d558",
+    "campaign.sh": "ebb0ae149311c7185a5baf8143dbd98bda882ed7766fd499b7adec6b50bf8b2e",
+    "plan.json": "d50d15bd9c4425f08ba458818f67abfcdad7e15999f3a13ed256c6bf7f972600",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+    "run_host.sh": "d4065b5b7b90ca8ab46cee8ae52d71605e8b002ef6586079b702c69923aaec5a",
+    "run_inner.sh": "a3f77d95f78af68aaf0c65e10b563835c6e8c084552cba909eeaf5583efb2012"
+  },
+  "combined_launcher": {
+    "run_mm_then_queue.py": "e315fdcd4ff65b5576c7107cb75b8a7d8f1772ceb7e87289d4d20b64404d7199",
+    "mm-then-queue-campaign.sh": "a4836c2b71e139564d0c3427a682ca5e9b5e10fe67efafe69745814d6338a534",
+    "mm-allreduce-probe/manifest.json": "3372f5547080dce43cae06c554818d5c2f665f77951be1206cb475bb8bc3ac56",
+    "task-queue-screen-v2/manifest.json": "087ce472e86841f610e47c188a45950d30ff868d6684c7ef13f47432c95bd9a4"
+  },
+  "prior_queue_cancellation": {
+    "reason": "Prospective reprioritization after interval analysis: execute fused projection probe before model queue A/B in one serial reservation",
+    "model_runs_started": false,
+    "original_harness_preserved": true,
+    "replacement": "run_mm_then_queue.py with task-queue-screen-v2; original mm follower terminated to prevent duplicate launch",
+    "target_achieved": false
+  },
+  "state": "Replacement four-device reservation queued; neither fused projection probe nor queue model A/B executed yet; one reservation with serial stages and4h outer ceiling"
+}

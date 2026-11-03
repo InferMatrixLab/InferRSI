@@ -51,6 +51,10 @@
         {
           "path": "results/hybrid-negative-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/critical-path-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [
