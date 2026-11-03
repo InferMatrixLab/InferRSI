@@ -30,8 +30,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/aed1f791f5aac75d930d14ae7feef743b32b4b57/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
-      "commit": "aed1f791f5aac75d930d14ae7feef743b32b4b57",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/bb4720992ac2a515adc09b645e1e3cfda47e9d69/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
+      "commit": "bb4720992ac2a515adc09b645e1e3cfda47e9d69",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json",
