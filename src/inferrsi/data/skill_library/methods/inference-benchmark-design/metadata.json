@@ -337,5 +337,6 @@
     "../../repositories/deepinfer/budget-speculative-verification/SKILL.md",
     "../../repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."
 }

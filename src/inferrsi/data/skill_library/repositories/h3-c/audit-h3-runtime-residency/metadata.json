@@ -105,7 +105,12 @@
     "method": "Manual pinned-source distillation informed by the existing Repo-To-Skill ledger; no AREX/DisCo execution or behavioral efficacy claim."
   },
   "applicability": {
-    "scope": "MiniMax-H3 joint audio/video C/Metal runtime audit: raw checkpoint compatibility, input encoders, schedule precompute, phased/cached residency, numerical controls and SSD streaming on Apple Silicon. Common catalog placement is a discovery classification, not cross-backend qualification."
+    "scope": "MiniMax-H3 joint audio/video C/Metal runtime audit: raw checkpoint compatibility, input encoders, schedule precompute, phased/cached residency, numerical controls and SSD streaming on Apple Silicon. Common catalog placement is a discovery classification, not cross-backend qualification.",
+    "prerequisites": "Access to the pinned source architecture and selected component/format inventory; native checks need matching model, fixture and backend resources within an authorized experiment budget.",
+    "input_contract": "Runtime revision/patches, macOS/SDK/GPU and memory budget, FL2VA/Ref2VA selection, component formats, prompt and ordered media, requested/aligned frames, canvases, steps/seed, layer/reuse/token/precision policies and preview/interactive-cache state.",
+    "produced_artifact": "A phase/component/owner ledger with resident weights, runtime/host buffers, overlap, release/reuse boundaries and observations/unknowns, followed by a discriminating check, actual result and remaining gap.",
+    "failure_modes": "Estimating fit from model-file bytes, confusing runtime int8 with incompatible MLX bundles, ignoring preview/cache overlap, or reducing DiT residency to address a VAE/host-output peak can produce a wrong capacity diagnosis.",
+    "refusal_point": "Stop at unavailable model/fixture/backend resources or the accepted experiment budget; missing target evidence remains unverified/INCONCLUSIVE."
   },
   "limitations": [
     "Native h3.c/Metal execution, target peak memory, audio/video quality, performance, service behavior and skill efficacy were not run.",
@@ -119,5 +124,10 @@
     "references/source-identity.json",
     "references/minimax-h3-weight-inventory.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Resolve the actual conditioning and output components before counting residency; do not add alternative checkpoints or count shared files twice.",
+    "Trace one-shot, preview and interactive ownership separately, including AdaLN schedule dependencies and prepared-cache reset boundaries.",
+    "Classify approximation and precision controls before comparison, then measure the relevant phase with tensor, physical/compressed/swap and storage observations."
+  ]
 }

@@ -20,5 +20,17 @@
   "provenance_readsets": [
     "references/source-notes.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Diagnose vLLM-Ascend ACLGraph eligibility, capture/replay dispatch, caller-buffer ownership and capture-resource failures.",
+    "prerequisites": "An existing eager correctness baseline; authorization before any new run or live configuration change.",
+    "input_contract": "Installed stack and device, requested/effective graph mode, runner/backend settings, capture sizes and batch descriptors, error phase, replay observations and HBM/stream evidence.",
+    "produced_artifact": "A bounded diagnosis, smallest reversible proposal, expected tradeoff and correctness/resource verification plan with unresolved compatibility or authorization questions.",
+    "refusal_point": "Stop on output mismatch, unstable replay addresses, capture exhaustion, unknown ordering or version drift; missing evidence permits only a conditional proposal."
+  },
+  "recommendations": [
+    "Diagnose the effective runtime mode and batch descriptor before changing capture sizes; intended warmup/profile bypass is not a cache defect.",
+    "Trace stable replay buffers to the owning caller and preserve synchronization/update ordering; the wrapper does not stage new inputs into persistent buffers.",
+    "Compare eager and graph execution on the same workload, separating initial capture, repeated replay, compiler changes and memory/stream costs; a replay log alone proves neither coverage nor speedup."
+  ]
 }
