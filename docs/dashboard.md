@@ -17,6 +17,34 @@ Omit `--output` to write `dashboard.html` in the input directory. Open the file
 in a browser. Filters and review export work locally. A generated snapshot does
 not update as an experiment runs; regenerate it to show new records.
 
+### Language
+
+The header switches the offline interface, chart labels and review export between
+English and Chinese. The language choice is saved in browser storage when
+available. Filter and candidate selections stay in place when switching.
+
+Recorded narratives are caller-provided text; the dashboard does not send them
+to a translation service or infer translations. To include reviewed translations,
+pass `--translations <FILE>` when exporting. The UTF-8 file maps the exact
+recorded text to its translation in each target language:
+
+```json
+{
+  "schema_version": 1,
+  "zh": {"Reduce launch overhead": "减少启动开销"},
+  "en": {"减少启动开销": "Reduce launch overhead"}
+}
+```
+
+Both language maps are optional. Each key must match the complete original
+field, including whitespace; the file is limited to 2 MiB and duplicate keys
+are rejected. Untranslated text remains in the original language. Commands,
+identifiers and structured event fields are kept as recorded. When a knowledge
+context has a supplied translation, the page labels it as a translation and
+offers the complete original separately. The overlay is supplied and reviewed
+by the caller, not verified by InferRSI; review it for accuracy and sensitive
+content before exporting or sharing. It is embedded in the resulting HTML.
+
 The input can be one existing run directory containing `run.lock.json`, or a
 campaign containing `campaign.json`. Existing runs need no migration. Missing
 events, validation, trace and other evidence are shown explicitly; no missing

@@ -139,7 +139,51 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
     return svg[svg.find("<svg"):], message
 
 
-def write_dashboard(source: Path, destination: Path | None = None) -> Path:
+def _translations(path: Path | None) -> dict:
+    """Load an explicitly supplied, bounded translation overlay."""
+    if path is None:
+        return {"en": {}, "zh": {}}
+    with Path(path).open("rb") as stream:
+        raw = stream.read(2 * 1024 * 1024 + 1)
+    if len(raw) > 2 * 1024 * 1024:
+        raise ValueError("dashboard translations exceed 2 MiB")
+
+    def unique(pairs: list[tuple[str, object]]) -> dict:
+        result = {}
+        for key, value in pairs:
+            if key in result:
+                raise ValueError("duplicate dashboard translation key")
+            result[key] = value
+        return result
+
+    try:
+        document = json.loads(raw.decode("utf-8"), object_pairs_hook=unique)
+    except (UnicodeError, json.JSONDecodeError, RecursionError) as exc:
+        raise ValueError("invalid dashboard translations") from exc
+    if (not isinstance(document, dict) or set(document) - {"schema_version", "en", "zh"}
+            or type(document.get("schema_version")) is not int
+            or document["schema_version"] != 1):
+        raise ValueError("invalid dashboard translations")
+    result = {}
+    for language in ("en", "zh"):
+        entries = document.get(language, {})
+        if (not isinstance(entries, dict) or any(
+            not isinstance(key, str) or not key.strip() or not isinstance(value, str)
+            or not value.strip() for key, value in entries.items()
+        )):
+            raise ValueError("invalid dashboard translations")
+        try:
+            for key, value in entries.items():
+                key.encode("utf-8")
+                value.encode("utf-8")
+        except UnicodeError as exc:
+            raise ValueError("invalid dashboard translations") from exc
+        result[language] = entries
+    return result
+
+
+def write_dashboard(source: Path, destination: Path | None = None,
+                    translations: Path | None = None) -> Path:
     """Write one offline HTML document, excluding raw logs and environment data."""
     source = Path(source).resolve()
     view = load_dashboard(source)
@@ -147,6 +191,7 @@ def write_dashboard(source: Path, destination: Path | None = None) -> Path:
     temporal, temporal_note = temporal_chart(view)
     view["chart_note"] = chart_note
     view["temporal_note"] = temporal_note
+    view["translations"] = _translations(translations)
     payload = json.dumps(view, ensure_ascii=False, allow_nan=False)
     # The JSON data block cannot terminate its script element or create markup.
     payload = (payload.replace("&", "\\u0026").replace("<", "\\u003c")

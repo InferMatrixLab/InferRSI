@@ -283,7 +283,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "dashboard":
             from .harness.dashboard import write_dashboard
 
-            _print({"dashboard": str(write_dashboard(args.input, args.output))})
+            _print({"dashboard": str(write_dashboard(args.input, args.output, args.translations))})
             return 0
 
         if args.command == "campaign":

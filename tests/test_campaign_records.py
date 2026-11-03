@@ -56,8 +56,11 @@ def test_campaign_and_dashboard_cli_round_trip(tmp_path, capsys):
     (run / "run.lock.json").write_text("{}", encoding="utf-8")
     assert main(["campaign", "record", "--directory", str(root), "--candidate", "a",
                  "--run-id", "run-a", "--round", "1", "--title", "First"]) == 0
-    assert main(["dashboard", "--input", str(root)]) == 0
+    translations = tmp_path / "translations.json"
+    translations.write_text('{"schema_version":1,"zh":{"First":"第一项"}}', encoding="utf-8")
+    assert main(["dashboard", "--input", str(root), "--translations", str(translations)]) == 0
     assert (root / "dashboard.html").is_file()
+    assert "第一项" in (root / "dashboard.html").read_text(encoding="utf-8")
     assert "dashboard" in capsys.readouterr().out
 
 

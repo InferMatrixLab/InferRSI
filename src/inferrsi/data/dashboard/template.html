@@ -20,6 +20,10 @@ button:focus-visible, select:focus-visible, textarea:focus-visible { outline:2px
 .logo { width:19px; height:19px; border-radius:5px; background:linear-gradient(135deg,#f9d949,#f05a28); }
 .crumb, .hint { color:var(--muted); } .crumb strong { color:var(--ink); font-weight:600; }
 .spacer { flex:1; } .badge { border:1px solid var(--line); padding:3px 8px; border-radius:2px; }
+.language-switch { display:flex; border:1px solid var(--line); border-radius:2px; overflow:hidden; }
+.language-switch button { border:0; background:transparent; color:var(--muted); padding:4px 9px; }
+.language-switch button[aria-pressed="true"] { background:#315eac; color:#fff; }
+.translation-note { color:var(--muted); margin:8px 12px; font-size:11px; }
 .sample { color:#241d00; background:#fade2a; font-weight:700; border:0; }
 .vars { display:flex; gap:10px; flex-wrap:wrap; padding:13px 18px 5px; }
 .var { display:flex; align-items:stretch; min-height:29px; }
@@ -93,7 +97,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 .trace-event pre { white-space:pre-wrap; overflow-wrap:anywhere; color:var(--muted); margin:6px 0; }
 .button { border:1px solid #477bd2; border-radius:2px; background:#315eac; padding:5px 12px; margin-top:8px; }
 .footnote { color:var(--muted); font-size:11px; margin:12px 0 0; }
-@media (max-width:900px) { .columns, .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } }
+@media (max-width:900px) { .columns, .insight-grid { grid-template-columns:1fr; } .insight.wide { grid-column:auto; } .top { flex-wrap:wrap; padding:10px 18px; } .stat-value { font-size:24px; white-space:nowrap; } }
 </style>
 </head>
 <body>
@@ -102,6 +106,10 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <span class="crumb">Dashboards › InferRSI › <strong id="campaign-title"></strong></span>
   <span class="spacer"></span><span id="sample" class="badge sample" hidden>SYNTHETIC DATA</span>
   <span class="badge">READ ONLY · OFFLINE</span>
+  <div class="language-switch" role="group" aria-label="Language">
+    <button id="language-en" type="button" lang="en" aria-pressed="true">English</button>
+    <button id="language-zh" type="button" lang="zh-CN" aria-pressed="false">中文</button>
+  </div>
 </header>
 <div class="vars" aria-label="Dashboard filters">
   <div class="var"><span>campaign</span><output id="campaign-value"></output></div>
@@ -143,6 +151,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
           <p class="footnote">Review the exported text before sharing. Common private values are redacted; free text can still contain sensitive information.</p></div></section>
     </div>
   </div>
+  <p class="footnote">Recorded text without a supplied translation remains in its original language. Commands, identifiers and raw event fields stay unchanged.</p>
   <p class="footnote">A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.</p>
 </main>
 <script id="dashboard-data" type="application/json">__DASHBOARD_DATA__</script>
@@ -151,6 +160,181 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   'use strict';
   const data = JSON.parse(document.getElementById('dashboard-data').textContent);
   const byId = id => document.getElementById(id);
+  const chinese = {
+    'Language':'语言', 'InferRSI · Optimization dashboard':'InferRSI · 优化看板',
+    'Dashboards › InferRSI ›':'看板 › InferRSI ›', 'SYNTHETIC DATA':'合成数据',
+    'READ ONLY · OFFLINE':'只读 · 离线', 'Dashboard filters':'看板筛选',
+    'campaign':'任务', 'run':'运行', 'candidate':'候选方案', 'stage':'阶段', 'metric':'指标',
+    'All runs':'全部运行', 'All candidates':'全部候选方案', 'All stages':'全部阶段',
+    'Overview · all candidates':'概览 · 全部候选方案', 'Overview statistics':'概览统计',
+    'Workflow':'工作流程', 'Technical events only; select a stage to filter candidates and events':'仅显示技术事件；选择阶段可筛选候选方案和事件',
+    'Performance and evidence':'性能与证据', 'Recorded values, including unsuccessful attempts':'已记录的数据，包括未成功的尝试',
+    'Performance trend · all candidates':'性能趋势 · 全部候选方案',
+    'Results and stages over time · all candidates':'结果与阶段的时间分布 · 全部候选方案',
+    'Candidate details':'候选方案详情', 'Select a row to inspect its trace':'选择一行查看优化轨迹',
+    'Round':'轮次', 'Candidate':'候选方案', 'Run':'运行', 'State':'状态', 'Verdict':'判定',
+    'Gain':'提升', 'Quality':'质量', 'Outcome':'结果', 'Decision':'决策', 'Evidence':'证据',
+    'No matching recorded candidates.':'没有符合条件的候选方案记录。',
+    'Diagnosis · all candidates':'诊断 · 全部候选方案', 'Only rules backed by referenced evidence':'仅显示有引用证据支持的规则',
+    'Technical events':'技术事件', 'Search trace':'搜索轨迹', 'Search event, tool, field or reference':'搜索事件、工具、字段或引用',
+    'Trace source':'轨迹来源', 'All sources':'全部来源', 'Runner':'运行器', 'Agent':'智能体',
+    'Evidence completeness':'证据完整性', 'Missing records are explicit':'明确标出缺失的记录',
+    'Human review':'人工审阅', 'Local Markdown export':'本地导出 Markdown',
+    'Findings and suggested framework improvement':'发现的问题与框架改进建议',
+    'Record your observation and recommendation.':'记录你的观察和建议。',
+    'Export feedback · Markdown':'导出反馈 · Markdown',
+    'Review the exported text before sharing. Common private values are redacted; free text can still contain sensitive information.':'分享前请检查导出内容。常见隐私值已脱敏，但自由文本仍可能包含敏感信息。',
+    'Recorded text without a supplied translation remains in its original language. Commands, identifiers and raw event fields stay unchanged.':'未提供译文的记录保留原语言；命令、标识符和原始事件字段保持不变。',
+    'A successful quality command covers only that command. This view does not establish statistical significance. Raw logs and environment values are withheld; references and SHA-256 identify recorded artifacts.':'质量命令成功只代表该命令覆盖的范围。本页面不证明统计显著性。原始日志和环境变量未展示；引用和 SHA-256 用于标识已记录的工件。',
+    'Diagnosis':'诊断', 'Knowledge':'知识检索', 'Candidate search':'候选方案搜索', 'Execution':'执行', 'Validation':'验证', 'Review':'审阅',
+    'recorded':'已记录', 'stage not recorded':'未记录阶段', 'not applicable':'不适用', 'not recorded':'未记录',
+    'Not recorded':'未记录', 'NOT RECORDED':'未记录', 'Ambiguous':'存在歧义', 'ambiguous':'存在歧义',
+    'present':'已记录', 'missing':'缺失', 'PRESENT':'已记录', 'MISSING':'缺失',
+    'complete':'完整', 'partial':'部分记录', 'redacted':'已脱敏', 'unknown':'未知',
+    'completed':'已完成', 'running':'运行中', 'failed':'失败', 'passed':'通过', 'skipped':'已跳过',
+    'improved':'提升', 'regressed':'下降', 'noise':'噪声范围内', 'quality failed':'质量未通过',
+    'rolled back':'已回滚', 'inconclusive':'结论不明确', 'succeeded':'成功',
+    'PASS':'PASS（通过）', 'FAIL':'FAIL（失败）', 'INCONCLUSIVE':'INCONCLUSIVE（结论不明确）',
+    'observation':'观察', 'attempt':'尝试', 'decision':'决策',
+    'code':'代码', 'configuration':'配置', 'mixed':'混合', 'other':'其他',
+    'execution failed':'执行失败', 'quality failed with gain':'性能提升但质量未通过',
+    'within noise':'噪声范围内', 'measured regression':'测量结果下降',
+    'Best gain':'最佳提升', 'Incompatible records':'记录不可比较',
+    'Comparison evidence missing or unsupported':'比较证据缺失或不受支持', 'Quality and source checks required':'需要检查质量和来源',
+    'Target gap':'距目标差距', 'Target not recorded':'未记录目标',
+    'Candidate / run views':'候选方案 / 运行视图', 'Recorded candidate or run views':'已记录的候选方案或运行视图',
+    'Within noise':'噪声范围内', 'Uses recorded noise band':'使用已记录的噪声区间',
+    'Failed / regressed':'失败 / 下降', 'Includes failures and rollbacks':'包含失败和回滚',
+    'Missing evidence':'缺失证据', 'See completeness panel':'查看证据完整性面板',
+    'Rounds not recorded':'未记录轮次', 'No matching candidate.':'没有符合条件的候选方案。',
+    'Narrative is caller recorded; verdicts and measurements are separate evidence.':'叙述由调用方记录；判定和测量值属于独立证据。',
+    'Change and rationale':'改动与原因', 'Caller recorded':'调用方记录', 'Change type':'改动类型',
+    'What was changed':'具体改动', 'Why / hypothesis':'原因 / 假设',
+    'Code / configuration locations':'代码 / 配置位置', 'Code / configuration location':'代码 / 配置位置',
+    'Optimization trace':'优化轨迹', 'Trace not recorded':'未记录优化轨迹',
+    'Candidate-level narrative; no run binding recorded':'候选方案级叙述；未记录绑定的运行',
+    'Knowledge context':'知识上下文', 'Caller-reviewed snapshot; not proof of model consumption':'调用方审核的快照；不能证明模型实际使用过',
+    'Capture status':'采集状态', 'Caller declared':'调用方声明', 'Search queries':'搜索查询',
+    'Selected source':'选定来源', 'Selected sources':'选定来源', 'Context text':'上下文原文', 'Trace evidence':'轨迹证据',
+    'Translated context · caller-supplied':'上下文译文 · 调用方提供', 'View original recorded context':'查看记录的上下文原文',
+    'Declared search space':'声明的搜索空间', 'Options are not necessarily attempts':'列出的选项不一定已经尝试',
+    'No linked attempt recorded':'未记录关联的尝试', 'Options':'选项',
+    'Optimization process':'优化过程', 'Recorded order and rationale':'记录的顺序与原因',
+    'Action':'操作', 'Why':'原因', 'Recorded result':'记录的结果', 'Technical event':'技术事件',
+    'Unavailable, unlinked, or source hash mismatch':'不可用、未关联或来源哈希不匹配', 'Steps':'步骤',
+    'Successes and failures':'成功与失败', 'Caller conclusions; see evidence for verdicts':'调用方的总结；判定请查看证据',
+    'Success summary':'成功总结', 'Failure summary':'失败总结', 'Limitations':'局限性',
+    'Benchmark and accuracy':'性能与精度测试', 'Measurements and redacted commands':'测量结果和脱敏命令',
+    'Performance methodology · caller recorded':'性能测试方法 · 调用方记录', 'Workload':'工作负载',
+    'Recorded medians':'记录的中位数', 'Recorded samples':'记录的样本',
+    'Baseline command · redacted argv':'基线命令 · 已脱敏参数', 'Candidate command · redacted argv':'候选方案命令 · 已脱敏参数',
+    'Accuracy methodology / result · caller recorded':'精度测试方法 / 结果 · 调用方记录',
+    'Validation command · redacted argv':'验证命令 · 已脱敏参数', 'caller recorded, redacted argv':'调用方记录，已脱敏参数',
+    'Recorded validation state':'记录的验证状态', 'only the recorded validation command is covered':'仅覆盖已记录的验证命令',
+    'validation command not recorded or unavailable for display':'验证命令未记录或无法展示',
+    'Not recorded or unavailable for display':'未记录或无法展示', 'Command evidence':'命令证据', 'Caller detail evidence':'调用方详情证据',
+    'No selection':'未选择', 'TRACE LOCATION':'轨迹位置', 'No events match the current filters.':'没有符合当前筛选条件的事件。',
+    'unclassified event':'未分类事件', 'Time not recorded':'未记录时间', 'UNLINKED':'未关联',
+    'No additional structured fields recorded.':'未记录其他结构化字段。', 'MISSING · tool calls':'缺失 · 工具调用',
+    'UNLINKED AGENT EVENTS':'未关联的智能体事件', 'MISMATCHED AGENT EVENTS':'不匹配的智能体事件',
+    'No evidence-backed diagnostic rule matched.':'没有匹配到有证据支持的诊断规则。', 'Single run':'单次运行',
+    'No corresponding trace event was recorded; inspect the referenced evidence.':'未记录对应的轨迹事件；请检查引用的证据。',
+    'Recorded cumulative campaign steps.':'记录的累计优化步骤。',
+    'Independent candidate results relative to their paired baselines.':'各候选方案相对于其配对基线的独立结果。',
+    'Comparison evidence is missing, unsupported, or incompatible.':'比较证据缺失、不受支持或互不兼容。',
+    'No measured candidate results recorded.':'未记录候选方案的测量结果。',
+    'Recorded values exceed the supported chart scale.':'记录的值超出图表支持的范围。',
+    'The recorded chart specification is invalid or incomplete.':'记录的图表配置无效或不完整。',
+    'No timestamped events recorded; a time axis cannot be drawn.':'未记录带时间戳的事件，无法绘制时间轴。',
+    'Recorded values exceed the supported time-chart scale.':'记录的值超出时间图表支持的范围。',
+    'Recorded timestamps exceed the supported time-chart range.':'记录的时间戳超出时间图表支持的范围。',
+    'Terminal events place results; stage dots are events, not durations.':'结果按终止事件定位；阶段圆点表示事件，不表示持续时间。',
+    'Unverified or incompatible candidate measurements are not plotted together.':'未验证或不兼容的候选方案测量值不会绘制在一起。',
+    'No common noise band recorded.':'未记录共同的噪声区间。',
+    'Candidate results and stage events over time':'候选方案结果和阶段事件的时间分布',
+    'Results use terminal event timestamps. Stage dots are events, not durations. Crosses in the no-value row have no numeric measurement.':'结果使用终止事件时间戳。阶段圆点表示事件，不表示持续时间；无数值行中的叉号表示没有数值测量结果。',
+    'Candidate gain versus paired baseline':'候选方案相对于配对基线的提升', 'paired baseline':'配对基线', 'baseline':'基线',
+    'Candidates':'候选方案', 'gain':'提升', 'Target':'目标', 'target':'目标',
+    'Gain vs baseline':'相对基线的提升', 'No numeric result':'无数值结果', 'no numeric result':'无数值结果', 'Stage events':'阶段事件',
+    'Recorded optimization step':'已记录的优化步骤', 'Throughput vs baseline':'相对基线的吞吐量',
+    'Throughput':'吞吐量', 'throughput':'吞吐量', 'Baseline':'基线', 'revision':'修订版本',
+    'Recorded optimization':'记录的优化', 'Findings and recommendation':'发现与建议', 'Evidence references':'证据引用',
+    'Visible trace':'可见轨迹', 'Stage':'阶段', 'Campaign':'任务', 'InferRSI review':'InferRSI 审阅',
+    'file_absent':'文件缺失', 'not_collected':'未采集', 'hash_mismatch':'哈希不匹配',
+    'hash_not_recorded':'未记录哈希', 'unreadable':'无法读取', 'unsafe_path':'不安全的路径',
+    'invalid_format':'格式无效', 'identity_mismatch':'身份不匹配', 'identity_ambiguous':'身份不明确',
+    'too_large':'文件过大', 'not_applicable':'不适用', 'redacted or invalid path':'路径已脱敏或无效'
+  };
+  let language = 'en';
+  try { if (localStorage.getItem('inferrsi.dashboard.language') === 'zh') language = 'zh'; } catch (_) { /* file storage may be disabled */ }
+  const originalText = new WeakMap(), originalAttributes = new WeakMap();
+  function translated(text) {
+    if (typeof text !== 'string') return text;
+    const supplied = (data.translations || {})[language] || {};
+    if (Object.prototype.hasOwnProperty.call(supplied, text)) return supplied[text];
+    if (language !== 'zh') return text;
+    if (Object.prototype.hasOwnProperty.call(chinese, text)) return chinese[text];
+    const temporalPrefix='Terminal events place results; stage dots are events, not durations.';
+    if(text.startsWith(`${temporalPrefix} `)) {
+      return chinese[temporalPrefix] + ' ' + text.slice(temporalPrefix.length+1)
+        .replace(/(\d+) result\(s\) have no recorded terminal timestamp\./g, (_, count)=>`${count} 个结果未记录终止时间戳。`)
+        .replace('Unverified or incompatible candidate measurements are not plotted together.',chinese['Unverified or incompatible candidate measurements are not plotted together.'])
+        .replace('No common noise band recorded.',chinese['No common noise band recorded.']);
+    }
+    const patterns = [
+      [/^(\d+) recorded rounds$/, m => `已记录 ${m[1]} 轮`],
+      [/^corrupt lines (.+)$/, m => `损坏的行 ${m[1]}`],
+      [/^Target (.+)$/, m => `目标 ${m[1]}`],
+      [/^Noise (.+)$/, m => `噪声 ${m[1]}`],
+      [/^(\d+) present \/ (\d+) missing$/, m => `已记录 ${m[1]} / 缺失 ${m[2]}`],
+      [/^Inspect (.+)$/, m => `查看 ${m[1]}`],
+      [/^Caller bound this narrative to run (.+)$/, m => `调用方将此叙述绑定到运行 ${m[1]}`],
+      [/^View recorded context · (.+)$/, m => `查看记录的上下文 · ${translated(m[1])}`],
+      [/^(\d+) linked recorded attempt\(s\)$/, m => `关联了 ${m[1]} 次已记录的尝试`],
+      [/^Search option: (.+)$/, m => `搜索选项：${m[1]}`],
+      [/^Open (.+)$/, m => `打开 ${m[1]}`],
+      [/^(\d+) repetitions$/, m => `重复 ${m[1]} 次`],
+      [/^repetitions not recorded$/, () => '未记录重复次数'],
+      [/^Baseline ([^·]+)$/, m => `基线 ${m[1]}`], [/^Candidate ([^·]+)$/, m => `候选方案 ${m[1]}`],
+      [/^Baseline: (.+)$/, m => `基线：${m[1]}`], [/^Candidate: (.+)$/, m => `候选方案：${m[1]}`],
+      [/^(\d+) of (\d+) events · time order, unknown time last$/, m => `${m[2]} 个事件中显示 ${m[1]} 个 · 按时间排序，时间未知的排在最后`],
+      [/^Lines (.+)$/, m => `行 ${m[1]}`], [/^CORRUPT (.+) LINES$/, m => `${m[1]} 损坏的行`],
+      [/^trial (.+)$/, m => `试验 ${m[1]}`],
+      [/^baseline: (.+)$/, m => `基线：${translated(m[1])}`],
+      [/^(\d+)\. (.+)$/, m => `${m[1]}. ${translated(m[2])}`],
+      [/^(\d+) (Diagnosis|Knowledge|Candidate search|Execution|Validation|Review)$/, m => `${m[1]} ${translated(m[2])}`],
+      [/^revision (.+)$/, m => `修订版本 ${m[1]}`],
+      [/^(.+?): (Diagnosis|Knowledge|Candidate search|Execution|Validation|Review) · (.+)$/, m => `${translated(m[1])}：${translated(m[2])} · ${m[3]}`],
+      [/^(.+?): (improved|regressed|failed|quality failed|noise)(.*)$/, m => `${translated(m[1])}：${translated(m[2])}${m[3]}`],
+      [/^(\d+) result\(s\) have no recorded terminal timestamp\.$/, m => `${m[1]} 个结果未记录终止时间戳。`]
+    ];
+    for (const [pattern, format] of patterns) { const match=text.match(pattern); if(match)return format(match); }
+    if (text.includes('\n')) return text.split('\n').map(translated).join('\n');
+    if (text.includes(' · ')) return text.split(' · ').map(translated).join(' · ');
+    return text;
+  }
+  function localizePage() {
+    document.documentElement.lang=language==='zh'?'zh-CN':'en';
+    document.title=translated('InferRSI · Optimization dashboard');
+    byId('language-en').setAttribute('aria-pressed',String(language==='en'));
+    byId('language-zh').setAttribute('aria-pressed',String(language==='zh'));
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    while(walker.nextNode()) {
+      const text=walker.currentNode, parent=text.parentElement;
+      if(!parent || parent.closest('script,style,pre,code,textarea,[data-no-translate]'))continue;
+      if(!originalText.has(text))originalText.set(text,text.nodeValue);
+      const original=originalText.get(text), trimmed=original.trim();
+      if(trimmed){const direct=translated(original);text.nodeValue=direct===original?original.replace(trimmed,translated(trimmed)):direct;}
+    }
+    for(const element of document.querySelectorAll('[aria-label],[placeholder]')) {
+      if(!originalAttributes.has(element))originalAttributes.set(element,{});
+      const original=originalAttributes.get(element);
+      for(const attr of ['aria-label','placeholder'])if(element.hasAttribute(attr)) {
+        if(!(attr in original))original[attr]=element.getAttribute(attr);
+        element.setAttribute(attr,translated(original[attr]));
+      }
+    }
+  }
   const stageNames = {diagnosis:'Diagnosis', knowledge:'Knowledge', search:'Candidate search', execution:'Execution', validation:'Validation', review:'Review'};
   const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
   let selected = null, jumpNotice = '';
@@ -257,12 +441,19 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     detailLine(knowledge,'Capture status',recordedState(knowledgeContext));
     detailLine(knowledge,'Search queries',knowledgeContext && knowledgeContext.queries.length ? knowledgeContext.queries.join('\n') : 'Not recorded');
     if(knowledgeContext && knowledgeContext.sources.length){
-      for(const source of knowledgeContext.sources)detailLine(knowledge,'Selected source',`${source.ref} · revision ${source.revision || 'Not recorded'}${source.locator ? ` · ${source.locator}` : ''}`,true);
+      for(const source of knowledgeContext.sources)detailLine(knowledge,'Selected source',`${source.ref} · ${translated('revision')} ${source.revision || translated('Not recorded')}${source.locator ? ` · ${translated(source.locator)}` : ''}`,true);
     }else detailLine(knowledge,'Selected sources','Not recorded');
     if(knowledgeContext && knowledgeContext.text){
       const fold=node('details',undefined,'context-detail');fold.open=true;
-      fold.appendChild(node('summary',`View recorded context · ${knowledgeContext.state}`));
-      fold.appendChild(node('pre',knowledgeContext.text,'context-text'));knowledge.appendChild(fold);
+      fold.id='knowledge-context';
+      const contextText=translated(knowledgeContext.text);
+      fold.appendChild(node('summary',contextText===knowledgeContext.text ? `View recorded context · ${knowledgeContext.state}` : 'Translated context · caller-supplied'));
+      fold.appendChild(node('pre',contextText,'context-text'));knowledge.appendChild(fold);
+      if(contextText!==knowledgeContext.text){
+        const original=node('details',undefined,'context-detail');original.id='original-context';
+        original.appendChild(node('summary','View original recorded context'));
+        original.appendChild(node('pre',knowledgeContext.text,'context-text'));knowledge.appendChild(original);
+      }
     }else detailLine(knowledge,'Context text','Not recorded');
     if(row.artifacts.optimization_trace)detailLine(knowledge,'Trace evidence',refText(row.artifacts.optimization_trace),true);
 
@@ -357,7 +548,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const {visible,total}=traceEvents(row);byId('trace-count').textContent=`${visible.length} of ${total} events · time order, unknown time last`;
     if(jumpNotice)item(trace,'TRACE LOCATION',jumpNotice);
     if(!visible.length)item(trace,'NOT RECORDED','No events match the current filters.');
-    for(const event of visible){const name=event.type || event.phase || 'unclassified event';const metadata=[event.time || 'Time not recorded',event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);entry.id=`trace-${event.source}-${event.line}`;entry.appendChild(node('summary',`${event.unlinked?'UNLINKED · ':''}${event.source}:${event.line} · ${name}`));entry.appendChild(node('small',metadata));entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : 'No additional structured fields recorded.'));entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);}
+    for(const event of visible){const name=event.type || event.phase || translated('unclassified event');const metadata=[event.time || 'Time not recorded',event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);entry.id=`trace-${event.source}-${event.line}`;const summary=node('summary');if(event.unlinked)summary.appendChild(node('span','UNLINKED · '));const rawName=node('span',`${event.source}:${event.line} · ${name}`);rawName.setAttribute('data-no-translate','');summary.appendChild(rawName);entry.appendChild(summary);entry.appendChild(node('small',metadata));entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : translated('No additional structured fields recorded.')));entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);}
     if(row.artifacts.tool_calls.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
     if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
     if(row.agent_trace_links.mismatched.length)item(trace,'MISMATCHED AGENT EVENTS',`Lines ${row.agent_trace_links.mismatched.join(', ')}`).classList.add('missing-item');
@@ -365,12 +556,33 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     for(const ref of Object.values(row.artifacts)){const entry=item(evidence,ref.state === 'present' ? `${ref.kind} · PRESENT` : `${ref.kind} · MISSING`,ref.state === 'present' ? ref.path : ref.missing_reason,ref.sha256 ? `sha256 ${ref.sha256}` : '');if(ref.state==='missing')entry.classList.add('missing-item');}
   }
   function renderDiagnostics(){const root=byId('diagnostics');clear(root);if(!data.diagnostics.length)item(root,'NOT RECORDED','No evidence-backed diagnostic rule matched.');for(const d of data.diagnostics){const entry=item(root,'',d.candidate_id || 'Single run',d.refs.map(refText).join(' | '));const button=node('button',d.kind.replaceAll('_',' '),'diagnostic-button');button.type='button';const matches=data.candidates.map((row,index)=>({row,index})).filter(({row})=>row.candidate_id===d.candidate_id && row.run_id===d.run_id && row.round===d.round);button.disabled=matches.length!==1;button.addEventListener('click',()=>{const {row,index}=matches[0];const phases=d.kind==='execution_failed'?['crashed','measurement']:d.kind==='quality_failed_with_gain'?['quality_validation']:d.kind==='rolled_back'?[]:['measurement'];let event=null;for(const phase of phases){event=[...row.events].reverse().find(e=>e.phase===phase);if(event)break;}runSelect.value='';candidateSelect.value=String(index);stageSelect.value=event && event.stage || '';byId('trace-search').value='';byId('trace-source').value='';selected=index;jumpNotice=event?'': 'No corresponding trace event was recorded; inspect the referenced evidence.';render();const target=event?byId(`trace-${event.source}-${event.line}`):byId('trace');if(target){if(target.tagName==='DETAILS')target.open=true;target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'center'});}});entry.querySelector('strong').replaceWith(button);}}
-  function render(){const visible=filtered();renderWorkflow();renderRows(visible);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();}
+  function render(){const visible=filtered();renderWorkflow();renderRows(visible);renderCandidate(selected===null?null:data.candidates[selected]);renderDetail();localizePage();}
   for(const select of [stageSelect,runSelect,candidateSelect])select.addEventListener('change',()=>{jumpNotice='';render();});
-  byId('trace-search').addEventListener('input',renderDetail);
-  byId('trace-source').addEventListener('change',renderDetail);
+  byId('trace-search').addEventListener('input',()=>{renderDetail();localizePage();});
+  byId('trace-source').addEventListener('change',()=>{renderDetail();localizePage();});
+  for(const choice of ['en','zh'])byId(`language-${choice}`).addEventListener('click',()=>{
+    if(language===choice)return;
+    const openEvents=[...document.querySelectorAll('#trace details[open]')].map(el=>el.id);
+    const contextOpen=byId('knowledge-context')?.open, originalOpen=byId('original-context')?.open;
+    language=choice;
+    try { localStorage.setItem('inferrsi.dashboard.language',language); } catch (_) { /* file storage may be disabled */ }
+    renderStats();renderDiagnostics();render();
+    for(const id of openEvents){const event=byId(id);if(event)event.open=true;}
+    if(byId('knowledge-context') && contextOpen!==undefined)byId('knowledge-context').open=contextOpen;
+    if(byId('original-context') && originalOpen!==undefined)byId('original-context').open=originalOpen;
+    if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
+  });
   const redact = text => text.replace(/https?:\/\/\S+/gi,'[redacted-url]').replace(/\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b/g,'[redacted-email]').replace(/\b(?:\d{1,3}\.){3}\d{1,3}\b/g,'[redacted-address]').replace(/\b[A-Za-z]:[\\/][^\s]+/g,'[redacted-path]').replace(/(^|\s)\/(?:[^\s/]+\/)*[^\s]+/g,'$1[redacted-path]').replace(/\b(api[_-]?key|token|password|secret)\s*[:=]\s*\S+/gi,'$1=[redacted]');
-  byId('export').addEventListener('click',()=>{const row=selected===null?null:data.candidates[selected];const visible=row?traceEvents(row).visible:[];const refs=row?[...new Set([...Object.values(row.artifacts),...visible.flatMap(event=>event.refs)].map(refText))].join('\n- '):'Not recorded';const events=visible.map(e=>`${e.unlinked?'UNLINKED ':''}${e.source}:${e.line}`).join(', ');const feedback=redact(`# InferRSI review\n\nCampaign: ${data.campaign_id}\nRound: ${row && row.round!==null?row.round:'Not recorded'}\nCandidate: ${row?identity(row,selected):'Not recorded'}\nStage: ${stageSelect.value || 'all'}\nVisible trace: ${events || 'Not recorded'}\n\n## Recorded optimization\n\n${row?row.optimization.summary:'Not recorded'}\n\n## Findings and recommendation\n\n${byId('feedback').value || 'Not recorded'}\n\n## Evidence references\n\n- ${refs}\n`);const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);});
+  function buildFeedback(){
+    const row=selected===null?null:data.candidates[selected], visible=row?traceEvents(row).visible:[];
+    const refs=row?[...new Set([...Object.values(row.artifacts),...visible.flatMap(event=>event.refs)].map(refText))].join('\n- '):translated('Not recorded');
+    const events=visible.map(e=>`${e.unlinked?`${translated('UNLINKED')} `:''}${e.source}:${e.line}`).join(', ');
+    return redact(`# ${translated('InferRSI review')}\n\n${translated('Campaign')}: ${data.campaign_id}\n${translated('Round')}: ${row && row.round!==null?row.round:translated('Not recorded')}\n${translated('Candidate')}: ${row?identity(row,selected):translated('Not recorded')}\n${translated('Stage')}: ${stageSelect.value?translated(stageNames[stageSelect.value]):translated('All stages')}\n${translated('Visible trace')}: ${events || translated('Not recorded')}\n\n## ${translated('Recorded optimization')}\n\n${row?translated(row.optimization.summary):translated('Not recorded')}\n\n## ${translated('Findings and recommendation')}\n\n${byId('feedback').value || translated('Not recorded')}\n\n## ${translated('Evidence references')}\n\n- ${refs}\n`);
+  }
+  byId('export').addEventListener('click',()=>{
+    const feedback=buildFeedback();
+    const preview=byId('feedback-preview');preview.textContent=feedback;preview.hidden=false;const url=URL.createObjectURL(new Blob([feedback],{type:'text/markdown'}));const link=node('a');link.href=url;link.download='inferrsi-review.md';document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+  });
   renderStats();renderDiagnostics();render();
 })();
 </script>

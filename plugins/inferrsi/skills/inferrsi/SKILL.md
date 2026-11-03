@@ -77,6 +77,13 @@ available. If the context or reasoning was not captured, state that it is
 missing instead of inferring it from a verdict. The optional campaign trace
 format and association workflow are documented in `docs/dashboard.md`.
 
+For a bilingual dashboard, prepare and review a translation overlay for the
+recorded narrative, including the knowledge context, search space, decisions,
+benchmark and quality descriptions. Supply it to `dashboard --translations` as
+documented in `docs/dashboard.md`. Keep the recorded context, commands and
+identifiers intact; a translation is not the original evidence. Explicitly leave
+unsupported or unavailable translations in their original language.
+
 ## Prepare and run a comparison
 
 Consult `plan --help` and `run --help` to build the current runtime's invocation.

@@ -118,6 +118,9 @@ def parser() -> argparse.ArgumentParser:
     dashboard.add_argument(
         "--output", type=Path, help="HTML output (default: input/dashboard.html)"
     )
+    dashboard.add_argument(
+        "--translations", type=Path, help="Reviewed bilingual text overlay in JSON"
+    )
 
     campaign = commands.add_parser("campaign", help="Create local campaign correlation records")
     campaign_actions = campaign.add_subparsers(dest="campaign_action", required=True)

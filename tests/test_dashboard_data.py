@@ -2,6 +2,7 @@
 
 import hashlib
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -588,6 +589,51 @@ def test_dashboard_can_be_regenerated(tmp_path):
     write_json(tmp_path / "run.lock.json", {})
     output = write_dashboard(tmp_path)
     assert write_dashboard(tmp_path) == output
+
+
+def test_reviewed_translations_are_embedded_without_changing_evidence(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    candidate(tmp_path, "a", "run-a", details={"summary": "Reduce launch overhead"})
+    translations = tmp_path / "translations.json"
+    write_json(translations, {"schema_version": 1, "zh": {
+        "Reduce launch overhead": "减少启动开销",
+        "literal": "</script><img src=x onerror=alert(1)>",
+    }})
+
+    html = write_dashboard(tmp_path, translations=translations).read_text(encoding="utf-8")
+    payload = re.search(r'<script id="dashboard-data" type="application/json">(.*?)</script>',
+                        html, re.DOTALL)
+    assert payload is not None
+    view = json.loads(payload.group(1))
+    assert view["candidates"][0]["optimization"]["summary"] == "Reduce launch overhead"
+    assert view["translations"]["zh"]["Reduce launch overhead"] == "减少启动开销"
+    assert view["translations"]["zh"]["literal"] == "</script><img src=x onerror=alert(1)>"
+    assert "</script><img src=x onerror=alert(1)>" not in html
+
+
+@pytest.mark.parametrize("raw", [
+    '{"schema_version":1,"zh":{"a":"b","a":"c"}}',
+    '{"schema_version":true,"zh":{}}',
+    '{"schema_version":1,"zh":{"a":""}}',
+    '{"schema_version":1,"zh":[],"extra":{}}',
+    '{"schema_version":1,"zh":{"a":"\\ud800"}}',
+])
+def test_invalid_translation_overlay_is_rejected(tmp_path, raw):
+    write_json(tmp_path / "run.lock.json", {})
+    translations = tmp_path / "translations.json"
+    translations.write_text(raw, encoding="utf-8")
+
+    with pytest.raises(ValueError, match="translation"):
+        write_dashboard(tmp_path, translations=translations)
+    assert not (tmp_path / "dashboard.html").exists()
+
+
+def test_oversized_translation_overlay_is_rejected(tmp_path):
+    write_json(tmp_path / "run.lock.json", {})
+    translations = tmp_path / "translations.json"
+    translations.write_bytes(b" " * (2 * 1024 * 1024 + 1))
+    with pytest.raises(ValueError, match="2 MiB"):
+        write_dashboard(tmp_path, translations=translations)
 
 
 def test_time_chart_uses_terminal_events_and_marks_quality_failure_and_missing_values(tmp_path):
