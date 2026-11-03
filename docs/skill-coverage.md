@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:946ec9585c7e530125131a12ef50666c490fb436c4a2c60c0a638ea7c88bcdf5`
+- Input digest: `sha256:a314b58c61ab9e0afcbfff44d1d16f1a775d392e3b7133006619994e3529814a`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -32,17 +32,17 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 77 |
-| By category | frameworks 3, hardware 22, methods 20, repositories 26, workflows 6 |
-| By backend | ascend 14, common 58, cuda 5 |
+| Registered skill ids | 79 |
+| By category | frameworks 5, hardware 22, methods 20, repositories 26, workflows 6 |
+| By backend | ascend 15, common 59, cuda 5 |
 | Recorded on a numbered SearchSpace resource layer | 49 |
-| Recorded only in a supplementary guidance table (†) | 13 |
+| Recorded only in a supplementary guidance table (†) | 15 |
 | Recorded on two or more resource layers | 24 |
-| Recorded in the Reference Matrix | 69 |
-| With a `metadata.json` sidecar | 77 |
+| Recorded in the Reference Matrix | 71 |
+| With a `metadata.json` sidecar | 79 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 124 |
-| Unregistered documents (excluded from every count above) | 47 |
+| `SKILL.md` documents in the library | 142 |
+| Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
 has an entry; that says the listing is exhaustive, not that inference
@@ -75,13 +75,15 @@ optimization is fully covered or that any procedure has measured benefit.
 | [torchnpu-device-memory-lifecycle](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-device-memory-lifecycle/SKILL.md) | ascend | Diagnose TorchNPU device-HBM reuse, cross-stream lifetimes, cache retention and fragmentation, then propose ... | **unknown** | — | 1 Accelerator · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `67511c53cd4c88014f6123de7097677e60e85faa` ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
 | [torchnpu-pinned-host-memory-lifecycle](../src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md) | ascend | Diagnose TorchNPU pinned-host RAM allocation, asynchronous-copy lifetime, reuse and cache controls, then propose ... | **unknown** | — | 2 RAM/Host · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Ascend/pytorch (TorchNPU) @ `67511c53cd4c88014f6123de7097677e60e85faa` ...) | candidate · not_run · 1 readset(s) | no-applicability, no-eval |
 
-## Registered: Frameworks (3)
+## Registered: Frameworks (5)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
-| [dcp-async-save-performance](../src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md) | common | Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging ... | Source-supported diagnosis of training-visible PyTorch DCP save pauses ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Configure / Optimize<br>2 RAM/Host · Observe / Profile / Configure / Optimize / Verify<br>3 SSD · Observe / Profile / Configure / Optimize / Verify | 1 · Systems sources (C1 / DCP async-save-only approval — pytorch/pytorch @ ...) | candidate · not_run · 1 readset(s) | no-eval |
+| [dcp-async-save-performance](../src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md) | common | Diagnose training-visible checkpoint pauses using PyTorch Distributed Checkpoint asynchronous saving and staging ... | Source-supported diagnosis of training-visible PyTorch DCP save pauses ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Configure / Optimize<br>2 RAM/Host · Observe / Profile / Configure / Optimize / Verify † guidance: PyTorch framework source procedures<br>3 SSD · Observe / Profile / Configure / Optimize / Verify † guidance: PyTorch framework source procedures | 1 · Systems sources (C1 / DCP async-save-only approval — pytorch/pytorch @ ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [diffusers-invocation-state](../src/inferrsi/data/skill_library/frameworks/diffusers/diffusers-invocation-state/SKILL.md) | common | Trace Diffusers pipeline-wrapper and scheduler invocation state when repeated calls, from_pipe reuse or interruption ... | FluxPipeline and FlowMatchEulerDiscreteScheduler invocation ownership at this source pin ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 2 RAM/Host † guidance: Diffusers invocation guidance (source-derived) | Diffusers invocation source extraction (huggingface/diffusers @ `aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e` ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [lazy-evaluation-stream-lifetimes](../src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md) | common | Diagnose MLX lazy evaluation, cross-stream ordering and array-buffer lifetimes when timing, memory use or asynchronous ... | MLX evaluation/stream/buffer diagnosis at the pinned implementation; qualify the actual ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator † guidance: MLX framework guidance (source-derived) | MLX framework source extraction (ml-explore/mlx @ `bff10220c742907f0c68e55ff174aaea56f74e3d` (MIT)) | candidate · not_run · 1 readset(s) | no-eval |
+| [pytorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md) | common | Operate and diagnose PyTorch installation, tensors and autograd, training and data, compilation and export, accelerator ... | Major user workflows and selected deep mechanisms of pinned pytorch/pytorch source; exact ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: PyTorch framework source procedures<br>2 RAM/Host † guidance: PyTorch framework source procedures<br>3 SSD † guidance: PyTorch framework source procedures<br>4 Network † guidance: PyTorch framework source procedures | PyTorch framework operating graph (pytorch/pytorch @ `9a90a4fefcaafa63ac984621963a6fcc66aee68c`, source ...) | candidate · not_run · 1 readset(s) | no-eval |
+| [torch-npu](../src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md) | ascend | Operate and diagnose TorchNPU on Ascend across installation, PrivateUse1 dispatch, operator development, memory and ... | Source-grounded TorchNPU operation and diagnosis; qualify the selected installed stack ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: TorchNPU framework source procedures<br>2 RAM/Host † guidance: TorchNPU framework source procedures<br>4 Network † guidance: TorchNPU framework source procedures | TorchNPU framework operating graph (Ascend/pytorch @ `046934140b96836c3fcef14d0f39ae54dc0a06bf` ...) | candidate · not_run · 2 readset(s) | no-eval |
 
 ## Registered: Repositories (26)
 
@@ -126,7 +128,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [choose-parallel-training-plan](../src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md) | common | Compare stage, device-mesh and operator-sharding candidates for static distributed training while accounting for ... | Comparing stage, device-mesh and operator-sharding candidates for static distributed ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Configure / Optimize / Verify<br>4 Network · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Alpa — [2201.12023v3](https://arxiv.org/abs/2201.12023v3)) | candidate · not_run · 1 readset(s) | no-eval |
 | [dense-performance-evidence](../src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md) | common | Taxonomy of performance evidence an optimization agent needs, ordered by collection cost and diagnostic power. Maps ... | Deciding which performance evidence to collect next and which claim each evidence level ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Observe / Profile / Verify<br>2 RAM/Host · Verify<br>4 Network · Verify | 1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>2 · Methodology and corpus references (JiusiServe/vllm-evolve @ 43cc82c)<br>2 · Methodology and corpus references (microsoft/SkillOpt @ 343db22) | candidate · not_run · 0 readset(s) | — |
 | [evaluate-elastic-serving-placement](../src/inferrsi/data/skill_library/methods/evaluate-elastic-serving-placement/SKILL.md) | common | Compare migrating an LLM request between model replicas with changing its sequence-parallel execution group, including ... | Comparing migration of a running LLM request between compatible model replicas with ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Configure / Optimize / Verify<br>2 RAM/Host · Diagnose / Configure / Optimize / Verify<br>4 Network · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Llumnix — [2406.03243v1](https://arxiv.org/abs/2406.03243v1)) | candidate · not_run · 1 readset(s) | no-eval |
-| [inference-benchmark-design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md) | common | Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents ... | Selecting task quality gates, reference parity checks and performance workloads for text ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | — | 2 · Methodology and corpus references (JiusiServe/vllm-evolve @ 43cc82c)<br>Task-specific benchmark selection (issue #60) ([Issue #60 report](https://github.com/InferMatrixLab/InferRSI/issues/6 ...)<br>Task-specific benchmark selection (issue #60) ([NVIDIA/NeMo-Speech.cpp @ 20999cc9](https://github.com/NVIDIA/NeMo-Spe ...) | candidate · not_run · 5 readset(s) | no-SearchSpace-layer |
+| [inference-benchmark-design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md) | common | Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents ... | Selecting task quality gates, reference parity checks and performance workloads for text ... | failure_modes, input_contract, produced_artifact, refusal_point<br>5 advice | — | 2 · Methodology and corpus references (JiusiServe/vllm-evolve @ 43cc82c)<br>Task-specific benchmark selection (issue #60) ([Issue #60 report](https://github.com/InferMatrixLab/InferRSI/issues/6 ...)<br>Task-specific benchmark selection (issue #60) ([NVIDIA/NeMo-Speech.cpp @ 20999cc9](https://github.com/NVIDIA/NeMo-Spe ...) | candidate · not_run · 7 readset(s) | no-SearchSpace-layer |
 | [inference-optimization-casebook](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/SKILL.md) | common | How to structure and use a casebook of past optimization decisions as a decision-support tool. Extracts the casebook ... | Structuring and querying a casebook of past optimization decisions as decision support ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Optimize | 1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd) | candidate · not_run · 0 readset(s) | no-eval |
 | [kernel-writing-guide](../src/inferrsi/data/skill_library/methods/kernel-writing-guide/SKILL.md) | common | Decision guide for writing custom inference kernels: when to write one, which framework to choose (Triton, CuTe DSL ... | Deciding whether to write a custom inference kernel, routing a kernel pattern to Triton ... | failure_modes, input_contract, produced_artifact, refusal_point<br>6 advice | 1 Accelerator · Optimize / Diagnose / Configure / Verify | 1 · Systems sources (Dao-AILab/causal-conv1d @ `cd81f0413cad2fc1e6f17e785ac39f59aae690cd` ...)<br>1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>1 · Systems sources (huggingface/transformers @ `0dad7b822255a0ae261ec45ae937371e859ffd1a` ...)<br>1 · Systems sources (mindspore-ai/akg @ `5aa15f3fe4d856eb60cd3b27447e04f5f1fb4dff` ...)<br>1 · Systems sources (sgl-project/sglang @ `16176278d0180f1a1a578e53e6eef432577876c2` ...)<br>1 · Systems sources (vllm-project/vllm @ `537a79f0fc5ba564d2bef43d54915b2f80f9f77d` (root ...) | candidate · not_run · 7 readset(s) | no-eval |
 | [optimization-search-policy](../src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md) | common | Policy for how an optimization agent should select, order, and stop optimization experiments. Covers candidate ... | Selecting, ordering and stopping optimization experiments: candidate generation ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Optimize | 2 · Methodology and corpus references (JiusiServe/vllm-evolve @ 43cc82c)<br>2 · Methodology and corpus references (RRSI — arXiv 2609.24972v3)<br>2 · Methodology and corpus references (arXiv 2608.01867 (CRISP))<br>2 · Methodology and corpus references (microsoft/SkillOpt @ 343db22) | candidate · not_run · 9 readset(s) | no-eval |
@@ -152,13 +154,29 @@ optimization is fully covered or that any procedure has measured benefit.
 
 ## Documents outside the registry
 
-47 `SKILL.md` documents are not registered, so they have
+63 `SKILL.md` documents are not registered, so they have
 no stable id and no row above. They are engine entrypoints, their
 sub-skills, and the research router. Counting them would inflate coverage:
 an entrypoint routes to procedures below it rather than adding one.
 
 | Directory | Kind |
 |---|---|
+| `frameworks/pytorch/pytorch/sub-skills/compiler-and-export` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/custom-operators-and-extension` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/installation-and-build` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/profiling-and-debugging` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/tensor-dispatch-autograd` | sub-skill |
+| `frameworks/pytorch/pytorch/sub-skills/training-and-data` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/distributed-and-hccl` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/graph-and-compile` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/installation-and-compatibility` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/memory-streams-and-events` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/operator-development` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/privateuse1-and-dispatch` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/profiling-and-debugging` | sub-skill |
+| `frameworks/torch-npu/torch-npu/sub-skills/training-and-precision` | sub-skill |
 | `repositories/dwarfstar/sub-skills/qualification` | sub-skill |
 | `repositories/dwarfstar/sub-skills/runtime-memory` | sub-skill |
 | `repositories/dwarfstar/sub-skills/serving-state` | sub-skill |
@@ -209,7 +227,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 77 of 77.
+- Registered ids resolve to an existing `SKILL.md`: 79 of 79.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 0.
@@ -222,7 +240,7 @@ an entrypoint routes to procedures below it rather than adding one.
 | `no-Reference-Matrix-row` | 8: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence, video-diffusion-optimization |
 | `no-sidecar` | 0: — |
 | `no-applicability` | 20: ascend-aclgraph-capture-replay, ascend-device-health, ascend-distributed-parallel, ascend-graph-mode, ascend-model-adaptation, ascend-operator-profiling, ascend-operator-tuning, ascend-optimization-casebook, ascend-performance-analysis, ascendc-tiling-design, cann-attribution-overlap, cgroup-resource-controls, diagnose-attention-bottlenecks, host-memory-management, host-overhead-optimization, host-overhead-profiling, os-process-placement, storage-io-measurement, torchnpu-device-memory-lifecycle, torchnpu-pinned-host-memory-lifecycle |
-| `no-eval` | 75: as listed in the Gaps column above |
+| `no-eval` | 77: as listed in the Gaps column above |
 
 These are inventory gaps, not defects. A workflow skill may legitimately
 have no hardware resource layer; a candidate may legitimately be untested.
