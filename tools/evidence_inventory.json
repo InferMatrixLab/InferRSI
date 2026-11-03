@@ -19,6 +19,10 @@
         {
           "path": "results/lifecycle-diagnostic-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "plan/acceptance-30pct-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [
