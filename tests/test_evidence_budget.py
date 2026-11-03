@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -51,8 +52,23 @@ def test_modified_file_counts_true_net_addition_not_full_size():
         files, per_file_limit=LIMIT_FILE, per_pr_limit=LIMIT_PR
     )
     assert violations == []
-    # Total net evidence addition is 10 KiB, not 500 KiB
     assert total == 10 * 1024
+
+
+def test_net_addition_with_deletion_and_shrinkage():
+    # Real maintainer scenario: delete 2 MiB, add 5 files of 450 KiB (+2,250 KiB)
+    # Net addition is +202 KiB, which is well below the 2.0 MiB limit
+    files = [
+        ("evidence/old_large.bin", 0, -2 * 1024 * 1024),
+    ] + [
+        (f"evidence/new_{i}.bin", 450 * 1024, 450 * 1024)
+        for i in range(5)
+    ]
+    violations, total = check.check_file_budgets(
+        files, per_file_limit=LIMIT_FILE, per_pr_limit=LIMIT_PR
+    )
+    assert violations == []
+    assert total == (5 * 450 * 1024) - (2 * 1024 * 1024)
 
 
 def test_non_evidence_files_not_counted_in_evidence_budget():
@@ -129,6 +145,92 @@ def test_validate_external_asset_manifest_rejects_tag_view_url(tmp_path: Path):
     assert "releases/download" in errors[0]
 
 
+def test_validate_external_asset_manifest_rejects_non_list_external_assets(tmp_path: Path):
+    manifest = tmp_path / "inventory_dict_assets.json"
+    data = {
+        "version": 1,
+        "bundles": {
+            "bad_bundle": {
+                "external_assets": {
+                    "url": "https://github.com/InferMatrixLab/InferRSI/releases/download/v1/a.bin"
+                }
+            }
+        },
+    }
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    errors = check.validate_external_asset_manifest(manifest)
+    assert len(errors) == 1
+    assert "must be a list of asset objects" in errors[0]
+
+
+def test_validate_external_asset_manifest_rejects_non_dict_bundles(tmp_path: Path):
+    manifest = tmp_path / "inventory_bad_bundles.json"
+    data = {"version": 1, "bundles": "not_a_dictionary"}
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    errors = check.validate_external_asset_manifest(manifest)
+    assert len(errors) == 1
+    assert "'bundles' must be a JSON object" in errors[0]
+
+
 def test_invalid_base_ref_raises_error(tmp_path: Path):
     with pytest.raises(ValueError, match="cannot be resolved"):
         check.get_changed_files_with_net_sizes("non_existent_ref_12345", repo_root=tmp_path)
+
+
+def test_git_rename_and_deletion_regression(tmp_path: Path):
+    """End-to-end Git test verifying rename, move, delete net delta and non-ASCII paths."""
+    repo = tmp_path / "test_repo"
+    repo.mkdir()
+
+    def git(*args: str):
+        subprocess.run(["git", *args], cwd=repo, capture_output=True, check=True)
+
+    git("init", "-b", "main")
+    git("config", "user.name", "Tester")
+    git("config", "user.email", "tester@example.com")
+
+    # Initial base commit
+    ev_dir = repo / "evidence"
+    ev_dir.mkdir()
+    (ev_dir / "old_600k.bin").write_bytes(b"A" * (600 * 1024))
+    (ev_dir / "to_delete_2m.bin").write_bytes(b"B" * (2 * 1024 * 1024))
+    outside_dir = repo / "outside"
+    outside_dir.mkdir()
+    (outside_dir / "external.bin").write_bytes(b"C" * (100 * 1024))
+    git("add", ".")
+    git("commit", "-m", "base commit")
+
+    # Make changes in HEAD:
+    # 1. Rename 600 KiB file inside evidence/ -> should trigger per-file limit on dst!
+    git("mv", "evidence/old_600k.bin", "evidence/new_600k.bin")
+
+    # 2. Delete 2 MiB file in evidence/ -> should yield -2 MiB delta
+    (ev_dir / "to_delete_2m.bin").unlink()
+    git("rm", "evidence/to_delete_2m.bin")
+
+    # 3. Add non-ASCII file in evidence/
+    (ev_dir / "é_trace.json").write_text('{"status": "ok"}', encoding="utf-8")
+
+    # 4. Move outside file into evidence/ -> +100 KiB net addition
+    git("mv", "outside/external.bin", "evidence/external.bin")
+
+    git("add", ".")
+    git("commit", "-m", "head commit")
+
+    records = check.get_changed_files_with_net_sizes("main~1", repo_root=repo)
+    paths = {r[0] for r in records}
+    assert "evidence/new_600k.bin" in paths
+    assert "evidence/é_trace.json" in paths
+    assert "evidence/external.bin" in paths
+
+    violations, net_bytes = check.check_file_budgets(records)
+    # Per-file violation must catch evidence/new_600k.bin
+    assert any("evidence/new_600k.bin" in v and "exceeds per-file limit" in v for v in violations)
+    # Net evidence addition:
+    # new_600k: 600K - 600K = 0
+    # to_delete_2m: -2M
+    # external.bin (moved in): +100K
+    # é_trace.json: +17 bytes
+    # Total net evidence is negative (~ -1.9 MB), so PR net limit is not violated
+    assert net_bytes < 0
+    assert not any("per-PR net limit" in v for v in violations)

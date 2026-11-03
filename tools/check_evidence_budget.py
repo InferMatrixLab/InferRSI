@@ -9,7 +9,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# Proposed R6 Byte Budgets (Refs #273, F5/R6 - under discussion)
+# Candidate R6 Byte Budgets (Refs #273, F5/R6 - proposed defaults under owner discussion)
 # Per-file budget: 512 KiB for files tracked in evidence/
 PER_FILE_MAX_BYTES = 512 * 1024
 # Per-PR net evidence addition budget: 2.0 MiB
@@ -20,7 +20,7 @@ RELEASE_ASSET_URL_PATTERN = re.compile(
 )
 
 ADVICE = (
-    "Evidence byte budget exceeded. Large raw artifacts should be stored outside "
+    "Candidate evidence byte budget exceeded. Large raw artifacts should be stored outside "
     "Git as GitHub Release assets, recording their downloadable asset URL, "
     "SHA-256 digest, byte count, and retention owner in tools/evidence_inventory.json. "
     "See discussion in Issue #273 (Remedy R6)."
@@ -29,6 +29,8 @@ ADVICE = (
 
 def get_git_object_size(root: Path, obj_ref: str) -> int:
     """Return byte size of a git blob object using git cat-file -s."""
+    if not obj_ref or set(obj_ref) == {"0"}:
+        return 0
     try:
         res = subprocess.run(
             ["git", "cat-file", "-s", obj_ref],
@@ -48,15 +50,14 @@ def get_changed_files_with_net_sizes(
 ) -> list[tuple[str, int, int]]:
     """Return list of (rel_path, current_size_bytes, net_addition_bytes).
 
-    If base_ref is supplied, uses git diff --raw against base_ref.
+    If base_ref is supplied, uses git diff --raw -z against base_ref.
     If base_ref fails or is missing, raises ValueError (no silent fallback in CI).
-    If base_ref is None, falls back to inspecting local git status.
+    If base_ref is None, inspects local git status with -z.
     """
     root = repo_root or ROOT
     results: list[tuple[str, int, int]] = []
 
     if base_ref:
-        # Validate base_ref exists before diffing
         rev_check = subprocess.run(
             ["git", "rev-parse", "--verify", base_ref],
             cwd=root,
@@ -70,43 +71,109 @@ def get_changed_files_with_net_sizes(
             )
 
         res = subprocess.run(
-            ["git", "diff", "--raw", f"{base_ref}...HEAD"],
+            ["git", "diff", "--raw", "-z", f"{base_ref}...HEAD"],
             cwd=root,
             capture_output=True,
-            text=True,
             check=True,
         )
 
-        for line in res.stdout.splitlines():
-            line = line.strip()
-            if not line.startswith(":"):
+        tokens = res.stdout.split(b"\0")
+        i = 0
+        while i < len(tokens):
+            tok = tokens[i]
+            if not tok:
+                i += 1
                 continue
-            # Format: :mode_src mode_dst sha_src sha_dst status\tpath (or path1\tpath2 for rename)
-            header, _, path_part = line.partition("\t")
-            parts = header.split()
+            if not tok.startswith(b":"):
+                i += 1
+                continue
+
+            header_str = tok.decode("utf-8", errors="replace")
+            parts = header_str.split()
             if len(parts) < 5:
+                i += 1
                 continue
-            sha_src, status = parts[2], parts[4]
-            rel_path = path_part.split("\t")[0].strip('"').replace("\\", "/")
 
-            full_path = root / rel_path
-            current_size = full_path.stat().st_size if full_path.is_file() else 0
+            sha_src, sha_dst, status = parts[2], parts[3], parts[4]
 
-            # Calculate true net delta
-            if status.startswith("A"):
-                net_addition = current_size
-            elif status.startswith("M"):
+            is_rename_or_copy = status.startswith(("R", "C"))
+            if is_rename_or_copy:
+                if i + 2 >= len(tokens):
+                    break
+                src_path = tokens[i + 1].decode("utf-8", errors="replace").replace("\\", "/")
+                dst_path = tokens[i + 2].decode("utf-8", errors="replace").replace("\\", "/")
+                i += 3
+
+                src_is_ev = src_path.startswith("evidence/")
+                dst_is_ev = dst_path.startswith("evidence/")
+
                 src_size = get_git_object_size(root, sha_src)
-                net_addition = max(0, current_size - src_size)
-            elif status.startswith("D"):
-                net_addition = 0
-            else:
-                net_addition = current_size
+                full_dst = root / dst_path
+                dst_size = (
+                    full_dst.stat().st_size
+                    if full_dst.is_file()
+                    else get_git_object_size(root, sha_dst)
+                )
 
-            results.append((rel_path, current_size, net_addition))
+                if status.startswith("R"):
+                    # Rename: src replaced by dst
+                    if src_is_ev and dst_is_ev:
+                        delta = dst_size - src_size
+                        results.append((dst_path, dst_size, delta))
+                    elif not src_is_ev and dst_is_ev:
+                        # Moved into evidence
+                        results.append((dst_path, dst_size, dst_size))
+                    elif src_is_ev and not dst_is_ev:
+                        # Moved out of evidence
+                        results.append((src_path, 0, -src_size))
+                    else:
+                        results.append((dst_path, dst_size, 0))
+                else:
+                    # Copy: src still exists, dst is added
+                    delta = dst_size if dst_is_ev else 0
+                    results.append((dst_path, dst_size, delta))
+
+            else:
+                if i + 1 >= len(tokens):
+                    break
+                path = tokens[i + 1].decode("utf-8", errors="replace").replace("\\", "/")
+                i += 2
+
+                is_ev = path.startswith("evidence/")
+                full_path = root / path
+
+                if status.startswith("D"):
+                    src_size = get_git_object_size(root, sha_src)
+                    delta = -src_size if is_ev else 0
+                    results.append((path, 0, delta))
+                elif status.startswith("A"):
+                    cur_size = (
+                        full_path.stat().st_size
+                        if full_path.is_file()
+                        else get_git_object_size(root, sha_dst)
+                    )
+                    delta = cur_size if is_ev else 0
+                    results.append((path, cur_size, delta))
+                elif status.startswith("M") or status.startswith("T"):
+                    src_size = get_git_object_size(root, sha_src)
+                    cur_size = (
+                        full_path.stat().st_size
+                        if full_path.is_file()
+                        else get_git_object_size(root, sha_dst)
+                    )
+                    delta = (cur_size - src_size) if is_ev else 0
+                    results.append((path, cur_size, delta))
+                else:
+                    cur_size = (
+                        full_path.stat().st_size
+                        if full_path.is_file()
+                        else get_git_object_size(root, sha_dst)
+                    )
+                    delta = cur_size if is_ev else 0
+                    results.append((path, cur_size, delta))
 
     else:
-        # Local development fallback without base ref
+        # Local development fallback inspecting uncommitted changes with -z
         local_paths = get_local_git_changed_files(root)
         for rel_path in local_paths:
             full_path = root / rel_path
@@ -118,25 +185,32 @@ def get_changed_files_with_net_sizes(
 
 
 def get_local_git_changed_files(root: Path) -> list[str]:
-    """Inspect local git status for untracked, added, or modified files."""
+    """Inspect local git status with -z for untracked, added, or modified files."""
     try:
         res = subprocess.run(
-            ["git", "status", "--porcelain"],
+            ["git", "status", "--porcelain", "-z"],
             cwd=root,
             capture_output=True,
-            text=True,
             check=True,
         )
-        paths = []
-        for line in res.stdout.splitlines():
-            line = line.strip()
-            if not line:
+        tokens = res.stdout.split(b"\0")
+        paths: list[str] = []
+        i = 0
+        while i < len(tokens):
+            tok = tokens[i]
+            if not tok:
+                i += 1
                 continue
-            parts = line.split(maxsplit=1)
-            if len(parts) == 2:
-                status, p = parts
-                if "D" not in status:
-                    paths.append(p.strip('"'))
+            status_code = tok[:2].decode("latin-1", errors="replace")
+            path = tok[3:].decode("utf-8", errors="replace").replace("\\", "/")
+            if "R" in status_code:
+                # In git status -z for rename: new path is first, old path is second token
+                paths.append(path)
+                i += 2
+            else:
+                if "D" not in status_code:
+                    paths.append(path)
+                i += 1
         return paths
     except (subprocess.SubprocessError, FileNotFoundError):
         return []
@@ -167,8 +241,9 @@ def check_file_budgets(
                 )
 
     if total_net_evidence_bytes > per_pr_limit:
+        sign = "+" if total_net_evidence_bytes >= 0 else "-"
         violations.append(
-            f"evidence net addition: +{total_net_evidence_bytes:,} bytes "
+            f"evidence net addition: {sign}{abs(total_net_evidence_bytes):,} bytes "
             f"exceeds per-PR net limit of {per_pr_limit:,} bytes"
         )
 
@@ -176,7 +251,11 @@ def check_file_budgets(
 
 
 def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
-    """Verify external asset entries record downloadable URL, sha256, bytes, and owner."""
+    """Verify external asset manifest syntax and fields conform to the schema.
+
+    Validates schema structure, types, and GitHub Release download URL syntax.
+    Does not probe remote HTTP endpoints or verify remote payload bytes over the network.
+    """
     errors: list[str] = []
     if not manifest_path.exists():
         return errors
@@ -186,17 +265,31 @@ def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
     except Exception as exc:
         return [f"manifest error: failed to parse {manifest_path.name}: {exc}"]
 
-    bundles = data.get("bundles", {})
+    if not isinstance(data, dict):
+        return ["manifest error: root of manifest must be a JSON object"]
+
+    if "bundles" not in data:
+        return ["manifest error: missing required key 'bundles'"]
+
+    bundles = data.get("bundles")
     if not isinstance(bundles, dict):
-        return errors
+        return ["manifest error: 'bundles' must be a JSON object"]
 
     sha_re = re.compile(r"^[0-9a-f]{64}$")
 
     for bundle_name, bundle in bundles.items():
         if not isinstance(bundle, dict):
+            errors.append(f"bundle {bundle_name}: expected JSON object")
             continue
-        external_assets = bundle.get("external_assets", [])
+
+        if "external_assets" not in bundle:
+            continue
+
+        external_assets = bundle["external_assets"]
         if not isinstance(external_assets, list):
+            errors.append(
+                f"bundle {bundle_name}: 'external_assets' must be a list of asset objects"
+            )
             continue
 
         for idx, asset in enumerate(external_assets):
@@ -209,24 +302,32 @@ def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
                 if field not in asset:
                     errors.append(f"{prefix}: missing required field '{field}'")
 
-            url = asset.get("url", "")
-            if not isinstance(url, str) or not RELEASE_ASSET_URL_PATTERN.match(url):
-                errors.append(
-                    f"{prefix}: url must point to a downloadable GitHub Release asset "
-                    f"(https://github.com/<owner>/<repo>/releases/download/<tag>/<filename>)"
-                )
+            url = asset.get("url")
+            if url is not None:
+                if not isinstance(url, str) or not RELEASE_ASSET_URL_PATTERN.match(url):
+                    errors.append(
+                        f"{prefix}: url must point to a downloadable GitHub Release asset "
+                        f"(https://github.com/<owner>/<repo>/releases/download/<tag>/<filename>)"
+                    )
 
-            sha = asset.get("sha256", "")
-            if not isinstance(sha, str) or not sha_re.match(sha):
-                errors.append(f"{prefix}: invalid sha256 hex digest")
+            sha = asset.get("sha256")
+            if sha is not None:
+                if not isinstance(sha, str) or not sha_re.match(sha):
+                    errors.append(f"{prefix}: invalid sha256 hex digest")
 
-            byte_count = asset.get("bytes", -1)
-            if not isinstance(byte_count, int) or byte_count <= 0:
-                errors.append(f"{prefix}: bytes must be a positive integer")
+            byte_count = asset.get("bytes")
+            if byte_count is not None:
+                if (
+                    not isinstance(byte_count, int)
+                    or isinstance(byte_count, bool)
+                    or byte_count <= 0
+                ):
+                    errors.append(f"{prefix}: bytes must be a positive integer")
 
-            owner = asset.get("retention_owner", "")
-            if not isinstance(owner, str) or not owner.strip():
-                errors.append(f"{prefix}: retention_owner must be non-empty")
+            owner = asset.get("retention_owner")
+            if owner is not None:
+                if not isinstance(owner, str) or not owner.strip():
+                    errors.append(f"{prefix}: retention_owner must be non-empty")
 
     return errors
 

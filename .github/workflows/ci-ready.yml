@@ -69,7 +69,7 @@ jobs:
         run: python3 tools/check_pr_references.py
 
   evidence-budget:
-    # Enforces per-file (512 KiB) and per-PR (2.0 MiB) byte budgets on evidence/ (Refs #273, R6)
+    # Candidate evidence byte budget check (Refs #273, R6 under discussion)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -127,8 +127,8 @@ jobs:
             --revision "$GITHUB_SHA" --output "$RUNNER_TEMP/kv-actor-qualification"
       - name: Retain separate scripted actor receipt including failures
         if: always()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
-        with:
+        shell: bash
+        run: |
           name: kv-actor-qualification-${{ github.run_id }}-${{ github.run_attempt }}
           path: |
             ${{ runner.temp }}/kv-actor-qualification/qualification.json
