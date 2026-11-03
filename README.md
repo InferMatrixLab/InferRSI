@@ -137,22 +137,22 @@ Python 3.10+ and Git.
 1. **Download the package from GitHub.** Open
    [Releases](https://github.com/InferMatrixLab/InferRSI/releases) and download
    `inferrsi-codex-plugin-vX.Y.Z.zip` from the selected version's assets.
-2. **Install it in Codex.** Open **Plugins → Add → Upload plugin archive**
-   (**插件 → 添加 → 上传插件压缩包** in the illustrated client), select the
-   downloaded ZIP to import it. On the InferRSI detail page, click **Install
-   plugin (安装插件)** to install it. Once installed, enable InferRSI and start a
+2. **Install it in Codex.** Open **Plugins → Add → Upload plugin archive** and
+   select the downloaded ZIP to import it. On the InferRSI detail page, click
+   **Install plugin** to install it. Once installed, enable InferRSI and start a
    new conversation in your target repository.
 
-[Watch or download the 52-second installation guide — Chinese audio and subtitles](docs/assets/inferrsi-codex-install-zh.mp4?raw=1)
+[Watch or download the installation guide — English narration and subtitles](docs/assets/inferrsi-codex-install-en.mp4?raw=1)
 
-<a href="docs/assets/inferrsi-codex-install-zh.mp4?raw=1">
+<a href="docs/assets/inferrsi-codex-install-en.mp4?raw=1">
   <img src="docs/assets/inferrsi-codex-install-poster.png" alt="Install InferRSI in two steps: download the ZIP from GitHub, then import it in Codex and click Install plugin on its detail page" width="720">
 </a>
 
 The runtime and knowledge are bundled; core operations need no separate pip
 install or InferRSI source checkout. The [plugin guide](docs/codex-plugin.md#install-from-the-release-zip)
 covers checksum verification and client compatibility. The video highlights the
-click order on the supplied Codex screenshot; it does not record a completed installation.
+click order with English UI illustrations based on the supplied Codex screenshots;
+it does not record a completed installation.
 
 Try a first task:
 
@@ -211,7 +211,7 @@ campaigns out of the common AB/BA scheduler, process cleanup and evaluator.
 ![InferRSI system architecture: inputs, experiment loop and evidence](docs/assets/system-architecture-en.svg)
 
 [English SVG](docs/assets/system-architecture-en.svg) ·
-[中文原图](docs/assets/system-architecture-zh-CN.svg)
+[Chinese original](docs/assets/system-architecture-zh-CN.svg)
 
 The supplied overview and its English translation summarize the intended workflow.
 Evidence feeds the next experiment through explicit review and user-selected
