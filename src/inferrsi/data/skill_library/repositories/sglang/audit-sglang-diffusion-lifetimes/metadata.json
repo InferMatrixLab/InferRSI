@@ -50,7 +50,12 @@
     }
   ],
   "applicability": {
-    "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation."
+    "scope": "Bounded monolithic multimodal_gen composed-pipeline state and lifecycle diagnosis; actual backend/model behavior requires native validation.",
+    "prerequisites": "Pinned source or a concrete trace of the selected composed-pipeline executor and installed residency manager, with the applicable monolithic route identified.",
+    "input_contract": "Source/build, backend and executor/pipeline class, model revision, modality/shape, steps/scheduler/seed/output count, grouped/serial route, ranks, placement, warmup/save settings and symptom; timeout cases need correlated request/job and client/scheduler/worker events.",
+    "produced_artifact": "A version-bound owner/event ledger, first unresolved boundary, causal hypothesis, smallest real discriminating check, exact results and missing dependencies.",
+    "failure_modes": "Assuming all executors share the SyncExecutor contract, treating closed component use as eviction, assuming grouped schedulers are isolated, or reading socket close/job deletion as stopped device compute can misdiagnose ownership.",
+    "refusal_point": "Stop performance claims when the executing path, cleanup or output quality is unresolved; retain the failure and a known baseline rather than inferring a blanket leak or safety conclusion."
   },
   "limitations": [
     "Source-derived candidate; upstream runtime and efficacy validation not run.",
@@ -60,5 +65,10 @@
   "provenance_readsets": [
     "references/source-notes.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Trace the actual executor and separate request, stage, component-use, module, scheduler, finalizer and allocator-cache lifetimes.",
+    "Check scheduler aliases and declared output-copy policies before introducing overlap; compare real serial/grouped outputs with fixed timesteps and seeds.",
+    "Correlate worker, finalizer and device completion after client timeout or deletion; preserve an unknown execution outcome until that evidence exists."
+  ]
 }

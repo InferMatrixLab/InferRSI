@@ -60,6 +60,20 @@ elif args[:3] == ["release", "create", tag]:
     for installer in installers:
         if installer not in args:
             raise SystemExit("Release upload must include both versioned host installers")
+    if "--generate-notes" not in args or "--notes-file" not in args:
+        raise SystemExit("Keep the GitHub changelog and read summary as a file")
+    notes = Path(args[args.index("--notes-file") + 1]).read_text(encoding="utf-8")
+    if "Source: https://github.com/example/release/tree/" + commit not in notes:
+        raise SystemExit("Release notes must retain exact source provenance")
+    state["release_notes"] = notes
+    save()
+    if (state.get("ai_summary") and not state.get("failed_notes_download")
+            and len(state["ai_summary"].encode("utf-8")) <= 20000):
+        if "## AI-generated summary" not in notes or state["ai_summary"] not in notes:
+            raise SystemExit("Missing AI summary")
+    elif "## AI-generated summary" in notes:
+        raise SystemExit("Missing AI output must fall back to ordinary release notes")
+    for installer in installers:
         record("upload_plugin", name=Path(installer).name)
     state["assets"] = ["inferrsi-1.2.3.whl", "inferrsi-1.2.3.tar.gz", "SHA256SUMS",
                        *[Path(installer).name for installer in installers]]
@@ -85,12 +99,29 @@ def test_write_token_is_confined_to_a_no_checkout_publisher():
     config = workflow()
     assert config["permissions"] == {"contents": "read", "pull-requests": "none"}
     for name, job in config["jobs"].items():
+        if name == "notes":
+            assert job["permissions"] == {"contents": "read", "pull-requests": "none"}
+            assert job["continue-on-error"] is True
+            continue
         if name != "publish":
             assert not job.get("permissions")
             continue
         assert job["permissions"] == {"contents": "write", "pull-requests": "none"}
         actions = [step["uses"] for step in job["steps"] if "uses" in step]
-        assert actions == ["actions/download-artifact@v4"]
+        assert actions == ["actions/download-artifact@v4", "actions/download-artifact@v4"]
+        assert "OPENAI_API_KEY" not in json.dumps(job)
+
+
+def test_optional_notes_failure_cannot_skip_an_otherwise_valid_publication():
+    job = workflow()["jobs"]["publish"]
+    assert job["needs"] == ["plan", "build", "notes"]
+    assert "always() && !cancelled()" in job["if"]
+    assert "needs.build.result == 'success'" in job["if"]
+    assert "needs.notes.result" not in job["if"]
+    optional = [step for step in job["steps"]
+                if step.get("with", {}).get("name") == "release-notes"]
+    assert len(optional) == 1
+    assert optional[0]["continue-on-error"] is True
 
 
 @pytest.fixture
@@ -126,6 +157,9 @@ def publisher(tmp_path):
                       encoding="utf-8", newline="\n")
 
     def run(state=None, **inputs):
+        if state and state.get("ai_summary"):
+            (tmp_path / "notes").mkdir()
+            (tmp_path / "notes/ai-notes.md").write_text(state["ai_summary"], encoding="utf-8")
         if state and state.get("corrupt_zip"):
             (dist / f"inferrsi-{state['corrupt_zip']}-plugin-v1.2.3.zip").write_bytes(
                 b"changed installer")
@@ -136,10 +170,15 @@ def publisher(tmp_path):
         env = dict(os.environ)
         env.update(PATH=str(mock_bin) + os.pathsep + env["PATH"],
                    FAKE_GH_STATE=str(state_path), FAKE_GH_LOG=str(log_path),
+                   RUNNER_TEMP=str(tmp_path),
                    GH_TOKEN="fake-no-access", GH_REPO="example/release", DEFAULT_BRANCH="main",
                    RELEASE_TAG="v1.2.3", RELEASE_COMMIT=COMMIT, PREVIOUS_TAG="v1.2.2",
                    PRERELEASE="true")
         env.update(inputs)
+        env["AI_NOTES_DOWNLOADED"] = (
+            "failure" if state and state.get("failed_notes_download") else
+            "success" if state and state.get("ai_summary") else "skipped"
+        )
         result = subprocess.run([bash, str(script)], cwd=tmp_path, env=env,
                                 capture_output=True, text=True, timeout=30)
         entries = [json.loads(line) for line in log_path.read_text().splitlines()] if (
@@ -160,6 +199,27 @@ def test_publisher_only_creates_a_tag_and_publishes_its_release(publisher):
         {"operation": "upload_plugin", "name": "inferrsi-workswarm-plugin-v1.2.3.zip"},
         {"operation": "publish_release"},
     ]
+
+
+def test_ai_notes_are_text_and_keep_the_publication_mutation_boundary(publisher, tmp_path):
+    # Treat model output as data even if it contains shell syntax.
+    summary = "Features: a new command. `touch should-not-exist` $(touch should-not-exist)"
+    result, mutations = publisher({"ai_summary": summary})
+    assert result.returncode == 0, result.stderr
+    assert [entry["operation"] for entry in mutations] == [
+        "create_tag", "create_release", "upload_plugin", "upload_plugin", "publish_release",
+    ]
+    assert not (tmp_path / "should-not-exist").exists()
+
+
+@pytest.mark.parametrize("state", [
+    {"ai_summary": "A partial download", "failed_notes_download": True},
+    {"ai_summary": "x" * 20001},
+])
+def test_unusable_notes_artifact_does_not_block_ordinary_publication(publisher, state):
+    result, mutations = publisher(state)
+    assert result.returncode == 0, result.stderr
+    assert mutations[-1] == {"operation": "publish_release"}
 
 
 @pytest.mark.parametrize("inputs", [

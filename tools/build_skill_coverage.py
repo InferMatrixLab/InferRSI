@@ -256,6 +256,7 @@ def collect(root):
             # advice, and [] is the deliberate statement that there is none.
             "advice": len(advice) if isinstance(advice, list) else None,
             "layers": layer_refs(ss.get(name, [])),
+            "layer_exclusion": metadata.get("searchspace_not_applicable"),
             "other_ss": sorted({
                 heading[3:] for heading, _, _ in ss.get(name, [])
                 if not HEADING.match(heading)
@@ -301,8 +302,11 @@ def conditions(metadata):
 
 def gaps(row):
     found = []
-    if not row["layers"]:
+    state = layer_state(row)
+    if state == "unknown":
         found.append("no-SearchSpace-layer")
+    elif state == "conflict":
+        found.append("conflicting-SearchSpace-layer")
     if not row["rm"]:
         found.append("no-Reference-Matrix-row")
     if not row["sidecar"]:
@@ -314,11 +318,21 @@ def gaps(row):
     return found
 
 
+def layer_state(row):
+    if row["layer_exclusion"]:
+        return "conflict" if row["layers"] else NOT_APPLICABLE
+    if not row["layers"]:
+        return "unknown"
+    if all(
+        not stages and sections for stages, sections in row["layers"].values()
+    ):
+        return "supplementary"
+    return "covered"
+
+
 def guidance_only(row):
     """True when every recorded layer comes from a supplementary table."""
-    return bool(row["layers"]) and all(
-        not stages and sections for stages, sections in row["layers"].values()
-    )
+    return layer_state(row) == "supplementary"
 
 
 def render(rows, unregistered, documents, dead, digest):
@@ -326,9 +340,7 @@ def render(rows, unregistered, documents, dead, digest):
     for row in rows:
         counts[row["category"]] = counts.get(row["category"], 0) + 1
         backends[row["backend"]] = backends.get(row["backend"], 0) + 1
-    layered = [row for row in rows if any(
-        stages for stages, _ in row["layers"].values()
-    )]
+    layered = [row for row in rows if layer_state(row) == "covered"]
     guidance = [row for row in rows if guidance_only(row)]
     multi = [row for row in layered if len(row["layers"]) > 1]
     sourced = [row for row in rows if row["rm"]]
@@ -365,6 +377,7 @@ def render(rows, unregistered, documents, dead, digest):
         "| Declared applicability conditions, workflow input/output/failure/refusal | "
         "`applicability` in the same `metadata.json` sidecar; descriptive, not evidential |",
         "| Resource layer, lifecycle stage | [SearchSpace Matrix](searchspace-matrix.md) |",
+        "| Reasoned resource-layer exclusion | `searchspace_not_applicable` in the sidecar |",
         "| Source identity and inspected scope | [Reference Matrix](reference-matrix.md) |",
         "| Evaluation selection | frozen `evidence/<campaign>/plan/protocol-*.json` |",
         "| Delivery PR and issue | not derived here; see [issue #91]"
@@ -384,6 +397,10 @@ def render(rows, unregistered, documents, dead, digest):
         + " |",
         f"| Recorded on a numbered SearchSpace resource layer | {len(layered)} |",
         f"| Recorded only in a supplementary guidance table (†) | {len(guidance)} |",
+        f"| Resource layers explicitly not applicable | "
+        f"{sum(layer_state(row) == NOT_APPLICABLE for row in rows)} |",
+        f"| Conflicting resource-layer declarations | "
+        f"{sum(layer_state(row) == 'conflict' for row in rows)} |",
         f"| Recorded on two or more resource layers | {len(multi)} |",
         f"| Recorded in the Reference Matrix | {len(sourced)} |",
         f"| With a `metadata.json` sidecar | {len(sided)} |",
@@ -422,7 +439,13 @@ def render(rows, unregistered, documents, dead, digest):
                 if sections:
                     entry += " † guidance: " + "; ".join(sections)
                 layered.append(entry)
-            layers = "<br>".join(layered) or "—"
+            layers = "<br>".join(layered) or "**unknown**"
+            if row["layer_exclusion"]:
+                reason = " ".join(row["layer_exclusion"].split())
+                layers = (
+                    f"**CONFLICT**: N/A ({reason})<br>Matrix: {layers}"
+                    if row["layers"] else f"N/A: {reason}"
+                )
             matrix = "<br>".join(
                 f"{heading} ({source})" for heading, source in row["rm"]
             ) or "—"
@@ -487,7 +510,8 @@ def render(rows, unregistered, documents, dead, digest):
         out.append("")
 
     out += ["## Recorded gaps", "", "| Gap | Skills |", "|---|---|"]
-    for token in ("no-SearchSpace-layer", "no-Reference-Matrix-row", "no-sidecar",
+    for token in ("no-SearchSpace-layer", "conflicting-SearchSpace-layer",
+                  "no-Reference-Matrix-row", "no-sidecar",
                   "no-applicability", "no-eval"):
         names = [row["id"] for row in rows if token in gaps(row)]
         listed = (", ".join(names) if len(names) <= 20
@@ -495,9 +519,11 @@ def render(rows, unregistered, documents, dead, digest):
         out.append(f"| `{token}` | {len(names)}: {listed or '—'} |")
     out += [
         "",
-        "These are inventory gaps, not defects. A workflow skill may legitimately",
-        "have no hardware resource layer; a candidate may legitimately be untested.",
-        "The view records the absence instead of inferring an answer.",
+        "These are inventory gaps, not efficacy results. Missing layer mappings stay",
+        "unknown unless the sidecar records a reasoned N/A. N/A is not coverage;",
+        "a conflicting matrix mapping remains visible and is excluded from coverage",
+        "counts until reconciled. Supplementary guidance stays distinct from numbered",
+        "layer coverage. A candidate may legitimately remain untested.",
         "",
         "## Evaluation linkage",
         "",

@@ -211,6 +211,12 @@ def _effective(directory: Path) -> dict:
         # a cyclic legacy frontmatter value against the field that contains it.
         _strings(metadata, "recommendations", directory.name)
         _applicability(metadata, directory.name)
+        if "searchspace_not_applicable" in metadata:
+            reason = metadata["searchspace_not_applicable"]
+            if not isinstance(reason, str) or not reason.strip():
+                raise ValueError(
+                    f"Skill searchspace_not_applicable requires a reason: {directory.name}"
+                )
         record.update(metadata)
     _references(record, directory.name)
     if "status" in record and not isinstance(record["status"], str):

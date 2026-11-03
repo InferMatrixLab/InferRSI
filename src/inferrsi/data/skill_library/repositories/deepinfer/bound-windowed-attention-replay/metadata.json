@@ -39,7 +39,11 @@
   "applicability": {
     "scope": "Decoders with an explicit producer/consumer boundary and a demonstrated dependency closure for compact query rows, including separately preserved historical state",
     "prerequisites": "A derived dependency closure; a full-length KV write at the boundary; known rollback depth; control over metadata construction",
-    "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer"
+    "hardware": "Backend-independent retain arithmetic; window sizes, boundary index and ring lengths come from the model config and do not transfer",
+    "input_contract": "The actual producer/consumer split and transitive dependency closure, boundary index, window and rollback depth, consumer KV sharing/compression layout and separately preserved historical keys.",
+    "produced_artifact": "A dependency listing, enforced retain length, compact query/position/store-slot/visibility metadata, a separate historical-key retention statement and a diagnostic equivalence-reference mode.",
+    "failure_modes": "Applying window-plus-rollback without dependency closure, discarding full-layout state, clipping away the sampling row, or comparing across preemption can invalidate replay; compact queries do not imply historical keys were dropped.",
+    "refusal_point": "Stop if required consumer state is unavailable without a preserved full-length copy, the boundary representation cannot be captured, or comparison preemption moves the anchor. Do not use for clipped-region outputs or required bit-identical preemption replay."
   },
   "limitations": [
     "Source-derived candidate; no equivalence run was performed.",
@@ -53,5 +57,10 @@
     "references/source-notes.md",
     "references/validation.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "recommendations": [
+    "Derive every consumer dependency before computing keep; preserve the required full-layout representation separately from the compact query rows.",
+    "Use the visibility-only diagnostic mode to isolate equivalence from row gathering, and retain one sampling row for a fully clipped chunk.",
+    "Check metadata at chunk/store boundaries, actual prompt-logprob handling and zero preemption during equivalence comparison."
+  ]
 }
