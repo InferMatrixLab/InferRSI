@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/0a14fc704dedc5146fefb31073de74c079d3690e/src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md",
-      "commit": "0a14fc704dedc5146fefb31073de74c079d3690e",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/da3356920acac5bbf6f3ac6a4fd6de636a6d1c1c/src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md",
+      "commit": "da3356920acac5bbf6f3ac6a4fd6de636a6d1c1c",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/project-maya/LICENSE",
         "src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md",
