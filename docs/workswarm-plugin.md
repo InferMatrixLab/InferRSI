@@ -19,6 +19,7 @@ is `dist/workswarm-plugin/inferrsi/`. The ZIP has exactly one native package roo
 ```text
 inferrsi/
   manifest.json
+  tools/runtime_info_tool.py
   skills/inferrsi/SKILL.md
   skills/inferrsi/scripts/inferrsi.py
   runtime/manifest.json
@@ -27,8 +28,9 @@ inferrsi/
   README.md
 ```
 
-The native manifest declares `package_type: plugin`, `id: inferrsi` and one
-skill with `mode: all`. Codex uses a different installation manifest; use the
+The native manifest declares `package_type: plugin`, `id: inferrsi`, one
+skill with `mode: all` and the read-only `inferrsi_runtime_info` tool. Codex
+uses a different installation manifest; use the
 archive built for your host. Both builders copy the same canonical runtime,
 knowledge, resource notices and launcher. The source template alone is incomplete.
 Choose a fresh `--output <directory>` for another build; existing outputs and
@@ -65,10 +67,15 @@ Open your target repository and ask:
 > knowledge and prepare a comparison without starting an experiment.
 
 Or provide an existing run and ask InferRSI to explain its verdict, missing
-evidence and next action. The adapter resolves its launcher from the installed
-skill directory returned by the host's `skill_tool`, keeps the target as cwd,
-and delegates to existing research, Collect/Read/Resource, plan/run and
-status/report operations. For manual diagnosis:
+evidence and next action. After `skill_tool` loads the entry skill, call
+`inferrsi_runtime_info({})`. Its model-facing JSON includes `success` and the
+installed absolute `launcher` path. The host hides `skill_directory` from the
+rendered skill result; neither that metadata nor the basename-only directory
+appendix is a bootstrap path. The locator derives the path from its installed
+module, accepts no arguments, writes no files and executes no command. If it
+fails, reinstall/select the built native plugin rather than guessing a profile
+path. The adapter keeps the target as cwd and delegates to existing research,
+Collect/Read/Resource, plan/run and status/report operations. For manual diagnosis:
 
 ```text
 python -X utf8 "<PLUGIN_ROOT>/skills/inferrsi/scripts/inferrsi.py" --plugin-info
@@ -142,8 +149,13 @@ This check creates its own temporary profile, imports and installs the archive,
 checks selected/empty conversation metadata and the installed launcher, then
 uninstalls and reinstalls it. It verifies installed runtime hashes, exact reads,
 stale-revision rejection, and preservation of an unrelated registry entry and
-existing evidence. It closes host log handles before deleting its temporary
-profile. It invokes no model and does not change the desktop user's profile.
+existing evidence. A real `DeepAgent` loads the native package and dispatches
+`skill_tool` followed by `inferrsi_runtime_info` through `AbilityManager.execute`.
+The launcher is parsed only from the resulting model-facing `ToolMessage` and
+then invoked from an external target workspace. Structured path metadata is
+discarded. Extension unload is also checked. The probe runs in a disposable
+subprocess so its SDK log handles close before the parent removes the temporary
+profile. The replay invokes no model and does not change the desktop user's profile.
 
 Windows v0.2.7's importer stages and copies the entire package under its data
 root. The canonical knowledge tree contains deep paths, so native import may
@@ -154,12 +166,13 @@ extended-length absolute `JIUWENSWARM_DATA_DIR`; this is not proof that an
 existing desktop instance uses that spelling. Do not relocate user data or
 change global Windows policy merely to test a package.
 
-Validation on **2026-11-02, Windows / Python 3.12**:
+Validation on **2026-11-03, Windows / Python 3.12**:
 
 | Check | Observed scope |
 | --- | --- |
-| Official v0.2.7 validator | Quality, static checks and real hot-load passed with zero errors/warnings; one skill bound |
+| Official v0.2.7 validator | Quality, static checks and real hot-load passed with zero errors/warnings; one skill and one read-only locator bound |
 | Native backend lifecycle | Two import/install/uninstall cycles completed using an extended-length isolated data root; reinstall, selection metadata and unrelated registry/evidence preservation checked |
+| Model-facing bootstrap | Native skill discovery and locator ToolMessages resolve the installed launcher; isolated CLI invocation, unknown-argument rejection and extension unload checked without calling a model |
 | Extracted runtime | Both host distributions exercise canonical bytes/notices, isolated exact knowledge reads, stale-revision rejection, optional dependency guidance, preview without execution and synthetic CPU run/status/report for all three verdicts |
 | Desktop UI, LLM dispatch, cancellation/reconnect | Not exercised |
 

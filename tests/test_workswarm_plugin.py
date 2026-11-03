@@ -21,7 +21,12 @@ def test_native_manifest_and_shared_launcher(tmp_path):
     assert metadata["skills"] == [{"dir": "./skills/inferrsi", "mode": "all"}]
     assert metadata["default_init_input"] == metadata["quick_inputs"][0]
     assert len(metadata["tags"]) == len(metadata["quick_inputs"]) == 3
-    assert "tools" not in metadata and "rails" not in metadata
+    assert "rails" not in metadata
+    assert len(metadata["tools"]) == 1
+    assert metadata["tools"][0]["class"] == "InferRSIRuntimeInfoTool"
+    assert (plugin / metadata["tools"][0]["file"]).read_bytes() == (
+        PROJECT / "plugins/workswarm/inferrsi/tools/runtime_info_tool.py"
+    ).read_bytes()
     assert (plugin / "skills/inferrsi/scripts/inferrsi.py").read_bytes() == (
         PROJECT / "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py"
     ).read_bytes()
@@ -63,6 +68,7 @@ def test_builder_rejects_source_directory_output(tmp_path, directory):
 def test_version_stamp_keeps_canonical_inputs_unchanged(tmp_path):
     project = tmp_path / "source"
     for name in ("plugins/workswarm/inferrsi/manifest.json", "docs/workswarm-plugin.md",
+                 "plugins/workswarm/inferrsi/tools/runtime_info_tool.py",
                  "plugins/inferrsi/skills/inferrsi/scripts/inferrsi.py", "LICENSE"):
         target = project / name
         target.parent.mkdir(parents=True, exist_ok=True)

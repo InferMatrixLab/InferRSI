@@ -13,11 +13,15 @@ load this installed SKILL.md before executing the workflow.
 
 ## Start and select a workflow
 
-Resolve `scripts/inferrsi.py` relative to this installed skill's directory, not
-the target project or a developer checkout. The host's
-`skill_tool({skill_name: "inferrsi"})` returns its absolute `skill_directory`.
-Below, `<launcher>` means that script
-path. Use the same local Python 3.10+ interpreter with UTF-8 enabled throughout:
+After loading this skill, call `inferrsi_runtime_info({})`. Its model-visible
+JSON result contains `success` and the installed absolute `launcher` path.
+Use that returned path as `<launcher>` below, keeping the user's target workspace
+as cwd. The locator is read-only and does not execute the CLI. If it is unavailable
+or reports failure, select/reinstall the built native plugin before continuing.
+Do not guess a profile directory or use a developer checkout. The host's
+`skill_tool` hides `skill_directory` from its model-facing rendering; its layout
+appendix alone cannot locate the installed launcher.
+Use the same local Python 3.10+ interpreter with UTF-8 enabled throughout:
 
 ```text
 python -X utf8 "<launcher>" --plugin-info

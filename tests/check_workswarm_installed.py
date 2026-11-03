@@ -81,7 +81,21 @@ def check(archive: Path, host_source: Path) -> dict:
                 manifest = json.loads((runtime / "manifest.json").read_text(encoding="utf-8"))
                 for name, digest in manifest["files"].items():
                     assert hashlib.sha256((runtime / name).read_bytes()).hexdigest() == digest
-                launcher = installed / "skills/inferrsi/scripts/inferrsi.py"
+                rendered = Path(scratch) / f"rendered-{cycle}.json"
+                handoff = subprocess.run(
+                    [sys.executable, "-X", "utf8",
+                     str(Path(__file__).with_name("check_workswarm_rendered.py")),
+                     "--host-source", str(host_source), "--plugin", str(installed),
+                     "--workspace", str(workspace), "--result", str(rendered)],
+                    cwd=workspace, capture_output=True, text=True, encoding="utf-8", timeout=180,
+                )
+                if handoff.returncode:
+                    raise RuntimeError(
+                        "Native model-facing handoff failed: " + handoff.stderr[-4000:]
+                    )
+                location = json.loads(rendered.read_text(encoding="utf-8"))
+                assert location["success"] is True
+                launcher = Path(location["launcher"])
 
                 def invoke(*args: str, expected: int = 0):
                     result = subprocess.run(
@@ -113,7 +127,8 @@ def check(archive: Path, host_source: Path) -> dict:
                 "content_sha256": info["content_sha256"],
                 "completed_cycles": cycle + 1,
                 "checks": ["import", "install", "card discovery", "selection metadata",
-                           "installed file hashes", "isolated launcher", "exact revision read",
+                           "installed file hashes", "model-rendered skill and locator handoff",
+                           "native extension unload", "isolated launcher", "exact revision read",
                            "stale revision rejection", "uninstall", "reinstall",
                            "unrelated registry and evidence preserved"],
                 "not_exercised": ["desktop UI", "LLM dispatch", "cancellation/reconnect"],
