@@ -118,15 +118,15 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <div class="section-title">Performance and evidence <small>Recorded values, including unsuccessful attempts</small></div>
   <div class="columns">
     <div class="stack">
-      <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
-        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
-        <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p>
-        <div id="candidate-inspection" class="candidate-inspection" aria-live="polite"></div></section>
       <section class="panel"><div class="panel-head"><h2>Performance trend · all candidates</h2><small id="chart-note"></small></div>
         <div class="chart" id="chart">__DASHBOARD_CHART__</div></section>
       <section class="panel"><div class="panel-head"><h2>Results and stages over time · all candidates</h2></div>
         <div class="chart" id="temporal-chart">__DASHBOARD_TEMPORAL__</div>
         <p class="footnote panel-body" id="temporal-note"></p></section>
+      <section class="panel"><div class="panel-head"><h2>Candidate details</h2><small>Select a row to inspect its trace</small></div>
+        <div class="scroll"><table><thead><tr><th>Round</th><th>Candidate</th><th>Run</th><th>State</th><th>Verdict</th><th>Gain</th><th>Quality</th><th>Outcome</th><th>Decision</th><th>Evidence</th></tr></thead><tbody id="candidate-rows"></tbody></table></div>
+        <p id="no-rows" class="empty" hidden>No matching recorded candidates.</p>
+        <div id="candidate-inspection" class="candidate-inspection" aria-live="polite"></div></section>
     </div>
     <div class="stack">
       <section class="panel"><div class="panel-head"><h2>Diagnosis · all candidates</h2><small>Only rules backed by referenced evidence</small></div><div id="diagnostics"></div></section>
