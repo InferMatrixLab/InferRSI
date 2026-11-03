@@ -1,0 +1,31 @@
+{
+  "status": "frozen_not_executed",
+  "purpose": "First independent original-source 5-second baseline process, not a completed paired comparison",
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "source": "vllm-project/vllm-omni",
+  "run_label": "formal-base-a1-50-5",
+  "duration_s": 5,
+  "frames": 124,
+  "steps": 50,
+  "seeds": [
+    0
+  ],
+  "warmups": 2,
+  "measured_requests": 3,
+  "pipeline_profiling": false,
+  "cache_summary": false,
+  "quality": "lossless",
+  "configuration": "Dense BF16, USP8/ring1, text TP8, tile VAE8, distributed layerwise offload",
+  "cleanup": "Explicit diagnostic 60-second old-source grace; not baseline production lifecycle qualification. Per-worker exit receipts required.",
+  "reservation_timeout_s": 5400,
+  "soft_command_timeout_s": 4800,
+  "soft_kill_after_s": 180,
+  "acceptance": "No speedup from this arm alone. Pair only with frozen matched inputs and independent candidate processes; retain all attempts. Future candidate and further AB/BA arms are not frozen by this plan.",
+  "scripts_sha256": {
+    "run_host.sh": "2fda6af6628c70f651ec07a3db0bdf87fcd34186a49b6225fb551ae89112ec51",
+    "run_inner.sh": "797d2ac870ca86daffcede73954cb68374e616d97bd06bd0ba85814cfe85d0ab",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "campaign.sh": "825f06deea1b5aef1faa598b20018b4259108acaff6c960dcea86f395f4746ed",
+    "launch_durable.sh": "37b81d071cff70ff2308ad3626a8d3d336bf64d8e2171d1b9d39186769bb02a0"
+  }
+}

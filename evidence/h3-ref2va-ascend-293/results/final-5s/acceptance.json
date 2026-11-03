@@ -1,0 +1,31 @@
+{
+  "quality_status": "PASS",
+  "duration_s": 5,
+  "deferred_duration_s": 15,
+  "server_means_ms": {
+    "a1": 396298.86609564227,
+    "b1": 106659.38387345523,
+    "b2": 109580.08875263233,
+    "a2": 418238.45322492224
+  },
+  "baseline_mean_ms": 407268.65966028225,
+  "candidate_mean_ms": 108119.73631304377,
+  "observed_latency_reduction_percent": 73.45247817417858,
+  "statistics_scope": "Two independent server aggregates per arm; no tail latency or global optimality claim",
+  "quality_scope": "Decoded video/audio parity and three frozen coverage pairs; not a semantic quality benchmark",
+  "source_revisions": {
+    "baseline": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+    "candidate": "098b51f6b96dd160a0959e74e8822422527ff06d"
+  },
+  "candidate_profile": {
+    "quality": "server-default",
+    "serve_args": [
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--cache-backend",
+      "cache_dit",
+      "--cache-config",
+      "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.48,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+    ]
+  }
+}

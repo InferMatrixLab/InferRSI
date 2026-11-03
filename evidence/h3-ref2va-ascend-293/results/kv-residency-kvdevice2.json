@@ -1,0 +1,172 @@
+{
+  "run": "residentkv-kvdevice2",
+  "source_revision": "4fc121ff3d6e7ccb1d3e35582fddf509e010dfa9",
+  "configuration": {
+    "pipeline_profiler": false,
+    "heldout_quality_cases": false,
+    "diagnostic_shutdown_override": false,
+    "shutdown_mode": "native",
+    "arm": "kvdevice2",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--kv-offload-config",
+      "{\"mode\":\"on\",\"kv_refresh_interval\":2,\"kv_cache_residency\":\"device\"}"
+    ],
+    "warmups_per_duration": 2,
+    "durations_s": [
+      5
+    ],
+    "dlo_wave_timeout_s": 14400.0,
+    "seeds": [
+      0
+    ],
+    "inputs_sha256": {
+      "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+      "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+      "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+    }
+  },
+  "runtime_settings_sha256": "907dd324846c3142c1cec9790836294ee1c891b8049d8f9de11808e684ca0305",
+  "cells": [
+    {
+      "duration_s": 5,
+      "seed": 0,
+      "expected_measured_requests": 1,
+      "completed": 1,
+      "failed": 0,
+      "missing": 0,
+      "samples_ms": [
+        327126.7046686262
+      ],
+      "mean_ms": 327126.7046686262,
+      "median_ms": 327126.7046686262,
+      "min_ms": 327126.7046686262,
+      "max_ms": 327126.7046686262,
+      "request_sample_stdev_ms": null,
+      "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+    }
+  ],
+  "samples_including_warmups": [
+    {
+      "label": "measured-5-seed0-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 327126.7046686262,
+      "http_status": 200,
+      "bytes": 6501814,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-aec1947dceb734bb",
+        "X-Inference-Time-S": "327.061",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.4890225827693939,\"stage_0_gen_ms\":326099.98321533203}",
+        "X-Peak-Memory-MB": "19908.000"
+      },
+      "output_sha256": "45d4c307d84e4009eb263d2afa0aecf57204a97080d64b9a3a424cc26e85b9b9"
+    },
+    {
+      "label": "warmup-5-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 461861.9625363499,
+      "http_status": 200,
+      "bytes": 6510416,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-ba71c436f27fd8db",
+        "X-Inference-Time-S": "461.766",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.41466113179922104,\"stage_0_gen_ms\":460633.43620300293}",
+        "X-Peak-Memory-MB": "19908.000"
+      },
+      "output_sha256": "476bc19c686fbdb95f86d4a1f0f0a93dfa28d6871ec9e96005b70355ff87fa90"
+    },
+    {
+      "label": "warmup-5-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 326840.6703546643,
+      "http_status": 200,
+      "bytes": 6511369,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-aed9b520d0d83048",
+        "X-Inference-Time-S": "326.768",
+        "X-Stage-Durations": "{\"queue_wait_ms\":1.7024548724293709,\"stage_0_gen_ms\":325570.99962234497}",
+        "X-Peak-Memory-MB": "19948.000"
+      },
+      "output_sha256": "d9b0ceb1876d4b6339f8647b5145dc72ff225a437c8ee0e15a61684a4187c294"
+    }
+  ],
+  "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+  "lifecycle": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 8,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-4",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-5",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-6",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-7",
+        "exit_code": 0,
+        "alive": false
+      }
+    ]
+  },
+  "service_log_sha256": "396c2366fe5c2d776f562d4d09c0e508bcba74f6f243e4f48bb485b017a7d817"
+}

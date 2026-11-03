@@ -1,0 +1,12 @@
+{
+  "verdict": "PASS",
+  "scope": "official upstream reference video SSIM/PSNR only; not candidate parity",
+  "metrics": {
+    "ssim": 0.980571,
+    "psnr": 42.631676
+  },
+  "sha256": {
+    "official": "5c9d33dfc517438c59e93da7b3d0b2a62e3cf69bc2adb7d1b2d33d7d8df7161f",
+    "generated": "19c357e9367d72a7e0429199528ff73b5090b54f948977446451e33d3ce52853"
+  }
+}
