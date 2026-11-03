@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.harness import dashboard_data
-from inferrsi.harness.dashboard import _bounded_chain, _chart, write_dashboard
+from inferrsi.harness.dashboard import _bounded_chain, _chart, _round_trend, write_dashboard
 from inferrsi.harness.dashboard_data import load_dashboard
 from inferrsi.harness.dashboard_timeline import temporal_chart
 
@@ -169,6 +169,42 @@ def test_recorded_chart_title_alone_accepts_narrative_translations(tmp_path):
     assert re.search(r'<text data-narrative="" [^>]*>Experiment trend</text>', svg)
     assert svg.count('data-narrative=""') == 2
     assert '>FAIL</text>' in svg
+
+
+def test_round_trend_uses_ordered_independent_measurements_and_omits_missing(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example", "goal": {
+        "target_improvement_pct": 20,
+    }})
+    for name, gain, round_number, quality in (
+        ("z", 4.0, 1, "completed"), ("a", 8.0, 2, "failed"),
+        ("m", -2.0, 3, "completed"), ("pending", 0.0, 4, "completed"),
+    ):
+        run(tmp_path, name, gain, quality=quality, verified=True)
+        candidate(tmp_path, name, name, round=round_number)
+    (tmp_path / "runs/pending/evaluation.json").unlink()
+
+    view = load_dashboard(tmp_path)
+    svg, note = _chart(tmp_path, view)
+
+    assert "<polyline " in svg
+    assert "Performance by recorded round" in svg
+    assert svg.index(">R1</text>") < svg.index(">R2</text>") < svg.index(">R3</text>")
+    assert ">R4</text>" not in svg
+    assert "quality failed" in svg
+    assert "not cumulative" in note and "missing" in note
+    assert _round_trend(view)["axis"]["step"] == 0.05
+
+
+def test_round_trend_does_not_invent_order_with_multiple_candidates_in_a_round(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    for name in ("a", "b"):
+        run(tmp_path, name, 5.0, quality="completed", verified=True)
+        candidate(tmp_path, name, name, round=1)
+
+    svg, note = _chart(tmp_path, load_dashboard(tmp_path))
+
+    assert "Candidate gain versus paired baseline" in svg
+    assert "Independent candidate results" in note
 
 
 def test_missing_and_corrupt_candidate_metadata_are_not_silently_dropped(tmp_path):

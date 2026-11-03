@@ -373,8 +373,12 @@ corrupt round-record line numbers are also shown explicitly.
 
 The existing [summary chart](campaign-summary-chart.md) renderer is reused.
 An explicitly recorded, valid `summary-chart.json` with a chain layout produces
-a cumulative chart. Otherwise the dashboard uses a branch chart of independent
-candidate results, so it does not imply that unrelated trials accumulated.
+a cumulative chart. Otherwise, when measured candidates have distinct recorded
+rounds and comparable evidence, a line connects their independent results in
+round order; the page explicitly says the line is not cumulative. Missing
+measurements are omitted, and status and quality remain visible in the table.
+When a unique round order cannot be established, a branch chart displays the
+independent candidate results instead.
 Failed candidates without a numeric measurement remain in the table and trace.
 The dashboard also plots recorded terminal events and stage events on a shared
 UTC time axis. Results without a terminal timestamp are omitted from that plot;

@@ -79,6 +79,54 @@ def _bounded_chain(spec: dict) -> bool:
     return (max(ratios) - min(ratios) + 1e-9) / step + 3 <= 150
 
 
+def _round_trend(view: dict) -> dict | None:
+    """Plot uniquely ordered independent measurements without claiming a chain."""
+    measured = [row for row in view["candidates"] if row["improvement_pct"] is not None]
+    rounds = [row["round"] for row in measured]
+    if (not measured or len(measured) > 99
+            or any(type(number) is not int or number <= 0 for number in rounds)
+            or len(set(rounds)) != len(rounds)):
+        return None
+    scores = [100.0 + row["improvement_pct"] for row in measured]
+    if any(not math.isfinite(score) or score <= 0 for score in scores):
+        return None
+    target = view["overview"]["target_improvement_pct"]
+    target_score = 100.0 + target if target is not None else None
+    points = [{"phase": "Baseline", "label": "baseline", "values": {"score": 100},
+               "baseline": True}]
+    points.extend({"phase": "Recorded rounds", "label": f'R{row["round"]}',
+                   "values": {"score": 100 + row["improvement_pct"]},
+                   "note": ("rolled back" if row["decision"] == "rolled_back"
+                            else row["outcome"].replace("_", " "))}
+                  for row in sorted(measured, key=lambda item: item["round"]))
+    ratios = [1.0, *(score / 100 for score in scores)]
+    if target_score is not None and target_score > 0:
+        ratios.append(target_score / 100)
+    spread = max(ratios) - min(ratios)
+    if not math.isfinite(spread):
+        return None
+    if spread:
+        raw = spread / 5
+        magnitude = 10 ** math.floor(math.log10(raw))
+        fraction = raw / magnitude
+        step = max(0.01, magnitude * (1 if fraction <= 1 else 2 if fraction <= 2 else
+                                     5 if fraction <= 5 else 10))
+    else:
+        step = 0.05
+    spec = {
+        "title": "Performance by recorded round", "layout": "chain",
+        "phases": ["Baseline", "Recorded rounds"],
+        "baseline": {"label": "paired baseline", "metrics": {"score": 100}},
+        "metrics": [{"key": "score", "label": "Performance index"}],
+        "label_metric": "score", "points": points,
+        "axis": {"step": step, "label": "Recorded round",
+                 "y_label": "Performance index vs baseline"},
+        "references": [{"label": "Target", "metric": "score", "value": target_score}]
+        if target_score is not None and target_score > 0 else [],
+    }
+    return spec if _bounded_chain(spec) else None
+
+
 def _chart(source: Path, view: dict) -> tuple[str, str]:
     chart_file = source / "summary-chart.json"
     spec = None
@@ -97,6 +145,11 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
                     message = "Recorded cumulative campaign steps."
         except (OSError, UnicodeError, json.JSONDecodeError, ValueError, RecursionError):
             pass
+    if spec is None:
+        spec = _round_trend(view)
+        if spec is not None:
+            message = ("Independent candidate measurements by round; the line is not cumulative. "
+                       "Check status and quality; missing results are omitted.")
     if spec is None:
         trials = []
         for index, row in enumerate(view["candidates"], 1):
