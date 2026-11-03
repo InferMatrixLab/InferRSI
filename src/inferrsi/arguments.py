@@ -137,6 +137,8 @@ def parser() -> argparse.ArgumentParser:
                         help="JSON file describing the optimization and code locations")
     record.add_argument("--agent-trace", help="Existing campaign-relative JSONL trace")
     record.add_argument("--profile", help="Existing campaign-relative profile artifact")
+    record.add_argument("--optimization-trace",
+                        help="Caller-reviewed campaign-relative optimization trace JSON")
     decision = campaign_actions.add_parser("decide", help="Record one round decision")
     decision.add_argument("--directory", type=Path, required=True)
     decision.add_argument("--candidate", required=True)

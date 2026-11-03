@@ -10,6 +10,7 @@ import uuid
 from pathlib import Path
 
 from .dashboard_data import _file_ref, _inside, _object, _relative_location, _safe_argv, _text
+from .optimization_trace import read_optimization_trace
 
 
 def _identifier(value: str, name: str) -> str:
@@ -85,7 +86,8 @@ def _write_rounds(root: Path, path: Path, records: list[dict]) -> None:
 
 def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number: int,
                      title: str, agent_trace: str | None = None,
-                     profile: str | None = None, details: dict | None = None) -> Path:
+                     profile: str | None = None, details: dict | None = None,
+                     optimization_trace: str | None = None) -> Path:
     """Associate a run and optional explicit evidence without copying raw data."""
     root = Path(root).resolve()
     _identifier(candidate_id, "candidate_id")
@@ -138,7 +140,7 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
                     or not all(isinstance(arg, str) and len(arg) <= 4096
                                for arg in command["argv"])):
                 raise ValueError("each command needs a label and a bounded argument list")
-    _, state = _object(root / "campaign.json", root)
+    campaign, state = _object(root / "campaign.json", root)
     if state != "present":
         raise ValueError("campaign.json is missing or invalid")
     run = root / "runs" / run_id
@@ -169,6 +171,15 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
         ref = _reference(root, value, key)
         if ref is not None:
             metadata[key] = ref
+    if optimization_trace is not None:
+        _, ref = read_optimization_trace(
+            root, {"path": optimization_trace}, campaign_id=campaign.get("campaign_id"),
+            candidate_id=candidate_id, round_number=round_number, unique_candidate=True,
+            require_hash=False,
+        )
+        if ref["state"] != "present":
+            raise ValueError(f"optimization trace: {ref['missing_reason']}")
+        metadata["optimization_trace_ref"] = ref
     rounds_path = root / "rounds.jsonl"
     if not _inside(root, rounds_path):
         raise ValueError("rounds file escapes the campaign")

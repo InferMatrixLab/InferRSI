@@ -14,6 +14,8 @@ import re
 import shlex
 from pathlib import Path, PurePosixPath, PureWindowsPath
 
+from .optimization_trace import read_optimization_trace
+
 STAGES = ("diagnosis", "knowledge", "search", "execution", "validation", "review")
 PHASE_STAGES = {
     "source_snapshot": "execution",
@@ -535,6 +537,12 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
     }
     if candidate_ref is not None:
         refs["candidate_metadata"] = candidate_ref
+    optimization_trace, refs["optimization_trace"] = read_optimization_trace(
+        root, candidate.get("optimization_trace_ref"), campaign_id=campaign_id,
+        candidate_id=candidate.get("candidate_id"), round_number=candidate.get("round"),
+        unique_candidate=unique_candidate,
+        round_ambiguous=candidate.get("_round_state") == "ambiguous",
+    )
     def attach_declared(event: dict) -> None:
         for item in event.pop("_declared_refs", []):
             kind = item.get("kind") if isinstance(item, dict) else None
@@ -671,6 +679,7 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
         "corrupt_event_sources": corrupt_sources,
         "agent_trace_links": agent_links, "unlinked_agent_events": unlinked_events,
         "optimization": _optimization(candidate),
+        "optimization_trace": optimization_trace,
         "benchmark_context": {"scenario": _text(lock.get("scenario"), "Not recorded"),
                               "workload": _text(lock.get("workload_id"), "Not recorded"),
                               "repetitions": lock.get("repetitions")

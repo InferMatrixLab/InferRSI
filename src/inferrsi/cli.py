@@ -308,7 +308,8 @@ def main(argv: list[str] | None = None) -> int:
                 path = record_candidate(args.directory, candidate_id=args.candidate,
                                         run_id=args.run_id, round_number=args.round,
                                         title=args.title, agent_trace=args.agent_trace,
-                                        profile=args.profile, details=details)
+                                        profile=args.profile, details=details,
+                                        optimization_trace=args.optimization_trace)
             else:
                 path = record_decision(args.directory, candidate_id=args.candidate,
                                        round_number=args.round, outcome=args.outcome)
