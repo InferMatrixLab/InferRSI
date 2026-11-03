@@ -548,7 +548,19 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const {visible,total}=traceEvents(row);byId('trace-count').textContent=`${visible.length} of ${total} events · time order, unknown time last`;
     if(jumpNotice)item(trace,'TRACE LOCATION',jumpNotice);
     if(!visible.length)item(trace,'NOT RECORDED','No events match the current filters.');
-    for(const event of visible){const name=event.type || event.phase || translated('unclassified event');const metadata=[event.time || 'Time not recorded',event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);entry.id=`trace-${event.source}-${event.line}`;const summary=node('summary');if(event.unlinked)summary.appendChild(node('span','UNLINKED · '));const rawName=node('span',`${event.source}:${event.line} · ${name}`);rawName.setAttribute('data-no-translate','');summary.appendChild(rawName);entry.appendChild(summary);entry.appendChild(node('small',metadata));entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : translated('No additional structured fields recorded.')));entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);}
+    for(const event of visible){
+      const name=event.type || event.phase || translated('unclassified event');
+      const metadata=[event.time || 'Time not recorded',event.stage,event.side,event.trial===null?null:`trial ${event.trial}`,event.tool].filter(Boolean).join(' · ');
+      const entry=node('details',undefined,`item trace-event${event.unlinked?' missing-item':''}`);
+      entry.id=`trace-${event.source}-${event.line}`;
+      const summary=node('summary');
+      if(event.unlinked){summary.appendChild(node('span','UNLINKED'));summary.appendChild(node('span',' · '));}
+      const rawName=node('span',`${event.source}:${event.line} · ${name}`);
+      rawName.setAttribute('data-no-translate','');summary.appendChild(rawName);entry.appendChild(summary);
+      entry.appendChild(node('small',metadata));
+      entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : translated('No additional structured fields recorded.')));
+      entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);
+    }
     if(row.artifacts.tool_calls.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
     if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
     if(row.agent_trace_links.mismatched.length)item(trace,'MISMATCHED AGENT EVENTS',`Lines ${row.agent_trace_links.mismatched.join(', ')}`).classList.add('missing-item');
