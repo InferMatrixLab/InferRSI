@@ -31,10 +31,12 @@ There is no marketplace catalog, registration step or distribution branch.
 
 In a Codex client with ZIP upload support, open **Plugins → Add → Upload plugin
 archive** (**插件 → 添加 → 上传插件压缩包** in the illustrated client). Select
-the downloaded `inferrsi-codex-plugin-vX.Y.Z.zip` and follow the installation
-prompts. Enable InferRSI, open your target repository and start a new conversation.
+the downloaded `inferrsi-codex-plugin-vX.Y.Z.zip` to import it. On the InferRSI
+detail page, click **Install plugin (安装插件)** and follow the installation
+prompts. After installation, enable InferRSI, open your target repository and
+start a new conversation.
 
-[Watch or download the 46-second installation guide (Chinese audio and subtitles)](assets/inferrsi-codex-install-zh.mp4?raw=1).
+[Watch or download the 52-second installation guide (Chinese audio and subtitles)](assets/inferrsi-codex-install-zh.mp4?raw=1).
 The video uses an annotated screenshot to show the menu click order; it does not
 record a completed upload or installation. Exact labels and availability depend
 on the client and workspace permissions. Here, offline package describes the

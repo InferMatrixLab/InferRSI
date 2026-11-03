@@ -139,13 +139,14 @@ Python 3.10+ and Git.
    `inferrsi-codex-plugin-vX.Y.Z.zip` from the selected version's assets.
 2. **Install it in Codex.** Open **Plugins → Add → Upload plugin archive**
    (**插件 → 添加 → 上传插件压缩包** in the illustrated client), select the
-   downloaded ZIP, and follow the installation prompts. Enable InferRSI, then
-   start a new conversation in your target repository.
+   downloaded ZIP to import it. On the InferRSI detail page, click **Install
+   plugin (安装插件)** to install it. Once installed, enable InferRSI and start a
+   new conversation in your target repository.
 
-[Watch or download the 46-second installation guide — Chinese audio and subtitles](docs/assets/inferrsi-codex-install-zh.mp4?raw=1)
+[Watch or download the 52-second installation guide — Chinese audio and subtitles](docs/assets/inferrsi-codex-install-zh.mp4?raw=1)
 
 <a href="docs/assets/inferrsi-codex-install-zh.mp4?raw=1">
-  <img src="docs/assets/inferrsi-codex-install-poster.png" alt="Install InferRSI in two steps: download the ZIP from GitHub, then upload it through Codex Plugins → Add" width="720">
+  <img src="docs/assets/inferrsi-codex-install-poster.png" alt="Install InferRSI in two steps: download the ZIP from GitHub, then import it in Codex and click Install plugin on its detail page" width="720">
 </a>
 
 The runtime and knowledge are bundled; core operations need no separate pip
