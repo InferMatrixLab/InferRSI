@@ -51,8 +51,10 @@ def get_changed_files_with_net_sizes(
     """Return list of (rel_path, current_size_bytes, net_addition_bytes).
 
     If base_ref is supplied, uses git diff --raw -z against base_ref.
+    Sizes are obtained from git blob objects directly (preventing symlink
+    following and worktree path confusion).
     If base_ref fails or is missing, raises ValueError (no silent fallback in CI).
-    If base_ref is None, inspects local git status with -z.
+    If base_ref is None, inspects local git status with -z and --untracked-files=all.
     """
     root = repo_root or ROOT
     results: list[tuple[str, int, int]] = []
@@ -100,20 +102,19 @@ def get_changed_files_with_net_sizes(
             if is_rename_or_copy:
                 if i + 2 >= len(tokens):
                     break
-                src_path = tokens[i + 1].decode("utf-8", errors="replace").replace("\\", "/")
-                dst_path = tokens[i + 2].decode("utf-8", errors="replace").replace("\\", "/")
+                src_path = tokens[i + 1].decode("utf-8", errors="replace")
+                dst_path = tokens[i + 2].decode("utf-8", errors="replace")
                 i += 3
 
                 src_is_ev = src_path.startswith("evidence/")
                 dst_is_ev = dst_path.startswith("evidence/")
 
                 src_size = get_git_object_size(root, sha_src)
-                full_dst = root / dst_path
-                dst_size = (
-                    full_dst.stat().st_size
-                    if full_dst.is_file()
-                    else get_git_object_size(root, sha_dst)
-                )
+                dst_size = get_git_object_size(root, sha_dst)
+                if dst_size == 0 and sha_dst and set(sha_dst) != {"0"}:
+                    full_dst = root / dst_path
+                    if full_dst.exists() or full_dst.is_symlink():
+                        dst_size = full_dst.lstat().st_size
 
                 if status.startswith("R"):
                     # Rename: src replaced by dst
@@ -136,59 +137,54 @@ def get_changed_files_with_net_sizes(
             else:
                 if i + 1 >= len(tokens):
                     break
-                path = tokens[i + 1].decode("utf-8", errors="replace").replace("\\", "/")
+                path = tokens[i + 1].decode("utf-8", errors="replace")
                 i += 2
 
                 is_ev = path.startswith("evidence/")
-                full_path = root / path
 
                 if status.startswith("D"):
                     src_size = get_git_object_size(root, sha_src)
                     delta = -src_size if is_ev else 0
                     results.append((path, 0, delta))
                 elif status.startswith("A"):
-                    cur_size = (
-                        full_path.stat().st_size
-                        if full_path.is_file()
-                        else get_git_object_size(root, sha_dst)
-                    )
+                    cur_size = get_git_object_size(root, sha_dst)
+                    if cur_size == 0 and sha_dst and set(sha_dst) != {"0"}:
+                        full_path = root / path
+                        if full_path.exists() or full_path.is_symlink():
+                            cur_size = full_path.lstat().st_size
                     delta = cur_size if is_ev else 0
                     results.append((path, cur_size, delta))
                 elif status.startswith("M") or status.startswith("T"):
                     src_size = get_git_object_size(root, sha_src)
-                    cur_size = (
-                        full_path.stat().st_size
-                        if full_path.is_file()
-                        else get_git_object_size(root, sha_dst)
-                    )
+                    cur_size = get_git_object_size(root, sha_dst)
+                    if cur_size == 0 and sha_dst and set(sha_dst) != {"0"}:
+                        full_path = root / path
+                        if full_path.exists() or full_path.is_symlink():
+                            cur_size = full_path.lstat().st_size
                     delta = (cur_size - src_size) if is_ev else 0
                     results.append((path, cur_size, delta))
                 else:
-                    cur_size = (
-                        full_path.stat().st_size
-                        if full_path.is_file()
-                        else get_git_object_size(root, sha_dst)
-                    )
+                    cur_size = get_git_object_size(root, sha_dst)
                     delta = cur_size if is_ev else 0
                     results.append((path, cur_size, delta))
 
     else:
-        # Local development fallback inspecting uncommitted changes with -z
+        # Local development fallback inspecting uncommitted changes with -z -uall
         local_paths = get_local_git_changed_files(root)
         for rel_path in local_paths:
             full_path = root / rel_path
-            if full_path.is_file():
-                sz = full_path.stat().st_size
-                results.append((rel_path.replace("\\", "/"), sz, sz))
+            if full_path.is_file() or full_path.is_symlink():
+                sz = full_path.lstat().st_size
+                results.append((rel_path, sz, sz))
 
     return results
 
 
 def get_local_git_changed_files(root: Path) -> list[str]:
-    """Inspect local git status with -z for untracked, added, or modified files."""
+    """Inspect local git status with -z and --untracked-files=all."""
     try:
         res = subprocess.run(
-            ["git", "status", "--porcelain", "-z"],
+            ["git", "status", "--porcelain", "-z", "--untracked-files=all"],
             cwd=root,
             capture_output=True,
             check=True,
@@ -202,7 +198,7 @@ def get_local_git_changed_files(root: Path) -> list[str]:
                 i += 1
                 continue
             status_code = tok[:2].decode("latin-1", errors="replace")
-            path = tok[3:].decode("utf-8", errors="replace").replace("\\", "/")
+            path = tok[3:].decode("utf-8", errors="replace")
             if "R" in status_code:
                 # In git status -z for rename: new path is first, old path is second token
                 paths.append(path)
@@ -228,7 +224,7 @@ def check_file_budgets(
     allowed = allowlist or set()
 
     for rel_path, current_size, net_addition in file_records:
-        norm_path = rel_path.replace("\\", "/")
+        norm_path = rel_path
         if norm_path in allowed:
             continue
 
@@ -298,36 +294,40 @@ def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
                 errors.append(f"{prefix}: expected JSON object")
                 continue
 
-            for field in ("url", "sha256", "bytes", "retention_owner"):
-                if field not in asset:
-                    errors.append(f"{prefix}: missing required field '{field}'")
-
+            # url check
             url = asset.get("url")
-            if url is not None:
-                if not isinstance(url, str) or not RELEASE_ASSET_URL_PATTERN.match(url):
-                    errors.append(
-                        f"{prefix}: url must point to a downloadable GitHub Release asset "
-                        f"(https://github.com/<owner>/<repo>/releases/download/<tag>/<filename>)"
-                    )
+            if url is None:
+                errors.append(f"{prefix}: missing or null required field 'url'")
+            elif not isinstance(url, str) or not RELEASE_ASSET_URL_PATTERN.match(url):
+                errors.append(
+                    f"{prefix}: url must point to a downloadable GitHub Release asset "
+                    f"(https://github.com/<owner>/<repo>/releases/download/<tag>/<filename>)"
+                )
 
+            # sha256 check
             sha = asset.get("sha256")
-            if sha is not None:
-                if not isinstance(sha, str) or not sha_re.match(sha):
-                    errors.append(f"{prefix}: invalid sha256 hex digest")
+            if sha is None:
+                errors.append(f"{prefix}: missing or null required field 'sha256'")
+            elif not isinstance(sha, str) or not sha_re.match(sha):
+                errors.append(f"{prefix}: invalid sha256 hex digest")
 
+            # bytes check
             byte_count = asset.get("bytes")
-            if byte_count is not None:
-                if (
-                    not isinstance(byte_count, int)
-                    or isinstance(byte_count, bool)
-                    or byte_count <= 0
-                ):
-                    errors.append(f"{prefix}: bytes must be a positive integer")
+            if byte_count is None:
+                errors.append(f"{prefix}: missing or null required field 'bytes'")
+            elif (
+                not isinstance(byte_count, int)
+                or isinstance(byte_count, bool)
+                or byte_count <= 0
+            ):
+                errors.append(f"{prefix}: bytes must be a positive integer")
 
+            # retention_owner check
             owner = asset.get("retention_owner")
-            if owner is not None:
-                if not isinstance(owner, str) or not owner.strip():
-                    errors.append(f"{prefix}: retention_owner must be non-empty")
+            if owner is None:
+                errors.append(f"{prefix}: missing or null required field 'retention_owner'")
+            elif not isinstance(owner, str) or not owner.strip():
+                errors.append(f"{prefix}: retention_owner must be non-empty string")
 
     return errors
 
@@ -359,11 +359,11 @@ def main() -> int:
             file_list: list[tuple[str, int, int]] = []
             for p_str in args.files:
                 p = Path(p_str)
-                if p.is_file():
+                if p.is_file() or p.is_symlink():
                     rel = str(
                         p.relative_to(ROOT) if p.is_relative_to(ROOT) else p
-                    ).replace("\\", "/")
-                    sz = p.stat().st_size
+                    )
+                    sz = p.lstat().st_size
                     file_list.append((rel, sz, sz))
             diff_violations, _ = check_file_budgets(
                 file_list, args.max_file_bytes, args.max_pr_bytes
