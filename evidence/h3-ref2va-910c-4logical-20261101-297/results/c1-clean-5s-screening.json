@@ -1,0 +1,85 @@
+{
+  "native_run_id": "20261101T181531Z-164cfec13c",
+  "inferrsi_revision": "50c19da43e0b358e6f990c00719891ad308a8ac1",
+  "candidate_patch_base": "922f1e9f1cb85b9f2b66d86e1eb500e6872b2dcb",
+  "gain_attribution_limit": "Original B0 versus migration+C1; no clean migration-only timing arm in this pair",
+  "duration_s": 5,
+  "frames": 124,
+  "solver_steps": 50,
+  "order": "AB",
+  "fresh_pairs": 1,
+  "kind": "screening",
+  "native_cli_discovery_physical_ids": [
+    1,
+    2
+  ],
+  "runtime_logical_devices": [
+    2,
+    3,
+    4,
+    5
+  ],
+  "arms": {
+    "baseline": {
+      "source_head": "df1c1b05936381dbaa3891c1ae4c4b21ab375a5d",
+      "samples_ms": [
+        291247.76331102476,
+        291434.0972539503,
+        291051.2047139928
+      ],
+      "server_median_ms": 291247.76331102476,
+      "inner_range_pct_of_median": 0.13146625938158557,
+      "warmup": 2,
+      "repetitions": 3,
+      "clean_timing": true,
+      "diagnostic": "off",
+      "scope": "http_complete_mp4",
+      "cleanup_passed": true,
+      "helpers_unchanged": true
+    },
+    "candidate": {
+      "source_head": "be319692b96413918973b5bd399cdda3f320c574",
+      "samples_ms": [
+        286812.4624299817,
+        286666.7601839872,
+        286197.25764304167
+      ],
+      "server_median_ms": 286666.7601839872,
+      "inner_range_pct_of_median": 0.21460625101604527,
+      "warmup": 2,
+      "repetitions": 3,
+      "clean_timing": true,
+      "diagnostic": "off",
+      "scope": "http_complete_mp4",
+      "cleanup_passed": true,
+      "helpers_unchanged": true
+    }
+  },
+  "http_reduction_pct": 1.5728886893271898,
+  "required_reduction_pct": 50.0,
+  "native_verdict": "FAIL",
+  "native_reasons": [
+    "measured gain 1.57289% must be positive and meet 50% threshold"
+  ],
+  "run_state": "completed",
+  "source_integrity": {
+    "verified": true,
+    "reason": "Git source snapshots unchanged",
+    "command_checks": 3
+  },
+  "strict_quality": {
+    "verdict": "PASS",
+    "checks": 35,
+    "failures": [],
+    "scope": "matched strict qualification plus every measured clean RGB24/PCM response",
+    "final_protocol": false
+  },
+  "strict_validation_execution": {
+    "status": "completed",
+    "returncode": 0
+  },
+  "statistical_significance": "not established",
+  "campaign_verdict": "INCONCLUSIVE: four tracks and final protocol are incomplete",
+  "raw_media_included": false,
+  "raw_records_included": false
+}

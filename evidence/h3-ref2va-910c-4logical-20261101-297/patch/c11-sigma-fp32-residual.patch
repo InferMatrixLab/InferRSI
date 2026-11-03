@@ -1,0 +1,685 @@
+diff --git a/tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py b/tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py
+new file mode 100644
+index 0000000..c2d577f
+--- /dev/null
++++ b/tests/diffusion/models/minimax_h3/test_minimax_h3_sigma_cache.py
+@@ -0,0 +1,333 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++from types import SimpleNamespace
++
++import pytest
++import torch
++import torch.nn as nn
++
++from tests.helpers.mark import hardware_marks
++from vllm_omni.diffusion.models.minimax_h3 import cache_sigma_prediction as sigma
++from vllm_omni.diffusion.models.minimax_h3.reference_kv_cache_dit import MiniMaxH3CachedBlocks
++from vllm_omni.platforms import current_omni_platform
++
++pytestmark = [pytest.mark.core_model, pytest.mark.diffusion, *hardware_marks(res={"npu": "A3"}, num_cards=1)]
++
++
++def config(**changes):
++    values = dict(
++        cache_config={"minimax_h3_sigma_cache": True, "enable_taylorseer": False},
++        task_type="ref2va",
++        cache_backend="cache_dit",
++        kv_offload_config=None,
++        parallel_config=SimpleNamespace(data_parallel_size=1, cfg_parallel_size=1),
++    )
++    values.update(changes)
++    return SimpleNamespace(**values)
++
++
++def sample(video, audio, *, device="cpu", dtype=torch.float32):
++    return torch.tensor([[1 + 2 * video + video**2], [4 - audio + 3 * audio**2]], device=device, dtype=dtype)
++
++
++def anchored(*, device="cpu", dtype=torch.float32):
++    state = sigma.MiniMaxH3SigmaCacheState()
++    originals = []
++    for step, (video, audio) in enumerate([(1.0, 1.0), (0.9, 0.8), (0.7, 0.5)]):
++        state.begin_step(step, video, audio)
++        residual = sample(video, audio, device=device, dtype=dtype)
++        state.record(residual)
++        originals.append(residual)
++    state.begin_step(3, 0.5, 0.3)
++    return state, originals
++
++
++def test_distinct_nonuniform_clocks_recover_quadratic_and_own_anchors():
++    state, originals = anchored()
++    indices = torch.tensor([0, 17])
++    expected = sample(0.5, 0.3)
++    assert state.can_predict(expected)
++    torch.testing.assert_close(state.predict(indices), expected)
++    saved = [value.clone() for _, value in state.history]
++    originals[-1].fill_(99)
++    assert all(torch.equal(old, value) for old, (_, value) in zip(saved, state.history))
++    torch.testing.assert_close(state.predict(indices), expected)
++    # One shared video clock gives the wrong audio result on this fixture.
++    video_weights = sigma._quadratic_weights([1.0, 0.9, 0.7], 0.5)
++    wrong_audio = sum(weight * value[1] for weight, (_, value) in zip(video_weights, state.history))
++    assert not torch.allclose(wrong_audio, expected[1])
++    assert state.stats() == {"computed": 3, "predicted": 2, "history_vetoes": 0}
++    state.close()
++    assert state.closed and not state.history and not state.can_predict(expected)
++
++
++@pytest.mark.parametrize(
++    "anchors,target",
++    [([1.0, 0.8], 0.7), ([1.0, 0.8, 0.8], 0.7), ([1.0, 0.9, 0.8], 0.1), ([1.0, 0.9, 0.8], float("nan"))],
++)
++def test_unstable_or_insufficient_history_vetoes(anchors, target):
++    assert sigma._quadratic_weights(anchors, target) is None
++
++
++@pytest.mark.parametrize(
++    "changes",
++    [
++        {"task_type": "t2va"},
++        {"cache_backend": "none"},
++        {"kv_offload_config": {}},
++        {"parallel_config": SimpleNamespace(data_parallel_size=2)},
++        {"cache_config": {"minimax_h3_sigma_cache": 1}},
++        {"cache_config": {"minimax_h3_sigma_cache": True, "enable_taylorseer": True}},
++    ],
++)
++def test_explicit_unsupported_selection_fails(changes):
++    with pytest.raises(ValueError):
++        sigma.sigma_cache_enabled(config(**changes))
++
++
++def test_default_and_dataclass_extra_selection():
++    from vllm_omni.diffusion.data import DiffusionCacheConfig
++
++    assert not sigma.sigma_cache_enabled(config(cache_config={}))
++    cache = DiffusionCacheConfig.from_dict({"minimax_h3_sigma_cache": True})
++    assert sigma.sigma_cache_enabled(config(cache_config=cache))
++    assert sigma.MiniMaxH3SigmaCachedAdapter.block_class is sigma.MiniMaxH3SigmaCachedBlocks
++
++
++def test_parent_denial_and_request_prediction_do_not_mutate_inputs():
++    state, _ = anchored()
++    owner = SimpleOwner(state, torch.tensor([0, 2]))
++    calls = []
++    manager = SimpleNamespace(
++        can_cache=lambda *args, **kwargs: False,
++        is_cache_residual=lambda: True,
++        set_Bn_buffer=lambda *args, **kwargs: calls.append((args, kwargs)),
++    )
++    proxy = sigma._SigmaCacheManager(manager, owner)
++    hidden = torch.ones(2, 1)
++    assert not proxy.can_cache(hidden)
++    assert state.history_vetoes == 0
++    manager.can_cache = lambda *args, **kwargs: True
++    assert proxy.can_cache(hidden)
++    actual, encoder = proxy.apply_cache(hidden, prefix="blocks_Bn_residual")
++    torch.testing.assert_close(actual, sample(0.5, 0.3) + 1)
++    assert encoder is None and torch.equal(hidden, torch.ones_like(hidden))
++    owner._sigma_state = sigma.MiniMaxH3SigmaCacheState()
++    assert not proxy.can_cache(hidden)
++    assert owner._sigma_state.history_vetoes == 1
++
++
++class SimpleOwner:
++    def __init__(self, state, indices):
++        self._sigma_state, self._sigma_indices = state, indices
++
++
++def test_fp32_history_accepts_bf16_prefix_and_preserves_output_dtype():
++    state, _ = anchored()
++    hidden = torch.ones(2, 1, dtype=torch.bfloat16)
++    assert state.can_predict(hidden)
++    owner = SimpleOwner(state, torch.tensor([0, 2]))
++    proxy = sigma._SigmaCacheManager(SimpleNamespace(is_cache_residual=lambda: True), owner)
++    actual, _ = proxy.apply_cache(hidden)
++    assert actual.dtype == hidden.dtype
++    torch.testing.assert_close(actual, (sample(0.5, 0.3) + hidden.float()).to(hidden.dtype))
++    assert all(value.dtype == torch.float32 for _, value in state.history)
++
++
++def test_middle_anchor_retains_unrounded_endpoint_difference(monkeypatch):
++    before = torch.tensor([[0.0712890625]], dtype=torch.bfloat16)
++    computed = torch.tensor([[7.0]], dtype=torch.bfloat16)
++
++    def parent(self, hidden, *args, **kwargs):
++        return computed, None, computed - hidden
++
++    monkeypatch.setattr(MiniMaxH3CachedBlocks, "call_Mn_blocks", parent)
++    wrapper = object.__new__(sigma.MiniMaxH3SigmaCachedBlocks)
++    nn.Module.__init__(wrapper)
++    end, encoder, residual = wrapper.call_Mn_blocks(before)
++    assert end is computed and encoder is None and residual.dtype == torch.float32
++    assert torch.equal(residual, computed.float() - before.float())
++    assert not torch.equal((computed - before).float(), residual)
++    assert torch.equal((residual + before.float()).to(before.dtype), computed)
++
++
++@pytest.mark.parametrize("failure", [False, True])
++def test_wrapper_releases_transient_request_metadata(monkeypatch, failure):
++    wrapper = object.__new__(sigma.MiniMaxH3SigmaCachedBlocks)
++    nn.Module.__init__(wrapper)
++    wrapper._sigma_state, wrapper._sigma_indices = None, None
++    state = sigma.MiniMaxH3SigmaCacheState()
++
++    def parent(self, hidden, *args, **kwargs):
++        assert "sigma_cache_state" not in kwargs
++        assert self._sigma_state is state
++        if failure:
++            raise RuntimeError("block failed")
++        return hidden
++
++    monkeypatch.setattr(MiniMaxH3CachedBlocks, "forward", parent)
++    args = dict(sigma_cache_state=state, combined_indices=torch.tensor([0, 2]))
++    if failure:
++        with pytest.raises(RuntimeError, match="block failed"):
++            wrapper.forward(torch.ones(2, 1), **args)
++    else:
++        wrapper.forward(torch.ones(2, 1), **args)
++    assert wrapper._sigma_state is None and wrapper._sigma_indices is None
++
++
++@pytest.mark.parametrize("failure", ["success", "model", "cancel"])
++def test_denoise_request_closes_history_on_all_exit_paths(monkeypatch, failure):
++    from vllm_omni.diffusion.models.minimax_h3 import denoise_loop as loop
++
++    monkeypatch.setattr(loop.current_omni_platform, "is_npu", lambda: False)
++    monkeypatch.setattr(loop, "minimax_h3_publish_denoise_progress", lambda *args: None)
++    state = sigma.MiniMaxH3SigmaCacheState()
++
++    class Model:
++        def create_sigma_cache_state(self):
++            return state
++
++        def __call__(self, **kwargs):
++            assert kwargs["sigma_cache_state"] is state
++            state.record(torch.ones(2, 1))
++            if failure == "model":
++                raise RuntimeError("model failed")
++            return torch.zeros(1, 96), torch.zeros(1, 32)
++
++    class Branch:
++        update_mask = torch.ones(1, dtype=torch.bool)
++        update_mask_dev = update_mask
++        audio_update_mask_dev = update_mask
++        locked_audio_rows = None
++
++        def forward_kwargs(self, **kwargs):
++            return {}
++
++    monkeypatch.setattr(
++        loop,
++        "minimax_h3_prepare_denoise_rows",
++        lambda **kwargs: (kwargs["initial_video_rows"], kwargs["initial_audio_rows"], None, None),
++    )
++
++    def cancellation(**kwargs):
++        if failure == "cancel":
++            raise RuntimeError("request cancelled")
++
++    monkeypatch.setattr(loop, "check_request_cancellation", cancellation)
++    model = Model()
++    kwargs = dict(
++        model=model,
++        positive=Branch(),
++        initial_video_rows=torch.zeros(1, 96),
++        initial_audio_rows=torch.zeros(1, 32),
++        keyframe_cond_rows=None,
++        sigmas_video=[1.0, 0.0],
++        sigmas_audio=[1.0, 0.0],
++        device=torch.device("cpu"),
++    )
++    if failure == "success":
++        loop.minimax_h3_denoise_loop(**kwargs)
++    else:
++        with pytest.raises(RuntimeError):
++            loop.minimax_h3_denoise_loop(**kwargs)
++    assert state.closed and not state.history
++    assert model._sigma_cache_stats["computed"] == (0 if failure == "cancel" else 1)
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native Ascend forecasting")
++def test_native_two_clock_forecast_and_input_immutability():
++    device = torch.device(current_omni_platform.device_type)
++    state, originals = anchored(device=device, dtype=torch.bfloat16)
++    indices = torch.tensor([0, 2], device=device)
++    saved = [value.clone() for value in originals]
++    expected = sample(0.5, 0.3, device=device, dtype=torch.bfloat16)
++    assert state.can_predict(expected)
++    actual = state.predict(indices)
++    # BF16 anchor quantization is separate from exact polynomial algebra.
++    torch.testing.assert_close(actual.float(), expected.float(), atol=0.0625, rtol=0)
++    assert all(torch.equal(value, old) for value, old in zip(originals, saved))
++    assert state.stats()["predicted"] == 1
++    state.close()
++    assert not state.history
++
++
++def _native_real_cache_manager(dtype):
++    from cache_dit import DBCacheConfig, ForwardPattern
++    from cache_dit.caching.cache_contexts.cache_manager import CachedContextManager
++
++    class Block(nn.Module):
++        def __init__(self, prefix=False):
++            super().__init__()
++            self.prefix = prefix
++            self.calls = 0
++
++        def forward(self, hidden_states, *, test_sigmas, **kwargs):
++            self.calls += 1
++            return hidden_states + (
++                0.125 if self.prefix else sample(*test_sigmas, device=hidden_states.device, dtype=hidden_states.dtype)
++            )
++
++    manager = CachedContextManager()
++    context = manager.new_context(
++        name="h3-sigma-native",
++        cache_config=DBCacheConfig(
++            Fn_compute_blocks=1,
++            Bn_compute_blocks=0,
++            max_warmup_steps=4,
++            num_inference_steps=5,
++            residual_diff_threshold=0.08,
++            max_continuous_cached_steps=3,
++        ),
++    )
++    blocks = nn.ModuleList([Block(prefix=True), Block(), Block()])
++    wrapper = sigma.MiniMaxH3SigmaCachedBlocks(
++        blocks,
++        forward_pattern=ForwardPattern.Pattern_3,
++        check_forward_pattern=False,
++        cache_prefix="blocks",
++        cache_context=context,
++        context_manager=manager,
++    )
++    device = torch.device(current_omni_platform.device_type)
++    indices = torch.tensor([0, 2], device=device)
++    state = sigma.MiniMaxH3SigmaCacheState()
++    for step, clocks in enumerate([(1.0, 1.0), (0.95, 0.9), (0.85, 0.75), (0.7, 0.55), (0.5, 0.35)]):
++        state.begin_step(step, *clocks)
++        hidden = torch.ones(2, 1, device=device, dtype=dtype)
++        actual = wrapper(hidden, sigma_cache_state=state, combined_indices=indices, test_sigmas=clocks)
++        assert actual.dtype == hidden.dtype
++        assert all(value.dtype == torch.float32 for _, value in state.history)
++        if step < 4:
++            delta = sample(*clocks, device=device, dtype=dtype)
++            expected = hidden + 0.125 + delta + delta
++            torch.testing.assert_close(actual, expected, atol=0, rtol=0)
++        else:
++            # BF16 full-compute endpoints are quantized, so they do not lie
++            # exactly on the analytic polynomial. Fit the real anchors with an
++            # independent FP64 Vandermonde solve rather than ignoring that error.
++            forecast = torch.empty(2, 1, dtype=torch.float64)
++            for row, modality in enumerate((0, 1)):
++                anchors = [clock[modality] for clock, _ in state.history]
++                matrix = torch.tensor([[1, x, x * x] for x in anchors], dtype=torch.float64)
++                values = torch.stack([value[row].cpu().double() for _, value in state.history])
++                coefficients = torch.linalg.solve(matrix, values)
++                target = clocks[modality]
++                forecast[row] = torch.tensor([1, target, target * target], dtype=torch.float64) @ coefficients
++            expected = (hidden.cpu().double() + 0.125 + forecast).to(device=device, dtype=dtype)
++            tolerance = 0.03125 if dtype == torch.bfloat16 else 1e-5
++            torch.testing.assert_close(actual, expected, atol=tolerance, rtol=1e-5)
++        assert wrapper._sigma_state is None and wrapper._sigma_indices is None
++    assert blocks[0].calls == 5 and blocks[1].calls == blocks[2].calls == 4
++    assert state.stats()["computed"] == 4 and state.stats()["predicted"] == 1
++    state.close()
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native Ascend cached block execution")
++def test_native_real_cache_manager_computes_then_forecasts():
++    _native_real_cache_manager(torch.float32)
++
++
++@pytest.mark.skipif(not current_omni_platform.is_npu(), reason="Requires native BF16 blocks with FP32 residual history")
++def test_native_bf16_blocks_use_fp32_anchors_and_keep_output_dtype():
++    _native_real_cache_manager(torch.bfloat16)
+diff --git a/vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py b/vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py
+new file mode 100644
+index 0000000..cfea2a8
+--- /dev/null
++++ b/vllm_omni/diffusion/models/minimax_h3/cache_sigma_prediction.py
+@@ -0,0 +1,199 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Opt-in, request-owned residual forecasting on H3's two sigma clocks."""
++
++from __future__ import annotations
++
++import math
++from collections.abc import Mapping
++from typing import Any
++from weakref import ref
++
++import torch
++
++from .reference_kv_cache_dit import MiniMaxH3CachedAdapter, MiniMaxH3CachedBlocks
++
++
++def sigma_cache_enabled(config: Any) -> bool:
++    cache = getattr(config, "cache_config", {})
++    enabled = (
++        cache.get("minimax_h3_sigma_cache", False)
++        if isinstance(cache, Mapping)
++        else getattr(cache, "minimax_h3_sigma_cache", False)
++    )
++    if type(enabled) is not bool:
++        raise ValueError("minimax_h3_sigma_cache must be a boolean")
++    if not enabled:
++        return False
++    parallel = getattr(config, "parallel_config", None)
++    if (
++        getattr(config, "task_type", None) != "ref2va"
++        or getattr(config, "cache_backend", None) != "cache_dit"
++        or getattr(config, "kv_offload_config", None) is not None
++        or (getattr(parallel, "data_parallel_size", 1) or 1) != 1
++        or (getattr(parallel, "cfg_parallel_size", 1) or 1) != 1
++    ):
++        raise ValueError("H3 sigma cache requires Ref2VA Cache-DiT, DP1/CFG1 and no reference-KV cache")
++    taylor = cache.get("enable_taylorseer", False) if isinstance(cache, Mapping) else cache.enable_taylorseer
++    if taylor:
++        raise ValueError("H3 sigma cache replaces TaylorSeer; disable enable_taylorseer")
++    return True
++
++
++def _quadratic_weights(anchors: list[float], target: float) -> tuple[float, ...] | None:
++    if len(anchors) != 3 or not all(math.isfinite(x) for x in [*anchors, target]):
++        return None
++    if not anchors[0] > anchors[1] > anchors[2] > target:
++        return None
++    weights = []
++    for i, anchor in enumerate(anchors):
++        weight = 1.0
++        for j, other in enumerate(anchors):
++            if i != j:
++                weight *= (target - other) / (anchor - other)
++        weights.append(weight)
++    # A host-only veto: all SP ranks have the same clocks and anchor steps.
++    if not all(math.isfinite(x) for x in weights) or sum(abs(x) for x in weights) > 64.0:
++        return None
++    return tuple(weights)
++
++
++class MiniMaxH3SigmaCacheState:
++    """Three real middle-residual anchors, owned by one denoise request."""
++
++    def __init__(self) -> None:
++        self.step = -1
++        self.sigmas = (1.0, 1.0)
++        self.history: list[tuple[tuple[float, float], torch.Tensor]] = []
++        self.closed = False
++        self.computed = 0
++        self.predicted = 0
++        self.history_vetoes = 0
++
++    def begin_step(self, step: int, video_sigma: float, audio_sigma: float) -> None:
++        if self.closed or step != self.step + 1:
++            raise RuntimeError("H3 sigma cache requires consecutive steps in an open request")
++        sigmas = (float(video_sigma), float(audio_sigma))
++        if not all(math.isfinite(x) for x in sigmas):
++            raise ValueError("H3 sigma cache requires finite sigma clocks")
++        if self.step >= 0 and not all(x < old for x, old in zip(sigmas, self.sigmas)):
++            raise ValueError("H3 sigma cache requires descending sigma clocks")
++        self.step, self.sigmas = step, sigmas
++
++    def _weights(self) -> tuple[tuple[float, ...], tuple[float, ...]] | None:
++        if self.closed or len(self.history) != 3:
++            return None
++        video = _quadratic_weights([clock[0] for clock, _ in self.history], self.sigmas[0])
++        audio = _quadratic_weights([clock[1] for clock, _ in self.history], self.sigmas[1])
++        return None if video is None or audio is None else (video, audio)
++
++    def can_predict(self, current: torch.Tensor) -> bool:
++        if self._weights() is None:
++            self.history_vetoes += 1
++            return False
++        if any(tensor.shape != current.shape or tensor.device != current.device for _, tensor in self.history):
++            self.history.clear()
++            self.history_vetoes += 1
++            return False
++        return True
++
++    def record(self, residual: torch.Tensor) -> None:
++        if self.closed or self.step < 0 or residual.ndim != 2:
++            raise RuntimeError("H3 sigma cache requires an open step and a two-dimensional residual")
++        if self.history and self.history[-1][0] == self.sigmas:
++            raise RuntimeError("H3 sigma cache received duplicate middle-block residuals")
++        # Own the anchor: neither Cache-DiT nor the model may mutate our history.
++        self.history.append((self.sigmas, residual.detach().clone()))
++        del self.history[:-3]
++        self.computed += 1
++
++    def predict(self, combined_indices: torch.Tensor) -> torch.Tensor:
++        weights = self._weights()
++        if weights is None:
++            raise RuntimeError("H3 sigma cache cannot forecast without three stable anchors")
++        last = self.history[-1][1]
++        if combined_indices.ndim != 1 or combined_indices.shape[0] != last.shape[0]:
++            raise ValueError("H3 sigma cache requires one modality index per local residual row")
++        if combined_indices.device != last.device:
++            raise ValueError("H3 sigma cache modality and residual devices must match")
++        audio_rows = combined_indices.remainder(3).eq(2).unsqueeze(-1)
++        output = torch.zeros_like(last, dtype=torch.float32)
++        for i, (_, residual) in enumerate(self.history):
++            coefficient = torch.where(audio_rows, weights[1][i], weights[0][i])
++            output.add_(residual.float() * coefficient)
++        self.predicted += 1
++        return output
++
++    def stats(self) -> dict[str, int]:
++        return {"computed": self.computed, "predicted": self.predicted, "history_vetoes": self.history_vetoes}
++
++    def close(self) -> None:
++        self.history.clear()
++        self.closed = True
++
++
++class _SigmaCacheManager:
++    def __init__(self, manager: Any, owner: MiniMaxH3SigmaCachedBlocks) -> None:
++        self._manager = manager
++        self._owner = ref(owner)
++
++    def __getattr__(self, name: str) -> Any:
++        return getattr(self._manager, name)
++
++    def _state(self) -> MiniMaxH3SigmaCacheState:
++        owner = self._owner()
++        if owner is None or owner._sigma_state is None:
++            raise RuntimeError("H3 sigma cache manager has no active request")
++        return owner._sigma_state
++
++    def can_cache(self, states_tensor: torch.Tensor, *args, **kwargs) -> bool:
++        allowed = self._manager.can_cache(states_tensor, *args, **kwargs)
++        return allowed and self._state().can_predict(states_tensor)
++
++    def set_Bn_buffer(self, buffer: torch.Tensor, prefix: str = "Bn") -> None:
++        if not self._manager.is_cache_residual():
++            raise ValueError("H3 sigma cache requires middle-block residual caching")
++        self._state().record(buffer)
++        self._manager.set_Bn_buffer(buffer, prefix=prefix)
++
++    def apply_cache(self, hidden_states: torch.Tensor, encoder_hidden_states=None, **kwargs):
++        if encoder_hidden_states is not None or not self._manager.is_cache_residual():
++            raise ValueError("H3 sigma cache supports only the packed H3 residual stream")
++        owner = self._owner()
++        if owner is None or owner._sigma_indices is None:
++            raise RuntimeError("H3 sigma cache has no active modality layout")
++        prediction = self._state().predict(owner._sigma_indices)
++        output = (prediction + hidden_states.float()).to(hidden_states.dtype)
++        return output.contiguous(), None
++
++
++class MiniMaxH3SigmaCachedBlocks(MiniMaxH3CachedBlocks):
++    def __init__(self, *args, **kwargs) -> None:
++        super().__init__(*args, **kwargs)
++        self._sigma_state = None
++        self._sigma_indices = None
++        self.context_manager = _SigmaCacheManager(self.context_manager, self)
++
++    def call_Mn_blocks(self, hidden_states: torch.Tensor, *args, **kwargs):
++        computed, encoder, _ = super().call_Mn_blocks(hidden_states, *args, **kwargs)
++        # Fit the exact difference of the computed BF16 endpoints. Reconstruct
++        # in FP32 and cast once so downstream blocks retain their input dtype.
++        residual = computed.float() - hidden_states.float()
++        return computed, encoder, residual
++
++    def forward(self, hidden_states: torch.Tensor, *args, sigma_cache_state=None, **kwargs):
++        if not isinstance(sigma_cache_state, MiniMaxH3SigmaCacheState) or sigma_cache_state.closed:
++            raise RuntimeError("H3 sigma cache requires a live denoise request state")
++        if kwargs.get("num_requests", 1) != 1 or kwargs.get("reference_kv_state") is not None:
++            raise ValueError("H3 sigma cache requires a single request without reference-KV reuse")
++        old_state, old_indices = self._sigma_state, self._sigma_indices
++        try:
++            self._sigma_state = sigma_cache_state
++            self._sigma_indices = kwargs["combined_indices"]
++            return super().forward(hidden_states, *args, **kwargs)
++        finally:
++            self._sigma_state, self._sigma_indices = old_state, old_indices
++
++
++class MiniMaxH3SigmaCachedAdapter(MiniMaxH3CachedAdapter):
++    block_class = MiniMaxH3SigmaCachedBlocks
+diff --git a/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py b/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py
+index 8cca219..ddbdace 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py
++++ b/vllm_omni/diffusion/models/minimax_h3/denoise_loop.py
+@@ -379,13 +379,21 @@ def minimax_h3_denoise_loop(
+     if reference_kv_state is not None:
+         positive.static_kwargs["reference_kv_state"] = reference_kv_state
+ 
++    sigma_cache_state = None
+     try:
++        create_sigma_cache_state = getattr(model, "create_sigma_cache_state", None)
++        if callable(create_sigma_cache_state):
++            sigma_cache_state = create_sigma_cache_state()
++        if sigma_cache_state is not None and (video_edit is not None or audio_edit is not None):
++            raise ValueError("H3 sigma cache does not support latent edits")
+         for step in range(num_steps):
+             check_request_cancellation()
+             step_cm = step_profiler(step) if step_profiler is not None else nullcontext()
+             with step_cm:
+                 s_v = sigmas_video[step]
+                 s_a = sigmas_audio[step]
++                if sigma_cache_state is not None:
++                    sigma_cache_state.begin_step(step, s_v, s_a)
+                 if reference_kv_state is not None:
+                     reference_kv_state.begin_step(step, sigma=float(s_v))
+                 # Publish where we are so step-gated attention features (the dense
+@@ -426,6 +434,8 @@ def minimax_h3_denoise_loop(
+                 )
+                 if getattr(getattr(model, "arch", None), "pdd_steps", None) is not None:
+                     fk["pdd_step"] = step
++                if sigma_cache_state is not None:
++                    fk["sigma_cache_state"] = sigma_cache_state
+                 with torch.inference_mode():
+                     v_video, v_audio = model(**fk)
+                 if reference_kv_state is not None:
+@@ -475,6 +485,9 @@ def minimax_h3_denoise_loop(
+                 check_request_cancellation(synchronize=True)
+ 
+     finally:
++        if sigma_cache_state is not None:
++            model._sigma_cache_stats = sigma_cache_state.stats()
++            sigma_cache_state.close()
+         minimax_h3_publish_denoise_progress(None, None, None)
+         if reference_kv_state is not None:
+             positive.static_kwargs.pop("reference_kv_state", None)
+diff --git a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
+index 9518828..ca727c6 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
++++ b/vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py
+@@ -245,6 +245,7 @@ _FORWARD_SUPPORTED_KWARGS = frozenset(
+         "control_rows",
+         "control_context_scale",
+         "reference_kv_state",
++        "sigma_cache_state",
+     }
+ )
+ 
+@@ -777,6 +778,23 @@ class MiniMaxH3DiTModel(nn.Module):
+             max_bytes=256 * 1024**2 if enabled else 0, offload_weights=offload_adaln
+         )
+         self.od_config = od_config
++        sigma_enabled = (
++            cache_config.get("minimax_h3_sigma_cache", False)
++            if isinstance(cache_config, Mapping)
++            else getattr(cache_config, "minimax_h3_sigma_cache", False)
++        )
++        if type(sigma_enabled) is not bool:
++            raise ValueError("minimax_h3_sigma_cache must be a boolean")
++        self._sigma_cache_enabled = False
++        if sigma_enabled:
++            from .cache_sigma_prediction import MiniMaxH3SigmaCachedAdapter, sigma_cache_enabled
++
++            self._sigma_cache_enabled = sigma_cache_enabled(od_config)
++            if not current_omni_platform.is_npu():
++                raise ValueError("H3 sigma cache is currently restricted to the Ascend Ref2VA experiment")
++            self._cache_dit_adapter_config = replace(
++                self._cache_dit_adapter_config, cached_adapter_cls=MiniMaxH3SigmaCachedAdapter
++            )
+         if getattr(od_config, "kv_offload_config", None) is not None:
+             from vllm_omni.diffusion.models.minimax_h3.reference_kv_cache_dit import MiniMaxH3CachedAdapter
+ 
+@@ -1257,6 +1275,14 @@ class MiniMaxH3DiTModel(nn.Module):
+             device=device,
+         )
+ 
++    def create_sigma_cache_state(self):
++        if not getattr(self, "_sigma_cache_enabled", False):
++            return None
++        from .cache_sigma_prediction import MiniMaxH3SigmaCacheState
++
++        self._sigma_cache_stats = None
++        return MiniMaxH3SigmaCacheState()
++
+     def forward(self, *, pdd_step: int | None = None, **kwargs: Any) -> tuple[torch.Tensor, torch.Tensor]:
+         """Packed inference forward.
+ 
+@@ -1490,6 +1516,14 @@ class MiniMaxH3DiTModel(nn.Module):
+         if getattr(self, "adaln_cache", None) is not None:
+             self.adaln_cache.prepare(t_emb)
+ 
++        sigma_state = kwargs.get("sigma_cache_state")
++        sigma_options = {}
++        if sigma_state is not None:
++            if not getattr(self, "_sigma_cache_enabled", False):
++                raise ValueError("H3 sigma cache state was supplied while the feature is disabled")
++            if num_requests != 1 or reference_kv_state is not None or control_rows is not None:
++                raise ValueError("H3 sigma cache does not support packed batches, control or reference-KV reuse")
++            sigma_options["sigma_cache_state"] = sigma_state
+         for block_index, block in enumerate(self.blocks):
+             hidden = block(
+                 hidden,
+@@ -1505,6 +1539,7 @@ class MiniMaxH3DiTModel(nn.Module):
+                 reference_kv_state=reference_kv_state,
+                 reference_kv_compact=compact_reference,
+                 vdn_window=vdn_window,
++                **sigma_options,
+             )
+             if block_index in hints:
+                 hidden = hidden + hints.pop(block_index) * control_scale
+diff --git a/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py b/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
+index f14dcc9..f78598b 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
++++ b/vllm_omni/diffusion/models/minimax_h3/reference_kv_cache_dit.py
+@@ -125,6 +125,8 @@ class MiniMaxH3CachedBlocks(CachedBlocks_Pattern_3_4_5):
+ 
+ 
+ class MiniMaxH3CachedAdapter(CachedAdapter):
++    block_class = MiniMaxH3CachedBlocks
++
+     @classmethod
+     def collect_unified_blocks(
+         cls, block_adapter: BlockAdapter, contexts_kwargs: list[dict]
+@@ -139,7 +141,7 @@ class MiniMaxH3CachedAdapter(CachedAdapter):
+                 context_index += 1
+                 contexts[block_adapter.unique_blocks_name[i][j]] = nn.ModuleList(
+                     [
+-                        MiniMaxH3CachedBlocks(
++                        cls.block_class(
+                             blocks,
+                             transformer=transformer,
+                             forward_pattern=block_adapter.forward_pattern[i][j],

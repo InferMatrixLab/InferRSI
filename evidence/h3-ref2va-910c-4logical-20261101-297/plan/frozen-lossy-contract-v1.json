@@ -1,0 +1,341 @@
+{
+  "schema_version": 1,
+  "frozen_at": "2026-11-01T11:08:31.611111+00:00",
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/297",
+  "scope": "Fixed Ref2VA sunset-image corpus: relative BF16 VBench subject/background consistency plus reference, content, audio-feature, motion and media-timestamp guards. No human check. These proxies do not certify absolute audiovisual semantic synchrony or general model quality.",
+  "decision": "Prospective automatic RSI quality contract; user retains final acceptance. No real lossy candidate has been generated or scored.",
+  "baseline_source": "df1c1b05936381dbaa3891c1ae4c4b21ab375a5d",
+  "model_revision": "6818f6c32d12b210915e44ad56a4228c2608f160",
+  "reference_image_sha256": "3c3196accd6fb0de0642945bcaed1ddd4bfff04885b070455004c707fbfcfe3b",
+  "scorer_sha256": "99f5a76436a3c8d37462fab83f63d24eae74b4458c30e5a00b60c19fde139f3e",
+  "comparison_sha256": "99e8e23463f8ce83b52a22de9cdc697ef4bbf14d910a0c67e76bfd01e94c4b3d",
+  "source_revisions": {
+    "vbench": "fd18b3d055cb0fc6f066ca90fe2c3c8cbb698490",
+    "clip": "d05afc436d78f1c48dc0dbf8e5980a9d471f35f6",
+    "dino": "7c446df5b9f45747937fb0d72314eb9f7b66930a",
+    "clap": "8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a"
+  },
+  "samples": [
+    {
+      "id": "5s-00",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "A slow cinematic camera move across the sunset landscape shown in the reference image. Preserve the open fields, distant hills, and warm orange sky. Gentle cloud movement and natural wind ambience.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "5",
+        "num_inference_steps": "50",
+        "seed": "3100",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":5.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Natural wind over open fields with a quiet outdoor ambience."
+    },
+    {
+      "id": "5s-01",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "A locked camera observes the sunset landscape in the reference image. Preserve the fields, distant hills, and orange sky. Clouds drift gently while a light breeze moves the grass. Natural wind ambience.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "5",
+        "num_inference_steps": "50",
+        "seed": "3101",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":5.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "A light outdoor breeze and soft grass rustling."
+    },
+    {
+      "id": "5s-02",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "Slowly pan right across the sunset fields shown in the reference image. Keep the distant hills and warm sky consistent. Grass sways in a steady breeze with natural rustling sounds.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "5",
+        "num_inference_steps": "50",
+        "seed": "3102",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":5.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Steady wind and grass rustling in open fields."
+    },
+    {
+      "id": "5s-03",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "Move the camera slowly forward over the field in the reference image. Preserve the sunset colors and distant horizon. Clouds and grass move naturally, accompanied by quiet wind.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "5",
+        "num_inference_steps": "50",
+        "seed": "3103",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":5.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Quiet wind over an open field."
+    },
+    {
+      "id": "5s-04",
+      "split": "held_out",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "A gentle leftward camera move reveals the same rural sunset landscape. Preserve the orange clouds and distant hills. A soft breeze moves the vegetation; faint birds can be heard in the distance.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "5",
+        "num_inference_steps": "50",
+        "seed": "3104",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":5.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Soft wind and faint distant bird calls."
+    },
+    {
+      "id": "15s-00",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "A slow cinematic camera move across the sunset landscape shown in the reference image. Preserve the open fields, distant hills, and warm orange sky. Gentle cloud movement and natural wind ambience.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "15",
+        "num_inference_steps": "50",
+        "seed": "3100",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":15.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Natural wind over open fields with a quiet outdoor ambience."
+    },
+    {
+      "id": "15s-01",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "A locked camera observes the sunset landscape in the reference image. Preserve the fields, distant hills, and orange sky. Clouds drift gently while a light breeze moves the grass. Natural wind ambience.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "15",
+        "num_inference_steps": "50",
+        "seed": "3106",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":15.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "A light outdoor breeze and soft grass rustling."
+    },
+    {
+      "id": "15s-02",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "Slowly pan right across the sunset fields shown in the reference image. Keep the distant hills and warm sky consistent. Grass sways in a steady breeze with natural rustling sounds.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "15",
+        "num_inference_steps": "50",
+        "seed": "3107",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":15.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Steady wind and grass rustling in open fields."
+    },
+    {
+      "id": "15s-03",
+      "split": "search",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "Move the camera slowly forward over the field in the reference image. Preserve the sunset colors and distant horizon. Clouds and grass move naturally, accompanied by quiet wind.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "15",
+        "num_inference_steps": "50",
+        "seed": "3108",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":15.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Quiet wind over an open field."
+    },
+    {
+      "id": "15s-04",
+      "split": "held_out",
+      "request": {
+        "model": "h3-ref2va-baseline",
+        "prompt": "A gentle leftward camera move reveals the same rural sunset landscape. Preserve the orange clouds and distant hills. A soft breeze moves the vegetation; faint birds can be heard in the distance.",
+        "width": "1344",
+        "height": "768",
+        "aspect_ratio": "16:9",
+        "fps": "24",
+        "seconds": "15",
+        "num_inference_steps": "50",
+        "seed": "3109",
+        "flow_shift": "12",
+        "extra_params": "{\"task\":\"ref2va\",\"duration\":15.0,\"audio_flow_shift\":3.0}",
+        "image_reference": "{\"image_url\":\"http://127.0.0.1:19193/reference.png\"}",
+        "quality": "lossless"
+      },
+      "audio_caption": "Soft wind and faint distant bird calls."
+    }
+  ],
+  "gates": {
+    "reduced_vbench_relative_error_max": 0.01,
+    "dimension_relative_error_max": 0.01,
+    "per_clip_reduced_vbench_relative_error_max": 0.03,
+    "dino_paired_mean_cosine_min": 0.98,
+    "dino_paired_p05_cosine_min": 0.95,
+    "clip_paired_mean_cosine_min": 0.98,
+    "clap_paired_mean_cosine_min": 0.99,
+    "clap_paired_segment_cosine_min": 0.98,
+    "adherence_max_absolute_cosine_drop": 0.01,
+    "audio_rms_max_abs_db": 1.0,
+    "clipping_max_fraction_increase": 0.0001,
+    "audio_envelope_relative_l2_max": 0.25,
+    "motion_floor": 1e-06,
+    "motion_ratio_min": 0.8,
+    "motion_ratio_max": 1.25
+  },
+  "aggregation": "For each duration independently, arithmetic mean of the five clip scores for each of two VBench dimensions, then equal-weight mean across dimensions. Require absolute relative error <1% for total and each dimension. All observed per-clip guards must pass. Missing coverage is INCONCLUSIVE.",
+  "held_out": "For each duration separately, release its held-out sample once after selecting that track final candidate; include both held-out samples in the ten-sample decision. Search uses the other eight.",
+  "scoring": "CPU FP32, official unmodified dimension functions with read_frame=True; only decord import deferred in the CPU source adapter. Every RGB frame is processed. CLAP sees the complete waveform in one (5 s) or three (15 s) equal contiguous windows after rational 32-to-48 kHz resampling. Random preprocessing seed resets to zero per window.",
+  "workload": "Original 50 steps, original model weights; no distilled model or step reduction. Optimization controls are recorded separately; only request quality and declared cache hints may differ.",
+  "weight_files": [
+    {
+      "path": "quality-cache/weights/ViT-B-32.pt",
+      "sha256": "40d365715913c9da98579312b702a82c18be219cc2a73407c4526f58eba950af"
+    },
+    {
+      "path": "quality-cache/weights/dino_vitbase16_pretrain.pth",
+      "sha256": "bf34ad0f424b9029b593e8dc3ed553bf26e88bcba0d32bf3e62a6209cb64c85e"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/config.json",
+      "sha256": "9efb9557bc804f2ca6e394486af2e45dfed0b18554909735a99c6220b84e4288"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/preprocessor_config.json",
+      "sha256": "9739f58296aa6f9ac18008fd0150fb2649bc554985fbde86d0a4041c882ac753"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/pytorch_model.bin",
+      "sha256": "1cd3c601bc4afe0fa87be3de4c13dd2cfadd249fac1e29acf74a9b296c3219bb"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/merges.txt",
+      "sha256": "fe36cab26d4f4421ed725e10a2e9ddb7f799449c603a96e7f29b5a3c82a95862"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/vocab.json",
+      "sha256": "ed19656ea1707df69134c4af35c8ceda2cc9860bf2c3495026153a133670ab5e"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/tokenizer.json",
+      "sha256": "77ef92283d67f0d97e1454909a964afcbfa2019f0fb9f18f8e88d5c25c3ba729"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/tokenizer_config.json",
+      "sha256": "377f91458f7729a4574a84c77bdce67dbc3c58c1a345a29bbf8c4eb1307948a3"
+    },
+    {
+      "path": "quality-cache/clap/8fa0f1c6d0433df6e97c127f64b2a1d6c0dcda8a/special_tokens_map.json",
+      "sha256": "06e405a36dfe4b9604f484f6a1e619af1a7f7d09e34a8555eb0b77b66318067f"
+    }
+  ],
+  "source_files": [
+    {
+      "path": "quality-adapter/vbench/__init__.py",
+      "sha256": "ed75ffe21eda639114cae10a0c81565f6f4b290b844895f4d4574fded2fc8cda"
+    },
+    {
+      "path": "quality-adapter/vbench/background_consistency.py",
+      "sha256": "7def92057819df0dad01c857eecf3b39b8b555c8cdfe881a672cc2b19dc226b4"
+    },
+    {
+      "path": "quality-adapter/vbench/distributed.py",
+      "sha256": "13178b64ac62d71a01339ce6d8e29452163e7a653016a7e2d3af907e0d51f3fe"
+    },
+    {
+      "path": "quality-adapter/vbench/subject_consistency.py",
+      "sha256": "55f5c9a3e5be543380a709b94712903fa67a76340c3c0cb2414ac090dbd1b78d"
+    },
+    {
+      "path": "quality-adapter/vbench/utils.py",
+      "sha256": "c06c92d03cffaa05f1952e9378f06b2b3535b22dab65772df5a33f4fe9939174"
+    },
+    {
+      "path": "source/clip/clip/simple_tokenizer.py",
+      "sha256": "d1b09f10ed3d1e2c343619cb98cbfacb92363dd8607526a43aa7fe2d60d15bad"
+    },
+    {
+      "path": "source/clip/clip/__init__.py",
+      "sha256": "d7930eb290ebed432116795c91473200d098451a94c0aedd4ae0f934f97955e8"
+    },
+    {
+      "path": "source/clip/clip/clip.py",
+      "sha256": "9540f200fbf8145479fa655382a56dab048d238cc698b9cbd8df3b6d86d3f1b6"
+    },
+    {
+      "path": "source/clip/clip/model.py",
+      "sha256": "9902cbe5ee90a1da2aa3e6f043e8a23dc1f8831193b963785c9af03d5c7bef2c"
+    },
+    {
+      "path": "source/dino/vision_transformer.py",
+      "sha256": "b1f998d5f49ab43666b9fc6d007c5f6540c3ead2e8645e144f74045f63ff44d7"
+    },
+    {
+      "path": "source/dino/utils.py",
+      "sha256": "962a97e1acda1c986dfd921275325e4083f9016dddadcf018f1ccf03fa600eab"
+    },
+    {
+      "path": "validator/check_media.py",
+      "sha256": "617c79d3c55dd74b5ccd2a10ba51f70241e36fe95be28a08e3f714fddcdbfa38"
+    },
+    {
+      "path": "envs/b0/lib/python3.12/site-packages/transformers/models/clap/modeling_clap.py",
+      "sha256": "0c8335dc90fb7633aa7d838be0ec960d00826244a9a2194cdd2e7ae0acd8cc28"
+    },
+    {
+      "path": "envs/b0/lib/python3.12/site-packages/transformers/models/clap/feature_extraction_clap.py",
+      "sha256": "6b7a51f63ae1b7d9eeb5351b678b8d0786cc59c44156377255f4d2f5f57b476f"
+    }
+  ]
+}

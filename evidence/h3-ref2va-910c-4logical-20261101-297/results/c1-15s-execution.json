@@ -1,0 +1,47 @@
+{
+  "source_commit": "be319692b96413918973b5bd399cdda3f320c574",
+  "scope": "http_complete_mp4",
+  "samples_ms": [
+    1707035.2496140404,
+    1677409.5148360357
+  ],
+  "latency_median_ms": 1692222.382225038,
+  "warmup": 0,
+  "repetitions": 2,
+  "diagnostic": "audit",
+  "clean_timing": false,
+  "cleanup_passed": true,
+  "actual_attention_calls": {
+    "0": {
+      "0": {
+        "_prefix_bnsd": 2500
+      },
+      "1": {
+        "_prefix_bnsd": 2500
+      },
+      "2": {
+        "_prefix_bnsd": 2500
+      },
+      "3": {
+        "_prefix_bnsd": 2500
+      }
+    },
+    "1": {
+      "0": {
+        "_prefix_bnsd": 2500
+      },
+      "1": {
+        "_prefix_bnsd": 2500
+      },
+      "2": {
+        "_prefix_bnsd": 2500
+      },
+      "3": {
+        "_prefix_bnsd": 2500
+      }
+    }
+  },
+  "numerical_result": "c1-15s-strict-comparison.json",
+  "performance_acceptance": "NOT_EVALUATED",
+  "campaign_verdict": "INCONCLUSIVE"
+}

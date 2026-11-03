@@ -1,0 +1,19 @@
+{
+  "trial": "c15-video-row-native-3a9721a6",
+  "tests_passed": 17,
+  "source_base_head": "0917a23dac44fee3b4d156de5cfa5addc329cc4a",
+  "files_before": {
+    "vllm_omni/diffusion/models/minimax_h3/video_row_cache.py": "cf9fb13c5f24c7595d62d13cae6e283cafb2178612b20028d35357f0cafaac83",
+    "vllm_omni/diffusion/models/minimax_h3/attention/flash_h3.py": "ca87df1936fd2694fcc768079e9e8f926b6d45969ddc61ebf353f5e726d70b8b",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_blocks.py": "1258655fcdca4692c2306100846761a2b0b149bbcaa5cde48a9abaa559913bc3",
+    "vllm_omni/diffusion/models/minimax_h3/minimax_h3_transformer.py": "a8257f98c2e30c7bc7978bf645966d2eaa98cd49a42a8a923c062b5808dcdcdf",
+    "vllm_omni/diffusion/models/minimax_h3/denoise_loop.py": "c5fab405ee82bc553e9a902fa27e6dfbc5213ec18311e17b6415396a69b50f43",
+    "tests/diffusion/models/minimax_h3/test_minimax_h3_video_row_cache.py": "8ec1b3ae4cd252f5d95ab23e0232b983900939e8cb15d1e64f4740f7204abf39",
+    "vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py": "e8e2e74fb8edb05e02d3e2328ea1f3ad5ddcfd7a10ed09c5cf3911b1d063e849"
+  },
+  "cleanup_passed": true,
+  "source_unchanged": true,
+  "required_native_test_executed": true,
+  "scope": "Focused state/block/request tests, real Ref2VA/FL2VA packing and native four-rank subset attention. Full-model quality/performance remain separate.",
+  "first_model_attempt": "Failed before step0: image references are not reference video spans. Task propagation corrected; original failure retained."
+}
