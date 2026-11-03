@@ -63,6 +63,10 @@
         {
           "path": "results/operator-followup-integrity.json",
           "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/strict-followup-integrity.json",
+          "schema": "bundle-sha256"
         }
       ],
       "external": [
