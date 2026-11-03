@@ -1,0 +1,96 @@
+diff --git a/docs/design/feature/offloader/module_offload.md b/docs/design/feature/offloader/module_offload.md
+index 43ef49194..3b73dcffd 100644
+--- a/docs/design/feature/offloader/module_offload.md
++++ b/docs/design/feature/offloader/module_offload.md
+@@ -46,6 +46,11 @@ contract:
+   setup; and
+ - disabling removes all model-local offload hooks or contexts.
+ 
++Preparation that reads component buffers before its first `forward` must also
++enter the component's residency context. MiniMax-H3 enters that context before
++denoise-time RoPE table preparation. On context exit, explicit selection still
++controls offloading: an unselected DiT remains device resident.
++
+ The delegation is currently duck typed. If another independent implementation
+ is added, formalize the enable/disable pair as a protocol rather than expanding
+ attribute-name heuristics.
+diff --git a/tests/diffusion/models/minimax_h3/test_ref2va_initial_noise_preparation.py b/tests/diffusion/models/minimax_h3/test_ref2va_initial_noise_preparation.py
+index a2f2bc517..1579b690f 100644
+--- a/tests/diffusion/models/minimax_h3/test_ref2va_initial_noise_preparation.py
++++ b/tests/diffusion/models/minimax_h3/test_ref2va_initial_noise_preparation.py
+@@ -3,7 +3,9 @@
+ 
+ import weakref
+ from concurrent.futures import ThreadPoolExecutor
++from contextlib import nullcontext
+ from threading import Event
++from types import SimpleNamespace
+ 
+ import pytest
+ import torch
+@@ -138,6 +140,45 @@ def test_consumed_host_noise_is_released_before_denoising(pipeline, monkeypatch)
+         )
+ 
+ 
++def test_module_offload_places_dit_before_denoise_preparation(pipeline, monkeypatch):
++    from vllm_omni.diffusion.models.minimax_h3 import pipeline_minimax_h3 as module
++    from vllm_omni.diffusion.offloader import apply_sequential_offload, sequential_backend
++
++    # A real CPU-to-meta move exposes preparation before the first forward
++    # without requiring an accelerator or a model checkpoint.
++    transformer = torch.nn.Module()
++    transformer.register_buffer("inv_freq", torch.ones(4))
++    pipeline.transformer = transformer
++    pipeline.device = torch.device("meta")
++    # Adapt only the accelerator boundary: Tensor.data cannot be reassigned
++    # from CPU to meta, whereas Module.to supports this allocation-free move.
++    monkeypatch.setattr(sequential_backend.SequentialOffloadHook, "_to_gpu", lambda hook, model: model.to(hook.device))
++    monkeypatch.setattr(
++        sequential_backend,
++        "current_omni_platform",
++        SimpleNamespace(synchronize=lambda: None, get_free_memory=lambda: 0),
++    )
++    apply_sequential_offload(
++        [transformer],
++        [],
++        device=pipeline.device,
++        pin_memory=False,
++        offload_dit_modules=(),
++    )
++    pipeline._model_cpu_offload_modules = [transformer]
++    monkeypatch.setattr(pipeline, "progress_bar", lambda **kwargs: nullcontext(SimpleNamespace(update=lambda: None)))
++
++    def prepare_before_first_forward(**kwargs):
++        assert kwargs["model"].inv_freq.device == pipeline.device
++        raise RuntimeError("preparation device checked")
++
++    monkeypatch.setattr(module, "minimax_h3_denoise_loop", prepare_before_first_forward)
++    with pytest.raises(RuntimeError, match="preparation device checked"):
++        pipeline.diffuse(**_ref2va_kwargs(42))
++    # Encoder-only offload must keep the unselected DiT resident on exit.
++    assert transformer.inv_freq.device == pipeline.device
++
++
+ @pytest.mark.parametrize("failure_stage", ["text", "media"])
+ def test_encoder_failure_cancels_pending_noise_and_joins_worker(pipeline, monkeypatch, failure_stage):
+     from vllm_omni.diffusion.models.minimax_h3 import pipeline_minimax_h3 as module
+diff --git a/vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py b/vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py
+index 476c3cca8..939b06481 100644
+--- a/vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py
++++ b/vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py
+@@ -2368,7 +2368,14 @@ class MiniMaxH3Pipeline(
+         cache_runtime = getattr(self, "_cache_dit_runtime", None)
+         if cache_runtime is not None:
+             cache_runtime.refresh(len(inputs["sigmas_video"]) - 1)
+-        with self._resident_dit_layers_on_device(enabled=transformer is self.transformer):
++        # RoPE preparation runs before the first transformer forward, so its
++        # buffers must already be placed by the module-offload hook.
++        component_scope = (
++            self._component_on_device(transformer)
++            if getattr(self, "_model_cpu_offload_modules", None)
++            else nullcontext()
++        )
++        with component_scope, self._resident_dit_layers_on_device(enabled=transformer is self.transformer):
+             with self.progress_bar(total=len(inputs["sigmas_video"]) - 1) as progress:
+                 video_rows, audio_rows = minimax_h3_denoise_loop(
+                     sampler=inputs["sampler"],
