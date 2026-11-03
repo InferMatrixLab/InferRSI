@@ -308,6 +308,43 @@ def test_git_symlink_not_measured_as_target_size(tmp_path: Path):
     assert violations == []
 
 
+def test_git_empty_blob_with_dirty_worktree_not_misreported(tmp_path: Path):
+    """Verify empty blob committed in HEAD is not inflated by dirty uncommitted worktree."""
+    repo = tmp_path / "empty_blob_repo"
+    repo.mkdir()
+
+    def git(*args: str):
+        subprocess.run(["git", *args], cwd=repo, capture_output=True, check=True)
+
+    git("init", "-b", "main")
+    git("config", "user.name", "Tester")
+    git("config", "user.email", "tester@example.com")
+    (repo / "README.md").write_text("# Base")
+    git("add", ".")
+    git("commit", "-m", "base")
+
+    # In HEAD commit, commit an empty file in evidence/
+    ev_dir = repo / "evidence"
+    ev_dir.mkdir()
+    empty_file = ev_dir / "empty.bin"
+    empty_file.write_bytes(b"")
+    git("add", ".")
+    git("commit", "-m", "add empty file")
+
+    # Now write 600 KiB dirty worktree content without committing
+    empty_file.write_bytes(b"Z" * (600 * 1024))
+
+    records = check.get_changed_files_with_net_sizes("main~1", repo_root=repo)
+    empty_record = next(r for r in records if r[0] == "evidence/empty.bin")
+    # Committed blob in HEAD is 0 bytes, not 600 KiB
+    assert empty_record[1] == 0
+    assert empty_record[2] == 0
+
+    violations, net_bytes = check.check_file_budgets(records)
+    assert violations == []
+    assert net_bytes == 0
+
+
 def test_local_mode_untracked_files_expanded(tmp_path: Path):
     """Verify local mode without base ref expands untracked nested directories."""
     repo = tmp_path / "local_repo"

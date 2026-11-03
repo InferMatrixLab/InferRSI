@@ -28,20 +28,28 @@ ADVICE = (
 
 
 def get_git_object_size(root: Path, obj_ref: str) -> int:
-    """Return byte size of a git blob object using git cat-file -s."""
+    """Return byte size of a git blob object using git cat-file -s.
+
+    Raises ValueError if git cat-file fails.
+    """
     if not obj_ref or set(obj_ref) == {"0"}:
         return 0
-    try:
-        res = subprocess.run(
-            ["git", "cat-file", "-s", obj_ref],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            check=True,
+    res = subprocess.run(
+        ["git", "cat-file", "-s", obj_ref],
+        cwd=root,
+        capture_output=True,
+        text=True,
+    )
+    if res.returncode != 0:
+        raise ValueError(
+            f"Failed to read size for git object '{obj_ref}': {res.stderr.strip()}"
         )
+    try:
         return int(res.stdout.strip())
-    except (subprocess.SubprocessError, ValueError):
-        return 0
+    except ValueError as exc:
+        raise ValueError(
+            f"Invalid size output for git object '{obj_ref}': {res.stdout.strip()}"
+        ) from exc
 
 
 def get_changed_files_with_net_sizes(
@@ -52,7 +60,7 @@ def get_changed_files_with_net_sizes(
 
     If base_ref is supplied, uses git diff --raw -z against base_ref.
     Sizes are obtained from git blob objects directly (preventing symlink
-    following and worktree path confusion).
+    following, empty blob confusion, and worktree path confusion).
     If base_ref fails or is missing, raises ValueError (no silent fallback in CI).
     If base_ref is None, inspects local git status with -z and --untracked-files=all.
     """
@@ -111,10 +119,6 @@ def get_changed_files_with_net_sizes(
 
                 src_size = get_git_object_size(root, sha_src)
                 dst_size = get_git_object_size(root, sha_dst)
-                if dst_size == 0 and sha_dst and set(sha_dst) != {"0"}:
-                    full_dst = root / dst_path
-                    if full_dst.exists() or full_dst.is_symlink():
-                        dst_size = full_dst.lstat().st_size
 
                 if status.startswith("R"):
                     # Rename: src replaced by dst
@@ -148,19 +152,11 @@ def get_changed_files_with_net_sizes(
                     results.append((path, 0, delta))
                 elif status.startswith("A"):
                     cur_size = get_git_object_size(root, sha_dst)
-                    if cur_size == 0 and sha_dst and set(sha_dst) != {"0"}:
-                        full_path = root / path
-                        if full_path.exists() or full_path.is_symlink():
-                            cur_size = full_path.lstat().st_size
                     delta = cur_size if is_ev else 0
                     results.append((path, cur_size, delta))
                 elif status.startswith("M") or status.startswith("T"):
                     src_size = get_git_object_size(root, sha_src)
                     cur_size = get_git_object_size(root, sha_dst)
-                    if cur_size == 0 and sha_dst and set(sha_dst) != {"0"}:
-                        full_path = root / path
-                        if full_path.exists() or full_path.is_symlink():
-                            cur_size = full_path.lstat().st_size
                     delta = (cur_size - src_size) if is_ev else 0
                     results.append((path, cur_size, delta))
                 else:
