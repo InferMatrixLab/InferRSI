@@ -1,0 +1,66 @@
+{
+  "tp2-sp2-screen": {
+    "plan": {
+      "scope": "Adaptive five-step ABBA topology screening, not target qualification",
+      "hardware": "local four 910B1 under one reservation",
+      "arms": [
+        "SP4 TP1 baseline",
+        "TP2 SP2 resident DiT with text encoder module offload"
+      ],
+      "order": [
+        "base0",
+        "hybrid_a",
+        "hybrid_b",
+        "base1"
+      ],
+      "warmups_per_arm": 1,
+      "measured_per_arm": 1,
+      "steps": 5,
+      "duration_s": 5,
+      "early_rejection": "Continue second pair only if first completed clean candidate at least10percent lower E2E; incomplete ABBA retained on rejection",
+      "baseline_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+      "candidate_revision": "0be853d46bcb1ae880d7582f4bed502ec29017af",
+      "source": "Existing H3 TP implementation and module placement fix; hardware scheduling hypothesis from TP4 bringup",
+      "constraints": "Original Laser, BF16, same dense workload; no approximation; no lossless or30percent claim from this screen",
+      "quality": "Independent CPU scoring after reservation releases; different reduction topology requires evaluation against baseline repeatability"
+    },
+    "frozen_harness": {
+      "admit_second_pair.py": "b8741ad8ade0ea1993627dd516c44af2ad073a07182e79ff029346d5259d2848",
+      "campaign.sh": "5b4e0ab29ce21c874fc6a89c0d97ddd046f1d0a43cdf1198421ff07dd09b84de",
+      "plan.json": "e78cc6abcc18882bea222dc7d04fefe395f16a914a2598fe341d4e5c4553df03",
+      "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+      "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+      "run_host.sh": "79108b262a84db998d75b77f5851e3b184c36820823343d473ee0506024a2adb",
+      "run_inner.sh": "2f8a6bb1e76bfc0bd34d0c82e496487a8290ef1f721a0f8cc1fa04f84ea8c286"
+    }
+  },
+  "query-chunk-probe": {
+    "plan": {
+      "hypothesis": "Query tiling may change kernel scheduling without omitting keys; reject unless actual exact parity and measured improvement",
+      "source": "Installed MindIE SD3.1 AscendLaserAttention preprocess/custom laser_attention/postprocess implementation",
+      "scope": "Single reserved NPU synthetic shape probe; not model quality or E2E",
+      "shape": [
+        1,
+        14,
+        82944,
+        128
+      ],
+      "precision": "Same BF16-FP16 input conversion, is_high_precision=True, FP16-BF16 output conversion",
+      "chunks": [
+        41472,
+        20736,
+        6912
+      ],
+      "warmups": 3,
+      "rounds": 5,
+      "order": "ABBA",
+      "exclusions": "No sparse masks, KV reuse, precision reduction, quantization or step changes"
+    },
+    "frozen_harness": {
+      "plan.json": "95cd4ff99e171f5c3dda4696d83ae9edbef7a9a45d724911318b42e14b037b76",
+      "probe.py": "e08408be4df28cbe67a3e75e76e3d651db458012f10570ba11239ac55d075243",
+      "run.sh": "44f83b61eec3daeb8a476e747d327960ff336d11defb00aaff30f1321e9ebaba"
+    }
+  },
+  "execution_order": "TP4 cleanup and CPU quality complete, then reserved hybrid model screening and CPU quality, then separate reserved query-chunk operator probe. No combined speedup claim."
+}
