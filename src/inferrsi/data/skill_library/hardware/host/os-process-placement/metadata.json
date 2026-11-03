@@ -42,5 +42,17 @@
   "provenance_readsets": [
     "references/llama-numa-thread-readset.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Prepare and record CPU/NUMA process placement, phase-specific thread settings, device contention and environment prerequisites before shared-host performance measurements.",
+    "prerequisites": "No outstanding hard environment errors: required devices/driver, planned device count and any container prerequisites must be present before running.",
+    "input_contract": "Current affinity/NUMA policy, accelerator locality, workload phase/thread controls, device occupancy, runtime environment and relevant container/resource limits.",
+    "produced_artifact": "A recorded placement/thread/environment configuration and preflight outcome, with errors requiring remediation and warnings retained for the measurement campaign.",
+    "failure_modes": "Changing affinity or thread settings between rounds confounds timing; combining independent affinity mechanisms is order-sensitive, and small driver memory usage can be mistaken for device occupation."
+  },
+  "recommendations": [
+    "Inspect affinity and NUMA policy before placement and hold them constant across comparisons; document and requalify a round when placement changes.",
+    "Choose one affinity-mask authority and distinguish generation, batch and frontend thread controls; source template thread counts are starting points rather than tuned constants.",
+    "Record device occupancy and structured ERROR/WARNING results before measuring, using the official environment setup for derived CANN paths."
+  ]
 }
