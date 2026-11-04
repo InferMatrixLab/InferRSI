@@ -1,0 +1,64 @@
+{
+  "schema": 1,
+  "scope": "Issue67 first approved8K performance candidate search; no automatic campaign PASS",
+  "issue": "https://github.com/InferMatrixLab/InferRSI/issues/67",
+  "baseline_revision": "5df63a7203cdb9328d824a27b682e77c7b9928be",
+  "candidate_revision": "2d676dfa615d0c773970e0124183458a9101748b",
+  "plane": "model",
+  "components": {
+    "fp8-projections-search-v1/component.sha256": "a274225b0d4c746326b364e02a37fcc8e6962bcac3aaf3af56ca08537e476fdf",
+    "quality-freeze-8k-v1/freeze.sha256": "ce6eea95b74baa6b89aa9a0652abdbbaaee06ff5ba03a3b0631b9cdf0f771e6f",
+    "sandbox-production-binding-v1/sources.sha256": "5911860f01e7bc6bc54d6f2da582ac4cba4e9d59b691613c8cdc33d176039bb6",
+    "performance-binding-8k-v1/freeze.sha256": "0046c51271b0831f9eae1d9d18f3a64d77f45b0e6058b9ff8fb5c29a2f5afc6f",
+    "candidate-component-parent-review.json": "821c3a46dc1f3b15ca6792b090275794d287591d15e23b27ff3374e5551d2862"
+  },
+  "frozen_policy": {
+    "length": 8192,
+    "outputs": 2048,
+    "concurrency": 1,
+    "schedule": [
+      "B0",
+      "C0",
+      "C1",
+      "B1",
+      "B2",
+      "C2"
+    ],
+    "inputs": 10,
+    "repetitions": 3,
+    "warmup": "one discarded2048output per service restart",
+    "metrics": [
+      "TTFT",
+      "TPOT"
+    ],
+    "limit": 1.03,
+    "bootstrap_draws": 10000,
+    "bootstrap_seed": 670032,
+    "cluster": "input with all3repeats",
+    "interval": "one-sided95%linear quantile",
+    "median_over_limit": "FAIL",
+    "upper_only_over_limit": "INCONCLUSIVE",
+    "task_quality": "GSM1319/HumanEvalPlus164/MMLU1000 each>=matchedbaseline-.01absolute; screen100/32/100",
+    "retrieval": "original10at8K; baseline>=9/10complete; candidate complete/per-position counts>=matchedbaseline",
+    "code_execution": "unchanged official EvalPlus in reviewed isolated production executor; sealed actual terminal/postflight mandatory"
+  },
+  "search_batch_budget_gpu_seconds": 3600,
+  "phase_budget_seconds": {
+    "readiness": 7200,
+    "baseline": 14400,
+    "search": 28800,
+    "final": 108000
+  },
+  "phase_spent_before_search_seconds": {
+    "readiness": 7119,
+    "baseline": 1221,
+    "search": 0,
+    "final": 0
+  },
+  "other_active_reservation": {
+    "job": 2157,
+    "phase": "baseline",
+    "maximum_gpu_seconds": 9000
+  },
+  "quality_screen_execution": "Use exact quality-source-v5/run.py --phase screen --arm candidate against identical candidate source/server/config and original tokenized inputs, then original run_retrieval.py. CPU score.py exports HumanEval for exact frozen production executor, then score.py consumes sealed results. Separate bounded allocation recorded before submission. Full quality required for acceptance; performance alone cannot merge this candidate as qualified."
+}

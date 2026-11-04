@@ -41,12 +41,39 @@
       ],
       "type": "git",
       "revision_precision": "prefix"
+    },
+    {
+      "type": "paper",
+      "id": "usenix:fast25-qin",
+      "version": "FAST '25 proceedings, February 25-27, 2025, pp. 155-170",
+      "url": "https://www.usenix.org/system/files/fast25-qin.pdf",
+      "content_sha256": "543e56c541523c5e807d2231370f96749b2294bc901266397a7265b18ae2c130",
+      "sections": [
+        "2.2, Table 1, Equations 1-2",
+        "3.1 and 5.3 (storage-scope limits only)"
+      ],
+      "readset": "references/mooncake-prefix-reuse-feasibility.md",
+      "license": "UNKNOWN"
+    },
+    {
+      "type": "paper",
+      "id": "pmlr-v202-sheng23a",
+      "version": "ICML 2023 official ten-author edition, PMLR 202:31094-31116",
+      "url": "https://proceedings.mlr.press/v202/sheng23a/sheng23a.pdf",
+      "content_sha256": "7cd9673c37640011d38ef4b8595f5e1e09a85b1f803a3734f19c97ca66c75b9e",
+      "sections": [
+        "1 and 3; 4.1-4.3, Figures 1-3, Algorithm 1, Equation 1",
+        "4.4 (scope boundary only); 6 and 6.1, Tables 2-3 (denominators and ablations)",
+        "Appendix A.3 selected cost/peak-memory formulas, PDF pages 15-17; A.2 ending only (theorem boundary)"
+      ],
+      "readset": "references/flexgen-offload-feasibility.md",
+      "license": "CC-BY-4.0"
     }
   ],
   "verification": {
     "locally_verified": false,
     "evidence_level": "source_grounded",
-    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. No local accelerator measurements or automatic calculator."
+    "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification."
   },
   "applicability": {
     "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -67,9 +94,13 @@
   ],
   "empirical_validation": "not_run",
   "limitations": [
-    "Source-derived candidate; no local efficacy validation."
+    "Source-derived candidate; no local efficacy validation.",
+    "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
+    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
   ],
   "provenance_readsets": [
+    "references/flexgen-offload-feasibility.md",
+    "references/mooncake-prefix-reuse-feasibility.md",
     "references/papers-20261015/cases/decision-cases.md",
     "references/papers-20261015/govern-optimization-experiments/procedure.md",
     "references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
@@ -87,6 +118,5 @@
     "references/papers-20261015/references/vidur.md",
     "references/papers-20261015/STATIC_CHECKS.md"
   ],
-  "references": [],
   "consumption_mode": "packaged"
 }

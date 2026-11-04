@@ -1,0 +1,26 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "DFlash2 verified-row counters and net-cost comparison",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "DEVELOPMENT.md:1220-1243,1960-2012,4104-4207",
+    "runtime/model/Runtime.cpp:2223-2343",
+    "runtime/model/VerifyBudget.hpp:3-38"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/qualification/references/troubleshooting.md",
+    "sub-skills/qualification/scripts/summarize_rounds.py"
+  ],
+  "assertions": [
+    "The response routes to qualification and distinguishes produced, verified, accepted and retained rows.",
+    "The response explains that draft_n counts verified proposals rather than all produced proposals, and that accepted tokens per cycle do not prove net speed or quality.",
+    "The response identifies auto versus all verify-row policy as a changed control, including timing/history dependence and possible greedy or seeded output variation.",
+    "The response explains that API intervals exclude initial admission and the decode rate excludes the first emission, so client E2E latency and complete task quality are still required.",
+    "The response requires same target/draft and prepared-byte identities, hardware/power/cache/concurrency/precision controls and frozen quality/performance gates before comparison.",
+    "The response uses or references bundled summarize_rounds.py for descriptive ABBA samples without inventing a PASS threshold, executing an engine or claiming reproduction.",
+    "The response distinguishes model-stop/output-limit exclusions from later stop-string truncation, whose accepted proposals still count; it does not recompute acceptance from visible output alone."
+  ]
+}

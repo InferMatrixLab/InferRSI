@@ -12,7 +12,12 @@
     "tts",
     "full-duplex",
     "image-generation",
-    "video-generation"
+    "video-generation",
+    "asr",
+    "stream-boundaries",
+    "treatment-delivery",
+    "trial-validity",
+    "protocol-audit"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -139,25 +144,151 @@
         "src/inferrsi/model/protocols/metrics.py"
       ],
       "readset": "references/task-benchmark-selection.md"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/NVIDIA/NeMo-Speech.cpp",
+      "commit": "20999cc921d2b14aa58708f61756a8b2e787ba20",
+      "paths": [
+        "BENCHMARK.md",
+        "LICENSE",
+        "NOTICE",
+        "THIRD_PARTY_NOTICES.md",
+        "src/asr/encoder/cache_aware_encoder.cpp",
+        "src/asr/encoder/cache_aware_encoder.h",
+        "src/asr/encoder/fastconformer.h",
+        "src/asr/recognizer.cpp",
+        "src/asr/runner.cpp",
+        "src/asr/runner.h",
+        "src/asr/vad/vad_endpointer.cpp",
+        "src/asr/vad/vad_endpointer.h",
+        "tests/cpp/asr/CMakeLists.txt",
+        "tests/cpp/asr/test_cache_stream_geometry.cpp"
+      ],
+      "readset": "references/cache-aware-asr-stream-boundaries.md"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/OpenBMB/JustGoal",
+      "commit": "f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+      "paths": [
+        "LICENSE",
+        "NOTICE",
+        "README.md",
+        "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/dsa_decode.cu",
+        "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/main.py",
+        "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.cu",
+        "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.py",
+        "kda05_reproduction_full_shape/opus-4.8/fa4_bwd/attention_bwd_causal_h16_d128/cute_fabwd_bshd_v5c_fusedzero/helpers/NOT_INCLUDED.md"
+      ],
+      "readset": "references/justgoal-source.json",
+      "license": "Apache-2.0 repository default; NOTICE exceptions and excluded proprietary helper retained",
+      "scope": "Selected kernel entry/workspace/stream contracts and distribution boundary; source-only, no execution"
+    },
+    {
+      "type": "document",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/paper.pdf",
+      "version": "Repository-paired PDF at f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+      "sha256": "6bfa1a2728546def4c48e15cf55f31d92a543264787318f1522236c80a0ae8c6",
+      "readset": "references/justgoal-source.json",
+      "license": "UNKNOWN",
+      "scope": "Complete 21-page paper and appendices: controlled comparison, independent correctness, repair/coverage and timing evidence; author-reported, no PDF/figure redistribution"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/li-ch/autotunebench",
+      "commit": "64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f",
+      "paths": [
+        "ARTIFACT.md",
+        "README.md",
+        "CITATION.cff",
+        "LICENSE",
+        "config/protocol.yaml",
+        "pdb/ingest_validate.py",
+        "pdb/store.py",
+        "agents/loop.py",
+        "agents/adapter.py",
+        "orchestrator/cli.py",
+        "gates/g2_runtime.py",
+        "gates/g3_correctness.py",
+        "gates/g5_graduation.py",
+        "gates/schema.py",
+        "harness/kernel_bench.py",
+        "figs/plot_cand_ab_saturation.py",
+        "scripts/kernelbench_tabulate.py",
+        "experiments/kernelbench_l1/results/README.md",
+        "experiments/kernelbench_l1/results/TABLE.md",
+        "experiments/astra_parity/README.md",
+        "observability/iterations.jsonl",
+        "experiments/kernelbench_l1/kernelbench_tasks/UPSTREAM_LICENSE",
+        "experiments/kernelbench_l1/kernelbench_tasks/README.md"
+      ],
+      "readset": "references/autotunebench-trial-validity.md"
+    },
+    {
+      "type": "paper",
+      "id": "arxiv:2609.18123",
+      "version": "v1",
+      "url": "https://arxiv.org/abs/2609.18123v1",
+      "sections": [
+        "1-8",
+        "References",
+        "Figures 1-6",
+        "Tables 1-7"
+      ],
+      "readset": "references/autotunebench-trial-validity.md"
     }
   ],
   "empirical_validation": "not_run",
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports",
+    "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts",
+    "failure_modes": [
+      "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
+      "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
+      "Recorded agent task scores or replay completion are read as current task success, or a VBench prompt workload as computed VBench quality",
+      "An upstream better/worse/inconclusive label is used as InferRSI's PASS/FAIL/INCONCLUSIVE verdict",
+      "Runs on the same hardware class, in different time windows or on shared devices are compared as if pinned",
+      "A quality pass is taken to certify that the timed work actually occurred",
+      "Best-seen results are reported as delivered without restarting and validating the final code/config artifact",
+      "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
+      "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
+      "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
+      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran"
+    ],
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports"
   },
+  "recommendations": [
+    "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
+    "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
+    "Use the replay trace that matches the actual deployment pattern.",
+    "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
+    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null."
+  ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets.",
     "Task benchmark knowledge is distilled from issue #60 with selected pinned-source rechecks; no all-task runtime qualification or optimization benefit is established.",
-    "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification."
+    "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
+    "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
+    "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
+    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
   ],
   "provenance_readsets": [
     "references/task-benchmark-selection.md",
-    "references/benchmark-commands.md"
+    "references/benchmark-commands.md",
+    "references/cache-aware-asr-stream-boundaries.md",
+    "references/justgoal-evaluation-contracts.md",
+    "references/justgoal-source.json",
+    "references/autotunebench-trial-validity.md",
+    "references/autotunebench-source.json"
   ],
   "references": [
     "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
     "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."
 }

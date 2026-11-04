@@ -1,0 +1,24 @@
+{
+  "campaign_verdict": "INCONCLUSIVE",
+  "candidate": "23417bbf13548127fdd0b49dbb26e495a38d9af6",
+  "upstream_vllm_revision": "5df63a7203cdb9328d824a27b682e77c7b9928be",
+  "client_sha256": "f31fae8c573ecc4bf8e31dae03823502e71404333e8111f4b535432758302b29",
+  "cpu_attempts": [
+    {
+      "job": "1947",
+      "execution": "failed",
+      "gpu_seconds": 0,
+      "reason": "Probe imported pytest-dependent test server inside pristine baseline client environment; pytest unavailable; no requests issued.",
+      "observer_sha256": "bf9616dc55d422be9cae43a3a3578b5aa9e764d552e3af49eace3bbdbef3a353",
+      "private_log_sha256": "4570c457b0751936d5fdc5d7952e8a3cf5d7e8b9d52658714c1183ebe6769461"
+    },
+    {
+      "job": "1950",
+      "execution": "completed",
+      "gpu_seconds": 0,
+      "reason": "Version2 isolates server in existing test environment and client in unchanged baseline environment. Original API rejected both probes; repair returned correct naturalEOS/ignoreEOS counts1/4 and ITL0/3. Exact-head72socket/runner/entrytests passed.",
+      "observer_sha256": "5ad0b37a6046f2ce304d7af8c0c3851019aa8227ad0cc39134c6e8a8722b9ac0",
+      "private_log_sha256": "86401bf0caa30b1e4e4b00d38e33326587943193bef007b87c18b0c6168d0de3"
+    }
+  ]
+}

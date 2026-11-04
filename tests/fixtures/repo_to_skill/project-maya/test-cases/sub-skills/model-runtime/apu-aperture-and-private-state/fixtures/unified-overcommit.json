@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "family": "glm",
+  "format": "gguf",
+  "config": {"exe": "maya", "installer": {"family": "glm"}, "args": []},
+  "memory": {
+    "kind": "unified",
+    "capacity_bytes": {"unified": 75161927680},
+    "reserve_bytes": {"unified": 17179869184},
+    "allocations": [
+      {"id": "dense-and-expert-pools", "pool": "unified", "bytes": 53687091200, "copies": 1},
+      {"id": "sequence-state", "pool": "unified", "bytes": 2147483648, "copies": 4}
+    ],
+    "aliases": [{"id": "bound-state-view", "allocation": "sequence-state"}]
+  }
+}

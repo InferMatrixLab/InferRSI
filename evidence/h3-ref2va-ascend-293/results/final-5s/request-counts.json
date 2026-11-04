@@ -1,0 +1,26 @@
+{
+  "a1": {
+    "warmup": 2,
+    "measured": 3,
+    "coverage": 3,
+    "failed": 0
+  },
+  "b1": {
+    "warmup": 2,
+    "measured": 3,
+    "coverage": 3,
+    "failed": 0
+  },
+  "b2": {
+    "warmup": 2,
+    "measured": 3,
+    "coverage": 0,
+    "failed": 0
+  },
+  "a2": {
+    "warmup": 2,
+    "measured": 3,
+    "coverage": 0,
+    "failed": 0
+  }
+}

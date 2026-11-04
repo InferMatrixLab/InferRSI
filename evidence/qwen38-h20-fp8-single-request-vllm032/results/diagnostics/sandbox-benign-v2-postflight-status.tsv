@@ -1,0 +1,12 @@
+inventory	0
+runtime-byte-comparison	0
+source	0
+package-set	0
+batch-script	0
+audit-script	0
+bwrap-binary	0
+python-binary	0
+freeze-manifest	0
+freeze-files	0
+source-freeze-manifest	0
+source-freeze-files	0

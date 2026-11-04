@@ -1,0 +1,39 @@
+{
+  "scope": "explicit_elf_loader_context_diagnostic",
+  "verdict": "INCONCLUSIVE",
+  "job": 2005,
+  "slurm_state": "COMPLETED",
+  "slurm_exit_code": "0:0",
+  "allocated_seconds": 43,
+  "allocated_cpus": 2,
+  "allocated_gpus": 0,
+  "requested_memory_gib": 4,
+  "walltime_limit_seconds": 300,
+  "allocation_released": true,
+  "terminal": {
+    "completed": true,
+    "exit_code": 0,
+    "phase": "complete",
+    "signal": "none",
+    "job_id": "2005"
+  },
+  "observations_sha256": "358aaafd7b02661c5086bdc317a7c15e45a3743c6b9094b54dd59502b35ff233",
+  "runtime_changed": false,
+  "package_imports_performed": false,
+  "isolation_or_evaluator_executed": false,
+  "base_python_rpath": "$ORIGIN/../lib",
+  "standalone_tk_extension_has_rpath_or_runpath": false,
+  "full_scoped_scan_elf_count": 141,
+  "completed_subprocess_count": 147,
+  "measured_e2e_effect": null,
+  "private_evidence_sha256": {
+    "submission.private.txt": "f60bec30ad92f8e51260778359ffd8439913cce6f70a7c0bc9294dd44324036a",
+    "scontrol-final.private.txt": "8c78075a09f940c51baa8cedcfe1d49914f252a61d4570a49b51482a90c619bf",
+    "squeue-final.private.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostic.private.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "output.private.tar": "3612be801c093cd54c2167df17f531f43fbfc73d5c6a9f49f4a9b3bcbc619881"
+  },
+  "readiness_gpu_seconds_used": 2388,
+  "readiness_gpu_seconds_cap": 7200,
+  "earlier_diagnostic_gpu_seconds_separate": 147
+}

@@ -27,9 +27,20 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
     items = result["items"]
     identities = [item["record"]["id"] for item in items]
     assert len(identities) == len(set(identities)) <= 12
-    assert "inferrsi.common.skills.lazy_evaluation_stream_lifetimes" in identities
+    # Corpus additions can reorder matches; the independent framework query still contributes.
+    framework_first = search_knowledge("mlx", limit=1)[0]["id"]
+    assert any(
+        item["record"]["id"] == framework_first
+        and {"group": "framework", "query": "mlx"} in item["matched_queries"]
+        for item in items
+    )
     assert set(result["profile"]["knowledge_ids"]) <= set(identities)
-    assert any("diffusion" in item["record"]["scenario"] for item in items)
+    task_first = search_knowledge("diffusion", limit=1)[0]["id"]
+    assert any(
+        item["record"]["id"] == task_first
+        and {"group": "task", "query": "diffusion"} in item["matched_queries"]
+        for item in items
+    )
     assert any(
         match["group"] == "modality" and match["query"] == "video"
         for item in items for match in item["matched_queries"]
@@ -46,6 +57,22 @@ def test_h3_retrieves_framework_and_task_knowledge_with_source_boundaries():
     }
     assert result["profile"]["input_modalities"] == ["text", "image", "video", "audio"]
     assert result["profile"]["output_modalities"] == ["video", "audio"]
+
+
+def test_scoped_mlx_research_retains_the_lifecycle_resource():
+    result = research_knowledge(
+        "MiniMax-H3", frameworks=["mlx"], mechanisms=["lazy evaluation"],
+        repo="inferrsi", scenario="skills.discovery", limit=12,
+    )
+    lifecycle = next(
+        item for item in result["items"]
+        if item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+    )
+    assert lifecycle["record"]["skill_documents"]["original"] == (
+        "data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md"
+    )
+    assert {"group": "framework", "query": "mlx"} in lifecycle["matched_queries"]
+    assert {"group": "mechanism", "query": "lazy evaluation"} in lifecycle["matched_queries"]
 
 
 def test_independent_queries_are_unioned_fairly_and_exact_search_is_unchanged(monkeypatch):
@@ -169,8 +196,10 @@ def test_public_cli_exposes_model_profile_and_keeps_filters(capsys):
     assert result["profile"]["sources"]
     assert result["target"]["device"] == "M5 Mac Studio"
     assert result["target_validation"] == "unverified"
+    framework_first = search_knowledge("mlx", limit=1)[0]["id"]
     assert any(
-        item["record"]["id"] == "inferrsi.common.skills.lazy_evaluation_stream_lifetimes"
+        item["record"]["id"] == framework_first
+        and {"group": "framework", "query": "mlx"} in item["matched_queries"]
         for item in result["items"]
     )
     assert main([

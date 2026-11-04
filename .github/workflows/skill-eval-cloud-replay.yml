@@ -1,0 +1,57 @@
+name: SkillEval isolated cloud replay (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      evidence_commit:
+        description: Exact repository commit containing the fixed-path two-parser bundle
+        required: true
+        type: string
+      bundle_sha256:
+        description: SHA256 of exact bundle bytes
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: skill-eval-cloud-replay
+  cancel-in-progress: false
+
+jobs:
+  replay:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+      - name: Install distribution bubblewrap, without changing security policy
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bubblewrap
+      - name: Qualify then replay the pinned data-only bundle
+        shell: bash
+        env:
+          EVIDENCE_COMMIT: ${{ inputs.evidence_commit }}
+          BUNDLE_SHA256: ${{ inputs.bundle_sha256 }}
+        run: |
+          env -i PATH=/usr/bin:/bin LANG=C.UTF-8 PYTHONPATH=src \
+            /usr/bin/python3 -m tools.skill_eval_cloud_replay \
+            --output "$RUNNER_TEMP/cloud-replay" \
+            --evidence-commit "$EVIDENCE_COMMIT" --bundle-sha256 "$BUNDLE_SHA256" \
+            --revision "$GITHUB_SHA" --runner-image "${ImageOS:-unknown}/${ImageVersion:-unknown}"
+      - name: Retain replay receipt, including unavailable isolation
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: cloud-replay-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/cloud-replay/replay.json
+            ${{ runner.temp }}/cloud-replay/replay.md
+          if-no-files-found: error
+          retention-days: 14

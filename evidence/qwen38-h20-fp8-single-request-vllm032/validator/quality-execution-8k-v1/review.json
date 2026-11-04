@@ -1,0 +1,15 @@
+{
+  "scope": "reviewed quality baseline collection and unchanged scorer/data binding; no model-quality approval",
+  "reviewer": "delegated reviewer independent of parent collector implementation",
+  "collector_sha256": "76a317bbb1072429c438f3b7437981dcb9b8b5449bc932595e912954f2ef60ee",
+  "controls": {
+    "actual_collector_tests": 6,
+    "retrieval_second_sender_failure": 1,
+    "scorer_synthetic_boundaries": 5,
+    "actual_fixture_identity": true,
+    "v3_scorer_byte_identical": true,
+    "v5_source_files": 9
+  },
+  "findings": [],
+  "qualification_binding_review": "same25241runtime entries and isolation/evaluator semantics; new production entry still unexecuted"
+}

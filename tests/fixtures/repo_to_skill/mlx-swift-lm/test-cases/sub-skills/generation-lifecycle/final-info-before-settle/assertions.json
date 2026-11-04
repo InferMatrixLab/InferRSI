@@ -1,0 +1,22 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "generation-lifecycle",
+  "target_capability": "final-info-before-settle",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "Libraries/MLXLMCommon/Evaluate.swift",
+    "Tests/MLXLMTests/CancellationTests.swift"
+  ],
+  "expected_skill_files": [
+    "sub-skills/generation-lifecycle/SKILL.md",
+    "sub-skills/generation-lifecycle/references/ownership-and-termination.md",
+    "sub-skills/generation-lifecycle/references/evidence-schema.md",
+    "sub-skills/generation-lifecycle/references/native-evidence.md"
+  ],
+  "assertions": [
+    "Final info is yielded before MLX default-stream synchronize; it does not establish cleanup completion.",
+    "Retaining and observing the matching producer task join is the stronger source ordering; a record declaration still does not authenticate native completion.",
+    "Iterator construction can prime prefill before Task creation; cancellation does not retract submitted lookahead or guarantee atomic GPU preemption.",
+    "No final info after an early-cancelled consumer is not automatically a producer failure; preserve unresolved ownership and require authorized native evidence."
+  ]
+}

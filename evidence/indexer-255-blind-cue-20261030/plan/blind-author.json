@@ -1,0 +1,423 @@
+{
+  "schema": "blind-manual-cue-authoring-v1",
+  "frozen_at_utc": "2026-10-30T03:34:44.915639+00:00",
+  "protocol_path": "<PREPARATION_ROOT>/protocol-draft.md",
+  "protocol_sha256": "0dbe4843e50fc064934e98cad369024ae239b36c69772e2071d7e96c4eecbf17",
+  "author_access_attestation": {
+    "inputs_read": [
+      "Assigned neutral engineering-task remit",
+      "protocol-draft.md",
+      "Intent reviewer coordination messages without catalog content"
+    ],
+    "not_accessed": [
+      "InferRSI repository or catalog",
+      "skill titles",
+      "previous cases or results",
+      "source labels",
+      "scorer or search output",
+      "model service"
+    ],
+    "basis": "Self-reported process history, not forensic access isolation. General engineering knowledge used."
+  },
+  "editing_rule": "Manually select verbatim OPERATION, OBJECT, CONSTRAINTS spans, then deterministically serialize them with semicolon-space. This is not an automatic semantic extractor. No synonyms, added keywords, answer hints, translations or catalog-informed edits.",
+  "offset_convention": "Zero-based Unicode code-point offsets, end-exclusive. All task characters happen to be ASCII. Removed spans partition all unselected raw text, including original separators; separators are reintroduced by serialization.",
+  "token_count_method": "Whitespace-delimited tokens via Python str.split(); descriptive counts only, not model or production-ranking tokenizer counts.",
+  "effort": {
+    "started_at_utc": "2026-10-30T03:33:14+00:00",
+    "frozen_at_utc": "2026-10-30T03:34:44.915639+00:00",
+    "elapsed_seconds": 90.915639,
+    "process": "One fresh authoring pass for six tasks followed by programmatic offset, coverage, serialization and identity assertions. No retrieval, catalog searches, scoring or outcome-driven revisions."
+  },
+  "cases": [
+    {
+      "case_id": "fresh255-01",
+      "intent": "Inference latency diagnosis",
+      "raw_task": "Could you help me with this? Diagnose whether queueing rather than model execution explains the high tail latency. Our text-generation endpoint serves short interactive requests alongside long background requests on one GPU. Keep the existing model and output quality unchanged, do not assume batching is the cause, and propose measurements that distinguish waiting time from execution time before recommending a configuration change.",
+      "cue": "Diagnose whether queueing rather than model execution explains the high tail latency.; Our text-generation endpoint serves short interactive requests alongside long background requests on one GPU.; Keep the existing model and output quality unchanged, do not assume batching is the cause, and propose measurements that distinguish waiting time from execution time before recommending a configuration change.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 29,
+          "end": 114,
+          "text": "Diagnose whether queueing rather than model execution explains the high tail latency."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 115,
+          "end": 224,
+          "text": "Our text-generation endpoint serves short interactive requests alongside long background requests on one GPU."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 225,
+          "end": 434,
+          "text": "Keep the existing model and output quality unchanged, do not assume batching is the cause, and propose measurements that distinguish waiting time from execution time before recommending a configuration change."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 29,
+          "text": "Could you help me with this? ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 114,
+          "end": 115,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        },
+        {
+          "start": 224,
+          "end": 225,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        }
+      ],
+      "constraints_retained": [
+        "Keep the existing model and output quality unchanged, do not assume batching is the cause, and propose measurements that distinguish waiting time from execution time before recommending a configuration change."
+      ],
+      "operation_and_object_retained": [
+        "Diagnose whether queueing rather than model execution explains the high tail latency.",
+        "Our text-generation endpoint serves short interactive requests alongside long background requests on one GPU."
+      ],
+      "counts": {
+        "raw_characters": 434,
+        "cue_characters": 407,
+        "raw_tokens": 62,
+        "cue_tokens": 56
+      },
+      "compression_note": "No semantic information removed. Only politeness and inter-sentence whitespace removed/replaced; sentence punctuation retained verbatim.",
+      "raw_sha256": "d9bcf58de3a254646c12e0ec8ec9b80e7b4294a26e8e051c31ca63a3c754a116",
+      "cue_sha256": "47a391fbe286c5a3a702dff48c57b5542d76b094f4a61430de67b3f111588f4f"
+    },
+    {
+      "case_id": "fresh255-02",
+      "intent": "Distributed training hang diagnosis",
+      "raw_task": "Identify likely causes of a distributed training hang and give a minimal diagnostic sequence; PyTorch DistributedDataParallel on four GPUs with gradient accumulation; do not disable gradient synchronization as a fix; preserve the effective batch size",
+      "cue": "Identify likely causes of a distributed training hang and give a minimal diagnostic sequence; PyTorch DistributedDataParallel on four GPUs with gradient accumulation; do not disable gradient synchronization as a fix; preserve the effective batch size",
+      "identity_control": true,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 0,
+          "end": 92,
+          "text": "Identify likely causes of a distributed training hang and give a minimal diagnostic sequence"
+        },
+        {
+          "slot": "OBJECT",
+          "start": 94,
+          "end": 165,
+          "text": "PyTorch DistributedDataParallel on four GPUs with gradient accumulation"
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 167,
+          "end": 250,
+          "text": "do not disable gradient synchronization as a fix; preserve the effective batch size"
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 92,
+          "end": 94,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        },
+        {
+          "start": 165,
+          "end": 167,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        }
+      ],
+      "constraints_retained": [
+        "do not disable gradient synchronization as a fix; preserve the effective batch size"
+      ],
+      "operation_and_object_retained": [
+        "Identify likely causes of a distributed training hang and give a minimal diagnostic sequence",
+        "PyTorch DistributedDataParallel on four GPUs with gradient accumulation"
+      ],
+      "counts": {
+        "raw_characters": 250,
+        "cue_characters": 250,
+        "raw_tokens": 35,
+        "cue_tokens": 35
+      },
+      "compression_note": "No semantic information removed. Byte-identical control; original slot delimiters are reinserted unchanged.",
+      "raw_sha256": "ef6d48dde1e99286b048e6d19301041f50824813b18c5c240647b7e8b1c4926b",
+      "cue_sha256": "ef6d48dde1e99286b048e6d19301041f50824813b18c5c240647b7e8b1c4926b"
+    },
+    {
+      "case_id": "fresh255-03",
+      "intent": "Export dynamic-shape compatibility",
+      "raw_task": "Please help me work through the following. Explain how to export this model and verify that the exported program accepts the intended input shapes. The target API is torch.export.export, and the model takes token IDs shaped [batch, sequence] plus an attention mask with the same shape. Batch size must remain fixed at 1, sequence length must vary from 16 through 512 inclusive, invalid shapes must be rejected, and the answer must include a small validation example rather than switching to a different export API.",
+      "cue": "Explain how to export this model and verify that the exported program accepts the intended input shapes.; The target API is torch.export.export, and the model takes token IDs shaped [batch, sequence] plus an attention mask with the same shape.; Batch size must remain fixed at 1, sequence length must vary from 16 through 512 inclusive, invalid shapes must be rejected, and the answer must include a small validation example rather than switching to a different export API.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 43,
+          "end": 147,
+          "text": "Explain how to export this model and verify that the exported program accepts the intended input shapes."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 148,
+          "end": 285,
+          "text": "The target API is torch.export.export, and the model takes token IDs shaped [batch, sequence] plus an attention mask with the same shape."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 286,
+          "end": 514,
+          "text": "Batch size must remain fixed at 1, sequence length must vary from 16 through 512 inclusive, invalid shapes must be rejected, and the answer must include a small validation example rather than switching to a different export API."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 43,
+          "text": "Please help me work through the following. ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 147,
+          "end": 148,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        },
+        {
+          "start": 285,
+          "end": 286,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        }
+      ],
+      "constraints_retained": [
+        "Batch size must remain fixed at 1, sequence length must vary from 16 through 512 inclusive, invalid shapes must be rejected, and the answer must include a small validation example rather than switching to a different export API."
+      ],
+      "operation_and_object_retained": [
+        "Explain how to export this model and verify that the exported program accepts the intended input shapes.",
+        "The target API is torch.export.export, and the model takes token IDs shaped [batch, sequence] plus an attention mask with the same shape."
+      ],
+      "counts": {
+        "raw_characters": 514,
+        "cue_characters": 473,
+        "raw_tokens": 84,
+        "cue_tokens": 77
+      },
+      "compression_note": "No semantic information removed. Only politeness and inter-sentence whitespace removed/replaced; sentence punctuation retained verbatim.",
+      "raw_sha256": "525c6f2067999ec6f1855e3e77752a33597b75dc3b2aa4d87220210447b46c87",
+      "cue_sha256": "67db4e34837f94c68cecb778214f4c27878de86faefac0efebda186d7152ec4a"
+    },
+    {
+      "case_id": "fresh255-04",
+      "intent": "Training checkpoint recovery correctness",
+      "raw_task": "Plan a checkpoint-and-resume test; a single-GPU training run using AdamW, dropout, and shuffled minibatches; restore optimizer and random-number-generator state; compare the next ten losses with an uninterrupted run; do not claim bitwise reproducibility across different hardware",
+      "cue": "Plan a checkpoint-and-resume test; a single-GPU training run using AdamW, dropout, and shuffled minibatches; restore optimizer and random-number-generator state; compare the next ten losses with an uninterrupted run; do not claim bitwise reproducibility across different hardware",
+      "identity_control": true,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 0,
+          "end": 33,
+          "text": "Plan a checkpoint-and-resume test"
+        },
+        {
+          "slot": "OBJECT",
+          "start": 35,
+          "end": 107,
+          "text": "a single-GPU training run using AdamW, dropout, and shuffled minibatches"
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 109,
+          "end": 279,
+          "text": "restore optimizer and random-number-generator state; compare the next ten losses with an uninterrupted run; do not claim bitwise reproducibility across different hardware"
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 33,
+          "end": 35,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        },
+        {
+          "start": 107,
+          "end": 109,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        }
+      ],
+      "constraints_retained": [
+        "restore optimizer and random-number-generator state; compare the next ten losses with an uninterrupted run; do not claim bitwise reproducibility across different hardware"
+      ],
+      "operation_and_object_retained": [
+        "Plan a checkpoint-and-resume test",
+        "a single-GPU training run using AdamW, dropout, and shuffled minibatches"
+      ],
+      "counts": {
+        "raw_characters": 279,
+        "cue_characters": 279,
+        "raw_tokens": 36,
+        "cue_tokens": 36
+      },
+      "compression_note": "No semantic information removed. Byte-identical control; original slot delimiters are reinserted unchanged.",
+      "raw_sha256": "8267376b490315099ac8e1ed4aa2cf285abc19200ec614aa2c04457a075febc0",
+      "cue_sha256": "8267376b490315099ac8e1ed4aa2cf285abc19200ec614aa2c04457a075febc0"
+    },
+    {
+      "case_id": "fresh255-05",
+      "intent": "Inference memory admission design",
+      "raw_task": "I would appreciate your help. Design an admission policy that prevents out-of-memory failures without silently dropping accepted requests. Our image-and-text inference service receives images with different resolutions and prompts with different token lengths, and several requests can be active on the same GPU. Account for input-dependent memory rather than using request count alone, state how to handle a request that cannot fit even when run by itself, and describe how to test the policy without requiring production traffic. Thanks.",
+      "cue": "Design an admission policy that prevents out-of-memory failures without silently dropping accepted requests.; Our image-and-text inference service receives images with different resolutions and prompts with different token lengths, and several requests can be active on the same GPU.; Account for input-dependent memory rather than using request count alone, state how to handle a request that cannot fit even when run by itself, and describe how to test the policy without requiring production traffic.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 30,
+          "end": 138,
+          "text": "Design an admission policy that prevents out-of-memory failures without silently dropping accepted requests."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 139,
+          "end": 312,
+          "text": "Our image-and-text inference service receives images with different resolutions and prompts with different token lengths, and several requests can be active on the same GPU."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 313,
+          "end": 531,
+          "text": "Account for input-dependent memory rather than using request count alone, state how to handle a request that cannot fit even when run by itself, and describe how to test the policy without requiring production traffic."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 30,
+          "text": "I would appreciate your help. ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 138,
+          "end": 139,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        },
+        {
+          "start": 312,
+          "end": 313,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        },
+        {
+          "start": 531,
+          "end": 539,
+          "text": " Thanks.",
+          "reason": "politeness",
+          "detail": "Polite closing."
+        }
+      ],
+      "constraints_retained": [
+        "Account for input-dependent memory rather than using request count alone, state how to handle a request that cannot fit even when run by itself, and describe how to test the policy without requiring production traffic."
+      ],
+      "operation_and_object_retained": [
+        "Design an admission policy that prevents out-of-memory failures without silently dropping accepted requests.",
+        "Our image-and-text inference service receives images with different resolutions and prompts with different token lengths, and several requests can be active on the same GPU."
+      ],
+      "counts": {
+        "raw_characters": 539,
+        "cue_characters": 503,
+        "raw_tokens": 79,
+        "cue_tokens": 73
+      },
+      "compression_note": "No semantic information removed. Only politeness and inter-sentence whitespace removed/replaced; sentence punctuation retained verbatim.",
+      "raw_sha256": "ee36503d3c192f10b6c85be111a0bea1445aef0c287f6bf1a34db903dc1b77e0",
+      "cue_sha256": "a34321b804aa1a57ad8da828b32478c4e9b75dcafbd1e05f2f56f2d9f51d21d7"
+    },
+    {
+      "case_id": "fresh255-06",
+      "intent": "Attention numerical discrepancy investigation",
+      "raw_task": "Could you take a look at this? Investigate whether the observed output differences are expected numerical error or an implementation defect. A causal attention implementation in half precision disagrees with a full-precision reference most strongly on long sequences with padding. Check masking and padded positions as well as arithmetic precision, do not assume the optimized kernel is wrong, and provide a small reproducible comparison with explicit absolute and relative error measurements before suggesting a replacement.",
+      "cue": "Investigate whether the observed output differences are expected numerical error or an implementation defect.; A causal attention implementation in half precision disagrees with a full-precision reference most strongly on long sequences with padding.; Check masking and padded positions as well as arithmetic precision, do not assume the optimized kernel is wrong, and provide a small reproducible comparison with explicit absolute and relative error measurements before suggesting a replacement.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 31,
+          "end": 140,
+          "text": "Investigate whether the observed output differences are expected numerical error or an implementation defect."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 141,
+          "end": 280,
+          "text": "A causal attention implementation in half precision disagrees with a full-precision reference most strongly on long sequences with padding."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 281,
+          "end": 525,
+          "text": "Check masking and padded positions as well as arithmetic precision, do not assume the optimized kernel is wrong, and provide a small reproducible comparison with explicit absolute and relative error measurements before suggesting a replacement."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 31,
+          "text": "Could you take a look at this? ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 140,
+          "end": 141,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        },
+        {
+          "start": 280,
+          "end": 281,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot delimiter is replaced by the mandated serialization delimiter; no semantic content is removed."
+        }
+      ],
+      "constraints_retained": [
+        "Check masking and padded positions as well as arithmetic precision, do not assume the optimized kernel is wrong, and provide a small reproducible comparison with explicit absolute and relative error measurements before suggesting a replacement."
+      ],
+      "operation_and_object_retained": [
+        "Investigate whether the observed output differences are expected numerical error or an implementation defect.",
+        "A causal attention implementation in half precision disagrees with a full-precision reference most strongly on long sequences with padding."
+      ],
+      "counts": {
+        "raw_characters": 525,
+        "cue_characters": 496,
+        "raw_tokens": 75,
+        "cue_tokens": 68
+      },
+      "compression_note": "No semantic information removed. Only politeness and inter-sentence whitespace removed/replaced; sentence punctuation retained verbatim.",
+      "raw_sha256": "4d386903bdb05c32dcb853128e531ad9e898d9ea8ea46a2c0c947311f4cd98bb",
+      "cue_sha256": "193bb70f0cd2ef507139f621c78f4f122fc287aafcb5adfcd44ba7e0b0761163"
+    }
+  ],
+  "gate_status": "Input author frozen. Independent intent review pending; source classification and retrieval not performed."
+}

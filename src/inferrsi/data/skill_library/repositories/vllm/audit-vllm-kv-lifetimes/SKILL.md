@@ -15,6 +15,14 @@ Status: candidate; empirical validation: **not_run**.
 
 ## Related capabilities
 
+For broad engine, configuration, topology or extension guidance, use the
+[version and responsibility map](../SKILL.md#choose-the-source-and-responsibility).
+That engine graph retains `2521446ac8c92937b5a32b7dc2a84ef7fa8e99c5`
+(inspection 2026-10-14); this focused procedure retains
+`7f730b4cea9a66520a9200265928ebe016b48a39` (supplier inspection 2026-10-15).
+Neither navigation nor shared terminology proves cross-pin compatibility or
+concrete worker/connector conformance.
+
 Use [diagnose-vllm-admission-pressure](../diagnose-vllm-admission-pressure/SKILL.md) for budget and admission branches. [kv-tier-management](../../lmcache/kv-tier-management/SKILL.md) addresses LMCache tier policy at a different pin; this skill addresses engine/connector ownership, not that backend's conformance or physical storage.
 
 ## Paper-derived state-placement decisions

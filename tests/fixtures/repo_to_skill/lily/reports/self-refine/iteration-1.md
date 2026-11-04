@@ -1,0 +1,3 @@
+# Content self-refine
+
+Root author inspected all complete lane files and helpers together, plus each assertion. Exact Q4/roleQ8, +1 request budget, strict prefix before key ranking, actually-fed token retention and native/cfg/ignored test boundaries agree across routes. Added the actual source-identified checkpoint revision where the qualification reference promised it. Internal links, YAML/JSON/resources, helper scope and privacy checks pass; root3 helper/graph tests and Ruff pass. Fresh independent runtime-only usability/source review remains pending. No Python helper result replaces native Rust/Metal/model evidence.

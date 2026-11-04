@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "repo_id": "ml-explore/mlx-swift-lm",
+  "source_commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+  "scope": "Fixed-taxonomy source classification; no managed import",
+  "taxonomy_sha256": "f8c306386015711634ddbb43a5eb95d1f58909c3513ce2063ba42efdd583a431",
+  "assignments": [
+    {
+      "area": "Model Deployment and Optimization",
+      "family": "Inference Serving",
+      "confidence": "high",
+      "rationale": "Owned Swift model/generation library with actual concurrency, cache/state consumers and embedded native recurrent Metal; not example-only optional use.",
+      "evidence": [
+        {
+          "path": "Package.swift",
+          "line_start": 1,
+          "line_end": 74
+        },
+        {
+          "path": "Libraries/MLXLMCommon/GatedDelta.swift",
+          "line_start": 25,
+          "line_end": 174
+        }
+      ]
+    }
+  ]
+}

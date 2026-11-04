@@ -7,7 +7,13 @@ import tempfile
 import time
 from pathlib import Path
 
-from inferrsi.harness.skill_evaluation import CodexClient, export_bundle, run_trial, summarize
+from inferrsi.harness.skill_evaluation import (
+    CodexClient,
+    export_bundle,
+    normalize_usage,
+    run_trial,
+    summarize,
+)
 from inferrsi.infra.artifacts import sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader
 
@@ -282,6 +288,7 @@ def recover_attempts(output: Path, schedule: list[dict]) -> list[dict]:
 
 def observed_tokens(usage: dict | None) -> int:
     # Count observed token fields only; report completeness separately in status and summary.
+    usage = normalize_usage(usage)
     if usage is None:
         return 0
     return sum(
@@ -422,12 +429,9 @@ def execute(output: Path, max_new_trials: int | None = None):
             "recorded_trials": len(trials),
             "observed_tokens": tokens,
             "token_usage_complete": all(
-                trial["observations"]["usage"] is not None
-                and all(
-                    trial["observations"]["usage"].get(key) is not None
-                    for key in ("input_tokens", "output_tokens")
-                )
-                for trial in trials
+                usage is not None
+                and all(usage.get(key) is not None for key in ("input_tokens", "output_tokens"))
+                for usage in (normalize_usage(t["observations"]["usage"]) for t in trials)
             ),
             "execution_state": "completed" if len(trials) == len(plan["schedule"]) else "stopped",
             "stop_reason": stop_reason,

@@ -1,0 +1,32 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "evidence-level and native-execution scope",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "tests/glm_memory_test.cpp",
+    "src/spec/controller_test.cpp",
+    "src/spec/draft_policy_test.cpp",
+    "src/program/conv_cache_test.cpp",
+    "src/ds4/ds4_main.cpp",
+    "src/core/glm_mtp.cu",
+    "src/core/glm_mtp_rows.cu",
+    "tests/glm_rows_kernels_test.cu",
+    "CMakeLists.txt"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/qualification/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response routes to qualification and uses the bundled verification contract without requiring the original source checkout.",
+    "The response distinguishes all four CPU slice scopes from allocations, snapshot bytes, GPU arithmetic, model execution and service behavior.",
+    "The response treats the no-GPU exit-0 message as a skip, not backend runtime evidence.",
+    "The response explains that missing tests/CMakeLists.txt makes the automatic test-default predicate false and requires an actual test inventory.",
+    "The response distinguishes Controller simulation, GLM mtp_choose, and current DeepSeek DraftPolicy production use without promoting simulation results.",
+    "The response retains the separate GLM parallel-MTP route rather than extrapolating the one-GPU exclusion to all parallel speculation.",
+    "The response retains exact source/binary provenance despite VERSION and engine-version-string mismatch, and names Qwen native coverage as shallow/unverified.",
+    "The response leaves required native scope BLOCKED_REQUIRED_BACKEND and its claim INCONCLUSIVE, with no setup, GPU, model or network execution."
+  ]
+}

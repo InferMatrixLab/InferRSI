@@ -1,0 +1,114 @@
+{
+  "reviewed_at_utc": "2026-10-30T03:36:39.961469+00:00",
+  "baseline": "b3549ce1aea1556f76de1d2e14a4240474947b6b",
+  "input_sha256": "ed81b75333efaab1d8834ff6f9d30f2b060b070212ee463d9b7395e0a0cfcfc3",
+  "intent_review_sha256": "1aa230da216f6d5ad918cd69dbf181cfec0525b4168f7dad72d0dc1d4304a627",
+  "method": "Catalog inventory and bounded source-text inspection/search only; no scorer, collect, ranking simulation or retrieval evaluation. Queries/labels never edited based on outputs.",
+  "cases": [
+    {
+      "id": "fresh255-01",
+      "status": "SOURCE_SUPPORTED_PARTIAL_POSITIVE",
+      "relevant_ids": [
+        "inferrsi.common.skills.assess_serving_preemption"
+      ],
+      "evidence": [
+        {
+          "path": "src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md",
+          "sha256": "0a5f48d9352c5bf460775ef47f9136829978811f4a16e84983e299782cae305d",
+          "start_line": 12,
+          "end_line": 25,
+          "quote": "## Distinguish the failed boundary\n\nEstablish what is late: first token, individual token gap, request completion, or a stated cohort's service. Obtain the exact percentile/attainment target and denominator. Then separate:\n- Waiting for the current whole batch to end\n- Inability to admit because reserved or live KV is full\n- Long first-iteration/prefill interference\n- Long accepted requests occupying service while short jobs queue\n- Waiting for state recovery or host/device transfer\n\nIteration-level batching can address the first without solving the others. Short-job preemption addresses service ordering but can worsen the total unfinished-state footprint. If prefill interference is the binding problem, the optional earlier `choose-prefill-decode-schedule` candidate addresses that separate question; `diagnose-kv-block-efficiency` addresses physical allocation/slack. Neither is required to consume this skill: if unavailable, report the diagnosed boundary and the missing current evidence rather than substituting a preemption recipe.\n\n## Evidence required for a candidate\n\nRecord model/KV format, actual engine revision, safe interruption boundary, request batch limit, input/output/context distributions, arrival bursts, device live/reserved/allocated bytes, active and suspended requests, host budget, transfer path, recovery time, and queue/phase/service timings. Keep per-tenant or priority-class obligations distinct from aggregate latency. Mark unavailable evidence explicitly."
+        }
+      ],
+      "limits": "Queue delay/service ordering and discriminating timing evidence directly relevant; not a complete diagnosis or current engine qualification."
+    },
+    {
+      "id": "fresh255-02",
+      "status": "UNLABELLED_SCOPE_MISMATCH",
+      "relevant_ids": [],
+      "evidence": [
+        {
+          "path": "src/inferrsi/data/skill_library/repositories/sglang/sub-skills/sglang-parallel-extension/SKILL.md",
+          "sha256": "18bd54ebdd629e1ba6dfa589f391c7cc3c5355785c2ae82f741b64ee8022464f",
+          "start_line": 20,
+          "end_line": 25,
+          "quote": "\nRuntime configuration is published into namespace bags; the raw ServerArgs record is not the effective decision source. Inspect the current native runtime-context contract before modifying config reads, overrides, or per-runner state.\n\nExpected result: topology/ownership diagram or precise patch boundary plus baseline comparisons. Validate one rank first when appropriate, then the intended groups and PD peers. Include idle ranks, uneven loads, cancellation, and error propagation in distributed checks.\n\nA distributed hang requires rank-specific evidence and collective-order inspection. A numerically wrong kernel requires a reduced input and reference comparison. Revert the affected backend/feature to the baseline; do not infer correctness from a successful import, launch, or faster microbenchmark. Plan the [validation gates](../../references/tuning-and-validation.md) before accepting the extension."
+        }
+      ],
+      "limits": "Nearby rank-specific collective guidance is SGLang extension validation, not PyTorch DistributedDataParallel training with gradient accumulation/effective-batch preservation. No sufficiently specific positive established; not proof no useful resource exists."
+    },
+    {
+      "id": "fresh255-03",
+      "status": "UNLABELLED_NO_SPECIFIC_SOURCE_ESTABLISHED",
+      "relevant_ids": [],
+      "evidence": [],
+      "limits": "No specific torch.export.export dynamic-shape constraint/validation guidance established in bounded skill-library review. Do not substitute another export API or generic model adaptation."
+    },
+    {
+      "id": "fresh255-04",
+      "status": "SOURCE_SUPPORTED_PARTIAL_POSITIVE",
+      "relevant_ids": [
+        "inferrsi.common.skills.checkpoint_recovery_consistency"
+      ],
+      "evidence": [
+        {
+          "path": "src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md",
+          "sha256": "6b7db1eb2780dec27858cb7aa0a3c093c5b5dfa4c30261aebfeaa255213ff688",
+          "start_line": 25,
+          "end_line": 35,
+          "quote": "## Establish four independent acceptance questions\n\n| Question | Required evidence |\n|---|---|\n| Does the snapshot survive the declared failure? | Actual memory/storage/replica placement and helper lifetime |\n| Is one generation complete across required participants? | Step/iteration identity, expected shard/rank set, successful finalization |\n| Does that generation contain the application's complete state? | Model, optimizer and caller-required RNG/scheduler/data-position state contract |\n| Can the target environment restore it? | Matching format, world-size/replication assumptions and separately authorized restore evidence |\n\nNeither equal steps nor complete rank IDs verifies tensor contents or whole\napplication semantics. Record these as distinct evidence levels."
+        }
+      ],
+      "limits": "Direct model/optimizer/RNG/scheduler/data-position completeness contract useful for resume test; does not supply AdamW/dropout code or prove next-ten-loss or cross-hardware parity. Partial relevance, not complete task solution."
+    },
+    {
+      "id": "fresh255-05",
+      "status": "UNLABELLED_SCOPE_MISMATCH",
+      "relevant_ids": [],
+      "evidence": [
+        {
+          "path": "src/inferrsi/data/skill_library/repositories/vllm/diagnose-vllm-admission-pressure/SKILL.md",
+          "sha256": "d99fc28d48127d3bc627f2a0cab6f3f16158a77da49428838a08865adaea9905",
+          "start_line": 40,
+          "end_line": 51,
+          "quote": "## Required evidence\n\nCollect the deployed revision, scheduler class, effective scheduler/cache configuration, connector class and role, KV-group layout, scheduling policy, speculative/encoder features, and concurrent-batch mode. Obtain a bounded request/step trace: queue/status, actual scheduled tokens, both remaining budgets, allocation result, preemption victim, pending-transfer/free state, and request timing. Separate unavailable observations from zero values. `Scheduler.make_stats` is gated by `log_stats`; its queue/KV fields are useful context but do not expose every branch reason (F7).\n\n## Decision procedure\n\n1. Establish the effective caps: running slots derive from `max_num_seqs`; admission uses `max_num_active_seqs` or its fallback; scheduling-token and input budgets are separate (F1). Record both, including draft-slot charges. Never treat a nonempty queue as proof of memory exhaustion.\n2. Trace the first blocking/skip branch for representative requests. Running requests are considered first. Token availability, context bounds, cadence, encoder constraints, and alignment can prevent work before KV allocation (F2). Distinguish a skipped request from a loop-ending failure.\n3. For a long prefill, check whether more than one request is eligible before attributing a cap to `long_prefill_token_threshold`; the singleton case disables it and the adaptive option can raise the cap (F2). Do not copy a default or prescribe a universal threshold.\n4. If `allocate_slots` returns `None`, inspect `has_pending_block_frees` and `_request_blocks_can_be_freed` before blaming victim selection. The source can stop allocation without preempting. Otherwise identify the actual priority/FCFS victim and, for an already-scheduled priority victim, restored token/input/encoder accounting (F3, F6).\n5. Reconstruct waiting admission separately: preemption earlier in the same step, pause state, KV-holding queue precedence, active-request cap, blocked status, and LoRA limit precede useful work (F4). For external-prefix lookup, distinguish unknown matches, zero matches, and positive asynchronous matches. Async admission reserves blocks while scheduling zero new tokens; its computed-token counter is not evidence of load completion (F5).\n6. Classify the observed limiting branch and one competing explanation. Produce one conditional hypothesis: adjust a documented cap only after checking the deployed configuration schema, or investigate connector progress instead. Predict which branch/metric should change and what latency, capacity, or recomputation trade-off could worsen. Do not change settings under this skill."
+        }
+      ],
+      "limits": "vLLM pinned scheduler branch diagnosis is related, but cannot be labelled a generic image-resolution/prompt-dependent admission-policy design with never-fit request handling and offline test. No target-runtime assumption added to raw task."
+    },
+    {
+      "id": "fresh255-06",
+      "status": "SOURCE_SUPPORTED_PARTIAL_POSITIVE",
+      "relevant_ids": [
+        "inferrsi.cuda.skills.diagnose_attention_bottlenecks"
+      ],
+      "evidence": [
+        {
+          "path": "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
+          "sha256": "a25738dbb3b9daa15c5827cb536a20fe13f7c8b9dd14aa3fb7cfa7e132879431",
+          "start_line": 12,
+          "end_line": 20,
+          "quote": "Use when attention remains slow despite fusion/tiling, a larger tile or deeper pipeline regresses, low-precision throughput disappoints, or a proposed hardware port assumes that the paper's instructions transfer directly.\n\nObtain the actual kernel/library revision and device; forward/backward or inference phase; batch, query/KV lengths, head count and head dimension; causal/padding masks, dropout and MQA/GQA; input, accumulator and intermediate dtypes; output/gradient tolerance and task-quality requirements. Distinguish an attention kernel from a whole training step or serving request.\n\nRequest existing evidence for HBM bytes and allocation, shared-memory/register use and spills, independent CTA/work-tile counts, synchronization/atomic waits, Tensor Core/GEMM activity, scalar/special-function work, and exposed load/compute stalls. A low percentage of peak FLOP/s does not identify which is limiting. If these observations are unavailable, return conditional hypotheses and the missing evidence; do not initiate profiling or runs without authorization in the current task.\n\n## Decision procedure\n\n1. **Check semantics before costs.** Preserve stable online-softmax normalization, masks and dropout replay; require correct output and gradients at the approved tolerance. Dense exact attention, block-sparse attention and quantized attention have different contracts. Exact algebra does not imply bitwise-identical floating-point results. Do not turn the historical papers' pseudocode directly into an implementation without resolving their notation/boundary issues. [F1\u2013F3; sources, interpretation cautions]"
+        },
+        {
+          "path": "src/inferrsi/data/skill_library/hardware/cuda/diagnose-attention-bottlenecks/SKILL.md",
+          "sha256": "a25738dbb3b9daa15c5827cb536a20fe13f7c8b9dd14aa3fb7cfa7e132879431",
+          "start_line": 35,
+          "end_line": 41,
+          "quote": "## Required output and proposed verification\n\nReturn: observed bottleneck and confidence; workload/semantic contract; one smallest candidate change; expected resource exchange; counter-signal; missing evidence; source ID; and the next authorization gate.\n\nFor a later authorized comparison, keep hardware/clock, stack, workload, dtype, mask/dropout and measurement boundary fixed. Report forward, backward and combined time separately; HBM bytes and allocation separately; fast-memory use/spills, active work and waits; preprocessing cost for precision changes; output/gradient error and any required task-quality result. State whether throughput counts useful matmuls, recomputation, causal masking and batch. Only claim application benefit after measuring that application boundary.\n\nReject or defer a proposal on wrong outputs/gradients, violated buffer lifetime, unverified compiler ordering, spills or memory overrun, unsupported primitives, unacceptable accuracy, or a gain that vanishes after including the omitted work. Empirical validation remains not_run; source-paper results do not establish local compatibility or efficacy."
+        }
+      ],
+      "limits": "Source requires mask/dtypes/tolerances and correctness before optimization, directly useful to numerical discrepancy investigation; does not implement the requested small comparison or universal tolerance."
+    }
+  ],
+  "source_supported_count": 3,
+  "required_minimum": 4,
+  "decision": "PREPARATION_INCONCLUSIVE_STOP_BEFORE_RETRIEVAL",
+  "heldout": "OLD_HELDOUT_UNTOUCHED",
+  "limits": [
+    "Partial labels not exhaustive relevance truth or complete task coverage. Unlabelled is not irrelevant.",
+    "Do not replace tasks to force coverage or weaken4-case gate.",
+    "Intent reviewer had prior corpus knowledge; new author blind-access attestation and task input hash preserved.",
+    "No inference about raw-vs-cue effectiveness can be drawn because no paired retrieval was run."
+  ]
+}

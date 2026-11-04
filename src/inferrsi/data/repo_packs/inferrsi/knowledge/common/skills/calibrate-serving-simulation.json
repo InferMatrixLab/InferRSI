@@ -16,8 +16,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
-      "commit": "93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md",
         "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json",
@@ -34,9 +34,9 @@
   "checkout_ref": "checkout:calibrate-serving-simulation",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md": "ac773c6f1c110a664dfca28a3ae9129b10c07614e60ca3640dea776220e7b352",
-    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "553406b95177a38d73ea6f305c30f361765a437dfe8cfec86c26d4c00e1ac41c",
+    "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/metadata.json": "96771fb6fecf5fc7773bb7cf84038d8eaf436add1a0362dc26110c82037f8320",
     "src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/references/source-notes.md": "9696d3c0ef96b6611787446bd6f96d4d6255ca8d107105de8c1d9af83edb9fa5",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "calibrate-serving-simulation",
@@ -64,23 +64,52 @@
       }
     ],
     "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
+      "scope": "Building an evidence-gated serving-configuration shortlist when a profiled simulator or cost model is proposed to reduce deployment experiments; extends performance-ceiling-analysis, optimization-search-policy and inference-benchmark-design without replacing their ceilings or measurement contract",
+      "prerequisites": "The packaged Vidur evidence and evidence-type notes are read; reading the skill does not authorize execution, and no validation check runs under it without separate execution authorization",
+      "input_contract": "Model, shape and dtype; actual kernel/runtime revision; graph mode; GPU, host and topology; request length and arrival distribution; total resources and cost basis; memory limits; latency definitions and percentile SLOs",
+      "produced_artifact": "A bounded decision memo with input identities, model assumptions, evidence type, exact metrics and denominators, unsupported dimensions, nondominated candidates with predicted ranges, joint constraint checks, the next discriminating trial and rollback/finalization requirements, keeping prediction and measurement columns apart; a shortlist for future measurement, not a measured result",
+      "failure_modes": [
+        "Learned runtime output is labeled a physical bound",
+        "A missing identity is filled with a paper default, or topology is substituted, instead of being marked unknown",
+        "A low-load check stands in for an SLO claim at the intended load regime and capacity boundary",
+        "A predictor that relies on summed KV volume hides batches with equal volume but unequal context distributions",
+        "Capacity binary search is applied without verifying its monotonic/stationary premise or treating overloaded samples explicitly",
+        "One predicted winner is reported when uncertainty exceeds rank separation"
+      ],
+      "refusal_point": "Stops predictive certification when profiles are missing, topology is substituted, error grows near capacity or host overhead is omitted; labels an ordering unresolved when uncertainty exceeds rank separation; asserts neither universal error below 9% nor current vLLM, asynchronous PP or NPU support from the historical simulator paper"
     },
+    "recommendations": [
+      "Classify every estimate as a physical bound, measured envelope, Amdahl-style conditional impact or empirical prediction before comparing configurations.",
+      "Keep prefill and decode separate in the operator signatures, and record how sharding and memory planning enter the model.",
+      "Recalibrate after workload drift, kernel/graph/runtime changes, new hardware or topology, or mismatched residuals."
+    ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation."
     ],
     "provenance_readsets": [
       "references/source-notes.md"
     ],
-    "references": [],
     "consumption_mode": "packaged"
   },
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Building an evidence-gated serving-configuration shortlist when a profiled simulator or cost model is proposed to reduce deployment experiments; extends performance-ceiling-analysis, optimization-search-policy and inference-benchmark-design without replacing their ceilings or measurement contract",
+    "prerequisites": "The packaged Vidur evidence and evidence-type notes are read; reading the skill does not authorize execution, and no validation check runs under it without separate execution authorization",
+    "input_contract": "Model, shape and dtype; actual kernel/runtime revision; graph mode; GPU, host and topology; request length and arrival distribution; total resources and cost basis; memory limits; latency definitions and percentile SLOs",
+    "produced_artifact": "A bounded decision memo with input identities, model assumptions, evidence type, exact metrics and denominators, unsupported dimensions, nondominated candidates with predicted ranges, joint constraint checks, the next discriminating trial and rollback/finalization requirements, keeping prediction and measurement columns apart; a shortlist for future measurement, not a measured result",
+    "failure_modes": [
+      "Learned runtime output is labeled a physical bound",
+      "A missing identity is filled with a paper default, or topology is substituted, instead of being marked unknown",
+      "A low-load check stands in for an SLO claim at the intended load regime and capacity boundary",
+      "A predictor that relies on summed KV volume hides batches with equal volume but unequal context distributions",
+      "Capacity binary search is applied without verifying its monotonic/stationary premise or treating overloaded samples explicitly",
+      "One predicted winner is reported when uncertainty exceeds rank separation"
+    ],
+    "refusal_point": "Stops predictive certification when profiles are missing, topology is substituted, error grows near capacity or host overhead is omitted; labels an ordering unresolved when uncertainty exceeds rank separation; asserts neither universal error below 9% nor current vLLM, asynchronous PP or NPU support from the historical simulator paper"
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Classify every estimate as a physical bound, measured envelope, Amdahl-style conditional impact or empirical prediction before comparing configurations.",
+    "Keep prefill and decode separate in the operator signatures, and record how sharding and memory planning enter the model.",
+    "Recalibrate after workload drift, kernel/graph/runtime changes, new hardware or topology, or mismatched residuals."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

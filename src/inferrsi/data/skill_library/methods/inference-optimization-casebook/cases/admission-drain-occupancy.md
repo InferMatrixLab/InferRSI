@@ -1,7 +1,8 @@
 # Admission occupancy is not whole-run occupancy
 
-Kind: Case. Origin: internal experience. State: historical observation;
-campaign INCONCLUSIVE. This extraction adds no performance validation.
+Campaign INCONCLUSIVE. This extraction adds no performance validation. Kind,
+origin, state and source identities belong to the
+[typed source and scope record](admission-drain-occupancy.json).
 
 ## Observation
 
@@ -45,13 +46,9 @@ plan; another engine or device needs its own evidence.
 - [Acceptance issue #10](https://github.com/InferMatrixLab/InferRSI/issues/10).
 - [Original diagnostic section at the inspected repository snapshot](https://github.com/InferMatrixLab/InferRSI/blob/c13027983b853fee3700de6aabde52b72e61885a/evidence/drama3-b300-scale150/results/diagnostic-lessons.md#continuous-admission-profile-and-mixed-backbone-2026-10-16).
 - [Frozen plan](https://github.com/InferMatrixLab/InferRSI/blob/c13027983b853fee3700de6aabde52b72e61885a/evidence/drama3-b300-scale150/plan/plan.json).
-- Original artifact identity: `drama3-mixed-20261016/vllm-continuous-schedule.json`.
-  Recorded raw trace SHA256:
-  `29e5cafe329cb85eaba69db7536a28a83fb7e3ac29bc154fc8747f317f6a4b3f`;
-  request metadata SHA256:
-  `bd50166976a4753b33c8aeb5a774ebb5711c74ccbba0df1843885f353ecdc996`.
+- Original artifact identity, recorded raw trace and request metadata SHA256:
+  the [typed source and scope record](admission-drain-occupancy.json).
   Raw bytes were not independently retrieved or rehashed for this extraction.
-- [Typed source and scope record](admission-drain-occupancy.json).
 
 The local frozen evidence remains untouched. Observation is carried from its
 2026-10-16 report; extraction inspected that section on 2026-10-16. No missing

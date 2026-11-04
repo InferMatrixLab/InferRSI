@@ -1,0 +1,33 @@
+{
+  "scope": "raw_build_input_preparation",
+  "verdict": "INCONCLUSIVE",
+  "downloaded_content_executed": false,
+  "source_archive_sha256": "0e85c8702248b8dd64144f594147553650cdd0e4c951690345faace79c217c4d",
+  "build_lock_sha256": "b28a5f4618b1890bb9b796206e14a56517cef73cf7811efb7340414ef7a77aab",
+  "files": [
+    {
+      "name": "meson",
+      "version": "1.12.1",
+      "filename": "meson-1.12.1-py3-none-any.whl",
+      "sha256": "930bc7542cbd9f57009e182fd014eba48cf1a0180a7b9006d2d32d8f168d8b02",
+      "size": 1108668,
+      "url": "https://files.pythonhosted.org/packages/57/99/36cd25f9598eef70db97577440a70a360af505f6f01c2338a18d1556079c/meson-1.12.1-py3-none-any.whl",
+      "requires_python": ">=3.10",
+      "target_tag_rank": 866,
+      "metadata_url": "https://pypi.org/pypi/meson/json",
+      "metadata_sha256": "34801ae0bdba0e23dd7261e35a3868fdbac647d7006739dc086a8310a654c612"
+    },
+    {
+      "name": "ninja",
+      "version": "1.13.2",
+      "filename": "ninja-1.13.2-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "sha256": "65a24341b5ac09fcadcc37082660be40a94174e51a937fabf6e2cae26225fa2c",
+      "size": 183365,
+      "url": "https://files.pythonhosted.org/packages/6e/53/ebfed7b689c338dd8ebeec9c0730c8d56821292f14e2536e5f3ef1a05744/ninja-1.13.2-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl",
+      "requires_python": ">=3.8",
+      "target_tag_rank": 464,
+      "metadata_url": "https://pypi.org/pypi/ninja/1.13.2/json",
+      "metadata_sha256": "4093daaae326c46316289eb9ae9c758d4cd06ec75f75c59633e5a2cb0ff91dc3"
+    }
+  ]
+}

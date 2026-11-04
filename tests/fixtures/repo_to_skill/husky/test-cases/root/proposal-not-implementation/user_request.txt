@@ -1,0 +1,1 @@
+Write an audit of proposal/verify/commit/rollback and explain which persistent state Husky actually mutates on cancellation. No source is supplied.

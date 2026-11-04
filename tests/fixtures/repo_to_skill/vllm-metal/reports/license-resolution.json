@@ -1,0 +1,8 @@
+{
+  "repository": "vllm-project/vllm-metal",
+  "source_commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+  "source": "GitHub CLI (gh api)",
+  "value": "NO_LICENSE",
+  "status": "unavailable",
+  "reason": "GitHub CLI is not authenticated"
+}

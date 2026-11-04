@@ -12,6 +12,21 @@ Use this skill to explain, configure, tune or extend **vLLM-Omni** stage-based a
 
 This is a source-grounded portable candidate at `52194f24fa42e14d1c5e096f4bea4dc7f95cffa1`. It is not a GPU certification or a complete model catalogue. Read [provenance](references/repo-provenance.md) when the checkout or installed packages differ.
 
+## Source and responsibility map
+
+Choose the scope before applying the existing procedures. The dates below are
+the original inspections of two separate source snapshots.
+
+| Decision scope | Canonical entry | Retained source / inspection | Evidence boundary |
+| --- | --- | --- | --- |
+| Stage/model topology, deployment, streaming measurement and step/output contracts | [Architecture](sub-skills/omni-architecture/SKILL.md), [serving](sub-skills/omni-serving/SKILL.md) and [extension](sub-skills/omni-validation/references/validation.md) | `52194f24fa42e14d1c5e096f4bea4dc7f95cffa1`; 2026-10-14; Apache-2.0 | Original source-derived candidate; establish the selected model/backend and producer/consumer contract |
+| Abort submission/receipt, wait-only timeout, partial output, logical cleanup and deferred transfer release | [Abort validation](sub-skills/omni-validation/SKILL.md) and its [completion boundaries](sub-skills/omni-validation/references/abort-acknowledgment.md#keep-three-completion-boundaries-separate) | `18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e`; 2026-10-22; Apache-2.0 | Bounded CODE / TEST-SOURCE; logical acknowledgment and native transfer reclamation are separate completion boundaries |
+
+Keep each row with its own [provenance](references/repo-provenance.md) and
+[evidence](references/evidence.md). The later readset supplements only the
+abort path; the two snapshots do not define a jointly tested runtime or
+compatibility range.
+
 ## Route by decision
 
 | Need | Load |

@@ -1,0 +1,30 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "model-runtime",
+  "target_capability": "shared physical capacity and per-conversation allocation ownership",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "src/core/glm_memory.hpp:47-128",
+    "tests/glm_memory_test.cpp:18-102",
+    "src/core/glm_fast_path.cu:1094-1160,1490-1568,6032-6082",
+    "src/core/glm_multi.cu:22-174",
+    "src/mm3/mm3_model.cu:864-977"
+  ],
+  "expected_skill_files": [
+    "sub-skills/model-runtime/SKILL.md",
+    "sub-skills/model-runtime/references/model-and-memory.md",
+    "sub-skills/model-runtime/references/troubleshooting.md",
+    "sub-skills/model-runtime/scripts/audit_runtime_plan.py"
+  ],
+  "assertions": [
+    "The response uses one audited shared physical-memory pool and refuses to add the GPU aperture to the 70 GiB capacity.",
+    "The response counts four real state copies but does not count the bound-state alias as another allocation.",
+    "The response uses or gives the bundled audit_runtime_plan.py --plan interface and correctly derives 58 GiB live plus 16 GiB reserve, exceeding 70 GiB by 4 GiB.",
+    "The response treats that result as screening_conflict, not a native allocation failure, model correctness verdict or resource-fit certificate.",
+    "The response explains GLM --expert-cache N as a first-part largest-expert-slot cap rather than bytes or N permanent experts per layer, preserving spares and lendable tail distinctions.",
+    "The response identifies missing allocation classes and keeps capacity measurement timing consistent rather than subtracting already-accounted allocations twice.",
+    "The response explains why a single MM3 streamed-KV/DSpark estimate cannot be reused unchanged for parallel sequences, where those features are disabled and private device caches are counted.",
+    "The response retains native backend/asset and alias-truth/peak-completeness gaps after the offline arithmetic, without downloading or launching anything.",
+    "The response completes the diagnosis from bundled guidance/helper rather than depending on original repository scripts or local environment paths."
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "scope": "first_missing_elf_inventory_diagnostic",
+  "scanned_elf_count": 9,
+  "first_missing": {
+    "path": "/opt/python/lib/python3.12/lib-dynload/_tkinter.cpython-312-x86_64-linux-gnu.so",
+    "ldd_exit_code": 0,
+    "unresolved": [
+      "libtcl9.0.so",
+      "libtcl9tk9.0.so"
+    ]
+  },
+  "runtime_changed": false,
+  "evaluator_or_model_executed": false,
+  "verdict": "INCONCLUSIVE"
+}

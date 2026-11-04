@@ -1,0 +1,195 @@
+{
+  "run": "threshold-cache4t08",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "pipeline_profiler": false,
+    "diagnostic_shutdown_override": true,
+    "arm": "cache4t08",
+    "steps": 50,
+    "requests": 3,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--cache-backend",
+      "cache_dit",
+      "--cache-config",
+      "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.08,\"max_continuous_cached_steps\":4,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+    ]
+  },
+  "runtime_settings_sha256": "bd19f17d264513f8ad0b53b54ec83acd71f983a884836785f325d7264c678a76",
+  "cells": [
+    {
+      "duration_s": 5,
+      "seed": 0,
+      "expected_measured_requests": 3,
+      "completed": 3,
+      "failed": 0,
+      "missing": 0,
+      "samples_ms": [
+        148326.9786676392,
+        147980.8314377442,
+        148324.99329838902
+      ],
+      "mean_ms": 148210.93446792415,
+      "median_ms": 148324.99329838902,
+      "min_ms": 147980.8314377442,
+      "max_ms": 148326.9786676392,
+      "request_sample_stdev_ms": 199.27754212719725,
+      "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+    }
+  ],
+  "samples_including_warmups": [
+    {
+      "label": "measured-5-seed0-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 148326.9786676392,
+      "http_status": 200,
+      "bytes": 6521625,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-b982bafcc258d861",
+        "X-Inference-Time-S": "148.266",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.41013117879629135,\"stage_0_gen_ms\":147303.68375778198}",
+        "X-Peak-Memory-MB": "20128.000"
+      },
+      "output_sha256": "15093714b61b41b8e30ab0956ea9e87380a3715182fe184b0eaadbcae3ba0091"
+    },
+    {
+      "label": "measured-5-seed0-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 147980.8314377442,
+      "http_status": 200,
+      "bytes": 6525957,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-bbffad8888e37ae3",
+        "X-Inference-Time-S": "147.920",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.42619090527296066,\"stage_0_gen_ms\":146775.98476409912}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "output_sha256": "f53c114f5040f381d7538291ba3a2448790b90817082be62412e0b0e21bcdae2"
+    },
+    {
+      "label": "measured-5-seed0-2",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 148324.99329838902,
+      "http_status": 200,
+      "bytes": 6520084,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-ae932d6e01e90645",
+        "X-Inference-Time-S": "148.264",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.39909034967422485,\"stage_0_gen_ms\":147423.87986183167}",
+        "X-Peak-Memory-MB": "20168.000"
+      },
+      "output_sha256": "52f8dff221f6df72922a5b6798118cf3c42cfda4db88843e0cb255d23ea21726"
+    },
+    {
+      "label": "warmup-5-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 281604.5981878415,
+      "http_status": 200,
+      "bytes": 6525547,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-84a3e64b686fa42c",
+        "X-Inference-Time-S": "281.516",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.43075066059827805,\"stage_0_gen_ms\":280284.81101989746}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "output_sha256": "4a17f143783b12a103299fbe498e8ea0020f8797a16c7eff70838aa04cf76f48"
+    },
+    {
+      "label": "warmup-5-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 211356.60093091428,
+      "http_status": 200,
+      "bytes": 6526144,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-a2287923814555c3",
+        "X-Inference-Time-S": "211.299",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.4863729700446129,\"stage_0_gen_ms\":210391.68429374695}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "output_sha256": "1e1704568ac5fd2db1face30cfe219674ef0ab38106bbd568b4fc805e4bc56d7"
+    }
+  ],
+  "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+  "lifecycle": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 8,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-4",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-5",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-6",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-7",
+        "exit_code": 0,
+        "alive": false
+      }
+    ]
+  },
+  "service_log_sha256": "0ae99cc887851b9bd36191d651ec74baf62f404eee9bd5814e8b7c48c2e9261a"
+}

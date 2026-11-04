@@ -1,0 +1,30 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "root",
+  "target_capability": "portable-support-is-not-managed-import",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "Libraries/MLXLMCommon/GatedDelta.swift"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "references/scope-and-notices.md",
+    "sub-skills/generation-lifecycle/SKILL.md",
+    "sub-skills/gated-delta-contract/SKILL.md",
+    "sub-skills/gated-delta-contract/references/recurrence-and-state.md",
+    "sub-skills/gated-delta-contract/references/verification-boundaries.md",
+    "sub-skills/gated-delta-contract/references/helper-contract.md",
+    "sub-skills/generation-lifecycle/references/ownership-and-termination.md",
+    "sub-skills/generation-lifecycle/references/evidence-schema.md",
+    "sub-skills/generation-lifecycle/references/native-evidence.md"
+  ],
+  "assertions": [
+    "Helpers check declarations/evidence gaps, not compiled Swift host control or GPU execution; keep candidate empirical_validation not_run and required native blocked.",
+    "Source AGENTS forbids agent-created upstream issue/PR/comments; no upstream write is proposed by this InferRSI delivery.",
+    "Masked source discrepancy remains unexecuted parity gap, not a locally confirmed numeric bug or a fix.",
+    "Portable repository integration is not a managed DisCo import, and source rights/model/dependency rights remain separate."
+  ]
+}

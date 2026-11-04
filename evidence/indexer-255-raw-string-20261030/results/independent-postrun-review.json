@@ -1,0 +1,24 @@
+{
+  "reviewed_at_utc": "2026-10-30T10:03:01.156127+00:00",
+  "decision": "PASS_WITHIN_FROZEN_SYNTHETIC_CONTRACT_SCOPE",
+  "baseline_sha": "1052925ff22f9a850cebc64afd0083b35ed1fae9",
+  "candidate_sha": "728984c524cf696d063ff7ef0688ae126c8546a6",
+  "runner_sha256": "7abe02af59ae06a5f2e7956d5236573172810b84025223714ded593c1e6c8061",
+  "fixtures_sha256": "70086b95ba74c182cb195c32d71fed7aed747bec975079160f10bf8fff673e18",
+  "method": "Independent retained-output label/arithmetic/resource/hash/source/module audit; no scorer/retrieval/candidate execution.",
+  "scalar_cases": 14,
+  "ranking_fixtures": 2,
+  "phantom_field_token_contributions_removed": 5,
+  "genuine_field_token_controls_retained": 26,
+  "nonstring_controls_unchanged": 6,
+  "compatibility_requests": 21,
+  "source_and_module_identity_verified": true,
+  "default_parity_verified": true,
+  "context_hash_bytes_required_core_ref_license_and_budget_verified": true,
+  "fixed_cli_demo": "Source resource hashes and bytes verified; interface-only, no semantic relevance or latency inference.",
+  "limits": [
+    "Synthetic adversarial lexical contract, not general task accuracy or user distribution.",
+    "No default-method promotion or #255 closure implied.",
+    "Historical failures remain distinct; old heldout unused."
+  ]
+}

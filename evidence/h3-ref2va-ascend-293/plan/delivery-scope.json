@@ -1,0 +1,12 @@
+{
+  "user_decision": "Deliver 5-second results first; complete 15-second results later",
+  "first_delivery_durations_s": [
+    5
+  ],
+  "deferred_durations_s": [
+    15
+  ],
+  "acceptance": "Same-reservation repeated AB/BA, frozen quality gates and held-out coverage, actual worker/server/container exit receipts",
+  "current_pilots": "All running and pending pilots are 5-second workloads",
+  "final_campaign": "Not launched; builder updated to 5-second-only ABBA"
+}

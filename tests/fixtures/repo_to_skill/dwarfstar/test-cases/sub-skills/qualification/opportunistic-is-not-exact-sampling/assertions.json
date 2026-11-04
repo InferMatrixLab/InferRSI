@@ -1,0 +1,25 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "opportunistic versus exact speculative sampling",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/SPECULATIVE_DECODING.md:112-137",
+    "tests/test_sampling.c:279-354",
+    "QA_BEFORE_RELEASES.md:257-309",
+    "ds4.c:86072-86195"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/qualification/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response routes to qualification and reads the bundled verification contract.",
+    "The response states that default nonzero-temperature opportunistic greedy-draft acceptance is not a target-distribution preservation guarantee.",
+    "The response identifies --mtp-exact-sampling as the selected exact path where implemented and describes acceptance/correction rather than only argmax agreement.",
+    "The response does not promise identical seeded token sequences across ordinary and exact speculative algorithms because additional random draws and batched arithmetic differ.",
+    "The response keeps CPU synthetic-logit sampling checks separate from actual accelerator state, matched-model quality and service verification.",
+    "The response freezes mode, checkpoint hashes, sampling filters, workload and quality/performance gates before comparison and refuses to execute or download."
+  ]
+}

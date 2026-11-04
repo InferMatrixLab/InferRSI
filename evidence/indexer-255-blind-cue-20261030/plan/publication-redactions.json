@@ -1,0 +1,14 @@
+[
+  {
+    "artifact": "plan/blind-author.json",
+    "original_sha256": "ed81b75333efaab1d8834ff6f9d30f2b060b070212ee463d9b7395e0a0cfcfc3",
+    "published_sha256": "66bb2a2c47e18504d6e0650fbc4f06cc9e785e71f44840ef985e65e8e0e9e54c",
+    "change": "Only local task identifier or absolute scratch path replaced by labelled placeholder. Frozen task/cue strings unchanged; original hashes in receipts refer to retained local original."
+  },
+  {
+    "artifact": "plan/accepted-receipt.json",
+    "original_sha256": "7d99ed6d16846a788d6ac2410b5b93548814a83b318b373d91912d5ca4cd1121",
+    "published_sha256": "4b90d0d1b2cacd16e822f6cff78ea7532d1fc915a2ca366c00a1cad5f2f5d94f",
+    "change": "Only local task identifier or absolute scratch path replaced by labelled placeholder. Frozen task/cue strings unchanged; original hashes in receipts refer to retained local original."
+  }
+]

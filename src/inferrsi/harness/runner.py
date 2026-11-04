@@ -35,7 +35,8 @@ def run_experiment(
     _write_json(run_dir / "environment.json", environment)
     baseline, candidate, validation = [], [], None
     before, after, source_checks = {}, {}, []
-    state, error = "completed", None
+    # No state is claimed until the work that would establish it has finished.
+    state, error = None, None
 
     def event(phase: str, **details: object) -> None:
         record = {"time": datetime.now(timezone.utc).isoformat(), "phase": phase, **details}
@@ -43,6 +44,17 @@ def run_experiment(
             file.write(json.dumps(record, ensure_ascii=False, allow_nan=False) + "\n")
         _write_json(
             run_dir / "status.json", {"state": "running", "phase": phase, "run_dir": str(run_dir)}
+        )
+
+    def record_status(phase: str, **fields: object) -> None:
+        _write_json(
+            run_dir / "status.json",
+            {
+                "run_dir": str(run_dir),
+                "elapsed_seconds": time.monotonic() - started,
+                "phase": phase,
+                **fields,
+            },
         )
 
     repos = {
@@ -66,6 +78,82 @@ def run_experiment(
         _write_json(trial_dir / "source.json", check)
         return record
 
+    def terminate() -> None:
+        """Write the terminal artifacts; a failure here is reported, not hidden."""
+        nonlocal after
+        try:
+            after = {label: snapshot(repo, run_dir) for label, repo in repos.items()}
+            _write_json(run_dir / "repositories.final.json", after)
+            _write_json(run_dir / "source_checks.json", source_checks)
+            identities = list(before.values()) + list(after.values())
+            identities.extend(
+                identity
+                for check in source_checks
+                for identity in (check["before"], check["after"])
+            )
+            known = bool(before) and all(item.get("available") for item in identities)
+            unchanged = (
+                known
+                and all(
+                    before[label]["snapshot_hash"] == after[label]["snapshot_hash"]
+                    for label in repos
+                )
+                and all(
+                    check["before"]["snapshot_hash"]
+                    == check["after"]["snapshot_hash"]
+                    == before[check["side"]]["snapshot_hash"]
+                    for check in source_checks
+                )
+            )
+            integrity = {
+                "verified": bool(unchanged),
+                "reason": "Git source snapshots unchanged"
+                if unchanged
+                else "Git source snapshot unavailable"
+                if not known
+                else "source changed during experiment",
+                "command_checks": len(source_checks),
+            }
+            result = evaluate(spec, baseline, candidate, validation, integrity)
+            if error:
+                result["reasons"].append(error)
+                result["verdict"] = "INCONCLUSIVE"
+            _write_json(run_dir / "evaluation.json", result)
+            event("complete", state=state, verdict=result["verdict"])
+            record_status(
+                "complete", state=state, verdict=result["verdict"], error=error
+            )
+            write_report(run_dir)
+        except KeyboardInterrupt as exc:
+            # Interruption during termination is outside the caller's own
+            # KeyboardInterrupt handler, so the state must be persisted here:
+            # otherwise it stays `running` (interrupted during the final snapshot)
+            # or a premature `completed` (interrupted while writing the report).
+            record_status(
+                "termination",
+                state="termination_failed",
+                verdict=None,
+                error=error,
+                requested_state=state,
+                termination_error=f"KeyboardInterrupt: {exc or 'interrupted during termination'}",
+            )
+            raise
+        except Exception as exc:
+            # The run did not reach a finished state. Every termination failure is
+            # recorded, not only I/O-shaped ones: the hook and report paths are
+            # caller-supplied, and an escaped RuntimeError would otherwise leave
+            # `running` (or a premature `completed`) as the last persisted state.
+            record_status(
+                "termination",
+                state="termination_failed",
+                verdict=None,
+                error=error,
+                requested_state=state,
+                termination_error=f"{type(exc).__name__}: {exc}",
+            )
+            raise
+
+    stopped = None
     try:
         event("source_snapshot")
         before = {label: snapshot(repo, run_dir) for label, repo in repos.items()}
@@ -82,78 +170,42 @@ def run_experiment(
                 )
                 (baseline if label == "baseline" else candidate).append(record)
                 if record["status"] == "cancelled":
-                    state = "cancelled"
                     raise KeyboardInterrupt
                 if record["status"] != "completed":
-                    state = "timeout" if record["status"] == "timeout" else "failed"
+                    stopped = record["status"]
                     break
-            if state != "completed":
+            if stopped is not None:
                 break
-        if spec.validation_command is not None and state == "completed":
+        if spec.validation_command is not None and stopped is None:
             event("quality_validation")
             validation = execute_checked(
                 spec.validation_command, "candidate", run_dir / "validation", None
             )
             if validation["status"] != "completed":
-                state = (
-                    "cancelled"
-                    if validation["status"] == "cancelled"
-                    else "timeout"
-                    if validation["status"] == "timeout"
-                    else "failed"
-                )
+                stopped = validation["status"]
         elif spec.validation_command is not None:
             validation = {"status": "skipped", "reason": "measurement did not complete"}
+        if stopped is None:
+            state = "completed"
+        else:
+            state = (
+                "cancelled"
+                if stopped == "cancelled"
+                else "timeout"
+                if stopped == "timeout"
+                else "failed"
+            )
     except KeyboardInterrupt:
         state, error = "cancelled", "interrupted by user"
     except (OSError, ValueError, subprocess.SubprocessError) as exc:
         state, error = "failed", str(exc)
-    finally:
-        after = {label: snapshot(repo, run_dir) for label, repo in repos.items()}
-        _write_json(run_dir / "repositories.final.json", after)
-        _write_json(run_dir / "source_checks.json", source_checks)
-        identities = list(before.values()) + list(after.values())
-        identities.extend(
-            identity for check in source_checks for identity in (check["before"], check["after"])
+    except BaseException as exc:
+        # A hook failure outside the documented error contract still left a run
+        # directory. Record the crash truthfully, then let the caller see it.
+        event("crashed")
+        record_status(
+            "crashed", state="crashed", verdict=None, error=f"{type(exc).__name__}: {exc}"
         )
-        known = bool(before) and all(item.get("available") for item in identities)
-        unchanged = (
-            known
-            and all(
-                before[label]["snapshot_hash"] == after[label]["snapshot_hash"] for label in repos
-            )
-            and all(
-                check["before"]["snapshot_hash"]
-                == check["after"]["snapshot_hash"]
-                == before[check["side"]]["snapshot_hash"]
-                for check in source_checks
-            )
-        )
-        integrity = {
-            "verified": bool(unchanged),
-            "reason": "Git source snapshots unchanged"
-            if unchanged
-            else "Git source snapshot unavailable"
-            if not known
-            else "source changed during experiment",
-            "command_checks": len(source_checks),
-        }
-        result = evaluate(spec, baseline, candidate, validation, integrity)
-        if error:
-            result["reasons"].append(error)
-            result["verdict"] = "INCONCLUSIVE"
-        _write_json(run_dir / "evaluation.json", result)
-        event("complete", state=state, verdict=result["verdict"])
-        _write_json(
-            run_dir / "status.json",
-            {
-                "state": state,
-                "phase": "complete",
-                "verdict": result["verdict"],
-                "run_dir": str(run_dir),
-                "elapsed_seconds": time.monotonic() - started,
-                "error": error,
-            },
-        )
-        write_report(run_dir)
+        raise
+    terminate()
     return run_dir

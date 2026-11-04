@@ -15,6 +15,8 @@ Status: candidate; empirical validation: **not_run**.
 
 ## Related capabilities
 
+For checkpoint onboarding, FP8 loading, KV-head replication and multimodal validation order, use the older documentation-based [ascend-model-adaptation](../ascend-model-adaptation/SKILL.md). Its startup guidance is adjacent to this wrapper contract, not evidence that the two source revisions form a validated stack. See the [version and responsibility table](../../../README.md#vllm-ascend-version-and-responsibility-routing) for their separate evidence and date boundaries.
+
 [ascend-graph-mode](../ascend-graph-mode/SKILL.md) covers TorchAir configuration guidance; this skill adds the independently pinned vLLM-Ascend runtime wrapper. [cann-attribution-overlap](../cann-attribution-overlap/SKILL.md) supplies attribution methodology, not evidence that this wrapper improved performance. [torchnpu-device-memory-lifecycle](../torchnpu-device-memory-lifecycle/SKILL.md) addresses allocator ownership at another pin, not graph-pool caller correctness.
 
 ## Required evidence (P)

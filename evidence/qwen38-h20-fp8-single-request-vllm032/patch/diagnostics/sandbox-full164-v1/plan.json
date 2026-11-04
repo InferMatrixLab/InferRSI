@@ -1,0 +1,70 @@
+{
+  "scope": "full164-canonical-resource-pilot",
+  "status": "reviewed_not_submitted",
+  "plane": "harness",
+  "verdict": "INCONCLUSIVE",
+  "qualified": false,
+  "model_generated_code_executed": false,
+  "source_sha256": {
+    "runtime.py": "997cbfed8398e8ad62d1beb4f6b4bc6e61a0f4572b9156cfd0c6f3fb52b03233",
+    "bounds_driver.py": "bfeeb6ea794c0ebf24e72a0127458ff74951253471daee080b3a3b1d82a062ba",
+    "synthetic_probe.py": "236920f27573447b9f3833afb72739033c965e22a9e406b09f28da815529ca64",
+    "contract.py": "080788af20e7132e7602570ec6eba620439e000a934cc6c15adcac19e31c0c12",
+    "inner.py": "dd69193feb2b824b5bdc4d037ec63ede64c9fe809faaf78f974542b23935a19f",
+    "executor.py": "05e59d9928f06c47c235bc5e878c97d9c49260631ae020fd1b6baf851ea2d5b3",
+    "data_binding.py": "3527f2fe807c1399df245d5a17b84bef0bdd16f21edcc7cf69b00ac895b3b902",
+    "data-lock.json": "b5949144fd33dafd78a1ed89d23ba1e8ce1bc41775b2765d5fe5991930aae74f",
+    "exercise.py": "ad0bb37a1898afee20acf1e828e62f32828cc5841cab43f884353d01738e0f8f",
+    "test_binding.py": "415bf4636f9b717ed22a589fe6a08d88370aca6998f23ac5fb66251797f7d9e6",
+    "policy.json": "0445dc9a7c281911da4701d4e6ecdd59f083a306aca6509fbb1817cd220af46a",
+    "run-executor.sbatch": "078961e8190a9903b07e70af96f469f2429884fe9a882fdcdb559e90771b4391"
+  },
+  "source_manifest_sha256": "943c3f46efac0255255a690f1302a30534bd1dcc5b22ead3915b963aeb48599d",
+  "allocation": {
+    "cpus": 4,
+    "memory_request_gib": 16,
+    "wall_minutes": 60,
+    "gpus": 0
+  },
+  "policy": {
+    "schema": 1,
+    "scope": "full164-canonical-resource-pilot",
+    "qualified": false,
+    "as_bytes": 4294967296,
+    "cpu_seconds": 3600,
+    "wall_seconds": 3300,
+    "file_bytes": 536870912,
+    "work_bytes": 1073741824,
+    "shm_bytes": 33554432,
+    "tasks": 16,
+    "nofile": 64,
+    "input_bytes": 67108864,
+    "result_bytes": 536870912,
+    "evalplus": {
+      "parallel": 1,
+      "base_only": false,
+      "mini": false,
+      "noextreme": false,
+      "test_details": true,
+      "memory_override": null,
+      "timeout_override": null
+    }
+  },
+  "capacity": {
+    "all_failure_details_with_empty_solutions_bytes": 7491894,
+    "all_failure_details_sha256": "95db8433152b97d1f65475431c6611104c232993d97c6f6131d57562c3b63736",
+    "samples_file_byte_cap": 67108864,
+    "solution_serialization_bound_bytes": 402653184,
+    "metadata_slack_bytes": 4096,
+    "result_upper_bound_bytes": 410149174,
+    "dataset_bytes": 7714666,
+    "task_count": 164,
+    "official_json_dump_defaults_preserved": true,
+    "reference_or_model_code_executed": false
+  },
+  "evaluator_revision": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+  "readiness_gpu_seconds_used": 2388,
+  "readiness_gpu_seconds_cap": 7200,
+  "initial_gpu_seconds_separate": 147,
+  "e2e_effect": null
+}

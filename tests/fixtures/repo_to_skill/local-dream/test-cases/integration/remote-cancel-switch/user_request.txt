@@ -1,0 +1,1 @@
+The Local Dream control comments say authenticated. A controller gets select success, cancels generation, quickly reselects the same ID at a new shape, and an old stop arrives. May I assume pairing, immediate rollback and that status authenticates the new tensor shape? Do not expose any service.

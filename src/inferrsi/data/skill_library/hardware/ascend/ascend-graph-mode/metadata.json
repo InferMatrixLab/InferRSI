@@ -4,7 +4,11 @@
     "npu",
     "graph-mode",
     "aclgraph",
-    "npugraph-ex"
+    "npugraph-ex",
+    "torchair",
+    "capture-key",
+    "input-staging",
+    "output-lifetime"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -13,16 +17,61 @@
   "origin": [
     "external"
   ],
-  "sources": [],
   "empirical_validation": "not_run",
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Historical awesome-ascend-skills/cannbot import retains its short pin and UNKNOWN license in references/legacy-source-notes.md; it was not reread for this source slice.",
+    "The new official TorchAir read follows Python configuration/code generation and capture/replay ownership only; native TorchNPU/CANN, GE execution, transformations, static kernel compilation and native communication remain uninspected.",
+    "Selected stub and NPU smoke test definitions were read, not executed. Independent source pins do not establish stack compatibility, correctness, performance or service evidence."
   ],
-  "provenance_readsets": [],
-  "references": [],
-  "consumption_mode": "packaged"
+  "provenance_readsets": [
+    "references/torchair-graph-readset.json",
+    "references/torchair-graph-path.md",
+    "references/legacy-source-notes.md"
+  ],
+  "consumption_mode": "packaged",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/Ascend/torchair",
+      "commit": "e1118e8b0fc1b95190ab53b732c0872989550e20",
+      "paths": [
+        "python/torchair/configs/compiler_config.py",
+        "python/torchair/configs/aclgraph_config.py",
+        "python/torchair/configs/debug_config.py",
+        "python/torchair/configs/npugraphex_config.py",
+        "python/torchair/npu_fx_compiler.py",
+        "python/torchair/_acl_concrete_graph/fx2acl_converter.py",
+        "python/torchair/_acl_concrete_graph/acl_graph.py",
+        "docs/zh/npugraph_ex/quick_start.md",
+        "docs/zh/npugraph_ex/api/npugraph_ex/compiler_config.md",
+        "tests/st/torchair_aclgraph_st.py",
+        "tests/smoke/aclgraph_test.py",
+        "LICENSE"
+      ],
+      "source_channel": "official_repository",
+      "inspected_scope": "selected_python_implementation_documentation_and_test_definitions",
+      "license": "BSD-3-Clause",
+      "readset": "references/torchair-graph-readset.json"
+    }
+  ],
+  "references": [
+    "references/torchair-graph-path.md",
+    "references/torchair-graph-readset.json",
+    "references/torchair-LICENSE.md",
+    "references/legacy-source-notes.md",
+    "../ascend-aclgraph-capture-replay/SKILL.md"
+  ],
+  "applicability": {
+    "scope": "Diagnose the TorchAir Python ACL graph path from configuration and FX compilation through capture-key selection, fallback, input staging, replay and output lifetime.",
+    "prerequisites": "Eager correctness established first; configuration must match the installed backend, with authorization and workload-specific tolerances for any NPU comparison.",
+    "input_contract": "Installed hardware/runtime versions, actual compile backend/options, shape/dtype/stride and alias/mutation contract, retained outputs, capture/replay/fallback observations and workload mix.",
+    "produced_artifact": "A branch-specific diagnosis and bounded configuration or lifetime proposal with correctness, cold/warm cost, resource and concurrency checks still required on the actual stack.",
+    "failure_modes": "Shape equality or clone_input=False does not prove capture reuse or zero-copy; capture limits can trigger persistent fallback and later replay can overwrite retained outputs."
+  },
+  "recommendations": [
+    "Use the installed CompilerConfig/backend surface and a fresh compiled instance for option changes; do not mix registered-backend snippets with callable-backend configuration.",
+    "Observe capture, recapture, replay and persistent fallback separately, including changed addresses and revisiting old keys after a capture-limit event.",
+    "Preserve earlier results before another replay and check views/input-output aliases; keep cold capture, input/output copying, optional compiler passes and service timing separate."
+  ]
 }

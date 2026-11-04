@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "decisions": [
+    {
+      "source": "setup.sh, maya.sh, maya.py, setup.py",
+      "decision": "reference-only",
+      "reason": "Can create/delete environments, fetch/build/pack/calibrate/download large models, pin RAM and start services."
+    },
+    {
+      "source": "tools/*pack*.py and family packing tools",
+      "decision": "reference-only",
+      "reason": "Large model input/output and format-specific side effects; not safe bundled support."
+    },
+    {
+      "source": "tools/calibrate*.py, maya.py --bench, model quality/GPU tests",
+      "decision": "reference-only",
+      "reason": "Depend on engines/models/devices and write measurements/profiles; source margins are not portable gates."
+    },
+    {
+      "source": "tools/maya_quants.py selected family rules + physical-pool invariants",
+      "decision": "adapt",
+      "bundled": "sub-skills/model-runtime/scripts/audit_runtime_plan.py",
+      "reason": "Small original offline planning projection, no payload/device authentication."
+    },
+    {
+      "source": "serve/responses.py selected request fields",
+      "decision": "adapt",
+      "bundled": "sub-skills/serving-state/scripts/request_template.py",
+      "reason": "Original offline text request construction only; no service calls."
+    },
+    {
+      "source": "Benchmark/control evidence",
+      "decision": "adapt",
+      "bundled": "sub-skills/qualification/scripts/summarize_decode_records.py",
+      "reason": "Original supplied-record descriptive reducer; not native parser/executor or verdict."
+    },
+    {
+      "source": "Four inspected pure C++ policy tests",
+      "decision": "verification-only",
+      "reason": "Run original source only after integrated graph; do not make public runtime depend on source checkout."
+    }
+  ]
+}

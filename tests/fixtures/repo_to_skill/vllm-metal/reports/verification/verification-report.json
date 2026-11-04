@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "selected_original_pure_source_tests": {
+    "passed": 58,
+    "failed": 0,
+    "scope": "config/env/macOS-default parser/default behavior; not actual Apple runtime"
+  },
+  "graph_and_helper_tests": {
+    "passed": 24,
+    "failed": 0
+  },
+  "ruff": "passed src tests tools",
+  "license_gate": {
+    "valid": true,
+    "files": 4,
+    "value": "NO_LICENSE"
+  },
+  "native_backend": "BLOCKED_REQUIRED_BACKEND",
+  "independent_review": "separate stable-head review pending",
+  "full_scaffold_and_wheel": "separate final checks pending"
+}

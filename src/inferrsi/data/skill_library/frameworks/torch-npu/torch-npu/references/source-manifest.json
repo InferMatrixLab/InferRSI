@@ -1,0 +1,956 @@
+{
+  "schema_version": 1,
+  "inspection_semantics": "Git blob OID and SHA-256 identify immutable bytes. checkout_sha256 records inspected Windows checkout bytes; normalized text spans ignore line terminators. Inventory breadth is not semantic reading. License copies are retained bytes, not a claim of reading every clause.",
+  "sources": [
+    {
+      "repository": "Ascend/pytorch",
+      "url": "https://github.com/Ascend/pytorch",
+      "commit": "046934140b96836c3fcef14d0f39ae54dc0a06bf",
+      "files": [
+        {
+          "path": "COMPATIBILITY.en.md",
+          "git_blob_oid": "760e8fed2c63b1b5301ffe2aa4a5e2929bcc6474",
+          "git_blob_sha256": "0f9a0a600141f45d7f588ea6de3f9c9aa9aaba335dbdfff6f0deda003f6c16c5",
+          "checkout_sha256": "e20b58e66668edc7c51069eab1c675afb51e28fa2b23a4a613752d8142a2ce69",
+          "total_lines": 145,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 110,
+              "normalized_text_sha256": "3bd1d23eb1aa3b87675ad2ad9dd8b373bf828a3ed1ff823386bb4ac4758cdb51",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "README.md",
+          "git_blob_oid": "628d77291731e47b1c90b54037e6eaabaa7184fb",
+          "git_blob_sha256": "20d415a9f6a8107271e8568875b11d7b85e1ec34706275b33b97976542e7fe46",
+          "checkout_sha256": "a14469ce5721d020cec28a2b5995e8545b04dede8c74aac6a2919c3bdee20552",
+          "total_lines": 162,
+          "inspected_spans": [
+            {
+              "start_line": 70,
+              "end_line": 130,
+              "normalized_text_sha256": "7fda16a0ed7d841f23ac60324a9768cfbcb56113f8a65e6462e337e594d5b65c",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "docs/en/api/environment_variable/op_execution/ASCEND_LAUNCH_BLOCKING.md",
+          "git_blob_oid": "81d03697967ee929fff143681a294f91e90e3fdd",
+          "git_blob_sha256": "437d5b15a668e303a372f136ed0bbb26ee1a5a677486e21fa38ff4b202c8d789",
+          "checkout_sha256": "78314f8de364d9f58be1ec79295ce59a34214180be4edc7396c613390decd4a6",
+          "total_lines": 41,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 41,
+              "normalized_text_sha256": "8582576c66c9251227e3564beac7bd5963782d53a338679e527f4cf180d6547d",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "docs/en/installation_guide/building_from_source.md",
+          "git_blob_oid": "00a0fc54ec77e0c58340ccfbb3a5a44b0a621af0",
+          "git_blob_sha256": "44a6d9af178457e63f789f02a50fb586da15db2b03f4ec1b2eefe9bfaff45f96",
+          "checkout_sha256": "8df256ab019a921ae346064d4c2e44393031604144f45ce6b2d18dc398918101",
+          "total_lines": 300,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 160,
+              "normalized_text_sha256": "08cb7798d4489dd7a1f6df22fcb04923df4c174f0514e7b249cda0603f2a1af0",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "fxrt/README.md",
+          "git_blob_oid": "79e8a4dcf353978865e5d5d5264c100937c5dbb2",
+          "git_blob_sha256": "4377f0bd4b481d2f513d748fbcf5d4367187b0fcae4077caab83fba90c142add",
+          "checkout_sha256": "cec5f73384a5fa59fb7589fdbd49dde2cb2368262fa60bbf1d36e7461d017fcc",
+          "total_lines": 67,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 67,
+              "normalized_text_sha256": "daba84e3e1a40fcf0c4d59aa13175c950f6abff95e52b2894dc8dafb6d5616cf",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "generate_code.sh",
+          "git_blob_oid": "0ba45fdf8250a1bf556bba5f3823be8ce57fd556",
+          "git_blob_sha256": "05fe6b9273ca4682b643d06e4a66cc8ff443c04cd9b0264b8600e7f94999ff8a",
+          "checkout_sha256": "a37d8c760af5c7227bcdd5b5e678b247d7c41e8f6e938a14fac9ec3fb8b39b0d",
+          "total_lines": 82,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 82,
+              "normalized_text_sha256": "0b78d7ef574944347dcc762948dfdbf3c16f67a6874ab1bc39af2b0a7ebd3a93",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "setup.py",
+          "git_blob_oid": "0b9c1ce8a09f775b7f5949809bcfdfd0a88ea2cd",
+          "git_blob_sha256": "3244bec65942bfb1c6161a7b3f715c3ee58433f34b71814e877d84d215637f10",
+          "checkout_sha256": "c5d826951b36bbddaa19bdf0719bc25c29fac69c29515c33835654fefd7f9621",
+          "total_lines": 844,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 152,
+              "normalized_text_sha256": "83001584bf08b0babb2285054bce18af78c3db347a261289baefb92a26078059",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 780,
+              "end_line": 844,
+              "normalized_text_sha256": "7e8acadd662f11716e2ebf49a16407a1933fa6e1219a5d8f5ddb9c605f6e1366",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "test/distributed/test_hccl_group.py",
+          "git_blob_oid": "e001b8f5be3605907760a284136dcea8249a76e0",
+          "git_blob_sha256": "3301121c009895e18b3bda43715f0b2b7e7812c19a26411a256ea866cd451b55",
+          "checkout_sha256": "6f36e6fb19e40c71478f25280bd20fb669de7dc230fcbcb647da6b4c7b0cd1f1",
+          "total_lines": 82,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 53,
+              "normalized_text_sha256": "44d98a4eda4b23f496b184573e2f3b392dcb9bc0bf7be97e87500e8c16663cdb",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "test/npu/test_aclgraph_multi_stream.py",
+          "git_blob_oid": "fa82ffc845f6fb2bb90e8ede57799c3f50b6cd7c",
+          "git_blob_sha256": "a2e49464b40b5d9ad106a33532dad1c402755454b80a0373b7cb2e8abdd47869",
+          "checkout_sha256": "97b283a2207dd45b4f765ad030c94889d67e205b03f9466b21dec783a132c483",
+          "total_lines": 135,
+          "inspected_spans": [
+            {
+              "start_line": 16,
+              "end_line": 81,
+              "normalized_text_sha256": "2ce0383b73a85e4e24cb461e3f04a6f375c2474de50b560c738f58f95eda7813",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "test/npu/test_amp.py",
+          "git_blob_oid": "467e885cedbdf53ae9483946eeeaf95e8435e437",
+          "git_blob_sha256": "39e70c7e73e64aea2a647a7b35dbfbc76d2214d3f787636372c1b5564e0bba22",
+          "checkout_sha256": "f88455961d40270d27e64cb09fea7670dd885b43a239aab32f4e79e8b2d8fc89",
+          "total_lines": 526,
+          "inspected_spans": [
+            {
+              "start_line": 116,
+              "end_line": 162,
+              "normalized_text_sha256": "f307501507b69c537b4891976b5b893c931be180960cddc06144c5483c1a8937",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "test/npu/test_cpu_fallback_control.py",
+          "git_blob_oid": "14bf15b52e761fcc23f63e95a313d53369eb1ab6",
+          "git_blob_sha256": "dad0bafe95cbe4dada4744b97bd581d18dc3794a146b03ec1317412b9463ae4c",
+          "checkout_sha256": "8df551cdb986b4d9a5f11b305a1162be860356eb92951973d570e816cd4d1747",
+          "total_lines": 211,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 120,
+              "normalized_text_sha256": "c050a7677db53f138ee474a74552033cac9c0332ea99d34070c9b274a5be5f93",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 1,
+              "end_line": 89,
+              "normalized_text_sha256": "3de6623bf65d1c34a8148e7132df673ba2f0cc7a61d1a280e94752c86caa338f",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "test/npu/test_import_contract.py",
+          "git_blob_oid": "cf25dd2a88f8fdf4186657072898d808c31000f6",
+          "git_blob_sha256": "7608b371dd453d3681555dd19c0d071634bf552a6a2d490d6a5eb3e89e8e71fe",
+          "checkout_sha256": "64a5de46de15ed359dbf07324b138664798f4f7a8959dfcf57de744accffcbd1",
+          "total_lines": 53,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 53,
+              "normalized_text_sha256": "2d94d88a72b223fc8d3aefd2d11f4d9feb0800c5ef2e39a5441cfea3c5b379e5",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "test/npu/test_stream.py",
+          "git_blob_oid": "55eb52207b3166e8a0b6d359e3c884fa67abd27b",
+          "git_blob_sha256": "70e4a0ef8001e0713edbc30d5a2a79b50e4395b8350826ce5552849b81c1020e",
+          "checkout_sha256": "2cbb8dc192ed44bdfa9c8a7f7315a2d5f0a766ab296a4299dc87d8dbb53e1eb7",
+          "total_lines": 261,
+          "inspected_spans": [
+            {
+              "start_line": 14,
+              "end_line": 75,
+              "normalized_text_sha256": "c32337bd7fb2e661a13de5bb66f1a301d6a9bcc15349bf64d32917773fc7a958",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "tools/setup_helpers/version.py",
+          "git_blob_oid": "63ef00767672d4234df919beb39dc13d30f2d392",
+          "git_blob_sha256": "97e7f2bf426aabd9cd1d3caf54c6f4e0b7e1219b9c2c2250d1a61abdcc7ded59",
+          "checkout_sha256": "62d849969acf4f280a50369830d28f389662466a968fa9cd7db4b5e924689157",
+          "total_lines": 27,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 27,
+              "normalized_text_sha256": "d5e0959ec14e60d6a1a78e91c4590106248eb637a3d5b343389b03987428bf59",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/__init__.py",
+          "git_blob_oid": "8cb91310e3df976e66765864f2a2baa3d3206beb",
+          "git_blob_sha256": "c0b1e9197b1eab0266f41cb620fc754a15f447506f2a2b003151909d5a6a3737",
+          "checkout_sha256": "3e13cc127665a3926bc296627f2a7f35954c1fe7e6c81c8e5742f2f596befca5",
+          "total_lines": 77,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 77,
+              "normalized_text_sha256": "e5d5bd4709ae718533115584001d1a344e2e33e22dfaafa0c65acb1b705904e6",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/_inductor/__init__.py",
+          "git_blob_oid": "b5b9790a8dff710fb651a361095aea9f980f7cf0",
+          "git_blob_sha256": "90827c712e626e2017a9677c14bebd4e5609507dc30c6d4c127b863a237f2f62",
+          "checkout_sha256": "550e963919390c1be2055c7986f665f2c4ac4efac0a1c32931f1c48d6f632d97",
+          "total_lines": 445,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 190,
+              "normalized_text_sha256": "6d250c098961e10b7a4055f9a901d10b0123765cc5318fabb78f5499a90df33d",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/_init/core/module_loader.py",
+          "git_blob_oid": "558c86c706aa11a4b3876ff0876235cd959b3bdd",
+          "git_blob_sha256": "06d9b949f5de923ba98497d1b592c0fe5a013548c20da2b44cd72b13cbdf5855",
+          "checkout_sha256": "6dd851471929ae79046943795976817ac6685bda51475ce14ad6cbe9f4e9cb5f",
+          "total_lines": 216,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 216,
+              "normalized_text_sha256": "dbd57e0b80be11c4547e4c0879f8f9c8699f76187673ee10bf6c54939d0db155",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/_init/registry/backend.py",
+          "git_blob_oid": "7864ff15c255f462bc65fe0b0be23d6ddf87de0e",
+          "git_blob_sha256": "fc24050fbd1968a2e70ee85f55c1f092098834fb1cf2d294de496927e1f26b40",
+          "checkout_sha256": "99f08c0b87ffb00b8da00b8cf1bb7097185f8b31e0e10653f8662ec5a26131cb",
+          "total_lines": 66,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 66,
+              "normalized_text_sha256": "10db89c6c1e0982fafc2c30085114701ccf9bb1b87124c837470214362c44ef1",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/_init/registry/distributed.py",
+          "git_blob_oid": "32d04f51ee343fec5028611d6326479bb0f3da06",
+          "git_blob_sha256": "40f757d1fa0c7f3616d5b83c06be1e57f62e2e4eecc0af49d090736ca807e4cb",
+          "checkout_sha256": "1a1476fdfacab271c77a9f11142bf81e53059ab81e518ddd918a7153e33abdba",
+          "total_lines": 51,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 51,
+              "normalized_text_sha256": "a27032d99715e8261ae4d022226edd2777cced3f996574ba5b2eb778eeb03ad0",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/_init/registry/dynamo.py",
+          "git_blob_oid": "c0c1dfc8eb06024ef357ac0be5fd04a0a2713577",
+          "git_blob_sha256": "cb32ac0073b5a2730ba710e9827d44fdec2b741ca34e9cfc331a03ba70f23ac2",
+          "checkout_sha256": "6736c6ec989c6f299a439632e786273613b296822e940a409c5524bcff274ad9",
+          "total_lines": 14,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 14,
+              "normalized_text_sha256": "e16d20f04ff49c5b6fa7c3d0cdb2b15272d0856787a834f835e0c3a5e9d2dc9e",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/_init/registry/registry_manager.py",
+          "git_blob_oid": "23ec2526d6196040c13ff7398f53b587af887bcc",
+          "git_blob_sha256": "071bb7a9d30b6ceb7c628bd1d445d73f14e0ad95334ab4aa60a68dd048309955",
+          "checkout_sha256": "867039db04d8eb1fec6f2b991535d4b066b2b0e95de337f308138f4ab07bfcea",
+          "total_lines": 142,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 142,
+              "normalized_text_sha256": "c617d7dd2c49af02a74364ee2ec549d8749ba38944a044935c4fc53461039a39",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/contrib/transfer_to_npu.py",
+          "git_blob_oid": "cfc531781e20a5044f1364ca4b8ca78fade915b9",
+          "git_blob_sha256": "6a71b6bf25e88a1228c965e1a673b3b2934825d41262633986a4d15bbafd2e6a",
+          "checkout_sha256": "cfcef42bce34048cdcb6be3a2b9666d002f5d39f6e50cca7a54507bc54b6f98e",
+          "total_lines": 669,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 100,
+              "normalized_text_sha256": "5060040d2b300a09cbd455e547cc85f12411eb893b90f269dedd227514dc6829",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/aten/AutoCastOps.cpp",
+          "git_blob_oid": "1f2fd927d5e399f875fc7f20e3f57263cfd35b45",
+          "git_blob_sha256": "eb5e451b76e8419861055cb9bd0ff556c8773480995c821e553a3135d591ed3b",
+          "checkout_sha256": "9be1aaf926bab17bf39b2bf6c323d0306a8d3f07e1efe6f7503bd2a9a3a159cf",
+          "total_lines": 61,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 61,
+              "normalized_text_sha256": "9214a2faa037c23ecbc4600fa997b5a4e29ed1c9adab42d69d07869e133f74e9",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/aten/VariableFallbackKernel.cpp",
+          "git_blob_oid": "0d1e7c95a3bd53c8ff33e09212e74db0e452d491",
+          "git_blob_sha256": "daa296432cbb037959664654f995da3ccec3af3c85b354d811faa1327e6efb81",
+          "checkout_sha256": "8287bc38a82cc2b9058b8373dd36eb42959e9acb1e8db2fc2789961f036cc5a2",
+          "total_lines": 254,
+          "inspected_spans": [
+            {
+              "start_line": 206,
+              "end_line": 254,
+              "normalized_text_sha256": "580cb66217ebd9ec502bd91b85ec180f47127657237de9ebe36d69ec64be13a9",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/core/npu/CachingHostAllocator.cpp",
+          "git_blob_oid": "0c35fec9a6ec4b3846da4f23b7d1cd8250e84cb5",
+          "git_blob_sha256": "152f51879326f6001bc78ae065dbb8ae3dffc40353c23740d8811bb9abc7fef5",
+          "checkout_sha256": "09aba21c0857e3618f35056c504ea531f2bca7387a956f5245e82b6c36446d31",
+          "total_lines": 1345,
+          "inspected_spans": [
+            {
+              "start_line": 621,
+              "end_line": 704,
+              "normalized_text_sha256": "3b031bf038772416429152bbb9ce695b2fc6fef014c7e98db0274d25899881a2",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/core/npu/NPUCachingAllocator.cpp",
+          "git_blob_oid": "147ae5d149e2cdb66357d6ee6aaed069f27d0996",
+          "git_blob_sha256": "936c4feffb0ced67c5fc33e6f2482714e9644a82fc3482536bf177af07940d80",
+          "checkout_sha256": "f36d3c7fa276ef2aac885629c797725157b826b21f09b5311af27ed677c6c2e4",
+          "total_lines": 4345,
+          "inspected_spans": [
+            {
+              "start_line": 50,
+              "end_line": 150,
+              "normalized_text_sha256": "42ef14c0445e53552116a3b746d2b34d6b134a6a304857e58540d284d0bb8158",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 1556,
+              "end_line": 1645,
+              "normalized_text_sha256": "a55c0e0a5dcfb996e52a7cd6358441cb3868838c0ae953f260de8917a2b15c2d",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 3175,
+              "end_line": 3300,
+              "normalized_text_sha256": "d930624e853b084c5bbd4afb0911956447a20eeb2bedcdeecf9207fc699f989d",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 1676,
+              "end_line": 1705,
+              "normalized_text_sha256": "77299bfe3d1571c123f69c4f7244bc50ab2686305fef34b9afe890038e0cd354",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 3420,
+              "end_line": 3515,
+              "normalized_text_sha256": "e24d17083e1304806ef0f0f58c158be4c7335178b52e81567bd498068d94ae0b",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/core/npu/NPUEvent.cpp",
+          "git_blob_oid": "260a92aa12ab4b9eb1df6bfc9ac4f6cbb5e0e2fd",
+          "git_blob_sha256": "9aa00f75239e9833dab2d9ab565c023409ec2d2f64067838ca110b76fe863793",
+          "checkout_sha256": "dade5e2e92fe944d126dfa9e53dce70499c1f8807736a54e682c512b9c5e4a46",
+          "total_lines": 311,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 250,
+              "normalized_text_sha256": "57edf906e7f7d0617b6cd038332d968fc8bd1c659df37fc63704644b60b7d03d",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/core/npu/NPUGraph.cpp",
+          "git_blob_oid": "3a0db45b77b3c2c341476b571f68b6fcf131c70b",
+          "git_blob_sha256": "e6783082baaa7ebe07b1d0fefd9c7abece8dc6e3a533fab03b403f21759b6ea3",
+          "checkout_sha256": "dd0617a931af7a0e755659684b98b475374570d8e489db34a1cdcd423f1235bf",
+          "total_lines": 719,
+          "inspected_spans": [
+            {
+              "start_line": 90,
+              "end_line": 340,
+              "normalized_text_sha256": "956ac533b4ad84b1c0c94386894b009690f65397453848e7a3dd511b08e40c9f",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/core/npu/NPUHooksInterface.cpp",
+          "git_blob_oid": "f9af3d3ce01defd801e1882b521dc5bca94bd250",
+          "git_blob_sha256": "bdb77b3d61b8107ef70c392c60aeeb299df513ef372c33b2261e016734097606",
+          "checkout_sha256": "b44e0e5e001b515f94d56f512b81b3fc38c5c80cf107f9b49351a983a3f98741",
+          "total_lines": 74,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 74,
+              "normalized_text_sha256": "27b8115c6976482a18632a945cf6fd4bd3a04d4bd6c099cedfcea4dae23502bb",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/core/npu/NPUStream.cpp",
+          "git_blob_oid": "2948738172a6884b16f99099e317cbc7e3d8210b",
+          "git_blob_sha256": "843061265dff1c246e2f374aff0f6e37b0898f88e7ce3d9cd6d6028507a531d3",
+          "checkout_sha256": "c13765768936983da46ab95ca5780188a9a926db31fbd46847e9c9f25b55d977",
+          "total_lines": 1037,
+          "inspected_spans": [
+            {
+              "start_line": 50,
+              "end_line": 260,
+              "normalized_text_sha256": "f7715b4e20ba580a5fc6e7c7650e44a3c013766ce9062528b732c31d729a9b93",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 800,
+              "end_line": 850,
+              "normalized_text_sha256": "8035980aa16453e904601540f83f4151309063e737246e3c9a9e8dfdd2071f32",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/distributed/ProcessGroupHCCL.cpp",
+          "git_blob_oid": "3f4fe47ffb1eb80ffa6b3f99dbbf6ab5230018f2",
+          "git_blob_sha256": "33a47fd32b9b6a262d8f1ccf159b2cc8c45b112f093b0a4fbab8a7a18ea531a2",
+          "checkout_sha256": "c894b4848a77a2a1ebc240b4a8f4ce4a70f62c330e6a4d72cfa2e64ea7c5c827",
+          "total_lines": 7999,
+          "inspected_spans": [
+            {
+              "start_line": 285,
+              "end_line": 330,
+              "normalized_text_sha256": "ed804640a0043dfad9bf2db3b7f161e116214c5891858e92d99d48644266a7ee",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 1078,
+              "end_line": 1174,
+              "normalized_text_sha256": "405c09506d144289832609c0e3d810a286f9cd70820216d42a01a8acb1bcd73f",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 3090,
+              "end_line": 3235,
+              "normalized_text_sha256": "0fdb08a1fa322edd936c65c69fba6329d83d2401a8ea2d14ec6e64c11377bc17",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 5178,
+              "end_line": 5270,
+              "normalized_text_sha256": "63686e7f848081c2bc08a869db172deef22b6ced6445ff0083ff99e996c1c372",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 4460,
+              "end_line": 4508,
+              "normalized_text_sha256": "26aab7d79509dd63f5f5c51edc8b27db6afcce71027e862c21fdf0abe5402308",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 4565,
+              "end_line": 4676,
+              "normalized_text_sha256": "21c6c2da7e74c4dfedd4634e34525aec3b8f04bd21183fc8fdb107047a3d3c48",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/framework/utils/CpuFallbackUtils.h",
+          "git_blob_oid": "25655175eb1f686d9bda3de1e8305217b87a7511",
+          "git_blob_sha256": "58beb0a68dd8de34c316faf3823a0d8a5d5a7a94a84574d747b335eb94b75818",
+          "checkout_sha256": "e76dd1300eee564a33106ddda82607ce8b7e4f3ae6fa03893380d1a6e9d012e9",
+          "total_lines": 36,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 36,
+              "normalized_text_sha256": "13249ebeff6115a8ac79403f34c9baa8563f5d33eb34055860f30ec439ca8778",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/csrc/profiler/profiler_mgr.cpp",
+          "git_blob_oid": "02154e3310c0aa40d6857b895c0c10f91e67c028",
+          "git_blob_sha256": "d44426224ac0e70583dfc59c214d995eadc1a11eb438c1a35e7b22b618322217",
+          "checkout_sha256": "dcadabbf6d951f424417e882b1aaac827dc2c05665e4febca779ef3b5718fe57",
+          "total_lines": 393,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 150,
+              "normalized_text_sha256": "f8425839aa87c526ec9b5f3e595c26bcfc523b6e327323bcbe0a2db0f5bc0e70",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/distributed/tensor/__init__.py",
+          "git_blob_oid": "75223f17a041ef5fb0be31bdfc55d748736e2e2f",
+          "git_blob_sha256": "8e2f81fdf28b2c370d0f183802e07386ec55f411ad65f213cb1892b0a524024b",
+          "checkout_sha256": "bf525616bffaa4524c70217f7f8b0e59f4ad7faf0fb4714f190affe3d3734ee5",
+          "total_lines": 8,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 8,
+              "normalized_text_sha256": "1325fe46fc87869ec5a4d7501adf9c86e36ace4d10b1bac3d9d4dae73b689d11",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/dynamo/__init__.py",
+          "git_blob_oid": "8def6b3191f0c7b15adbec8bb947dd7d87a8fd54",
+          "git_blob_sha256": "2f4a1d1384eb1bd9be2a2635c80cb84928c8bf53c2496ddaf61c3ae6893fad93",
+          "checkout_sha256": "731bdc4cad436ebfa4e7700a971188a78520cb071d7369e6cfa4c271d9f28869",
+          "total_lines": 286,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 195,
+              "normalized_text_sha256": "5b18fedbd58b9e1f391a9d8657acacd3cf48a5b270eaefbf5999a8069cb67056",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 192,
+              "end_line": 286,
+              "normalized_text_sha256": "576098d2a692ef6ca78a5bcc206d813cb0bfd1d754d0a92542b1b7920b227315",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/npu/__init__.py",
+          "git_blob_oid": "cfeb07fb9298465b5eceafe10ddeaad2224a1b42",
+          "git_blob_sha256": "b27ab22b847d12718c14549472d7c709350fe779c0fd10d575ef3b49a2f69a0d",
+          "checkout_sha256": "6c6605cb387f132d40e9cd2953f6a09e0a7c16ac0d3a2da90283f915225a4624",
+          "total_lines": 892,
+          "inspected_spans": [
+            {
+              "start_line": 90,
+              "end_line": 220,
+              "normalized_text_sha256": "2119b290344c278044cb212c2a2a2a6c798525973106b8c20e005b76e166f2e9",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/npu/_sanitizer.py",
+          "git_blob_oid": "1129c4a2ab1dfdf213a8bcd9732ab7bb908adeec",
+          "git_blob_sha256": "720b83803092c0980a9f46859932efe3785424bf74bb19be7d30c7de0d9a8f8e",
+          "checkout_sha256": "6348d6ea8304c6e046cb9daef5fda8748c45e7191bc4a031da7bcd96936113dd",
+          "total_lines": 129,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 100,
+              "normalized_text_sha256": "b0054ed7e98cdd85b8746db82449ddcc6006ec152100f359bb7a3d4d5514682d",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/npu/amp/autocast_mode.py",
+          "git_blob_oid": "7e9f5c75deaa1218f93da8c52d5862ca62fcd6d5",
+          "git_blob_sha256": "9a575caa4e979f1f7ca69a10af36ca041bf53e831d138eccb363ed4fbae7af64",
+          "checkout_sha256": "f45919e66c5a2d31ae88ecacb4701c438f260b650b8772a9ce10cb10658c3b80",
+          "total_lines": 98,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 98,
+              "normalized_text_sha256": "9a575caa4e979f1f7ca69a10af36ca041bf53e831d138eccb363ed4fbae7af64",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/npu/amp/grad_scaler.py",
+          "git_blob_oid": "9b8ce3530bb38803fd807d973a5535a60a5c9c60",
+          "git_blob_sha256": "67d823fc1bd05f2d1490c3ccc4989aee536773292461e6baafcd1ee04fec597b",
+          "checkout_sha256": "c40424e3c77e3438719e1949c4893db7e2a70252bcc87cdaabbf73c98d2ce08e",
+          "total_lines": 505,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 170,
+              "normalized_text_sha256": "db16b5bc5fc6855e2f1b55830431e7cea864e26218a0d3c22b4f9c8f2663a1fc",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 208,
+              "end_line": 310,
+              "normalized_text_sha256": "c620cd91bbb61c72fd224e48f5ee15b7eb56d1f3bebb56b05cd898e9e4861289",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/npu/graphs.py",
+          "git_blob_oid": "fdd25a44ddd650604a5e4356e2716a333cecb7d6",
+          "git_blob_sha256": "c60e597e5b341ce2b5c48dc694b1ef16c6bd7d86f212e351ffcf73438fe00893",
+          "checkout_sha256": "3964855734c97704d689e32f3cd80875f279566ee9405126dadee454f9e6f334",
+          "total_lines": 1244,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 210,
+              "normalized_text_sha256": "aef96bf839616b062cc23070b959d5293d233e3e9ed893877183e8439a6fd6b4",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 590,
+              "end_line": 655,
+              "normalized_text_sha256": "8023a42f839a05fa6555ee5806c4b0a0d8b94c6aaad5244b0c77c692b47ca117",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 844,
+              "end_line": 925,
+              "normalized_text_sha256": "78b69a03cff626557f5336a7f268546d3b9b24a789960fa8dd0c41f370b8b9b7",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/npu/streams.py",
+          "git_blob_oid": "9b5561a54e6962aaaa37cb0bf1a1a391cc48edd4",
+          "git_blob_sha256": "00123b33d129387678d110eb75dc1fa3a6e7cca28222c71291bb7376bc45912f",
+          "checkout_sha256": "6f7fb5db8048d837a1744b44610ced4ec921cfb4ac51ded6a3136d5b4241bba2",
+          "total_lines": 437,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 180,
+              "normalized_text_sha256": "f58eb30527a5ad88712bad65e06eb02748d0085870284e760cbd2cf93ced5be7",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 111,
+              "end_line": 180,
+              "normalized_text_sha256": "ab45b2731a809ce11434f70d10b9f4ac961cba0ce46d78e5fe70a5dbc0fba975",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/onnx/__init__.py",
+          "git_blob_oid": "e1fab31092850083f063db2efbbb630bb2c6d2f8",
+          "git_blob_sha256": "db04ce72f846ac4ab7475c19963b97bfc1dac897a87e429c76b200bb4b3e3f2d",
+          "checkout_sha256": "375c90852fa8389399447abae1c88e7ceb6a43cba37cd90a43b16efd9da83be8",
+          "total_lines": 8,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 8,
+              "normalized_text_sha256": "5feb159a35c85b0fd9aec2f21ac60fad7fb44308ea422774890b670e83d3e818",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/optim/__init__.py",
+          "git_blob_oid": "b3681010fced195160de895905466696585ae0d1",
+          "git_blob_sha256": "74b1ebb70124036e1f97e29f5b0c523059182d4ec2ca262cb8cf999b48243671",
+          "checkout_sha256": "935a35d731f361deedbfc85ae51f57c584faa9a969080523e3174358dfc574c6",
+          "total_lines": 17,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 17,
+              "normalized_text_sha256": "b08d5766ab24bd5535faa7d52553e8d7aac7d231656da7fa6535acc3f9937d78",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/profiler/profiler.py",
+          "git_blob_oid": "7995a9d0a977125c3ea1ae385a590438b04b1baf",
+          "git_blob_sha256": "8f5671849b5af0d6f39ffc89eef6fe8b3f9ff04b316270b47ff1a415cd4fbbc4",
+          "checkout_sha256": "730a013ad5e7f0502e4246373b69e2faa68307bb5bd32233f5ad282ec1c2fd23",
+          "total_lines": 454,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 170,
+              "normalized_text_sha256": "d972d1ee54200823f7e6231789c61898db232dab29e824167cf58177f348732d",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 186,
+              "end_line": 292,
+              "normalized_text_sha256": "5b6b05b1f3b53dacb32fbd67c4ef7362fdf6aff349644d5a4138e479312d6af2",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 330,
+              "end_line": 380,
+              "normalized_text_sha256": "2257bd77e8b85b0c95688003c7c5dd0c77e1a12b1b9e682070bb17bce4d23a74",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/profiler/scheduler.py",
+          "git_blob_oid": "c413fa74f17d99e04d6a2610d64f0c5c6aea85da",
+          "git_blob_sha256": "8f0014f3be11655a845b7cd0be3f7532ee462bc6397216beac6857576907922b",
+          "checkout_sha256": "42ff452e36dff9d0bfe1dc7225bb1f7506d8dee470350765cad1218ae3d0b092",
+          "total_lines": 109,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 109,
+              "normalized_text_sha256": "7b531704c7d8399966aeae8e67dac61aa0697a9a43dd469eef3a0045bbf249c6",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torch_npu/utils/serialization.py",
+          "git_blob_oid": "9d2ab292b0b170317719437708da42a87ec7777b",
+          "git_blob_sha256": "cde13099bbd3f2ca7d11f3a162ab0ab0c268a6bb75eca2be390a973f606f1084",
+          "checkout_sha256": "543eacb71e8b0205ee4c844633d7d61214be47fc63d97adf979fa09cd82f4a26",
+          "total_lines": 504,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 110,
+              "normalized_text_sha256": "642a0abeed441d4325c669c04cb50028d28c24765ff9f6ce56d7d6441d49741f",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torchnpugen/gen_backend_stubs.py",
+          "git_blob_oid": "39b7b6faca7470aa7567dea7db4a27f08f66873d",
+          "git_blob_sha256": "8118063cffed29d2f7ad6dbd013482c7f05ab46676435dc0502795bba83ceb4d",
+          "checkout_sha256": "819ccc86de007ddd4762da098220e2521001cc4dc0a5623e052d12808b9ccb14",
+          "total_lines": 1948,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 130,
+              "normalized_text_sha256": "bea52a62d8caa584d85bda19536207b2af74577d355b1748b073654632507ec6",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "version.txt",
+          "git_blob_oid": "b5411b8fc62a966a41533cfdbbeda34e18d1331f",
+          "git_blob_sha256": "18f48103eaccfbdc4697e22e54bd7d5b0f0311c99ffd70ba71317111f83f3a55",
+          "checkout_sha256": "0930096fbc4effe081c0897c482801d17ee22ae2b3fcf276c64c182635693eba",
+          "total_lines": 13,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 13,
+              "normalized_text_sha256": "abcf92b59a5239d3aabe78ce9a47f12c817ddb0a51da98a3d356d310b52c0011",
+              "git_text_equivalent": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "repository": "Ascend/op-plugin",
+      "url": "https://github.com/Ascend/op-plugin",
+      "commit": "ad946817034b3270e309c81c54f0ee808d0b62cb",
+      "files": [
+        {
+          "path": "examples/cpp_extension_full/torch_lib_impl/cpp_extension_full/ops.py",
+          "git_blob_oid": "3c9166c1634202b8557d9291c7d1eae12ee3184a",
+          "git_blob_sha256": "8492a8db431f26c0ed40143213f148daf2feb511f3c94a14d89c4bdde8fd15e3",
+          "checkout_sha256": "1bc9bae4c82c3493fc08b3300f84c5ae99504d655466ab06dcdaad08d285888a",
+          "total_lines": 4,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 4,
+              "normalized_text_sha256": "5ea4fd7b2d105a90badb4a2e958e214c29ea4a5d7e1c6a649ccd60be03926a7d",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "examples/cpp_extension_full/torch_lib_impl/csrc/add_custom.cpp",
+          "git_blob_oid": "13d54f52de9e3c71e4f4216c67d16707eb8cd837",
+          "git_blob_sha256": "60a0f8f1432796d9c65960958379531b2fc216c0fdb4de85e032731e10e98f77",
+          "checkout_sha256": "588d290c8b0cb69c3eaf0066bebf6de5dfac218f662e0ca9d54df99903312e57",
+          "total_lines": 167,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 167,
+              "normalized_text_sha256": "6338f461acf78dffb0b901e57265f9c5c6a3d1864c6a8baf88429fa9469811b6",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 130,
+              "end_line": 167,
+              "normalized_text_sha256": "a2a64807faf1a150e4d0d9ad25884cf6bdce03d7273f9154d4a42f22ac85c4ea",
+              "git_text_equivalent": true
+            },
+            {
+              "start_line": 91,
+              "end_line": 129,
+              "normalized_text_sha256": "a5e0d18a344c16217087bef420c32209bedec23b7dc526e6ce017ebe2e5e8cbf",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "op_plugin/config/op_plugin_functions.yaml",
+          "git_blob_oid": "d650c45da598bb11f1824c22c8fd2396662cb878",
+          "git_blob_sha256": "b55e9a938c97c759129147d7409f9f41e863b8d2ffaf6127a29eb119cc8be8e9",
+          "checkout_sha256": "1efe8c5a7adb83d22b75834b6f59ba1991e008c475d50b2e1e2ab553c183b22d",
+          "total_lines": 7748,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 82,
+              "normalized_text_sha256": "6c653709464ca66c8bd1fb9c11834bb415a5f5d0f6099a35803f0e094cad812f",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "op_plugin/ops/aclops/AddKernelNpu.cpp",
+          "git_blob_oid": "8bd84217c88e70dcdec1ce02dc6fa6ea138169f8",
+          "git_blob_sha256": "859456ee141444e3f90077950fa13662ed128285d28d7dfd6ffb1eb51af6a61c",
+          "checkout_sha256": "b100a81e77b6bc0fd728250cddaa6b20db29bf42248e0b531ac6db4b8da73756",
+          "total_lines": 307,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 160,
+              "normalized_text_sha256": "db385867d5024f8e4bd8d460f0f120b03b46ccae2ea1837189accff4bc8f6323",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "op_plugin/ops/opapi/AddKernelNpuOpApi.cpp",
+          "git_blob_oid": "e4bc3a4ae949c726a66a46af5606122bb6d5f079",
+          "git_blob_sha256": "677a549d611189400f7300c8bbefa81c61d3ef765d570e4038bffe7e15efd547",
+          "checkout_sha256": "e8ecd0c0346b0b9d96a9b85ea2ba934a698963bd500dfddeaa61444d0ee0390e",
+          "total_lines": 180,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 180,
+              "normalized_text_sha256": "a4191bdcd828da5446a1e604db49a30b89c0856042ec54b86361927b69e75f96",
+              "git_text_equivalent": true
+            }
+          ]
+        },
+        {
+          "path": "torchnpugen/gen_op_plugin_functions.py",
+          "git_blob_oid": "a4e7bfbb5286e3369ea5457f51d76b26b6ed8d87",
+          "git_blob_sha256": "bc08197c8ec200a63a32a99a51a67f2d93dea5d17ee515459348d52d6219a7ce",
+          "checkout_sha256": "442c6d7cf5a2bf1b9ec22223f1bd1e86d5d0f68aa2220978e93ec89301445ae4",
+          "total_lines": 103,
+          "inspected_spans": [
+            {
+              "start_line": 1,
+              "end_line": 103,
+              "normalized_text_sha256": "bb3d22e7e846c3333604039fde95be441ea5846cbf47bc5bf1c5783a7f457125",
+              "git_text_equivalent": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

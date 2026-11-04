@@ -1,0 +1,15 @@
+# Final bounded source candidate report
+
+## Source and actual method
+ml-explore/mlx-swift-lm main at `3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac`. The 34-file byte ledger preserves substantive versus context/inventory spans. Main documents a 3.x API line and requires Swift tools 6.2; no installed package/native API or actual dependency resolution was inspected. Manifest ranges do not become exact MLX/native artifacts. AREX `ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6` was used as an actual portable compatible-agent create/prepare/manual-workflow/verify adaptation, not a DisCo CLI/model run or managed installation.
+
+## Delivered depth
+Root router plus generation-lifecycle and gated-delta-contract: actual async mutex/transfer/container/iterator/worker/loop ownership and termination, recurrent host/MSL/ops/state/mask/caller/test contracts. Two safe explicit-input Python helpers inspect caller evidence or declaration/formula/source-gate relationships; no task scheduler, recurrence or GPU is simulated. Eight hard source-anchored cases, two root/two per route/two integrated, stay outside runtime. Broad model/loading/cache/chat/speculation/training/grammar/FoundationModels and dependency internals remain named gaps beyond selected contracts.
+
+## Support and negative evidence
+234 integrated graph/helper/case tests passed. Actual author helper/static checks, including 545 API and 56 CLI adversarial readbacks, are recorded in support-report.json. Integrated tests, generators, full scaffold, installed wheel and current-head hosted CI are reported only after completed runs on the PR. Initial formatting/privacy/count-edit/overload-provenance refinements are retained, not hidden as engine successes. Source-only false-mask Y handling differs between fused and ops implementations; this is an unexecuted parity gap, not a confirmed numeric bug or a successful fix. Requested kernel tests do not independently prove fused dispatch; provider stride/packing remains external and unverified.
+
+## Required native gap and rights
+No Swift compile, live API/CLI, package resolution, original compiled host-control/native test, actual Metal backgrounding/cancellation/storage/kernel/model/fit/quality/service/performance experiment ran. CPU-override source tests are still compiled Swift/MLX candidates, not Python substitutes; GPU admission skips cannot pass the missing backend. Required native remains BLOCKED_REQUIRED_BACKEND, engine empirical validation not_run. No model weights, native toolchain/MLX dependency installation, service or paid call.
+
+Actual unauthenticated gh resolver returned NO_LICENSE/unavailable; recursive apply/gate covers all three SKILLs and descriptions were normalized afterward. Root MIT bytes retained independently; unselected xgrammar/dependency/model rights are separate. Destination is authorized InferRSI repository integration, not an upstream contribution or managed DisCo import. Candidate is not fully backend verified or auto-import eligible; independent internal review and exact-head Ready/admission precede authorized normal integration. No GitHub APPROVE review is assumed.

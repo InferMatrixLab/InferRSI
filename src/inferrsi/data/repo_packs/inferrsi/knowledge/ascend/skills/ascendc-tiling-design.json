@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f/src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
-      "commit": "93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json",
@@ -41,8 +41,8 @@
   "checkout_ref": "checkout:ascendc-tiling-design",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/SKILL.md": "93aa1b775ced304cebfe6c4dec0503ddb2260ecb3cb01edc17ce329446c5ce2b",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json": "04dd3e8961d5c67105b11ff52f1354f34124d9af1b03f9da08cba67cb9f9d463",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascendc-tiling-design/metadata.json": "03cfd09faa3edf42f9d08d0d8878fe5cb7c7a376abacf211dd8f500c698f3a8f",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "ascendc-tiling-design",
@@ -63,25 +63,35 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Design or restructure AscendC tiling for the covered reduction, broadcast and elementwise classes, plus the bounded mxfp8 fusion and small-channel transpose cases.",
+      "input_contract": "Operator class and semantics, normalized shapes/axes, dtype, target chip generation, valid/aligned lengths and intermediate-buffer requirements.",
+      "produced_artifact": "A multi-core split, UB chunk formula, buffer-size/total-usage plan and branch matrix with edge tests; these are design outputs, not benchmark results.",
+      "failure_modes": "Budgeting only inputs omits intermediate UB storage; mixing valid and aligned lengths or copy units corrupts boundaries, and choosing unsupported generation-specific primitives invalidates the design."
+    },
+    "recommendations": [
+      "Normalize axes first, then decide full-load versus chunking from the entire live working set; derive tile size from buffer, axis, API and load-balance constraints.",
+      "Keep valid compute/copy lengths separate from aligned storage offsets and sizes, and complete dtype, tail/alignment and boundary branches before tuning.",
+      "Select primitives by the target generation and preserve class-specific coverage limits; re-evaluate sample constants and API semantics instead of treating formulas as tested performance evidence."
+    ]
   },
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Design or restructure AscendC tiling for the covered reduction, broadcast and elementwise classes, plus the bounded mxfp8 fusion and small-channel transpose cases.",
+    "input_contract": "Operator class and semantics, normalized shapes/axes, dtype, target chip generation, valid/aligned lengths and intermediate-buffer requirements.",
+    "produced_artifact": "A multi-core split, UB chunk formula, buffer-size/total-usage plan and branch matrix with edge tests; these are design outputs, not benchmark results.",
+    "failure_modes": "Budgeting only inputs omits intermediate UB storage; mixing valid and aligned lengths or copy units corrupts boundaries, and choosing unsupported generation-specific primitives invalidates the design."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Normalize axes first, then decide full-load versus chunking from the entire live working set; derive tile size from buffer, axis, API and load-balance constraints.",
+    "Keep valid compute/copy lengths separate from aligned storage offsets and sizes, and complete dtype, tail/alignment and boundary branches before tuning.",
+    "Select primitives by the target generation and preserve class-specific coverage limits; re-evaluate sample constants and API semantics instead of treating formulas as tested performance evidence."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

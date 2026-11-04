@@ -1,0 +1,26 @@
+{
+  "scope": "local_authenticated_wheel_prefetch_only",
+  "files": [
+    {
+      "filename": "pyarrow-26.0.0-cp312-cp312-manylinux_2_28_x86_64.whl",
+      "url": "https://files.pythonhosted.org/packages/88/e4/9cd356d906e71bd79b0c3fc5c9a54e01a0020dcf14c152ccfbcb503c7298/pyarrow-26.0.0-cp312-cp312-manylinux_2_28_x86_64.whl",
+      "bytes": 53931932,
+      "sha256": "6a628922ba20705fa964ca73e4ef959c2fb2f14b9bbec5589a6a1e68e6257c85",
+      "metadata_sha256": "820e0086a99265aeb261219e687d72eae106dba6290a66683315b4fe85276be5",
+      "download_and_write_seconds": 1.1776634590351023
+    },
+    {
+      "filename": "google_api_python_client-2.201.0-py3-none-any.whl",
+      "url": "https://files.pythonhosted.org/packages/8b/c0/221313acdee33b8e5d3fe8a06ba398fc18cfd14627816764bb00318a6065/google_api_python_client-2.201.0-py3-none-any.whl",
+      "bytes": 16812656,
+      "sha256": "2d9bf1ba3f12eee8ed3d0f1791ce0605d163432f496baa72d3677faa2cf097d6",
+      "metadata_sha256": "c9f55d48f7e85f8f089cb5fa1fcb8ce60cd393c0bbeb7179564f23ebaa5a2fc1",
+      "download_and_write_seconds": 0.5934682919760235
+    }
+  ],
+  "runtime_lock_sha256": "2c60d833d1a705050a152c767da55c90d9f30a4b831d140e115dbffe4d6bb823",
+  "installed": false,
+  "imported": false,
+  "uploaded": false,
+  "gpu_used": false
+}

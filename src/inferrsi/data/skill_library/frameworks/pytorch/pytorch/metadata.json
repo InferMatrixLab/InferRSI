@@ -1,0 +1,131 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NOASSERTION",
+  "disable-model-invocation": true,
+  "metadata": {
+    "disco-role": "operating"
+  },
+  "tags": [
+    "pytorch",
+    "tensor",
+    "autograd",
+    "training",
+    "compiler",
+    "distributed",
+    "repository-guide"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/pytorch/pytorch",
+      "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+      "paths": [
+        "AGENTS.md",
+        "LICENSE",
+        "NOTICE",
+        "README.md",
+        "SECURITY.md",
+        "aten/src/ATen/core/dispatch/DispatchKeyExtractor.h",
+        "aten/src/ATen/core/dispatch/Dispatcher.h",
+        "aten/src/ATen/native/transformers/cuda/sdp_utils.cpp",
+        "c10/cuda/CUDACachingAllocator.cpp",
+        "cmake/EnvVarForwarding.cmake",
+        "docs/source/distributed/checkpoint.md",
+        "docs/source/distributed/fsdp.fully_shard.md",
+        "docs/source/distributed/tensor.md",
+        "docs/source/func.md",
+        "docs/source/nested.md",
+        "docs/source/notes/amp_examples.md",
+        "docs/source/notes/autograd.md",
+        "docs/source/notes/cuda.md",
+        "docs/source/notes/ddp.md",
+        "docs/source/notes/extending.md",
+        "docs/source/notes/modules.md",
+        "docs/source/notes/numerical_accuracy.md",
+        "docs/source/notes/randomness.md",
+        "docs/source/notes/serialization.md",
+        "docs/source/onnx.md",
+        "docs/source/profiler.md",
+        "docs/source/quantization.md",
+        "docs/source/sparse.md",
+        "docs/source/user_guide/torch_compiler/torch.compiler_troubleshooting.md",
+        "docs/source/utils/mobile_optimizer.md",
+        "pyproject.toml",
+        "setup.py",
+        "test/export/test_export.py",
+        "test/profiler/test_profiler.py",
+        "test/test_autograd.py",
+        "test/test_cuda.py",
+        "test/test_custom_ops.py",
+        "test/test_dataloader.py",
+        "test/test_serialization.py",
+        "torch/__init__.py",
+        "torch/_dynamo/convert_frame.py",
+        "torch/_dynamo/guards.py",
+        "torch/_inductor/compile_fx.py",
+        "torch/_inductor/graph.py",
+        "torch/_library/custom_ops.py",
+        "torch/csrc/distributed/c10d/ProcessGroup.hpp",
+        "torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp",
+        "torch/distributed/checkpoint/format_utils.py",
+        "torch/distributed/checkpoint/state_dict_saver.py",
+        "torch/distributed/distributed_c10d.py",
+        "torch/distributed/elastic/rendezvous/c10d_rendezvous_backend.py",
+        "torch/distributed/rendezvous.py",
+        "torch/distributed/run.py",
+        "torch/export/__init__.py",
+        "torch/fx/__init__.py",
+        "torch/jit/__init__.py",
+        "torch/library.py",
+        "torch/nn/functional.py",
+        "torch/onnx/__init__.py",
+        "torch/optim/optimizer.py",
+        "torch/profiler/profiler.py",
+        "torch/serialization.py",
+        "torch/utils/benchmark/utils/timer.py",
+        "torch/utils/checkpoint.py",
+        "torch/utils/collect_env.py",
+        "torch/utils/cpp_extension.py",
+        "torch/utils/data/dataloader.py",
+        "version.txt"
+      ],
+      "readset": "references/source-readset.json"
+    }
+  ],
+  "provenance_readsets": [
+    "references/source-readset.json"
+  ],
+  "references": [
+    "../../../hardware/host/host-memory-management/SKILL.md",
+    "../dcp-async-save-performance/SKILL.md"
+  ],
+  "applicability": {
+    "scope": "Major user workflows and selected deep mechanisms of pinned pytorch/pytorch source; exact device/operator qualification remains task-specific.",
+    "prerequisites": [
+      "An explicitly selected installed torch environment for runtime helpers.",
+      "Actual required devices, supported build and trusted ranks/storage for backend/distributed operations."
+    ],
+    "input_contract": "A concrete model/tensor/data/environment reproduction and desired operation or expected behavior.",
+    "produced_artifact": "A route-specific environment, tensor/gradient, graph, memory/stream, rank/state or measurement contract with checked and missing evidence.",
+    "failure_modes": [
+      "Transferring pinned-source behavior to another release/backend without checking compatibility.",
+      "Confusing source inventory, CPU diagnostics and target backend execution."
+    ],
+    "refusal_point": "Withhold backend success and performance conclusions when required runtime or workload evidence is missing."
+  },
+  "limitations": [
+    "Source-derived candidate; empirical efficacy not_run.",
+    "Required CUDA/ROCm/MPS/XPU/external accelerator and NCCL/graph checks unavailable locally retain BLOCKED_REQUIRED_BACKEND.",
+    "Installed CPU wheel 2.15.0+cpu is separate from pinned source 2.16.0a0; CPU diagnostics are not same-source native verification.",
+    "No automatic compatibility pairing with independently pinned TorchNPU.",
+    "Directory inventory does not imply every file/operator/device was semantically read or run."
+  ],
+  "consumption_mode": "packaged"
+}

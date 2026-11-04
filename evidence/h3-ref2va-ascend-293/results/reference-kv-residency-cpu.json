@@ -1,0 +1,23 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "CPU behavior only; NPU latency, memory and media quality pending",
+  "source_revision": "4fc121ff3d6e7ccb1d3e35582fddf509e010dfa9",
+  "tests_passed": 13,
+  "test_duration_s": 0.18,
+  "test_coverage": [
+    "host/device exact payload parity through capture-refresh-reuse in FP32/BF16",
+    "returned payload remains stable across refresh",
+    "ordered block-cache skips",
+    "abort and close release",
+    "default-host and configuration validation"
+  ],
+  "baseline_comparison": "The new tests fail on the original baseline because the optional residency API is absent; these are not thirteen pre-existing defects.",
+  "pre_commit": "All applicable hooks passed, including mypy, ruff, formatting and markdown checks",
+  "retained_log_sha256": "713d0cfc654260685db76f1413274cc91af1b393e156010d10604cbf2e66e004",
+  "files_sha256": {
+    "vllm_omni/diffusion/kv_offload_config.py": "e346520c6a6cbc7de50b12e01c1a810124688e22b2ddf1dad004e06f82f164fa",
+    "vllm_omni/diffusion/models/minimax_h3/reference_kv_cache.py": "124d80cb9e520bcd66ee55bd998953b00e8028f9de395f3fc044928cf3ea4a9d",
+    "tests/diffusion/models/minimax_h3/test_reference_kv_residency.py": "eed898a599e94df492909b07b2af5871c53e5e52b889a36055f2c4c9ec25955b"
+  },
+  "performance_gain": null
+}

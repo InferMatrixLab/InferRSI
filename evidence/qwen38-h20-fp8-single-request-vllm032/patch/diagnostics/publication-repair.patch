@@ -1,0 +1,154 @@
+diff --git a/nanovllm/qwen38/engine.py b/nanovllm/qwen38/engine.py
+index 3976480..1d770cb 100644
+--- a/nanovllm/qwen38/engine.py
++++ b/nanovllm/qwen38/engine.py
+@@ -181,6 +181,9 @@ class DedicatedEngine:
+                        if isinstance(module, FP8Linear)}
+             calls = {name: module.native_fp8_calls for name, module in modules.items()}
+             execution = {"fp8_execution": {"modules": len(calls), "total_calls": sum(calls.values()),
++                         "call_counter_scope": "python_forward_only_includes_warmup_and_capture_excludes_graph_replay",
++                         "backend": self.loader_report["backend"],
++                         "kernel_name": self.loader_report["kernel_name"],
+                          "executed_modules": sum(count > 0 for count in calls.values()), "per_module_calls": calls,
+                          "weight_dtype": "float8_e4m3fn", "scale_dtype": "float32",
+                          "actual_dtypes_valid": all(module.weight.dtype == torch.float8_e4m3fn
+diff --git a/nanovllm/qwen38/model.py b/nanovllm/qwen38/model.py
+index 83cddbd..e710727 100644
+--- a/nanovllm/qwen38/model.py
++++ b/nanovllm/qwen38/model.py
+@@ -159,7 +159,7 @@ class FullAttention(nn.Module):
+         self.q_norm = RMSNorm(config.head_dim, config.rms_norm_eps)
+         self.k_norm = RMSNorm(config.head_dim, config.rms_norm_eps)
+ 
+-    def forward(self, x, state, positions, cos, sin):
++    def forward(self, x, state, positions, cos, sin, *, fresh_prefill=False):
+         config = self.config
+         count = x.shape[1]
+         # Q and gate are interleaved per head, not two contiguous projection halves.
+@@ -190,8 +190,13 @@ class FullAttention(nn.Module):
+         # 14ms 非 GEMM 里最大的一块。改为 batch=4 的等形 bmm 后不再产生该拷贝。
+         q_grouped = q.reshape(kv_heads, repeats * count, config.head_dim)
+         keys, values = (
+-            (state.key, state.value) if state.capacity else (k, v)
++            (state.key, state.value) if state.capacity and not fresh_prefill else (k, v)
+         )
++        # Initial prefill has no cached prefix. Keep its original K/V operands
++        # and reduction shape even when reserving storage for later graph decode.
++        # Reading the padded cache here changes BF16 rounding before capture and
++        # can change subsequent greedy tokens. The writes above still populate
++        # the fixed addresses consumed by replay.
+         keys_bt = keys.reshape(kv_heads, -1, config.head_dim).transpose(1, 2)
+         scores = torch.matmul(q_grouped, keys_bt).reshape(
+             1, kv_heads, repeats, count, keys.shape[2]
+@@ -427,12 +432,13 @@ class DecoderLayer(nn.Module):
+         self.post_attention_layernorm = RMSNorm(config.hidden_size, config.rms_norm_eps)
+         self.mlp = MLP(config)
+ 
+-    def forward(self, x, state, positions, cos, sin):
++    def forward(self, x, state, positions, cos, sin, *, fresh_prefill=False):
+         normalized = self.input_layernorm(x)
+         mixed = (
+             self.linear_attn(normalized, state)
+             if self.kind == "linear_attention"
+-            else self.self_attn(normalized, state, positions, cos, sin)
++            else self.self_attn(normalized, state, positions, cos, sin,
++                                fresh_prefill=fresh_prefill)
+         )
+         # 残差相加与 post-attention norm 折成一个 kernel：x ← x + mixed（原地），
+         # 同时产出归一化结果，少一次物化。数值语义与分开写相同。
+@@ -571,7 +577,8 @@ class Qwen38ForCausalLM(nn.Module):
+         cos, sin = rotary_tables(self.config, positions, hidden.dtype)
+         cos, sin = cos[None, None], sin[None, None]
+         for layer, layer_state in zip(self.model.layers, pending):
+-            hidden = layer(hidden, layer_state, positions, cos, sin)
++            hidden = layer(hidden, layer_state, positions, cos, sin,
++                           fresh_prefill=state.length == 0 and state.positions is None)
+         logits = self.lm_head(self.model.norm(hidden))
+         state.layers = pending
+         if state.positions is None:
+diff --git a/nanovllm/qwen38/quant.py b/nanovllm/qwen38/quant.py
+index 34863c5..6df0144 100644
+--- a/nanovllm/qwen38/quant.py
++++ b/nanovllm/qwen38/quant.py
+@@ -2,6 +2,8 @@
+ 
+ from __future__ import annotations
+ 
++import os
++
+ import torch
+ from torch import nn
+ 
+@@ -21,6 +23,12 @@ class FP8Linear(nn.Module):
+ 
+     def __init__(self, in_features: int, out_features: int, *, device=None):
+         super().__init__()
++        requested = os.environ.get("NANOVLLM_FP8_GEMM", "triton")
++        if requested not in ("triton", self.backend):
++            raise ValueError(
++                f"Unsupported NANOVLLM_FP8_GEMM={requested!r}; this build implements "
++                f"only {self.backend}. No fallback was selected."
++            )
+         if in_features <= 0 or out_features <= 0:
+             raise ValueError("FP8 linear dimensions must be positive")
+         self.in_features = in_features
+diff --git a/tests/test_qwen38_graph_prefill.py b/tests/test_qwen38_graph_prefill.py
+new file mode 100644
+index 0000000..ebe8702
+--- /dev/null
++++ b/tests/test_qwen38_graph_prefill.py
+@@ -0,0 +1,28 @@
++"""Reserving graph KV storage must not change initial prefill computation."""
++import pytest
++import torch
++
++from nanovllm.qwen38.config import Qwen38TextConfig
++from nanovllm.qwen38.model import Qwen38ForCausalLM
++
++
++@pytest.mark.parametrize("dtype", [torch.float32, torch.bfloat16])
++@pytest.mark.parametrize("length", [1, 7, 65])
++def test_initial_prefill_is_independent_of_reserved_decode_capacity(dtype, length):
++    torch.manual_seed(17)
++    model = Qwen38ForCausalLM(Qwen38TextConfig.for_testing()).to(dtype).eval()
++    tokens = torch.randint(0, model.config.vocab_size, (1, length))
++    compact, buffered = model.new_state(), model.new_state(capacity=256)
++    a, b = model(tokens, compact), model(tokens, buffered)
++    assert torch.equal(a, b)
++    assert compact.length == buffered.length == length
++    for left, right in zip(compact.layers, buffered.layers):
++        for field in ("key", "value", "conv", "recurrent"):
++            x, y = getattr(left, field), getattr(right, field)
++            if x is None:
++                assert y is None
++            else:
++                if field in ("key", "value"):
++                    assert y.shape[2] == 256
++                    y = y[:, :, :length]
++                assert torch.equal(x, y)
+diff --git a/tests/test_qwen38_quant.py b/tests/test_qwen38_quant.py
+index 52e9016..8dd0767 100644
+--- a/tests/test_qwen38_quant.py
++++ b/tests/test_qwen38_quant.py
+@@ -12,6 +12,21 @@ from nanovllm.qwen38.model import Qwen38ForCausalLM
+ from nanovllm.qwen38.quant import FP8Linear, convert_fp8_linears
+ 
+ 
++@pytest.mark.parametrize("backend", ["flashinfer", "deepgemm", "typo"])
++def test_unimplemented_backend_is_not_silently_ignored(monkeypatch, backend):
++    monkeypatch.setenv("NANOVLLM_FP8_GEMM", backend)
++    with pytest.raises(ValueError, match="Unsupported NANOVLLM_FP8_GEMM"):
++        FP8Linear(128, 128, device="meta")
++
++
++@pytest.mark.parametrize("backend", ["triton", "triton_block_fp8"])
++def test_supported_backend_aliases_report_implemented_kernel(monkeypatch, backend):
++    monkeypatch.setenv("NANOVLLM_FP8_GEMM", backend)
++    module = FP8Linear(128, 128, device="meta")
++    assert module.backend == "triton_block_fp8"
++    assert module.kernel_name == "qwen38_block_fp8"
++
++
+ def tiny_fp8_model():
+     model = Qwen38ForCausalLM(Qwen38TextConfig.for_testing()).to(torch.bfloat16)
+     exclusions = ("lm_head", "model.language_model.layers.0.linear_attn.in_proj_a",

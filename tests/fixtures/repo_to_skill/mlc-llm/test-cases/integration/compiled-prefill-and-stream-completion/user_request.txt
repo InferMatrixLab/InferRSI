@@ -1,0 +1,1 @@
+A runtime prefill decrease and a submitted Metal kernel/copy are combined with an unchanged parameter schema ID to assert lower resident memory and safe cache reuse before wait.

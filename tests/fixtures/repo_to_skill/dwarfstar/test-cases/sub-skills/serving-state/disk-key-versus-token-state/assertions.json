@@ -1,0 +1,28 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "serving-state",
+  "target_capability": "persistent prefix and exact backend-frontier recovery",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "ds4_kvstore.h:36-56",
+    "ds4_kvstore.c:1196-1308",
+    "ds4.c:64250-64292",
+    "ds4.c:77826-77860",
+    "ds4_server.c:10679-10731",
+    "ds4_server.c:11094-11133"
+  ],
+  "expected_skill_files": [
+    "sub-skills/serving-state/SKILL.md",
+    "sub-skills/serving-state/references/state-contracts.md",
+    "sub-skills/serving-state/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response separates rendered-byte-prefix lookup from validated exact-token/model-state payload restoration.",
+    "It preserves saved exact tokens and tokenizes only the suffix after the byte prefix, rather than retokenizing the whole prefix into the old backend state.",
+    "It checks model identity, saved context not exceeding current context, optional same-quant policy, and payload version/layout constraints without claiming arbitrary checkpoint compatibility.",
+    "It rejects token-vector-only rewrites behind the live end and calls for verified older-frontier restoration or full replay.",
+    "It explains that all calls in a message must resolve to one retained DSML block, missing/mixed mappings use canonical fallback, and tool IDs alone are not durable conversation storage.",
+    "It states that TP payload reload rebuilds both ranks from exact saved tokens and still needs real distributed-backend verification.",
+    "It neither starts a service nor deletes or patches cache data, and distinguishes the proposed recovery from an executed result."
+  ]
+}

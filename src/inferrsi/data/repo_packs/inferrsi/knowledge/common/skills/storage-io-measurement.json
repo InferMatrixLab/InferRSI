@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f/src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
-      "commit": "93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json",
@@ -41,8 +41,8 @@
   "checkout_ref": "checkout:storage-io-measurement",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/SKILL.md": "63b883c10a8d3e7d918abfc7175b72e2b401ff1e02697f94b8382ec1c8f369b7",
-    "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json": "1d3195ca8ac8e1b0e94acda01863b83046cff7d773e8131e9f3f925150bad66e",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/hardware/host/storage-io-measurement/metadata.json": "5017aa6c04b8cc45d8549b71bc283bfced8e7e1bdb29cf0b305a0447a3c12a9d",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "storage-io-measurement",
@@ -63,25 +63,39 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Measure and attribute storage traffic for model loading or serving while separating device/process observations from application outcomes and cache/startup effects.",
+      "prerequisites": "Resolve backing devices and participating worker PIDs first; active fio benchmarks or cache manipulation require separate authorization, with bounded observation during already-authorized runs.",
+      "input_contract": "Observed loader access pattern, tool/OS/filesystem versions, file-to-device mapping, worker PIDs, phase timestamps, cache-state method and raw IO/job/application measurements.",
+      "produced_artifact": "A workload- and cache-qualified IO evidence record with units, achieved depth, errors/bytes/completion and device/process attribution, plus a separately measured application outcome where benefit is claimed.",
+      "refusal_point": "Reject unspecified or copied-example benchmark workloads; do not name a storage bottleneck from util/iowait alone or infer application gain from synthetic bandwidth."
+    },
+    "recommendations": [
+      "Match the fio read pattern to the observed loader and verify achieved rather than requested depth; more queued work can increase latency.",
+      "Record warm/cold/unknown cache state and its method, separate startup from repeated/steady reads, and check completed bytes for truncated runs.",
+      "Align per-device and per-process observations with the application phase, retain units and latency provenance, and corroborate saturation using traffic, queues and process activity.",
+      "Only run a separately authorized bounded read-only job against an explicit existing regular file, then remeasure the real application before accepting a benefit."
+    ]
   },
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Measure and attribute storage traffic for model loading or serving while separating device/process observations from application outcomes and cache/startup effects.",
+    "prerequisites": "Resolve backing devices and participating worker PIDs first; active fio benchmarks or cache manipulation require separate authorization, with bounded observation during already-authorized runs.",
+    "input_contract": "Observed loader access pattern, tool/OS/filesystem versions, file-to-device mapping, worker PIDs, phase timestamps, cache-state method and raw IO/job/application measurements.",
+    "produced_artifact": "A workload- and cache-qualified IO evidence record with units, achieved depth, errors/bytes/completion and device/process attribution, plus a separately measured application outcome where benefit is claimed.",
+    "refusal_point": "Reject unspecified or copied-example benchmark workloads; do not name a storage bottleneck from util/iowait alone or infer application gain from synthetic bandwidth."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Match the fio read pattern to the observed loader and verify achieved rather than requested depth; more queued work can increase latency.",
+    "Record warm/cold/unknown cache state and its method, separate startup from repeated/steady reads, and check completed bytes for truncated runs.",
+    "Align per-device and per-process observations with the application phase, retain units and latency provenance, and corroborate saturation using traffic, queues and process activity.",
+    "Only run a separately authorized bounded read-only job against an explicit existing regular file, then remeasure the real application before accepting a benefit."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

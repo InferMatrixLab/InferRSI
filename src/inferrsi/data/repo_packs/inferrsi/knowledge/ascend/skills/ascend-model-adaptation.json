@@ -22,14 +22,14 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
-      "commit": "93aa3769f87f9c74b5eb8a62c3778f8aa8f0e01f",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "d9e81a63981819fac8f5a21dca9c90f86e26788f58339d3a9c8e66319c178472"
+      "content_sha256": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6"
     }
   ],
   "index_type": "packaged-skill",
@@ -38,9 +38,9 @@
   },
   "checkout_ref": "checkout:ascend-model-adaptation",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "d9e81a63981819fac8f5a21dca9c90f86e26788f58339d3a9c8e66319c178472",
-    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "4c6d0c901f0b3858c7dc337c86d892194e4102c8b349932a4caf1a811c99b1ed",
-    "src/inferrsi/data/skill_library/skill-index.json": "332bc513880fc64386a1a977843939843cba6d26eb4c549ea872d3163705b78f"
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/SKILL.md": "8fdf46fb2743b67a66bc069d22a45305a222debfb606777bc451b4b8f31d9cc6",
+    "src/inferrsi/data/skill_library/hardware/ascend/ascend-model-adaptation/metadata.json": "989b91821b36c0b80caf1323ec527e7ac847219b8f4fe8ca4ea22d292365cc3c",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "ascend-model-adaptation",
@@ -59,25 +59,37 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
+      "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
+      "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
+      "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
+      "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures."
+    },
+    "recommendations": [
+      "Gate onboarding in order: dummy architecture check, real-weight loading, model endpoint, text request and then multimodal request when the model supports VL; retain the evidence each stage actually supplies.",
+      "Check weight/scale pairing and each attention tensor loading path, especially when TP exceeds the KV-head count; verify historical FP8 guidance against the actual stack.",
+      "Expand capacity/concurrency only after basic modality and expected replay checks; mark MoE-only features inapplicable for non-MoE models and require full-layer validation before sign-off."
+    ]
   },
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
+    "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
+    "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
+    "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
+    "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Gate onboarding in order: dummy architecture check, real-weight loading, model endpoint, text request and then multimodal request when the model supports VL; retain the evidence each stage actually supplies.",
+    "Check weight/scale pairing and each attention tensor loading path, especially when TP exceeds the KV-head count; verify historical FP8 guidance against the actual stack.",
+    "Expand capacity/concurrency only after basic modality and expected replay checks; mark MoE-only features inapplicable for non-MoE models and require full-layer validation before sign-off."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

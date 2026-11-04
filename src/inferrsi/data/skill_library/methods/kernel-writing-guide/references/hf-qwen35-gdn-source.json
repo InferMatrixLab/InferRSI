@@ -1,0 +1,324 @@
+{
+  "schema_version": 1,
+  "state": "candidate",
+  "inspected_on": "2026-10-29",
+  "empirical_validation": "not_run",
+  "agent_efficacy": "not_evaluated",
+  "scope": "Two fixed Transformers Qwen3.5 Python conv/GDN caller contracts; source reasoning only",
+  "integrity": "Full retained file SHA-256 and Git blob IDs matched against selected server Git-tree entries; line spans bound inspection, not entire-repository coverage",
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/huggingface/transformers",
+      "release_tag": "v5.10.2",
+      "tag_object": "8e1d47a81dbc181b39edb4fa8a36548ee8f8ba71",
+      "commit": "0dad7b822255a0ae261ec45ae937371e859ffd1a",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "path": "LICENSE",
+          "git_blob": "68b7d66c97d66c58de883ed0c451af2b3183e6f3",
+          "sha256": "77fd4710def9ec3c0f6225800e0235f15a425abd4a8b03559127fcd782612049",
+          "bytes": 11418,
+          "inspected_lines": [
+            [
+              1,
+              7
+            ]
+          ],
+          "purpose": "Root Apache-2.0 identity and copyright"
+        },
+        {
+          "path": "src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+          "git_blob": "7bacea8a8f4151f01ac85f6104750013e4ed6298",
+          "sha256": "fd9963c32aa3d50c753a990a2670cfdbea055b6316b40027e0de976019e42551",
+          "bytes": 93834,
+          "inspected_lines": [
+            [
+              1,
+              18
+            ],
+            [
+              60,
+              76
+            ],
+            [
+              185,
+              556
+            ],
+            [
+              757,
+              800
+            ],
+            [
+              1153,
+              1235
+            ]
+          ],
+          "purpose": "Import-time bindings, local fallbacks, GDN construction/forward, decoder and text cache/mask routing"
+        },
+        {
+          "path": "src/transformers/models/qwen3_5/configuration_qwen3_5.py",
+          "git_blob": "ae9eb8f86c6d23bd6665e830b5f676b81dcb4494",
+          "sha256": "e2ca3e05c3f3e7ed2c4f452043bc33640c67a24799adb054ba24fab6badfbd8c",
+          "bytes": 7572,
+          "inspected_lines": [
+            [
+              27,
+              43
+            ],
+            [
+              71,
+              112
+            ]
+          ],
+          "purpose": "Linear-attention dimensions, activation and layer-type defaults"
+        },
+        {
+          "path": "src/transformers/cache_utils.py",
+          "git_blob": "1f4f4b9c957d5cb87b051faf830139ed6915eb4b",
+          "sha256": "7827cec593e6e6fa2ea123abce94eb422424d30a3391f15b38414684d0bbcd33",
+          "bytes": 76822,
+          "inspected_lines": [
+            [
+              702,
+              837
+            ],
+            [
+              1000,
+              1041
+            ],
+            [
+              1099,
+              1127
+            ],
+            [
+              1163,
+              1172
+            ]
+          ],
+          "purpose": "Dense conv/recurrent cache initialization, mutation, dtype, previous-state, reset and reorder"
+        },
+        {
+          "path": "src/transformers/utils/import_utils.py",
+          "git_blob": "ed7fc927d8d7fad961abbdd7f919d62706c6fd6d",
+          "sha256": "0109c7c9260655f3808a675626b9fcdd2397b3bf4b3fcba696e7adf24d554497",
+          "bytes": 116023,
+          "inspected_lines": [
+            [
+              50,
+              121
+            ],
+            [
+              836,
+              844
+            ]
+          ],
+          "purpose": "Package/internal symbol discovery and original conv/FLA availability predicates"
+        }
+      ]
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/huggingface/transformers",
+      "release_tag": "v5.17.0",
+      "tag_object": "595ff117c8412ec01262084058276e6b27a857d9",
+      "commit": "856157a2f3e9594954310df18fdccc31ffddebe9",
+      "license": "Apache-2.0",
+      "files": [
+        {
+          "path": "LICENSE",
+          "git_blob": "68b7d66c97d66c58de883ed0c451af2b3183e6f3",
+          "sha256": "77fd4710def9ec3c0f6225800e0235f15a425abd4a8b03559127fcd782612049",
+          "bytes": 11418,
+          "inspected_lines": [
+            [
+              1,
+              7
+            ]
+          ],
+          "purpose": "Root Apache-2.0 identity and copyright"
+        },
+        {
+          "path": "src/transformers/models/qwen3_5/modeling_qwen3_5.py",
+          "git_blob": "8f24dd1ab15d997c5f363411c6c81221b0385906",
+          "sha256": "762feb6c7426a7f15b5bf830df54c07438bf9e7c27b8cdb23179045920412c3b",
+          "bytes": 95685,
+          "inspected_lines": [
+            [
+              1,
+              77
+            ],
+            [
+              237,
+              668
+            ],
+            [
+              861,
+              905
+            ],
+            [
+              1239,
+              1314
+            ]
+          ],
+          "purpose": "Decorated functions, local numerics, GDN class/global calls, state guards, decoder and text routing"
+        },
+        {
+          "path": "src/transformers/models/qwen3_5/configuration_qwen3_5.py",
+          "git_blob": "e0ca67f850e5d6d8341ceb43a165f724da859bc6",
+          "sha256": "19966c3200cee92cc4bccaef5f94550c56d731dbf03858a9bd2ed6aebcc3f7da",
+          "bytes": 8395,
+          "inspected_lines": [
+            [
+              27,
+              43
+            ],
+            [
+              77,
+              122
+            ]
+          ],
+          "purpose": "Linear-attention dimensions, activation and layer-type defaults"
+        },
+        {
+          "path": "src/transformers/cache_utils.py",
+          "git_blob": "1fb4c72063a397537cad1b00115a1331120a0f02",
+          "sha256": "702144bb44553f6339ea1bf23c8205a708bb5f8c7c09cb3a2db484182646743c",
+          "bytes": 104677,
+          "inspected_lines": [
+            [
+              893,
+              1105
+            ],
+            [
+              1404,
+              1446
+            ],
+            [
+              1546,
+              1574
+            ],
+            [
+              1613,
+              1624
+            ]
+          ],
+          "purpose": "State-indexed dense cache, record-past, crop boundary, dtype, mutation, reset and reorder"
+        },
+        {
+          "path": "src/transformers/utils/import_utils.py",
+          "git_blob": "59315589fe060e4849f8faf1f0fb77197781e025",
+          "sha256": "e147f99cf68352e3260e9780930501c3becc0c40a5ff04150ff641b724161732",
+          "bytes": 126290,
+          "inspected_lines": [
+            [
+              165,
+              166
+            ],
+            [
+              765,
+              773
+            ],
+            [
+              970,
+              984
+            ]
+          ],
+          "purpose": "Hub kernels availability bounds and adjacent availability helpers; latter do not govern the new GDN wrapper"
+        },
+        {
+          "path": "src/transformers/integrations/hub_kernels.py",
+          "git_blob": "235d032d335536b90ac9cb8b27456a8a84be13d3",
+          "sha256": "c1eafefe0cbdf7f0deaa21b1ef6cb6d7c6082b3f486651d069ff38fcf3e53c95",
+          "bytes": 44974,
+          "inspected_lines": [
+            [
+              1,
+              44
+            ],
+            [
+              62,
+              139
+            ],
+            [
+              568,
+              589
+            ],
+            [
+              789,
+              809
+            ],
+            [
+              829,
+              890
+            ]
+          ],
+          "purpose": "Hub versus original-package/reference selection, wrapper capture, kwargs filtering, export and delegation"
+        },
+        {
+          "path": "src/transformers/integrations/__init__.py",
+          "git_blob": "27c04bdd6bbf245a3b34d1496d5d2ee09a72bcb8",
+          "sha256": "54f267ebd048c8e59d4058df7c7704ca4c4ce2ca222f05d38d5ee21c65a6b65e",
+          "bytes": 10215,
+          "inspected_lines": [
+            [
+              77,
+              88
+            ]
+          ],
+          "purpose": "Export ownership of the decorators imported by the runtime model"
+        },
+        {
+          "path": "src/transformers/masking_utils.py",
+          "git_blob": "c93b42f43667c1455b6fc3a37a3bb99a38deaa4e",
+          "sha256": "50a737f63d8c778a5597fa34ac139049af921f44958205e3e1c29fe2bae77254",
+          "bytes": 80403,
+          "inspected_lines": [
+            [
+              1469,
+              1504
+            ]
+          ],
+          "purpose": "Recurrent local padding mask and continuation boundary"
+        }
+      ]
+    }
+  ],
+  "bounded_caller_context": [
+    {
+      "url": "https://github.com/InferMatrixLab/system1-omni",
+      "commit": "504b272c46dc1963f981c6bed9ef0c7ebdd40c69",
+      "path": "src/models/clef/engine.py",
+      "inspected_lines": [
+        [
+          306,
+          395
+        ],
+        [
+          548,
+          556
+        ]
+      ],
+      "role": "Import/construct timing and adapter rejection of initial/final recurrent state only"
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/system1-omni",
+      "commit": "509bdd2161ca5bef8f5e158d466514862fac7c9e",
+      "path": "src/models/pplx_decider/engine.py",
+      "inspected_lines": [
+        [
+          257,
+          287
+        ]
+      ],
+      "role": "Module binding before construction and later loaded-layer GVA forward override only"
+    }
+  ],
+  "exclusions": [
+    "External FLA, Dao, FlashInfer and Hub kernel bodies are not audited by this HF readset",
+    "Checkpoint-owned executable modules, weights, native tests and full worker internals are excluded",
+    "No upstream import/install, model/provider/device execution or matched performance comparison",
+    "No inferred binary compatibility, packed-boundary equivalence, physical release, paging or concurrency guarantee"
+  ]
+}

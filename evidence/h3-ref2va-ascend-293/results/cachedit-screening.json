@@ -1,0 +1,46 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Profile-enabled screening; one measured request, not a final performance claim",
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "configuration": {
+    "task": "ref2va",
+    "steps": 50,
+    "duration_s": 5,
+    "seed": 0,
+    "quality": "high",
+    "devices": 8,
+    "ulysses": 8,
+    "ring": 1,
+    "text_encoder_tp": 8,
+    "vae_tile_parallel": 8,
+    "distributed_layerwise_offload": true,
+    "attention": "FLASH_ATTN / MindIE ascend_laser_attention",
+    "pipeline_profiler": true
+  },
+  "warmup_e2e_ms": 341435.5301912874,
+  "measured_e2e_ms": [
+    212748.6988445744
+  ],
+  "requests": {
+    "completed": 2,
+    "failed": 0,
+    "measured": 1,
+    "warmup": 1
+  },
+  "sampled_peak_mib_any_device": 26209,
+  "memory_sampling_interval_s": 10,
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 8,
+    "worker_kill_count": 7,
+    "client_complete_to_container_exit_s": 26.342582
+  },
+  "raw_log_sha256": "540eba17d44492d4f9e02d5683b1f9f80988e4fcd3a1925d9f4ba50cb1d8ccf5",
+  "verification_limits": "Raw host logs and media remain private campaign artifacts; these receipts are not independent reproduction. Python sampling was limited to warmup; teardown stack reads happened after response completion. Final unprofiled AB/BA remains pending.",
+  "quality_result": "cachedit-quality.json",
+  "upstream_source": "https://github.com/vllm-project/vllm-omni/pull/5853",
+  "cache_policy": "DBCache_F1B0_W4I1M0MC1_R0.04_N50_CFG0",
+  "cache_summary_limit": "Request-owned caching was active, but the runner incorrectly requires startup cache_backend=cache_dit before emitting the requested summary. No measured hit count is claimed.",
+  "observed_single_sample_reduction_pct": 47.27261725452189
+}

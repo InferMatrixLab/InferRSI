@@ -1,0 +1,135 @@
+{
+  "workflow": "AREX portable create/prepare/workflow-authoring/verify",
+  "method_revision": "ac3fe1afa80fb9a09775ecfb2b6cc3ba850a2db6",
+  "source": "incoai/splash",
+  "source_commit": "39a97385f8560cf8a93972cec9b0a963c9195250",
+  "scope_decision": "user-approved native-tool adaptation and partial drafting; final candidate admission pending",
+  "included": [
+    "README.md",
+    "DEVELOPMENT.md selected sections",
+    "runtime/engine selected memory scheduler cache bodies",
+    "runtime/ops selected speculative contracts",
+    "server protocol/request/safety/cache modules",
+    "install model/format selection",
+    "dev/tests selected pure-Python and native source anchors"
+  ],
+  "excluded": [
+    "model weights/downloads",
+    "all-kernel bodies",
+    "hardware runtime execution",
+    "release publishing",
+    "paid provider/client invocations"
+  ],
+  "subskills": [
+    {
+      "id": "runtime-planning",
+      "owner": "runtime_memory_author",
+      "responsibility": "model-format compatibility, memory plan, streamed experts/PLE, precision and native hardware constraints",
+      "references": [
+        "memory-and-formats.md",
+        "troubleshooting.md"
+      ],
+      "native_candidates": [
+        "pure budget parser or selected source config tests"
+      ],
+      "synthetic_cases": [
+        "memory-cap-is-not-only-weights",
+        "gguf-format-and-draft-compatibility"
+      ]
+    },
+    {
+      "id": "serving-cache",
+      "owner": "serving_state_author",
+      "responsibility": "request safety and protocol, prefix/cache identity, scheduler admission/eviction, persistent disk tiers",
+      "references": [
+        "state-and-api.md",
+        "troubleshooting.md"
+      ],
+      "native_candidates": [
+        "test_lru_cache.py",
+        "test_protocol_python.py"
+      ],
+      "synthetic_cases": [
+        "same-prefix-different-cache-salt",
+        "persistent-cache-after-model-change"
+      ]
+    },
+    {
+      "id": "qualification",
+      "owner": "qualification_author",
+      "responsibility": "DFlash2 target/draft/verify state, numerical and ANE/Metal qualification, fair end-to-end measurement",
+      "references": [
+        "verification-contract.md",
+        "troubleshooting.md"
+      ],
+      "native_candidates": [
+        "safe protocol/model-free anchors; required native Metal remains blocked"
+      ],
+      "synthetic_cases": [
+        "acceptance-is-not-net-speed",
+        "precision-and-ane-control"
+      ]
+    }
+  ],
+  "backend_plan": {
+    "required": [
+      {
+        "backend_requirement": "accelerator-specific",
+        "backend_criticality": "required",
+        "cpu_substitute": "partial",
+        "capability": "Metal/ANE/DFlash2/model inference and actual device/disk state",
+        "dependency_variant": "Apple Silicon M3+, macOS26.4, native Metal build and compatible target/draft",
+        "hardware_prerequisites": "supported Apple GPU/ANE and weights",
+        "verification_expectation": "native backend/model/state/kernel and service checks",
+        "assigned_environment": "unavailable",
+        "status": "BLOCKED_REQUIRED_BACKEND"
+      }
+    ],
+    "alternative": [
+      {
+        "backend_requirement": "cpu",
+        "backend_criticality": "alternative",
+        "cpu_substitute": "full",
+        "capability": "selected Python LRU/protocol logic only",
+        "dependency_variant": "Python3.12 stdlib source modules, not fictitious installed distribution",
+        "verification_expectation": "source-module identity/signature preparation, native tests only after integration"
+      }
+    ]
+  },
+  "source_script_inventory": [
+    {
+      "source": "install/models.py",
+      "decision": "reference-only",
+      "reason": "large model network/storage preparation; distill compatibility controls"
+    },
+    {
+      "source": "dev/tools/*bench*",
+      "decision": "reference-only",
+      "reason": "model/hardware benchmarking; freeze controls without executing"
+    },
+    {
+      "source": "server/serve_options.py",
+      "decision": "adapt",
+      "target": "sub-skills/runtime-planning/scripts/parse_budget.py",
+      "reason": "small safe offline parsing support if exact subset is feasible"
+    },
+    {
+      "source": "splash agent launchers",
+      "decision": "exclude",
+      "reason": "external client/provider processes and config mutation not in task"
+    }
+  ],
+  "integration_cases": [
+    "memory-cache-concurrency-and-quality",
+    "prefix-safety-and-benchmark-attribution"
+  ],
+  "rubric": [
+    "canonical identity",
+    "source-backed concrete mechanism",
+    "bundled depth and recovery",
+    "internal links",
+    "source/check artifacts separated",
+    "required backend evidence remains blocked"
+  ],
+  "final_candidate_admission": "pending after actual final verification"
+}

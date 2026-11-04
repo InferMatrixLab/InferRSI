@@ -140,6 +140,10 @@ When weights/activations do not fit device memory:
 
 ## 6. Loading modes: mmap / mlock / direct I/O / lazy (llama.cpp pattern)
 
+For the division between loading, NUMA/thread placement and runtime-state diagnosis,
+use the [llama.cpp owner map](../../repositories/llama-cpp/audit-llama-runtime-state/SKILL.md#choose-the-scope).
+Source pins and static-inspection dates stay with their respective owners.
+
 At the pinned revision (3e390af) loading is one unified flag,
 `--load-mode {auto|none|mmap|mlock|mmap+mlock|dio}` (default `auto` = mmap
 unless the device lacks `mmap_support`). The legacy standalone `--mlock` /
@@ -419,6 +423,18 @@ dropping the OS file cache, a run is not a cold-start physical test.
 - Flag surfaces move between revisions (llama.cpp replaced `--mlock` /
   `--no-mmap` with `--load-mode` values); re-verify entry paths against the
   pinned revision before relying on any flag name.
+
+## 10. Separate preparation from serving
+
+The [Flare preparation boundary](references/flare-preparation-boundary.md)
+adds a source-scoped example of Python load/tune/compile/capture, a native
+exporter and Rust serving. Record what is serialized, what must be rebuilt,
+which live resource owners stay in the preparation process, and the independent
+execution ABI/prepared-contract versions. Reject mismatches instead of editing
+their tags. Keep preparation/export, package load/readiness and request timing
+separate; changing language at the boundary does not by itself establish a gain.
+For complete runtime KV/recurrent/convolution/tail state, follow that reference
+to the Flare session owner. The addition remains candidate and empirical not_run.
 
 ## Verification checklist (before claiming a load-path win)
 

@@ -1,0 +1,337 @@
+{
+  "status": "candidate",
+  "origin": "source-derived",
+  "empirical_validation": "not_run",
+  "agent_efficacy": "not_evaluated",
+  "source": {
+    "type": "repository",
+    "repository": "loopx-project/loopx",
+    "url": "https://github.com/loopx-project/loopx",
+    "commit": "f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9",
+    "tree": "c2ce33feec908b70c3b582119c5d1fadbc038a16",
+    "inspected_on": "2026-10-26",
+    "access": "Original raw file bytes at the fixed commit, checked against the Git tree blob identities; no source installation or execution.",
+    "license": "Apache-2.0",
+    "notice": "NOTICE credits LoopX contributors and creator huangruiteng and retains MIT history through v0.4.7."
+  },
+  "scope": {
+    "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/149",
+    "tracking_issue": "https://github.com/InferMatrixLab/InferRSI/issues/91",
+    "owner": "workflows/rsi-evidence/references/loopx-goal-governance",
+    "related_historical_issue": "https://github.com/InferMatrixLab/InferRSI/issues/137",
+    "related_historical_commit_preserved": "a6f28057b49fe03bb234fa6ce1bac5d61df0c58f"
+  },
+  "evidence_classes": {
+    "code": "Inspected source control flow, not reproduced runtime behavior.",
+    "document": "Pinned author-stated intent and limits.",
+    "test": "Inspected upstream assertions, not local test outcomes.",
+    "deduction": "Review guidance derived from the stated code/document boundary; not an observed incident.",
+    "discovery-only": "Actually inspected to locate the owner; excluded from mechanism support and coverage credit."
+  },
+  "readset": [
+    {
+      "path": "LICENSE",
+      "kind": "license",
+      "inspected_scope": "Full original bytes; Apache-2.0 terms.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/LICENSE",
+      "git_blob_sha": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    {
+      "path": "NOTICE",
+      "kind": "notice",
+      "inspected_scope": "Full original bytes; creator/contributor attribution and through-v0.4.7 MIT history.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/NOTICE",
+      "git_blob_sha": "45a3556ecf5e5d6fc04755d5b94f22cd90428346",
+      "sha256": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
+      "bytes": 308
+    },
+    {
+      "path": "LICENSE-MIT",
+      "kind": "historical-license",
+      "inspected_scope": "Full original historical MIT text; not a license substitution for current source.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/LICENSE-MIT",
+      "git_blob_sha": "f5746a7eee9f275edd9b23f3ac1af27d02e9cd2d",
+      "sha256": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
+      "bytes": 1075
+    },
+    {
+      "path": "loopx/control_plane/quota/run_decision.ts",
+      "kind": "code",
+      "inspected_scope": "Complete file: typed fact decoding, ordered guards, action selection and returned patches.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/run_decision.ts",
+      "git_blob_sha": "751c96b2869724903dd0ee6bff3dc855d4f3d7db",
+      "sha256": "dfd6d391a8042b0eb2a538b11140dec6179b4ecfbe8244ef481f21a22e3b374a",
+      "bytes": 11418
+    },
+    {
+      "path": "loopx/control_plane/quota/decision_summary.py",
+      "kind": "code",
+      "inspected_scope": "Complete file: compact packet, Goal-scoped health, recommendation refinement, typed runtime adapter and patch merge.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/decision_summary.py",
+      "git_blob_sha": "8a279260ea0428dabde1ae02f1239a8aab32fe36",
+      "sha256": "0d85de8174aeb23946917ee3a65a523dbe7f622c6d8e8cd57c316dfb430af737",
+      "bytes": 12469
+    },
+    {
+      "path": "loopx/control_plane/quota/spend_commit.ts",
+      "kind": "code",
+      "inspected_scope": "Lines 1-420 and 462-677, 787-931; identity/digest, validation, record, native replay, preview and commit. Payload rendering between these sections only located by symbol search.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/spend_commit.ts",
+      "git_blob_sha": "7a4f7eab4ad3a5c8be9af30c0fde2f1167b7699c",
+      "sha256": "626b38c6a101ff6653c7e6910939f579a86cfd196792cb664f3f625dfa0c32fc",
+      "bytes": 31263
+    },
+    {
+      "path": "docs/architecture/rfcs/ledger/shared-goal-authority-state-provider-v0/2026-09-25-todo-event-retirement.md",
+      "kind": "document",
+      "inspected_scope": "Complete retirement brief, compatibility/refusal, canonical versus legacy routes and separate supervisor external-effect limit.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/docs/architecture/rfcs/ledger/shared-goal-authority-state-provider-v0/2026-09-25-todo-event-retirement.md",
+      "git_blob_sha": "274866bf5b2640da8c1f5a6b544cfc26ec17a3fa",
+      "sha256": "b841e73af4466dad018fff880e38275c91a2315942dc91a7d23e453b885cead7",
+      "bytes": 3082
+    },
+    {
+      "path": "tests/control_plane/test_quota_run_decision.py",
+      "kind": "test",
+      "inspected_scope": "Complete file: Python adapter assertions, terminal fixture, ordered rules, inbox exception and source-number preservation.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/tests/control_plane/test_quota_run_decision.py",
+      "git_blob_sha": "33481d70435682dd0eb4e63e5a2481bea72ae1eb",
+      "sha256": "0417ef3614bd7a6e4b9b461e846851c8ae02afab54a8ae08f3bc2b289321cf05",
+      "bytes": 12584
+    },
+    {
+      "path": "tests/control_plane/test_quota_decision_summary.py",
+      "kind": "test",
+      "inspected_scope": "Complete file: plan-item flattening only; not full decision coverage.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/tests/control_plane/test_quota_decision_summary.py",
+      "git_blob_sha": "8e864cedec10d5d3e0994e225920745745d9dda6",
+      "sha256": "69bcbf4b346b2fe53823529ab4956ae3e8cbce0777811636d30ca88cb3895f01",
+      "bytes": 752
+    },
+    {
+      "path": "tests/control_plane/test_quota_spend_commit_runtime.py",
+      "kind": "test",
+      "inspected_scope": "Imports; lines 148-251 and 329-418; native typed facade, concurrent exact retries, complete preview retention, stale basis and boundary rejections. Other tests located by name only.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/tests/control_plane/test_quota_spend_commit_runtime.py",
+      "git_blob_sha": "bfa94dbf83eb68a7c394913df613cfeaa49a74fd",
+      "sha256": "67ae3337c27a9aa5e9ad6af7397a20636de273fe38a808a9a4356acfae1d0bb0",
+      "bytes": 14649
+    },
+    {
+      "path": "tests/control_plane_ts/quota_run_decision.test.ts",
+      "kind": "test",
+      "inspected_scope": "Complete file: shared rule fixture, malformed facts and coordination route-hint assertions.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/tests/control_plane_ts/quota_run_decision.test.ts",
+      "git_blob_sha": "dc6ec5c00cac0d7a0bb3ee26df2d0a0c7ba97021",
+      "sha256": "b6c1f0704ba7385d77448970707d3e3aa93647f6b057cb1fa59d5e9c91897aef",
+      "bytes": 2270
+    },
+    {
+      "path": "tests/control_plane_ts/quota_spend_commit.test.ts",
+      "kind": "test",
+      "inspected_scope": "Lines 236-344, 737-813 and 941-1103: preview/rejection, commit replay, conflicting versus unrelated identity, partial-artifact/tail repair, prefix/row conflict, CAS and concurrent retries. Other source/lock cases located by name, not used to qualify leases.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/tests/control_plane_ts/quota_spend_commit.test.ts",
+      "git_blob_sha": "553c25ed95c4313b0cdef71c7957af7f614be6ca",
+      "sha256": "06eddc569b5cb26fc8d70379d24f91893f2420645cd6c6cdc57de86909329eb6",
+      "bytes": 35895
+    },
+    {
+      "path": "loopx/control_plane/quota/accounting_artifact_transaction.ts",
+      "kind": "code",
+      "inspected_scope": "Lines 1-125, 390-536 and 734-1044; receipt contract, identity/replay, missing/conflicting artifact checks, prefix/tail repair and local commit order. Receipt path-validation symbols located, not a complete security audit.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/accounting_artifact_transaction.ts",
+      "git_blob_sha": "576deb432329d000af1c00b8ec812b8662f2c2d5",
+      "sha256": "821545fd7ef4e1c1e4b75af506c8a52d312873919e3233c06570a33182ec7d6c",
+      "bytes": 34291
+    },
+    {
+      "path": "loopx/control_plane/quota/source_admission.ts",
+      "kind": "code",
+      "inspected_scope": "Complete file: alias versus exact GoalRef, admission pair, local lock-witness adoption, current-owner check and cleanup; underlying lock implementation excluded.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/source_admission.ts",
+      "git_blob_sha": "47526e2a75935f864a1699e0383e5bff3e194836",
+      "sha256": "6da4d0c619725233b283fc31168feada913a724ab5048eba52cca4641d26604d",
+      "bytes": 10857
+    },
+    {
+      "path": "loopx/control_plane/quota/accounting_admission.py",
+      "kind": "code",
+      "inspected_scope": "Complete file: Python exact-source/legacy admission and ordered local lock handoff; no distributed-lease qualification.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/accounting_admission.py",
+      "git_blob_sha": "3ea97a9eead60c6db37e0ff3be0d78cacc86f3cc",
+      "sha256": "3f687091fa2ffe41f5e0d528b7e2e330c0ae07109302773a2fdebbb8c2f8952a",
+      "bytes": 3696
+    },
+    {
+      "path": "tests/control_plane_ts/fixtures/quota_run_decision.json",
+      "kind": "test-fixture",
+      "inspected_scope": "Base facts/results, cases through replan/terminal/inbox plus closed-lane cases; all case names inspected. This is a shared expected-rule fixture, not a local result.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/tests/control_plane_ts/fixtures/quota_run_decision.json",
+      "git_blob_sha": "9e81c71c503e348f647f3bc77556ef4dc9a1e9f0",
+      "sha256": "7a5861021f2e8eda8f3f7c70d452a54b09aeeef171ab91c309d780b30ac457fb",
+      "bytes": 14721
+    },
+    {
+      "path": "tests/control_plane/test_retired_todo_event_source.py",
+      "kind": "test",
+      "inspected_scope": "Lines 1-188 and 229-326; audit cannot override current status, nonempty/empty event sources, validation-before-authority refusal, scoped portfolio incompleteness, canonical provider loss/restoration. HTTP case located but not read in full.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/tests/control_plane/test_retired_todo_event_source.py",
+      "git_blob_sha": "3cf34c9a38bd74817780fa24fc8c5cfd3a8a1f3c",
+      "sha256": "0cef96cc0df93a6cf69326968c0cac3e42fbec9f137dad8d49b8338a38cba236",
+      "bytes": 17707
+    },
+    {
+      "path": "loopx/cli_commands/todo_event.py",
+      "kind": "discovery-only",
+      "inspected_scope": "First 95 lines: error/audit logging helper; not the retired Todo source authority. Excluded from mechanism support.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/cli_commands/todo_event.py",
+      "git_blob_sha": "d59260d6980c35f423504b1b545e7e9a27a94bfd",
+      "sha256": "01d8a86e0820c967a43920cd9dea462aa35365e555d9046eebb948eb6df799fd",
+      "bytes": 7397
+    },
+    {
+      "path": "loopx/control_plane/todos/update_source.py",
+      "kind": "discovery-only",
+      "inspected_scope": "Complete small snapshot helper inspected during caller discovery; not a provider authority or write protocol. Excluded from mechanism support.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/todos/update_source.py",
+      "git_blob_sha": "2bafe1f0345b48ad54073f4c274808831177e00d",
+      "sha256": "0f0d37f3d333008f6f6068cc5f44cc7cf4a270724090daf93827377c55fdb8c4",
+      "bytes": 1380
+    },
+    {
+      "path": "loopx/control_plane/quota/should_run.py",
+      "kind": "code",
+      "inspected_scope": "Missing-state health guidance at lines 507-543; relevant action/health and acceptance guard search contexts only. Not a complete controller/overlay readset.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/should_run.py",
+      "git_blob_sha": "21ebc67e262e7fc24ba3ef3073c0b98a48d39543",
+      "sha256": "ebadbec6276a764e6d2dd42e8c84fa87710fb0872168fc257b459009581b4c5d",
+      "bytes": 28948
+    },
+    {
+      "path": "loopx/control_plane/quota/should_run_prepare.py",
+      "kind": "code",
+      "inspected_scope": "Source-selection/capability/receipt-resume search contexts and lines 731-840 only; source facts have separate preparation and receipt resume does not grant new work. Rest excluded.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/should_run_prepare.py",
+      "git_blob_sha": "fdb68941165252e9999d20d153cb220ca40afc05",
+      "sha256": "37f1c3673882b67f89675187d08ea83170f29d5ccd291fa63ffdca18f5ade523",
+      "bytes": 41168
+    },
+    {
+      "path": "loopx/control_plane/quota/spend_commit.py",
+      "kind": "code",
+      "inspected_scope": "Complete file: complete preview request, typed result/error adapter, native replay, execution index basis and lock/admission owner.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/spend_commit.py",
+      "git_blob_sha": "5ddc370ba6fcea4ecf0c9f416eaab0ae3da97d23",
+      "sha256": "8b5f2a8a38f7090d3a306bb0b436e2b154cf17c687b1b70ab3d6a9d0b17eb68d",
+      "bytes": 11986
+    },
+    {
+      "path": "loopx/control_plane/goals/shared_goal_work_source.py",
+      "kind": "code",
+      "inspected_scope": "Complete file: read Todos and leases at one canonical provider basis, no state-text work fallback.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/goals/shared_goal_work_source.py",
+      "git_blob_sha": "04c3583385e9058328455ea5c6f59ef1e6fdcabf",
+      "sha256": "0b3b92d8ce7e22a8080ef6a7f17ddfebbb60019a8508d21e70fcaf46386f6859",
+      "bytes": 2386
+    },
+    {
+      "path": "loopx/control_plane/goals/legacy_event_source.py",
+      "kind": "code",
+      "inspected_scope": "Complete file: three retired aliases plus adjacent events.jsonl, nonempty-byte refusal and preservation guidance.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/goals/legacy_event_source.py",
+      "git_blob_sha": "59f06883bd5af9574fff1d21c82a7d8b09aa1589",
+      "sha256": "e4fd7bd6d28cc53a1bcc6587cf2a2b687c71472ab0fb2adbd8b93baead0b5084",
+      "bytes": 1592
+    },
+    {
+      "path": "loopx/control_plane/coordination/local_authority.py",
+      "kind": "code",
+      "inspected_scope": "Lines 245-445: canonical-read validation, no Markdown fallback, incomplete/failed source rejection, request-local snapshot scope and canonical display adaptation.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/coordination/local_authority.py",
+      "git_blob_sha": "b4f88c5f5de73b0c90a95ea0b86cec9e3290886c",
+      "sha256": "1b50a7d0db7b68384c3f10fef04f9fa4e316d8d0dbc0b55dae013077e61309b8",
+      "bytes": 18321
+    },
+    {
+      "path": "loopx/control_plane/coordination/authority_source.ts",
+      "kind": "code",
+      "inspected_scope": "Complete file: registry source byte witness and its explicit non-grant/non-transaction boundary.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/coordination/authority_source.ts",
+      "git_blob_sha": "2779466d3281de25b131f77037091d10a4c8baec",
+      "sha256": "7c516799c4be782a0baf9d71ed28b14fa40f50937f8d49c29bb6a3b58470806c",
+      "bytes": 2080
+    },
+    {
+      "path": "loopx/control_plane/coordination/local_authority_read.ts",
+      "kind": "code",
+      "inspected_scope": "listLocalCoordinationTodos, lines 292-354; selected provider head and returned source/revision/no-fallback facts. Other functions located by symbols only.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/coordination/local_authority_read.ts",
+      "git_blob_sha": "f76cddd6ecef3b7bf59608c4e42109a49f8b8a3c",
+      "sha256": "2b06eaf17a72a96b867619e84376ac5625c26fb7772a350081a4117e31c57887",
+      "bytes": 18388
+    },
+    {
+      "path": "loopx/control_plane/coordination/local_authority_provider.ts",
+      "kind": "code",
+      "inspected_scope": "Provider declarations and lines 218-325; missing selector does not redirect initialized SQLite authority, selected provider seam. Backend implementations excluded.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/coordination/local_authority_provider.ts",
+      "git_blob_sha": "50007652797e69897428112dbabe5580c0473b07",
+      "sha256": "020b3bbc0807787d8eec1f2fd4a7d1ad5774aa3ac182fab3a9d2d68e3c73dd8e",
+      "bytes": 17350
+    },
+    {
+      "path": "loopx/control_plane/effect_runtime.py",
+      "kind": "code",
+      "inspected_scope": "Managed Node/TypeScript path/start/request/result boundaries by search context, including lines 1274-1372. No runtime execution or lifecycle qualification.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/effect_runtime.py",
+      "git_blob_sha": "fea81a4694d81ab1fa9f7d6935d92a3f7e3a61c9",
+      "sha256": "a1f4f49f433f8587afaaeffa40c64945d6fc4c69a43b00a71acd06a6d051b4d0",
+      "bytes": 59173
+    },
+    {
+      "path": "loopx/control_plane/quota/goal_boundary.py",
+      "kind": "discovery-only",
+      "inspected_scope": "Goal boundary/capability declarations located and source sampled; not the missing-state health owner. Excluded from mechanism support.",
+      "url": "https://github.com/loopx-project/loopx/blob/f094b2cfb2acde7a4a0d4d875bba52f64ac31ba9/loopx/control_plane/quota/goal_boundary.py",
+      "git_blob_sha": "4e8f18adab4026773f68933f33ad961e652d1311",
+      "sha256": "dbce5a542287def0c4efe1f01ad76874df3a1be3013c2d0b4ebf210f29fa7872",
+      "bytes": 19235
+    }
+  ],
+  "preserved_originals": [
+    {
+      "source_path": "LICENSE",
+      "resource": "LICENSE",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "bytes": 11358
+    },
+    {
+      "source_path": "NOTICE",
+      "resource": "NOTICE.md",
+      "sha256": "3c3c36a40e1d65f3a6b20ec3a97319cb753e857f1d120f302cd828e107120f6d",
+      "bytes": 308
+    },
+    {
+      "source_path": "LICENSE-MIT",
+      "resource": "LICENSE-MIT.md",
+      "sha256": "1df1cf519b9e5d8acbbc72820299d7aa95afa1acbfc1f43a15109ad1d59975f3",
+      "bytes": 1075
+    }
+  ],
+  "exclusions": [
+    "Most of the repository, UI, host adapters and complete quota controller/receipt overlays.",
+    "Storage/provider implementations, provider capacity/soak behavior and distributed lease correctness.",
+    "Full terminal/frontier derivation implementation; terminal evidence shape is inspected in the adapter/tests.",
+    "Supervisor runtime implementation; only the retirement document's separate external-effect boundary is used.",
+    "Source installation, native LoopX tests, external provider effects/billing, agent trials, model/device/quality/performance validation.",
+    "vLLM adoption reports are not used as causal performance or efficacy evidence."
+  ],
+  "limitations": [
+    "Original-byte identity authenticates file contents, not full-file semantic review; inspected_scope states the actual readset.",
+    "Python source preparation and TypeScript decisions/accounting remain distinct; no pure Python quota kernel is extracted.",
+    "Local accounting idempotency and repair do not establish external exactly-once execution or supplier hard cost ceilings.",
+    "This candidate does not implement InferRSI goal checkpoints or promote the inherited owner."
+  ]
+}

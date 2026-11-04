@@ -1,0 +1,33 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "compiled-prefill-and-stream-completion",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:cpp/serve/config.cc",
+    "mlc-ai/relax:src/backend/metal/runtime/metal_device_api.mm",
+    "mlc-ai/relax:src/backend/metal/runtime/metal_common.h"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "references/scope-and-notices.md",
+    "sub-skills/artifact-contract/SKILL.md",
+    "sub-skills/artifact-contract/references/contract-mechanisms.md",
+    "sub-skills/artifact-contract/references/helper-contract.md",
+    "sub-skills/metal-build-runtime/SKILL.md",
+    "sub-skills/metal-build-runtime/references/targets-and-export.md",
+    "sub-skills/metal-build-runtime/references/modules-and-streams.md",
+    "sub-skills/metal-build-runtime/references/native-evidence.md",
+    "sub-skills/runtime-kv-limits/SKILL.md",
+    "sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+    "sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+    "sub-skills/runtime-kv-limits/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Parameter schema identity does not encode weight bytes or runtime KV/workspace; nested compiled prefill remains a separate allocation input.",
+    "Submitted work/Flush is not stream completion and private/staging branches have different copy lifetimes.",
+    "Default-stream pending-work checks do not authenticate every external/custom stream or actual cache continuation.",
+    "Actual matched native allocation/sync/cache/model evidence remains required; helper/source checks are not a CPU/GPU simulator."
+  ]
+}

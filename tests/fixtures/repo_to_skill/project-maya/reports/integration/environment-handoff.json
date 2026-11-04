@@ -1,0 +1,11 @@
+{
+  "readiness": "partial",
+  "adaptation": "C++20 direct-compiler native slices; Maya is not a pip-installable distribution",
+  "python_version": "3.12.14",
+  "compiler": "g++14.2.0 Linux x86_64",
+  "source_distribution_install": "not-applicable/not-run",
+  "cmake_ninja_cuda_hip_devices_models": "unavailable/not-used",
+  "environment_mutation": "none",
+  "installer_execution": "not-run",
+  "required_backend_status": "BLOCKED_REQUIRED_BACKEND"
+}

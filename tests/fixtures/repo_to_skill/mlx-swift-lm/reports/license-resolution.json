@@ -1,0 +1,8 @@
+{
+  "repository": "ml-explore/mlx-swift-lm",
+  "source_commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+  "source": "GitHub CLI (gh api)",
+  "value": "NO_LICENSE",
+  "status": "unavailable",
+  "reason": "GitHub CLI is not authenticated"
+}

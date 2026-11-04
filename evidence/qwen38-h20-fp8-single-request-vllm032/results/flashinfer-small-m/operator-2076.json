@@ -1,0 +1,131 @@
+{
+  "scope": "operator_integration_not_model_quality_or_service_acceptance",
+  "rows": [
+    {
+      "shape": [
+        1,
+        128,
+        64
+      ],
+      "diagnostic_nrmse": 0.0008510621846653521,
+      "graph_changed_inputs_exact": [
+        true,
+        true
+      ],
+      "kernel_calls": {
+        "flashinfer": 30,
+        "triton": 0
+      },
+      "milliseconds": {
+        "triton": 0.034441599249839784,
+        "flashinfer": 0.03458400070667267
+      }
+    },
+    {
+      "shape": [
+        31,
+        128,
+        64
+      ],
+      "diagnostic_nrmse": 0.0019299185369163752,
+      "graph_changed_inputs_exact": [
+        true,
+        true
+      ],
+      "kernel_calls": {
+        "flashinfer": 30,
+        "triton": 0
+      },
+      "milliseconds": {
+        "triton": 0.032743999361991884,
+        "flashinfer": 0.03487200140953064
+      }
+    },
+    {
+      "shape": [
+        32,
+        128,
+        64
+      ],
+      "diagnostic_nrmse": 0.0,
+      "graph_changed_inputs_exact": [
+        true,
+        true
+      ],
+      "kernel_calls": {
+        "flashinfer": 0,
+        "triton": 30
+      },
+      "milliseconds": {
+        "triton": 0.03271040022373199,
+        "flashinfer": 0.031436800956726074
+      }
+    },
+    {
+      "shape": [
+        1,
+        5120,
+        5120
+      ],
+      "diagnostic_nrmse": 0.0038501042872667313,
+      "graph_changed_inputs_exact": [
+        true,
+        true
+      ],
+      "kernel_calls": {
+        "flashinfer": 30,
+        "triton": 0
+      },
+      "milliseconds": {
+        "triton": 0.12773439884185792,
+        "flashinfer": 0.03402880132198334
+      }
+    },
+    {
+      "shape": [
+        1,
+        5120,
+        17408
+      ],
+      "diagnostic_nrmse": 0.002684346865862608,
+      "graph_changed_inputs_exact": [
+        true,
+        true
+      ],
+      "kernel_calls": {
+        "flashinfer": 30,
+        "triton": 0
+      },
+      "milliseconds": {
+        "triton": 0.1725200057029724,
+        "flashinfer": 0.03452320098876953
+      }
+    },
+    {
+      "shape": [
+        1,
+        17408,
+        5120
+      ],
+      "diagnostic_nrmse": 0.0036326672416180372,
+      "graph_changed_inputs_exact": [
+        true,
+        true
+      ],
+      "kernel_calls": {
+        "flashinfer": 30,
+        "triton": 0
+      },
+      "milliseconds": {
+        "triton": 0.48456478118896484,
+        "flashinfer": 0.03461920022964478
+      }
+    }
+  ],
+  "versions": {
+    "torch": "2.13.0",
+    "triton": "3.7.1",
+    "flashinfer-python": "0.7.0.post1"
+  },
+  "flashinfer_source_sha256": "6ab2f4f8496b8fff54319a299565dbb41858012edf54f86c721578504a34108c"
+}
