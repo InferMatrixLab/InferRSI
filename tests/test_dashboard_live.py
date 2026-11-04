@@ -1,10 +1,13 @@
 """The live dashboard reads recorded updates without exposing the campaign tree."""
 
+import copy
 import gzip
 import http.client
 import json
+import random
 import shutil
 import socket
+import string
 import subprocess
 import threading
 from pathlib import Path
@@ -12,6 +15,7 @@ from pathlib import Path
 import pytest
 
 from inferrsi.cli import main
+from inferrsi.harness import dashboard_live
 from inferrsi.harness.dashboard import write_dashboard
 from inferrsi.harness.dashboard_live import DashboardServer
 
@@ -64,7 +68,7 @@ def test_compressed_live_responses_preserve_content_and_representation_etags(das
         dashboard_server, "/api/state", {"Accept-Encoding": "gzip"}
     )
     assert status == 200 and headers["Content-Encoding"] == "gzip"
-    assert headers["Vary"] == "Accept-Encoding"
+    assert headers["Vary"] == "Accept-Encoding, X-InferRSI-Compact"
     assert gzip.decompress(compressed) == plain and len(compressed) < len(plain)
     assert headers["ETag"] != plain_headers["ETag"]
     assert request(dashboard_server, "/api/state", {
@@ -78,6 +82,57 @@ def test_compressed_live_responses_preserve_content_and_representation_etags(das
     status, headers, html = request(dashboard_server, "/", {"Accept-Encoding": "gzip"})
     assert status == 200 and headers["Content-Encoding"] == "gzip"
     assert b'"live": true' in gzip.decompress(html)
+
+
+def test_compact_live_transport_interns_repeated_context_without_changing_legacy_api(
+    dashboard_server, monkeypatch
+):
+    rng = random.Random(42)
+    text = "".join(rng.choices(string.ascii_letters + string.digits, k=60000))
+    snapshot = {"data": {"candidates": [
+        {"optimization_trace": {"context": {"text": text}}},
+        {"optimization_trace": {"context": {"text": text}}},
+        {"optimization_trace": None},
+    ]}, "chart": "", "temporal": ""}
+    monkeypatch.setattr(dashboard_live, "dashboard_snapshot", lambda *_: copy.deepcopy(snapshot))
+    _, _, legacy = request(dashboard_server, "/api/state", {"Accept-Encoding": "gzip"})
+    status, headers, compact = request(dashboard_server, "/api/state", {
+        "Accept-Encoding": "gzip", "X-InferRSI-Compact": "1"
+    })
+    assert status == 200 and headers["Content-Encoding"] == "gzip"
+    legacy_data = json.loads(gzip.decompress(legacy))["data"]
+    compact_data = json.loads(gzip.decompress(compact))["data"]
+    assert legacy_data == snapshot["data"]
+    assert compact_data["_context_pool"] == [text]
+    contexts = [row["optimization_trace"]["context"]["text"]
+                for row in compact_data["candidates"][:2]]
+    assert contexts == [{"$context": 0}, {"$context": 0}]
+    assert len(compact) < len(legacy) * 0.75
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
+def test_compact_contexts_are_restored_exactly_in_the_browser():
+    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    script = r"""
+const fs = require('node:fs'), assert = require('node:assert/strict');
+const html = fs.readFileSync(process.argv[1], 'utf8');
+const source = html.slice(html.indexOf('  function restoreContexts('),
+                          html.indexOf('  let data = restoreContexts('));
+const restore = new Function(source + '\nreturn restoreContexts;')();
+const view = {_context_pool:['full context'], candidates:[
+  {optimization_trace:{context:{text:{$context:0}}}},
+  {optimization_trace:{context:{text:{$context:0}}}},
+  {optimization_trace:null}]};
+const restored = restore(view);
+assert.equal(restored.candidates[0].optimization_trace.context.text, 'full context');
+assert.equal(restored.candidates[1].optimization_trace.context.text, 'full context');
+assert(!('_context_pool' in restored));
+assert.throws(() => restore({_context_pool:[], candidates:[
+  {optimization_trace:{context:{text:{$context:0}}}}]}));
+assert.deepEqual(restore({candidates:[]}), {candidates:[]});
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+                   capture_output=True, text=True)
 
 
 def test_live_endpoint_is_loopback_only_and_does_not_serve_source_files(dashboard_server):

@@ -7,10 +7,38 @@ import hashlib
 import json
 import re
 import sys
+from collections import Counter
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .dashboard import dashboard_snapshot, render_dashboard
+
+
+def _compact_contexts(snapshot: dict) -> dict:
+    """Intern repeated trace text in a freshly created live snapshot."""
+    view = snapshot["data"]
+    contexts = []
+    for row in view.get("candidates", []):
+        trace = row.get("optimization_trace") if isinstance(row, dict) else None
+        context = trace.get("context") if isinstance(trace, dict) else None
+        if isinstance(context, dict):
+            contexts.append(context)
+    texts = [context.get("text") for context in contexts
+             if isinstance(context.get("text"), str) and len(context["text"]) > 1024]
+    counts = Counter(texts)
+    indexes: dict[str, int] = {}
+    pool: list[str] = []
+    for context in contexts:
+        text = context.get("text")
+        if not isinstance(text, str) or counts[text] < 2:
+            continue
+        if text not in indexes:
+            indexes[text] = len(pool)
+            pool.append(text)
+        context["text"] = {"$context": indexes[text]}
+    if pool:
+        view["_context_pool"] = pool
+    return snapshot
 
 
 class DashboardServer(ThreadingHTTPServer):
@@ -41,7 +69,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
-        self.send_header("Vary", "Accept-Encoding")
+        self.send_header("Vary", "Accept-Encoding, X-InferRSI-Compact")
         if encoding:
             self.send_header("Content-Encoding", encoding)
         if etag:
@@ -84,10 +112,12 @@ class DashboardHandler(BaseHTTPRequestHandler):
         try:
             snapshot = dashboard_snapshot(self.server.source, self.server.translations)
             if self.path == "/":
-                html = render_dashboard(snapshot, live=True)
+                html = render_dashboard(_compact_contexts(snapshot), live=True)
                 body, encoding = self._representation(html.encode("utf-8"))
                 self._reply(200, body, content_type="text/html; charset=utf-8", encoding=encoding)
                 return
+            if self.headers.get("X-InferRSI-Compact") == "1":
+                snapshot = _compact_contexts(snapshot)
             body, encoding = self._representation(
                 json.dumps(snapshot, ensure_ascii=False, allow_nan=False).encode("utf-8")
             )

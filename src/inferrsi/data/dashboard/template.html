@@ -201,7 +201,22 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
 <script>
 (() => {
   'use strict';
-  let data = JSON.parse(document.getElementById('dashboard-data').textContent);
+  function restoreContexts(view){
+    const pool=view._context_pool;
+    if(pool===undefined)return view;
+    if(!Array.isArray(pool) || pool.some(text=>typeof text!=='string'))throw new Error('invalid context pool');
+    for(const row of view.candidates){
+      const context=row.optimization_trace?.context, value=context?.text;
+      if(value && typeof value==='object' && !Array.isArray(value) && Object.keys(value).length===1 && '$context' in value){
+        const index=value.$context;
+        if(!Number.isInteger(index) || index<0 || index>=pool.length)throw new Error('invalid context reference');
+        context.text=pool[index];
+      }
+    }
+    delete view._context_pool;
+    return view;
+  }
+  let data = restoreContexts(JSON.parse(document.getElementById('dashboard-data').textContent));
   const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
@@ -895,7 +910,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const previousRun=runSelect.value;
     const details=new Map([...document.querySelectorAll('details[id],details[data-live-key]')].map(el=>[el.id || el.dataset.liveKey,el.open]));
     const scrollX=window.scrollX, scrollY=window.scrollY;
-    data=snapshot.data;
+    data=restoreContexts(snapshot.data);
     clear(runSelect);option(runSelect,'','All runs');
     const runs=[...new Set(data.candidates.map(row=>row.run_id).filter(Boolean))];
     if(previousRun && !runs.includes(previousRun))runs.push(previousRun);
@@ -922,9 +937,9 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if(!byId('feedback-preview').hidden)byId('feedback-preview').textContent=buildFeedback();
   }
   async function pollLive(){
-    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),8000);
+    const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),30000);
     try{
-      const headers=liveEtag?{'If-None-Match':liveEtag}:{};
+      const headers={'X-InferRSI-Compact':'1'};if(liveEtag)headers['If-None-Match']=liveEtag;
       const response=await fetch('/api/state',{headers,cache:'no-store',signal:controller.signal});
       if(response.status!==304){if(!response.ok)throw new Error('snapshot unavailable');const snapshot=await response.json();applySnapshot(snapshot);liveEtag=response.headers.get('ETag');}
       liveConnected=true;lastChecked=Date.now();
