@@ -22,12 +22,14 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
-      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/75afe47c07e337e9592010cb67b079777515fd08/src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
+      "commit": "75afe47c07e337e9592010cb67b079777515fd08",
       "paths": [
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/flexgen-offload-feasibility.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md",
+        "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-source-identity.json",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md",
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md",
@@ -50,7 +52,7 @@
         "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/scripts/roofline.py",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "0203dfabd2a02d2ab8f8696b922dcc3df86b3a811352a5bc6cea57aee68e869c"
+      "content_sha256": "1f4af1f484b67d53b1377ff6282dffd1470bc08c861cbcea906167ceceb6f268"
     }
   ],
   "index_type": "packaged-skill",
@@ -59,9 +61,11 @@
   },
   "checkout_ref": "checkout:performance-ceiling-analysis",
   "source_files": {
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "0203dfabd2a02d2ab8f8696b922dcc3df86b3a811352a5bc6cea57aee68e869c",
-    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "70cd45ab665d4a83544a55fb48f2c83f195715a39af1e8e238ab574403150212",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/SKILL.md": "1f4af1f484b67d53b1377ff6282dffd1470bc08c861cbcea906167ceceb6f268",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/metadata.json": "dcd16d3a64a777d5f5c63e37a6335b40269119efbc2f32185df383cfa10d7b54",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/flexgen-offload-feasibility.md": "984cc41c4412eafa6d20e109dea8927ad321a668776bc86bbffda0a94dfa9cc7",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-checkpoint-anchor.md": "ccaa32c42da6e81c9dba3fa10afe5caf07b6f64f2d01e8acbdda664d4cf34007",
+    "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/huggingarch-source-identity.json": "9ccf148682c30ed4f1a3f5cbf921bafd09f3ca446d89a7c36a5327481172d0fe",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/mooncake-prefix-reuse-feasibility.md": "e64b62fded4490708414a898f540b0319c54d2b205fd5d060acaab419734d100",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/INTEGRATION_NOTES.md": "083e462e0a204dce599362d46712fcfb392d053c5cda56216e22e28d4b8fa0fa",
     "src/inferrsi/data/skill_library/methods/performance-ceiling-analysis/references/papers-20261015/MECHANISMS.md": "742c249082ceca230326f4407a40130fe624553b796ae5a157a8a4c15a7e1398",
@@ -156,12 +160,33 @@
         ],
         "readset": "references/flexgen-offload-feasibility.md",
         "license": "CC-BY-4.0"
+      },
+      {
+        "url": "https://github.com/shenh10/HuggingArch",
+        "commit": "facbbbc96856e558b9084a94a5070b2e2c86cf0b",
+        "paths": [
+          "docs/validation.md",
+          "docs/measured_calibration.md",
+          "docs/evaluation_model.md",
+          "docs/known_limitations.md",
+          "backend/arch/validate/_matching.py",
+          "backend/arch/validate/_weight_ledger.py",
+          "backend/arch/validate/_ablation.py",
+          "backend/measure/scope.py",
+          "kernel_bench/emit.py"
+        ],
+        "type": "git",
+        "revision_precision": "full",
+        "license": "MIT",
+        "observed_at": "2026-11-04",
+        "identity": "references/huggingarch-source-identity.json",
+        "note": "Single-commit repository created 2026-11-03; no earlier revision exists to inspect. A companion blog post is recorded in the identity file as a partially read live URL with no snapshot, and two figures attributed to it are explicitly unverified."
       }
     ],
     "verification": {
       "locally_verified": false,
       "evidence_level": "source_grounded",
-      "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification."
+      "note": "Historical repository methods plus reviewed paper extensions: references/papers-20261015/READSET.md records exact paper versions and inspection scope. Physical/conditional bounds, observed envelopes, simulator predictions and application measurements remain distinct. The bundled pure helper computes supplied L1 counts only; no automatic workload estimation, local accelerator measurements or E2E qualification. The checkpoint-anchor prerequisite is derived from a reviewed external implementation at a pinned commit (references/huggingarch-checkpoint-anchor.md, identity in references/huggingarch-source-identity.json); documentation claims and source-verified claims are marked separately there. It anchors the weight demand term only and establishes nothing about KV counts, per-rank bytes without its second gate, or end-to-end serving performance."
     },
     "applicability": {
       "scope": "inference serving systems (LLM, diffusion, audio)",
@@ -184,27 +209,30 @@
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
-      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
+      "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+      "The checkpoint anchor covers analytical weight demand only; KV traffic, per-rank placement and end-to-end serving performance remain unanchored by it."
     ],
     "provenance_readsets": [
       "references/flexgen-offload-feasibility.md",
+      "references/huggingarch-checkpoint-anchor.md",
+      "references/huggingarch-source-identity.json",
       "references/mooncake-prefix-reuse-feasibility.md",
-      "references/papers-20261015/cases/decision-cases.md",
-      "references/papers-20261015/govern-optimization-experiments/procedure.md",
-      "references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
       "references/papers-20261015/INTEGRATION_NOTES.md",
-      "references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
       "references/papers-20261015/MECHANISMS.md",
       "references/papers-20261015/README.md",
       "references/papers-20261015/READSET.md",
+      "references/papers-20261015/STATIC_CHECKS.md",
+      "references/papers-20261015/cases/decision-cases.md",
+      "references/papers-20261015/govern-optimization-experiments/procedure.md",
+      "references/papers-20261015/govern-optimization-experiments/references/source-notes.md",
+      "references/papers-20261015/knowledge/bounds-predictions-and-decisions.md",
       "references/papers-20261015/redirect-cross-layer-optimization/procedure.md",
       "references/papers-20261015/redirect-cross-layer-optimization/references/source-notes.md",
       "references/papers-20261015/references/agentic-kernel.md",
       "references/papers-20261015/references/flashvector.md",
       "references/papers-20261015/references/inferencebench.md",
       "references/papers-20261015/references/prior-coverage.md",
-      "references/papers-20261015/references/vidur.md",
-      "references/papers-20261015/STATIC_CHECKS.md"
+      "references/papers-20261015/references/vidur.md"
     ],
     "consumption_mode": "packaged"
   },
@@ -224,7 +252,8 @@
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
     "Mooncake's prefix-reuse condition is an analytical approximation; current cache validity, placement, effective rates, overlap and SLO outcomes remain unverified.",
-    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified."
+    "FlexGen's cross-tier feasibility comparison assumes fitted rates and perfect overlap; relaxed placements may OOM, the printed bls wording remains unresolved, and current compatibility, latency and efficacy are unverified.",
+    "The checkpoint anchor covers analytical weight demand only; KV traffic, per-rank placement and end-to-end serving performance remain unanchored by it."
   ],
   "verification": {
     "locally_verified": false,

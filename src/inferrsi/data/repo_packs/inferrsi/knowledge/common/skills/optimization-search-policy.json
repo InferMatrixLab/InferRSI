@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
-      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/75afe47c07e337e9592010cb67b079777515fd08/src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
+      "commit": "75afe47c07e337e9592010cb67b079777515fd08",
       "paths": [
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/SKILL.md",
         "src/inferrsi/data/skill_library/methods/optimization-search-policy/cases/sarathi-chunk-budget.json",
