@@ -137,10 +137,10 @@ Python 3.10+ and Git.
 1. **Download the package from GitHub.** Open
    [Releases](https://github.com/InferMatrixLab/InferRSI/releases) and download
    `inferrsi-codex-plugin-vX.Y.Z.zip` from the selected version's assets.
-2. **Install it in Codex.** Open **Plugins → Add → Upload plugin archive** and
-   select the downloaded ZIP to import it. On the InferRSI detail page, click
-   **Install plugin** to install it. Once installed, enable InferRSI and start a
-   new conversation in your target repository.
+2. **Install it in Codex.** If your client offers **Plugins → Add → Upload plugin
+   archive**, use it to import the downloaded ZIP. Select **Install plugin** on
+   the InferRSI detail page if that action is available. Once installed, enable
+   InferRSI and start a new conversation in your target repository.
 
 [Installation video (English)](docs/assets/inferrsi-codex-install-en.mp4)
 

@@ -2,11 +2,14 @@
 
 import hashlib
 import json
+import posixpath
+import re
 import shutil
 import subprocess
 import sys
 import zipfile
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import pytest
 
@@ -147,7 +150,12 @@ def test_archive_contains_only_one_standalone_plugin(tmp_path):
         names = archive.namelist()
         assert {Path(name).parts[0] for name in names} == {"inferrsi"}
         assert "inferrsi/plugin.json" in names
-        assert "inferrsi/README.md" in names
+        readme = archive.read("inferrsi/README.md").decode("utf-8")
+        for target in re.findall(r"\[[^\]]*\]\(([^\s)]+)\)", readme):
+            link = urlsplit(target)
+            if not link.scheme and not link.netloc and link.path:
+                path = posixpath.normpath(posixpath.join("inferrsi", unquote(link.path)))
+                assert path in names, f"Broken link in plugin README: {target}"
         assert not any("marketplace" in name or ".agents" in name for name in names)
         metadata = json.loads(archive.read("inferrsi/plugin.json"))
         assert metadata["$schema"] == "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json"

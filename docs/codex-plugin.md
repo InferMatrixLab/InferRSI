@@ -29,13 +29,13 @@ The downloaded archive bundles the same-version InferRSI runtime and knowledge;
 installation requires no source checkout, package build or separate pip install.
 There is no marketplace catalog, registration step or distribution branch.
 
-In a Codex client with ZIP upload support, open **Plugins → Add → Upload plugin
-archive**. Select the downloaded `inferrsi-codex-plugin-vX.Y.Z.zip` to import it.
-On the InferRSI detail page, click **Install plugin** and follow the installation
-prompts. After installation, enable InferRSI, open your target repository and
-start a new conversation.
+If your Codex client offers **Plugins → Add → Upload plugin archive**, use it
+to import the downloaded `inferrsi-codex-plugin-vX.Y.Z.zip`. If the InferRSI
+detail page offers **Install plugin**, select it and follow the prompts. After
+installation, enable InferRSI, open your target repository and start a new
+conversation.
 
-[Watch or download the installation guide (English narration and subtitles)](assets/inferrsi-codex-install-en.mp4?raw=1).
+[Watch or download the installation guide (English narration and subtitles)](https://raw.githubusercontent.com/InferMatrixLab/InferRSI/main/docs/assets/inferrsi-codex-install-en.mp4).
 The video uses English UI illustrations based on the supplied screenshots to show
 the menu click order; it does not record a completed upload or installation.
 Exact labels and availability depend
@@ -115,12 +115,11 @@ or replacement flow for the existing InferRSI plugin. Check the selected bundle 
 `--plugin-info` in a new conversation. Do not overwrite an installed cache or
 carry forward an old runtime by hand.
 
-For existing installations managed through Plugin Creator, its file updates
-overlay existing files. Compare the old and new runtime manifests and explicitly
-remove obsolete runtime/resources while retaining the same plugin identity and
-audience; omitting a file from that update archive alone does not remove its
-installed copy. This overlay behavior does not establish how the native ZIP
-upload UI handles replacement; verify the selected version in the target client.
+For older installations managed through Plugin Creator, file updates overlay
+existing files. Compare the old and new runtime manifests and explicitly remove
+obsolete runtime files and resources while retaining the same plugin identity
+and audience. Files omitted from that update archive remain installed. Verify
+how native ZIP replacement behaves on your target client.
 
 Disable InferRSI in the desktop plugin UI when you want to retain its installation
 but stop loading it. To uninstall, remove the selected InferRSI plugin in the
