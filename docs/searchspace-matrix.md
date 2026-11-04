@@ -614,3 +614,16 @@ NOASSERTION and InferRSI's repository license.
 | Accelerator / RAM / Host | Diagnose / configure / verify: tensor/alias/gradient state, training and data ownership, compiler guards and export contracts, allocator accounting, stream dependencies and graph input/output lifetimes | [pytorch operating graph](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md), [memory/graph route](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/sub-skills/memory-streams-and-graphs/SKILL.md), [compiler/export route](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/sub-skills/compiler-and-export/SKILL.md) | Source version `2.16.0a0` and observed CPU wheel `2.15.0+cpu` are distinct. CPU observations do not qualify pinned-source execution, CUDA/ROCm/MPS/XPU, native custom operators, memory fit or model quality. |
 | SSD / Storage / RAM | Diagnose / verify: serialization trust and state identity, checkpoint ownership, distributed restore and capture/staging/upload completion boundaries | `pytorch`: [distributed/checkpoint route](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md); existing [DCP async-save owner](../src/inferrsi/data/skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md) retains its separate source pin | No source-build checkpoint run, backend durability, distributed recovery or measured storage benefit is established. A state-dict round trip in a separate installed wheel does not qualify those properties. |
 | Communication / Network / Accelerator | Diagnose / verify: process/rank/device mapping, backend and collective schedule, DDP/FSDP2/DTensor state and completion | `pytorch`: [distributed/checkpoint route](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/sub-skills/distributed-and-checkpoint/SKILL.md), [source and runtime boundary](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/references/repo-provenance.md) | Selected source and CPU controls do not establish NCCL or other accelerator transport, multi-device/multi-node correctness, overlap or throughput. Required backend checks remain `BLOCKED_REQUIRED_BACKEND`; no new measured/green resource cell, OS control or compatible latest PyTorch/TorchNPU stack is asserted. |
+
+## Embodied.cpp benchmark methodology
+
+The [inference-benchmark-design](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/SKILL.md)
+method uses [Embodied.cpp at 156bed15](https://github.com/SEU-PAISys/Embodied.cpp/tree/156bed151826780e2ce0132f8d0e3540889ae8cd)
+and [arXiv:2607.02501v3](https://arxiv.org/abs/2607.02501v3) as source context
+for observation-to-action timing, generated versus replayed actions, precision
+identity and per-task closed-loop quality. Its [operating reference](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/embodied-cpp-boundary-and-quality.md)
+and [readset](../src/inferrsi/data/skill_library/methods/inference-benchmark-design/references/embodied-cpp-source.json)
+retain the later author's measurement and source-version limits.
+
+These are comparison methods. Experiment hardware is source context rather
+than a device prerequisite or a resource mechanism for this method.

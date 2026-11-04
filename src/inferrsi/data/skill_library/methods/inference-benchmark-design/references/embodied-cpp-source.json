@@ -1,0 +1,455 @@
+{
+  "title": "Embodied.cpp VLA deployment benchmark source record",
+  "repository": {
+    "url": "https://github.com/SEU-PAISys/Embodied.cpp",
+    "commit": "156bed151826780e2ce0132f8d0e3540889ae8cd",
+    "tree": "cff35978852e8199e176cee2eba0322b7af3eb90",
+    "tree_entries": 213,
+    "blob_entries": 188,
+    "tree_truncated": false,
+    "default_license_declaration": "Apache-2.0"
+  },
+  "inspected_on": "2026-11-04",
+  "paired_paper": {
+    "id": "arxiv:2607.02501",
+    "version": "v3",
+    "url": "https://arxiv.org/abs/2607.02501v3",
+    "html_url": "https://arxiv.org/html/2607.02501v3",
+    "title": "Embodied.cpp: A Portable Inference Runtime of Embodied AI Models on Heterogeneous Robots",
+    "authors": "Ling Xu et al.",
+    "version_date": "2026-08-09",
+    "license": "CC-BY-4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "read_scope": "Version/license/project-link metadata; selected architecture context in 3.2; section 4 including Tables 3-4 and conclusion. Only normalized VLA metric semantics from section 4/Table 3 are proposed for reuse. No paper figures, PDF, full text or WAM qualification is proposed for redistribution.",
+    "reuse_scope": "Section 4/Table 3 independently normalized VLA metric semantics. The later SmolVLA follow-up is a separate experiment, not a paper-v3 result."
+  },
+  "rights": {
+    "repository_license_sha256": "88993458addec64e6922f552eb27ddd5f775d911db56205f167c885800011bf7",
+    "attribution": [
+      "Copyright 2026 SEU-PAISys",
+      "Original portions Copyright 2026 VinRobotics",
+      "Modifications and new files Copyright 2026 SEU-PAISys"
+    ],
+    "file_notice_scope": "Selected client/server/protobuf/typed-I/O and profiler notices explicitly declare Apache-2.0; selected benchmark/aggregation/baseline scripts have no separate file notice and use the repository default declaration",
+    "separate_rights": "README line 594 reserves third-party dependencies, checkpoints, datasets and upstream implementations to their own licenses. No such artifacts are proposed for redistribution.",
+    "distribution": "Original attributed procedure prose and source links only; no upstream code, raw sample arrays, paper figures/full text, model weights or datasets are redistributed."
+  },
+  "files": [
+    {
+      "path": "adapter/typed_io.py",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/adapter/typed_io.py",
+      "bytes": 1656,
+      "git_blob_sha1": "7f20a7848fcbd8d1fa659f440fd2f9a433d6e3e0",
+      "sha256": "4b68fa78ad474f5dd31bb61c5c167114a4c04eff3d08f83d4e87d5a7cab0bdb1",
+      "read_scope": "Complete typed I/O boundary inspected as context; fixed benchmark directly builds model-input mappings, so no claim that this typed adapter executes in the benchmark",
+      "read_regions_one_based": [
+        [
+          1,
+          62
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/client/libero_profile.py",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/client/libero_profile.py",
+      "bytes": 21870,
+      "git_blob_sha1": "0ad704b61930937b781b2e454ebe044b7e328ba5",
+      "sha256": "340d208302f4c04218b40850eda31159eba0a5de4368bdb457c81339ffee7c6e",
+      "read_scope": "Selected memory sampling and complete metric/episode accumulation/result methods; report-formatting helpers excluded",
+      "read_regions_one_based": [
+        [
+          1,
+          34
+        ],
+        [
+          64,
+          140
+        ],
+        [
+          204,
+          501
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/client/vla_cpp_client.py",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/client/vla_cpp_client.py",
+      "bytes": 37607,
+      "git_blob_sha1": "e68c4a9339e4a5c29f33061e1f90317acbc28ab5",
+      "sha256": "bfc875aded705c4b50965b2d50f492c19997372188e84ba3b4655b1a5325aab9",
+      "read_scope": "Selected complete reachable SmolVLA setup/predict/request/queue/close methods; unrelated XR0/X-VLA prediction bodies excluded",
+      "read_regions_one_based": [
+        [
+          1,
+          134
+        ],
+        [
+          203,
+          226
+        ],
+        [
+          369,
+          742
+        ],
+        [
+          931,
+          941
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/conf/libero_smolvla_object_q8_eval.yaml",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/conf/libero_smolvla_object_q8_eval.yaml",
+      "bytes": 1062,
+      "git_blob_sha1": "ef8d8716f725c4d08a6e4417b56e92c39eb4cf4f",
+      "sha256": "7ca892ee8dfeaebd16b87cc0338d86145e2f6bab632e53a3e2ef92686b413bd6",
+      "read_scope": "Complete Q8 Object control/episode/image/replay/generated-horizon configuration",
+      "read_regions_one_based": [
+        [
+          1,
+          50
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/README.md",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/README.md",
+      "bytes": 6388,
+      "git_blob_sha1": "ca4190cb62b51abed6550fa00d10fe3db6e88da5",
+      "sha256": "22a77e97436acc788903c4a40bbe5ea90a47431823ec2f69c46bfb9124353ebe",
+      "read_scope": "Complete evaluation navigation and historical/smoke/acceptance distinctions",
+      "read_regions_one_based": [
+        [
+          1,
+          137
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/smolvla_q8_fixed_boundary_20261002.json",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/smolvla_q8_fixed_boundary_20261002.json",
+      "bytes": 18632,
+      "git_blob_sha1": "2b9498f51964dcbfaa9d97ff7e28eed9f7251cc5",
+      "sha256": "db53513cfdc52a03c3a4f2f1a2bfbab7a1eed45a9995873ac3bf34b7e9d7019d",
+      "read_scope": "Complete JSON structure; both 100-request arrays independently recomputed; precision/source-version/memory metadata and aggregate success claims inspected",
+      "read_regions_one_based": [],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/smolvla_q8_object_followup_20260930.md",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/smolvla_q8_object_followup_20260930.md",
+      "bytes": 10658,
+      "git_blob_sha1": "36013b63f3c9f589754edbedecc7401ac081e442",
+      "sha256": "db8691f6e745424e2466d98e7611b50c7080ff95d782d2ee8fdb78d0537862fd",
+      "read_scope": "Complete Q8 follow-up; fixed-boundary results, per-task quality, historical diagnostics, exclusions, dirty-source and raw-artifact limits",
+      "read_regions_one_based": [
+        [
+          1,
+          228
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/SMOLVLA_VALIDATION.md",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/SMOLVLA_VALIDATION.md",
+      "bytes": 8487,
+      "git_blob_sha1": "42dd49aa6048900e48baa857ded41a8f7e9b9959",
+      "sha256": "3dd8080c07529a25691e48c22800734d20fccfe4571d409c677396e1f96c107d",
+      "read_scope": "Complete historical SmolVLA validation; old seed protocol, smoke, numerical and unequal-timing-scope cautions",
+      "read_regions_one_based": [
+        [
+          1,
+          176
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/THREE_MODEL_VALIDATION.md",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/THREE_MODEL_VALIDATION.md",
+      "bytes": 5238,
+      "git_blob_sha1": "cd8115df57aaded4df2f11bcc0d718bca2488948",
+      "sha256": "d19faff9e7b70add7ca44d9e642c3783e2084454949e38e4ee29b3e55f7abe7b",
+      "read_scope": "Complete validation ledger; published versus reproduced versus pending and explicit precision/protocol/coverage gaps",
+      "read_regions_one_based": [
+        [
+          1,
+          61
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "eval/VLA_BENCHMARK_STANDARD.md",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/eval/VLA_BENCHMARK_STANDARD.md",
+      "bytes": 6984,
+      "git_blob_sha1": "e6758c911fee427958c8fb8ad82ad6bc6f82824f",
+      "sha256": "aa8ba3bd6982a63be4f8533973fc2b8d9ee4b68a4312dee788fa33851a343ce6",
+      "read_scope": "Complete protocol, timing inclusions/exclusions, metric denominators, quality/evidence rules",
+      "read_regions_one_based": [
+        [
+          1,
+          129
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "LICENSE",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/LICENSE",
+      "bytes": 11462,
+      "git_blob_sha1": "b45820ee42df0db9253634546b1c321343446137",
+      "sha256": "88993458addec64e6922f552eb27ddd5f775d911db56205f167c885800011bf7",
+      "read_scope": "Apache-2.0 identity, grants, redistribution conditions and VinRobotics/SEU-PAISys attribution",
+      "read_regions_one_based": [
+        [
+          1,
+          15
+        ],
+        [
+          66,
+          123
+        ],
+        [
+          189,
+          205
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "README.md",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/README.md",
+      "bytes": 25578,
+      "git_blob_sha1": "0479552cf71976ad5c365e6ff1e4181d0093ee9d",
+      "sha256": "60ec56863978989382aea8f20a0336da6a8cbc24c34162d96c81eb245f738198",
+      "read_scope": "Performance-source classification, SmolVLA replay/prompt caveats, source rights and third-party boundary",
+      "read_regions_one_based": [
+        [
+          7,
+          8
+        ],
+        [
+          160,
+          182
+        ],
+        [
+          418,
+          446
+        ],
+        [
+          571,
+          613
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "scripts/aggregate_smolvla_object_eval.py",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/scripts/aggregate_smolvla_object_eval.py",
+      "bytes": 41255,
+      "git_blob_sha1": "768e77510903c11fdbaa90d3953ca201d128bff7",
+      "sha256": "578dc3ed0c2cc814b5535294c0a5b801c8d602685656ced6f50f32bfe0d9894c",
+      "read_scope": "Complete static strict-aggregation path; manifests, task/episode IDs, skip rejection, raw sample checks and promotion_eligible=false",
+      "read_regions_one_based": [
+        [
+          1,
+          928
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "scripts/bench_vla_boundary.py",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/scripts/bench_vla_boundary.py",
+      "bytes": 27881,
+      "git_blob_sha1": "9a858e199b857106fe4a48dd09d05e793f2375ec",
+      "sha256": "2a7e94a4df662d2da41169cc2345b75e683c82e082fe590eba713302255e1a7b",
+      "read_scope": "Complete fixed-boundary benchmark; input preparation, Python/C++ timed predictors, pair gate, sampling and artifact output",
+      "read_regions_one_based": [
+        [
+          1,
+          511
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "scripts/profile_smolvla_python_baseline.py",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/scripts/profile_smolvla_python_baseline.py",
+      "bytes": 31128,
+      "git_blob_sha1": "68627bff2c1956620b3f2f09ccb0aea23a17fde6",
+      "sha256": "7216e578d692ac2a78c0d3b45f93e01a5c9501e7c039fbbf27b030a4cc0d13e8",
+      "read_scope": "Complete static Python baseline path; model-internal timing, seeds/resume, exact-index exclusion and filtered/unfiltered summaries",
+      "read_regions_one_based": [
+        [
+          1,
+          778
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "serving/vla-server.cpp",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/serving/vla-server.cpp",
+      "bytes": 25761,
+      "git_blob_sha1": "8dd8d681cf90dbb27a33002c8f6e8a19a9b24ce1",
+      "sha256": "d9d459cf966d320adea01e3835b88add55fb1d32a548c32eea1b478cdf69c7dc",
+      "read_scope": "Attribution plus model-input build, prediction result, complete CPU-vector response serialization and timing fields; other-model parse paths and model math excluded",
+      "read_regions_one_based": [
+        [
+          1,
+          39
+        ],
+        [
+          460,
+          554
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    },
+    {
+      "path": "serving/vla.proto",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/156bed151826780e2ce0132f8d0e3540889ae8cd/serving/vla.proto",
+      "bytes": 2191,
+      "git_blob_sha1": "e15f623bce6592a88d8693e56bd7ff9387fcd0f7",
+      "sha256": "7cdc70febe06183b5c42aa272c811c8d23d811334406c56c3459457724745c70",
+      "read_scope": "Complete request/response boundary and attribution",
+      "read_regions_one_based": [
+        [
+          1,
+          79
+        ]
+      ],
+      "license": "Apache-2.0 (repository default; selected explicit file notices agree)"
+    }
+  ],
+  "measurement_evidence": {
+    "artifact_path": "eval/smolvla_q8_fixed_boundary_20261002.json",
+    "artifact_sha256": "db53513cfdc52a03c3a4f2f1a2bfbab7a1eed45a9995873ac3bf34b7e9d7019d",
+    "author_measurement_date": "2026-10-02",
+    "inspection_is_not_measurement": true,
+    "boundary_id": "raw_cpu_observation_to_complete_cpu_action_chunk.v1",
+    "fixed_input": {
+      "images": "two CPU float CHW images, 512x512 each",
+      "raw_state_dimensions": 8,
+      "noise_shape": [
+        50,
+        32
+      ],
+      "instruction": "Exact instruction bound by the artifact hash"
+    },
+    "output_shape": [
+      50,
+      7
+    ],
+    "generated_horizon": 50,
+    "measurement_plan": {
+      "n": 100,
+      "warmup": 5,
+      "memory_requests": 20,
+      "formal": true
+    },
+    "conditions": {
+      "hardware": "NVIDIA GeForce RTX 4060 Laptop GPU, sm_89, WSL2",
+      "cuda_driver": "CUDA 12.0 / driver 576.88",
+      "python_stack": "PyTorch 2.5.1 CUDA 12.4; LeRobot 0.4.3; LIBERO 0.1.0",
+      "quality_scope": "LIBERO-Object, tasks 0-9, 20 episodes per task per backend",
+      "quality_images": "360x360 observations / 512x512 model images",
+      "environment_seed": 1000,
+      "action_noise_seed": 1000,
+      "noise_protocol": "Derived per episode",
+      "replayed_actions_per_request": 1,
+      "flow_steps": 10
+    },
+    "reported_manifests": {
+      "python": {
+        "source_checkpoint_storage": "safetensors",
+        "runtime_parameter_dtypes": [
+          "torch.bfloat16",
+          "torch.float32"
+        ],
+        "autocast": false
+      },
+      "cpp_q8_0": {
+        "source_checkpoint_storage": "safetensors",
+        "gguf_resident_weight_storage": "Q8_0",
+        "runtime_compute": "F32"
+      },
+      "interpretation": "Different runtime/precision policies are a joint treatment; manifests are not independently verified operator dispatch."
+    },
+    "published_sample_summary": {
+      "python_request_count": 100,
+      "cpp_request_count": 100,
+      "python_request_mean_ms": 490.75542880999984,
+      "cpp_request_mean_ms": 308.0299474900005,
+      "python_request_p99_ms": 518.7674982100198,
+      "cpp_request_p99_ms": 393.7192080099521,
+      "python_generated_action_mean_ms": 9.815108576199998,
+      "cpp_generated_action_mean_ms": 6.1605989498000095,
+      "normalized_to_python": {
+        "latency_per_request": 0.6276648803191476,
+        "latency_per_generated_action": 0.6276648803191475,
+        "vram_peak": 0.6157989228007181
+      },
+      "interpretation": "Arithmetic over public author sample arrays; not a fresh device measurement or action-response/control-frequency result."
+    },
+    "memory": {
+      "source": "device_total_fallback",
+      "process_level_vram": false,
+      "python_sample_count": 73,
+      "cpp_sample_count": 13,
+      "python_sampled_peak_mib": 1671,
+      "cpp_sampled_peak_mib": 1029,
+      "interpretation": "Periodic whole-device samples on an author-described isolated GPU; not process-attributed or one sample per request."
+    },
+    "quality": {
+      "evidence": "Author aggregate and task tables; raw episode artifacts absent from the pinned tree",
+      "python_successes": 172,
+      "cpp_successes": 166,
+      "episodes_per_backend": 200,
+      "task_7": {
+        "python_successes": 20,
+        "cpp_successes": 9,
+        "episodes_per_backend": 20
+      },
+      "interpretation": "Retain per-task loss. Aggregate closeness and overlapping Wilson intervals do not establish equivalence or noninferiority."
+    },
+    "reported_exclusion": {
+      "scope": "Historical closed-loop Python timing diagnostics, not the fixed-boundary arrays",
+      "task_id": 1,
+      "sample_index": 2274,
+      "request_ms": 180864.500452,
+      "reason": "User-requested host process suspension",
+      "handling": "Exact-index exclusion described with raw sample retained and filtered/unfiltered summaries; no quality or memory sample removed"
+    }
+  },
+  "source_version_boundaries": {
+    "inspected_commit": "156bed151826780e2ce0132f8d0e3540889ae8cd",
+    "current_script_sha256": "2a7e94a4df662d2da41169cc2345b75e683c82e082fe590eba713302255e1a7b",
+    "artifact_declared_revision": "3a3468cfe634e88d93d08aafcae89bd3ef0fb5a2",
+    "public_script_at_declared_revision": {
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp/blob/3a3468cfe634e88d93d08aafcae89bd3ef0fb5a2/scripts/bench_vla_boundary.py",
+      "sha256": "3ab7f108eb4493dec548e8641a65e54d3dd605bab27076e17abf1422792f9332",
+      "observation": "Public architecture choices omit SmolVLA"
+    },
+    "recorded_measured_script_sha256": "dee5573089d882ec5fcade6c99ede546ab810c22526c894c68bbca471175a892",
+    "closed_loop_base": "dcedfec5721768661bd81f4196a0325d55f814f9",
+    "closed_loop_tree_state": "Uncommitted changes; full source patch not supplied",
+    "reported_server_binary_sha256": "e45398c0bf2cd069a166e504a309683535988cc9f888e4f41257959034981210",
+    "interpretation": "Neither public script hash matches the measured-script hash; binary identity or dirty-path count does not identify the missing source patch."
+  },
+  "exclusions_and_limits": [
+    "Selected file regions support benchmark methodology, not whole-repository or WAM/runtime-support qualification.",
+    "Fixed fixtures, raw episode logs, complete measurement patch, weights and datasets are absent or excluded; no replacement data is invented.",
+    "Broader native kernels, model math, quantizer correctness and effective dtype dispatch are outside this qualification.",
+    "Source code, published sample arithmetic and author quality reports remain distinct from model/device/service and agent-efficacy validation.",
+    "Source numeric protocol values are contextual, not InferRSI default thresholds."
+  ]
+}
