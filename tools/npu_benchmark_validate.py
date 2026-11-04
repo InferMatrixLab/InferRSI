@@ -23,6 +23,13 @@ def read(path):
     return json.loads(Path(path).read_text(encoding="utf-8"))
 
 
+def validation_passed(validation):
+    result = validation.get("result", {})
+    return (validation.get("execution_status") == "completed"
+            and validation.get("returncode") == 0
+            and result.get("status") == "completed" and result.get("passed") is True)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, required=True)
@@ -114,10 +121,18 @@ def main():
         run = run_experiment(spec, {"benchmark": task.identity(path),
                                     "backend": "ascend", "qualification": "pending"})
         evaluation = read(run / "evaluation.json")
+        validation_dir = run / "validation"
+        execution = (read(validation_dir / "execution.json")
+                     if (validation_dir / "execution.json").is_file() else {})
+        validated = (read(validation_dir / "result.json")
+                     if (validation_dir / "result.json").is_file() else {})
+        validation = {"execution_status": execution.get("status"),
+                      "returncode": execution.get("returncode"), "result": validated}
         trials = {side: [read(p) for p in sorted((run / side).glob("trial-*/result.json"))]
                   for side in ("baseline", "candidate")}
         comparisons[name] = {"run": run.relative_to(output).as_posix(),
-                             "evaluation": evaluation, "trials": trials}
+                             "evaluation": evaluation, "trials": trials,
+                             "validation": validation}
         print(json.dumps({"comparison": name, "verdict": evaluation["verdict"]}), flush=True)
 
     def correct(name):
@@ -137,6 +152,7 @@ def main():
     all_results = [record["result"] for record in actions.values()]
     all_results.extend(trial for comparison in comparisons.values()
                        for trials in comparison["trials"].values() for trial in trials)
+    all_results.extend(comparison["validation"]["result"] for comparison in comparisons.values())
     environments = [result.get("environment") for result in all_results]
     checks["fixed_environment"] = bool(environments) and all(
         env and env == environments[0] for env in environments
@@ -145,7 +161,7 @@ def main():
     shape_comparisons = {}
     for name, comparison in comparisons.items():
         by_shape = {}
-        valid = all(len(trials) == args.repetitions
+        valid = validation_passed(comparison["validation"]) and all(len(trials) == args.repetitions
                     and all(trial.get("passed") and "cases" in trial for trial in trials)
                     for trials in comparison["trials"].values())
         for case in task.manifest["measurement"]["case_ids"] if valid else []:

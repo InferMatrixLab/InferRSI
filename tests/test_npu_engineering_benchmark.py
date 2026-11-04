@@ -13,6 +13,7 @@ from inferrsi.harness.benchmarks import load_builtin_task, load_task
 from inferrsi.harness.benchmarks.consumers import grade_artifact, run_action
 from inferrsi.harness.benchmarks.npu_task import check_output, device_kernels, reference
 from inferrsi.harness.skill_eval_benchmark import task_descriptor
+from tools.npu_benchmark_validate import validation_passed
 
 
 def test_discovery_has_no_torch_dependency_and_formal_cpu_path_refuses_npu():
@@ -73,6 +74,15 @@ def test_profile_requires_hardware_kernel_records():
               "args": {"Task Type": "KERNEL_AIVEC"}}
     assert device_kernels([launch, metadata, flow]) == []
     assert device_kernels({"traceEvents": [launch, metadata, flow, kernel]}) == [kernel]
+
+
+@pytest.mark.parametrize("status,code,passed,expected", [
+    ("completed", 0, True, True), ("failed", 1, False, False),
+    ("timeout", None, True, False), ("completed", 0, False, False),
+])
+def test_noop_qualification_requires_final_quality_pass(status, code, passed, expected):
+    assert validation_passed({"execution_status": status, "returncode": code,
+                              "result": {"status": "completed", "passed": passed}}) is expected
 
 
 def test_changed_input_shape_and_broadcast_output_cannot_pass():
