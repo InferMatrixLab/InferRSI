@@ -1,0 +1,55 @@
+{
+  "role": "current_campaign_receipt",
+  "stage": "progress_after_frozen_preflight_snapshot",
+  "successor_of": "results/status.json",
+  "historical_preflight_snapshot": {
+    "path": "results/status.json",
+    "stage": "preflight_preparation",
+    "frozen_by": "plan/preflight-integrity.json",
+    "execution": "queued",
+    "four_device_samples": 0,
+    "limitation": "No four-device execution result yet",
+    "reader_note": "Frozen preparation snapshot hashed before the four-device HTTP baseline. Its queued execution and zero sample count are not the current campaign status. Do not use them to discard or reclassify the measured sample below."
+  },
+  "verdict": "INCONCLUSIVE",
+  "speedup": null,
+  "quality_acceptance": false,
+  "campaign_acceptance": false,
+  "baseline_preflight": {
+    "measured_samples": 1,
+    "receipt": "results/baseline-5s-complete.json",
+    "run": "baseline-5s-preflight",
+    "hardware": {
+      "type": "Ascend 910B1",
+      "count": 4
+    },
+    "steps": 50,
+    "measured_request": {
+      "label": "measured-5-seed0-0",
+      "e2e_ms": 814064.1126520932,
+      "http_status": 200
+    },
+    "lifecycle": {
+      "status": "fail",
+      "forced_signals": 8,
+      "expected_workers": 4,
+      "worker_teardown": "failed"
+    },
+    "verdict": "INCONCLUSIVE",
+    "scope": "5s feasibility and baseline repeatability only; original lifecycle FAIL; no optimization gain certified"
+  },
+  "later_records": {
+    "fifteen_second_lifecycle_control": {
+      "receipt": "results/baseline15-complete.json",
+      "run": "lifecycle-control-15s-preflight",
+      "relationship": "Separate later four-device HTTP receipt. It does not replace the 5s baseline preflight sample, does not clear that sample's failed worker teardown, and does not accept the campaign."
+    },
+    "other_results": "Other results records keep their own contents. This receipt does not roll them into a speedup or a campaign PASS."
+  },
+  "limitations": [
+    "Campaign verdict remains INCONCLUSIVE",
+    "No speedup is claimed",
+    "One 4x910B1 50-step HTTP baseline preflight sample is recorded and its worker teardown failed",
+    "This receipt is not campaign acceptance"
+  ]
+}
