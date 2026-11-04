@@ -100,11 +100,13 @@ def _optimization(candidate: dict) -> dict:
                               "scope": _text(entry.get("scope"), "Not recorded"),
                               "note": _text(entry.get("note"), "Not recorded", 1000)})
     commands = []
+    candidate_id = candidate.get("candidate_id")
+    candidate_ids = {candidate_id} if isinstance(candidate_id, str) else None
     raw_commands = data.get("commands")
     if isinstance(raw_commands, list):
         for entry in raw_commands[:20]:
             if isinstance(entry, dict):
-                command = _display_command(entry.get("argv"))
+                command = _display_command(entry.get("argv"), candidate_ids=candidate_ids)
                 if command is not None:
                     commands.append({"label": _text(entry.get("label"), "Caller-recorded command"),
                                      "argv": command})
@@ -115,7 +117,7 @@ def _optimization(candidate: dict) -> dict:
             "code_locations": locations, "commands": commands}
 
 
-def _safe_argv(value: object) -> list[str] | None:
+def _safe_argv(value: object, *, candidate_ids: set[str] | None = None) -> list[str] | None:
     """Keep useful argv structure without retaining arbitrary argument values."""
     if not isinstance(value, list) or not value or len(value) > 100:
         return None
@@ -123,7 +125,7 @@ def _safe_argv(value: object) -> list[str] | None:
         return None
     safe_words = {"baseline", "candidate", "mtp", "quality-baseline", "quality-mtp", "smoke",
                   "true", "false", "auto", "vllm", "float16", "bfloat16", "float32"}
-    safe_options = {"--mode", "--dtype", "--max-tokens", "--max-model-len",
+    safe_options = {"--mode", "--dtype", "--candidate", "--gpu", "--max-tokens", "--max-model-len",
                     "--num-speculative-tokens", "--max-num-batched-tokens", "--input-len",
                     "--output-len", "--batch-size", "--num-prompts", "--port",
                     "--tensor-parallel-size", "--gpu-memory-utilization", "--max-num-seqs",
@@ -133,6 +135,16 @@ def _safe_argv(value: object) -> list[str] | None:
                                    "--disable-log-requests", "--trust-remote-code",
                                    "--enforce-eager",
                                    "--dataset-name", "--dataset-path", "--backend", "--endpoint"}
+
+    def safe_value(name: str, val: str) -> bool:
+        if name == "--candidate":
+            return bool(candidate_ids and val in candidate_ids
+                        and re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}", val)
+                        and not _SENSITIVE_NAME.search(val) and _text(val, "", 128) == val)
+        if name == "--gpu":
+            return bool(re.fullmatch(r"[0-9]{1,3}", val))
+        return val in safe_words or bool(re.fullmatch(r"[0-9.]+", val))
+
     result = []
     hide_next = False
     value_option = None
@@ -160,7 +172,7 @@ def _safe_argv(value: object) -> list[str] | None:
                 result.append("[redacted-option]")
                 continue
             if equal:
-                safe = name in safe_options and (val in safe_words or re.fullmatch(r"[0-9.]+", val))
+                safe = name in safe_options and safe_value(name, val)
                 shown = val if safe else "[redacted]"
                 result.append(name + "=" + shown)
             else:
@@ -193,7 +205,7 @@ def _safe_argv(value: object) -> list[str] | None:
                 result.append(json.dumps(config, separators=(",", ":")))
             else:
                 result.append("[redacted]")
-        elif value_option and (arg in safe_words or re.fullmatch(r"[0-9.]+", arg)):
+        elif value_option and safe_value(value_option, arg):
             result.append(arg)
         else:
             result.append("[redacted]")
@@ -201,8 +213,8 @@ def _safe_argv(value: object) -> list[str] | None:
     return result
 
 
-def _display_command(value: object) -> str | None:
-    safe = _safe_argv(value)
+def _display_command(value: object, *, candidate_ids: set[str] | None = None) -> str | None:
+    safe = _safe_argv(value, candidate_ids=candidate_ids)
     return shlex.join(safe) if safe is not None else None
 
 
@@ -513,7 +525,7 @@ def _environment_signature(environment: dict, devices: object, backend: object) 
 
 def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: float | None,
          campaign_id: object = None, unique_candidate: bool = False,
-         candidate_ref: dict | None = None) -> dict:
+         candidate_ref: dict | None = None, candidate_ids: set[str] | None = None) -> dict:
     if run_id is None:
         def missing(kind: str) -> dict:
             return {"kind": kind, "state": "missing", "missing_reason": "not_collected"}
@@ -704,7 +716,8 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
                               "candidate_samples": [_number(v)
                                                     for v in measured.get("values", [])[:100]]
                               if isinstance(measured.get("values"), list) else []},
-        "commands": {key: _display_command(lock.get(source)) for key, source in (
+        "commands": {key: _display_command(lock.get(source), candidate_ids=candidate_ids)
+                     for key, source in (
             ("baseline", "baseline_command"), ("candidate", "candidate_command"),
             ("accuracy", "validation_command"),
         )},
@@ -821,7 +834,7 @@ def load_dashboard(source: Path) -> dict:
                       sum(entry[1].get("candidate_id") == candidate_id for entry in entries) == 1)
             run_path = root / "runs" / run_id if run_id else directory / "missing-run"
             rows.append(_run(root, run_path, metadata, run_id, noise, campaign.get("campaign_id"),
-                             unique, metadata_ref))
+                             unique, metadata_ref, known))
         if not rows and _inside(root, root / "runs") and (root / "runs").is_dir():
             for directory in sorted((root / "runs").iterdir()):
                 if directory.is_dir() and not directory.is_symlink():

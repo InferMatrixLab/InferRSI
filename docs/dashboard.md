@@ -417,7 +417,9 @@ markers. Unrelated candidate measurements are not joined into a cumulative line.
   command argument structure from `run.lock.json`, with its source hash. Unknown
   options and argument values, directories, credential-like options, inline
   shell scripts and environment assignments are deliberately hidden. Python
-  script basenames may remain visible; review them before sharing. These displays are not runnable
+  script basenames may remain visible. Numeric `--gpu` ordinals and
+  `--candidate` values matching a displayed campaign candidate ID may also be
+  shown. Review these identifiers before sharing. These displays are not runnable
   commands. Caller-supplied benchmark and accuracy descriptions state what was
   measured; they are not independently verified. A validation exit code does not
   establish an accuracy result when no result was recorded.

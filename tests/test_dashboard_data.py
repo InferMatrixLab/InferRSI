@@ -864,6 +864,43 @@ def test_optimization_details_commands_and_privacy(tmp_path):
         assert "-1122334455667788" not in display
 
 
+def test_command_displays_only_recorded_candidate_ids_and_gpu_ordinals(tmp_path):
+    write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
+    run(tmp_path, "run-a", 5, quality="completed", verified=True)
+    run(tmp_path, "run-b", 5, quality="completed", verified=True)
+    candidate(tmp_path, "baseline", "run-b")
+    candidate(tmp_path, "tuned", "run-a")
+    lock = tmp_path / "runs/run-a/run.lock.json"
+    data = json.loads(lock.read_text(encoding="utf-8"))
+    data["baseline_command"] = [
+        "/private/bin/python", "/private/bench.py", "--candidate", "baseline", "--gpu", "4",
+    ]
+    data["candidate_command"] = [
+        "/private/bin/python", "/private/bench.py", "--candidate=tuned", "--gpu=4",
+        "--token", "fake-secret", "--unknown", "private-value",
+    ]
+    write_json(lock, data)
+
+    row = next(item for item in load_dashboard(tmp_path)["candidates"]
+               if item["candidate_id"] == "tuned")
+
+    assert "--candidate baseline --gpu 4" in row["commands"]["baseline"]
+    assert "--candidate=tuned --gpu=4" in row["commands"]["candidate"]
+    for private in ("/private", "fake-secret", "private-value"):
+        assert private not in json.dumps(row["commands"])
+    for args, ids, hidden in [
+        (["python", "bench.py", "--candidate", "unrecorded"], {"tuned"}, "unrecorded"),
+        (["python", "bench.py", "--candidate=unrecorded"], None, "unrecorded"),
+        (["python", "bench.py", "--candidate", "token-private"], {"token-private"},
+         "token-private"),
+        (["python", "bench.py", "--gpu", "1234567890123456"], {"tuned"},
+         "1234567890123456"),
+        (["python", "bench.py", "--gpu=192.0.2.10"], {"tuned"}, "192.0.2.10"),
+    ]:
+        display = dashboard_data._display_command(args, candidate_ids=ids)
+        assert hidden not in display
+
+
 def test_trace_preserves_safe_event_fields_and_corrupt_source(tmp_path):
     write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
     run(tmp_path, "run-a", 5, quality="completed", verified=True)

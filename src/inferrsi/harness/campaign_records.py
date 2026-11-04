@@ -202,7 +202,8 @@ def record_candidate(root: Path, *, candidate_id: str, run_id: str, round_number
         if "commands" in details:
             sanitized["commands"] = [
                 {"label": _text(command["label"], "", 120),
-                 "argv": _safe_argv(command["argv"])} for command in details["commands"]
+                 "argv": _safe_argv(command["argv"], candidate_ids={candidate_id})}
+                for command in details["commands"]
             ]
         metadata["details"] = sanitized
     for key, value in (("agent_trace_ref", agent_trace), ("profile_ref", profile)):
