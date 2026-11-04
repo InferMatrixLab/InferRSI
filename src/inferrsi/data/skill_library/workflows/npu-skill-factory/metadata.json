@@ -98,5 +98,6 @@
     "references/papers-20261015/UNREAD_LEADS.md",
     "references/papers-20261015/updates/bounded-updates.md"
   ],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "searchspace_not_applicable": "SKILL.md §§ Choose the evidence product, Artifact lifecycle, and What this skill does not do define skill-distillation/evaluation methodology; NPU task tiers are evaluation prerequisites, not a hardware-resource mechanism."
 }

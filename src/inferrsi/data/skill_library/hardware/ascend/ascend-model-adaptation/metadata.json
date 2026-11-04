@@ -19,5 +19,17 @@
     "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
   ],
   "provenance_readsets": [],
-  "consumption_mode": "packaged"
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "Checkpoint onboarding for LLM/VLM adapters on Ascend: weight/scale loading, KV-head replication under tensor parallelism and staged multimodal feature checks.",
+    "prerequisites": "Check the installed CANN and checkpoint format against the versioned guidance; final sign-off requires real weights and at least one full-layer validation.",
+    "input_contract": "Checkpoint weights/configuration and scale keys, attention-head/TP configuration, model modalities and expected graph/capacity features.",
+    "produced_artifact": "A checkpoint/feature report separating dummy and real-weight evidence, applicable feature outcomes, and theoretical versus demonstrated serving capacity.",
+    "failure_modes": "Dummy-only success misses scale/remapping/sharding defects; blindly sharding replicated KV heads or accepting reduced-layer results can conceal loading or full-model failures."
+  },
+  "recommendations": [
+    "Gate onboarding in order: dummy architecture check, real-weight loading, model endpoint, text request and then multimodal request when the model supports VL; retain the evidence each stage actually supplies.",
+    "Check weight/scale pairing and each attention tensor loading path, especially when TP exceeds the KV-head count; verify historical FP8 guidance against the actual stack.",
+    "Expand capacity/concurrency only after basic modality and expected replay checks; mark MoE-only features inapplicable for non-MoE models and require full-layer validation before sign-off."
+  ]
 }
