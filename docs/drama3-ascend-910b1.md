@@ -64,12 +64,14 @@ backbone ~195 ms, tower + sampling ~72 ms, writeback ~0.1 ms per frame. With
 FULL graphs the same step is ~44 ms, so the graph removes most of the launch
 overhead, not the arithmetic.
 
-Why C1 = 0.1 is not reachable here: one frame is 40 MoE layers plus 13 tower
-layers, and 21.5 frames/s at RTF 0.1 gives 4.65 ms per frame. Both ranks
-hold roughly 32 GiB of expanded bf16 expert weights, so a single frame's
-expert read alone is on the order of a ten-thousandth of a second per GB at
-the card's bandwidth — the budget is below the bandwidth floor before KV,
-tower and sampling are added.
+The C1 RTF < 0.1 target was not reached in this measured configuration.
+The kept rows above are the recorded outcome. Resident expert-weight
+capacity does not establish that the target's 4.65 ms/frame wall budget
+(0.1 s / 21.5 frames) is physically impossible: 8 of 256 experts are
+active, so that resident footprint is not the bytes read per generated
+frame. No bandwidth lower bound is claimed. Retaining one would require
+active-byte traffic, the applicable bandwidth, and an explicit calculation,
+which this record does not contain.
 
 ## Operating notes learned the hard way
 
