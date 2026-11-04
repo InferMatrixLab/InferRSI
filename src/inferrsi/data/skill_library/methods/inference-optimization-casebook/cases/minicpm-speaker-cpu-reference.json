@@ -6,6 +6,7 @@
   ],
   "state": "historical_observation",
   "content": "minicpm-speaker-cpu-reference.md",
+  "required_resources": ["minicpm-speaker-cpu-reference.json"],
   "sources": [
     {
       "type": "internal",

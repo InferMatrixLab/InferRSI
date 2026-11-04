@@ -151,6 +151,18 @@
     "qwen3-tts-ascend-import": {
       "kind": "import", "manifests": [],
       "external": ["Original campaign validators and artifacts remain at the upstream source described in plan/README.md."]
+    },
+    "minicpmo45-l20x-20261021": {
+      "kind": "campaign",
+      "manifests": [
+        {"path": "plan/dataset-manifest.json", "schema": "descriptive"},
+        {"path": "plan/model-manifest.json", "schema": "descriptive"},
+        {"path": "plan/official-model-manifest.json", "schema": "descriptive"},
+        {"path": "patch/peer-round2-manifest.json", "schema": "descriptive"}
+      ],
+      "external": [
+        "Pinned model weights, Seed-TTS references, generated WAVs, scorer weights and raw server logs named by this campaign stay outside the checkout. Embedded digests are historical records and are not rechecked here; this entry does not add a freeze hash."
+      ]
     }
   }
 }

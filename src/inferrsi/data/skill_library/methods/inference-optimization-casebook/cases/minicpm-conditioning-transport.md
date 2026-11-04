@@ -1,6 +1,8 @@
 # MiniCPM-o conditioning transport: avoid scalar-list roundtrips
 
 This is a scoped host diagnostic from [acceptance issue #49](https://github.com/InferMatrixLab/InferRSI/issues/49).
+Kind, origin, state and source identities belong to the
+[typed source and scope record](minicpm-conditioning-transport.json).
 The transport component preserves values and reduces synthetic CPU work.
 The campaign remains **INCONCLUSIVE**: this observation does not establish
 end-to-end throughput, speech quality or a peer-engine win.

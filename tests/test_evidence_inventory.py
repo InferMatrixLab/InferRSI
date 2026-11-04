@@ -141,10 +141,37 @@ def test_external_archive_is_explicit_then_verified_when_available(bundle):
     assert validate_inventory(repo)["errors"]
 
 
+def test_descriptive_manifest_adds_no_hash(bundle):
+    repo, root, inventory = bundle
+    write_json(root / "plan/dataset-manifest.json", {
+        "meta_sha256": "a" * 64,
+        "rows": [{"id": "row", "ref_sha256": "b" * 64}],
+    })
+    inventory["bundles"]["synthetic"]["manifests"].append(
+        {"path": "plan/dataset-manifest.json", "schema": "descriptive"}
+    )
+    write_json(repo / "tools/evidence_inventory.json", inventory)
+    result = validate_inventory(repo)
+    assert result["errors"] == []
+    assert result["checked_hashes"] == 1
+
+
+def test_digest_map_cannot_use_descriptive_schema(bundle):
+    repo, root, inventory = bundle
+    write_json(root / "plan/hidden-manifest.json", {"validator/check.py": "c" * 64})
+    inventory["bundles"]["synthetic"]["manifests"].append(
+        {"path": "plan/hidden-manifest.json", "schema": "descriptive"}
+    )
+    write_json(repo / "tools/evidence_inventory.json", inventory)
+    assert "hash schema" in str(validate_inventory(repo)["errors"])
+
+
 def test_checked_in_inventory():
     repo = Path(__file__).resolve().parents[1]
     result = validate_inventory(repo)
     assert result["errors"] == []
-    assert len(result["bundles"]) == 21
+    assert len(result["bundles"]) == 22
     assert result["checked_hashes"] == 430
+    kinds = {item["name"]: item["kind"] for item in result["bundles"]}
+    assert kinds["minicpmo45-l20x-20261021"] == "campaign"
     assert result["unavailable"]  # Historical raw artifacts are not in this checkout.

@@ -96,9 +96,20 @@ def validate_manifest(repo, bundle, entry, unavailable):
             checked += 1
         else:
             unavailable.append(f"{bundle.name}/{entry['artifact']}: external archive unavailable")
+    elif schema == "descriptive":
+        if not data:
+            raise ValueError("descriptive manifest is empty")
+        if _digest_map(data):
+            raise ValueError("digest map requires a hash schema")
     else:
         raise ValueError("unknown manifest schema")
     return checked
+
+
+def _digest_map(data):
+    return all(
+        isinstance(value, str) and re.fullmatch(r"[0-9a-f]{64}", value) for value in data.values()
+    )
 
 
 def validate_inventory(repo, inventory=None):

@@ -6,6 +6,7 @@
   ],
   "state": "historical_observation",
   "content": "minicpm-conditioning-transport.md",
+  "required_resources": ["minicpm-conditioning-transport.json"],
   "sources": [
     {
       "type": "internal",

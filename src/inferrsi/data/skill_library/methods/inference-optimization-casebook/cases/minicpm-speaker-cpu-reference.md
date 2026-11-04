@@ -1,6 +1,8 @@
 # MiniCPM-o speaker extraction: preserve the executed reference graph
 
 This is a scoped diagnostic from [acceptance issue #49](https://github.com/InferMatrixLab/InferRSI/issues/49).
+Kind, origin, state and source identities belong to the
+[typed source and scope record](minicpm-speaker-cpu-reference.json).
 The isolated component gate passed; service and generated-speech qualification
 remain separate. Raw measurements belong to the campaign evidence tree.
 
