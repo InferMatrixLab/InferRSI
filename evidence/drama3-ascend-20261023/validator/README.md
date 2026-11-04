@@ -8,3 +8,6 @@ Pass requires: no request failures, C1 RTF mean at least 20% below the control
 build measured the same day, and identical sampling parameters. Measure the
 control and candidate back to back; this host is shared and single readings
 move by tens of percent.
+
+The benchmark script and raw outputs are external and are not in this
+checkout, so these notes are not an independently replayable validator.

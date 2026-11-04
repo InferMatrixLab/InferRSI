@@ -1,26 +1,35 @@
 # Drama-3 (fish_omni) on two Ascend 910B1
 
 Status: **INCONCLUSIVE** for the requested RTF targets. The decode FULL-graph
-change is measured and repeatable; the RTF < 0.1 (C1) and RTF < 1 (C64) bars
-are not met on this hardware.
+change is author-reported, including a second measurement by the same author.
+The RTF < 0.1 (C1) and RTF < 1 (C64) bars are not met on this hardware.
+These figures are not independently reproducible validation until exact
+revision and evidence references are retained.
 
 ## Provenance
 
-Measurements by amy-why-3459 on a shared 8x910B1 host (cards 3/4), 2026-10-23/24.
-Upstream change: vLLM-Omni PR "Replay Drama 3 decode steps as FULL graphs"
-(branch `perf/ascend-drama3-full-decode-graphs`, based on `c829af4`). The
-Drama-3 NPU runner path it builds on is
+Measurements below are author-reported by amy-why-3459 on a shared 8x910B1
+host (cards 3/4), 2026-10-23/24. They are not independently reproducible
+validation until exact revision and evidence references are retained.
+`plan/plan.json` stores `<baseline-sha-from-acceptance-issue>` and
+`<candidate-sha-from-acceptance-issue>` as placeholders, not pinned SHAs.
+The upstream change is described as vLLM-Omni work "Replay Drama 3 decode
+steps as FULL graphs" on the mutable branch
+`perf/ascend-drama3-full-decode-graphs` (described as based on `c829af4`).
+That branch name is not an immutable candidate revision. The Drama-3 NPU
+runner path it builds on is
 [vllm-omni#9106](https://github.com/vllm-project/vllm-omni/pull/9106) (merged).
 Raw logs and the sweep JSON are external. They were retained under
 `<ARTIFACT_ROOT>/evidence/` and `<ARTIFACT_ROOT>/runs/` and are not in
 this repository, so they are unavailable for review from this checkout.
-This document stores the summary, not those artifacts.
+This document stores the summary, not those artifacts. A field marking the
+summary locally verified would not make those external artifacts reviewable.
 
 ## RunSpec
 
 | Field | Value |
 | --- | --- |
-| repo | vllm-project/vllm-omni @ `c829af4` + the FULL-graph commit |
+| repo | vllm-project/vllm-omni, author-described as `c829af4` plus an unpinned FULL-graph change on mutable branch `perf/ascend-drama3-full-decode-graphs` |
 | backend | vLLM-Omni 0.32.0 nightly image `quay.io/ascend/vllm-omni:nightly-20261022-6b35bca`, vLLM-Ascend 0.19.1rc2, CANN 9.1.0, torch_npu 2.10.0.post4 |
 | device | 2 x Ascend 910B1 (A2), stage 0 TP2 + expert parallel (devices 0,1), stage 1 DAC on device 1 |
 | model | `fishaudio/drama-3` (Qwen3.5 MoE 40 layers, 256 experts / 8 active, block-FP8; 13-layer codebook tower; 44.1 kHz DAC) |

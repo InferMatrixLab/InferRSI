@@ -4,6 +4,7 @@
   "isolated_variable": "stage-0 NPU compilation_config.cudagraph_mode: PIECEWISE vs FULL_AND_PIECEWISE",
   "control_revision": "<baseline-sha-from-acceptance-issue>",
   "candidate_revision": "<candidate-sha-from-acceptance-issue>",
+  "revision_status": "control_revision and candidate_revision are placeholders. Exact baseline and candidate SHAs are not retained in this bundle.",
   "engine_revision": "vLLM-Omni 0.32.0 nightly 2026-10-22 image; vLLM-Ascend 0.19.1rc2; CANN 9.1.0",
   "devices": "2x Ascend 910B1 (A2), stage 0 TP2 + EP on devices 0,1; DAC stage 1 on device 1",
   "protocol": "fishaudio/drama-3, streaming /v1/audio/speech, Seed-TTS-Eval en, one fixed pre-encoded reference (85 frames x 10 codebooks), max_tokens=500, 64 prompts, 1 warmup, concurrency 1..64",

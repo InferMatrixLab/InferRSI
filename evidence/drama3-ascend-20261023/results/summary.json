@@ -13,7 +13,7 @@
     {"change": "bind fla_npu causal_conv1d_update into the GDN decode path", "result": "no measurable effect; FULL capture succeeds with the portable update", "evidence": "serve-full-without-conv1d-control.log"},
     {"change": "native block-FP8 experts on A2", "result": "not available: MXFP8 method is 950-only; A2 expands experts to bf16", "evidence": "vllm-ascend fp8_block.py is_950() branch"}
   ],
-  "verification_locally_verified": true,
+  "measurement_status": "author-reported; not independently reproducible validation until exact revision and evidence references are retained",
   "artifacts_retained_at": "<ARTIFACT_ROOT>/evidence and <ARTIFACT_ROOT>/runs",
   "artifacts_availability": "external; unavailable in this checkout"
 }
