@@ -2,7 +2,7 @@
 
 **当前交付目标是：让 Agent 面对一个真实 NPU 优化任务，交付实际实现，由 InferRSI 检查正确性、保留 profiling、在固定条件下比较性能，并据此决定是否保留候选。** 用户已明确将试点指定为 NPU；已有 CPU 两题保留为历史验证与软件控制，不作为这轮试点完成依据。
 
-从 [NPU 试点方案](npu-pilot.md)开始。首个任务是 `rmsnorm-npu`：在 Ascend NPU 上比较 PyTorch 基础算子组成的 affine RMSNorm 与 `torch_npu.npu_rms_norm` 候选。融合实现是否更快，要由实际结果决定。NPU 接入、设备执行与性能资格分别验收，不能用设计或 CPU 测试代替。
+从 [NPU 试点方案](npu-pilot.md)和[实际执行结果](npu-validation.md)开始。首个任务是 `rmsnorm-npu`：在 Ascend NPU 上比较 PyTorch 基础算子组成的 affine RMSNorm 与 `torch_npu.npu_rms_norm` 候选。已在 Ascend 910B1 完成独立检查、真实 profile、错误控制、A/A 与 Workbench 对照；七项软件资格检查通过，全部 800 个样本保留。项目验收、正式 NPU SkillEval 隔离和真实 Agent/skill 收益仍未完成。
 
 本次模块称为 **Engineering Benchmarks（共享工程评测任务）**。输入是任务包和候选实现，输出是正确性结果、独立 profile、原始计时及版本身份。它服务主 Agent 的优化工作，也为后续 SkillEval 比较不同 skill 条件下的产物提供任务。名称与范围是本次交付提议，维护者验收另行记录。
 
@@ -25,9 +25,9 @@
 | 子任务 | 具体交付 | 实际作用 | 当前状态 |
 | --- | --- | --- | --- |
 | **① 选题复用** · [#334](https://github.com/InferMatrixLab/InferRSI/issues/334) · [说明](01-research.md) | 论文/源码比较、NPU 选型、来源与边界 | 决定优化什么、复用哪些接口和评测设计 | 既有研究保留；本轮 NPU 方案见试点文档 |
-| **② 统一规则** · [#335](https://github.com/InferMatrixLab/InferRSI/issues/335) · [说明](02-contract.md) | 任务、候选、独立 oracle、NPU 同步计时、profile 与版本身份 | 固定一次比较中的工作和裁判，拒绝 CPU 回退或错误设备结果 | CPU 接口已有；NPU 适配与实测需单独验收 |
-| **③ 交付题包** · [#336](https://github.com/InferMatrixLab/InferRSI/issues/336) · [说明](03-tasks.md) | `rmsnorm-npu` 基线、候选、输入、数值检查、测量规则 | Agent 有明确修改对象，工具能在真实 NPU 执行它 | 当前交付目标；设备运行结果按试点记录更新 |
-| **④ 接入验证** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) · [说明](04-integration.md) | NPU Workbench 演练、正确/错误控制、A/A 与候选比较、报告 | 证明真实产物进入执行，结果能支持下一步 | NPU 演练待实测记录；真实 skill 收益未测 |
+| **② 统一规则** · [#335](https://github.com/InferMatrixLab/InferRSI/issues/335) · [说明](02-contract.md) | 任务、候选、独立 oracle、NPU 同步计时、profile 与版本身份 | 固定一次比较中的工作和裁判，拒绝 CPU 回退或错误设备结果 | NPU adapter 与冻结身份已在真实试点核对 |
+| **③ 交付题包** · [#336](https://github.com/InferMatrixLab/InferRSI/issues/336) · [说明](03-tasks.md) | `rmsnorm-npu` 基线、候选、输入、数值检查、测量规则 | Agent 有明确修改对象，工具能在真实 NPU 执行它 | 已实测；限本次设备/runtime/float32/workload |
+| **④ 接入验证** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) · [说明](04-integration.md) | NPU Workbench 演练、正确/错误控制、A/A 与候选比较、报告 | 证明真实产物进入执行，结果能支持下一步 | 参考控制演练已完成，证据支持本轮保留决定；真实 skill 收益未测 |
 
 ## 在 RSI 中的位置
 

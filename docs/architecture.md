@@ -4,7 +4,9 @@ The [shared engineering benchmark adapter](engineering-benchmarks.md) lives in
 `harness/benchmarks`, with task data in `data/engineering_benchmarks`. It binds
 task-owned oracles and workloads to the existing Workbench runner and offline
 SkillEval verifier contract. It adds neither a search controller nor another
-execution platform; its first qualified scope is the locally checked CPU subset.
+execution platform. The current device pilot runs trusted affine RMSNorm on
+Ascend through Workbench; the formal artifact sandbox remains CPU NumPy only.
+Each task's actual qualification and limits are recorded separately.
 
 The local experiment path now has concrete Harness, Model and Infra modules. The
 CLI, RunSpec, knowledge retrieval and existing command contracts remain stable.

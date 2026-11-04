@@ -1,12 +1,61 @@
 # Shared engineering benchmarks
 
 The `benchmarks` command exposes versioned task packages for Workbench and
-offline artifact evaluation. The `numpy-axis1-v2` adapter supplies
-Softmax and RMSNorm CPU adaptations of attributed KernelBench tasks. Packages
-own semantics, workload, oracle and metric. Consumers own comparison conditions;
-search policy and agent execution remain separate.
+offline artifact evaluation. The current device pilot is **Ascend affine
+RMSNorm**, with a trusted NPU worker, independent scalar CPU oracle, synchronized
+eager-call timing and separate device profiling. Existing CPU tasks remain
+software controls. Packages own semantics, workload, oracle and metric;
+consumers own comparison conditions. Search policy and agent execution remain
+separate.
 
-## Use the tasks
+| Adapter | Task and submission | Execution boundary |
+| --- | --- | --- |
+| `torch-npu-rmsnorm-v1` | `rmsnorm-npu`; `compute(x, weight, *, eps)` | Reviewed source on one caller-allocated NPU; no formal device sandbox |
+| `numpy-axis1-v2` | `softmax-cpu`, `rmsnorm-cpu`; `compute(x, *, eps)` | Trusted CPU worker; formal SkillEval also has a separate NumPy artifact sandbox |
+
+## Run the NPU pilot
+
+Discovery imports neither torch nor torch_npu. Execution requires the target's
+compatible installed torch/torch_npu/CANN stack; this project does not install
+or replace the device runtime. Enter an explicit single-NPU allocation before
+executing any device command. The worker requires one visible device, uses its
+logical index 0 and never falls back to CPU.
+
+```bash
+inferrsi benchmarks show rmsnorm-npu
+inferrsi benchmarks check rmsnorm-npu --candidate <implementation.py> --output-dir <new-check-dir> --timeout-seconds <timeout>
+inferrsi benchmarks profile rmsnorm-npu --candidate <implementation.py> --output-dir <new-profile-dir> --timeout-seconds <timeout>
+inferrsi benchmarks compare rmsnorm-npu --candidate <implementation.py> --repo <checkout> --output-dir <new-run-dir> --repetitions <pairs> --max-minutes <budget> --min-improvement-pct <issue-gate>
+```
+
+The task is contiguous 2D float32 affine RMSNorm with nonuniform weights. Inputs,
+weights, scalar double/math.fsum reference results and transfers are prepared
+outside timing. The measured clock covers the eager call and completion
+synchronization after an untimed pre-synchronization. Dispatch and synchronization
+costs are included: this is **not pure kernel latency**. Every output is checked
+outside the timer, including shape/dtype/device and input/weight preservation.
+
+`profile` records real Ascend Hardware kernel events in `npu-trace.json`, separately
+from latency sampling. Its local raw trace may contain private paths/identifiers;
+review it before publication. The result includes a path-free kernel summary,
+not a performance metric. Profiling includes verification copies, which must be
+distinguished from compute kernels during diagnosis.
+
+To qualify the path with correct, wrong, replay, same-code and fused-reference
+controls through the existing Workbench:
+
+```bash
+python -m tools.npu_benchmark_validate --repo <checkout> --output-dir <new-evidence-dir> --repetitions <pairs> --min-improvement-pct <issue-gate> --max-aa-difference-pct <issue-noise-gate> --max-minutes <comparison-budget> --timeout-seconds <action-timeout>
+```
+
+The utility freezes policy and implementation identities before execution,
+preserves every sample and checks actual device/CANN/runtime consistency across
+actions, trials and final validation. The general runtime fingerprint binds
+package versions and selected device IDs; it alone does not qualify device/CANN
+equivalence or host contention. Qualification is an authored-control exercise,
+not Agent/skill efficacy or service acceptance. See the [NPU plan and results](plans/issue-252/npu-pilot.md).
+
+## Use the CPU regression tasks
 
 Install with `pip install -e ".[dev,benchmarks]"`. Discovery and planning do not
 import NumPy; execution requires it and never silently switches backend.
@@ -39,7 +88,7 @@ editing. The package and grader remain protected comparison inputs. This adapter
 executes trusted source and is **not an untrusted-code sandbox**. Hash checks
 detect drift, not malicious same-process code. Do not connect raw model output.
 
-## Measurement and evidence
+## CPU measurement and shared evidence
 
 `TaskPackage` validates the schema/adapter/environment and freezes manifest,
 package and grader identities. Commands bind candidate and runtime fingerprints.
@@ -85,14 +134,17 @@ The shared oracle independently grades actual implementation behavior. This
 offline handoff does not modify production engineering sandbox or paid execution.
 Live artifact production and skill/search benefit need separate controlled runs.
 
-For formal paired artifact evaluation, `tools.skill_eval_compare` now supports
-`engineering-benchmark-v1`: freeze the common public task and two skill bundles,
+For formal paired artifact evaluation, `tools.skill_eval_compare` supports
+`engineering-benchmark-v1` for the CPU NumPy tasks only: freeze the common public task and two skill bundles,
 retain each arm's actual `implementation.py`, and independently check its output
 outside the artifact's Linux bubblewrap sandbox. Local stage/capture uses the
 same controller. This adapter evaluates correctness only; it does not accept
 child-reported timing, launch an unqualified default agent, or fall back to host
 execution when the sandbox/NumPy runtime is unavailable. It is separate from the
-trusted-source worker above. See [setup and handoff](plans/issue-252/formal-integration.md).
+trusted-source worker above. Formal loading uses canonical packaged resources,
+independent of same-named cwd task folders; the trusted Workbench retains explicit
+path loading. NPU tasks are explicitly rejected by the formal adapter until
+device isolation is separately qualified. See [setup and handoff](plans/issue-252/formal-integration.md).
 
 The offline harness-improvement controller and provider generation mode do not
 yet support these tasks. See [the RSI integration audit](plans/issue-252/rsi-integration.md)
@@ -102,7 +154,7 @@ Exceptions, missing dependencies, drift and timeouts leave incomplete evidence.
 Wrong results emit no usable performance metric. Workbench statistics remain
 descriptive; a local verdict is not service gain or campaign acceptance.
 
-## Reproduce the integration
+## Reproduce the historical CPU integration
 
 ```bash
 python tools/engineering_benchmark_validate.py --repo /path/to/checkout --output-dir /path/to/new-validation --repetitions 3
@@ -115,8 +167,8 @@ correct and deliberately wrong **authored controls**. No model is called.
 bundles contain resolved paths; review/redact a copy before sharing.
 
 See [#252 research and subtask plans](plans/issue-252/README.md). Formal Issue
-acceptance, independent review, accelerator qualification, communication and
-memory-capacity coverage remain distinct from this local CPU subset.
+acceptance, independent review, communication and memory-capacity coverage remain
+distinct from each task's scoped qualification.
 
-For a Chinese walkthrough of each component and an RMSNorm example, start with
-[the reading guide](plans/issue-252/walkthrough.md).
+Start with the current [Chinese NPU pilot guide](plans/issue-252/npu-pilot.md).
+The earlier [CPU walkthrough](plans/issue-252/walkthrough.md) retains its historical scope.

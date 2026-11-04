@@ -16,7 +16,7 @@ NPU RMSNorm 的入口为 `compute(x, weight, *, eps)`，采用二维 contiguous 
 
 [NPU 试点](npu-pilot.md)列出当前目标：独立 adapter 在实际设备上验证输入/输出设备、dtype、数值与输入保持，使用 CPU scalar double / `math.fsum` oracle；数据准备与传输、oracle、校验在性能计时外完成。同步边界必须覆盖实际完成的 NPU 计算。独立 CPU/NPU profile 不进入性能分数。
 
-运行时身份需绑定实际设备与 torch / torch_npu / CANN 版本，不沿用只包含 Python/NumPy 的 CPU 身份。任务、候选、oracle、输入和计时规则继续使用共享内容身份；缺依赖、无设备或不支持语义不能回退 CPU。具体已支持字段和环境以最终 manifest 及实测记录为准。
+运行时身份需绑定实际设备与 torch / torch_npu / CANN 版本，不沿用只包含 Python/NumPy 的 CPU 身份。当前命令指纹包含 torch/torch_npu 版本与分配的可见设备；worker 另记录实际型号和 CANN，资格工具检查所有 action/trial/final validation 的实际环境一致。不能把命令指纹单独称为完整硬件资格。任务、候选、oracle、输入和计时规则继续使用共享内容身份；缺依赖、无设备或不支持语义不能回退 CPU。已支持范围及执行证据见[本轮记录](npu-validation.md)。
 
 Workbench 接入先运行已审核可信源码。正式 `engineering-benchmark-v1` 目前只接受已声明的 CPU 任务；NPU 题出现在 catalog 中，不代表正式 SkillEval 具备设备隔离或产物重验能力。adapter 的能力检查必须显式拒绝不支持的组合。
 
