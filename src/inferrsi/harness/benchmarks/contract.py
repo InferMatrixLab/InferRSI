@@ -151,11 +151,25 @@ class TaskPackage:
 
 
 def load_task(name: str | Path) -> TaskPackage:
+    """Load a reviewed path or a packaged name for the trusted Workbench API."""
     root = Path(name)
     if not root.is_dir():
-        if str(name) not in builtin_tasks():
-            raise ValueError(f"Unknown task package: {name}")
-        root = Path(str(files("inferrsi").joinpath("data/engineering_benchmarks", str(name))))
+        return load_builtin_task(str(name))
+    return _load_task_root(root)
+
+
+def load_builtin_task(name: str) -> TaskPackage:
+    """Resolve only packaged task resources, never a same-named cwd directory."""
+    if not isinstance(name, str) or name not in builtin_tasks():
+        raise ValueError(f"Unknown built-in task package: {name}")
+    root = Path(str(files("inferrsi").joinpath("data/engineering_benchmarks", name)))
+    package = _load_task_root(root)
+    if package.manifest["id"] != name:
+        raise ValueError("Built-in task identity does not match its resource name")
+    return package
+
+
+def _load_task_root(root: Path) -> TaskPackage:
     if root.is_symlink():
         raise ValueError("Task root must not be a symlink")
     root = root.resolve()

@@ -18,6 +18,18 @@
 
 starter 本身是正确实现，因此原样保留也能通过正确性检查。这层入口能检查优化过程有没有破坏语义、拒绝错误产物，并保留两边真实实现；它不能区分“正确但未优化”和“正确且更快”。性能选择必须另有经过资格验证的测量，不能把正确性 PASS 当作优化成功。
 
+## 规范题包来源与设备边界
+
+[同名工作目录替代问题](https://github.com/InferMatrixLab/InferRSI/pull/338#discussion_r4462417808)暴露了“冻结内容”和“选对内容”的区别：旧版正式路径按名字调用可信 Workbench 的路径优先 loader，可能把工作目录中放宽容差的题包当作内置题，再一致地冻结和重验错误规则。
+
+正式路径现在显式调用 `load_builtin_task`，只从已安装的 `inferrsi` 包资源加载题包。descriptor、starter、verifier、prepare 的题包复制及依赖收集使用同一入口；留存副本则与规范 descriptor 的哈希比较。可信 Workbench 的 `load_task(path)` 保留，不能用于替代正式内置题的来源。
+
+回归覆盖同名 `softmax-cpu/` 将 `atol` 改成 1 并替换 starter 的情况，检查规范 task hash / starter、prepare 的依赖和冻结副本，以及父进程拒绝全零数组。模拟返回数组的测试不声称执行了候选；单独的真实 Linux sandbox 控制负责实际源码执行，不支持的本地平台明确跳过。
+
+此正式产物 adapter 仍只支持 `numpy-axis1-v2` 的 CPU / NumPy / float32 契约。新增 NPU 内置题不自动进入该 NumPy sandbox；不支持的 adapter 或环境被拒绝。真实 NPU 的可信 Workbench 运行和后续 NPU 产物隔离需要各自的资格，不能借本页的 CPU 隔离结果声明已经覆盖。
+
+本次 loader 修复改变 grader 身份；历史软件控制与计时样本保留原被测版本，不能重新标为修复后的执行。
+
 本次设计沿用[既有调研](01-research.md)中的任务、候选、独立评测分工，并结合现有 RSI 接口作了以下选择：
 
 | 接入方式 | 当前决定与理由 |

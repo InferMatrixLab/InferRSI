@@ -3,6 +3,8 @@
 import base64
 import json
 import os
+import shutil
+from dataclasses import replace
 from pathlib import Path
 from unittest import mock
 
@@ -12,7 +14,7 @@ import pytest
 from inferrsi.harness import skill_eval_benchmark as benchmark
 from inferrsi.harness import skill_eval_engineering as engineering
 from inferrsi.harness.benchmarks import numpy_task
-from inferrsi.harness.benchmarks.contract import load_task
+from inferrsi.harness.benchmarks.contract import load_builtin_task, load_task
 
 READY = {"ready": True, "numpy": np.__version__, "python": "3.10.0", "machine": "x86_64"}
 
@@ -25,7 +27,7 @@ def answer(name="rmsnorm-cpu", source=None):
 
 def oracle_transport(task):
     """Synthetic transport exercises parent grading only, never executes source."""
-    package = load_task(task["benchmark"]["task_id"])
+    package = load_builtin_task(task["benchmark"]["task_id"])
     prepared, _, _ = benchmark._prepare(package, np)
     outputs = [{"output": {"shape": list(x.shape), "dtype": "float32",
                            "data": base64.b64encode(expected.tobytes()).decode()},
@@ -45,6 +47,62 @@ def test_descriptor_freezes_builtin_task_and_shared_grader(name):
         "grader_sha256": package.grader_sha256,
     }
     assert benchmark.starter(task) == (package.root / "candidate.py").read_bytes()
+
+
+def shadow_softmax(directory):
+    """A reviewed-path task is valid but must never replace the formal rubric."""
+    canonical = load_builtin_task("softmax-cpu")
+    shadow = directory / "softmax-cpu"
+    shutil.copytree(canonical.root, shadow, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    manifest = canonical.manifest
+    manifest["oracle"]["atol"] = 1
+    (shadow / "task.json").write_text(json.dumps(manifest), encoding="utf-8")
+    (shadow / "candidate.py").write_text(
+        "import numpy as np\ndef compute(x, *, eps): return np.zeros_like(x)\n",
+        encoding="utf-8",
+    )
+    return canonical, shadow
+
+
+def test_cwd_shadow_cannot_replace_descriptor_starter_or_parent_oracle(tmp_path, monkeypatch):
+    canonical, shadow = shadow_softmax(tmp_path)
+    original, _ = answer("softmax-cpu")
+    monkeypatch.chdir(tmp_path)
+    # Trusted callers can still deliberately load an external reviewed task.
+    assert load_task("softmax-cpu").root == shadow
+    assert load_task(shadow).manifest["oracle"]["atol"] == 1
+    assert load_builtin_task("softmax-cpu").root == canonical.root
+    task, output = answer("softmax-cpu")
+    assert task == original
+    assert task["benchmark"]["task_sha256"] == canonical.task_sha256
+    assert benchmark.starter(task) == (canonical.root / "candidate.py").read_bytes()
+    assert benchmark.starter(task) != (shadow / "candidate.py").read_bytes()
+    # Synthetic returned arrays test parent grading, not sandbox source execution.
+    transport = oracle_transport(task)
+    for record in transport["outputs"]:
+        record["output"]["data"] = base64.b64encode(
+            bytes(len(base64.b64decode(record["output"]["data"])))
+        ).decode()
+    with mock.patch.object(benchmark, "_invoke", side_effect=[READY, transport]):
+        result = benchmark.verify(task, output)
+    assert not result["passed"]
+    assert not result["assertions"]["normal.values"]
+    assert "metrics" not in result
+
+
+@pytest.mark.parametrize("change", ["adapter", "environment"])
+def test_formal_artifact_path_rejects_new_backend_packages(change, monkeypatch):
+    package = load_builtin_task("rmsnorm-cpu")
+    manifest = package.manifest
+    if change == "adapter":
+        manifest["adapter"] = "torch-npu-rmsnorm-v1"
+    else:
+        manifest["environment"] = {"backend": "ascend", "runtime": "torch_npu",
+                                   "dtype": "float32"}
+    unsupported = replace(package, frozen_manifest=json.dumps(manifest))
+    monkeypatch.setattr(benchmark, "load_builtin_task", lambda _: unsupported)
+    with pytest.raises(ValueError, match="NumPy CPU adapter"):
+        benchmark.task_descriptor("rmsnorm-npu")
 
 
 @pytest.mark.parametrize("change", ["hash", "holdout", "path", "request", "extra", "contract"])
@@ -225,6 +283,16 @@ def test_real_sandbox_correct_and_wrong_authored_controls(name):
              "import numpy as np\ndef compute(x, *, eps): return np.zeros_like(x)\n"}
     rejected = run_real(task, wrong)
     assert not rejected["passed"] and "metrics" not in rejected
+
+
+def test_real_sandbox_rejects_zero_output_despite_cwd_shadow(tmp_path, monkeypatch):
+    canonical, shadow = shadow_softmax(tmp_path)
+    monkeypatch.chdir(tmp_path)
+    task, wrong = answer("softmax-cpu", source=(shadow / "candidate.py").read_text())
+    assert task["benchmark"]["task_sha256"] == canonical.task_sha256
+    result = run_real(task, wrong)
+    assert not result["passed"] and not result["assertions"]["normal.values"]
+    assert "metrics" not in result
 
 
 def test_real_sandbox_preserves_sequence_state_and_rejects_cached_output_replay():

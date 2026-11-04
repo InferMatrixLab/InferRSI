@@ -356,7 +356,7 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         (output / "plan/starter/parser.py").write_bytes(engineering.STARTER.encode("utf-8"))
     if is_benchmark:
         for task in tasks:
-            package = load_task(task["benchmark"]["task_id"])
+            package = benchmark.task_package(task["benchmark"]["task_id"])
             shutil.copytree(package.root, output / "plan/benchmark-tasks" / task["id"],
                             ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
             starter = output / "plan/starters" / task["id"] / benchmark.ARTIFACT
@@ -426,7 +426,8 @@ def prepare(config_path: Path, repo: Path, output: Path) -> str:
         dependencies = [ROOT / "src/inferrsi/harness/skill_eval_benchmark.py"]
         dependencies += list((ROOT / "src/inferrsi/harness/benchmarks").glob("*.py"))
         for task in tasks:
-            dependencies += [p for p in load_task(task["benchmark"]["task_id"]).root.rglob("*")
+            package = benchmark.task_package(task["benchmark"]["task_id"])
+            dependencies += [p for p in package.root.rglob("*")
                              if p.is_file() and "__pycache__" not in p.parts
                              and p.suffix != ".pyc"]
         for path in dependencies:

@@ -8,12 +8,14 @@ The separate benchmark verifier tests own real sandbox software controls.
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 
 import pytest
 
 from inferrsi.harness import skill_eval_benchmark as benchmark
+from inferrsi.harness.benchmarks.contract import load_builtin_task, load_task
 from inferrsi.infra.artifacts import sha256, write_json
 from tests.fixtures.skill_eval_compare_support import configuration
 from tools import skill_eval_compare as compare
@@ -158,6 +160,31 @@ def test_task_grader_and_oracle_dependencies_are_frozen_before_producer(tmp_path
             with pytest.raises(ValueError, match="Controller changed after freeze"):
                 compare.execute(output, digest, client=client)
         assert client.calls == []
+
+
+def test_prepare_and_revalidation_use_packaged_task_despite_cwd_shadow(tmp_path, monkeypatch):
+    canonical = load_builtin_task("softmax-cpu")
+    shadow = tmp_path / "softmax-cpu"
+    shutil.copytree(canonical.root, shadow, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
+    manifest = canonical.manifest
+    manifest["oracle"]["atol"] = 1
+    write_json(shadow / "task.json", manifest)
+    (shadow / "candidate.py").write_text("# substituted starter\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    output, _, _ = prepared(tmp_path, names=("softmax-cpu",))
+    plan = compare.load_plan(output)
+    frozen = load_task(output / "plan/benchmark-tasks/softmax-cpu")
+    assert frozen.task_sha256 == canonical.task_sha256
+    assert frozen.manifest["oracle"] == canonical.manifest["oracle"]
+    assert (output / "plan/starters/softmax-cpu/implementation.py").read_bytes() == (
+        canonical.root / "candidate.py").read_bytes()
+    name = "src/inferrsi/data/engineering_benchmarks/softmax-cpu/task.json"
+    assert plan["controllers"][name] == sha256(canonical.root / "task.json")
+    assert not any(name.startswith("softmax-cpu/") for name in plan["controllers"])
+    # A later cwd change cannot make the frozen package validate against a new rubric.
+    manifest["oracle"]["atol"] = 2
+    write_json(shadow / "task.json", manifest)
+    assert compare.load_plan(output) == plan
 
 
 @pytest.mark.parametrize("mode,error", [

@@ -17,7 +17,7 @@ from pathlib import Path
 
 from . import skill_eval_engineering as engineering
 from .benchmarks import numpy_task
-from .benchmarks.contract import builtin_tasks, load_task
+from .benchmarks.contract import TaskPackage, load_builtin_task
 
 ADAPTER = "engineering-benchmark-v1"
 ARTIFACT = "implementation.py"
@@ -44,10 +44,19 @@ PROMPT = (
 )
 
 
+def task_package(name: str) -> TaskPackage:
+    """The artifact sandbox supports only the packaged NumPy CPU contract."""
+    package = load_builtin_task(name)
+    manifest = package.manifest
+    if (manifest["adapter"] != "numpy-axis1-v2"
+            or manifest["environment"] != {
+                "backend": "cpu", "runtime": "numpy", "dtype": "float32"}):
+        raise ValueError("Formal benchmark artifacts require the NumPy CPU adapter")
+    return package
+
+
 def task_descriptor(name: str) -> dict:
-    if name not in builtin_tasks():
-        raise ValueError("Only built-in shared CPU benchmark tasks are supported")
-    package = load_task(name)
+    package = task_package(name)
     manifest = package.manifest
     return {
         "id": name,
@@ -81,7 +90,7 @@ def validate_task(task):
 
 def starter(task) -> bytes:
     validate_task(task)
-    return (load_task(task["benchmark"]["task_id"]).root / "candidate.py").read_bytes()
+    return (task_package(task["benchmark"]["task_id"]).root / "candidate.py").read_bytes()
 
 
 def input_hashes(workspace: Path) -> dict:
@@ -268,7 +277,7 @@ def verify(task, output):
         return {"passed": False, "assertions": {"artifact_size": False}}
     np = _numpy()
 
-    package = load_task(task["benchmark"]["task_id"])
+    package = task_package(task["benchmark"]["task_id"])
     prepared, base, sequence = _prepare(package, np)
     request = {
         "eps": package.manifest["oracle"]["eps"],
