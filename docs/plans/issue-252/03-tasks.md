@@ -1,52 +1,43 @@
-# 子项 03：把第一批任务做成可执行的包
+# 子项 03：把 NPU 试点做成可执行任务
 
-本文记录已实现的两道 CPU 试点。2026-11-04 的[五类任务扩展方案](task-expansion/README.md)提出下一批题源与设计；其中 repo-patch、launcher、通信等 adapter 尚未实现，不能按本文两题的已有测试结果替代其资格。
-
-**这项工作的交付是两道真正能运行的优化任务：Softmax 和 RMSNorm，每道题都带输入、性能基线、独立参考答案与测量规则。**
+**这项工作的当前交付是 `rmsnorm-npu`：给出可以在真实 Ascend NPU 上运行的基线、候选、输入、独立正确性检查、profiling 和测量规则。** 用户已经指定 NPU，不能再以 CPU 两题可运行作为试点验收。
 
 | 要说清楚的问题 | 本子项的答案 |
 | --- | --- |
-| 具体做什么 | 将上游数学任务适配为 CPU float32 任务，补充布局、数值和逐次变化输入 |
-| 交付什么 | 两个任务目录中的 `task.json`、基线、示例候选、独立 oracle 适配及来源许可 |
-| 谁使用 | 负责修改实现的 Agent/开发者，以及执行检查的 Workbench/verifier |
-| 实际作用 | Agent 有明确的代码修改目标，评测能抓住错误轴、遗漏 epsilon、溢出、输入修改与旧输出重放 |
-| 当前状态 | 已实现并通过实际计算验证；当前计时还不能保证可靠性能排序 |
+| 具体做什么 | 将 affine RMSNorm 的数值语义接到 PyTorch / torch_npu，独立定义设备同步与计时 |
+| 交付什么 | 任务包、基础算子 baseline、融合候选、数值 oracle、变化输入、错误控制与原始结果 |
+| 谁使用 | 修改实现的 Agent/开发者，以及 Workbench 的任务操作 |
+| 实际作用 | 验证候选确实在 NPU 计算且算对，并比较真实完成一次计算的成本 |
+| 当前状态 | NPU 适配与资格实验是当前实施目标，实际结果按 [NPU 试点](npu-pilot.md)更新；CPU 旧结果不替代它 |
 
-例如省略 RMSNorm 的 epsilon 看似减少了一步计算，但完整任务会发现错误并拒绝给出可用性能指标。
+## 任务定义
 
-## 理解
+首版使用二维 contiguous float32 输入 `[rows, features]` 与一维 float32 `weight`，沿 feature 轴计算 `x / sqrt(mean(x²) + eps) * weight`。这一版本明确采用真实 affine 语义，权重不是全一。二维的 axis=1 与末轴一致；不能直接将旧 CPU 四维 axis=1、无 affine 任务送给按末维归一化的融合算子。
 
-首批任务应足够小，能在硬件未定时跑通共享契约，又包含会出错的真实计算。CPU 适配必须公开与上游 workload/backend 的差异。
+基线由在 NPU 上执行的 PyTorch 基础运算组成；候选验证 `torch_npu.npu_rms_norm(x, weight, epsilon=eps)[0]`。接口为 `compute(x, weight, *, eps)`。具体形状、epsilon、容差与变化输入协议在最终 manifest 中冻结；不从 CPU 结果推导设备支持范围。融合算子是可检验的参考候选，不要求所有合法实现都调用它。
 
-## 计划
+独立参考计算在 CPU 使用 scalar double / `math.fsum` 做归约，再乘权重并转换为 float32。输入与权重准备、传到设备、oracle、复制回 host 检查均在性能计时区间之外。正确性包括输出形状、dtype、设备、有限性、数值误差和输入/权重内容不被改变。普通输入之外需覆盖全零、小值及不同形状，防止省略 epsilon、忽略权重或硬编码结果通过。
 
-- 从成熟算子题目选择两个小任务，核对源码语义、许可和形状。
-- 公开 CPU 子集的 dtype、轴、形状、容差、布局和异常输入范围。
-- baseline 和候选可独立替换，oracle 使用不同实现路径。
-- 覆盖普通输入、数值边界、非连续布局、错误轴、NaN、输入修改等反例。
-- 实际执行正确性、计时和 CPU profiling，保存每个工作负载的样本。
+## 测量与诊断
+
+- 输入在调用前准备并绑定摘要；变化输入避免前次正确输出被重放成“优化”。不得将缓存后的答案当作实际计算时间。
+- NPU 是异步设备；计时边界必须明确等待调用前后的设备工作完成。仅统计 Python 发起调用的时间不能作为 NPU 完成延迟。
+- 预热、首次编译或初始化、输入准备、oracle 与输出校验不计入正式样本；具体次数及策略来自冻结任务与实验计划。
+- profiling 独立于正式计时，保留 CPU/NPU 活动与 trace 身份。若设备 trace 不可用，明确缺口，不能用 CPU cProfile 替代。
+- 运行同码 A/A、错误但快的候选、基础算子与融合候选；保留全部有效和失败记录，避免只报告最快样本。
+
+完整流程、控制组和证据清单见 [NPU 试点](npu-pilot.md)。
 
 ## 验收
 
-正确实现能通过，常见错误能被识别；测量执行相同候选函数并核对输出；不要求某个实现必须加速。GPU/NPU、低精度、通信和容量边界保持未验证。
+任务能在明确设备与运行时上重现；基线和合法候选计算正确；错误候选被拒绝且没有可用性能分数；真实 NPU profile 与同步计时进入 Workbench 证据。是否有可分辨加速另行判断，不能预先承诺融合必快。
 
-## 已实施
+这只是算子级 NPU 验收，不证明模型质量、服务吞吐、其他 dtype/形状、通信或显存容量。正式 SkillEval NPU 候选隔离仍需另外设计和验证，不能把可信 Workbench 源码执行包装为该能力。
 
-任务位于 `src/inferrsi/data/engineering_benchmarks/softmax-cpu` 和 `rmsnorm-cpu`。每包包括 task.json、baseline.py、candidate.py、README.md、LICENSE。原始 KernelBench 来源固定到完整 commit，MIT 许可随包分发。
+## 保留的 CPU 工作
 
-| 任务 | 算什么 | 为什么选它 |
-| --- | --- | --- |
-| Softmax | 沿 axis=1 的稳定指数归一化 | exp 溢出、错误轴、分母和形状都可能出错 |
-| RMSNorm | x / sqrt(mean(x², axis=1) + eps)，无 affine 参数 | 四维且各轴长度不同，能识别把 feature 轴写成末轴的常见错误 |
+`softmax-cpu` 和 `rmsnorm-cpu` 仍是软件控制与历史任务，保留原 KernelBench 来源和 MIT 许可。它们的 NumPy 基线、标量 double / math.fsum oracle、变化输入和错误反例可以检验共享软件接口；不向 NPU 迁移其计时结果或环境资格。
 
-每题六个公开 workload，包括普通随机、非连续布局、全零、大数、小数和单元素归约轴。普通 Softmax 为 16×257；普通 RMSNorm 为 4×17×9×7。这是刻意缩小的 CPU 开发集，不是原题性能结果。
+旧 `numpy-axis1-v2` 每题一次完整 trial 为 41 次调用、164 项断言、25 个计时样本；CPU profile 仅解释 CPU 调用。v1 的 360 个样本与 v2 的 300 个样本保留各自 task/grader 身份，[旧协议验证](replay-validation.md)和[用途对照](usefulness.md)中的噪声、失败与限制不改写。
 
-NumPy 基线与使用临时 buffer 的示例候选都由本次实现提供。参考计算使用标量 double、math.exp/math.sqrt/math.fsum，独立于 NumPy 归约。每题检查形状/dtype、有限输出、输入保持、数值误差四类断言。
-
-当前 v2 计时使用 perf_counter_ns，仅包围同步 compute 调用。任务明确五个计时 case，各预热 2 次、保留 5 次计时；全零 case 保留为正确性检查，不进入性能分数。单个 trial 指标为五个 case 中位数的和，所有原始样本与对应输入哈希均保留。所有调用的变化输入和 oracle 在执行前生成并保持存活；预检、预热和计时的输入字节不重复，双方使用相同的固定序列。这些是任务版本的测量协议，非全仓库性能门槛。外部 trial 次数和预算另行冻结。
-
-变异测试覆盖全零错误答案、NaN、dtype 错误、shape 错误、不稳定 exp、修改输入、错误轴，以及前六次正确之后变错。失败候选不输出可用性能指标；中途失败保留失败调用和已有样本。timeout/缺依赖与完整数值拒绝分别记录。
-
-新增缓存重放回归：按 shape/layout 返回旧输出会在变化输入上被拒绝；按 id/完整内容 memoize 的正确候选可以正常计算，但验证其在本次序列没有缓存命中，不能从预检借用答案。公开序列仍不是隐藏测试或恶意代码隔离。
-
-Profiling 实际运行同一候选，生成可读 CPU 调用表，完全独立于正式计时。它能帮助检查 Python 调用开销；它不能回答 GPU/NPU 空洞或设备 kernel 利用率。
+[五类扩展方案](task-expansion/README.md)仍保留后续题源。当前优先跑通 NPU RMSNorm；Tokenizers、KV 复用、通信和服务任务依次独立评估，不因本任务完成而标记整类已覆盖。

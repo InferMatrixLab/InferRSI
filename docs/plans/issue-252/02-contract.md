@@ -8,13 +8,21 @@
 | 交付什么 | `TaskPackage`、`check/profile/measure` 操作及生成既有 RunSpec 的接口 |
 | 谁使用 | Workbench 适配代码、离线 verifier 和后续任务作者 |
 | 实际作用 | 一次比较中的题目和裁判固定；源码或规则改变时会被识别，两个调用者不用分别维护答案 |
-| 当前状态 | 已实现并验证内容漂移、错误配置和未支持环境的拒绝；只承诺已实现的 CPU adapter |
+| 当前状态 | CPU 接口与软件验证保留；本轮增加 NPU 设备语义、同步计时与环境身份，实际资格单独记录 |
 
-例如同一个 RMSNorm 候选在两条路径中都按 axis=1、相同 epsilon 和输入序列检查。接口不决定候选怎么生成。
+NPU RMSNorm 的入口为 `compute(x, weight, *, eps)`，采用二维 contiguous float32 与非全一权重；旧 CPU 题的 `compute(x, *, eps)`、四维 axis=1、无 affine 语义保持原身份。不能因同名算子就混用题目或裁判。接口不决定候选怎么生成。
+
+## 本轮 NPU 契约
+
+[NPU 试点](npu-pilot.md)列出当前目标：独立 adapter 在实际设备上验证输入/输出设备、dtype、数值与输入保持，使用 CPU scalar double / `math.fsum` oracle；数据准备与传输、oracle、校验在性能计时外完成。同步边界必须覆盖实际完成的 NPU 计算。独立 CPU/NPU profile 不进入性能分数。
+
+运行时身份需绑定实际设备与 torch / torch_npu / CANN 版本，不沿用只包含 Python/NumPy 的 CPU 身份。任务、候选、oracle、输入和计时规则继续使用共享内容身份；缺依赖、无设备或不支持语义不能回退 CPU。具体已支持字段和环境以最终 manifest 及实测记录为准。
+
+Workbench 接入先运行已审核可信源码。正式 `engineering-benchmark-v1` 目前只接受已声明的 CPU 任务；NPU 题出现在 catalog 中，不代表正式 SkillEval 具备设备隔离或产物重验能力。adapter 的能力检查必须显式拒绝不支持的组合。
 
 ## 理解
 
-任务包负责题目事实。消费者负责执行组织或 agent 对照。任务接口不应依赖硬件最终选择，也不应承担搜索调度。
+任务包负责题目事实。消费者负责执行组织或 agent 对照。共享操作接口保持可复用，具体 adapter 必须声明硬件语义与支持范围，不承担搜索调度。
 
 ## 计划
 
@@ -26,22 +34,22 @@
 
 ## 验收
 
-同一包身份被两个消费者使用；修改冻结输入后被拒绝；缺失环境不记成功。当前变化输入协议及实际消费者验证见 [v2 验证](replay-validation.md)；早期安装包检查和 v1 运行保留在[历史验证记录](validation.md)，不作为当前协议的执行结果。
+同一包身份被支持它的消费者使用；修改冻结输入后被拒绝；缺失环境不记成功。本轮 NPU 需证明真实设备检查、同步计时和 Workbench 证据，不能由 CPU 消费者测试替代。已有 CPU 变化输入协议见 [v2 验证](replay-validation.md)；早期安装包检查和 v1 运行保留在[历史验证记录](validation.md)，不作为当前 NPU 的执行结果。
 
-## 已实施
+## 已有软件接口
 
 代码在 `src/inferrsi/harness/benchmarks/contract.py`，CLI 入口为 `inferrsi benchmarks`。
 
 | 对象 | 实际字段或操作 | 用途 |
 | --- | --- | --- |
 | TaskPackage | schema_version、adapter、source、environment、candidate、oracle、measurement、workloads、coverage | 消费者读取同一份题目事实 |
-| 冻结身份 | task_sha256、grader_sha256、candidate_sha256、runtime_sha256 | 记录本次真正使用的包、实现和解释器/NumPy 版本 |
+| 冻结身份 | task_sha256、grader_sha256、candidate_sha256、runtime_sha256 | 记录实际包、实现与运行时；NPU 需扩充实际设备环境身份 |
 | 单次操作 | check、measure、profile | 都生成结构化结果，只有 measure 提供性能指标 |
 | Workbench 绑定 | runspec(candidate, repo, output_dir, repetitions, max_minutes, min_improvement_pct) | 使用已有 AB/BA、快照、截止时间和报告 |
 | 工程评估绑定 | grade_artifact；skill_verifier.task_descriptor | 用实际实现与独立 oracle 生成 SkillEval checks |
 
 选择 JSON 是为了保持核心包零第三方依赖并便于命令快照。任务包描述题目，不保存密钥或用户运行配置。执行预算和增益门槛仍由 CLI/Python 调用方提供。
 
-首个 adapter 明确限定 CPU/NumPy/float32；未知后端直接拒绝。未来 backend 实现新 adapter，不改变上述消费者接口。当前没有承诺任意任务 manifest 都能执行，也没有提供空的通信/显存适配。
+已有 `numpy-axis1-v2` 明确限定 CPU/NumPy/float32；本轮 NPU 使用独立 adapter，不改变上述操作分工。未知后端直接拒绝。没有承诺任意任务 manifest 都能执行，也没有提供空的通信/显存适配。
 
 真实 payload 仍由已有 `execute_trial/execute_command` 运行，独立 worker 仅执行一道题。`profile` 不需要 RunSpec，`compare` 才使用 RunSpec。保留缺依赖、超时、候选/任务漂移等失败路径。哈希冻结不是恶意代码隔离。

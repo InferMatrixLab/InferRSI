@@ -1,67 +1,57 @@
-# #252：给 InferRSI 提供共享优化任务和独立评测
+# #252：在 NPU 上跑通共享优化任务和独立评测
 
-**我们要交付两部分：准备好的工程优化任务，以及这些任务从交付实现到检查、诊断、测量和报告的可运行流程。主 Agent 使用结果继续优化；SkillEval 使用相同任务比较不同 skill 条件下的产物。**
+**当前交付目标是：让 Agent 面对一个真实 NPU 优化任务，交付实际实现，由 InferRSI 检查正确性、保留 profiling、在固定条件下比较性能，并据此决定是否保留候选。** 用户已明确将试点指定为 NPU；已有 CPU 两题保留为历史验证与软件控制，不作为这轮试点完成依据。
 
-流程也是交付内容。只有题目目录，或者几个可以分别调用的命令，都不足以证明结果已在 RSI 中发挥作用。第四个子任务需要说明谁准备实验、谁运行 profiling、谁修改代码、谁验收，以及结果怎样支持下一步，并保留实际演练证据。当前已接通单次 Workbench 比较和正式 SkillEval 正确性产物交接；完整优化演练、可靠性能排序和真实 Agent/skill 收益仍未完成。详见[流程范围与缺口](04-integration.md#流程也是交付内容)。
+从 [NPU 试点方案](npu-pilot.md)开始。首个任务是 `rmsnorm-npu`：在 Ascend NPU 上比较 PyTorch 基础算子组成的 affine RMSNorm 与 `torch_npu.npu_rms_norm` 候选。融合实现是否更快，要由实际结果决定。NPU 接入、设备执行与性能资格分别验收，不能用设计或 CPU 测试代替。
 
-题库不是用户需求的白名单。用户任务不在内置题库时，主 Agent 可以将目标项目自己的 benchmark 和质量检查接到**已有的通用 Workbench**；本次两道 CPU 题不参与也可以运行。该通用入口不是本次新增功能，也不会自动替用户定义验收标准。当前 `TaskPackage` 仍限于明确支持的 CPU 算子，不能称为任意用户任务适配器。
-
-本次模块称为 **Engineering Benchmarks（共享工程评测任务）**。它的输入是选定的任务包和候选实现，输出是正确性结果、独立 profile、原始计时及对应版本。名称是本次交付提议，正式范围仍待维护者接受。
-
-**第一次阅读请从[完整导读](walkthrough.md)开始**：沿 RMSNorm 例子解释四个子任务、每个流程框、profiling、实际命令和结果。想核对本轮发现及修复的问题，请读[审查记录](review.md)。
-
-**多类任务的后续选择见[开源调研与五类任务方案](task-expansion/README.md)**：除了算子，还比较真实仓库 CPU 热路径、内存与缓存、通信、服务配置/调度。下一项新增任务优先考虑 GSO 的 Tokenizers.encode；内存类先复用仓内已有 KV 回收任务。该文及五份任务卡是扩展设计，当前可执行交付仍以各入口已声明的范围为准。
+本次模块称为 **Engineering Benchmarks（共享工程评测任务）**。输入是任务包和候选实现，输出是正确性结果、独立 profile、原始计时及版本身份。它服务主 Agent 的优化工作，也为后续 SkillEval 比较不同 skill 条件下的产物提供任务。名称与范围是本次交付提议，维护者验收另行记录。
 
 ## 实际交付给使用者什么
 
-以当前 `rmsnorm-cpu` 为例：
+以 NPU RMSNorm 试点为例：
 
-- **任务是什么：** 在规定的 CPU float32 输入上计算沿 axis=1 的 RMSNorm，保留 epsilon 和输入内容。
-- **Agent 可以改什么：** 独立 `implementation.py` 中的 `compute(x, *, eps)` 实现。
-- **Agent 交付什么：** 一份候选源码；输入、oracle、容差和计时规则来自受保护的任务包。
-- **谁检查：** `check` 使用独立参考答案验证；`profile` 生成单独诊断；`compare` 交给现有 Workbench 比较原版与候选版。
-- **结果如何发挥作用：** 错误实现不能获得可用性能分数；主 Agent 根据正确实现的计时和完整性证据判断是否保留。若计时无法分辨，继续记录“证据不足”，不能宣布优化成功。
+- **任务：** 在明确的 NPU、dtype、输入与容差下计算 affine RMSNorm，保留 epsilon、权重和输入内容。
+- **Agent 修改：** `implementation.py` 的 `compute(x, weight, *, eps)`；不修改输入、oracle、容差或计时器。
+- **基线与候选：** 相同 NPU 输入上的基础算子组合与融合算子调用；独立 CPU double 参考结果负责数值检查，不计入设备性能。
+- **诊断与测量：** 独立记录 CPU/NPU profile；计时必须等待 NPU 运算完成，并排除输入准备、传输和正确性检查。
+- **结果用途：** 错误实现不能获得可用性能分数。同码对照与真实候选比较支持“保留、放弃或证据不足”的决定；测不清就不宣布优化成功。
 
-一次真实对照中，省略 epsilon 的实现通过了普通输入冒烟，却被完整任务和 SkillEval 底层 verifier 一致拒绝。这证明了错误识别用途。该对照同时暴露计时噪声；可靠性能排序仍未建立，见[用途验证](usefulness.md)。之后还修复了重复输入导致缓存重放可被计时的问题，见 [v2 验证](replay-validation.md)。
+流程也是交付内容。只有题目目录或独立命令不够；第四项需要保留基线、profiling、改法依据、候选、验收结果和最终决定的一条实际演练链。见[流程范围与缺口](04-integration.md#流程也是交付内容)。
 
 ## 四个子任务分别做什么
 
-**这四项是交付步骤，不是四个运行时模块。** 第一项决定做什么，第二项规定规则，第三项交付可执行任务，第四项接入已有系统。
+这四项是交付分工，不是四个运行时模块；一个完整 NPU 试点会同时使用它们。
 
-| 子任务 | 要交付的具体东西 | 谁使用、实际发挥什么作用 | 当前状态 |
+| 子任务 | 具体交付 | 实际作用 | 当前状态 |
 | --- | --- | --- | --- |
-| **① 选定第一批任务和复用方案** · [#334](https://github.com/InferMatrixLab/InferRSI/issues/334) · [详细说明](01-research.md) | 论文/开源对照、任务选择、复用和适配决定 | 开发者据此确定先做哪几题、复用哪些设计，以及当前硬件范围 | 调研与方案已完成，范围待维护者接受 |
-| **② 规定任务怎样提交、运行和判定** · [#335](https://github.com/InferMatrixLab/InferRSI/issues/335) · [详细说明](02-contract.md) | 统一任务格式、候选入口、check/profile/measure 接口和版本记录 | Workbench 与评估工具读取同一题目和裁判；题目或源码变更后不能继续当作原比较 | 已实现共享接口和内容冻结 |
-| **③ 把第一批任务做成可执行的包** · [#336](https://github.com/InferMatrixLab/InferRSI/issues/336) · [详细说明](03-tasks.md) | Softmax、RMSNorm CPU 任务；每题带输入、基线、独立参考答案和测量规则 | Agent 有明确修改对象，工具有真实可运行的正确性、诊断和测量任务 | 已实现并实测；可靠性能排序未建立 |
-| **④ 接入现有 RSI，并验证结果能被使用** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) · [详细说明](04-integration.md) | Workbench 绑定、正式两臂产物 adapter、复现入口和证据记录 | 现有实验流程执行任务；两臂分别交付实现，由同一裁判检查并保留证据 | Workbench、底层 verifier、正式 SkillEval 正确性产物入口已实现；真实技能收益和性能排序仍未完成 |
+| **① 选题复用** · [#334](https://github.com/InferMatrixLab/InferRSI/issues/334) · [说明](01-research.md) | 论文/源码比较、NPU 选型、来源与边界 | 决定优化什么、复用哪些接口和评测设计 | 既有研究保留；本轮 NPU 方案见试点文档 |
+| **② 统一规则** · [#335](https://github.com/InferMatrixLab/InferRSI/issues/335) · [说明](02-contract.md) | 任务、候选、独立 oracle、NPU 同步计时、profile 与版本身份 | 固定一次比较中的工作和裁判，拒绝 CPU 回退或错误设备结果 | CPU 接口已有；NPU 适配与实测需单独验收 |
+| **③ 交付题包** · [#336](https://github.com/InferMatrixLab/InferRSI/issues/336) · [说明](03-tasks.md) | `rmsnorm-npu` 基线、候选、输入、数值检查、测量规则 | Agent 有明确修改对象，工具能在真实 NPU 执行它 | 当前交付目标；设备运行结果按试点记录更新 |
+| **④ 接入验证** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) · [说明](04-integration.md) | NPU Workbench 演练、正确/错误控制、A/A 与候选比较、报告 | 证明真实产物进入执行，结果能支持下一步 | NPU 演练待实测记录；真实 skill 收益未测 |
 
-## 放在我们 RSI 的哪里
+## 在 RSI 中的位置
 
-同一套任务服务两种不同的比较：
-
-| RSI 要回答的问题 | 现有调用者 | #252 的作用 |
+| RSI 要回答的问题 | 调用者 | 本次作用与边界 |
 | --- | --- | --- |
-| 这个引擎实现是否正确、有可验证的改进？ | 主 Agent + Workbench | 提供共同工作负载、独立正确性检查和测量规则 |
-| 新 skill/知识是否帮助 Agent 产出更好的实现？ | SkillEval 两臂比较；后续衔接已有改进流程 | 两边产出的实现使用同一套任务和裁判，不随技能条件更换答案 |
+| 这个实现是否正确、是否值得保留？ | 主 Agent + Workbench | 本轮优先在真实 NPU 跑通任务检查、profiling 和比较 |
+| 新 skill/知识是否帮助 Agent 写出更好的实现？ | SkillEval 两臂比较 | 当前正式产物 adapter 仅支持已声明的 CPU 任务；NPU 产物隔离与真实 Agent 对照没有完成 |
 
-第一条路径已有实际执行。第二条现已增加 `skill_eval_compare` 的正式产物交接：两臂分别交付 `implementation.py`，候选在隔离进程运行，父进程以共享 oracle 检查，报告重验留存源码。接入方法及平台验证边界见[正式接入说明](formal-integration.md)；尚未比较旧/新技能对真实 Agent 交付的影响。完整调用关系和分层验收见 [RSI 接入审计](rsi-integration.md)。
+当前正式 `engineering-benchmark-v1` adapter 的 Linux bubblewrap 控制只能作为 CPU 软件边界证据，不能直接挂载设备就声称 NPU 候选已安全隔离。NPU 试点先运行已审核的可信源码；接入方法和既有 CPU 证据见[正式接入说明](formal-integration.md)。不以本次 Workbench NPU 演练冒充正式 SkillEval NPU 支持。
 
-当前由主 Agent 决定下一步尝试什么；任务包决定要算什么、怎样检查和测量。Optimization Search Policy 的提案讨论如何选择下一次尝试，本次没有实现该策略。Profiling 是独立诊断，不冒充速度比较。#252 提供可调用的评测操作，不负责强制主 Agent 遵守整个流程或另建搜索控制器。
+题库不是用户需求的白名单。题库外目标可以将自己的 benchmark 和质量检查接入**已有通用 Workbench**；它不会自动生成验收标准。当前任务 adapter 只支持明确声明的语义和环境，不等于任意模型或服务适配器。
 
-## 参考 AMD 项目时具体学什么
+主 Agent 决定下一次尝试；任务工具检查与测量。Optimization Search Policy 讨论如何选择改法、分配预算和停止，本次没有实现该控制器，也没有程序强制所有 Agent 先 profile 再修改。
 
-之前调研的 AMD 项目是 [AgentKernelArena](https://github.com/AMD-AGI/AgentKernelArena/blob/47c2658a07efc7c2c0f72751781a5b5690471b0b/README.md)。它明确描述：给 Agent GPU 优化任务，在工作区产出实现，由独立 evaluator 检查、计时并产生结果；外部系统负责训练或策略更新。
+## 后续类别与历史证据
 
-本次借鉴它的[任务契约](https://github.com/AMD-AGI/AgentKernelArena/blob/47c2658a07efc7c2c0f72751781a5b5690471b0b/docs/how-to/add-task.md)：明确计算语义、可编辑实现、性能基线、正确性参考、工作负载和评测操作。我们把这层能力接到已有 InferRSI；当前交付范围是共享任务及其接口，不等同于 Arena 完整的 GPU/Agent 执行平台。
+[五类任务方案](task-expansion/README.md)保留算子、CPU 热路径、内存与缓存、通信、服务配置/调度的研究。**次序现调整为先完成 NPU RMSNorm 试点。** Tokenizers.encode 保留为后续 CPU 仓库补丁候选；KV 保留既有任务复用方向。NCCL/MSCCL 等 CUDA 题源不能直接作为 Ascend 通信实现，需另选 NPU 对应机制和资格条件。
 
-## 怎么开始使用和检查结果
+既有 CPU Softmax/RMSNorm 的错误识别、输出重放修复、计时噪声和失败记录不改写：[v1 集成](validation.md)、[v1 用途](usefulness.md)、[v2 协议](replay-validation.md)。正式 CPU 产物软件控制见[既有 CI 记录](formal-integration.md#已执行的软件验证)。这些记录不重标为 NPU 执行、可靠速度排序或真实 skill 收益。
 
-运行 `inferrsi benchmarks list`、`show rmsnorm-cpu`，将示例候选复制成独立 `implementation.py`，再按[使用文档](../../engineering-benchmarks.md)执行 `check`、`profile` 和 `compare`。共享接口优先，硬件尚未确定，所以目前只支持明确的 CPU 子集。
-
-正式两臂入口的当前软件验证见[接入与实际 CI 记录](formal-integration.md#已执行的软件验证)：49 项通过、无跳过，包含 5 个真实 Linux sandbox 案例。原 Workbench 测量证据见 [v2 协议验证](replay-validation.md)；历史证据见 [v1 集成记录](validation.md) 和 [v1 用途对照](usefulness.md)。本地测试、组件实现、正式系统接入与维护者验收分别记录。GPU/NPU、通信/容量任务、真实 agent/skill/search 收益和可靠性能排序均不能由当前 CPU 结果代替。
+旧的 [CPU 完整导读](walkthrough.md)解释已实现软件接口；当前交付与启动方式以 [NPU 试点](npu-pilot.md)及本轮实际结果为准。
 
 ## 跟踪与范围
 
-实现及文档在 [Draft PR #338](https://github.com/InferMatrixLab/InferRSI/pull/338)，四个子任务保持打开。原生父子关系写入受账号权限限制，目前通过相互引用和父任务索引追踪。
+实现及文档在 [Draft PR #338](https://github.com/InferMatrixLab/InferRSI/pull/338)，四个子任务保持打开。原生父子关系写入受账号权限限制，目前通过相互引用和父任务索引追踪。用户的 NPU 试点委托授权了本轮实施、运行和发布；它不代替维护者对整个 #252 的接受或关闭决定。
 
-初始基线为 `663f3b327998526a13aa31e72ad729025c18983c`，工作分支为 `codex/issue252-engineering-benchmarks`。本地实施与提交依据为用户的明确委托；这不等价于维护者已接受整个 #252。父 Issue 的 [Search Policy RFC](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495138306) 按[维护者范围意见](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495720922)保持独立。
+父 Issue 的 [Search Policy RFC](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495138306)按[维护者范围意见](https://github.com/InferMatrixLab/InferRSI/issues/252#issuecomment-6495720922)保持独立。

@@ -1,22 +1,22 @@
 # 按优化方向扩展任务：开源调研与首批选择
 
-2026-11-04。本轮是官方源码、任务文件、许可证及论文的调研与设计交付；没有执行新增题目、调用模型或运行设备实验。以下五类是阅读分组，映射到已有 [SearchSpace](../../../searchspace-matrix.md)，不另建权威分类，也不把“找到来源”记成实测覆盖。
+2026-11-04。本页记录官方源码、任务文件、许可证及论文的调研设计，来源检查不等于执行结果。用户随后明确指定 NPU 试点，当前实施顺序已按下文调整；实际设备证据另见 [NPU 试点](../npu-pilot.md)。以下五类是阅读分组，映射到已有 [SearchSpace](../../../searchspace-matrix.md)，不另建权威分类，也不把“找到来源”记成实测覆盖。
 
 ## 本轮决定
 
-**保留 Softmax/RMSNorm 作为算子接口试点；下一批重点增加真实仓库 CPU 热路径和内存管理任务，设备明确后再接通信及服务性能。** 每类先做一个完整任务，验证裁判、计时和结果用途后再扩充数量。
+**先在真实 NPU 上跑通 affine RMSNorm 的基线、profiling、候选、独立检查与 Workbench 比较。** 原 CPU Softmax/RMSNorm 保留作软件控制和历史证据；Tokenizers、KV、通信与服务来源保留为后续扩展。每类先完成一个任务的执行资格，再扩充数量。
 
 AgentKernelArena 适合学习 kernel 任务的提交与独立评测；整个 InferRSI 还需要仓库补丁、状态管理、资源配置和服务工作负载。不能把所有任务都变成 `compute(x)`，也不能把功能修复的通过率叫作性能提升。
 
 | 类别与任务卡 | 给 Agent 的具体问题 | 优先来源 | 当前状态 / 次序 |
 | --- | --- | --- | --- |
-| [① 算子计算](01-operators.md) | 在既定输入和数值约束下优化 Softmax/RMSNorm 实现 | KernelBench、AgentKernelArena、BackendBench | 已有 CPU 试点；先修完测量资格，不急于再加同类算子 |
-| [② CPU 热路径与运行时](02-host-runtime.md) | 大量 added tokens 时，保持分词结果不变，降低编码开销 | GSO 的 Tokenizers 历史优化任务；SWE-fficiency 的任务契约 | **下一项新增任务首选**；真实 repo-patch adapter 和历史环境尚未实现 |
-| [③ 内存与缓存](03-memory.md) | 正确处理异步完成与 KV 回收；随后优化混合尺寸分配的容量和开销 | 已有 RSI KV 任务、vLLM、Mooncake | **先接已有任务**，保留原资格边界；Mooncake 为下一独立新题候选 |
-| [④ 多卡通信](04-communication.md) | 固定拓扑/消息量下优化 collective 实现或配置 | nccl-tests、MSCCL-tools、MSCCL++ | 先固定任务契约，实际带宽/延迟等待目标设备；CPU 符号检查单独标记 |
-| [⑤ 服务配置与调度](05-serving.md) | 固定模型、请求和质量要求下，优化首 token 延迟或有效吞吐 | InferenceBench、llama.cpp、vllm-evolve；Apple RSI-Inference Bench 作真实引擎扩展参考 | 硬件及模型明确后执行；CPU llama.cpp 也是候选，但仍需模型资产与质量裁判 |
+| [① 算子计算](01-operators.md) | 在 NPU 上保持 affine RMSNorm 结果并比较基础运算与融合实现 | torch_npu 的实际算子；KernelBench、AgentKernelArena、BackendBench 的评测设计 | **当前试点**；真实设备正确性、profile、同步计时与 A/A 均需验收 |
+| [② CPU 热路径与运行时](02-host-runtime.md) | 大量 added tokens 时，保持分词结果不变，降低编码开销 | GSO 的 Tokenizers 历史优化任务；SWE-fficiency 的任务契约 | 后续 CPU 仓库补丁候选，不再作为当前试点；adapter 和历史环境尚未实现 |
+| [③ 内存与缓存](03-memory.md) | 正确处理异步完成与 KV 回收；随后优化混合尺寸分配的容量和开销 | 已有 RSI KV 任务、vLLM、Mooncake | 本轮 NPU 通路之后优先评估复用已有任务，保留原资格边界；Mooncake 为独立新题候选 |
+| [④ 多卡通信](04-communication.md) | 固定拓扑/消息量下优化 collective 实现或配置 | nccl-tests、MSCCL-tools、MSCCL++ 的任务与测量设计 | 后续需要 NPU 对应通信机制及实际拓扑；CUDA 实现不能直接作为 Ascend 任务 |
+| [⑤ 服务配置与调度](05-serving.md) | 固定模型、请求和质量要求下，优化首 token 延迟或有效吞吐 | InferenceBench、llama.cpp、vllm-evolve；Apple RSI-Inference Bench 作引擎扩展参考 | NPU 算子试点后另定模型、服务和质量裁判；已有 GPU/CPU 题源不自动支持 NPU |
 
-第一阶段从“多做两道数学题”转为“三种不同问题的试点”：算子计算、CPU 分词、状态回收。状态回收是既有工作，接入不算新造题；也不因此宣布内存容量、GPU kernel 或服务端到端全部覆盖。
+此前提出的“算子、CPU 分词、状态回收”扩展方向继续保留，执行次序已调整为 NPU 优先。状态回收是既有工作，接入不算新造题；RMSNorm 设备试点完成也不代表内存容量、多卡通信或服务端到端已覆盖。
 
 ## 哪些开源项目更适合借鉴
 
@@ -63,10 +63,10 @@ Apple 的另一个 [vLLM 源码优化题](https://github.com/apple-aiml-research
 
 | 候选形式 | 对应题型 | 与当前实现的关系 |
 | --- | --- | --- |
-| 一个受限实现文件 | 已有算子；已有 KV 的 `candidate.py` | NumPy adapter 与 KV replay 是两条既有路径，语义/计时不同；接入时保留各自裁判与冻结身份 |
+| 一个受限实现文件 | 当前 NPU RMSNorm；已有 CPU 算子和 KV 的 `candidate.py` | NPU 需要自身设备、权重、oracle 与同步协议；NumPy / KV 既有资格不迁移 |
 | 固定仓库上的 patch | Tokenizers、Mooncake、引擎回归 | **待实现 repo-patch adapter**；独立构建、受保护测试、完整产物和对应 baseline；不让模型改裁判 |
 | 声明的配置或 launcher | llama.cpp / 服务配置 | **待实现对应任务适配**；锁定模型、请求量和设备，检查实际启动/生效的配置及最终服务器 |
-| collective 算法或候选库 | 多卡通信 | 待选设备后实现；符号验证、编译、真数据校验、计时分别记录 |
+| collective 算法或候选库 | 多卡通信 | NPU 方向已定，具体机制/拓扑与多进程适配待研究；符号验证、编译、数据校验、计时分别记录 |
 
 复用现有 Workbench 的执行、AB/BA 和证据，不把 GSO、Pier、Harbor、InferenceBench 的控制器全部引入。上游 task 包是素材和契约来源；任何新执行环境或多文件候选都需要其自身的产物隔离与验收，现有单文件 sandbox 不能自动覆盖仓库 build/server。
 
@@ -85,9 +85,9 @@ Profiling 保留独立阶段与原始产物。若以后评估“给 Agent profil
 
 ## 与四个子项的关系及本轮产物
 
-- **#334 调研：** 本文与五类任务卡补充原来的算子选型；首批扩展优先级已明确。
-- **#335 接口：** 识别 repo-patch / launcher / 多进程任务的真实差异；这些是下一步设计输入，尚未新增通用 adapter。
-- **#336 任务：** 保留原两题；CPU 分词是新增首选，KV 是既有任务复用，其他候选按任务卡分阶段实施。
-- **#337 接入验证：** 按上面六项资格步骤验证真实用途；现有正式 SkillEval correctness 接入仍只支持它已声明的内置题。
+- **#334 调研：** 保留五类来源对照，当前优先级调整为真实 NPU RMSNorm。
+- **#335 接口：** 当前先实现 NPU 的设备/数值/同步/诊断契约；repo-patch / launcher / 多进程为后续设计，尚未新增通用 adapter。
+- **#336 任务：** 当前交付目标为 `rmsnorm-npu`，原 CPU 两题保留历史身份；其他类别按任务卡分阶段实施。
+- **#337 接入验证：** 按六项资格步骤验证 NPU Workbench 的真实用途；正式 SkillEval correctness 仍仅支持它已声明的 CPU 任务，NPU 隔离未建立。
 
-本轮新增的是可复查的来源选择和任务设计文档。没有修改历史证据、SearchSpace 成熟度、现有任务或执行协议，也没有宣布新类别已经能运行。范围扩展与具体硬件/模型验收仍需沿原 Issue 跟踪。
+本页保留可复查的来源选择与任务设计，不改写历史证据或 SearchSpace 成熟度。当前 NPU 实施与实测沿 [试点文档](../npu-pilot.md)及原 Issue 跟踪；本页列出的后续来源不因此变成已能运行的新类别。

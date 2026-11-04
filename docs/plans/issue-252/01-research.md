@@ -1,16 +1,16 @@
 # 子项 01：选定第一批任务和复用方案
 
-2026-11-04 补充：[按优化方向扩展任务的开源调研](task-expansion/README.md)及五类任务卡。下面保留初始 CPU 算子试点的选型依据；它不代表整个 SearchSpace 的最终题目覆盖。新的重点是实际仓库 CPU 热路径、已有 KV 任务复用，以及设备明确后的通信/服务题源。
+2026-11-04 范围更新：用户已指定 NPU 试点，当前优先交付 [RMSNorm NPU 方案](npu-pilot.md)。[五类任务研究](task-expansion/README.md)继续保留，但 Tokenizers.encode 不再作为当前试点。下面的初始 CPU 选型作为历史设计依据，不代表本轮设备验收或整个 SearchSpace 的最终覆盖。
 
-**这项工作的交付是选型结论：先做 Softmax/RMSNorm CPU 两道任务，复用成熟项目的任务定义和评测分工，并说明为何适合当前 InferRSI。**
+**这项工作的交付是选型结论：用真实 NPU affine RMSNorm 跑通任务、独立检查、profiling 和比较，复用已有任务契约与 Workbench，而不是再建一个执行平台。**
 
 | 要说清楚的问题 | 本子项的答案 |
 | --- | --- |
 | 具体做什么 | 阅读论文与固定版本源码，比较任务、正确性参考、测量和执行边界，确定首批范围 |
 | 交付什么 | 下文的一手来源表、方案比较、采用/不采用理由和任务选择 |
 | 谁使用 | 子项 02 的接口开发者、子项 03 的任务开发者，以及范围评审者 |
-| 实际作用 | 让实现围绕明确的两个优化问题展开，复用现有 Workbench/SkillEval，而不是从头搭另一个平台 |
-| 当前状态 | 调研和方案已完成；维护者对首批范围的接受仍待记录 |
+| 实际作用 | 明确 NPU 试点问题、基线与参考候选，复用已有 Workbench；CPU SkillEval 资格不自动延伸到设备 |
+| 当前状态 | 既有研究保留，NPU 选择与资格计划明确；设备结果和维护者验收分别记录 |
 
 它是一次设计交付，运行时不会执行“调研模块”。具体成果落实在后面三个子项。
 
@@ -40,7 +40,21 @@
 | AIDE | [§3.1–3.2](https://arxiv.org/html/2502.13138v1) 显式区分 evaluator h、search policy π、coding operator f、solution tree T | search policy 是独立模块。本次提供任务评估，不实现搜索树或停止规则 |
 | InferRSI 当前源码 | RunSpec 要求 baseline/candidate；runner 已有 AB/BA、超时和快照；SkillEval run_trial 已有独立 verifier；生产 engineering verifier 有 Linux bubblewrap 边界 | 生成真实 RunSpec，诊断用 execute_trial；保留产物接入现有 verifier。生产 sandbox 和执行权限不变 |
 
-## 方案比较与结论
+## 当前 NPU 选择
+
+官方算子与测试固定在 op-plugin `9f23f00b1ebe54cca612b0537bc582dba409a0af`，NPU profiler 使用方式参考 Ascend/pytorch `9065e614f02639f5ddde0cf370bb9d38de7bd8a9`；[NPU 来源表](npu-pilot.md#为什么选择-rmsnorm)给出具体文件与许可。它们提供 API 和任务设计依据，不替代安装环境验证。
+
+1. 首个试点选 **affine RMSNorm**：二维 contiguous float32 输入、非全一权重，基线使用 NPU 上的基础运算组合，参考候选使用 `torch_npu.npu_rms_norm`。独立 CPU scalar double / `math.fsum` 路径计算参考结果。官方 NPU 算子的语义与运行时支持需单独核对，不直接继承旧 CPU 四维无 affine 任务。
+2. 保留 `check / profile / measure` 与现有 RunSpec / Workbench 接口，由 NPU adapter 明确依赖、设备身份、同步、输入准备和计时边界。实际设备不支持时拒绝执行，不静默退回 CPU。
+3. 先用正确/错误候选、A/A 和基础算子/融合候选对照验证任务能否产生可信决策，再扩充题数或评估 Agent。融合候选是参考控制，不预设其必然加速。
+4. 真实 CPU/NPU profiling 单独运行；记录观察如何影响改法或最终决定。仅生成 profile 文件不能证明 Agent 使用了诊断。
+5. 正式 SkillEval 的现有 Linux sandbox 是 CPU 路径。NPU Workbench 先执行已审核可信源码；NPU 产物隔离与真实 skill 收益单独跟踪。
+
+具体契约、验收矩阵和未完成项见 [NPU 试点](npu-pilot.md)。后续 Tokenizers、KV、通信与服务题仍按各自来源、环境和裁判重新资格，不因已有 CPU 或 NPU 任务完成而宣布全部覆盖。
+
+## 历史 CPU 方案比较与采用理由
+
+以下记录最初硬件未定时的 CPU 决策，不作为当前优先级。原设计和失败证据保留便于审查，本轮已由上面的 NPU 决定更新交付目标。
 
 | 方案 | 优点 | 当前问题 | 决策 |
 | --- | --- | --- | --- |
@@ -63,4 +77,4 @@
 - correctness/profile 有独立执行记录，不需要伪造 baseline；只有 measurement 构成 A/B。
 - 没有把某 cell 一条失败记录解释成搜索耗尽，也没有增加停止控制器。
 
-本方案针对硬件未确定的当前约束；下一步设备和任务类别应由实际 campaign 决定。它不是维护者对 #252 的最终验收决定。
+以上 CPU 选择针对当时硬件未定的约束；当前设备方向已明确为 NPU。无论哪一阶段，来源调研和贡献者方案都不代替维护者对 #252 的最终验收。
