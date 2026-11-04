@@ -1,0 +1,44 @@
+{
+  "kind": "source-inspection-only",
+  "inspected_on": "2026-11-04",
+  "dataset": "gso-bench/gso",
+  "dataset_revision": "c2e4f1a58427cccd15e0e542f136bd204fb19284",
+  "dataset_file": "data/test-00000-of-00001.parquet",
+  "download_url": "https://huggingface.co/datasets/gso-bench/gso/resolve/c2e4f1a58427cccd15e0e542f136bd204fb19284/data/test-00000-of-00001.parquet",
+  "dataset_file_bytes": 3843463,
+  "dataset_file_sha256": "bda458a7b5437c252f6cefdbc896f5f2868de51479e7a221ceda3f3ab74879bc",
+  "dataset_rows": 102,
+  "selector": {"instance_id": "huggingface__tokenizers-076319d"},
+  "matching_rows": 1,
+  "selected_row_sha256": "152c078497a9da3e93878655942aa7b0535c39daae3586f800e0b7de02fa3b5f",
+  "selected_row_hash_encoding": "UTF-8 json.dumps(row, sort_keys=True, ensure_ascii=False, separators=(',', ':')), without trailing newline",
+  "reader": "pyarrow 20.0.0; parquet read_table(...).to_pylist()",
+  "task": {
+    "repo": "huggingface/tokenizers",
+    "api": "Tokenizer.encode",
+    "base_commit_expression": "076319d542f87e9f72db379d7e47b29b1ce7bd87^",
+    "resolved_base_commit": "fb837b4adb130dfc89104aa09b1ae223da120278",
+    "expert_commit": "076319d542f87e9f72db379d7e47b29b1ce7bd87",
+    "test_count": 4,
+    "declared_arch": "x86_64"
+  },
+  "license": {
+    "dataset_declared": "MIT",
+    "dataset_card": "https://huggingface.co/datasets/gso-bench/gso/blob/c2e4f1a58427cccd15e0e542f136bd204fb19284/README.md",
+    "target_code": "Apache-2.0",
+    "target_license": "https://github.com/huggingface/tokenizers/blob/076319d542f87e9f72db379d7e47b29b1ce7bd87/LICENSE"
+  },
+  "remaining": [
+    "Freeze GPT-2 and BERT tokenizer assets currently fetched from resolve/main",
+    "Freeze the Gutenberg text assets and review redistribution scope",
+    "Reconstruct and verify the historical build environment instead of executing setup commands blindly",
+    "Implement the repository-patch adapter and its execution boundary",
+    "Run baseline/expert correctness, negative controls and same-code measurement qualification"
+  ],
+  "execution": {
+    "setup_commands_run": false,
+    "benchmark_run": false,
+    "model_run": false,
+    "performance_qualified": false
+  }
+}
