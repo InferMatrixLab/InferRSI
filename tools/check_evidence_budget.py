@@ -220,7 +220,7 @@ def check_file_budgets(
     allowed = allowlist or set()
 
     for rel_path, current_size, net_addition in file_records:
-        norm_path = rel_path.replace("\\", "/")
+        norm_path = rel_path
         if norm_path in allowed:
             continue
 
@@ -359,7 +359,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    violations: list[str] = []
+    budget_violations: list[str] = []
 
     try:
         if args.files is not None:
@@ -378,32 +378,40 @@ def main() -> int:
             diff_violations, _ = check_file_budgets(
                 file_list, args.max_file_bytes, args.max_pr_bytes
             )
-            violations.extend(diff_violations)
+            budget_violations.extend(diff_violations)
         else:
             changed_records = get_changed_files_with_net_sizes(args.base)
             diff_violations, _ = check_file_budgets(
                 changed_records, args.max_file_bytes, args.max_pr_bytes
             )
-            violations.extend(diff_violations)
+            budget_violations.extend(diff_violations)
     except Exception as exc:
         print(f"evidence-budget error: {exc}", file=sys.stderr)
         return 1
 
+    manifest_errors: list[str] = []
     inv_path = ROOT / args.inventory
     if inv_path.exists():
-        violations.extend(validate_external_asset_manifest(inv_path))
+        manifest_errors.extend(validate_external_asset_manifest(inv_path))
 
-    for item in violations:
+    for item in budget_violations:
         print(item)
 
-    if violations:
+    if budget_violations:
         print(ADVICE)
         if args.report_only:
             print(
                 "[NOTICE] Running in report-only mode: candidate byte budget violations "
                 "reported above as warnings; check will not fail CI (Refs #273)."
             )
-            return 0
+
+    for err in manifest_errors:
+        print(err, file=sys.stderr)
+
+    if manifest_errors:
+        return 1
+
+    if budget_violations and not args.report_only:
         return 1
 
     return 0

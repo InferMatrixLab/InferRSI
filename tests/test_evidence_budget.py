@@ -466,3 +466,107 @@ def test_main_cli_help_mentions_format_check_and_report_only(monkeypatch, capsys
     assert "format check" in captured.out
     assert "--report-only" in captured.out
 
+
+def test_git_raw_posix_backslash_top_level_path_not_treated_as_evidence(tmp_path: Path):
+    """A top-level file literally named 'evidence\\big.bin' must not count as evidence/."""
+    repo = tmp_path / "backslash_repo"
+    repo.mkdir()
+
+    def git(*args: str, input_bytes: bytes | None = None):
+        return subprocess.run(
+            ["git", *args],
+            cwd=repo,
+            input=input_bytes,
+            capture_output=True,
+            check=True,
+        )
+
+    git("init", "-b", "main")
+    git("config", "user.name", "Tester")
+    git("config", "user.email", "tester@example.com")
+    (repo / "README.md").write_text("# Repo")
+    git("add", ".")
+    git("commit", "-m", "init")
+
+    # Base commit SHA
+    base_commit = git("rev-parse", "HEAD").stdout.decode().strip()
+
+    # Create a 600 KiB blob in the git object database
+    blob_sha = git(
+        "hash-object", "-w", "--stdin", input_bytes=b"Z" * (600 * 1024)
+    ).stdout.decode().strip()
+
+    # Use git mktree to construct a POSIX tree with top-level 'evidence\\raw_top_level.bin'
+    tree_input = f"100644 blob {blob_sha}\tevidence\\raw_top_level.bin\n".encode("utf-8")
+    tree_sha = git("mktree", input_bytes=tree_input).stdout.decode().strip()
+
+    # Commit tree with base_commit as parent
+    head_commit = git(
+        "commit-tree", tree_sha, "-p", base_commit, "-m", "add top-level backslash file"
+    ).stdout.decode().strip()
+
+    # Point HEAD / branch to head_commit
+    git("update-ref", "refs/heads/main", head_commit)
+
+    records = check.get_changed_files_with_net_sizes(base_commit, repo_root=repo)
+    matching = [r for r in records if "evidence\\raw_top_level.bin" in r[0]]
+    assert len(matching) == 1
+    rel_path, cur_size, _ = matching[0]
+    assert rel_path == "evidence\\raw_top_level.bin"
+    assert cur_size == 600 * 1024
+
+    # Top-level file with literal backslash must NOT count as evidence/ directory
+    violations, net_bytes = check.check_file_budgets(records)
+    assert violations == []
+    assert net_bytes == 0
+
+
+def test_main_report_only_mode_does_not_hide_manifest_errors(tmp_path: Path, monkeypatch, capsys):
+    """Report-only mode applies to candidate budgets; manifest schema/format errors still fail."""
+    monkeypatch.setattr(check, "ROOT", tmp_path)
+    ev_dir = tmp_path / "evidence"
+    ev_dir.mkdir()
+    ev_file = ev_dir / "valid.bin"
+    ev_file.write_bytes(b"A" * 1024)
+
+    # Invalid inventory manifest with invalid URL pattern and invalid sha256
+    inv_file = tmp_path / "tools" / "evidence_inventory.json"
+    inv_file.parent.mkdir(parents=True)
+    inv_file.write_text(
+        json.dumps({
+            "version": 1,
+            "bundles": {
+                "bad_bundle": {
+                    "external_assets": [
+                        {
+                            "url": "https://invalid.com/not_a_github_release",
+                            "sha256": "bad_sha",
+                            "bytes": 1024,
+                            "retention_owner": "owner",
+                        }
+                    ]
+                }
+            },
+        }),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "check_evidence_budget.py",
+            "--files",
+            str(ev_file),
+            "--report-only",
+            "--inventory",
+            "tools/evidence_inventory.json",
+        ],
+    )
+    rc = check.main()
+    captured = capsys.readouterr()
+    # Must exit 1 despite --report-only because manifest errors are enforced
+    assert rc == 1
+    assert "url format check failed" in captured.err
+    assert "invalid sha256 hex digest" in captured.err
+
+
