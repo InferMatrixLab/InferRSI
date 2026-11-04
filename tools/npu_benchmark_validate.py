@@ -80,15 +80,15 @@ def main():
         "repetitions", "min_improvement_pct", "max_aa_difference_pct",
         "max_minutes", "timeout_seconds",
     )}
+    implementation_paths = {"baseline": baseline, "reference": candidate, **wrong_paths}
     frozen = {
         "scope": "NPU software controls; no model/skill benefit or service claim",
         "source_head": subprocess.check_output(
             ["git", "rev-parse", "HEAD"], cwd=args.repo, text=True
         ).strip(),
         "policy": policy,
-        "implementations": {name: task.identity(path) for name, path in {
-            "baseline": baseline, "reference": candidate, **wrong_paths
-        }.items()},
+        "implementations": {name: task.identity(path)
+                            for name, path in implementation_paths.items()},
     }
     atomic_write_json(output / "plan" / "frozen.json", frozen)
     atomic_write_json(output / "validator" / "task.json", task.manifest)
@@ -100,7 +100,9 @@ def main():
         execution = run_action(task, path, mode, output / "results" / name,
                                timeout_seconds=args.timeout_seconds)
         result = read(execution["result_path"])
-        record = {"execution_status": execution["status"],
+        record = {"implementation": next(key for key, value in implementation_paths.items()
+                                           if value == path),
+                  "execution_status": execution["status"],
                   "returncode": execution["returncode"], "result": result}
         actions[name] = record
         print(json.dumps({"action": name, "status": execution["status"],
@@ -157,6 +159,19 @@ def main():
     checks["fixed_environment"] = bool(environments) and all(
         env and env == environments[0] for env in environments
     )
+    identity_checks = [record["result"].get("identity")
+                       == frozen["implementations"][record["implementation"]]
+                       for record in actions.values()]
+    for name, comparison in comparisons.items():
+        selected = "baseline" if name == "aa" else "reference"
+        for side, trials in comparison["trials"].items():
+            expected = frozen["implementations"]["baseline" if side == "baseline" else selected]
+            identity_checks.extend(trial.get("identity") == expected for trial in trials)
+        identity_checks.append(comparison["validation"]["result"].get("identity")
+                               == frozen["implementations"][selected])
+    identity_checks.extend(task.identity(path) == frozen["implementations"][name]
+                           for name, path in implementation_paths.items())
+    checks["frozen_identities"] = all(identity_checks)
     task.assert_unchanged()
     shape_comparisons = {}
     for name, comparison in comparisons.items():
