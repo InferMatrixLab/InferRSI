@@ -38,6 +38,26 @@ def manifest_problems(manifest: list[dict]) -> list[str]:
     return problems
 
 
+def external_problems(external: list[dict], manifest: list[dict]) -> list[str]:
+    problems = []
+    for entry in external:
+        name = entry.get("name")
+        if set(entry) != {"name", "owner"}:
+            problems.append(f"{name}: expected exactly name and owner")
+            continue
+        if not isinstance(name, str) or not name:
+            problems.append(f"{name}: name must be a nonempty string")
+        if not isinstance(entry["owner"], str) or not entry["owner"].strip():
+            problems.append(f"{name}: owner must name the app that applies it")
+    names = [entry.get("name") for entry in external]
+    problems += [f"{name}: listed more than once"
+                 for name in sorted({n for n in names if names.count(n) > 1}, key=str)]
+    listed = {e["name"] for e in manifest if isinstance(e.get("name"), str)}
+    problems += [f"{name}: external labels cannot also be in labels.json"
+                 for name in sorted(set(names) & listed)]
+    return problems
+
+
 def _names(value, source: str) -> list[str]:
     # GitHub accepts a list of names or one comma-separated string in templates.
     if value is None:
@@ -72,14 +92,14 @@ def referenced_labels(root: Path) -> dict[str, list[str]]:
 
 
 def drift(manifest: list[dict], repository: list[dict],
-          references: dict[str, list[str]]) -> list[str]:
+          references: dict[str, list[str]], external: set[str]) -> list[str]:
     expected = {entry["name"]: entry["description"] for entry in manifest}
     # The labels API returns null for a label without a description.
     actual = {label["name"]: label["description"] or "" for label in repository}
     problems = [f"{name}: in labels.json, missing from the repository"
                 for name in sorted(expected.keys() - actual.keys())]
     problems += [f"{name}: in the repository, missing from labels.json"
-                 for name in sorted(actual.keys() - expected.keys())]
+                 for name in sorted(actual.keys() - expected.keys() - external)]
     problems += [f"{name}: repository description differs from labels.json"
                  for name in sorted(expected.keys() & actual.keys())
                  if expected[name] != actual[name]]
@@ -95,11 +115,13 @@ def main(argv: list[str] | None = None) -> int:
                         help="JSON lines holding each repository label's name and description")
     args = parser.parse_args(argv)
     manifest = json.loads((ROOT / ".github/labels.json").read_text(encoding="utf-8"))
+    external = json.loads((ROOT / ".github/external-labels.json").read_text(encoding="utf-8"))
     repository = [json.loads(line) for line in
                   args.repository_labels.read_text(encoding="utf-8").splitlines() if line.strip()]
-    problems = manifest_problems(manifest)
+    problems = manifest_problems(manifest) + external_problems(external, manifest)
     if not problems:
-        problems = drift(manifest, repository, referenced_labels(ROOT))
+        problems = drift(manifest, repository, referenced_labels(ROOT),
+                         {entry["name"] for entry in external})
     # Each printed line starts with "label drift" so a label name cannot form a workflow command.
     for problem in problems:
         print(f"label drift: {problem}")

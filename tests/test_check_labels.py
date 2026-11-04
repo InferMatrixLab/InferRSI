@@ -7,6 +7,8 @@ from tools import check_labels as check
 
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = json.loads((ROOT / ".github/labels.json").read_text(encoding="utf-8"))
+EXTERNAL = json.loads((ROOT / ".github/external-labels.json").read_text(encoding="utf-8"))
+EXTERNAL_NAMES = {entry["name"] for entry in EXTERNAL}
 LIVE = [{"name": entry["name"], "description": entry["description"]} for entry in MANIFEST]
 
 
@@ -23,12 +25,16 @@ def test_repository_manifest_is_valid():
     assert check.manifest_problems(MANIFEST) == []
 
 
+def test_repository_external_list_is_valid():
+    assert check.external_problems(EXTERNAL, MANIFEST) == []
+
+
 def test_templates_and_configs_reference_only_listed_labels():
     references = check.referenced_labels(ROOT)
     assert references[".github/ISSUE_TEMPLATE/scoped-task.md"] == ["kind:task"]
     assert references[".github/ISSUE_TEMPLATE/campaign-acceptance.yml"] == ["kind:acceptance"]
     assert references["tools/skill_eval_auto_config.json"] == ["skill-eval:execute"]
-    assert check.drift(MANIFEST, LIVE, references) == []
+    assert check.drift(MANIFEST, LIVE, references, EXTERNAL_NAMES) == []
 
 
 @pytest.mark.parametrize("bad, message", [
@@ -49,15 +55,54 @@ def test_duplicate_names_are_reported():
     ]
 
 
+@pytest.mark.parametrize("bad, message", [
+    ({"name": "bot-reviewed"}, "exactly name and owner"),
+    ({"name": "bot-reviewed", "owner": "a", "note": "b"}, "exactly name and owner"),
+    ({"name": "", "owner": "a"}, "nonempty string"),
+    ({"name": "bot-reviewed", "owner": "  "}, "owner must name the app"),
+])
+def test_invalid_external_entries_are_reported(bad, message):
+    [problem] = check.external_problems([bad], [])
+    assert message in problem
+
+
+def test_external_duplicates_and_overlap_with_the_manifest_are_reported():
+    external = [{"name": "bot-reviewed", "owner": "app"}, {"name": "bot-reviewed", "owner": "app"},
+                {"name": "kind:bug", "owner": "app"}]
+    assert check.external_problems(external, [entry("kind:bug")]) == [
+        "bot-reviewed: listed more than once",
+        "kind:bug: external labels cannot also be in labels.json",
+    ]
+
+
 def test_drift_reports_missing_extra_changed_and_unlisted_references():
     manifest = [entry("kind:bug"), entry("status:proposed", description="Waiting")]
     repository = [{"name": "status:proposed", "description": None},
                   {"name": "bug", "description": "Something isn't working"}]
-    assert check.drift(manifest, repository, {"form.yml": ["kind:bug", "acceptance"]}) == [
+    assert check.drift(manifest, repository, {"form.yml": ["kind:bug", "acceptance"]}, set()) == [
         "kind:bug: in labels.json, missing from the repository",
         "bug: in the repository, missing from labels.json",
         "status:proposed: repository description differs from labels.json",
         "acceptance: referenced by form.yml, missing from labels.json",
+    ]
+
+
+def test_drift_accepts_an_external_label_in_the_repository():
+    manifest = [entry("kind:bug")]
+    repository = [{"name": "kind:bug", "description": "Meaning"},
+                  {"name": "bot-reviewed", "description": None}]
+    assert check.drift(manifest, repository, {}, {"bot-reviewed"}) == []
+    # Absence is also accepted: an outside app owns whether the label exists.
+    assert check.drift(manifest, repository[:1], {}, {"bot-reviewed"}) == []
+
+
+def test_drift_still_rejects_a_template_reference_to_an_external_label():
+    manifest = [entry("kind:bug")]
+    repository = [{"name": "kind:bug", "description": "Meaning"},
+                  {"name": "bot-reviewed", "description": None}]
+    assert check.drift(manifest, repository, {"form.yml": ["bot-reviewed"]},
+                       {"bot-reviewed"}) == [
+        "bot-reviewed: referenced by form.yml, missing from labels.json",
     ]
 
 
@@ -89,7 +134,8 @@ def test_markdown_template_without_front_matter_fails(tmp_path):
 
 
 def test_main_passes_silently_when_repository_matches(tmp_path, capsys):
-    assert check.main([write_lines(tmp_path / "labels.jsonl", LIVE)]) == 0
+    live = LIVE + [{"name": name, "description": None} for name in sorted(EXTERNAL_NAMES)]
+    assert check.main([write_lines(tmp_path / "labels.jsonl", live)]) == 0
     assert capsys.readouterr().out == ""
 
 
