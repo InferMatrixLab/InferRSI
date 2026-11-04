@@ -78,9 +78,9 @@ return to the authorized owner.
 ### PR review and merge
 
 For a PR targeting `main`, each completed review gives an explicit **PASS** or
-**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGMT` alone on the
+**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGTM` alone on the
 first non-empty line of the same review body. Only the exact, case-sensitive
-spelling `LGMT` qualifies. For DO NOT PASS, submit **Request changes** with
+spelling `LGTM` qualifies. For DO NOT PASS, submit **Request changes** with
 the blockers and the expected corrections or evidence.
 
 An eligible approval comes from an independent reviewer using a GitHub account

@@ -39,12 +39,12 @@ by the reviewed base and head and the supporting evidence.
 
 ### Formal GitHub review
 
-For PASS, select **Approve**. Write `LGMT` alone on the first non-empty line of
+For PASS, select **Approve**. Write `LGTM` alone on the first non-empty line of
 that review body, followed by the verdict and evidence. Match the exact,
-case-sensitive token `LGMT`. For example:
+case-sensitive token `LGTM`. For example:
 
 ```text
-LGMT
+LGTM
 
 PR review verdict — PASS
 Reviewed base <base_sha> and head <head_sha>.
@@ -71,7 +71,7 @@ report the review URL.
 Each eligible GitHub account with write access counts once. The
 [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
-reviewable changes are pushed. The integrator also verifies the `LGMT` bodies,
+reviewable changes are pushed. The integrator also verifies the `LGTM` bodies,
 any blocking reviews and required checks. A PR review verdict applies to the
 reviewed change. Campaign verdicts follow their frozen validators and evidence.
 
