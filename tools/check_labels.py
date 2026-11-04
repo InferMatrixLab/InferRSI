@@ -47,7 +47,7 @@ def external_problems(external: list[dict], manifest: list[dict]) -> list[str]:
             problems.append(f"{name}: expected exactly name and owner")
             continue
         # Only a usable name joins the duplicate and overlap comparisons below.
-        if isinstance(name, str) and name:
+        if isinstance(name, str) and name.strip():
             names.append(name)
         else:
             problems.append(f"{name}: name must be a nonempty string")

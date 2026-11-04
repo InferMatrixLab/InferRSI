@@ -59,6 +59,7 @@ def test_duplicate_names_are_reported():
     ({"name": "bot-reviewed"}, "exactly name and owner"),
     ({"name": "bot-reviewed", "owner": "a", "note": "b"}, "exactly name and owner"),
     ({"name": "", "owner": "a"}, "nonempty string"),
+    ({"name": "   ", "owner": "a"}, "nonempty string"),
     ({"name": None, "owner": "a"}, "nonempty string"),
     ({"name": "bot-reviewed", "owner": "  "}, "owner must name the app"),
 ])
