@@ -2,6 +2,8 @@
 
 2026-11-04，用户将试点明确指定为 NPU。**本轮已在 Ascend 910B1 完成实际运行，七项软件资格检查通过**，见[实测解释与保留决定](npu-validation.md)和[全部样本及身份](npu-validation-summary.json)。本页保留任务接口与执行方法。已有 CPU 测试和样本仅作历史软件证据；项目接受、NPU 产物隔离与真实 Agent 收益另行验收。
 
+以下图示、步骤和验收矩阵描述本轮已执行的参考控制与工具资格试点，其 profiling 检查继续按原冻结计划保留。通用 Agent 优化流程中，profiling 是按需使用的工具，不是必做步骤，也不因缺少 profile 默认判失败；见[当前流程说明](04-integration.md#流程也是交付内容)。
+
 ## 这次究竟要跑通什么
 
 给 Agent 一个具体问题：**在 Ascend NPU 上保持 affine RMSNorm 计算结果，检查基础算子组合能否由更合适的实现替代。** Agent 交付真实源码；InferRSI 负责独立检查、诊断和测量，再用证据决定是否保留。首个参考候选采用 `torch_npu.npu_rms_norm`，是否更快由实际实验判断。
@@ -83,4 +85,4 @@ RMSNorm 是推理中明确的归约与逐元素计算。基础运算组合和 NP
 
 首轮运行已审核可信源码。现有正式 `engineering-benchmark-v1` 只支持 CPU 任务，Linux bubblewrap 控制没有验证 NPU 设备隔离；不得通过隐式宿主执行或 CPU fallback 绕过不支持状态。NPU 产物隔离需要后续单独验收。
 
-旧 CPU 任务继续服务回归和历史记录。Tokenizers、KV、通信与服务的研究保留在[扩展方案](task-expansion/README.md)，在本次 NPU 通路成立后按各自任务资格推进。四个 issue 和 Draft PR 保持原有追踪关系，NPU 演练完成不自动关闭整个 #252。
+旧 CPU 任务继续服务回归和历史记录。Tokenizers、KV、通信与服务的研究保留在[扩展方案](task-expansion/README.md)，按各自任务资格推进。当前跟踪已收敛为 #336 任务库和 #337 接入两项，见[总览](README.md)；本页的试点记录不因 Issue 调整而改变，NPU 演练完成不自动关闭整个 #252。

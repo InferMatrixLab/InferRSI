@@ -18,7 +18,7 @@
 | 入口 | 现在已经接通什么 | 尚未接通什么 |
 | --- | --- | --- |
 | `benchmarks plan/compare` → `TaskPackage.runspec` → `run_experiment` | 同一任务生成既有 RunSpec，由 Workbench 执行配对比较并保留证据 | 自动从用户目标/profile 选出适用任务；服务与目标硬件验收 |
-| `benchmarks check/profile/measure` | 分开的数值校验、CPU 诊断、测量操作 | 强制宿主 Agent 按整个优化流程执行 |
+| `benchmarks check/profile/measure` | 分开的数值校验、按需 CPU/NPU 诊断、测量操作 | 真实 Agent 产物到最终评测的完整接入；profiling 不作为默认门禁 |
 | `skill_verifier.task_descriptor` → `skill_evaluation.run_trial` | 对 controller 已审核的保留实现运行真实 verifier；答案提交该实现的 SHA | Agent 根据不同技能实际产出两份实现的比较 |
 | `tools.skill_eval_compare` | 新增 `engineering-benchmark-v1`：共享题目/两臂 skill 冻结、实际文件留存、隔离计算与父进程 oracle、配对报告重验；支持现有 local stage/capture | 当前仅正确性；真实受控 Agent/skill 收益、性能排序、provider generation 模式未接入 |
 | `tools.skill_eval_improve` | 已有面向支持的离线 audit 任务的选择、重跑和 holdout 流程 | 共享工程基准尚未接入该控制器的任务/grader 契约 |
@@ -27,9 +27,9 @@
 
 ## 一次引擎优化中应该怎样使用
 
-1. **从目标和基线 profile 开始。** 主 Agent 明确模型、硬件、工作负载和质量要求，再确认该任务是否覆盖所需语义、dtype、布局和环境。当前 CPU RMSNorm 任务不能因为名称相同就代表真实 GPU/NPU 服务。
+1. **从目标和验收条件开始。** 主 Agent 明确模型、硬件、工作负载、基线和质量要求，再确认该任务是否覆盖所需语义、dtype、布局和环境。名称相同的算子任务不自动代表真实模型或服务。
 2. **冻结任务与实验条件。** 在候选尝试前固定任务、oracle、输入序列、版本、比较条件和预算。候选只改允许的实现；不同时修改裁判或基线。
-3. **利用知识形成可检验假设。** Agent 读取适用技能、论文和历史失败记录，说明该变更如何作用于已观测的瓶颈。CPU cProfile 无法确认的内存瓶颈继续保持未知。
+3. **在允许的工具和预算内自主优化。** Agent 可阅读代码、查阅允许使用的知识、运行 profiling、修改和测试，自行选择适用方法。评测不强制每次检索知识或调用 profiler；实际调用和消耗应留存，未做诊断时不声称已经观测到瓶颈。
 4. **先挡住错误，再测量。** 数值不正确的候选不能获得可用于选择的性能分数。计时必须测到实际计算；预检不能给后续同输入缓存重放预热。测量规则的修改产生新的任务/grader 身份，不重写旧证据。
 5. **区分原始报告与优化决定。** 保留 Workbench 原始 PASS/FAIL/INCONCLUSIVE；主 Agent 同时判断证据是否足以支持保留/放弃。若同码对照无法分辨，决策是“测量不足，先修协议”，不能把某次 FAIL 归纳成整个优化机制无效。
 6. **记录对下一轮有用的事实。** 保留候选、环境、任务、正确性失败、原始样本及未解决的诊断。经验整理与晋升走现有流程；不从一次算子结果自动推广成服务收益或通用技能。
@@ -44,7 +44,7 @@
 
 ### B. 证明结果确实进入优化决定
 
-最小演练应沿已有入口保留“profile → 假设 → 产物 → check → compare → 决策”链，并至少包含：错误产物被拒绝、正确但证据不足的产物不被当作改进、负结果留下适用条件。既有 [RMSNorm 对照](usefulness.md) 提供了部分输入与结果；当前没有程序化的全流程强制或真实 agent 对照，不能据此宣布完整闭环验收。
+最小演练应沿已有入口保留“任务与条件 → Agent 实际优化 → 产物 → check → compare → 结果与消耗记录”链，并至少包含：错误产物被拒绝、正确但证据不足的产物不被当作改进、负结果留下适用条件。Profiling 是可选诊断，不是通用链路的必经阶段；已执行工具资格试点的冻结规则不因此改变。既有 [RMSNorm 对照](usefulness.md) 提供了部分输入与结果；真实 Agent 到最终产物评测和整轮消耗的接入仍未完成，不能据此宣布完整闭环验收。
 
 ### C. 接到已有 SkillEval 两臂入口
 

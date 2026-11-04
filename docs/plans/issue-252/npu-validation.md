@@ -2,6 +2,8 @@
 
 2026-11-04。**本轮已在一张 Ascend 910B1 上跑通完整的软件控制试点。** 正确实现通过，错误实现被拒绝，实际设备 profile 可读，同码对照没有被选为优化，融合参考实现在两个规定 workload 上达到执行前固定的改善门槛。七项资格检查均通过；项目验收、真实 Agent/skill 收益和服务收益仍未建立。
 
+后续审阅与范围更新：原 reviewer 已[清除 canonical-loader 的具体 finding](https://github.com/InferMatrixLab/InferRSI/pull/338#discussion_r4463161383)，另一个 [NPU 单次/整体超时 finding](https://github.com/InferMatrixLab/InferRSI/pull/338#discussion_r4463081791)仍未解决。下文的脚本检查结果和性能样本保持原身份，不能据此声称所有声明的单次/总时限均已强制执行。Issue 已收敛为 #336 与 #337 两项，见[当前总览](README.md)。
+
 执行前的[范围、源码和判断门槛](https://github.com/InferMatrixLab/InferRSI/issues/337#issuecomment-6621316099)先于本次资格实验发表。被测源码为 `6308268fc6d1fbf90e9ab97b5da8af79152f39ea`；后续本记录仅整理证据，不将结果改标为新实现的运行。
 
 [可公开证据与全部 800 个计时样本](npu-validation-summary.json)保留原 verdict、冻结身份、环境、逐项错误和 profile kernel 摘要。完整 raw archive 留在执行归档；公开转换及每份原始结果、trace、JUnit 的摘要也在该文件中。
@@ -47,7 +49,7 @@ baseline 在每个选定输入上出现 3 次 Mul、1 次 ReduceMean、1 次 Add
 
 同一 source head 的 [Linux ready/review CI](https://github.com/InferMatrixLab/InferRSI/actions/runs/41764076901)通过：Python 3.10 和 3.11 各 **3649 passed / 20 skipped / 284 subtests passed**，两个安装包检查通过。托管 CI 中没有 NPU；设备验证来自上面的独立远端运行。
 
-正式 CPU artifact job **54 passed / 0 skipped**，其中新增的 `test_real_sandbox_rejects_zero_output_despite_cwd_shadow` 真正执行，错误零输出在同名 cwd 包放宽容差后仍被规范 oracle 拒绝。另有 descriptor/starter/prepare/dependency 的来源回归。CI checkout merge `6f1506bcb366c10836991701f8beaf7ac89e9a11` 与被测 head 的 tree 均为 `5c22811e28f1c8c0182852916f43804c18b35edf`。这对应已实现的 P2 修复；原 reviewer 的审查结论仍待复审，不由作者标为接受。
+正式 CPU artifact job **54 passed / 0 skipped**，其中新增的 `test_real_sandbox_rejects_zero_output_despite_cwd_shadow` 真正执行，错误零输出在同名 cwd 包放宽容差后仍被规范 oracle 拒绝。另有 descriptor/starter/prepare/dependency 的来源回归。CI checkout merge `6f1506bcb366c10836991701f8beaf7ac89e9a11` 与被测 head 的 tree 均为 `5c22811e28f1c8c0182852916f43804c18b35edf`。这对应已实现的 P2 修复；原 reviewer 后续仅清除了该具体 finding，未批准整个 PR 或项目验收。
 
 新增 NPU 无设备回归本地最终 **14 passed / 1 device test skipped**。开发首轮的 6 项失败分别来自新测试的文本编码和输出目录使用错误，修复后重跑；没有归因于既有 baseline。独立源码审查还发现并修复了输入 shape 原地修改、A/A 最终 validation 失败混同无收益、冻结控制身份未重验三处问题。
 
@@ -57,4 +59,4 @@ baseline 在每个选定输入上出现 3 次 Mul、1 次 ReduceMean、1 次 Add
 
 使用 [NPU 试点的操作说明](npu-pilot.md)和 [共享接口](../../engineering-benchmarks.md)，在已预约的兼容 NPU 环境中运行 `python -m tools.npu_benchmark_validate`，显式传入本轮 Issue 的重复次数、预算与门槛。工具先写入 `plan/frozen.json`、`validator/task.json` 与 `patch/`，随后通过既有 Workbench 保留 `results/`、报告及 `summary.json`。
 
-当前可保留的是这个 float32 NPU 参考候选及共享评测通路。BF16/FP16、更多形状、真实模型/服务、NPU 产物隔离和真实 Agent 两臂仍需分别验收。四个 Issue 与 PR #338 保持打开/Draft，NPU 软件控制通过不自动完成整个 #252。
+当前可保留的是这个 float32 NPU 参考候选及共享评测通路。BF16/FP16、更多形状、真实模型/服务、NPU 产物隔离和真实 Agent 两臂仍需分别验收。#336、#337 和父 #252 继续跟踪未完成工作，PR #338 保持 Draft；#334/#335 的范围迁移不构成这些能力的验收。

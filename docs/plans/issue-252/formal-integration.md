@@ -177,4 +177,4 @@ job 日志确认实际 checkout 为 PR 合并快照 `e74eb3d0a693f88599805faa8bc
 
 Profiling 仍由主 Agent 根据实际瓶颈调用：对已审核实现可使用 `benchmarks profile`，真实设备需对应 profiler。当前 formal adapter 不会自动做 profile、选择下一次候选或晋升 skill。它提供“同题、两臂、真实产物、独立检查”的接入层，供这些现有流程使用。
 
-在当前 RSI 中继续推进一次实现优化时，主 Agent 从报告的 `implementation.py` 证据链接取得候选，审核其源码与适用范围后，再用现有 Workbench 做 profile 和配对测量。formal adapter 的通过结果不会自动把未经审核的代码送入可信 worker，也不会自动批准该实现。
+在当前 RSI 中继续推进一次实现优化时，主 Agent 从报告的 `implementation.py` 证据链接取得候选，审核其源码与适用范围后，再用现有 Workbench 做配对测量，需要诊断时可单独调用 profile。Profiling 不作为通用完成条件。formal adapter 的通过结果不会自动把未经审核的代码送入可信 worker，也不会自动批准该实现。
