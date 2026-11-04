@@ -79,6 +79,16 @@ def _bounded_chain(spec: dict) -> bool:
     return (max(ratios) - min(ratios) + 1e-9) / step + 3 <= 150
 
 
+def _bounded_branch(gains: list[float], tick: float) -> bool:
+    """Limit a synthesized branch axis to a finite, usable scale."""
+    if any(not math.isfinite(gain) or abs(1 + gain / 100) > 1_000_000 for gain in gains):
+        return False
+    low, high = min([0.0, *gains]), max([0.0, *gains])
+    if not math.isfinite(tick) or tick <= 0 or low + tick == low or high + tick == high:
+        return False
+    return (high - low + 1e-9) / tick + 3 <= 150
+
+
 def _round_trend(view: dict) -> dict | None:
     """Plot uniquely ordered independent measurements without claiming a chain."""
     measured = [row for row in view["candidates"] if row["improvement_pct"] is not None]
@@ -173,6 +183,8 @@ def _chart(source: Path, view: dict) -> tuple[str, str]:
         if not math.isfinite(spread):
             return "", "Recorded values exceed the supported chart scale."
         tick = 0.01 if spread < 0.05 else 10 ** math.floor(math.log10(spread / 5))
+        if not _bounded_branch(gains, tick):
+            return "", "Recorded values exceed the supported chart scale."
         spec = {
             "title": "Candidate gain versus paired baseline", "layout": "branch", "sort": "given",
             "baseline": {"label": "paired baseline", "metrics": {"gain": 1}},

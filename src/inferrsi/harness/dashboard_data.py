@@ -903,8 +903,8 @@ def load_dashboard(source: Path) -> dict:
         "candidates": rows,
         "overview": {"comparison_state": comparison_state,
                      "best_improvement_pct": best, "target_improvement_pct": target,
-                     "target_gap_pct": target - best if target is not None and best is not None
-                     else None},
+                     "target_gap_pct": (_number(target - best)
+                                        if target is not None and best is not None else None)},
         "stages": [{"name": stage, "state": "recorded" if stage in recorded else
                     "not_applicable" if declared is not None and stage not in declared else
                     "stage_not_recorded"} for stage in STAGES],

@@ -61,6 +61,41 @@ def test_poll_reads_new_records_and_uses_conditional_updates(dashboard_server, t
     assert rows[0]["improvement_pct"] is None
 
 
+@pytest.mark.parametrize("gain,target", [
+    (1.7976931348623157e308, 20),
+    (-1.7976931348623157e308, 1.7976931348623157e308),
+    (5, 1.7976931348623157e308),
+])
+def test_live_poll_withholds_extreme_branch_chart(dashboard_server, tmp_path, monkeypatch,
+                                                  gain, target):
+    (tmp_path / "campaign.json").write_text(json.dumps({
+        "campaign_id": "synthetic-live", "goal": {"target_improvement_pct": target},
+    }), encoding="utf-8")
+    candidate = tmp_path / "candidates" / "new" / "candidate.json"
+    candidate.parent.mkdir(parents=True)
+    candidate.write_text(json.dumps({"candidate_id": "new", "run_id": "run-a"}), encoding="utf-8")
+    run = tmp_path / "runs" / "run-a"
+    run.mkdir(parents=True)
+    (run / "run.lock.json").write_text("{}", encoding="utf-8")
+    (run / "evaluation.json").write_text(json.dumps({
+        "verdict": "PASS", "improvement_pct": gain, "source_integrity": {"verified": True},
+    }), encoding="utf-8")
+    (run / "status.json").write_text('{"state":"completed"}', encoding="utf-8")
+    (run / "validation").mkdir()
+    (run / "validation/execution.json").write_text(
+        '{"status":"completed","returncode":0}', encoding="utf-8")
+
+    def fail_render(_spec):
+        raise AssertionError("unbounded values reached the shared renderer")
+
+    monkeypatch.setattr("inferrsi.harness.dashboard.build_svg", fail_render)
+    status, _, body = request(dashboard_server, "/api/state")
+    snapshot = json.loads(body)
+
+    assert status == 200 and snapshot["chart"] == ""
+    assert snapshot["data"]["chart_note"] == "Recorded values exceed the supported chart scale."
+
+
 def test_compressed_live_responses_preserve_content_and_representation_etags(dashboard_server):
     status, plain_headers, plain = request(dashboard_server, "/api/state")
     assert status == 200

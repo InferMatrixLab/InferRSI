@@ -637,6 +637,43 @@ def test_branch_chart_preserves_large_latency_regression(tmp_path):
     assert "-200" in svg
 
 
+@pytest.mark.parametrize("gain,target", [
+    (1.7976931348623157e308, 20),
+    (-1.7976931348623157e308, 20),
+    (5, 1.7976931348623157e308),
+])
+def test_extreme_branch_chart_scale_is_withheld_before_rendering(tmp_path, monkeypatch,
+                                                                gain, target):
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "example", "goal": {"target_improvement_pct": target},
+    })
+    run(tmp_path, "a", gain, quality="completed", verified=True)
+    candidate(tmp_path, "a", "a")  # No round: use the branch fallback.
+
+    def fail_render(_spec):
+        pytest.fail("unbounded values reached the shared renderer")
+
+    monkeypatch.setattr("inferrsi.harness.dashboard.build_svg", fail_render)
+    svg, note = _chart(tmp_path, load_dashboard(tmp_path))
+
+    assert svg == ""
+    assert note == "Recorded values exceed the supported chart scale."
+
+
+def test_extreme_target_gap_does_not_make_dashboard_json_nonfinite(tmp_path):
+    extreme = 1.7976931348623157e308
+    write_json(tmp_path / "campaign.json", {
+        "campaign_id": "example", "goal": {"target_improvement_pct": extreme},
+    })
+    run(tmp_path, "a", -extreme, quality="completed", verified=True)
+    candidate(tmp_path, "a", "a")
+
+    view = load_dashboard(tmp_path)
+
+    assert view["overview"]["target_gap_pct"] is None
+    json.dumps(view, allow_nan=False)
+
+
 @pytest.mark.parametrize("point,step", [(1.0000000000000002, 1e-17), (1.0, 1e-100)])
 def test_chain_axis_cannot_stall_or_expand_from_float_rounding(point, step):
     assert not _bounded_chain({

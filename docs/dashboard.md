@@ -34,8 +34,9 @@ visible while it retries. Press Ctrl-C to stop the server. `--translations`
 also works in live mode. Use the original command without `--live` whenever an
 offline HTML snapshot is needed.
 
-The server binds to `127.0.0.1` and serves only the dashboard and its view data,
-not the experiment directory. For a remote machine, use an SSH local port
+The server always binds to `127.0.0.1`, with no non-loopback binding option,
+and serves only the dashboard and its view data, not the experiment directory.
+For a remote machine, use an SSH local port
 forward, for example `ssh -N -L 127.0.0.1:8765:127.0.0.1:8765 <remote>`.
 The server has no authentication: other users on the same host can access its
 loopback port. Review recorded context before exposing a forwarded port or
@@ -380,6 +381,8 @@ measurements are omitted, and status and quality remain visible in the table.
 When a unique round order cannot be established, a branch chart displays the
 independent candidate results instead.
 Failed candidates without a numeric measurement remain in the table and trace.
+Unrenderable numeric scales withhold the chart with a visible explanation;
+the recorded measurements remain available in the table and evidence.
 The dashboard also plots recorded terminal events and stage events on a shared
 UTC time axis. Results without a terminal timestamp are omitted from that plot;
 failed runs without a measurement appear in a separate no-value row. Stage dots
