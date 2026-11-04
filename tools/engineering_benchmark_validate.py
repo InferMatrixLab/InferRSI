@@ -1,4 +1,4 @@
-"""Reproduce the #252 CPU task integration with retained, authored controls.
+"""Reproduce CPU task integration with retained, authored controls.
 
 No models, hardware allocators or downloaded programs are invoked. Output is a
 local validation bundle, not campaign acceptance or a skill-benefit experiment.

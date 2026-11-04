@@ -15,7 +15,7 @@ in **update mode**, with the same prepare/execute/report and local stage/capture
 interfaces. The trusted parent grades output from a Linux bubblewrap NumPy
 worker; unsupported sandbox/runtime leaves INCONCLUSIVE without host fallback.
 This is correctness-only artifact evaluation, not timing or skill-efficacy
-qualification. See the [task contract and complete handoff example](plans/issue-252/formal-integration.md).
+qualification. See the [task contract and handoff example](engineering-task-artifacts.md).
 The provider generation mode and offline improvement controller do not support
 this adapter yet.
 
