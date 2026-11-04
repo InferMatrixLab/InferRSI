@@ -1,9 +1,8 @@
 # Agent collaboration (issue-led)
 
-Conventions for coordinating humans and agents through Issues and PRs, delivered
-per the collaboration RFC
-([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)). They add no merge
-gates or CI lanes; the checks they mention are reports in the existing lanes.
+Conventions for coordinating humans and agents through Issues and PRs, grounded
+in the collaboration RFC ([#21](https://github.com/InferMatrixLab/InferRSI/issues/21)).
+GitHub enforces merge requirements through the repository ruleset.
 Campaign acceptance, DCO, CI lanes and evidence rules stay in
 [contributing](contributing.md); the agent entry contract stays in
 [AGENTS](../AGENTS.md).
@@ -22,7 +21,7 @@ Campaign acceptance, DCO, CI lanes and evidence rules stay in
 | --- | --- |
 | Accountable agent (parent) | Own the Issue outcome, plan and remaining criteria; implement or delegate bounded slices and independent review; report completion for acceptance. |
 | Implementer | Own a bounded slice; plan, research, coordinate, change, check and report actual results. |
-| Reviewer | Independently inspect accepted requirements, actual diff, affected consumers and evidence; return revision-scoped findings and a recommendation. |
+| Reviewer | Independently inspect accepted requirements, actual diff, affected consumers and evidence. Use the [PR review skill](../.agents/skills/review-pr/SKILL.md) to give a revision-scoped verdict. |
 | Integrator | Verify authorization, current head/base, dependencies and applicable review/check results; integrate or report a blocker. |
 
 Assign the accountable agent to the Issue, not only its first PR. One Issue may
@@ -71,7 +70,24 @@ flowchart TB
     O -->|"Goal accepted; closure authorized"| C["Close Issue"]
 ```
 
-Review reports remain attributable and available to the integrator; the parent cannot substitute its own approval for independent findings. No human-per-PR gate. Blocked integration or incomplete goals remain open; material scope exceptions return to the authorized owner.
+The integrator uses attributable, independent review records. Blocked
+integration or incomplete goals remain open, and material scope exceptions
+return to the authorized owner.
+
+### PR review and merge
+
+For a PR targeting `main`, each completed review gives an explicit **PASS** or
+**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGMT` on the first
+non-empty line of the same review body. For DO NOT PASS, submit **Request
+changes** with the blockers and the expected corrections or evidence.
+
+The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
+requires at least two approving reviews and dismisses stale approvals when
+reviewable changes are pushed. Before merging, the integrator checks for two
+current approvals from independent, eligible accounts, each with `LGMT` alone
+on the first non-empty line of its review body. Outstanding blocking reviews
+must be resolved and required checks must pass.
+Authorized reviewers may act under standing delegation.
 
 ### Agent–Agent: isolated work and conditional handoff
 
