@@ -95,8 +95,9 @@ an existing distribution/archive.
 
 For release builds, first build the runtime so SCM generates `_version.py`, then
 pass `--release-version <version>` and a versioned output directory. The builder
-requires that version to match the generated runtime, and stamps only the
-generated plugin manifest. The tracked source template remains unchanged.
+requires that version to match the generated runtime. It stamps the generated
+plugin manifest and pins the bundled README's video link to the release tag.
+The tracked source template remains unchanged.
 Unbuilt source previews use the runtime's explicit `0+unknown` fallback.
 
 Only the ZIP is attached to Releases. The raw `plugins/inferrsi/` source template
