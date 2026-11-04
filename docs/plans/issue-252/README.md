@@ -52,7 +52,7 @@
 
 运行 `inferrsi benchmarks list`、`show rmsnorm-cpu`，将示例候选复制成独立 `implementation.py`，再按[使用文档](../../engineering-benchmarks.md)执行 `check`、`profile` 和 `compare`。共享接口优先，硬件尚未确定，所以目前只支持明确的 CPU 子集。
 
-当前证据见 [v2 协议验证](replay-validation.md)；历史证据见 [v1 集成记录](validation.md) 和 [v1 用途对照](usefulness.md)。本地测试、组件实现、正式系统接入与维护者验收分别记录。GPU/NPU、通信/容量任务、真实 agent/skill/search 收益和可靠性能排序均不能由当前 CPU 结果代替。
+正式两臂入口的当前软件验证见[接入与实际 CI 记录](formal-integration.md#已执行的软件验证)：49 项通过、无跳过，包含 5 个真实 Linux sandbox 案例。原 Workbench 测量证据见 [v2 协议验证](replay-validation.md)；历史证据见 [v1 集成记录](validation.md) 和 [v1 用途对照](usefulness.md)。本地测试、组件实现、正式系统接入与维护者验收分别记录。GPU/NPU、通信/容量任务、真实 agent/skill/search 收益和可靠性能排序均不能由当前 CPU 结果代替。
 
 ## 跟踪与范围
 

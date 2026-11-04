@@ -145,6 +145,20 @@ python -m pytest tests/test_skill_eval_benchmark_compare.py tests/test_skill_eva
 
 严格 Linux 软件对照设置 `INFERRSI_REQUIRE_BENCHMARK_SANDBOX=1`：缺少隔离环境时测试失败，不能用 skip 形成绿色资格结论。实际执行结果由本轮验证记录/CI 链接另行记录；本文的命令和测试设计本身不代表执行已经通过。
 
+## 已执行的软件验证
+
+在 `dfcc18557fd065dbe499f5cbaf77ad20cf6c5870`，现有 ready/review CI 内新增的 [benchmark-artifact-controls](https://github.com/InferMatrixLab/InferRSI/actions/runs/41745549558/job/126297873523) 已实际通过：**49 tests、0 failures、0 errors、0 skipped**。这是 Ubuntu 22.04 系统 Python + 匹配 NumPy + bubblewrap 的软件对照，严格环境变量已开启，未调用模型。下载的原始 JUnit 与[可公开汇总](formal-validation-summary.json)记录所有测试名称、原件 SHA-256 和来源。
+
+job 日志确认实际 checkout 为 PR 合并快照 `e74eb3d0a693f88599805faa8bc1afaf05544dbc`，与上述 head 比较为零文件差异；隔离运行时预检输出 NumPy 2.2.6。不会把 CI 的合并快照误称为直接 checkout 了 head。
+
+其中 5 个 case 明确执行真实 sandbox：Softmax 与 RMSNorm 各自的正确/错误实现；同进程状态缓存重放拒绝；宿主 sentinel 与 oracle 文件不可见；正式 prepare/execute/report 的两臂文件交接。其余测试覆盖控制器、协议和拒绝路径，并不全部属于真实 sandbox 执行。
+
+本地 Windows 新测试为 44 passed、5 个真实 Linux 控制 skipped。旧路径的两批回归分别为 66 passed/14 failed、133 passed/1 failed；全部 15 个失败报告在未修改基线复现，来自 symlink 权限、CRLF 字面量或 Windows 路径行为，该本地批次仍不绿。新 hosted 全量检查与上述专门软件控制分开记录。
+
+同一 head 的 [ready/review 全流程](https://github.com/InferMatrixLab/InferRSI/actions/runs/41745549558) 已完成：Python 3.10 / 3.11 full-check、两套 installed-package 检查和 PR references 均通过；Draft 的既有 KV qualification 按原规则跳过。全量日志中的精确计数保存在上述汇总，真实 NumPy sandbox 的无跳过结果由专门 job 单独证明。之后仅文档/证据整理的提交不冒充这次原始执行版本。
+
+首个 Linux CI 准备阶段曾因系统 pip 的 editable-build hook 失败，未进入 sandbox 测试。随后改为显式安装系统 NumPy 与测试依赖、直接从 checkout 运行，才得到上述成功记录；没有改变宿主 namespace 安全策略或加入 host fallback。该成功只验证当前软件环境中的接口、数值和隔离控制，不证明性能收益、真实技能收益或全硬件资格。
+
 ## 本轮交付结束后，仍然分开验收的内容
 
 共享任务已经有正式两臂产物入口的设计与实现位置；是否在某个具体平台完成真实 sandbox 软件对照，以对应执行记录为准。性能排序、真实旧/新 skill 的 Agent 实验、生产者隔离资格、成本效果、改进控制器及目标硬件仍需各自证据。
