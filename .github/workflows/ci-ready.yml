@@ -82,7 +82,8 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends bubblewrap
-          sudo /usr/bin/python3 -m pip install -e ".[dev]"
+          sudo /usr/bin/python3 -m pip install "numpy>=1.24"
+          /usr/bin/python3 -m pip install -e ".[dev]"
           /usr/bin/python3 -I -c "import numpy; print(numpy.__version__)"
       - name: Real NumPy sandbox and authored two-arm software controls
         env:
