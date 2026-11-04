@@ -85,4 +85,4 @@ RMSNorm 是推理中明确的归约与逐元素计算。基础运算组合和 NP
 
 首轮运行已审核可信源码。现有正式 `engineering-benchmark-v1` 只支持 CPU 任务，Linux bubblewrap 控制没有验证 NPU 设备隔离；不得通过隐式宿主执行或 CPU fallback 绕过不支持状态。NPU 产物隔离需要后续单独验收。
 
-旧 CPU 任务继续服务回归和历史记录。Tokenizers、KV、通信与服务的研究保留在[扩展方案](task-expansion/README.md)，按各自任务资格推进。当前跟踪已收敛为 #336 任务库和 #337 接入两项，见[总览](README.md)；本页的试点记录不因 Issue 调整而改变，NPU 演练完成不自动关闭整个 #252。
+CPU Softmax 继续服务软件回归；CPU RMSNorm 题包已移除，旧实验记录保留。Tokenizers、KV、通信与服务的研究保留在[扩展方案](task-expansion/README.md)，按各自任务资格推进。当前跟踪已收敛为 #336 任务库和 #337 接入两项，见[总览](README.md)；本页的试点记录不因 Issue 调整而改变，NPU 演练完成不自动关闭整个 #252。

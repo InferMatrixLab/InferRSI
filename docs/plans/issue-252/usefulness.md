@@ -1,6 +1,6 @@
 # #252：实际工程用途对照
 
-本页是 **v1 历史对照**，对应源码 [c06b7255](https://github.com/Bounty-hunter/InferRSI/tree/c06b72555d4643df133c59fe7cead5a91e7b86f5)。下文 720 个样本、脚本摘要和计划均属于该版本。精确复现应在此版本运行；最新 fixture 使用 v2 五个计时 case，会产生不同任务/脚本身份和样本数。后续修复见 [v2 验证](replay-validation.md)，不修改本页历史结果。
+本页是 **v1 历史对照**，对应源码 [c06b7255](https://github.com/Bounty-hunter/InferRSI/tree/c06b72555d4643df133c59fe7cead5a91e7b86f5)。下文 720 个样本、脚本摘要和计划均属于该版本。当前已删除 CPU RMSNorm 题包及其专用 fixture；本页命令只能在上述历史 checkout 中执行，[当时的 fixture](https://github.com/Bounty-hunter/InferRSI/blob/c06b72555d4643df133c59fe7cead5a91e7b86f5/tests/fixtures/engineering_benchmark_usefulness.py)仍可追溯。后续修复见 [v2 验证](replay-validation.md)，不修改本页历史结果。
 
 本补证回答一个具体问题：共享任务能否帮助使用者识别一个看似合理的错误改动，并让正确候选经过同一套工程检查和实际性能比较？它不以 CI 绿色或某次计时 PASS 作为“有用”的定义。
 

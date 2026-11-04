@@ -1,6 +1,6 @@
 # 将共享任务接入正式 SkillEval 两臂比较
 
-这一步把 `rmsnorm-cpu` / `softmax-cpu` 接入现有 `tools.skill_eval_compare`：两边使用各自的旧/新 skill，交付真实 `implementation.py`，由共同的独立 verifier 检查，再进入现有配对报告。调用者不再需要手工拼接底层 `run_trial`。
+这一步把共享 CPU 任务接入现有 `tools.skill_eval_compare`：两边使用各自的旧/新 skill，交付真实 `implementation.py`，由共同的独立 verifier 检查，再进入现有配对报告。当前保留的内置 CPU 任务是 `softmax-cpu`；`rmsnorm-cpu` 已移除，下面的历史验证记录仍保留当时的两题结果。调用者不再需要手工拼接底层 `run_trial`。
 
 **本次新增接入只判定产物正确性。** 它复用共享题目、变化输入与标量 oracle，并增加隔离执行的产物交接。性能仍由明确的 Workbench 实验回答；不能把 sandbox 启动时间或子进程声称的 latency 当作优化分数。
 
@@ -89,7 +89,7 @@ Windows、缺少 bubblewrap、不能创建 namespace、系统 NumPy 不满足运
 以下是手工两臂交接示例。占位符须替换为实际已冻结的 skill 路径、Git commit、模型设置和预算；它不是默认实验门槛。无需编造一份自定义题目，直接生成当前 canonical descriptor：
 
 ```bash
-python -c "from inferrsi.harness.skill_eval_benchmark import task_descriptor; from inferrsi.infra.artifacts import write_json; from pathlib import Path; write_json(Path('cases.json'), [task_descriptor('rmsnorm-cpu')])"
+python -c "from inferrsi.harness.skill_eval_benchmark import task_descriptor; from inferrsi.infra.artifacts import write_json; from pathlib import Path; write_json(Path('cases.json'), [task_descriptor('softmax-cpu')])"
 ```
 
 配置示意：
@@ -120,13 +120,13 @@ python -c "from inferrsi.harness.skill_eval_benchmark import task_descriptor; fr
 
 ```bash
 python -m tools.skill_eval_compare prepare --config config.json --repo <skill-checkout> --output <new-evidence-directory>
-python -m tools.skill_eval_compare execute --output <evidence-directory> --authorize <plan-sha256> --stage-local <new-baseline-workspace> --task-id rmsnorm-cpu --condition baseline --repeat 1 --current-head <new-skill-full-commit>
+python -m tools.skill_eval_compare execute --output <evidence-directory> --authorize <plan-sha256> --stage-local <new-baseline-workspace> --task-id softmax-cpu --condition baseline --repeat 1 --current-head <new-skill-full-commit>
 ```
 
 Agent 在该 workspace 内读取任务和分配的 skill，只修改 `implementation.py`。记录实际 stdout/stderr 和作者 `execution.json`，字段与边界沿用[本地交接文档](../../local-skill-evaluation.md)。完成后 capture：
 
 ```bash
-python -m tools.skill_eval_compare execute --output <evidence-directory> --authorize <plan-sha256> --capture-local <baseline-workspace> --submission <baseline-logs> --task-id rmsnorm-cpu --condition baseline --repeat 1 --current-head <new-skill-full-commit>
+python -m tools.skill_eval_compare execute --output <evidence-directory> --authorize <plan-sha256> --capture-local <baseline-workspace> --submission <baseline-logs> --task-id softmax-cpu --condition baseline --repeat 1 --current-head <new-skill-full-commit>
 ```
 
 对 candidate 使用新的 workspace 和独立日志，把 `--condition` 改为 `candidate`。两臂完成后：

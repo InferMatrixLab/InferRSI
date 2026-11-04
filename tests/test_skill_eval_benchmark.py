@@ -19,7 +19,7 @@ from inferrsi.harness.benchmarks.contract import load_builtin_task, load_task
 READY = {"ready": True, "numpy": np.__version__, "python": "3.10.0", "machine": "x86_64"}
 
 
-def answer(name="rmsnorm-cpu", source=None):
+def answer(name="softmax-cpu", source=None):
     task = benchmark.task_descriptor(name)
     return task, {"artifact": benchmark.ARTIFACT, "summary": "Authored software control",
                   "artifact_source": source or benchmark.starter(task).decode()}
@@ -36,8 +36,8 @@ def oracle_transport(task):
     return {"outputs": outputs}
 
 
-@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
-def test_descriptor_freezes_builtin_task_and_shared_grader(name):
+def test_descriptor_freezes_builtin_task_and_shared_grader():
+    name = "softmax-cpu"
     task, _ = answer(name)
     benchmark.validate_task(task)
     package = load_task(name)
@@ -92,7 +92,7 @@ def test_cwd_shadow_cannot_replace_descriptor_starter_or_parent_oracle(tmp_path,
 
 @pytest.mark.parametrize("change", ["adapter", "environment"])
 def test_formal_artifact_path_rejects_new_backend_packages(change, monkeypatch):
-    package = load_builtin_task("rmsnorm-cpu")
+    package = load_builtin_task("softmax-cpu")
     manifest = package.manifest
     if change == "adapter":
         manifest["adapter"] = "torch-npu-rmsnorm-v1"
@@ -111,7 +111,7 @@ def test_descriptor_drift_and_noncanonical_tasks_rejected(change):
     if change == "hash":
         task["benchmark"]["task_sha256"] = "0" * 64
     elif change == "path":
-        task["benchmark"]["task_id"] = "../rmsnorm-cpu"
+        task["benchmark"]["task_id"] = "../softmax-cpu"
     elif change == "holdout":
         task["split"] = "holdout"
     elif change == "request":
@@ -149,8 +149,8 @@ def test_missing_numpy_is_explicit_unavailable():
             benchmark.verify(task, output)
 
 
-@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
-def test_parent_oracle_uses_identical_shared_sequence_and_checks_every_call(name):
+def test_parent_oracle_uses_identical_shared_sequence_and_checks_every_call():
+    name = "softmax-cpu"
     task, output = answer(name)
     transport = oracle_transport(task)
     calls = []
@@ -274,9 +274,8 @@ def run_real(task, output):
         pytest.skip(str(error))
 
 
-@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
-def test_real_sandbox_correct_and_wrong_authored_controls(name):
-    task, output = answer(name)
+def test_real_sandbox_correct_and_wrong_authored_controls():
+    task, output = answer()
     result = run_real(task, output)
     assert result["passed"] and len(result["assertions"]) == 164
     wrong = {**output, "artifact_source":
@@ -301,7 +300,8 @@ cache = {}
 def compute(x, *, eps):
     key = (x.shape, x.strides)
     if key not in cache:
-        cache[key] = x / np.sqrt(np.mean(x*x, axis=1, keepdims=True) + eps)
+        y = np.exp(x - x.max(axis=1, keepdims=True))
+        cache[key] = y / y.sum(axis=1, keepdims=True)
     return cache[key]
 """
     task, output = answer(source=source)

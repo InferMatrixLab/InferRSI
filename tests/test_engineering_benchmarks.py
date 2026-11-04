@@ -12,6 +12,7 @@ import pytest
 
 from inferrsi.harness.benchmarks import builtin_tasks, load_task, skill_verifier
 from inferrsi.harness.benchmarks.consumers import grade_artifact, run_action
+from inferrsi.harness.benchmarks.contract import load_builtin_task
 from inferrsi.harness.runner import run_experiment
 from inferrsi.harness.scenarios.external import execute_trial
 from inferrsi.harness.skill_evaluation import run_trial
@@ -26,9 +27,8 @@ def read_result(execution):
     return json.loads(Path(execution["result_path"]).read_text(encoding="utf-8"))
 
 
-@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
-def test_real_baseline_candidate_measurement_and_profile(name, tmp_path, numpy_runtime):
-    task = load_task(name)
+def test_real_baseline_candidate_measurement_and_profile(tmp_path, numpy_runtime):
+    task = load_task("softmax-cpu")
     checked = []
     measurement = task.manifest["measurement"]
     expected_calls = len(task.manifest["workloads"]) + len(measurement["case_ids"]) * (
@@ -71,16 +71,11 @@ def test_real_baseline_candidate_measurement_and_profile(name, tmp_path, numpy_r
         ]
 
 
-@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
 @pytest.mark.parametrize("key", ["id(x)", "x.tobytes()"])
-def test_timed_calls_cannot_hit_precheck_or_warmup_memo(name, key, tmp_path, numpy_runtime):
-    task = load_task(name)
+def test_timed_calls_cannot_hit_precheck_or_warmup_memo(key, tmp_path, numpy_runtime):
+    task = load_task("softmax-cpu")
     candidate = tmp_path / "implementation.py"
-    operation = (
-        "y = np.exp(x-x.max(axis=1,keepdims=True)); y /= y.sum(axis=1,keepdims=True)"
-        if name == "softmax-cpu"
-        else "y = x / np.sqrt(np.mean(x*x,axis=1,keepdims=True) + np.float32(eps))"
-    )
+    operation = "y = np.exp(x-x.max(axis=1,keepdims=True)); y /= y.sum(axis=1,keepdims=True)"
     candidate.write_text(
         "import numpy as np\nfrom pathlib import Path\ncache = {}\n"
         "def compute(x, *, eps):\n"
@@ -100,15 +95,10 @@ def test_timed_calls_cannot_hit_precheck_or_warmup_memo(name, key, tmp_path, num
     assert not candidate.with_suffix(".hits").exists()
 
 
-@pytest.mark.parametrize("name", ["softmax-cpu", "rmsnorm-cpu"])
-def test_shape_cached_output_replay_is_rejected_after_precheck(name, tmp_path, numpy_runtime):
-    task = load_task(name)
+def test_shape_cached_output_replay_is_rejected_after_precheck(tmp_path, numpy_runtime):
+    task = load_task("softmax-cpu")
     candidate = tmp_path / "implementation.py"
-    operation = (
-        "y = np.exp(x-x.max(axis=1,keepdims=True)); y /= y.sum(axis=1,keepdims=True)"
-        if name == "softmax-cpu"
-        else "y = x / np.sqrt(np.mean(x*x,axis=1,keepdims=True) + np.float32(eps))"
-    )
+    operation = "y = np.exp(x-x.max(axis=1,keepdims=True)); y /= y.sum(axis=1,keepdims=True)"
     candidate.write_text(
         "import numpy as np\ncache = {}\ndef compute(x, *, eps):\n"
         "    key = (x.shape, x.strides)\n"
@@ -147,20 +137,6 @@ def test_bad_candidates_cannot_supply_performance(body, tmp_path, numpy_runtime)
     execution = run_action(task, candidate, "measure", tmp_path / "measure", timeout_seconds=20)
     assert execution["status"] == "failed"
     assert "metrics" not in read_result(execution)
-
-
-def test_rmsnorm_last_axis_bug_detected(tmp_path, numpy_runtime):
-    candidate = tmp_path / "implementation.py"
-    candidate.write_text(
-        "import numpy as np\ndef compute(x, *, eps):\n"
-        "    return x / np.sqrt(np.mean(x*x, axis=-1, keepdims=True) + eps)\n"
-    )
-    assert (
-        grade_artifact(load_task("rmsnorm-cpu"), candidate, tmp_path / "grade", timeout_seconds=20)[
-            "verdict"
-        ]
-        == "FAIL"
-    )
 
 
 def test_checks_repeated_timed_calls_not_only_initial_call(tmp_path, numpy_runtime):
@@ -221,7 +197,9 @@ def test_descriptor_does_not_mutate_task():
     manifest = task.manifest
     manifest["oracle"]["axis"] = 0
     assert task.manifest["oracle"]["axis"] == 1
-    assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-cpu", "rmsnorm-npu"}
+    assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-npu"}
+    with pytest.raises(ValueError, match="Unknown built-in task package"):
+        load_builtin_task("rmsnorm-cpu")
 
 
 @pytest.mark.parametrize(

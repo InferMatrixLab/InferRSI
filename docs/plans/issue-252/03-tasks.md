@@ -24,7 +24,7 @@
 
 ## 首题：NPU RMSNorm
 
-**这项工作的当前交付是 `rmsnorm-npu`：给出可以在真实 Ascend NPU 上运行的基线、候选、输入、独立正确性检查、profiling 和测量规则。** 用户已经指定 NPU，不能再以 CPU 两题可运行作为试点验收。
+**这项工作的当前交付是 `rmsnorm-npu`：给出可以在真实 Ascend NPU 上运行的基线、候选、输入、独立正确性检查、profiling 和测量规则。** 用户已经指定 NPU，不能以 CPU 软件检查作为试点验收。
 
 | 要说清楚的问题 | 本子项的答案 |
 | --- | --- |
@@ -60,7 +60,9 @@
 
 ## 保留的 CPU 工作
 
-`softmax-cpu` 和 `rmsnorm-cpu` 仍是软件控制与历史任务，保留原 KernelBench 来源和 MIT 许可。它们的 NumPy 基线、标量 double / math.fsum oracle、变化输入和错误反例可以检验共享软件接口；不向 NPU 迁移其计时结果或环境资格。
+`softmax-cpu` 保留作软件控制，保留原 KernelBench 来源和 MIT 许可。其 NumPy 基线、标量 double / math.fsum oracle、变化输入和错误反例可以检验共享软件接口；不向 NPU 迁移其计时结果或环境资格。
+
+按用户要求移除 `rmsnorm-cpu` 题包及其专用用途对照 fixture；当前内置题只有 `softmax-cpu` 和 `rmsnorm-npu`。通用接口与正式产物测试使用 Softmax，旧 CPU RMSNorm 的实测记录仍按原版本保留，复现须使用对应历史 checkout。
 
 旧 `numpy-axis1-v2` 每题一次完整 trial 为 41 次调用、164 项断言、25 个计时样本；CPU profile 仅解释 CPU 调用。v1 的 360 个样本与 v2 的 300 个样本保留各自 task/grader 身份，[旧协议验证](replay-validation.md)和[用途对照](usefulness.md)中的噪声、失败与限制不改写。
 

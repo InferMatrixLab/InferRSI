@@ -51,11 +51,13 @@ class AuthoredProducer:
     def command(self, workspace, final, schema, prompt):
         task = compare.read_json(workspace / "task.json")
         role = "baseline" if "-baseline-" in final.parent.name else "candidate"
-        mode = self.modes.get((task["id"], role), "correct")
+        repeat = int(final.parent.name.rsplit("-", 1)[1])
+        mode = self.modes.get(
+            (task["id"], role, repeat), self.modes.get((task["id"], role), "correct"))
         source = ("import numpy as np\ndef compute(x, *, eps): return np.zeros_like(x)\n"
                   if mode == "wrong-output" else benchmark.starter(task).decode("utf-8"))
         self.calls.append({
-            "task": task, "role": role, "workspace": workspace,
+            "task": task, "role": role, "repeat": repeat, "workspace": workspace,
             "schema_sha256": sha256(schema), "source": source,
             "inputs": {p.relative_to(workspace).as_posix(): p.read_bytes()
                        for p in workspace.rglob("*") if p.is_file()},
@@ -63,7 +65,7 @@ class AuthoredProducer:
         return (sys.executable, "-B", "-c", PRODUCER, str(workspace), str(final), source, mode)
 
 
-def prepared(tmp_path, names=("rmsnorm-cpu",), repeats=1):
+def prepared(tmp_path, names=("softmax-cpu",), repeats=1):
     compare.require_git_version(subprocess.check_output(("git", "--version"), text=True))
     config_path, repo = configuration(tmp_path, ids=names, repeats=repeats)
     config = compare.read_json(config_path)
@@ -87,13 +89,15 @@ def software_control_verifier(task, answer):
 
 
 def test_real_authored_processes_use_frozen_task_and_retain_both_sources(tmp_path, monkeypatch):
-    output, digest, _ = prepared(tmp_path, names=("rmsnorm-cpu", "softmax-cpu"))
+    # Two repetitions retain AB/BA isolation and both report outcomes with one task.
+    output, digest, _ = prepared(tmp_path, repeats=2)
     monkeypatch.setattr(benchmark, "verify", software_control_verifier)
-    client = AuthoredProducer({("rmsnorm-cpu", "baseline"): "wrong-output"})
+    client = AuthoredProducer({("softmax-cpu", "baseline", 1): "wrong-output"})
     result = compare.execute(output, digest, client=client)
     assert result["adapter"] == benchmark.ADAPTER
     assert result["counts"]["fix"] == result["counts"]["unchanged_correct"] == 1
     assert len(client.calls) == 4
+    assert [call["repeat"] for call in client.calls] == [1, 1, 2, 2]
     assert [call["role"] for call in client.calls] == [
         "baseline", "candidate", "candidate", "baseline"]
     for left, right in (client.calls[:2], client.calls[2:]):
@@ -145,7 +149,7 @@ def test_task_grader_and_oracle_dependencies_are_frozen_before_producer(tmp_path
     names = (
         "src/inferrsi/harness/skill_eval_benchmark.py",
         "src/inferrsi/harness/benchmarks/numpy_task.py",
-        "src/inferrsi/data/engineering_benchmarks/rmsnorm-cpu/task.json",
+        "src/inferrsi/data/engineering_benchmarks/softmax-cpu/task.json",
     )
     for name in names:
         assert plan["controllers"][name] == sha256(compare.ROOT / name)
@@ -197,7 +201,7 @@ def test_prepare_and_revalidation_use_packaged_task_despite_cwd_shadow(tmp_path,
 def test_invalid_handoff_is_not_a_clean_comparison(tmp_path, monkeypatch, mode, error):
     output, digest, _ = prepared(tmp_path)
     monkeypatch.setattr(benchmark, "verify", software_control_verifier)
-    client = AuthoredProducer({("rmsnorm-cpu", "candidate"): mode})
+    client = AuthoredProducer({("softmax-cpu", "candidate"): mode})
     result = compare.execute(output, digest, client=client)
     trial = result["pairs"][0]["candidate"]
     assert trial["verdict"] == "INCONCLUSIVE"
@@ -247,7 +251,7 @@ def test_retained_source_tamper_invalidates_report_without_rerunning_producer(
 def test_unknown_usage_stops_new_trials_without_inventing_cost(tmp_path, monkeypatch):
     output, digest, _ = prepared(tmp_path)
     monkeypatch.setattr(benchmark, "verify", software_control_verifier)
-    client = AuthoredProducer({("rmsnorm-cpu", "baseline"): "unknown-usage"})
+    client = AuthoredProducer({("softmax-cpu", "baseline"): "unknown-usage"})
     result = compare.execute(output, digest, client=client)
     assert len(client.calls) == 1
     assert result["status"]["stop_reason"] == "unknown_usage"
@@ -269,10 +273,10 @@ def test_manual_handoff_keeps_author_reports_distinct_from_artifact_checks(tmp_p
         (submission / name).write_text("authored control\n", encoding="utf-8")
     for role in compare.ROLES:
         workspace = tmp_path / role
-        local.stage(output, digest, "rmsnorm-cpu", role, 1, workspace, head)
+        local.stage(output, digest, "softmax-cpu", role, 1, workspace, head)
         if role == "baseline":
             (workspace / benchmark.ARTIFACT).write_bytes(b"# authored bad control\r\n")
-        result = local.capture(output, digest, "rmsnorm-cpu", role, 1, workspace, head, submission)
+        result = local.capture(output, digest, "softmax-cpu", role, 1, workspace, head, submission)
     assert result["counts"]["artifact_improved"] == 1
     pair = result["pairs"][0]
     assert pair["comparability"] == "unverified_author_reported"
@@ -292,18 +296,18 @@ def test_manual_handoff_keeps_author_reports_distinct_from_artifact_checks(tmp_p
     {"grader": "custom-grader.py"},
 ])
 def test_adapter_does_not_accept_unfrozen_alternate_paths(tmp_path, change):
-    config_path, _ = configuration(tmp_path, ids=("rmsnorm-cpu",))
+    config_path, _ = configuration(tmp_path, ids=("softmax-cpu",))
     config = compare.read_json(config_path)
     config.update(adapter=benchmark.ADAPTER)
     config.update(change)
     with pytest.raises(ValueError):
-        compare.validate(config, [benchmark.task_descriptor("rmsnorm-cpu")])
+        compare.validate(config, [benchmark.task_descriptor("softmax-cpu")])
 
 
 def test_real_benchmark_sandbox_two_arm_handoff_or_explicit_unavailable(tmp_path):
     """Actual authored source replay; never represents an LLM or skill benefit."""
     output, digest, _ = prepared(tmp_path)
-    client = AuthoredProducer({("rmsnorm-cpu", "baseline"): "wrong-output"})
+    client = AuthoredProducer({("softmax-cpu", "baseline"): "wrong-output"})
     result = compare.execute(output, digest, client=client)
     pair = result["pairs"][0]
     if any(pair[role]["evaluation_error"] == "artifact_sandbox_unavailable"

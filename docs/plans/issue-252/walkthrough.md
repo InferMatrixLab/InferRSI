@@ -2,7 +2,7 @@
 
 这份导读先讲用途，再沿一个 RMSNorm 例子走到代码与结果。总览见 [README](README.md)，本轮审查结论见 [review](review.md)。
 
-本页保留早期 CPU 实现、四项分工与当时状态，供追溯使用；当前两项工作、NPU 范围和 PR 安排以[总览](README.md)为准。当前通用流程中 profiling 是可选工具，不按下文演示顺序强制 Agent 执行。
+本页保留早期 CPU 实现、四项分工与当时状态，供追溯使用；当前两项工作、NPU 范围和 PR 安排以[总览](README.md)为准。`rmsnorm-cpu` 已从当前题库删除；下文示例须在[删除前版本](https://github.com/Bounty-hunter/InferRSI/tree/125b06451a487e76a1c20c45abe4e22cd8631d68)中执行，历史实测仍以各节指定版本为准。当前通用流程中 profiling 是可选工具，不按下文演示顺序强制 Agent 执行。
 
 **我们给 InferRSI 增加的是 Engineering Benchmarks（共享工程评测任务）：一份题目、一份候选实现，交给固定的独立评测，得到可追溯的正确性、诊断和计时结果。** 主 Agent 根据这些证据决定修改、保留或放弃实现。
 
@@ -12,7 +12,7 @@
 
 没有共享任务时，调用者仍然可以使用已有 Workbench，但需要自己提供这些命令和规则。不同实验若自行定义输入与答案，结果很难直接比较。
 
-这次把规则放进一个任务包。当前 `rmsnorm-cpu` 明确要求：CPU、NumPy、float32、沿 axis=1 归约，保留 epsilon，不修改输入。Agent 只交付 `implementation.py` 中的 `compute(x, *, eps)`。工具检查这个文件的实际行为，并记录是哪一版题目、裁判、源码和运行环境产生了结果。
+这次把规则放进一个任务包。当时的 `rmsnorm-cpu` 明确要求：CPU、NumPy、float32、沿 axis=1 归约，保留 epsilon，不修改输入。Agent 只交付 `implementation.py` 中的 `compute(x, *, eps)`。工具检查这个文件的实际行为，并记录是哪一版题目、裁判、源码和运行环境产生了结果。
 
 它在 RSI 中的位置是**任务与评测层**。Workbench 继续负责运行实验；主 Agent 继续负责调查、读论文、分析 profile、写代码和决定下一轮。评估 skill 是否有效时，新增的[正式两臂产物 adapter](formal-integration.md)复用这层任务；实际技能收益仍需要受控 Agent 实验。
 
@@ -116,7 +116,7 @@ AB/BA 是调换执行顺序：一轮先原版再候选，下一轮先候选再�
 
 ## 5. 自己从哪里开始看和运行
 
-先读任务，再复制候选。安装/运行命令的详细参数见[使用文档](../../engineering-benchmarks.md)。下列演示在仓库根目录执行；输出目录必须未存在，重复试验应换新名字。
+先读任务，再复制候选。当前任务的安装/运行命令见[使用文档](../../engineering-benchmarks.md)。下列 CPU RMSNorm 历史演示仅在上述删除前版本的仓库根目录执行；输出目录必须未存在，重复试验应换新名字。
 
 ```bash
 python -m pip install -e ".[dev,benchmarks]"
@@ -182,7 +182,7 @@ AMD [AgentKernelArena 的固定版本任务契约](https://github.com/AMD-AGI/Ag
 
 | 顺序 | 入口 | 重点 |
 | --- | --- | --- |
-| 1 | [RMSNorm task.json](../../../src/inferrsi/data/engineering_benchmarks/rmsnorm-cpu/task.json)、[candidate.py](../../../src/inferrsi/data/engineering_benchmarks/rmsnorm-cpu/candidate.py) | 题目规定了什么，Agent 改哪里 |
+| 1 | [历史 RMSNorm task.json](https://github.com/Bounty-hunter/InferRSI/blob/125b06451a487e76a1c20c45abe4e22cd8631d68/src/inferrsi/data/engineering_benchmarks/rmsnorm-cpu/task.json)、[历史 candidate.py](https://github.com/Bounty-hunter/InferRSI/blob/125b06451a487e76a1c20c45abe4e22cd8631d68/src/inferrsi/data/engineering_benchmarks/rmsnorm-cpu/candidate.py) | 题目规定了什么，Agent 改哪里 |
 | 2 | [numpy_task.py](../../../src/inferrsi/harness/benchmarks/numpy_task.py) | 输入、独立 oracle、check、profile 与计时的真实边界 |
 | 3 | [contract.py](../../../src/inferrsi/harness/benchmarks/contract.py)、[worker.py](../../../src/inferrsi/harness/benchmarks/worker.py) | manifest 合法性、内容身份、执行前后检查、RunSpec |
 | 4 | [consumers.py](../../../src/inferrsi/harness/benchmarks/consumers.py)、[CLI](../../../src/inferrsi/harness/benchmarks/cli.py) | 如何复用执行器，如何呈现状态和结果 |

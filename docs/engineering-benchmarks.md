@@ -11,7 +11,7 @@ separate.
 | Adapter | Task and submission | Execution boundary |
 | --- | --- | --- |
 | `torch-npu-rmsnorm-v1` | `rmsnorm-npu`; `compute(x, weight, *, eps)` | Reviewed source on one caller-allocated NPU; no formal device sandbox |
-| `numpy-axis1-v2` | `softmax-cpu`, `rmsnorm-cpu`; `compute(x, *, eps)` | Trusted CPU worker; formal SkillEval also has a separate NumPy artifact sandbox |
+| `numpy-axis1-v2` | `softmax-cpu`; `compute(x, *, eps)` | Trusted CPU worker; formal SkillEval also has a separate NumPy artifact sandbox |
 
 ## Run the NPU pilot
 
@@ -160,7 +160,7 @@ descriptive; a local verdict is not service gain or campaign acceptance.
 python tools/engineering_benchmark_validate.py --repo /path/to/checkout --output-dir /path/to/new-validation --repetitions 3
 ```
 
-The tool freezes copied tasks and candidate identities, executes both CPU tasks,
+The tool freezes copied tasks and candidate identities, executes the retained CPU task,
 retains profiles and AB/BA samples, and runs the actual SkillEval trial path with
 correct and deliberately wrong **authored controls**. No model is called.
 `summary.json` separates integration checks from campaign acceptance. Local raw

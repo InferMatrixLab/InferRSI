@@ -2,7 +2,7 @@
 
 **当前题目：在 Ascend NPU 的给定输入、权重和容差下，比较 affine RMSNorm 的基础运算与融合实现，同时保留计算结果。**
 
-状态：`rmsnorm-npu` 已在 Ascend 910B1 完成真实正确性、同步计时、CPU/NPU profile、A/A 和候选比较，见[实测记录](../npu-validation.md)。资格限已记录 runtime、float32 与 workload，不能外推整类算子或其他硬件。Softmax/RMSNorm CPU 两题保留为软件控制；[正式正确性接入](../formal-integration.md)目前仍是 CPU 路径。
+状态：`rmsnorm-npu` 已在 Ascend 910B1 完成真实正确性、同步计时、CPU/NPU profile、A/A 和候选比较，见[实测记录](../npu-validation.md)。资格限已记录 runtime、float32 与 workload，不能外推整类算子或其他硬件。`softmax-cpu` 保留为软件控制，`rmsnorm-cpu` 已移除；[正式正确性接入](../formal-integration.md)目前仍是 CPU 路径。
 
 ## 为什么先在 NPU 做这个任务
 

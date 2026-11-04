@@ -4,7 +4,7 @@
 
 ## 本轮决定
 
-**先在真实 NPU 上跑通 affine RMSNorm 的基线、profiling、候选、独立检查与 Workbench 比较。** 原 CPU Softmax/RMSNorm 保留作软件控制和历史证据；Tokenizers、KV、通信与服务来源保留为后续扩展。每类先完成一个任务的执行资格，再扩充数量。
+**先在真实 NPU 上跑通 affine RMSNorm 的基线、profiling、候选、独立检查与 Workbench 比较。** CPU Softmax 保留作软件控制；CPU RMSNorm 题包已移除，旧实验只保留历史证据。Tokenizers、KV、通信与服务来源保留为后续扩展。每类先完成一个任务的执行资格，再扩充数量。
 
 AgentKernelArena 适合学习 kernel 任务的提交与独立评测；整个 InferRSI 还需要仓库补丁、状态管理、资源配置和服务工作负载。不能把所有任务都变成 `compute(x)`，也不能把功能修复的通过率叫作性能提升。
 
