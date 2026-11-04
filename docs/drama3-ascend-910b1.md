@@ -11,8 +11,10 @@ Upstream change: vLLM-Omni PR "Replay Drama 3 decode steps as FULL graphs"
 (branch `perf/ascend-drama3-full-decode-graphs`, based on `c829af4`). The
 Drama-3 NPU runner path it builds on is
 [vllm-omni#9106](https://github.com/vllm-project/vllm-omni/pull/9106) (merged).
-Raw logs and the sweep JSON live in `/dataset/home/why/drama3-opt/evidence/`
-and `runs/`; this document stores the summary, not the logs.
+Raw logs and the sweep JSON are external. They were retained under
+`<ARTIFACT_ROOT>/evidence/` and `<ARTIFACT_ROOT>/runs/` and are not in
+this repository, so they are unavailable for review from this checkout.
+This document stores the summary, not those artifacts.
 
 ## RunSpec
 

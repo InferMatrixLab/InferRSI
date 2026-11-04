@@ -14,5 +14,6 @@
     {"change": "native block-FP8 experts on A2", "result": "not available: MXFP8 method is 950-only; A2 expands experts to bf16", "evidence": "vllm-ascend fp8_block.py is_950() branch"}
   ],
   "verification_locally_verified": true,
-  "artifacts_retained_at": "/dataset/home/why/drama3-opt/evidence and /dataset/home/why/drama3-opt/runs"
+  "artifacts_retained_at": "<ARTIFACT_ROOT>/evidence and <ARTIFACT_ROOT>/runs",
+  "artifacts_availability": "external; unavailable in this checkout"
 }
