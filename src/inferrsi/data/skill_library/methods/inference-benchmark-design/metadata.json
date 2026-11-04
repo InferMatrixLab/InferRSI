@@ -17,7 +17,11 @@
     "stream-boundaries",
     "treatment-delivery",
     "trial-validity",
-    "protocol-audit"
+    "protocol-audit",
+    "vla",
+    "embodied",
+    "action-chunks",
+    "closed-loop"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -237,14 +241,53 @@
         "Tables 1-7"
       ],
       "readset": "references/autotunebench-trial-validity.md"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/SEU-PAISys/Embodied.cpp",
+      "commit": "156bed151826780e2ce0132f8d0e3540889ae8cd",
+      "paths": [
+        "adapter/typed_io.py",
+        "eval/client/libero_profile.py",
+        "eval/client/vla_cpp_client.py",
+        "eval/conf/libero_smolvla_object_q8_eval.yaml",
+        "eval/README.md",
+        "eval/smolvla_q8_fixed_boundary_20261002.json",
+        "eval/smolvla_q8_object_followup_20260930.md",
+        "eval/SMOLVLA_VALIDATION.md",
+        "eval/THREE_MODEL_VALIDATION.md",
+        "eval/VLA_BENCHMARK_STANDARD.md",
+        "LICENSE",
+        "README.md",
+        "scripts/aggregate_smolvla_object_eval.py",
+        "scripts/bench_vla_boundary.py",
+        "scripts/profile_smolvla_python_baseline.py",
+        "serving/vla-server.cpp",
+        "serving/vla.proto"
+      ],
+      "readset": "references/embodied-cpp-source.json",
+      "license": "Apache-2.0",
+      "scope": "Selected CPU observation-to-action benchmark, client/profiler/aggregation and author artifact contracts; source-derived methodology, not native execution or quality/performance acceptance"
+    },
+    {
+      "type": "paper",
+      "id": "arxiv:2607.02501",
+      "version": "v3",
+      "url": "https://arxiv.org/abs/2607.02501v3",
+      "sections": [
+        "4 (VLA discussion and Table 3)"
+      ],
+      "readset": "references/embodied-cpp-source.json",
+      "license": "CC-BY-4.0",
+      "scope": "Independently normalized VLA metric semantics; predates the later SmolVLA experiment"
     }
   ],
   "empirical_validation": "not_run",
   "applicability": {
-    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports",
-    "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
-    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records",
-    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts",
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; designing or auditing VLA deployment comparisons with explicit observation-to-action boundaries, generated/replayed horizons, per-task quality and source/precision identity",
+    "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established; VLA comparisons also freeze generated/replayed horizons, initial-state/noise protocol and intended precision or quantization treatment",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for VLA audits, the declared CPU input/output boundary, source/fixture/checkpoint/processor identities, per-task trial scope and available raw records or explicit artifact gaps",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for VLA reports, a timing/denominator and precision reconciliation with per-task quality/completion accounting and source-artifact limits",
     "failure_modes": [
       "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
       "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -256,16 +299,22 @@
       "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
       "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
       "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
-      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran"
+      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran",
+      "Generated-action amortization is read as action-response latency or actual control frequency",
+      "Matching structural pair fields are taken to certify matched effective compute precision or quality equivalence",
+      "An aggregate VLA success rate conceals task-specific losses or missing/skipped episodes",
+      "A public current script, recorded experiment revision or binary hash is treated as the exact measured dirty source patch",
+      "Whole-device fallback memory is relabelled as process-attributed memory or compared with simulator-inclusive/allocator quantities"
     ],
-    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports"
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds VLA quality-preservation, runtime-only attribution, control-rate or current-build conclusions when their required precision, per-task, timestamp or measured-source evidence is missing"
   },
   "recommendations": [
     "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
     "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
     "Use the replay trace that matches the actual deployment pattern.",
     "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
-    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null."
+    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null.",
+    "Separate complete VLA request cost, generated/replayed action denominators and actual control cadence; retain per-task quality and measured-source/precision limits."
   ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
@@ -274,7 +323,8 @@
     "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
     "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
     "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
-    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
+    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
+    "The Embodied.cpp reference is source-derived: its public latency arrays allow arithmetic audit, but raw episode recount, exact measured script/dirty patch, effective dispatch and current model/device/service or efficacy qualification remain unresolved."
   ],
   "provenance_readsets": [
     "references/task-benchmark-selection.md",
@@ -283,7 +333,9 @@
     "references/justgoal-evaluation-contracts.md",
     "references/justgoal-source.json",
     "references/autotunebench-trial-validity.md",
-    "references/autotunebench-source.json"
+    "references/autotunebench-source.json",
+    "references/embodied-cpp-boundary-and-quality.md",
+    "references/embodied-cpp-source.json"
   ],
   "references": [
     "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
