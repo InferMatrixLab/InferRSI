@@ -135,6 +135,8 @@ PYTHONPATH="$SGLANG_OMNI:$PEER" python "$EVIDENCE/validator/score_outputs.py" \
 
 The ASR service is a separate Qwen3-ASR-1.7B SGLang-Omni server. The scorer validates nonempty finite audio and retains per-request scores. Public quality artifacts omit generated transcripts but retain WAV hashes and error counts.
 
+The recorded runs used historical `validator/score_outputs.py`, which is unchanged. Successor `validator/score_outputs_v2.py` checks prompt IDs, WAV hashes, durations and scorer-file provenance before it writes audio provenance or skips a completed task, and it leaves the output untouched when those inputs differ. Recorded scores were not recomputed.
+
 Speaker numerical validation uses the checked-in `validator/bench_speaker.py`. It covers 32 tuning references plus short partial-window inputs, with 10 warmups and 30 synchronized latency samples. `speaker_trt_ieee.py` is the preserved historical precision-only diagnostic helper; the final CPU-reference path imports the candidate implementation directly.
 
 ```bash
