@@ -34,7 +34,8 @@ relabel self-review.
 Roles are responsibilities, not mandatory separate agents or services. Separate
 agents may act under one account; an author's role switch is still self-review.
 A substantive reviewer edit makes that reviewer a contributor requiring
-appropriate independent review. Review recommendation is not merge permission.
+appropriate independent review. The integrator considers the review verdict
+alongside merge authority and required checks.
 
 ## Interaction patterns
 
@@ -61,7 +62,7 @@ flowchart TB
     A -->|"Implement or delegate"| W["Bounded PR slice"]
     A -->|"Delegate review with criteria and revisions"| R["Independent reviewer"]
     W -->|"Diff and evidence"| R
-    R -->|"Findings and recommendation"| A
+    R -->|"PASS or DO NOT PASS with findings"| A
     A -->|"Resolve findings; refresh affected evidence"| W
     A --> G["Integrator checks authority and evidence"]
     G -->|"Conditions satisfied"| P["Merged PR"]
@@ -77,17 +78,33 @@ return to the authorized owner.
 ### PR review and merge
 
 For a PR targeting `main`, each completed review gives an explicit **PASS** or
-**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGMT` on the first
-non-empty line of the same review body. For DO NOT PASS, submit **Request
-changes** with the blockers and the expected corrections or evidence.
+**DO NOT PASS** verdict. For PASS, submit **Approve** with `LGMT` alone on the
+first non-empty line of the same review body. Only the exact, case-sensitive
+spelling `LGMT` qualifies. For DO NOT PASS, submit **Request changes** with
+the blockers and the expected corrections or evidence.
+
+An eligible approval comes from an independent reviewer using a GitHub account
+with repository write access or higher. The PR author, material contributors,
+and the accountable parent for the delivery slice cannot supply an independent
+approval, including through another agent acting under their account. Each
+eligible account counts once.
+For an agent submitting a review, record the direct delegation or link the
+maintainer's standing delegation in the governing Issue or PR. Identify the
+acting reviewer, account, scope and permitted review actions.
 
 The [main ruleset](https://github.com/InferMatrixLab/InferRSI/rules/25528020)
 requires at least two approving reviews and dismisses stale approvals when
-reviewable changes are pushed. Before merging, the integrator checks for two
-current approvals from independent, eligible accounts, each with `LGMT` alone
-on the first non-empty line of its review body. Outstanding blocking reviews
-must be resolved and required checks must pass.
-Authorized reviewers may act under standing delegation.
+reviewable changes are pushed. Before merging, the integrator verifies two
+current approvals that meet the eligibility and body rules above, resolution
+of all blocking reviews, and passing required checks.
+
+To clear a blocking **Request changes** review, ask its reviewer to re-review
+the current revision and submit **Approve** once the blockers are resolved.
+If that reviewer is unavailable, an independent maintainer with authority and
+permission to dismiss reviews may dismiss it after verifying that each blocker
+is resolved. Record the reason and supporting evidence on the PR. The two
+valid approvals are still required after dismissal.
+[GitHub review dismissal](https://docs.github.com/en/pull-requests/how-tos/review-pull-requests/dismissing-a-pull-request-review)
 
 ### Agent–Agent: isolated work and conditional handoff
 

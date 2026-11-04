@@ -5,10 +5,11 @@ description: Independently review a pull request targeting InferMatrixLab/InferR
 
 # Review an InferRSI pull request
 
-Use the [collaboration guide](../../../docs/agent-collaboration.md) for review
-authority and [contributing](../../../docs/contributing.md) for evidence rules.
-If you authored or materially contributed to the change, label your assessment
-as a self-check and hand the formal review to an independent reviewer.
+Use the [review eligibility and merge rules](../../../docs/agent-collaboration.md#pr-review-and-merge)
+and the [contribution evidence rules](../../../docs/contributing.md). If you
+authored or materially contributed to the change or were its accountable
+parent, label your assessment as a self-check and hand the formal review to an
+independent reviewer.
 
 ## Assess the revision
 
@@ -39,7 +40,8 @@ by the reviewed base and head and the supporting evidence.
 ### Formal GitHub review
 
 For PASS, select **Approve**. Write `LGMT` alone on the first non-empty line of
-that review body, followed by the verdict and evidence. For example:
+that review body, followed by the verdict and evidence. Match the exact,
+case-sensitive token `LGMT`. For example:
 
 ```text
 LGMT
@@ -56,9 +58,10 @@ before re-review. Keep optional suggestions separate from the blockers.
 Use GitHub **Comment** (`COMMENTED`) for non-voting interim feedback. A completed
 formal review still requires **Approve** or **Request changes**.
 
-Submit a formal review only from an eligible independent account with direct or
-documented standing authorization covering that PR. Before submitting, confirm
-that the PR is open and the reviewed target, base and head are still current.
+Submit a formal review only from an eligible independent account with recorded
+direct or standing delegation covering that PR and review action. Before
+submitting, confirm that the PR is open and the reviewed target, base and head
+are still current.
 If the revision changed, reassess the affected diff and evidence before submitting.
 Bind the submission to the reviewed head using GitHub's review `commit_id` or an
 equivalent revision-bound operation. If that operation is unavailable, leave the
