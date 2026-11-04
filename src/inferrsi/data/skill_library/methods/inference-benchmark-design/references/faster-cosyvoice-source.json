@@ -1,0 +1,776 @@
+{
+  "schema_version": 1,
+  "record_kind": "source-readset",
+  "source": {
+    "type": "git",
+    "url": "https://github.com/yuekaizhang/faster-cosyvoice",
+    "repository": "yuekaizhang/faster-cosyvoice",
+    "commit": "f1049c59196c2c1a890079abc56056b43f27cd1d",
+    "tree": "a5950f9eaa500141d08c29e29dc24e8d1f313f00",
+    "tree_entries": 117,
+    "truncated": false
+  },
+  "inspected_at": "2026-11-03",
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "efficacy": "not_evaluated",
+  "scope": "Bounded source-only interpretation of PCM receipt/playout, server route credit, dependency-limited cross-session batching and partial pipeline/audio denominators; author performance and DSpark quality reports remain separate from execution.",
+  "access_and_identity": "Read-only GitHub connector commit/tree/file calls, with per-file blob identity checked against the complete pinned tree",
+  "rights": {
+    "repository_license": "UNKNOWN",
+    "pinned_tree_license_notice_paths": [],
+    "pyproject_license_declaration": "absent",
+    "no_default_branch_license_inference": true,
+    "file_headers_are_not_repository_license": true,
+    "redistribution_boundary": "Only original explanatory analysis and immutable links are proposed. No source implementation, patches, audio, models, datasets, papers, screenshots or figures are copied or adapted. Unpinned inherited provenance remains unresolved."
+  },
+  "readset": [
+    {
+      "path": "README.md",
+      "git_blob_sha": "131c56b961e0cb045997df712ffe314cdf4ef957",
+      "tree_size_bytes": 5675,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          147
+        ]
+      ],
+      "role": "Source overview, reported fixed-registered-voice benchmark and acknowledgments",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/README.md",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "Names Nari or vLLM-derived/compatible behavior without pinned source lineage; this does not grant copying rights"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "README_zh.md",
+      "git_blob_sha": "a93f11ca7ac90ea736af78ffc12b3f83a8225fe2",
+      "tree_size_bytes": 5398,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          36
+        ],
+        [
+          124,
+          124
+        ]
+      ],
+      "role": "Bounded Chinese counterpart overview and attribution cross-check",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/README_zh.md",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "Names Nari or vLLM-derived/compatible behavior without pinned source lineage; this does not grant copying rights"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "docs/benchmark.md",
+      "git_blob_sha": "a4d127435287776df29b90019dd6878a0e8e209b",
+      "tree_size_bytes": 3574,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          84
+        ]
+      ],
+      "role": "Author-reported metric, workload, cumulative ablation and DSpark-only CER scope",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/docs/benchmark.md",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "docs/benchmark_zh.md",
+      "git_blob_sha": "8c9d1c9fa5a48173b14628ad0849bdc975c1abe0",
+      "tree_size_bytes": 3161,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          76
+        ]
+      ],
+      "role": "Chinese counterpart metric/workload/quality cross-check",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/docs/benchmark_zh.md",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "docs/usage.md",
+      "git_blob_sha": "46cf5bb01c7d6bad93219866a5050b4039e21c76",
+      "tree_size_bytes": 8103,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          228
+        ]
+      ],
+      "role": "Documented API modes, conditioning cache, chunk/graph/trim scopes and CLI defaults",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/docs/usage.md",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "docs/usage_zh.md",
+      "git_blob_sha": "328a4b2c587415a4dd733a22b0a13b08e9a0c3c2",
+      "tree_size_bytes": 7498,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          78,
+          95
+        ],
+        [
+          160,
+          205
+        ]
+      ],
+      "role": "Bounded Chinese counterpart API, graph-duration and trim cross-check",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/docs/usage_zh.md",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "examples/offline_inference.py",
+      "git_blob_sha": "ab98b25448cd0d61f76439799dab5947b850cb86",
+      "tree_size_bytes": 14364,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          100
+        ],
+        [
+          150,
+          321
+        ]
+      ],
+      "role": "Selected per-row provenance, stage timing and token-derived audio/RTF denominator; loader/CLI lines 101-149 excluded",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/examples/offline_inference.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "examples/stream_client.py",
+      "git_blob_sha": "491c8e9e0de7d619839c01a274fe73c0b27ae243",
+      "tree_size_bytes": 4833,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          142
+        ]
+      ],
+      "role": "PCM16 sample reconstruction, client event clocks and zero-buffer playback diagnostics",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/examples/stream_client.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "Names Nari or vLLM-derived/compatible behavior without pinned source lineage; this does not grant copying rights"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/config/settings.py",
+      "git_blob_sha": "fa5a4fb7e5936deeb94ea295602b014ee9574c62",
+      "tree_size_bytes": 3127,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          79
+        ]
+      ],
+      "role": "Typed source defaults and optional feature scopes",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/config/settings.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/llm/engine.py",
+      "git_blob_sha": "8ecae2c648f6709e3163ca6d0bc94a48d60903ae",
+      "tree_size_bytes": 5294,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          14,
+          141
+        ]
+      ],
+      "role": "Selected draft configuration dependency, token deltas and source length-stop warning; no upstream vLLM runtime validation",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/llm/engine.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/server/app.py",
+      "git_blob_sha": "91a917ba12f8d45a5457eeed74b94b9b39a01bb5",
+      "tree_size_bytes": 8000,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          212
+        ]
+      ],
+      "role": "Initialization and shared objects, condition resolution, streaming/buffered response and voice-cache paths",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/server/app.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/server/arguments.py",
+      "git_blob_sha": "126514f5c3a7df3a93900201e21a68482b631aeb",
+      "tree_size_bytes": 11598,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          115
+        ],
+        [
+          195,
+          336
+        ]
+      ],
+      "role": "Selected effective CLI defaults, estimator/batch validation and parameter-to-runtime conversion",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/server/arguments.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/server/audio_encode.py",
+      "git_blob_sha": "76f7dd30ea10beb7a4a1b838002aae692c888706",
+      "tree_size_bytes": 970,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          36
+        ]
+      ],
+      "role": "PCM16 encoding and header-only WAV prefix boundary",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/server/audio_encode.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "Names Nari or vLLM-derived/compatible behavior without pinned source lineage; this does not grant copying rights"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/server/leading_silence.py",
+      "git_blob_sha": "ee2303e377f96dbbcd4803a038b1e04d18a78d7e",
+      "tree_size_bytes": 3741,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          88
+        ]
+      ],
+      "role": "Declared onset rule and bounded content buffering/trimming; attributed Nari origin not independently source-matched",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/server/leading_silence.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "Names Nari or vLLM-derived/compatible behavior without pinned source lineage; this does not grant copying rights"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/server/openai_speech.py",
+      "git_blob_sha": "6f937211c5327c19de847943255c9dd40adda214",
+      "tree_size_bytes": 5751,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          137
+        ]
+      ],
+      "role": "Condition/prompt/token/chunk pipeline and routed-PCM credit publication",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/server/openai_speech.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/server/protocol.py",
+      "git_blob_sha": "0abd7892098b17c0e1ae323a765b29e6176fd6df",
+      "tree_size_bytes": 3222,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          98
+        ]
+      ],
+      "role": "Request format/mode fields and reference audio decoding boundary",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/server/protocol.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "Names Nari or vLLM-derived/compatible behavior without pinned source lineage; this does not grant copying rights"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/streaming/chunker.py",
+      "git_blob_sha": "c0d202f1d8fe577bf4cfc83946c4090d9eb97234",
+      "tree_size_bytes": 2255,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          55
+        ]
+      ],
+      "role": "Initial prompt-alignment padding, lookahead, growing hops and final remainder",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/streaming/chunker.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/streaming/session.py",
+      "git_blob_sha": "7bbb690e1e59fff0ae0a1e5315a0aeaab6a00205",
+      "tree_size_bytes": 1351,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          37
+        ]
+      ],
+      "role": "Session-owned Mel/audio state and route-origin audio credit",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/streaming/session.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "Names Nari or vLLM-derived/compatible behavior without pinned source lineage; this does not grant copying rights"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/streaming/token2wav_batcher.py",
+      "git_blob_sha": "12dccc32558f84c34ecd440943ff46baae2947e5",
+      "tree_size_bytes": 7552,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          183
+        ]
+      ],
+      "role": "Ready-job selection, one GPU thread, one chunk per session in packed batches and pending/failure behavior",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/streaming/token2wav_batcher.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/streaming/token2wav_scheduler.py",
+      "git_blob_sha": "4324eac7bfaaa5fc125c695339c05d1ef7ea209b",
+      "tree_size_bytes": 4553,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          137
+        ]
+      ],
+      "role": "Server-estimated playback deadline and urgent/startup/earliest/FIFO queue ordering",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/streaming/token2wav_scheduler.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/builders.py",
+      "git_blob_sha": "9d774feefa3f8bcb9d6b61c4aba96894d0c4040f",
+      "tree_size_bytes": 2491,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          50
+        ]
+      ],
+      "role": "Model-local token/Mel/sample rates and component dependency identities",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/builders.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/cosyvoice/flow/DiT/modules.py",
+      "git_blob_sha": "be8caecb8a2acd290f4f6e7e1d756dff67f78e5b",
+      "tree_size_bytes": 20551,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": {
+        "first_line": 1,
+        "last_line": 55
+      },
+      "inspected_ranges": [
+        [
+          1,
+          55
+        ]
+      ],
+      "role": "Header/import scan only; source lineage and whole-file rights unresolved",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/cosyvoice/flow/DiT/modules.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/cosyvoice/flow/flow.py",
+      "git_blob_sha": "a00e2d1a7ff6fc6cf7627f64fabf544ff54b47e4",
+      "tree_size_bytes": 19346,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": {
+        "first_line": 1,
+        "last_line": 45
+      },
+      "inspected_ranges": [
+        [
+          1,
+          45
+        ]
+      ],
+      "role": "File-level rights/header and dependency declaration only; algorithm body excluded",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/cosyvoice/flow/flow.py",
+      "rights": {
+        "license": "Apache-2.0 file header observed",
+        "copyright": "2024 Alibaba Inc; authors Xiang Lyu, Zhihao Du",
+        "exception": "Only lines 1-45 inspected; deeper inherited material and modifications not separately rights-audited"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/cosyvoice/hifigan/generator.py",
+      "git_blob_sha": "53344d78dfbfded36da1f79f12d886e14a659aa0",
+      "tree_size_bytes": 30935,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": {
+        "first_line": 1,
+        "last_line": 45
+      },
+      "inspected_ranges": [
+        [
+          1,
+          45
+        ]
+      ],
+      "role": "File-level rights and unpinned HiFi-GAN/ParallelWaveGAN/BigVGAN attribution only; algorithm body excluded",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/cosyvoice/hifigan/generator.py",
+      "rights": {
+        "license": "Apache-2.0 file header observed",
+        "copyright": "2024 Alibaba Inc; authors Xiang Lyu, Kai Hu",
+        "exception": "Lines 39-41 identify modifications from HiFi-GAN, ParallelWaveGAN and BigVGAN without pins; those inherited rights are unresolved, not replaced by the outer header"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/flashinfer_dit.py",
+      "git_blob_sha": "2fc3bb419dd421d21d1f5a892bffbf1602c5f09c",
+      "tree_size_bytes": 39248,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": {
+        "first_line": 1,
+        "last_line": 95
+      },
+      "inspected_ranges": [
+        [
+          1,
+          95
+        ]
+      ],
+      "role": "Header, imports and class declarations only; no kernel, graph dispatch or mask-correctness audit",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/flashinfer_dit.py",
+      "rights": {
+        "license": "Apache-2.0 file header observed",
+        "copyright": "2026 NVIDIA CORPORATION",
+        "exception": "Only lines 1-95 inspected; no repository-wide license or full body/lineage audit"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/flashinfer_flow.py",
+      "git_blob_sha": "a51f2991e7960d2b70fa4e2296f2dc2cdb321acb",
+      "tree_size_bytes": 11048,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          110
+        ],
+        [
+          207,
+          319
+        ]
+      ],
+      "role": "Header and selected packed streaming interface/returned per-request Mel lengths; middle helpers excluded",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/flashinfer_flow.py",
+      "rights": {
+        "license": "Apache-2.0 file header observed",
+        "copyright": "2026 NVIDIA CORPORATION",
+        "exception": "Copyright/license notice search across complete retrieved file found only the header; algorithm review limited to declared ranges"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/frontend.py",
+      "git_blob_sha": "7df23a44301baad34a47b45d74c5db8742cfced4",
+      "tree_size_bytes": 6021,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          146
+        ]
+      ],
+      "role": "Reference token/features/speaker conditions, cache-hit and per-request preparation cost",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/frontend.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/matcha_audio.py",
+      "git_blob_sha": "d257f0d652822851714c47826dc4b1b69fb09fcd",
+      "tree_size_bytes": 2311,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": {
+        "first_line": 1,
+        "last_line": 45
+      },
+      "inspected_ranges": [
+        [
+          1,
+          45
+        ]
+      ],
+      "role": "Header/import scan only; whole-file rights/lineage unresolved",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/matcha_audio.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "faster_cosyvoice/token2wav/token2wav.py",
+      "git_blob_sha": "7afdc1c6dd002d0c5757bbadeec880644c8b9e34",
+      "tree_size_bytes": 11040,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          226
+        ]
+      ],
+      "role": "Single/packed Flow execution boundary, cumulative Mel vocoding and newly emitted CPU waveform slice",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/faster_cosyvoice/token2wav/token2wav.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "pyproject.toml",
+      "git_blob_sha": "5a3d8a1ced57a487bdb1b25a30d42ed852711c18",
+      "tree_size_bytes": 1690,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          59
+        ]
+      ],
+      "role": "Dependency/build/source revision constraints and absent project-license declaration",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/pyproject.toml",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "tests/test_session.py",
+      "git_blob_sha": "9623c8c473542e3223830a288d0cf6d33314eaf8",
+      "tree_size_bytes": 710,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          18
+        ]
+      ],
+      "role": "Source test definition for cumulative routed-sample accounting, not executed",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/tests/test_session.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "tests/test_stream_client.py",
+      "git_blob_sha": "235ae7f74e20284ff9de7b79c152f3263ff87889",
+      "tree_size_bytes": 848,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          22
+        ]
+      ],
+      "role": "Source test definitions for audible onset and one late arrival, not executed",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/tests/test_stream_client.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    },
+    {
+      "path": "tests/test_token2wav_batcher.py",
+      "git_blob_sha": "80f3fb580a947929bace3a32fb109dd5c65eb031",
+      "tree_size_bytes": 10630,
+      "identity_matches_complete_pinned_tree": true,
+      "retrieval_scope": "complete_file",
+      "inspected_ranges": [
+        [
+          1,
+          320
+        ]
+      ],
+      "role": "Source test definitions using fake workers for queueing/dependency/cancellation/error contracts, not executed or native qualification",
+      "immutable_url": "https://github.com/yuekaizhang/faster-cosyvoice/blob/f1049c59196c2c1a890079abc56056b43f27cd1d/tests/test_token2wav_batcher.py",
+      "rights": {
+        "license": "UNKNOWN",
+        "copyright": "No explicit copyright notice in retrieved material",
+        "exception": "No repository-level license at the pinned tree; no license inference from dependencies, file path or default branch"
+      },
+      "copy_action": "reference_only; original analysis; no upstream code or media copied"
+    }
+  ],
+  "exclusions": [
+    "All docs/assets SVG bodies and any chart extraction/reproduction",
+    "uv.lock dependency body (tree identity only)",
+    "GPU/native test bodies; no upstream test execution",
+    "Actual CUDA, FlashInfer, Triton, vLLM fork execution and numerical/dispatch qualification",
+    "Target/draft/Flow/HiFT/model downloads, audio/data, speaker verification, listening or ASR evaluation",
+    "Uninspected algorithm portions of vendor files and FlashInfer DiT; no copied implementation or presumed inherited rights",
+    "Repositories outside this source, including dependencies and acknowledged implementations; their names do not establish inspected lineage or inherited copying rights"
+  ],
+  "evidence_limits": {
+    "source_observation": "Selected source text and code contracts only",
+    "deduction": "Measurement/ownership implications are labeled separately",
+    "author_report": "Benchmark and DSpark CER report only",
+    "cpu_execution": "not_run",
+    "device_execution": "not_run",
+    "quality": "not_run",
+    "service_performance": "not_run",
+    "efficacy": "not_evaluated"
+  }
+}

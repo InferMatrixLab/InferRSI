@@ -237,6 +237,49 @@
         "Tables 1-7"
       ],
       "readset": "references/autotunebench-trial-validity.md"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/yuekaizhang/faster-cosyvoice",
+      "commit": "f1049c59196c2c1a890079abc56056b43f27cd1d",
+      "paths": [
+        "README.md",
+        "README_zh.md",
+        "docs/benchmark.md",
+        "docs/benchmark_zh.md",
+        "docs/usage.md",
+        "docs/usage_zh.md",
+        "examples/offline_inference.py",
+        "examples/stream_client.py",
+        "faster_cosyvoice/config/settings.py",
+        "faster_cosyvoice/llm/engine.py",
+        "faster_cosyvoice/server/app.py",
+        "faster_cosyvoice/server/arguments.py",
+        "faster_cosyvoice/server/audio_encode.py",
+        "faster_cosyvoice/server/leading_silence.py",
+        "faster_cosyvoice/server/openai_speech.py",
+        "faster_cosyvoice/server/protocol.py",
+        "faster_cosyvoice/streaming/chunker.py",
+        "faster_cosyvoice/streaming/session.py",
+        "faster_cosyvoice/streaming/token2wav_batcher.py",
+        "faster_cosyvoice/streaming/token2wav_scheduler.py",
+        "faster_cosyvoice/token2wav/builders.py",
+        "faster_cosyvoice/token2wav/cosyvoice/flow/DiT/modules.py",
+        "faster_cosyvoice/token2wav/cosyvoice/flow/flow.py",
+        "faster_cosyvoice/token2wav/cosyvoice/hifigan/generator.py",
+        "faster_cosyvoice/token2wav/flashinfer_dit.py",
+        "faster_cosyvoice/token2wav/flashinfer_flow.py",
+        "faster_cosyvoice/token2wav/frontend.py",
+        "faster_cosyvoice/token2wav/matcha_audio.py",
+        "faster_cosyvoice/token2wav/token2wav.py",
+        "pyproject.toml",
+        "tests/test_session.py",
+        "tests/test_stream_client.py",
+        "tests/test_token2wav_batcher.py"
+      ],
+      "readset": "references/faster-cosyvoice-source.json",
+      "license": "UNKNOWN overall; selected file-level Apache-2.0 headers and unresolved inherited attribution retained",
+      "scope": "Selected PCM/playout, routed-credit, chunk-dependency and timing-denominator source audit; original analysis and immutable links only, no code/media copying or native/model/quality/service execution"
     }
   ],
   "empirical_validation": "not_run",
@@ -274,7 +317,8 @@
     "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
     "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
     "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
-    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
+    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
+    "The Faster CosyVoice reference is source-only: server route credit and client simulated playback remain distinct, reported costs/quality retain their boundaries, overall source rights are UNKNOWN, and native/model/device/audio quality/service/performance are not_run with efficacy not_evaluated."
   ],
   "provenance_readsets": [
     "references/task-benchmark-selection.md",
@@ -283,7 +327,9 @@
     "references/justgoal-evaluation-contracts.md",
     "references/justgoal-source.json",
     "references/autotunebench-trial-validity.md",
-    "references/autotunebench-source.json"
+    "references/autotunebench-source.json",
+    "references/dependency-aware-tts-playout.md",
+    "references/faster-cosyvoice-source.json"
   ],
   "references": [
     "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
