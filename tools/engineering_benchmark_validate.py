@@ -64,6 +64,9 @@ def main():
     output.mkdir(parents=True, exist_ok=False)
     records = []
     for name in builtin_tasks():
+        # This historical replay utility has a NumPy-only candidate protocol.
+        if load_task(name).manifest["adapter"] != "numpy-axis1-v2":
+            continue
         directory = output / name
         directory.mkdir()
         original = load_task(name)

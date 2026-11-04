@@ -36,7 +36,10 @@ def main():
         }
         if task.identity(candidate) != expected:
             raise ValueError("Frozen task, grader or candidate changed")
-        from .numpy_task import evaluate
+        if task.manifest["adapter"] == "torch-npu-rmsnorm-v1":
+            from .npu_task import evaluate
+        else:
+            from .numpy_task import evaluate
 
         result = evaluate(task, candidate, args.action, destination.parent)
         if task.identity(candidate) != expected:

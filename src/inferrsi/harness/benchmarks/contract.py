@@ -3,6 +3,7 @@
 import hashlib
 import json
 import math
+import os
 import platform
 import re
 import sys
@@ -34,12 +35,19 @@ def grader_digest() -> str:
     return tree_digest(Path(__file__).parent)
 
 
-def runtime_digest() -> str:
+def runtime_digest(environment=None) -> str:
     try:
         numpy_version = version("numpy")
     except PackageNotFoundError:
         numpy_version = "unavailable"
     facts = [platform.python_version(), platform.system(), platform.machine(), numpy_version]
+    if environment and environment["backend"] == "ascend":
+        for package in ("torch", "torch-npu"):
+            try:
+                facts.append(version(package))
+            except PackageNotFoundError:
+                facts.append("unavailable")
+        facts.append(os.environ.get("ASCEND_RT_VISIBLE_DEVICES", "unallocated"))
     return hashlib.sha256(json.dumps(facts).encode()).hexdigest()
 
 
@@ -89,7 +97,7 @@ class TaskPackage:
             "task_sha256": self.task_sha256,
             "grader_sha256": self.grader_sha256,
             "candidate_sha256": digest(candidate),
-            "runtime_sha256": runtime_digest(),
+            "runtime_sha256": runtime_digest(self.manifest["environment"]),
         }
 
     def command(self, action: str, candidate: Path) -> tuple[str, ...]:
@@ -194,8 +202,11 @@ def _load_task_root(root: Path) -> TaskPackage:
         or type(data["schema_version"]) is not int
     ):
         raise ValueError("Invalid task fields")
-    if data["schema_version"] != 1 or data["adapter"] != "numpy-axis1-v2":
+    if data["schema_version"] != 1 or data["adapter"] not in {
+        "numpy-axis1-v2", "torch-npu-rmsnorm-v1"
+    }:
         raise ValueError("Unsupported task schema or adapter")
+    npu = data["adapter"] == "torch-npu-rmsnorm-v1"
     if not isinstance(data["id"], str) or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", data["id"]):
         raise ValueError("Invalid task id")
     for field in ("description", "searchspace"):
@@ -208,7 +219,11 @@ def _load_task_root(root: Path) -> TaskPackage:
     if not re.fullmatch(r"[0-9a-f]{40}", source["revision"]):
         raise ValueError("Source revision must be a full commit")
     env = data["environment"]
-    if env != {"backend": "cpu", "runtime": "numpy", "dtype": "float32"}:
+    expected_env = (
+        {"backend": "ascend", "runtime": "torch_npu", "dtype": "float32"} if npu
+        else {"backend": "cpu", "runtime": "numpy", "dtype": "float32"}
+    )
+    if env != expected_env:
         raise ValueError("Unsupported environment; no implicit device fallback")
     if data["candidate"] != {"entrypoint": "compute", "editable": ["implementation.py"]}:
         raise ValueError("Unsupported candidate contract")
@@ -223,6 +238,8 @@ def _load_task_root(root: Path) -> TaskPackage:
         raise ValueError("Unsupported oracle")
     for key in ("eps", "rtol", "atol"):
         _positive(oracle[key], "oracle." + key)
+    if npu and oracle["operation"] != "rmsnorm":
+        raise ValueError("NPU adapter only supports affine RMSNorm")
     metric = data["measurement"]
     if (
         not isinstance(metric, dict)
@@ -239,7 +256,9 @@ def _load_task_root(root: Path) -> TaskPackage:
         }
         or metric["key"] != "metrics.suite_latency_ms"
         or metric["unit"] != "ms"
-        or metric["boundary"] != "synchronous-compute-call"
+        or metric["boundary"] != (
+            "device-synchronized-eager-call" if npu else "synchronous-compute-call"
+        )
         or metric["aggregation"] != "sum-of-per-case-medians"
         or metric["input_sequence"] != "seeded-distinct-per-call-v1"
     ):
@@ -275,7 +294,9 @@ def _load_task_root(root: Path) -> TaskPackage:
             or any(type(n) is not int or n < 1 for n in case["shape"])
             or math.prod(case["shape"]) > 1048576
         ):
-            raise ValueError("Invalid or oversized CPU workload")
+            raise ValueError("Invalid or oversized workload")
+        if npu and (len(case["shape"]) != 2 or case["layout"] != "contiguous"):
+            raise ValueError("NPU task requires contiguous 2D inputs")
         if type(case["seed"]) is not int or case["seed"] < 0:
             raise ValueError("Seed must be a nonnegative integer")
         if case["distribution"] not in {"normal", "zeros", "large", "tiny"}:
@@ -291,8 +312,8 @@ def _load_task_root(root: Path) -> TaskPackage:
     prepared_elements += (metric["warmups"] + metric["samples"]) * sum(
         math.prod(case["shape"]) for case in measured_cases
     )
-    if prepared_elements > 1048576:
-        raise ValueError("Prepared input sequence exceeds the CPU workload bound")
+    if prepared_elements > (16777216 if npu else 1048576):
+        raise ValueError("Prepared input sequence exceeds the workload bound")
     if (
         not isinstance(data["coverage"], list)
         or not data["coverage"]

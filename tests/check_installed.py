@@ -15,7 +15,7 @@ from inferrsi.knowledge_operations import KnowledgeReader
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
-assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-cpu"}
+assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-cpu", "rmsnorm-npu"}
 for benchmark_id in builtin_tasks():
     benchmark = load_task(benchmark_id)
     benchmark.assert_unchanged()

@@ -221,7 +221,7 @@ def test_descriptor_does_not_mutate_task():
     manifest = task.manifest
     manifest["oracle"]["axis"] = 0
     assert task.manifest["oracle"]["axis"] == 1
-    assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-cpu"}
+    assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-cpu", "rmsnorm-npu"}
 
 
 @pytest.mark.parametrize(

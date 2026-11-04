@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "rmsnorm-npu",
+  "adapter": "torch-npu-rmsnorm-v1",
+  "description": "Optimize affine RMSNorm on contiguous 2D float32 NPU tensors; preserve input and nonuniform weight.",
+  "searchspace": "docs/searchspace-matrix.md — Operator / Diagnose, Optimize, Verify; explicit Ascend workload qualification",
+  "source": {
+    "url": "https://github.com/Ascend/op-plugin/blob/9f23f00b1ebe54cca612b0537bc582dba409a0af/test/test_custom_ops/test_npu_rms_norm.py",
+    "revision": "9f23f00b1ebe54cca612b0537bc582dba409a0af",
+    "license": "BSD-3-Clause",
+    "adaptation": "Official affine RMSNorm semantics; independently authored smaller public workloads, scalar double oracle and trusted Workbench adapter. Baseline composes eager NPU operations, reference candidate calls existing fused operator. No upstream scores imported."
+  },
+  "environment": {
+    "backend": "ascend",
+    "runtime": "torch_npu",
+    "dtype": "float32"
+  },
+  "candidate": {
+    "entrypoint": "compute",
+    "editable": [
+      "implementation.py"
+    ]
+  },
+  "oracle": {
+    "operation": "rmsnorm",
+    "axis": 1,
+    "eps": 1e-05,
+    "rtol": 1e-05,
+    "atol": 1e-06
+  },
+  "measurement": {
+    "key": "metrics.suite_latency_ms",
+    "unit": "ms",
+    "boundary": "device-synchronized-eager-call",
+    "aggregation": "sum-of-per-case-medians",
+    "warmups": 10,
+    "samples": 25,
+    "input_sequence": "seeded-distinct-per-call-v1",
+    "case_ids": [
+      "decode",
+      "prefill"
+    ]
+  },
+  "workloads": [
+    {
+      "id": "decode",
+      "shape": [
+        1,
+        4096
+      ],
+      "seed": 252,
+      "distribution": "normal",
+      "layout": "contiguous"
+    },
+    {
+      "id": "prefill",
+      "shape": [
+        64,
+        4096
+      ],
+      "seed": 253,
+      "distribution": "normal",
+      "layout": "contiguous"
+    },
+    {
+      "id": "zeros",
+      "shape": [
+        2,
+        4096
+      ],
+      "seed": 254,
+      "distribution": "zeros",
+      "layout": "contiguous"
+    },
+    {
+      "id": "large",
+      "shape": [
+        4,
+        4096
+      ],
+      "seed": 255,
+      "distribution": "large",
+      "layout": "contiguous"
+    },
+    {
+      "id": "tiny",
+      "shape": [
+        4,
+        4096
+      ],
+      "seed": 256,
+      "distribution": "tiny",
+      "layout": "contiguous"
+    }
+  ],
+  "coverage": [
+    "Public development workloads; not holdout or Agent/skill/search efficacy",
+    "Single allocated Ascend NPU, contiguous float32 2D forward only; device/runtime qualification recorded separately",
+    "No BF16/FP16, gradients, graph replay, strided inputs, communication, capacity or service/E2E claim",
+    "Trusted reviewed source only; formal SkillEval NPU isolation not implemented",
+    "Distinct retained per-call inputs and weights; CPU oracle and transfers excluded from synchronized eager-call latency; profiling separate"
+  ]
+}

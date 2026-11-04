@@ -11,7 +11,7 @@ from .contract import builtin_tasks, load_task
 
 
 def add_parser(commands):
-    root = commands.add_parser("benchmarks", help="Shared engineering tasks (trusted CPU sources)")
+    root = commands.add_parser("benchmarks", help="Shared engineering tasks (trusted sources)")
     actions = root.add_subparsers(dest="benchmark_action", required=True)
     actions.add_parser("list")
     show = actions.add_parser("show")
@@ -62,8 +62,8 @@ def dispatch(args) -> dict | list:
             spec,
             {
                 "benchmark": identity,
-                "backend": "cpu",
-                "qualification": "local CPU development workload only",
+                "backend": task.manifest["environment"]["backend"],
+                "qualification": "public development workload; see task coverage and run evidence",
             },
         )
         atomic_write_json(run_dir / "task.lock.json", task.manifest)
