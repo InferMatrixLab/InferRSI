@@ -17,7 +17,10 @@
     "stream-boundaries",
     "treatment-delivery",
     "trial-validity",
-    "protocol-audit"
+    "protocol-audit",
+    "accepted-prefix",
+    "state-restoration",
+    "completion-accounting"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -237,14 +240,51 @@
         "Tables 1-7"
       ],
       "readset": "references/autotunebench-trial-validity.md"
+    },
+    {
+      "type": "git",
+      "url": "https://github.com/Neroued/ninfer",
+      "commit": "1882c6adbc98043fcf89f3589aa5addb3742777a",
+      "paths": [
+        "LICENSE",
+        "README.md",
+        "docs/maintainer/engine-architecture.md",
+        "docs/maintainer/speculative-decoding.md",
+        "docs/maintainer/context-management.md",
+        "docs/performance/methodology.md",
+        "docs/performance/qwen3.8-27b.md",
+        "include/ninfer/ops/gdn_replay.h",
+        "src/core/gdn_replay_records.h",
+        "src/core/gdn_replay_records.cpp",
+        "src/core/linear_attention_state.h",
+        "src/core/linear_attention_state.cpp",
+        "src/models/qwen3_5/state/state_image.h",
+        "src/models/qwen3_5/state/state_image.cpp",
+        "src/models/qwen3_5/execution/gdn.cpp",
+        "src/models/qwen3_5/execution/text.cpp",
+        "src/models/qwen3_5/program/decode.cpp",
+        "src/models/qwen3_5/program/commit.cpp",
+        "src/models/qwen3_5/program/mtp.cpp",
+        "src/models/qwen3_5/session/commit.cpp",
+        "src/models/qwen3_5/session/binding.cpp",
+        "src/models/qwen3_5/session/checkpoints.cpp",
+        "src/runtime/engine/engine_execution.inl",
+        "src/runtime/executor/contract.h",
+        "src/runtime/executor/local_executor.h",
+        "src/ops/linear_attention/gated_delta_net/replay/fold.cpp",
+        "tests/ops/linear_attention/gated_delta_net/test_fold.cpp"
+      ],
+      "readset": "references/ninfer-source.json",
+      "license": "Apache-2.0",
+      "scope": "Selected Qwen3.5 GDN/MTP state-restoration, accepted-prefix and completion evidence contracts; historical results retain their separate reported revision. Source-only, no native execution."
     }
   ],
   "empirical_validation": "not_run",
   "applicability": {
-    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports",
+    "scope": "Selecting task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference, and designing goodput-based multi-regime comparisons that fit InferRSI's evidence trail; interpreting treatment delivery, arm validity and stated-versus-observed protocol enforcement in supplied tuning reports; designing and interpreting the selected NInfer hybrid speculative state-restoration and completion validation contract",
     "prerequisites": "The primary objective, timing boundary, quality gates, sample/failure accounting, required regimes, repetitions, seeds and decision rule are frozen before optimization; baseline and candidate share hardware, software stack, input distribution, benchmark configuration, warmup and measurement protocol, and on a shared machine also one time window and dedicated devices; cache-aware ASR also requires the selected model/config and first/steady geometry, decoded clock and reset/EOU/EOF boundaries to be established",
-    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records",
-    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts",
+    "input_contract": "The task family and deployment use case; candidate quality evaluators and reference parity; the declared SLO and the caller's policy on which regimes must improve or must not regress; for an audit, a supplied fixed-workload report with request-to-trial grouping, exclusion and failure counts and the declared aggregation rule; for a treatment audit, the frozen delivery/arm-validity rules, run/candidate identities, feedback and consumer-input evidence, and per-arm raw records; for the NInfer slice, a complete checkpoint/frontier identity, physical verify-block/state oracle, final adopted extents and correlated execution/termination records",
+    "produced_artifact": "A frozen benchmark design with evaluators, reference parity, primary objective, timing boundary, quality gates, required regimes, repetition and seed rules and an explicit decision config, plus the evidence-tree layout a PASS claim must produce; for a supplied report, the computed threshold result and missing evidence. Candidate knowledge, not qualification of any model or backend; for a treatment audit, a contract-bound eligibility and interpretation report separating treatment exposure, observed checks, comparator identity, anomaly disposition and source conflicts; for the NInfer slice, a source-bound validation plan or report interpretation that separates state-oracle evidence, final adoption, retirement and workload denominators",
     "failure_modes": [
       "Raw throughput is optimized in place of goodput, so requests served outside the SLO count toward a win",
       "One concurrency level or one undisclosed aggregate score stands in for all required regimes",
@@ -256,16 +296,19 @@
       "A cache-aware ASR EOU is treated as EOF or full reset, nominal chunk duration as the decoded mel frontier, or shape-only geometry PASS as a native model-state test",
       "An enabled treatment or stored feedback summary is taken as proof of delivery to the next eligible consumer",
       "A failed arm-validity condition is overridden by a favorable best timing or a saturation/null interpretation",
-      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran"
+      "Complete gate keys or zero recorded failures are read as proof that every declared protocol check ran",
+      "Zero accepted drafts is treated as zero adopted input, or a matching token prefix is used to splice unrelated State and KV checkpoints",
+      "ResultReady or a commit receipt is treated as DeviceRetired, or selected full-batch intervals are compared with complete-cohort rates under one unlabeled denominator"
     ],
-    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports"
+    "refusal_point": "Records missing coverage and high-variance results as INCONCLUSIVE rather than a win; a run without a frozen RunSpec, or whose validator changed after the plan was frozen, is INCONCLUSIVE regardless of metric values; sets no universal numeric gate or noise threshold; withholds causal treatment benefit/null conclusions when required delivery or arm eligibility is unverified, and preserves conflicts between stated protocol, exported code and source reports; withholds native state-correctness and cancellation/reuse conclusions when the required same-block oracle, checkpoint identity or matching receipt is missing"
   },
   "recommendations": [
     "Freeze one primary objective, timing boundary, quality gates and sample/failure accounting before optimization.",
     "Choose the required regimes from the deployment use case, report each separately, and record which must improve or must not regress in a versioned decision config.",
     "Use the replay trace that matches the actual deployment pattern.",
     "State the concurrency, trace, model, SKU and microbenchmark scope boundaries in any report that cites benchmark results.",
-    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null."
+    "Trace treatment to its eligible consumer and apply the frozen arm-validity precedence before attributing benefit, saturation or a null.",
+    "For hybrid speculative comparisons, freeze the coupled restore point, same-physical-block oracle, zero-draft/zero-adoption controls and complete-cohort versus steady-phase denominators before interpreting a result."
   ],
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
@@ -274,7 +317,8 @@
     "Benchmark feasibility and package-consumption checks do not promote this candidate or replace task quality, repeated A/B and service qualification.",
     "The pinned NeMo-Speech.cpp ASR reference covers selected source/test definitions and author-reported benchmark boundaries; native model/device, decoder internals, quality, long-audio/load and service behavior remain not_run.",
     "JustGoal contributes source-only controlled-evaluation and kernel-acceptance guidance; its repaired/retested timings, released-pass counts and protocol differences are author-reported, not locally reproduced or a complete campaign runner.",
-    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run."
+    "The AutoTuneBench reference is source-only: original operational checkpoint/prompt receipts remain unavailable, source contradictions remain explicit, and no tuning, device/performance or agent-efficacy validation was run.",
+    "The NInfer reference inspects selected Qwen3.5 GDN/MTP source contracts and unexecuted test definitions; its historical author measurements use a different engine revision. Native state/model/device/quality/performance and efficacy remain unvalidated."
   ],
   "provenance_readsets": [
     "references/task-benchmark-selection.md",
@@ -283,11 +327,15 @@
     "references/justgoal-evaluation-contracts.md",
     "references/justgoal-source.json",
     "references/autotunebench-trial-validity.md",
-    "references/autotunebench-source.json"
+    "references/autotunebench-source.json",
+    "references/ninfer-state-and-completion-contracts.md",
+    "references/ninfer-source.json"
   ],
   "references": [
     "../inference-optimization-casebook/cases/admission-drain-occupancy.md",
-    "../inference-optimization-casebook/cases/admission-drain-occupancy.json"
+    "../inference-optimization-casebook/cases/admission-drain-occupancy.json",
+    "../../repositories/deepinfer/budget-speculative-verification/SKILL.md",
+    "../../repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md"
   ],
   "consumption_mode": "packaged",
   "searchspace_not_applicable": "SKILL.md §§ Select the task and its evaluation contract, Statistical requirements, Shared-machine measurement discipline, and Search integrity and final-state verification design comparable evaluation; hardware identity and allocation isolation are comparison controls, not a hardware-resource mechanism."
