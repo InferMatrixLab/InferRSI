@@ -315,6 +315,29 @@ def test_unfinished_or_inconclusive_run_is_not_marked_improved(tmp_path, state, 
     assert row["verdict"] == verdict
 
 
+def test_cancelled_run_is_not_classified_as_a_failed_optimization(tmp_path):
+    run(tmp_path, "a", 10, quality="failed", verified=True)
+    run_dir = tmp_path / "runs/a"
+    write_json(run_dir / "status.json", {"state": "cancelled"})
+    evaluation = json.loads((run_dir / "evaluation.json").read_text(encoding="utf-8"))
+    evaluation.update({"verdict": "INCONCLUSIVE", "improvement_pct": None})
+    write_json(run_dir / "evaluation.json", evaluation)
+    (run_dir / "events.jsonl").write_text(
+        '{"time":"2026-01-01T00:00:00Z","phase":"complete"}\n', encoding="utf-8"
+    )
+
+    view = load_dashboard(run_dir)
+    row = view["candidates"][0]
+    svg, _ = temporal_chart(view)
+
+    assert row["state"] == row["outcome"] == "cancelled"
+    assert row["quality"] == "failed"  # Keep separately recorded quality evidence.
+    assert row["verdict"] == "INCONCLUSIVE"
+    assert view["overview"]["best_improvement_pct"] is None
+    assert not any(item["kind"] == "execution_failed" for item in view["diagnostics"])
+    assert 'data-kind="marker-cancelled"' in svg and "no numeric result" in svg
+
+
 def test_unmeasured_failed_candidate_does_not_hide_other_recorded_gains(tmp_path):
     write_json(tmp_path / "campaign.json", {"campaign_id": "example"})
     run(tmp_path, "a", 5, quality="completed", verified=True)

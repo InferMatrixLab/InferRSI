@@ -27,7 +27,7 @@ function text(value, narrative = false) {
   return node;
 }
 const verdict = text('FAIL'), inconclusive = text('INCONCLUSIVE');
-const quality = text('failed'), missing = text('MISSING');
+const quality = text('failed'), cancelled = text('cancelled'), missing = text('MISSING');
 const completeness = text('1 present / 1 missing');
 const storyDecision = text('Decision: rejected · candidate-a');
 const narrative = text('Explain the experiment', true);
@@ -53,6 +53,7 @@ api.setLanguage('zh'); api.localizePage();
 assert.equal(verdict.nodeValue, 'FAIL（失败）');
 assert.equal(inconclusive.nodeValue, 'INCONCLUSIVE（结论不明确）');
 assert.equal(quality.nodeValue, '失败');
+assert.equal(cancelled.nodeValue, '已中止');
 assert.equal(missing.nodeValue, '缺失');
 assert.equal(completeness.nodeValue, '已记录 1 / 缺失 1');
 assert.equal(storyDecision.nodeValue, '决策：拒绝 · candidate-a');
@@ -63,6 +64,7 @@ api.setLanguage('en'); api.localizePage();
 assert.equal(verdict.nodeValue, 'FAIL');
 assert.equal(inconclusive.nodeValue, 'INCONCLUSIVE');
 assert.equal(quality.nodeValue, 'failed');
+assert.equal(cancelled.nodeValue, 'cancelled');
 assert.equal(missing.nodeValue, 'MISSING');
 assert.equal(completeness.nodeValue, '1 present / 1 missing');
 assert.equal(storyDecision.nodeValue, 'Decision: rejected · candidate-a');

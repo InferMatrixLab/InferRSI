@@ -633,9 +633,11 @@ def _run(root: Path, path: Path, candidate: dict, run_id: str | None, noise: flo
     } else "not_recorded"
     verdict_value = evaluation.get("verdict")
     verdict = verdict_value if verdict_value in ("PASS", "FAIL", "INCONCLUSIVE") else "not_recorded"
-    if quality == "failed":
+    if state == "cancelled":
+        outcome = "cancelled"
+    elif quality == "failed":
         outcome = "quality_failed"
-    elif state in {"failed", "crashed", "timeout", "cancelled", "termination_failed"}:
+    elif state in {"failed", "crashed", "timeout", "termination_failed"}:
         outcome = "failed"
     elif gain is None:
         outcome = "not_recorded"

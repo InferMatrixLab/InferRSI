@@ -44,7 +44,8 @@ def temporal_chart(view: dict) -> tuple[str, str]:
                     if stamp is not None and event.get("phase") in ("complete", "crashed")]
         if terminal:
             terminals.append((row, max(stamp for _, stamp in terminal)))
-        elif (row["improvement_pct"] is not None or row["outcome"] in ("failed", "quality_failed")
+        elif (row["improvement_pct"] is not None
+              or row["outcome"] in ("failed", "quality_failed", "cancelled")
               or row["decision"] == "rolled_back"):
             untimed_results += 1
     stamps = [stamp for _, _, stamp in events] + [stamp for _, stamp in terminals]
@@ -128,7 +129,7 @@ def temporal_chart(view: dict) -> tuple[str, str]:
         gain, outcome = row["improvement_pct"], row["outcome"]
         if gain is not None and not comparable:
             continue
-        if gain is None and outcome not in ("failed", "quality_failed") \
+        if gain is None and outcome not in ("failed", "quality_failed", "cancelled") \
                 and row["decision"] != "rolled_back":
             continue
         px, py = x(stamp), y(gain) if gain is not None else 242
