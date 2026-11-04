@@ -1,0 +1,439 @@
+{
+  "record_type": "source_readset",
+  "title": "AutoTuneBench repository and paired paper: treatment delivery and trial validity",
+  "owner": "inference-benchmark-design",
+  "content": "autotunebench-trial-validity.md",
+  "source_state": "source_derived_candidate",
+  "inspected_on": "2026-11-02",
+  "repository": {
+    "url": "https://github.com/li-ch/autotunebench",
+    "commit": "64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f",
+    "tree": "7ec47e51efaf6afec16687d2f9189306d6283e19",
+    "release_label": "v1.0.0, as declared by CITATION.cff and the paired paper",
+    "export_commit_date": "2026-09-16",
+    "license": "MIT",
+    "copyright": "Copyright (c) 2026 Li Chen (harnets.ai)",
+    "files": [
+      {
+        "path": "ARTIFACT.md",
+        "git_blob": "a67c4fb0dcb0069b2d05084a068053470a32c2a3",
+        "sha256": "9f992dcac4c5e46c00fb598a66a9e1b6d240875116b423e5f2c29152a3fe4a02",
+        "bytes": 3497,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/ARTIFACT.md",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "README.md",
+        "git_blob": "7e5bd5703e5443a51510abd27b6a05c3278fc9f0",
+        "sha256": "91c5b40a6af0cdc8337f78cad83b089769eb1079c0c9efef76cb84c6ad4c3468",
+        "bytes": 4235,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/README.md",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "CITATION.cff",
+        "git_blob": "ccc5bf99bc33829f8a298e7268c9b8563c32bc7e",
+        "sha256": "ee85a8a9991a26484356b8203f02e2f9353b9864b0babb8d6c9d3e2c217e7f28",
+        "bytes": 912,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/CITATION.cff",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "LICENSE",
+        "git_blob": "494c582cff800fb2f851b76459ed1da9974d53b3",
+        "sha256": "df77ccd40fbb72d00c9ca89154fcf75ddb0ca00275726ed612e2867ab13b71df",
+        "bytes": 1077,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/LICENSE",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "config/protocol.yaml",
+        "git_blob": "6a9176271d815572e42144fe82471a88e60702bb",
+        "sha256": "5901ebdd03d04d6040545d3287757cd089f6ed9648e2d9b2b676d7460b70ead6",
+        "bytes": 5455,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/config/protocol.yaml",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "pdb/ingest_validate.py",
+        "git_blob": "d2a8508532716227fa702a5ec20a429e505800c7",
+        "sha256": "bde1c8ee9b2dc9bb65e2931c3bbd76a93275ce1876cae2fc8571680dc570e0e9",
+        "bytes": 2954,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/pdb/ingest_validate.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "pdb/store.py",
+        "git_blob": "07a44b6df526c1a7d277ce03acdf02396270b983",
+        "sha256": "0477324952d98c81454afebe66482d58d4b09641ab638547f81ac6ef9a982e1f",
+        "bytes": 5773,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/pdb/store.py",
+        "read_scope": "new_variant signature, optional result validation and insertion (lines 38-92)",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "agents/loop.py",
+        "git_blob": "757bb4833161889b2f9ae543afce6b613c1a073d",
+        "sha256": "c28fae6368e8460444fcbb8f3d69a462051e6d600de2ae1e81a5d87d88e6b675",
+        "bytes": 16944,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/agents/loop.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "agents/adapter.py",
+        "git_blob": "3a0f4c389b789137525bf813477d38bcf3f63a22",
+        "sha256": "500e2b5c75b1a3d05d52847f81d3c89eeb0ca15b21e610341c07406d9d491963",
+        "bytes": 11817,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/agents/adapter.py",
+        "read_scope": "generation-prompt interpolation and the LLM proposal/retry context (lines 62-79 and 163-260)",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "orchestrator/cli.py",
+        "git_blob": "96de7f02e7d203da81d351bcd0a91c2e1b1f996b",
+        "sha256": "3e0e8b15a35fbcca8f9f0f5943dcf324b70d0779333b7226efb80129fda27679",
+        "bytes": 15511,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/orchestrator/cli.py",
+        "read_scope": "cmd_run setup, ASI enablement, SearchLoop construction and run call (lines 66-235)",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "gates/g2_runtime.py",
+        "git_blob": "e79f05d6d9b90b00ddd19fdccc93b9a4cec9a555",
+        "sha256": "8ef41dfe1a746223f1752eaade0375aa65a414160553d0bdffa54c91c40812b2",
+        "bytes": 805,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/gates/g2_runtime.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "gates/g3_correctness.py",
+        "git_blob": "695c5b8453b5e08c6c55226b5b406fdd72a5890f",
+        "sha256": "f64a4d56cceb1494afbb3171dd6732abb8f07fcddfd7f8b09a1e39b339ac8366",
+        "bytes": 808,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/gates/g3_correctness.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "gates/g5_graduation.py",
+        "git_blob": "086b8e9bb7fe986ef853692869a2600b140279de",
+        "sha256": "7993f77b0b09b9d195c4cd874db0346832657dc470269e6b11170f6f0c32e0a7",
+        "bytes": 2096,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/gates/g5_graduation.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "gates/schema.py",
+        "git_blob": "d76d676bf23be8d0236c0d1fe5ed6cbe0db55e2c",
+        "sha256": "df319731e97736420ad5749134261585e233a5c3e55d2c93ae303cb7a0c78ed3",
+        "bytes": 1965,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/gates/schema.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "harness/kernel_bench.py",
+        "git_blob": "6b4edab45eca0631e434cd993b4af6c6b545fe07",
+        "sha256": "0d2cf8d4243604baa6ba76af1aee0257b5624018418bfb97767f5553d9b21a40",
+        "bytes": 4487,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/harness/kernel_bench.py",
+        "read_scope": "correctness, timing-result fields and main harness-result producer (lines 29-64 and 87-124)",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "figs/plot_cand_ab_saturation.py",
+        "git_blob": "09bc180792bdee93631dc6ca15a74bac4a795080",
+        "sha256": "3f6bba2a626e32b7cabab92c5df2753d0b175660d3bdb3cf1a847dedd5f644bf",
+        "bytes": 4358,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/figs/plot_cand_ab_saturation.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "scripts/kernelbench_tabulate.py",
+        "git_blob": "66da0e4558dbecce02ce4ef7c0618404eb88ed26",
+        "sha256": "02c7a7663a479119cfd50c03cef13eb9a5502f3cfb10dc499668823bb611a84e",
+        "bytes": 2872,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/scripts/kernelbench_tabulate.py",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "experiments/kernelbench_l1/results/README.md",
+        "git_blob": "ee7a2917ec1958d01820e5a7d56be021108944d3",
+        "sha256": "75bf42ebc7996dbdb854be60a523a21552477cbe95af491a0b51821efb250822",
+        "bytes": 3108,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/experiments/kernelbench_l1/results/README.md",
+        "read_scope": "complete selected file",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "experiments/kernelbench_l1/results/TABLE.md",
+        "git_blob": "72b3318e76ac3c5f02bc2a893fc6d0d6fd880cf1",
+        "sha256": "05fd696265730437ca3ed82bcb90c05d8a72bc632cce4949893822284deed828",
+        "bytes": 8843,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/experiments/kernelbench_l1/results/TABLE.md",
+        "read_scope": "summary and the two anomaly rows (lines 1-10)",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "experiments/astra_parity/README.md",
+        "git_blob": "970b77da10f99821126724896a494fe9e7c5ef64",
+        "sha256": "587cf8805c792c907ed6a78a2972a9672df3f380f5a15f38a8a6827c1a46b6d0",
+        "bytes": 5252,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/experiments/astra_parity/README.md",
+        "read_scope": "measurement protocol and explicitly documented semantic deltas; context only, no duplicate complete-output procedure extracted",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false
+      },
+      {
+        "path": "observability/iterations.jsonl",
+        "git_blob": "c53822a1e547f8398c1981c39951d5ec7b18b1a6",
+        "sha256": "eb2dd24067d5d2fbe439976b4cf723bb00fb985fdd1744f809e2f091b2248522",
+        "bytes": 484697,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/observability/iterations.jsonl",
+        "read_scope": "only paper Table 3 run scopes 8ea96a70 and 7b1b274a; selected records counted and summaries inspected",
+        "license": "MIT",
+        "rights_basis": "Repository LICENSE and README code/data declaration; selected file has no narrower license notice.",
+        "redistributed": false,
+        "selected_run_scopes": [
+          "8ea96a70",
+          "7b1b274a"
+        ],
+        "selected_lines_one_based": [
+          582,
+          583,
+          584,
+          585,
+          586,
+          587,
+          588,
+          589,
+          590,
+          591,
+          592,
+          593,
+          594,
+          595,
+          596,
+          597,
+          598,
+          599,
+          600,
+          601,
+          602,
+          603,
+          604,
+          605,
+          606,
+          607,
+          608,
+          609,
+          610,
+          611,
+          612,
+          613,
+          614,
+          615,
+          616,
+          617,
+          618,
+          619,
+          620,
+          621
+        ]
+      },
+      {
+        "path": "experiments/kernelbench_l1/kernelbench_tasks/UPSTREAM_LICENSE",
+        "git_blob": "c6aaaad2c8fcc10c842167f9aa675512c589c849",
+        "sha256": "fb5917dd8e4476fa75e89ef6f03dccf07d4859636bc23c7db50e6c0413887b9e",
+        "bytes": 1143,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/experiments/kernelbench_l1/kernelbench_tasks/UPSTREAM_LICENSE",
+        "read_scope": "complete rights notice only; task implementations not read",
+        "license": "MIT",
+        "rights_basis": "Selected file notice plus repository LICENSE/README; KernelBench task notice is independently retained for its directory.",
+        "redistributed": false
+      },
+      {
+        "path": "experiments/kernelbench_l1/kernelbench_tasks/README.md",
+        "git_blob": "d4f028c9f3c449b0b7e67333bc66b31fe7ae5a28",
+        "sha256": "0b2d51fef8c6aba3ea1c4ef8feb5d839935af2b197e17b66988e02404626c519",
+        "bytes": 351,
+        "url": "https://github.com/li-ch/autotunebench/blob/64cc8d7ca5d0ee40c4e2189b2c2c8dfb1a2a7c2f/experiments/kernelbench_l1/kernelbench_tasks/README.md",
+        "read_scope": "upstream identity and independent task-license boundary only; task implementations not read",
+        "license": "MIT",
+        "rights_basis": "Selected file notice plus repository LICENSE/README; KernelBench task notice is independently retained for its directory.",
+        "redistributed": false
+      }
+    ]
+  },
+  "paper": {
+    "id": "arxiv:2609.18123",
+    "version": "v1",
+    "title": "AutoTuneBench: Trustworthy Measurement for Agent Auto-Tuning of LLM Serving Engines",
+    "author": "Li Chen",
+    "url": "https://arxiv.org/abs/2609.18123v1",
+    "html_url": "https://arxiv.org/html/2609.18123v1",
+    "pdf_url": "https://arxiv.org/pdf/2609.18123v1",
+    "submitted_on": "2026-09-16",
+    "pdf_sha256": "80f6e74bf2bb2afe9e7d2e771ad4308d6f43eca5e42685baf184c4120a08834f",
+    "pdf_bytes": 390822,
+    "readset": "Complete 15-page v1, Sections 1-8 and References; all 7 tables and 6 figures; no appendix in this version.",
+    "visual_readset": "Full-page layout inspected; Figures 1-6 rendered and inspected on PDF pages 4 and 8-12; Table 1 on page 5 and Tables 2-7 with surrounding text/captions.",
+    "license": "CC-BY-4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "license_basis": "Versioned arXiv abstract page Rights to this article link, verified separately from repository MIT.",
+    "disposition": "Attributed original analysis/adaptation; no PDF, figure or source prose redistribution."
+  },
+  "claim_support": [
+    {
+      "topic": "requested, produced, serialized and consumed treatment are separate observations",
+      "sources": [
+        "agents/loop.py:80-103,135-147,190-199,273-294",
+        "agents/adapter.py:62-79,163-260",
+        "orchestrator/cli.py:186-235",
+        "paper Sections 4.3 and 6.6"
+      ],
+      "evidence": "source_observation_and_deduction",
+      "limit": "Static feedback-to-next-prompt wiring is not runtime delivery proof. Exported best-effort profiling does not implement the stated first-keep stop; external operational checkpoints are unknown."
+    },
+    {
+      "topic": "arm-validity precedence limits saturation/null interpretation",
+      "sources": [
+        "paper Sections 4.3 and 6.2, Table 3, Figure 3",
+        "figs/plot_cand_ab_saturation.py",
+        "observability/iterations.jsonl selected scopes"
+      ],
+      "evidence": "author_report_and_deterministic_source_record_count",
+      "limit": "Both arms miss this source-specific minimum of 15 usable iterations out of 20, while the paper concludes a shared-wall null. Preserve the conflict and withhold a valid causal null under the stated precedence; no numerical default is introduced."
+    },
+    {
+      "topic": "declared protocol, reachable enforcement and persisted gate evidence differ",
+      "sources": [
+        "config/protocol.yaml",
+        "pdb/ingest_validate.py:31-72",
+        "pdb/store.py:54-67",
+        "gates/g3_correctness.py",
+        "gates/schema.py",
+        "agents/loop.py:206-245,319-361"
+      ],
+      "evidence": "source_observation",
+      "limit": "Current ingest checks do not enforce every frozen field; shape minimum is not enforced by G3; loop records emit n/a. No malformed-packet execution or complete security audit was run."
+    },
+    {
+      "topic": "denominator, admitted/quarantined counts and median conflict",
+      "sources": [
+        "paper Sections 2.3, 4.2 and 6.3, Table 4",
+        "scripts/kernelbench_tabulate.py:19-32",
+        "experiments/kernelbench_l1/results/README.md",
+        "experiments/kernelbench_l1/results/TABLE.md:1-10",
+        "gates/g5_graduation.py"
+      ],
+      "evidence": "author_report_and_source_observation",
+      "limit": "PyTorch eager is the reported Level-1 denominator, not evidence against an unmeasured strong compiled baseline. README 1.0005x and table/paper 1.0001x remain unreconciled. The contextual greater-than-10x breaker is not an InferRSI default."
+    }
+  ],
+  "selected_public_record_observations": [
+    {
+      "scope": "8ea96a70",
+      "total": 20,
+      "scored": 11,
+      "committed": 7,
+      "committed_with_feedback_summary": 0,
+      "all_persisted_gates_na": true,
+      "best_p50_ms": 2.4840247305956753
+    },
+    {
+      "scope": "7b1b274a",
+      "total": 20,
+      "scored": 14,
+      "committed": 13,
+      "committed_with_feedback_summary": 13,
+      "all_persisted_gates_na": true,
+      "best_p50_ms": 2.495703274553472
+    }
+  ],
+  "third_party_boundaries": [
+    {
+      "path": "agents/vendor/openevolve/",
+      "disposition": "Implementation excluded from this readset and not redistributed; root README retains its own-upstream-license exception. No blanket repository MIT claim applies to vendor code."
+    },
+    {
+      "path": "experiments/kernelbench_l1/kernelbench_tasks/",
+      "license": "MIT",
+      "copyright": "Copyright (c) 2023 Anne Ouyang, Simon Guo, Azalia Mirhoseini; Scaling Intelligence Lab, Stanford University",
+      "upstream_commit": "423217d9fda91e0c2d67e4a43bf62f96f6d104f1",
+      "disposition": "Only README and UPSTREAM_LICENSE read; no task implementation copied or redistributed."
+    }
+  ],
+  "conflicts_and_access_limits": [
+    "Paper invalid-arm precedence conflicts with its shared-wall-null interpretation for the reported usable counts.",
+    "ARTIFACT maps the first-keep stop to loop.py, but that exported path tolerates missing profiling and continues; original external operational checkpoints are unavailable.",
+    "Original plans/P6 report and protocol-notes referenced by source comments are absent from the complete pinned public tree. The full registration and actual prompt receipts were not reconstructed.",
+    "Level-1 results README explicitly preserves 1.0005x versus TABLE.md/paper 1.0001x pending reconciliation.",
+    "The public repository is a September export with an abbreviated parent autoserv revision; that prefix is not expanded into an invented experimental commit."
+  ],
+  "exclusions": [
+    "No source implementation, vendored dependency, raw ledger, PDF or figure bytes redistributed.",
+    "Generic matched-budget, independent complete-output oracle, repair accounting and search-headroom procedures are existing-owner responsibilities, not new extractions in this increment.",
+    "Engine configuration tuning, remote execution, baseline reproduction, native correctness and source-test execution are outside this source-only amendment."
+  ],
+  "empirical_state": {
+    "source_tests": "not_run",
+    "native_device_correctness": "not_run",
+    "model_quality": "not_run",
+    "performance": "not_run",
+    "service_e2e": "not_run",
+    "agent_efficacy": "not_evaluated",
+    "paper_outcomes": "author_reported",
+    "public_record_counts": "deterministic_source_read_only"
+  }
+}

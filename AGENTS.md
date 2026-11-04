@@ -4,7 +4,7 @@ Coding agents (Cursor, Codex, Claude, etc.) should treat this file as the **entr
 
 ## What this repo is
 
-**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/inferrsi/` (rename on copy), with recipes, benchmarks, and a first-class `evidence/` tree.
+**InferRSI** is InferMatrixLab’s canonical home for a **portable RSI / evidence-driven scaffold**. Work is organized as **SIAS**: harness × model × infra seams under `src/inferrsi/` (rename on copy), with runnable examples and a first-class `evidence/` tree.
 
 This entry contract is portable for derived scaffolds. The repository itself is the maintained workbench: delivering an independent engine uses the [engine delivery template](docs/template/README.md) and does not copy or depend on this runtime. Route your task: modify InferRSI via [contributing](docs/contributing.md) and [agent collaboration](docs/agent-collaboration.md); run experiments via [quickstart](docs/quickstart.md); find any CLI/Python operation via the [operation guide](docs/operations.md).
 

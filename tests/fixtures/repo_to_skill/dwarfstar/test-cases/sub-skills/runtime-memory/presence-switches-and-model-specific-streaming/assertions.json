@@ -1,0 +1,28 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "runtime-memory",
+  "target_capability": "CUDA SSD policy controls and checkpoint compatibility",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "README.md:5-25",
+    "docs/SSD_STREAMING.md:44-93",
+    "ds4_ssd.c:46-69",
+    "ds4.c:42625-42638",
+    "ds4_cuda.cu:29123-29129",
+    "ds4_cuda.cu:29408-29425"
+  ],
+  "expected_skill_files": [
+    "sub-skills/runtime-memory/SKILL.md",
+    "sub-skills/runtime-memory/references/memory-ledger.md",
+    "sub-skills/runtime-memory/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response routes to runtime-memory and explains that the named CUDA SSD switches use presence semantics, so values of 0 remain active.",
+    "The response unsets both enable and disable prefetch overrides and the experimental selected-read ordering override to restore the documented defaults.",
+    "The response states that explicit prefetch disable overrides enablement and sort-disable overrides experimental ordering when present.",
+    "The response distinguishes 4000 expert slots from a 4000-GiB requested target and does not call either total process memory.",
+    "The response separates prefill selected-read ordering, whole-next-layer prefetch, and ordinary single-token decode in its comparison plan.",
+    "The response requires the project-compatible checkpoint tensor layout and actual supported model/backend pairing rather than a GGUF suffix or matching bit width.",
+    "The response performs no execution, download, or unverified performance claim and retains the required native backend gap."
+  ]
+}

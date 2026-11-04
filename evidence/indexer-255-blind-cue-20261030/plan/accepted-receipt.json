@@ -1,0 +1,10 @@
+{
+  "status": "COORDINATOR_ACCEPTED_BEFORE_CASE_AUTHORING_EVALUATION",
+  "accepted_at_utc": "2026-10-30T03:33:30.132560+00:00",
+  "protocol_sha256": "0dbe4843e50fc064934e98cad369024ae239b36c69772e2071d7e96c4eecbf17",
+  "baseline": "b3549ce1aea1556f76de1d2e14a4240474947b6b",
+  "scope": "One fixed paired raw-task vs manually extracted verbatim cue study; production scorer unchanged",
+  "author": "<ROLE_SEPARATED_TASK_AUTHOR>",
+  "next_gate": "Freeze six raw/cue pairs; independent intent review before source labelling; fewer than4 source-supported pairs stops INCONCLUSIVE without replacements",
+  "heldout": "Old six remain unused; no access needed"
+}

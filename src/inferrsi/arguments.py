@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 from . import __version__
+from ._skill_selection import RELEVANCE_METHODS
 from .catalog import BACKENDS, KNOWLEDGE_REPOS, KNOWLEDGE_SCOPES, REPO_TYPES
 from .runspec import RunSpec
 
@@ -17,10 +18,15 @@ def _common(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--repo-type", choices=REPO_TYPES, default="vllm_omni")
     parser.add_argument("--backend", choices=BACKENDS, default="cpu")
     parser.add_argument(
-        "--device-ids", default="", help="Comma-separated caller-assigned device IDs"
+        "--device-ids", default="",
+        help=(
+            "Comma-separated caller-assigned device IDs; "
+            "unsupported by MLX unified-memory discovery"
+        ),
     )
     parser.add_argument(
-        "--device-model", help="Expected CUDA device model; other probes retain raw output"
+        "--device-model",
+        help="Expected CUDA device model or Apple Silicon chip (case-insensitive match)",
     )
     parser.add_argument(
         "--python", default=sys.executable, help="Python used for target package inspection"
@@ -143,6 +149,27 @@ def parser() -> argparse.ArgumentParser:
     search.add_argument("--json", action="store_true")
     show = actions.add_parser("show")
     show.add_argument("id")
+    research = actions.add_parser(
+        "research", help="Union model/framework/task/modality/mechanism queries for preparation"
+    )
+    research.add_argument("model")
+    for dimension in ("framework", "task", "modality", "mechanism"):
+        research.add_argument(
+            f"--{dimension}", action="append", default=[],
+            help=f"Additional independent {dimension} query (repeatable)",
+        )
+    research.add_argument("--repo-type", choices=KNOWLEDGE_REPOS)
+    research.add_argument("--tier", choices=KNOWLEDGE_SCOPES)
+    research.add_argument("--backend", choices=BACKENDS, help="Hard package-record filter")
+    research.add_argument("--scenario")
+    research.add_argument("--limit", type=int, default=10)
+    research.add_argument(
+        "--target-backend", help="Research target only; no runtime support implied"
+    )
+    research.add_argument("--target-device", help="Caller-declared research target")
+    research.add_argument(
+        "--target-memory-gib", type=float, help="Caller-declared unified/device GiB"
+    )
 
     collect = commands.add_parser(
         "collect",
@@ -164,7 +191,20 @@ def parser() -> argparse.ArgumentParser:
     collect.add_argument("--limit", type=int, default=10)
     collect.add_argument("--max-bytes", type=int)
     collect.add_argument("--material", action="store_true")
-    collect.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    collect.add_argument("--relevance", help="Opt-in lexical cue for packaged skill selection")
+    collect.add_argument(
+        "--relevance-method", choices=RELEVANCE_METHODS, default="weighted-lexical-v1",
+        help="Packaged skill ranking method; nondefault method requires --relevance",
+    )
+    collect.add_argument(
+        "--context-bytes", type=int,
+        help="Opt-in context view; total UTF-8 resource-body byte budget",
+    )
+    collect.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Select an explicit skills root (requires the 'skills' extra)",
+    )
     collect.add_argument(
         "--store",
         type=Path,
@@ -179,7 +219,11 @@ def parser() -> argparse.ArgumentParser:
     read.add_argument("id")
     read.add_argument("--revision", help="Exact revision returned by collect or read")
     read.add_argument("--material", action="store_true")
-    read.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    read.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Select an explicit skills root (requires the 'skills' extra)",
+    )
     read.add_argument(
         "--store",
         type=Path,
@@ -195,7 +239,11 @@ def parser() -> argparse.ArgumentParser:
     resource.add_argument(
         "--revision", required=True, help="Exact revision returned by collect or read"
     )
-    resource.add_argument("--skill-root", type=Path, help="Add this checkout as a read-only source")
+    resource.add_argument(
+        "--skill-root",
+        type=Path,
+        help="Select an explicit skills root (requires the 'skills' extra)",
+    )
     resource.add_argument(
         "--store",
         type=Path,

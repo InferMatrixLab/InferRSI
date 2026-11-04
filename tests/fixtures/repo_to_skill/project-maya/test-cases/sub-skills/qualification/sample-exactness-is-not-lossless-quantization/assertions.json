@@ -1,0 +1,31 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "algorithm-specific exactness and quantization-quality attribution",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "src/core/glm_mtp.cu",
+    "src/core/glm_window.cu",
+    "src/core/glm_mtp_rows.cu",
+    "src/program/generate.cpp",
+    "src/mm3/mm3_main.cpp",
+    "src/mm3/mm3_sample.hpp",
+    "bench/results/MAYA-S.md",
+    "bench/results/2026-10-06-glm-spec/README.md"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/qualification/references/troubleshooting.md"
+  ],
+  "assertions": [
+    "The response routes to qualification and separates MiniMax target-distribution correctness from identical RNG consumption or same-seed output across plain and speculative algorithms.",
+    "The response identifies deterministic proposal target-probability acceptance and optional sampled-proposal p/q acceptance with residual draw as distinct MM3 modes.",
+    "The response states that current MiniMax parallel serving does not use DSpark and that request-local seeding does not eliminate tier/parallel arithmetic changes.",
+    "The response distinguishes the one-GPU GLM MTP gate from the separate opt-in multi-request MTP rows route and its loaded-block/row/DFlash prerequisites.",
+    "The response distinguishes retained rows from accepted drafts and covers KDA convolution/recurrent replay, position, NextN repair from trunk states and later cache visibility.",
+    "The response attributes 97.9% task recovery, 83.3% same-top-token and perplexity 4.19 versus 3.51 to the bounded GLM Maya-S author report, not losslessness or local reproduction.",
+    "The response preserves October 6 fixes and unsuccessful approaches as historical observations, not current-head reproduced defects or universal performance advice.",
+    "The response treats executed CPU simulations as insufficient for native model/rollback/quality proof and avoids model, backend, source-script or paid execution."
+  ]
+}

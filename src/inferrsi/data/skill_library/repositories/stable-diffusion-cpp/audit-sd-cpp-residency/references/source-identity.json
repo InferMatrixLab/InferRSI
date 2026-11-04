@@ -1,0 +1,125 @@
+{
+  "repository": "leejet/stable-diffusion.cpp",
+  "commit": "b13a48219d5cdf408edcb93da6cd69b612ed03d3",
+  "tree": "df847d004c6529eefb02bb629d7ee26e740121a9",
+  "checked_at": "2026-10-21 16:33:16 UTC",
+  "source_url": "https://api.github.com/repos/leejet/stable-diffusion.cpp/git/trees/df847d004c6529eefb02bb629d7ee26e740121a9?recursive=1",
+  "truncated": false,
+  "selected_blobs": [
+    {
+      "path": "README.md",
+      "sha": "b4ab2f5ab202d8c0c7cf25a1c246895bda9b260d",
+      "size": 9037
+    },
+    {
+      "path": "LICENSE",
+      "sha": "56e1e5a63852c3bcd5ac4fcdfecb7666f5274169",
+      "size": 1062
+    },
+    {
+      "path": ".gitmodules",
+      "sha": "a26210d90afe65ed4628dadbb1352987f32baf17",
+      "size": 418
+    },
+    {
+      "path": "CMakeLists.txt",
+      "sha": "bd7c6d9e9091635016232cccf4f21537ad73ff3d",
+      "size": 14633
+    },
+    {
+      "path": "cmake/ggml.cmake",
+      "sha": "39d77eae3550008024ccacd68921b3e2fc087399",
+      "size": 1196
+    },
+    {
+      "path": ".github/workflows/build.yml",
+      "sha": "b717e56d9e96702544eb34b1dad5591ada1dcd8e",
+      "size": 32273
+    },
+    {
+      "path": "examples/cli/main.cpp",
+      "sha": "ca8ce4e79e33b1e3f8e9e52d5fdcd61cd4b94abd",
+      "size": 40752
+    },
+    {
+      "path": "include/stable-diffusion.h",
+      "sha": "267e7a7b551a70bec4f82e9dbfffb64c7b3aea36",
+      "size": 21299
+    },
+    {
+      "path": "src/stable-diffusion.cpp",
+      "sha": "1cc4c09d3d3bde988f3397b53b7cfbc590803f55",
+      "size": 28409
+    },
+    {
+      "path": "src/pipeline/diffusion_engine.h",
+      "sha": "c5509d9a9ee704d9f0a93bf78c643e077d18ae31",
+      "size": 20577
+    },
+    {
+      "path": "src/pipeline/diffusion_engine.cpp",
+      "sha": "70338bd99380cca800e1277e243335db6f380311",
+      "size": 152456
+    },
+    {
+      "path": "src/pipeline/image.cpp",
+      "sha": "d3d25c8af4642439935ed8c415172ba5a6eb76ab",
+      "size": 52923
+    },
+    {
+      "path": "src/device_residency_manager.h",
+      "sha": "0a2a8895f310681753d2ac50ec6cadd115aee532",
+      "size": 3565
+    },
+    {
+      "path": "src/core/ggml_runner.cpp",
+      "sha": "4c156ed43d2d9c0fa1e3ffce712d2cd58a2a1344",
+      "size": 42126
+    },
+    {
+      "path": "src/core/segment_weight_pipeline.cpp",
+      "sha": "f769794df3438118fa1746b89e6342664b4006d8",
+      "size": 7353
+    },
+    {
+      "path": "src/core/compute_workspace.cpp",
+      "sha": "54f0538f07da9de28740f89356be47b5aa4376b1",
+      "size": 10472
+    },
+    {
+      "path": "src/model_manager.h",
+      "sha": "fdb110825d98f4aeebe071d15daf5bf94e24c502",
+      "size": 14715
+    },
+    {
+      "path": "src/model_manager.cpp",
+      "sha": "4562ebdfd4f834e3bfe7bfa4e01c2b51f0dda104",
+      "size": 83812
+    },
+    {
+      "path": "src/model_manager_prefetch.cpp",
+      "sha": "de96d5ae3bfc9a3ec8ffc953a8fa720db638e8fa",
+      "size": 13689
+    }
+  ],
+  "submodules": [
+    {
+      "path": "examples/server/frontend",
+      "sha": "8e7c11505925c0dbf9aaea56a3a5058b8690d66b"
+    },
+    {
+      "path": "ggml",
+      "sha": "dc998771e700d49bbdf9a39cede22bb5b3311767"
+    },
+    {
+      "path": "thirdparty/libwebm",
+      "sha": "5bf12267eea773a32fcf4949de52b0add158a8d5"
+    },
+    {
+      "path": "thirdparty/libwebp",
+      "sha": "0c9546f7efc61eac7f79ae115c3f99c91c21c443"
+    }
+  ],
+  "scope": "Pinned Git commit-to-tree metadata and selected archive implementation blobs only; no full archive/tree byte authentication, submodule contents, execution or backend qualification.",
+  "selected_archive_blob_comparison": "MATCHED: Git blob IDs and sizes matched for all 19 selected files on 2026-10-22"
+}

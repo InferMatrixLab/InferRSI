@@ -1,0 +1,224 @@
+diff --git a/docs/qwen38-service.md b/docs/qwen38-service.md
+index 9251200..107e460 100644
+--- a/docs/qwen38-service.md
++++ b/docs/qwen38-service.md
+@@ -23,7 +23,7 @@ The dedicated constructor accepts `max_context_tokens` and
+ `max_active_requests`. Legacy constructor options are not aliases for these
+ limits. Generation accepts text or token-list prompts and greedy sampling only.
+ Each result contains `text`, `token_ids`, and `finish_reason` (`stop` or `length`).
+-`ignore_eos=True` is available through the Python API. Stochastic sampling and
++`ignore_eos=True` is available through the Python and HTTP APIs. Stochastic sampling and
+ unsupported constructor or HTTP fields fail explicitly. The unrelated legacy
+ engine continues to require positive sampling temperature.
+ 
+@@ -56,12 +56,23 @@ One HTTP request is served per connection; chunked request bodies are unsupporte
+ | `temperature` | Optional; only zero is supported |
+ | `stream` | Optional boolean, default false |
+ | `request_id` | Optional identifier using letters, digits, `_`, `.`, `:`, `-` |
++| `ignore_eos` | Optional boolean, default false; true generates through EOS up to the requested cap |
++| `return_token_ids` | Optional boolean; true also echoes exact prompt IDs in the first stream choice or non-stream response |
++| `repetition_penalty` | Optional; only the neutral value 1.0 is supported |
++| `logprobs` | Optional; only null is supported |
++| `stream_options` | Streaming only; supports boolean `include_usage`, default false |
+ 
+ Non-streaming JSON contains `choices[0].text`, `token_ids`, `finish_reason`, and
+ token usage. Streaming responses use `text/event-stream`: each `data:` JSON chunk
+ contains the request ID and a choice with cumulative-decoding text delta and new
+-token IDs. The terminal choice has empty text/token IDs and a finish reason,
+-followed by `data: [DONE]`. Normal termination uses `stop` or `length`;
++token IDs. Existing generated `token_ids` remain present regardless of the new
++prompt-echo flag. Normal termination puts its finish reason on the final token
++choice, without an additional empty choice that a benchmark could time as a
++token. A cancellation with no pending delta uses an empty terminal choice.
++With `include_usage=true`, choice chunks carry null usage and one final chunk
++has empty `choices` and actual prompt/completion/total token counts. Prompt IDs
++are echoed only once. The stream ends with `data: [DONE]`.
++Normal termination uses `stop` or `length`;
+ explicit cancellation uses `cancelled`; service drain uses `shutdown`. Runtime
+ errors emit a sanitized error object and terminal `error` framing when the
+ connection is still writable. HTTP runtime failures return 500. Validation
+diff --git a/nanovllm/qwen38/server.py b/nanovllm/qwen38/server.py
+index 3847e23..776962e 100644
+--- a/nanovllm/qwen38/server.py
++++ b/nanovllm/qwen38/server.py
+@@ -163,14 +163,29 @@ class CompletionHandler(BaseHTTPRequestHandler):
+         self.wfile.flush()
+ 
+     def _chunk(self, request, text, token_ids, finish_reason=None):
+-        return {"id": request.request_id, "request_id": request.request_id,
+-                "object": "text_completion", "model": self.server.engine.model_id,
+-                "choices": [{"index": 0, "text": text, "token_ids": token_ids,
+-                             "finish_reason": finish_reason}]}
++        chunk = {"id": request.request_id, "request_id": request.request_id,
++                 "object": "text_completion", "model": self.server.engine.model_id,
++                 "choices": [{"index": 0, "text": text, "token_ids": token_ids,
++                              "finish_reason": finish_reason}]}
++        if self._include_usage:
++            chunk["usage"] = None
++        if self._prompt_token_ids is not None:
++            chunk["choices"][0]["prompt_token_ids"] = self._prompt_token_ids
++            self._prompt_token_ids = None
++        return chunk
++
++    @staticmethod
++    def _usage(request):
++        return {"prompt_tokens": len(request.prompt_ids),
++                "completion_tokens": len(request.token_ids),
++                "total_tokens": len(request.prompt_ids) + len(request.token_ids)}
+ 
+     def do_POST(self):
+         request = None
+         streaming = False
++        self._include_usage = False
++        self._prompt_token_ids = None
++        terminal_sent = False
+         headers_sent = False
+         try:
+             if self.path.startswith("/v1/cancel/"):
+@@ -182,7 +197,8 @@ class CompletionHandler(BaseHTTPRequestHandler):
+                 self._error(404, "unknown route")
+                 return
+             body = self._body()
+-            allowed = {"model", "prompt", "input_ids", "max_tokens", "temperature", "stream", "request_id"}
++            allowed = {"model", "prompt", "input_ids", "max_tokens", "temperature", "stream", "request_id",
++                       "repetition_penalty", "logprobs", "stream_options", "ignore_eos", "return_token_ids"}
+             if set(body) - allowed:
+                 raise ValueError("unsupported completion fields")
+             if body.get("model", self.server.engine.model_id) != self.server.engine.model_id:
+@@ -194,12 +210,33 @@ class CompletionHandler(BaseHTTPRequestHandler):
+             streaming = body.get("stream", False)
+             if type(streaming) is not bool:
+                 raise ValueError("stream must be boolean")
++            repetition_penalty = body.get("repetition_penalty", 1.0)
++            if type(repetition_penalty) not in (int, float) or repetition_penalty != 1.0:
++                raise ValueError("only repetition_penalty=1.0 is supported")
++            if body.get("logprobs") is not None:
++                raise ValueError("only logprobs=null is supported")
++            if "stream_options" in body:
++                options = body["stream_options"]
++                if not streaming or not isinstance(options, dict) or set(options) - {"include_usage"}:
++                    raise ValueError("stream_options requires streaming and supports only include_usage")
++                self._include_usage = options.get("include_usage", False)
++                if type(self._include_usage) is not bool:
++                    raise ValueError("stream_options.include_usage must be boolean")
++            ignore_eos = body.get("ignore_eos", False)
++            if type(ignore_eos) is not bool:
++                raise ValueError("ignore_eos must be boolean")
++            return_token_ids = body.get("return_token_ids", False)
++            if type(return_token_ids) is not bool:
++                raise ValueError("return_token_ids must be boolean")
+             prompt = body.get("prompt", body.get("input_ids"))
+             if "input_ids" in body and not isinstance(prompt, list):
+                 raise ValueError("input_ids must be a token list")
+             if self._disconnected():
+                 return
+-            request = self.server.engine.submit(prompt, max_tokens=body.get("max_tokens"), request_id=body.get("request_id"))
++            request = self.server.engine.submit(prompt, max_tokens=body.get("max_tokens"),
++                                                request_id=body.get("request_id"), ignore_eos=ignore_eos)
++            if return_token_ids:
++                self._prompt_token_ids = list(request.prompt_ids)
+             with self.server._connections_lock:
+                 self.server._connections[self.connection] = True
+             if streaming:
+@@ -218,15 +255,23 @@ class CompletionHandler(BaseHTTPRequestHandler):
+                     return
+                 event = request.step(disconnect_check=self._disconnected)
+                 if streaming and (event["token_id"] is not None or event["delta"]):
+-                    self._sse(self._chunk(request, event["delta"], [] if event["token_id"] is None else [event["token_id"]]))
++                    self._sse(self._chunk(request, event["delta"],
++                                          [] if event["token_id"] is None else [event["token_id"]],
++                                          request.finish_reason))
++                    terminal_sent = request.finish_reason is not None
+             if streaming:
+-                self._sse(self._chunk(request, "", [], request.finish_reason))
++                # Match the upstream completion stream: the final token carries
++                # finish_reason, so the benchmark does not time an extra choice.
++                if not terminal_sent:
++                    self._sse(self._chunk(request, "", [], request.finish_reason))
++                if self._include_usage:
++                    usage = self._chunk(request, "", [])
++                    usage.update(choices=[], usage=self._usage(request))
++                    self._sse(usage)
+                 self._sse("[DONE]")
+             else:
+                 result = self._chunk(request, request.text, request.token_ids, request.finish_reason)
+-                result["usage"] = {"prompt_tokens": len(request.prompt_ids),
+-                                   "completion_tokens": len(request.token_ids),
+-                                   "total_tokens": len(request.prompt_ids) + len(request.token_ids)}
++                result["usage"] = self._usage(request)
+                 self._json(200, result)
+         except (BrokenPipeError, ConnectionError, TimeoutError, OSError):
+             if request is not None and request.finish_reason == "error":
+diff --git a/tests/test_qwen38_service.py b/tests/test_qwen38_service.py
+index f520730..fd2555a 100644
+--- a/tests/test_qwen38_service.py
++++ b/tests/test_qwen38_service.py
+@@ -188,6 +188,68 @@ def test_eos_empty_completion_text_and_normal_cleanup():
+         assert_clean(model)
+ 
+ 
++@pytest.mark.parametrize("ignore_eos, expected_count, reason", [(False, 1, "stop"), (True, 4, "length")])
++def test_benchmark_stream_counts_real_tokens_and_emits_one_choice_per_token(ignore_eos, expected_count, reason):
++    with serving(engine(eos=(1,))) as (model, address):
++        connection, response = stream(address, ignore_eos=ignore_eos, return_token_ids=True,
++                                      repetition_penalty=1.0, logprobs=None,
++                                      stream_options={"include_usage": True})
++        chunks = events(response)
++        connection.close()
++        choices = [chunk["choices"][0] for chunk in chunks if chunk["choices"]]
++        ids = [token for choice in choices for token in choice["token_ids"]]
++        assert len(ids) == len(choices) == expected_count
++        assert choices[0]["prompt_token_ids"] == [1]
++        assert all("prompt_token_ids" not in choice for choice in choices[1:])
++        assert all(choice["finish_reason"] is None for choice in choices[:-1])
++        assert choices[-1]["finish_reason"] == reason
++        assert all(chunk["usage"] is None for chunk in chunks[:-1])
++        assert chunks[-1]["choices"] == []
++        assert chunks[-1]["usage"] == {"prompt_tokens": 1, "completion_tokens": expected_count,
++                                       "total_tokens": 1 + expected_count}
++        assert_clean(model)
++
++
++def test_nonstream_token_echo_and_usage_use_actual_input_and_output():
++    with serving(engine(eos=(1,))) as (model, address):
++        status, result = complete(address, ignore_eos=True, return_token_ids=True)
++        assert status == 200
++        assert result["choices"][0]["prompt_token_ids"] == [1]
++        assert len(result["choices"][0]["token_ids"]) == 4
++        assert result["usage"] == {"prompt_tokens": 1, "completion_tokens": 4, "total_tokens": 5}
++        assert_clean(model)
++
++
++@pytest.mark.parametrize("options", [{}, {"include_usage": False}])
++def test_optional_usage_is_absent_when_disabled(options):
++    with serving() as (model, address):
++        connection, response = stream(address, return_token_ids=False, stream_options=options)
++        chunks = events(response)
++        connection.close()
++        assert len(chunks) == 4
++        assert all("usage" not in chunk for chunk in chunks)
++        assert all("prompt_token_ids" not in chunk["choices"][0] for chunk in chunks)
++        assert_clean(model)
++
++
++@pytest.mark.parametrize("fields", [
++    {"ignore_eos": 1}, {"return_token_ids": "true"},
++    {"repetition_penalty": True}, {"repetition_penalty": 1.1}, {"logprobs": 0},
++    {"stream_options": None}, {"stream_options": {"include_usage": 1}},
++    {"stream_options": {"continuous_usage_stats": True}},
++    {"stream": False, "stream_options": {"include_usage": True}},
++])
++def test_invalid_benchmark_options_rejected_before_model_work(fields):
++    with serving() as (model, address):
++        connection, response = request(address, body={"input_ids": [1], "max_tokens": 4,
++                                                     "stream": True, **fields})
++        assert response.status == 400
++        response.read()
++        connection.close()
++        assert not model.runner.model.calls
++        assert_clean(model)
++
++
+ def test_concurrent_requests_match_serial_and_are_isolated():
+     with serving() as (model, address):
+         baseline = model.generate([[1], [3]], SamplingParams(temperature=0, max_tokens=4))

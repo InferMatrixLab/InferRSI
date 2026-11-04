@@ -1,0 +1,55 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NOASSERTION",
+  "disable-model-invocation": true,
+  "metadata": {
+    "disco-role": "operating"
+  },
+  "tags": [
+    "pytorch",
+    "distributed-and-checkpoint"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/pytorch/pytorch",
+      "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+      "paths": [
+        "torch/distributed/distributed_c10d.py",
+        "torch/csrc/distributed/c10d/ProcessGroup.hpp",
+        "torch/csrc/distributed/c10d/ProcessGroupNCCL.cpp",
+        "docs/source/notes/ddp.md",
+        "docs/source/distributed/fsdp.fully_shard.md",
+        "docs/source/distributed/tensor.md",
+        "torch/serialization.py",
+        "torch/distributed/checkpoint/format_utils.py",
+        "SECURITY.md"
+      ],
+      "readset": "../../references/source-readset.json"
+    }
+  ],
+  "applicability": {
+    "scope": "Set up or debug PyTorch c10d, DDP, FSDP2, DeviceMesh and DTensor, distributed checkpointing and trusted state serialization.",
+    "prerequisites": [
+      "An explicitly selected installed torch environment; actual devices for backend-specific checks."
+    ],
+    "input_contract": "A bounded model, tensor, data or environment reproduction and expected behavior.",
+    "produced_artifact": "Produce a rank and collective schedule and a state-restore contract with explicit trust and backend boundaries.",
+    "failure_modes": [
+      "Transferring source facts to another wheel or backend without checking drift."
+    ],
+    "refusal_point": "Withhold backend success when the required device check cannot execute."
+  },
+  "limitations": [
+    "Source-supported procedures are not full-repository execution coverage.",
+    "Required unavailable backends retain BLOCKED_REQUIRED_BACKEND; no measured efficacy claim."
+  ],
+  "consumption_mode": "packaged"
+}

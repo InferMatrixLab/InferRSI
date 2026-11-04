@@ -1,0 +1,22 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "benchmark-cache-and-native-evidence",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "lily/README.md",
+    "lily/src/serve.rs",
+    "lily/src/lib.rs",
+    "lily/benchmarks/run_matrix.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/serving-cache/references/api-and-session.md"
+  ],
+  "assertions": [
+    "The answer distinguishes cfg/ignored/actual GPU execution and does not treat a CPU reference as CPU-only GPU proof.",
+    "The answer preserves the current0.31.2 runner versus later0.32.2 report and distinct harness identity.",
+    "The answer distinguishes in-process throughput from HTTP/cache/service quality evidence.",
+    "The answer preserves reported long-context prefill disadvantages rather than a universal faster claim."
+  ]
+}

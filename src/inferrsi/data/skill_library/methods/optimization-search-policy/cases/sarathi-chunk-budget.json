@@ -1,0 +1,39 @@
+{
+  "id": "case.sarathi-chunk-budget",
+  "kind": "case",
+  "origin": ["external"],
+  "state": "candidate",
+  "empirical_validation": "not_run",
+  "content": "sarathi-chunk-budget.md",
+  "required_resources": ["sarathi-chunk-budget.json"],
+  "sources": [
+    {
+      "type": "paper",
+      "id": "usenix.osdi24.agrawal",
+      "title": "Taming Throughput-Latency Tradeoff in LLM Inference with Sarathi-Serve",
+      "authors": "Amey Agrawal, Nitin Kedia, Ashish Panwar, Jayashree Mohan, Nipun Kwatra, Bhargav S. Gulavani, Alexey Tumanov, Ramachandran Ramjee",
+      "version": "OSDI 2024 proceedings, July 2024, pp. 117-134",
+      "url": "https://www.usenix.org/system/files/osdi24-agrawal.pdf",
+      "entry_url": "https://www.usenix.org/conference/osdi24/presentation/agrawal",
+      "sha256": "2416e51f584230107739783e5995d3dea3efad93f189e2c3119434d62a31412c",
+      "inspected_at": "2026-10-30",
+      "claims_checked_at": "2026-10-31",
+      "sections": ["3.2-3.3", "4.1-4.4", "5 evaluation setup", "5.3-5.4", "6", "Appendix A"],
+      "readset": "Full paper, references and artifact appendix read; case claims checked against sections 4.1-4.3, section 5 setup, Figure 9, Figure 14, Table 4 and section 6. Key physical PDF pages 8, 9, 10, 11, 13 and 14 visually inspected during grounding; curves were not digitized.",
+      "license": "UNKNOWN",
+      "rights_note": "Publisher open access establishes readability, not a blanket redistribution or adaptation license. Only an original attributed explanation is packaged; raw PDF, extracted text, images, figures and supplier synthesis are excluded."
+    }
+  ],
+  "applicability": [
+    "Source-supported hypothesis selection when observed long prefills interfere with ongoing decodes",
+    "Chunked-prefill token-budget tradeoffs under specified latency, workload, hardware and parallelism conditions"
+  ],
+  "limitations": [
+    "Paper-author observations and proposed adaptation checks are not local measurements or current-engine support.",
+    "The combined design does not beat hybrid-only P50 TTFT in either Table 4 trace.",
+    "No universal budget, fairness guarantee, quantitative disaggregation comparison or empirical skill efficacy is established.",
+    "Raw source redistribution and adaptation permission remain UNKNOWN.",
+    "The same case identity and central mechanism appeared in closed-unmerged PR 156; this independently written fixed-edition contribution does not recover the missing historical archive or establish novelty over its unavailable synthesis."
+  ],
+  "attribution": "Original attributed explanation of Agrawal et al., OSDI 2024. The paper's reported results remain distinct from InferRSI's proposed checks; no raw source asset or prior proposal prose is reproduced."
+}

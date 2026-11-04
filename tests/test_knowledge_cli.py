@@ -187,3 +187,203 @@ def test_malformed_revision_pairs_are_input_errors():
         assert "ID=REV" in stderr
     stderr = run_cli_error("collect", "--revision", "a=sha256:x", "--revision", "a=sha256:y")
     assert "Duplicate revision request" in stderr
+
+
+def test_collect_material_appears_in_text_and_json_modes():
+    code, stdout, _ = run_cli("collect", "Qwen", "--limit", "1", "--material")
+    assert code == 0
+    assert "--- begin content package:" in stdout
+    assert "--- end content package:" in stdout
+    _, json_stdout, _ = run_cli("collect", "Qwen", "--limit", "1", "--material", "--json")
+    envelope = json.loads(json_stdout)
+    assert envelope["items"][0]["content"]
+
+
+def _escaped(value: str) -> str:
+    # Independent reimplementation of the CLI's one-line-per-item escaping.
+    return (
+        value.replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
+
+
+def test_collect_text_lines_match_the_json_envelope():
+    code, stdout, _ = run_cli("collect", "Qwen", "--limit", "2")
+    assert code == 0
+    _, json_stdout, _ = run_cli("collect", "Qwen", "--limit", "2", "--json")
+    items = json.loads(json_stdout)["items"]
+    assert len(items) >= 1
+    # Item lines are the ones whose second field is the content revision.
+    lines = [line for line in stdout.splitlines() if line.split("\t")[1].startswith("sha256:")]
+    assert len(lines) == len(items)
+    for line, item in zip(lines, items):
+        fields = line.split("\t")
+        assert fields[0] == item["ref"]
+        assert fields[1] == item["revision"]
+        assert fields[2] == item["kind"]
+        assert fields[3] == _escaped(item["state"])
+        if "applicability" in item:
+            value = item["applicability"]
+            applicability = (
+                _escaped(value)
+                if isinstance(value, str)
+                else json.dumps(value, ensure_ascii=False, sort_keys=True)
+            )
+        else:
+            applicability = "-"
+        assert fields[4] == applicability
+
+
+def test_collect_reports_no_match_omissions_and_collisions_in_text_mode(tmp_path):
+    code, stdout, _ = run_cli("collect", "definitely-no-such-knowledge-anywhere")
+    assert code == 0
+    assert stdout.strip() == (
+        "no_match\tnothing selected from the requested sources; "
+        "use --json for the full envelope"
+    )
+    code, stdout, _ = run_cli("collect", "--id", "not-a-real-id")
+    assert code == 0
+    assert "not-a-real-id\tomitted\tunknown_identity" in stdout
+    package_id = KnowledgeReader().identities()[0].partition(":")[2]
+    cases = tmp_path / "owner" / "cases"
+    cases.mkdir(parents=True)
+    (tmp_path / "owner" / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: test\n---\nBody", encoding="utf-8"
+    )
+    (cases / "note.md").write_text("observation", encoding="utf-8")
+    (cases / "note.json").write_text(
+        json.dumps(
+            {
+                "id": package_id,
+                "kind": "case",
+                "state": "historical_observation",
+                "content": "note.md",
+                "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+                "applicability": [],
+                "limitations": [],
+                "attribution": "fixture",
+            }
+        ),
+        encoding="utf-8",
+    )
+    code, stdout, _ = run_cli("collect", "--id", package_id, "--skill-root", str(tmp_path))
+    assert code == 0
+    assert f"{package_id}\tcollision\towned by multiple authorities" in stdout
+    assert f"{package_id}\tomitted\tambiguous_identity" in stdout
+
+
+def test_collect_limit_and_max_bytes_surface_output_limit_omissions():
+    code, stdout, _ = run_cli("collect", "--limit", "1")
+    assert code == 0
+    envelope = json.loads(run_cli("collect", "--limit", "1", "--json")[1])
+    assert len(envelope["items"]) == 1
+    assert any(omission["reason"] == "output_limit" for omission in envelope["omissions"])
+    code, stdout, _ = run_cli("collect", "--max-bytes", "1")
+    assert code == 0
+    assert "no_match\t" in stdout
+    envelope = json.loads(run_cli("collect", "--max-bytes", "1", "--json")[1])
+    assert not envelope["items"]
+    assert all(omission["reason"] == "output_limit" for omission in envelope["omissions"])
+    assert envelope["material_bytes"] == 0
+
+
+def test_unsafe_resource_path_is_an_input_error(tmp_path):
+    bundle = KnowledgeReader(skill_root=SKILLS).read(SOURCE)
+    stderr = run_cli_error(
+        "resource",
+        SOURCE,
+        "../escape.md",
+        "--revision",
+        bundle.revision,
+        "--skill-root",
+        str(SKILLS),
+        "--output",
+        str(tmp_path / "out.md"),
+    )
+    assert "Unsafe bundle path" in stderr
+
+
+def test_collect_escapes_control_characters_to_keep_one_line_per_item(tmp_path):
+    state = "two\tlines\nbroken"
+    cases = tmp_path / "owner" / "cases"
+    cases.mkdir(parents=True)
+    (tmp_path / "owner" / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: test\n---\nBody", encoding="utf-8"
+    )
+    (cases / "note.md").write_text("observation", encoding="utf-8")
+    (cases / "note.json").write_text(
+        json.dumps(
+            {
+                "id": "escape-check",
+                "kind": "case",
+                "state": state,
+                "content": "note.md",
+                "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+                "applicability": [],
+                "limitations": [],
+                "attribution": "fixture",
+            }
+        ),
+        encoding="utf-8",
+    )
+    code, stdout, _ = run_cli("collect", "--id", "escape-check", "--skill-root", str(tmp_path))
+    assert code == 0
+    item_lines = [
+        line for line in stdout.splitlines() if line.split("\t")[1].startswith("sha256:")
+    ]
+    assert len(item_lines) == 1
+    fields = item_lines[0].split("\t")
+    assert len(fields) == 5
+    assert fields[3] == "two\\tlines\\nbroken"
+
+
+def _case_root(root: Path, identity: str, applicability) -> Path:
+    cases = root / "owner" / "cases"
+    cases.mkdir(parents=True)
+    (root / "owner" / "SKILL.md").write_text(
+        "---\nname: owner\ndescription: test\n---\nBody",
+        encoding="utf-8",
+    )
+    (cases / "note.md").write_text("observation", encoding="utf-8")
+    record = {
+        "id": identity,
+        "kind": "case",
+        "state": "historical_observation",
+        "content": "note.md",
+        "sources": [{"type": "internal", "issue": "local", "artifact": "fixture"}],
+        "limitations": [],
+        "attribution": "fixture",
+        "applicability": applicability,
+    }
+    (cases / "note.json").write_text(json.dumps(record), encoding="utf-8")
+    return root
+
+
+def test_collect_projects_recorded_applicability_including_empty_values(tmp_path):
+    # An empty list/object/string is a RECORDED value and must render literally,
+    # distinct from the "-" marker reserved for an absent field. A bundle without
+    # applicability is rejected by the manifest as an invalid omission, so the
+    # absent case is never reachable as a projected item.
+    for index, (value, expected) in enumerate((([], "[]"), ({}, "{}"), ("", ""))):
+        root = _case_root(tmp_path / f"case{index}", "shape-check", value)
+        code, text, _ = run_cli("collect", "--id", "shape-check", "--skill-root", str(root))
+        assert code == 0, text
+        line = next(
+            entry for entry in text.splitlines() if entry.startswith("checkout:shape-check")
+        )
+        assert line.split(chr(9))[4] == expected
+
+
+def test_collect_omission_escapes_control_characters_in_invalid_id():
+    tab, newline = chr(9), chr(10)
+    code, text, _ = run_cli("collect", "--id", f"bad{tab}id{newline}injected")
+    assert code == 0
+    lines = text.splitlines()
+    omitted = [line for line in lines if chr(9) + "omitted" + chr(9) in line]
+    assert len(omitted) == 1
+    # the invalid id stays on one line and never leaks a raw newline that could
+    # forge a separate record or a no_match marker
+    assert not any(line == "injected" for line in lines)
+    assert "injected" in omitted[0]

@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "assessment": "author self-check, not independent agent efficacy",
+  "case_count": 5,
+  "assertion_count": 17,
+  "result": "all expected evidence-boundary resources present; exact helper tests recorded separately",
+  "native_result": "NOT_AVAILABLE",
+  "automatic_import": "not-run"
+}

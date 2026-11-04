@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "vllm_rlt",
-  "source_repository": "ThinkFlowLab/vllm-rlt",
+  "source_repository": "InferMatrixLab/vllm-rlt",
   "execution_support": "caller_supplied_external_commands",
   "scenarios": [
     "recurrent.fixed_depth",
@@ -14,6 +14,7 @@
   },
   "notes": [
     "This descriptor does not claim a built-in model launcher or a validated accelerator matrix.",
-    "Freeze the actual repository and dependency tuple before measuring."
+    "Freeze the actual repository and dependency tuple before measuring.",
+    "Previously referenced as ThinkFlowLab/vllm-rlt; the canonical repository is InferMatrixLab/vllm-rlt."
   ]
 }

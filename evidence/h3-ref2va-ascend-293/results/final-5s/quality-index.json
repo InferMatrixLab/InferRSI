@@ -1,0 +1,296 @@
+[
+  {
+    "label": "final-5s-abba-v2-repeat-a1-1",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.985945,
+        "psnr_db": 46.22619,
+        "lpips": 0.015939716553886332,
+        "audio_spectral_cosine": 0.9992476602395376,
+        "audio_rms_ratio": 1.0027108369318876,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "db0535a0e0f22dcf20bd0f2a627e489f368d4f984256715083e529415c806df4",
+        "candidate": "ab74322c0e9c8bf89eff2e4d62501df8836a9f2fe22347c7cb4fb1f8bc47af5b",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-repeat-a1-2",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.98596,
+        "psnr_db": 46.229359,
+        "lpips": 0.01588937797163042,
+        "audio_spectral_cosine": 0.9994123776753744,
+        "audio_rms_ratio": 0.9988956002447763,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "db0535a0e0f22dcf20bd0f2a627e489f368d4f984256715083e529415c806df4",
+        "candidate": "f771a7f24be3fa365fb37205dd66f2d968cff45e17e6c3d9e21509e226d518af",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-repeat-a2-0",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.98597,
+        "psnr_db": 46.224219,
+        "lpips": 0.01586436965472756,
+        "audio_spectral_cosine": 0.9991251329580942,
+        "audio_rms_ratio": 1.0031549914203621,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "db0535a0e0f22dcf20bd0f2a627e489f368d4f984256715083e529415c806df4",
+        "candidate": "a056b7b88adc69675450844eb947b535ce9622102d56227a44a2ee8da4c6ea02",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-repeat-a2-1",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.985972,
+        "psnr_db": 46.231562,
+        "lpips": 0.01588707629801525,
+        "audio_spectral_cosine": 0.9989899198214213,
+        "audio_rms_ratio": 1.0017564703994855,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "db0535a0e0f22dcf20bd0f2a627e489f368d4f984256715083e529415c806df4",
+        "candidate": "d1af92da9391efcbabe3e66dc857291e6a25517faea0ee3103ab79b8607b6070",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-repeat-a2-2",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.98597,
+        "psnr_db": 46.237757,
+        "lpips": 0.015833707736624826,
+        "audio_spectral_cosine": 0.9994269410769144,
+        "audio_rms_ratio": 0.9990643772989578,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "db0535a0e0f22dcf20bd0f2a627e489f368d4f984256715083e529415c806df4",
+        "candidate": "651c240a79ce6648d468d4308ae18949f5cf63ed15726fe8efd13480beb3cc5b",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-paired-b1-0",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.98188,
+        "psnr_db": 42.237702,
+        "lpips": 0.022567964879976164,
+        "audio_spectral_cosine": 0.9870861768722534,
+        "audio_rms_ratio": 1.0836543799338285,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "db0535a0e0f22dcf20bd0f2a627e489f368d4f984256715083e529415c806df4",
+        "candidate": "431cca05c1950330fcd5f23f3194db5ac1c77c9932f36486575d0a27b5138cc9",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-paired-b1-1",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.981653,
+        "psnr_db": 42.04674,
+        "lpips": 0.022726915190897642,
+        "audio_spectral_cosine": 0.9863758583863577,
+        "audio_rms_ratio": 1.075574046683978,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "ab74322c0e9c8bf89eff2e4d62501df8836a9f2fe22347c7cb4fb1f8bc47af5b",
+        "candidate": "d31cc348d238b4dee77975740c32f3030375b60559dcc09520346b4d748b6e36",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-paired-b1-2",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.98175,
+        "psnr_db": 42.109724,
+        "lpips": 0.022678757822441477,
+        "audio_spectral_cosine": 0.986158162355423,
+        "audio_rms_ratio": 1.09194954302109,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "f771a7f24be3fa365fb37205dd66f2d968cff45e17e6c3d9e21509e226d518af",
+        "candidate": "13302ba43ccf3947822af81d95981a7e9c0a7eb3cb5753c926f19f970c8aca88",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-paired-b2-0",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.981905,
+        "psnr_db": 42.250213,
+        "lpips": 0.022547063087263414,
+        "audio_spectral_cosine": 0.9859037399291992,
+        "audio_rms_ratio": 1.0808585332286322,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "a056b7b88adc69675450844eb947b535ce9622102d56227a44a2ee8da4c6ea02",
+        "candidate": "79fdd1de3b8eb8d9a7bb74369e40a7111704cca645aeba669cd6cf004935b008",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-paired-b2-1",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.981806,
+        "psnr_db": 42.154759,
+        "lpips": 0.022761002648621798,
+        "audio_spectral_cosine": 0.9856365621089935,
+        "audio_rms_ratio": 1.0782369785894619,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "d1af92da9391efcbabe3e66dc857291e6a25517faea0ee3103ab79b8607b6070",
+        "candidate": "d9df31ffac99eaecae7cc4abeac290f8e280ad6e0ab0c4212e955a26c27fdb7e",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-paired-b2-2",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.981715,
+        "psnr_db": 42.079819,
+        "lpips": 0.022635805390534863,
+        "audio_spectral_cosine": 0.9859488507111868,
+        "audio_rms_ratio": 1.0880194920045094,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "651c240a79ce6648d468d4308ae18949f5cf63ed15726fe8efd13480beb3cc5b",
+        "candidate": "590bfff86b61dcdb0a6f4292732a1656945f2b1fadfe5fdbd0cddd7f78d401fb",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-coverage-original-seed1",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.975969,
+        "psnr_db": 38.621703,
+        "lpips": 0.025843170771916068,
+        "audio_spectral_cosine": 0.9833842714627584,
+        "audio_rms_ratio": 1.0905936075023375,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "8187dcf9be8dd20cdf11a9e0803e39920cd12cb5d3dca08529be7c9582d3b475",
+        "candidate": "35ded4453c6baa0914c6fffde6f10b0470e54cb10d402087d41c097b289670b4",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-coverage-original-seed2",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.982298,
+        "psnr_db": 42.600901,
+        "lpips": 0.02228979213583854,
+        "audio_spectral_cosine": 0.9838720957438151,
+        "audio_rms_ratio": 1.0937695198153352,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "7cc35c53cf25059ae304a129f11db2b72ceb2be057c2e8ce8a7a14d369bb6fe2",
+        "candidate": "367fe6786464cf4ff4f889f5c189585012433dd1eafb388412d59534e110c880",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  },
+  {
+    "label": "final-5s-abba-v2-coverage-family-seed0",
+    "passed": true,
+    "result": {
+      "verdict": "PASS",
+      "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+      "metrics": {
+        "ssim": 0.984037,
+        "psnr_db": 43.795689,
+        "lpips": 0.018710224618834835,
+        "audio_spectral_cosine": 0.8134111166000366,
+        "audio_rms_ratio": 0.6922416173871867,
+        "audio_samples": 165888
+      },
+      "inputs": {
+        "baseline": "849830edf62a699ac41dec92358afb0b8dd384e8a4753840e817238ae802451e",
+        "candidate": "bcbdf9dcf7243657b929d3125e9ec741819fb3b7680253fd52918d755f0cb874",
+        "gates": "baf12f37068051d19c71e7a1e572f72a9e814e8e5eb4303003fc01f1966fb00d"
+      }
+    }
+  }
+]

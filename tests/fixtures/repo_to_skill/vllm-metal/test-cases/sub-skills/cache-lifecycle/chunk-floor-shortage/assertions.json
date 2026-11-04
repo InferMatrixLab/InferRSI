@@ -1,0 +1,20 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "cache-lifecycle",
+  "target_capability": "chunk-floor-shortage",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "vllm_metal/v1/cache_policy.py",
+    "tests/test_kv_offload_budget.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/cache-lifecycle/SKILL.md",
+    "sub-skills/cache-lifecycle/scripts/screen_pool_budget.py",
+    "sub-skills/cache-lifecycle/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Computes pertoken1024, perblock16384, poolfloor32768 and remaining32768.",
+    "Identifies no room for request plus null block with offload, distinct from request-alone shortage.",
+    "No physical memory-fit or native allocation inference."
+  ]
+}

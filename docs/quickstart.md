@@ -14,9 +14,36 @@ inferrsi --help
 inferrsi doctor --repo . --repo-type vllm_omni --backend cpu
 ```
 
+Package-only knowledge commands (`knowledge`, `context`, package `collect`/`read`)
+work with this base install. Reading skill libraries — the `skills` command and
+any `--skill-root` selection — additionally requires
+`python -m pip install '.[skills]'` (PyYAML); without it those operations fail
+with that install hint instead of a traceback.
+
 For the maintained model examples, see [Qwen B300](qwen-image-2.1-turbo-b300.md)
 and [Qwen Ascend](qwen-image-2.1-turbo-ascend.md). Continue below for the generic
 benchmark/quality command contract; set the acceptance threshold from your plan.
+
+## MLX discovery and source knowledge
+
+On a prepared target checkout, MLX discovery reads Apple Silicon chip facts with
+macOS sysctl and reports the requested Python's MLX distribution version without
+importing or installing it:
+
+```bash
+inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
+inferrsi knowledge search --tier dependency --repo-type mlx --backend mlx --json
+```
+
+Use the existing repo type appropriate to your checkout. There is no MLX engine
+repo type or built-in launcher. On non-macOS hosts and non-Apple-Silicon Macs,
+discovery is unavailable with a reason; doctor exits 1. Apple Silicon uses
+unified memory, so --device-ids is rejected. Optional --device-model matches the
+reported chip case-insensitively. Chip discovery and package metadata do not
+certify MLX/Metal, a model, or performance; compatibility remains unverified.
+
+The three source cards reuse the existing MLX evaluation/stream/lifetime owner.
+Its common catalog ID and the separate MLX-LM procedure remain unchanged.
 
 ## Discover knowledge and skills
 
@@ -33,7 +60,8 @@ inferrsi read inferrsi.ascend.skills.ascend_graph_mode --material
 Normalized Collect, exact-revision reads and resource access are available as
 CLI commands and as the Python `KnowledgeReader`
 ([contract](knowledge-operations.md)); authorized local candidate Create/Update
-remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)):
+remains a Python `KnowledgeStore` operation ([contract](knowledge-store.md)).
+The `--skill-root` examples below require the `skills` extra from above:
 
 ```bash
 inferrsi collect 'Ascend OOM' --kind case --limit 3 --material --skill-root src/inferrsi/data/skill_library
@@ -42,14 +70,20 @@ inferrsi resource weight-loading-optimization methods/weight-loading-optimizatio
   --revision <sha256-from-collect-or-read> --skill-root src/inferrsi/data/skill_library --output SKILL.md
 ```
 
-Sources are selected explicitly: the installed package by default, a checkout
-via `--skill-root`, an existing store opened read-only via `--store`. A store
-records the checkout it reserves and rejects a mismatched or missing
+The revision for `resource` is the second field of the `collect` text-mode line,
+or the `revision` field in `collect --json` / `read` output. The JSON mode returns
+the complete normalized envelope; fields kept only in a package record's original
+entrypoint document are read with `--material` or `resource`, not projected into
+the normalized metadata.
+
+Sources are selected explicitly: the installed package by default, an explicit
+skills root via `--skill-root`, an existing store opened read-only via `--store`.
+A store records the skills root it reserves and rejects a mismatched or missing
 `--skill-root` on open.
 
-The `skills` command defaults to the installed library's 48 registered skills;
+The `skills` command defaults to the installed library's registered skills;
 its full bodies and resources are packaged. `--skill-root` in the normalized
-examples above explicitly adds this checkout's original skill and case IDs.
+examples above explicitly adds that root's skill and case IDs.
 
 ## The actual configuration interface
 

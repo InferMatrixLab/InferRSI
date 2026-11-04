@@ -1,0 +1,258 @@
+{
+  "title": "JustGoal controlled harness evaluation and kernel acceptance source record",
+  "repository": {
+    "url": "https://github.com/OpenBMB/JustGoal",
+    "commit": "f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d",
+    "default_license_declaration": "Apache-2.0",
+    "tree_entries": 618,
+    "tree_truncated": false
+  },
+  "inspected_on": "2026-11-02",
+  "paired_paper": {
+    "path": "paper.pdf",
+    "version": "Repository-paired PDF at the same immutable commit",
+    "pages": 21,
+    "readset": "Complete paper, Sections 1-7, References and Appendices A-C; figures 1-5 and tables 1-10",
+    "license": "UNKNOWN",
+    "license_scope": "No separate paper license observed in inspected pages; repository default declaration does not resolve a paper-specific grant. Public output contains original attributed analysis and links; PDF and figures are not redistributed."
+  },
+  "files": [
+    {
+      "path": "LICENSE",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/LICENSE",
+      "bytes": 11358,
+      "git_blob_sha1": "d645695673349e3947e8e5ae42332d0ac3164cd7",
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "read_scope": "Complete text",
+      "license_observation": "Repository Apache-2.0 declaration; no distinct file license observed; not among NOTICE BSD exceptions",
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "NOTICE",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/NOTICE",
+      "bytes": 1624,
+      "git_blob_sha1": "7d2ed44398aae08caa854ce636257a147f7e3132",
+      "sha256": "92e9b681d6f51be6d6c0adb7ef8d6e478e743305e53d16d12823629cd6a21933",
+      "read_scope": "Selected contract-relevant regions",
+      "license_observation": "Repository Apache-2.0 declaration; no distinct file license observed; not among NOTICE BSD exceptions",
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "README.md",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/README.md",
+      "bytes": 5264,
+      "git_blob_sha1": "3793abec8e934aef2962a49b2c8abf5b00881149",
+      "sha256": "7bc47a99eeb1d759f0d84f02626d7b36e68ff9aa6da5143dfc27431b2d2268f2",
+      "read_scope": "Complete text",
+      "license_observation": "Repository Apache-2.0 declaration; no distinct file license observed; not among NOTICE BSD exceptions",
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/dsa_decode.cu",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/dsa_decode.cu",
+      "bytes": 28299,
+      "git_blob_sha1": "efc5eecd5cd25bd569ce5a50126b31d085102c49",
+      "sha256": "2182f0ae24ec2775f2d94346b413e4f4cec8e526ddd332e864c62c5fcea5f1fb",
+      "read_scope": "Selected contract-relevant regions",
+      "license_observation": "Repository Apache-2.0 declaration; no distinct file license observed; not among NOTICE BSD exceptions",
+      "read_regions_one_based": [
+        [
+          1,
+          130
+        ],
+        [
+          141,
+          150
+        ],
+        [
+          225,
+          234
+        ],
+        [
+          236,
+          245
+        ],
+        [
+          346,
+          365
+        ],
+        [
+          389,
+          399
+        ],
+        [
+          407,
+          416
+        ],
+        [
+          420,
+          431
+        ],
+        [
+          434,
+          454
+        ],
+        [
+          559,
+          617
+        ]
+      ],
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/main.py",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/goal_full_shape/fable-5.1/dsa_decode_fwd/dsa_sparse_attention_h16_ckv512_kpe64_topk2048_ps64/main.py",
+      "bytes": 5424,
+      "git_blob_sha1": "f62142c7c2b7e9d19c475f8b848ed6e0dedbd72d",
+      "sha256": "e5bb0a92ab7b94260248db23b8c70b32774baffcda7855628c3c859aaf31ef06",
+      "read_scope": "Complete wrapper; state allocation, cache keys, input/output and launch boundaries",
+      "license_observation": "Repository Apache-2.0 declaration; no distinct file license observed; not among NOTICE BSD exceptions",
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.cu",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.cu",
+      "bytes": 29370,
+      "git_blob_sha1": "d9067d799ef2318c05dbb9ab08fe1c3b67ab466f",
+      "sha256": "7a2d951ce34ea01bffbaa1599c5e50607cdfa368d6ee0a38fe29a340ee1e4d0f",
+      "read_scope": "Selected contract-relevant regions",
+      "license_observation": "Repository Apache-2.0 declaration; no distinct file license observed; not among NOTICE BSD exceptions",
+      "read_regions_one_based": [
+        [
+          1,
+          59
+        ],
+        [
+          144,
+          153
+        ],
+        [
+          166,
+          175
+        ],
+        [
+          204,
+          213
+        ],
+        [
+          215,
+          225
+        ],
+        [
+          254,
+          281
+        ],
+        [
+          446,
+          615
+        ]
+      ],
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.py",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/goal_single_shape/fable-5.1/dsa_decode_fwd/t8_topk2048/dsa_kernel.py",
+      "bytes": 6057,
+      "git_blob_sha1": "16971e96c55fb8620cbbd7c8d34777dd5f3810a6",
+      "sha256": "e94c68edae71d9b36bc75656c33b6ace632b445148d62f0af93c41f4ef9a2318",
+      "read_scope": "Complete wrapper; state allocation, cache keys, input/output and launch boundaries",
+      "license_observation": "Repository Apache-2.0 declaration; no distinct file license observed; not among NOTICE BSD exceptions",
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "kda05_reproduction_full_shape/opus-4.8/fa4_bwd/attention_bwd_causal_h16_d128/cute_fabwd_bshd_v5c_fusedzero/helpers/NOT_INCLUDED.md",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/kda05_reproduction_full_shape/opus-4.8/fa4_bwd/attention_bwd_causal_h16_d128/cute_fabwd_bshd_v5c_fusedzero/helpers/NOT_INCLUDED.md",
+      "bytes": 422,
+      "git_blob_sha1": "7b9a76e4ff0330b304ca23ac770c1555d8fcbbed",
+      "sha256": "328c7ab87232a9c9e251df2bbcf014710937a1ab42bbe7dea59eb0b1b3e0ece2",
+      "read_scope": "Complete text",
+      "license_observation": "Project notice text; describes excluded proprietary CUTLASS DSL EULA helper fmha_helpers.py, which was not fetched or copied",
+      "license": "Apache-2.0 (repository declaration; no distinct file notice observed)"
+    },
+    {
+      "path": "paper.pdf",
+      "url": "https://github.com/OpenBMB/JustGoal/blob/f052fc0b28fc7f10b2ef1ae7aa4682aabbbe868d/paper.pdf",
+      "bytes": 265396,
+      "git_blob_sha1": "515598a0f2f0ac917c7dee196bf8714358af75d1",
+      "sha256": "6bfa1a2728546def4c48e15cf55f31d92a543264787318f1522236c80a0ae8c6",
+      "read_scope": "All 21 pages; all sections and appendices A, B, C; rendered figures 1-5 and tables 1-4, 6-10 visually inspected; table 5 text inspected across pages 17-18",
+      "license_observation": "Repository Apache-2.0 declaration; no separate paper license observed in inspected pages; proposed output only links and original paraphrase, no PDF/figure redistribution",
+      "license": "UNKNOWN"
+    }
+  ],
+  "inspection_scope": {
+    "code": "Complete selected DSA Python wrappers and recorded CUDA workspace/counter/current-stream regions; not a comprehensive mathematical kernel audit",
+    "licenses": "Root LICENSE, NOTICE, README declaration and the selected NOT_INCLUDED notice",
+    "source_tree": "Complete pinned file inventory only; no full campaign runner is established by final kernel artifacts"
+  },
+  "third_party_boundaries": [
+    {
+      "license": "BSD-3-Clause",
+      "basis": "NOTICE lists CUTLASS-derived fmha_bwd_sm100.py, fmha_mask.py, fmha_bwd.py, cute_grouped_gemm.py, cute_masked_gemm.py and umma_raw.py families",
+      "disposition": "Not copied; selected DSA files are outside the listed exceptions; no blanket Apache claim for all repository files"
+    },
+    {
+      "license": "Project license per NOTICE",
+      "basis": "Two kda05_reproduction_single_shape FA4 files state that CuTe DSL idioms follow CUTLASS examples",
+      "disposition": "Not selected or copied"
+    },
+    {
+      "license": "Proprietary CUTLASS DSL EULA per source notice",
+      "path": "fmha_helpers.py",
+      "basis": "Selected helpers/NOT_INCLUDED.md",
+      "disposition": "Omitted upstream helper not fetched, installed or redistributed; complete reproduction has this dependency gap"
+    }
+  ],
+  "claim_support": [
+    {
+      "topic": "same-model, budget and scope controls; complete Fable 5.1 2x2",
+      "source": "paper.pdf",
+      "locations": "Sections 4.1-4.5 and 6; Table 2; Appendix C.1/Tables 6-9",
+      "evidence": "author_reported",
+      "limit": "Single-shape cells are paired re-measurements; whole-definition cells use official-evaluator timing and await the same paired rerun. One run per configuration/task; component effects are not identified by full-configuration ratios."
+    },
+    {
+      "topic": "independent acceptance, full output/state semantics and official/stricter check differences",
+      "source": "paper.pdf",
+      "locations": "Sections 3.1-3.2, 4.5 and 6; Appendix C.2",
+      "evidence": "author_reported",
+      "limit": "Independent final checks differ from agent-written generation checks. Missing lse escaped an official evaluator; finite input checks do not guarantee all execution conditions."
+    },
+    {
+      "topic": "released failure versus repair and retimed performance",
+      "source": "paper.pdf",
+      "locations": "Section 4.5, Tables 3-4; Appendix C.2",
+      "evidence": "author_reported",
+      "limit": "Released-version retest counts are not first-generated-attempt rates; repaired-only directories remain released failures, and correctness counts can include task-constraint violations."
+    },
+    {
+      "topic": "kernel-span timing, input/cache identity and preserved counterexamples",
+      "source": "paper.pdf",
+      "locations": "Section 3.2, Figures 4-5, Appendices B-C.2",
+      "evidence": "author_reported",
+      "limit": "Cold-L2 CUPTI spans exclude JIT, flushing and synchronization; paired, independent and session measurements cannot be spliced. Retain unmatched top-k baselines, substituted input distributions, model fallback and timer/graph-cache anomalies."
+    },
+    {
+      "topic": "scratch ownership, counter/epoch state and stream launch",
+      "source": "Selected DSA wrappers and CUDA consumers",
+      "locations": "Per-file read_regions_one_based and wrapper read_scope",
+      "evidence": "source_observation",
+      "limit": "No device, repeated-call, multi-stream, reentrancy or multi-device qualification was executed. Missing ownership/order proof is a reuse gap, not a reproduced defect."
+    }
+  ],
+  "exclusions": [
+    "Other kernel mathematical bodies and unselected solution implementations",
+    "Original agent sessions, complete KDA-0.5 prompts/workflow configuration and raw external retest artifacts were not independently reconstructed",
+    "No source kernels, third-party code, paper bytes or figures are redistributed",
+    "No NeMo-Speech.cpp source or unmerged PR material used"
+  ],
+  "empirical_state": {
+    "source_tests": "not_run",
+    "native_device_correctness": "not_run",
+    "model_quality": "not_run",
+    "performance": "not_run",
+    "service_e2e": "not_run",
+    "agent_efficacy": "not_evaluated",
+    "paper_outcomes": "author_reported"
+  }
+}

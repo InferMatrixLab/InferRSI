@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ee06e5eeda65c779d9ac25f4b53f7fb3d4f14f55/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
-      "commit": "ee06e5eeda65c779d9ac25f4b53f7fb3d4f14f55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
@@ -54,9 +54,9 @@
   },
   "checkout_ref": "checkout:npu-skill-factory",
   "source_files": {
-    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md": "74cd863df2e80dc2bda1713d24207809173a3116f30325e3487e1e3517cfec1e",
-    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "8d82e5e7bf2eece16056076e1ab888669330c2533fee26fabe747fbb551e1388",
+    "src/inferrsi/data/skill_library/workflows/npu-skill-factory/metadata.json": "c862565b814e98e0ebc4923e32eef2aa67a8df2357c255903d744f40aaea32c8",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/COMPARISON.md": "38587678a96581f5c2dc697d982127343565504bffa191352811dffcc165aa23",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/INTEGRATION_NOTES.md": "fbc4a96b6f6c477706eed83eaa4fcc29a14f881637629d6c004601ed049f2523",
     "src/inferrsi/data/skill_library/workflows/npu-skill-factory/references/papers-20261015/QA.md": "3f3785ec39a6938a5d1f2e874e99153fe92c0e666dd3e78a499c8b47d891346a",
@@ -128,8 +128,22 @@
     },
     "applicability": {
       "scope": "InferRSI skill lifecycle management",
-      "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+      "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission",
+      "input_contract": "A candidate inventory plus the source and evaluation evidence for each candidate skill; read-only artifact admission needs no historical sibling execution interface",
+      "produced_artifact": "An admitted or refused skill candidate with its source, evidence and limitation record, and its stable id and owning path",
+      "failure_modes": [
+        "A candidate admitted on an inventory line without source or evaluation evidence",
+        "A stable id or path assigned twice across owners",
+        "Indexing or admission reported as validation or promotion",
+        "Paper-to-code equivalence asserted without a pinned readset"
+      ],
+      "refusal_point": "Refuses admission when a candidate has neither source evidence nor a declared evaluation state, and records the refusal instead of leaving the field blank"
     },
+    "recommendations": [
+      "Read the methodology counterexamples in references/papers-20261015/cases/ before admitting a candidate derived from a paper.",
+      "Keep the source snapshot revision as research evidence; it is not a campaign default.",
+      "Record an unvalidated candidate as candidate with not_run rather than omitting the state."
+    ],
     "tags": [
       "skill-factory",
       "distillation",
@@ -162,16 +176,26 @@
       "references/papers-20261015/UNREAD_LEADS.md",
       "references/papers-20261015/updates/bounded-updates.md"
     ],
-    "references": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "searchspace_not_applicable": "SKILL.md §§ Choose the evidence product, Artifact lifecycle, and What this skill does not do define skill-distillation/evaluation methodology; NPU task tiers are evaluation prerequisites, not a hardware-resource mechanism."
   },
   "applicability": {
     "scope": "InferRSI skill lifecycle management",
-    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission"
+    "prerequisites": "Current candidate inventory and source/evaluation evidence; historical sibling execution interfaces are not required for read-only artifact admission",
+    "input_contract": "A candidate inventory plus the source and evaluation evidence for each candidate skill; read-only artifact admission needs no historical sibling execution interface",
+    "produced_artifact": "An admitted or refused skill candidate with its source, evidence and limitation record, and its stable id and owning path",
+    "failure_modes": [
+      "A candidate admitted on an inventory line without source or evaluation evidence",
+      "A stable id or path assigned twice across owners",
+      "Indexing or admission reported as validation or promotion",
+      "Paper-to-code equivalence asserted without a pinned readset"
+    ],
+    "refusal_point": "Refuses admission when a candidate has neither source evidence nor a declared evaluation state, and records the refusal instead of leaving the field blank"
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Read the methodology counterexamples in references/papers-20261015/cases/ before admitting a candidate derived from a paper.",
+    "Keep the source snapshot revision as research evidence; it is not a campaign default.",
+    "Record an unvalidated candidate as candidate with not_run rather than omitting the state."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

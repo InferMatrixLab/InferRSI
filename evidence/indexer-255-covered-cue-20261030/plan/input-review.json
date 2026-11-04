@@ -1,0 +1,16 @@
+{
+  "status": "PASS_SIX_INTENT_AND_SOURCE_SUPPORTED_BEFORE_RETRIEVAL",
+  "reviewed_at_utc": "2026-10-30T03:47:12.322312+00:00",
+  "baseline": "6e6ee245d9e92ee9365976f2e4e262304999f147",
+  "author_input_sha256": "e8a52fb88791aa5a1cbe079d9629540dcd104894185955370bd3d65cb842b568",
+  "supported_count": 6,
+  "identity_controls": 2,
+  "no_input_or_label_edits": true,
+  "limits": [
+    "All6 are source-conditioned synthetic cases, not unbiased user traffic.",
+    "Fourchanged pairs remove politeness only; not substantive narrative compression.",
+    "Card-group case uses generally transferable fixed-hardware comparison principle from Ascend-oriented source; not generic device/runtime certification.",
+    "Same owner-family familiarity for historical cgroupCPUquota and weightloadingmmap; mechanisms differ and no outcome-based selection used.",
+    "Partial positives not complete ground truth. Oldsealedheldout not accessed/executed."
+  ]
+}

@@ -1,0 +1,198 @@
+{
+  "run": "audio-ab-base-mc2",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "pipeline_profiler": false,
+    "diagnostic_shutdown_override": true,
+    "arm": "cache2",
+    "steps": 50,
+    "requests": 3,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--cache-backend",
+      "cache_dit",
+      "--cache-config",
+      "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.04,\"max_continuous_cached_steps\":2,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+    ]
+  },
+  "runtime_settings_sha256": "388ae728e54387209e36483d5dcd2404cb8dc7e406f18e007521035ad890642e",
+  "cells": [
+    {
+      "duration_s": 5,
+      "seed": 0,
+      "expected_measured_requests": 3,
+      "completed": 3,
+      "failed": 0,
+      "missing": 0,
+      "samples_ms": [
+        196547.46035765857,
+        197139.46566171944,
+        196311.45504582673
+      ],
+      "mean_ms": 196666.12702173492,
+      "median_ms": 196547.46035765857,
+      "min_ms": 196311.45504582673,
+      "max_ms": 197139.46566171944,
+      "request_sample_stdev_ms": 426.56972217916757,
+      "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+    }
+  ],
+  "samples_including_warmups": [
+    {
+      "label": "measured-5-seed0-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 196547.46035765857,
+      "http_status": 200,
+      "bytes": 6513877,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-8e01fe27a40e057f",
+        "X-Inference-Time-S": "196.487",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.4053208976984024,\"stage_0_gen_ms\":195514.4922733307}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "output_sha256": "e925b1fd144ca051a06dac8a54c210421c0fa49c4996c81543ab829fad773235"
+    },
+    {
+      "label": "measured-5-seed0-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 197139.46566171944,
+      "http_status": 200,
+      "bytes": 6515129,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-bea21da750f3d7a8",
+        "X-Inference-Time-S": "197.073",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.733458437025547,\"stage_0_gen_ms\":196044.14701461792}",
+        "X-Peak-Memory-MB": "20168.000"
+      },
+      "output_sha256": "a7ef0aa6739543b13f12bbdc3addd5fa7fb6ea1cfa51927c6f228369a2afce3c"
+    },
+    {
+      "label": "measured-5-seed0-2",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 196311.45504582673,
+      "http_status": 200,
+      "bytes": 6515920,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-afd87f58e0349ec0",
+        "X-Inference-Time-S": "196.249",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.8097710087895393,\"stage_0_gen_ms\":195283.47063064575}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "output_sha256": "cb57401c50b9774630a0b5f1bdc27ffaf7bf097465f2d3e41e318747cd164ace"
+    },
+    {
+      "label": "warmup-5-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 325259.9422233179,
+      "http_status": 200,
+      "bytes": 6518446,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-b41c2330b0e8036d",
+        "X-Inference-Time-S": "325.169",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.41812099516391754,\"stage_0_gen_ms\":324146.1298465729}",
+        "X-Peak-Memory-MB": "20168.000"
+      },
+      "output_sha256": "28a5bfd134e4e7e711ec2a990045238bdf8acbfbb2d5c1d45c39e41dd46013d6"
+    },
+    {
+      "label": "warmup-5-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 256123.87845478952,
+      "http_status": 200,
+      "bytes": 6517066,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-846011d3f012873b",
+        "X-Inference-Time-S": "256.051",
+        "X-Stage-Durations": "{\"queue_wait_ms\":1.8926989287137985,\"stage_0_gen_ms\":255099.39908981323}",
+        "X-Peak-Memory-MB": "20148.000"
+      },
+      "output_sha256": "48c3c2777edf29535a76adb3e1f6b311fbd73049f7e2943228ab4e6b702089eb"
+    }
+  ],
+  "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+  "lifecycle": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 8,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-4",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-5",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-6",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-7",
+        "exit_code": 0,
+        "alive": false
+      }
+    ],
+    "scope": "Pass under explicitly diagnostic60 baseline cleanup, not baseline production defaults"
+  },
+  "service_log_sha256": "480fbbf6d6b7a1c2addd45e0f04d8695a78d3193db6d3e9967e9ef17eb986e3c",
+  "status": "INCONCLUSIVE",
+  "scope": "One arm of the warmed audio code A/B pilot; no paired acceptance or independent-round speedup yet"
+}

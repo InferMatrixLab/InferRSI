@@ -1,0 +1,26 @@
+{
+  "packaging": "unmodified operator subtree repackaged from vLLM wheel; not independently rebuilt",
+  "wheel_sha256": "5e2ecdc5b0baf72921c288486417ca82778456a448e4fe60b62ee43c0dfc8611",
+  "wheel_identity_scope": "earlier authenticated installation; this operation verifies installed RECORD members",
+  "upstream": "1e1842a833699298f7afc02eefb2ed168fff6938",
+  "licenses": {
+    "DeepGEMM-LICENSE": "6c73a30c14a2938abaa6afe98ebb19e6d81dac5bd4ace0cb05c61c20afa37b85",
+    "DeepJIT-LICENSE": "ebb4f09972aee8608be255debaf78451a68e95c290f55c240dec2ecfa16ea6be",
+    "CUTLASS-LICENSE": "80a7a18b73d41f64dd9ca881af35938f8de88b18c728703251f4c94d1299884d"
+  },
+  "files_count": 899,
+  "total_bytes": 64143962,
+  "binary": [
+    {
+      "path": "_C_extension.abi3.so",
+      "sha256": "0042598bc0770e70bc4ea4b9c3d27d8efc8e395d6f766d41e939c746c2bd3046",
+      "bytes": 36595112
+    }
+  ],
+  "private_manifest_sha256": "3c427abc1f5f76abca793e0f5696e641fca99867620a66540e594ee975a0e1bc",
+  "cpu_job": 2083,
+  "elapsed_seconds": 17,
+  "gpu_count": 0,
+  "no_vllm_imports": true,
+  "gpu_qualification": false
+}

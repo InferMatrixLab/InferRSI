@@ -1,0 +1,726 @@
+{
+  "mode": "trusted-direct-import-only",
+  "scope": "Authored software controls, not untrusted replay or model outputs",
+  "controls": {
+    "starter": {
+      "source_sha256": "a8cdf534deead1d9ba8351e436f1019a4608e15daae61e54a971aec13047928d",
+      "mode": "trusted-direct-import-only",
+      "passed": true,
+      "results": [
+        {
+          "id": "dev_initial_empty",
+          "passed": true
+        },
+        {
+          "id": "dev_empty",
+          "passed": true
+        },
+        {
+          "id": "dev_requires_save",
+          "passed": true
+        },
+        {
+          "id": "dev_requires_fence",
+          "passed": true
+        },
+        {
+          "id": "dev_requires_finish",
+          "passed": true
+        },
+        {
+          "id": "dev_no_save",
+          "passed": true
+        },
+        {
+          "id": "dev_order_and_nonblocking",
+          "passed": true
+        },
+        {
+          "id": "dev_reuse",
+          "passed": true
+        },
+        {
+          "id": "dev_invalid_atomic",
+          "passed": true
+        },
+        {
+          "id": "grader_cross_request",
+          "passed": true
+        },
+        {
+          "id": "grader_unknown_preallocation",
+          "passed": true
+        },
+        {
+          "id": "grader_reused_blocks",
+          "passed": true
+        },
+        {
+          "id": "grader_generation_rules",
+          "passed": true
+        },
+        {
+          "id": "grader_atomic_block_history",
+          "passed": true
+        },
+        {
+          "id": "grader_stable_survivors",
+          "passed": true
+        },
+        {
+          "id": "grader_empty_id_and_large_values",
+          "passed": true
+        },
+        {
+          "id": "grader_frontier_atomic",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_00",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_01",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_02",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_03",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_04",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_05",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_06",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_07",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_08",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_09",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_10",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_11",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_12",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_13",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_14",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_15",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_16",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_17",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_18",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_19",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_20",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_21",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_22",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_23",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_24",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_25",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_26",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_27",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_28",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_29",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_30",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_31",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_32",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_33",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_34",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_35",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_36",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_37",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_38",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_39",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_40",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_41",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_42",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_43",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_44",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_45",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_46",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_47",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_48",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_49",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_50",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_51",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_52",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_53",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_54",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_55",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_56",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_57",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_58",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_59",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_60",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_61",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_62",
+          "passed": true
+        },
+        {
+          "id": "development_seed_11",
+          "passed": true
+        },
+        {
+          "id": "development_seed_23",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_37",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_53",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_71",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_89",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_107",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_127",
+          "passed": true
+        }
+      ],
+      "trace_count": 88
+    },
+    "reference": {
+      "source_sha256": "8f09b110eef6e493df39b5f3c5db9546fa292257056cb39a4ddb742ff1474316",
+      "mode": "trusted-direct-import-only",
+      "passed": true,
+      "results": [
+        {
+          "id": "dev_initial_empty",
+          "passed": true
+        },
+        {
+          "id": "dev_empty",
+          "passed": true
+        },
+        {
+          "id": "dev_requires_save",
+          "passed": true
+        },
+        {
+          "id": "dev_requires_fence",
+          "passed": true
+        },
+        {
+          "id": "dev_requires_finish",
+          "passed": true
+        },
+        {
+          "id": "dev_no_save",
+          "passed": true
+        },
+        {
+          "id": "dev_order_and_nonblocking",
+          "passed": true
+        },
+        {
+          "id": "dev_reuse",
+          "passed": true
+        },
+        {
+          "id": "dev_invalid_atomic",
+          "passed": true
+        },
+        {
+          "id": "grader_cross_request",
+          "passed": true
+        },
+        {
+          "id": "grader_unknown_preallocation",
+          "passed": true
+        },
+        {
+          "id": "grader_reused_blocks",
+          "passed": true
+        },
+        {
+          "id": "grader_generation_rules",
+          "passed": true
+        },
+        {
+          "id": "grader_atomic_block_history",
+          "passed": true
+        },
+        {
+          "id": "grader_stable_survivors",
+          "passed": true
+        },
+        {
+          "id": "grader_empty_id_and_large_values",
+          "passed": true
+        },
+        {
+          "id": "grader_frontier_atomic",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_00",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_01",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_02",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_03",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_04",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_05",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_06",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_07",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_08",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_09",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_10",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_11",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_12",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_13",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_14",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_15",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_16",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_17",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_18",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_19",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_20",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_21",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_22",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_23",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_24",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_25",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_26",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_27",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_28",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_29",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_30",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_31",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_32",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_33",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_34",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_35",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_36",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_37",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_38",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_39",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_40",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_41",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_42",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_43",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_44",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_45",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_46",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_47",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_48",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_49",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_50",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_51",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_52",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_53",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_54",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_55",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_56",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_57",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_58",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_59",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_60",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_61",
+          "passed": true
+        },
+        {
+          "id": "grader_invalid_62",
+          "passed": true
+        },
+        {
+          "id": "development_seed_11",
+          "passed": true
+        },
+        {
+          "id": "development_seed_23",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_37",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_53",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_71",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_89",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_107",
+          "passed": true
+        },
+        {
+          "id": "grader_seed_127",
+          "passed": true
+        }
+      ],
+      "trace_count": 88
+    }
+  }
+}

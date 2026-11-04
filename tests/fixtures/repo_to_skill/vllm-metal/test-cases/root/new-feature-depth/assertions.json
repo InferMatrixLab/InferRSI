@@ -1,0 +1,19 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "vllm-metal",
+  "target_capability": "new-feature-depth",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/speculative_decoding.md",
+    "vllm_metal/platform.py"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/scope-and-notices.md"
+  ],
+  "assertions": [
+    "Uses named long-tail gaps and unsupported pairing boundaries.",
+    "Does not infer joint support from feature presence or generic upstream interfaces.",
+    "Proposes separately authorized bounded source/native research, not deployment."
+  ]
+}

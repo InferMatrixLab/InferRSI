@@ -1,0 +1,19 @@
+{
+  "report_verdict": "PASS",
+  "latency_reduction_pct": 28.86446592032322,
+  "findings": [],
+  "claim_scope": "fixed_workload",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "每轮先求请求延迟均值，再取五轮中位数：基线374.170214毫秒，候选266.167980毫秒，降低28.864466%，超过25%门槛。以轮均值极差除以中位数计算，相对波动分别为4.041516%和3.317282%，均低于12%。两组C1负载相同、质量通过，各15/15请求全部计入且无失败。依据技能“Level 3 — Isolated scenario benchmark”和“Claim-evidence matching”限定结论范围；冻结合约仅要求C1，因此固定负载验收通过。最小下一步是保留此验收结论，无需追加回放或生产测试。本审计不是新硬件测量，也不推断部署资格。"
+}

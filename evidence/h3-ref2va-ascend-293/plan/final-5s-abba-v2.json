@@ -1,0 +1,61 @@
+{
+  "status": "planned_not_executed",
+  "governing_issue": "https://github.com/InferMatrixLab/InferRSI/issues/293",
+  "source_revisions": {
+    "baseline": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+    "candidate": "098b51f6b96dd160a0959e74e8822422527ff06d"
+  },
+  "candidate_profile": {
+    "quality": "server-default",
+    "serve_args": [
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--cache-backend",
+      "cache_dit",
+      "--cache-config",
+      "{\"Fn_compute_blocks\":1,\"Bn_compute_blocks\":0,\"max_warmup_steps\":4,\"residual_diff_threshold\":0.48,\"max_continuous_cached_steps\":8,\"enable_taylorseer\":false,\"scm_steps_mask_policy\":null}"
+    ]
+  },
+  "image_id": "sha256:7fc6c73bd19a6ef4ee8d6048009972234796a1fc1bd3067168a425343cc476f7",
+  "order": [
+    "a1",
+    "b1",
+    "b2",
+    "a2"
+  ],
+  "durations_s": [
+    5
+  ],
+  "deferred_durations_s": [
+    15
+  ],
+  "seed": 0,
+  "steps": 50,
+  "warmups_per_duration_per_server": 2,
+  "measured_requests_per_duration_per_server": 3,
+  "independent_servers_per_arm": 2,
+  "heldout_cases": "Three frozen cases on A1 and B1, after performance requests; quality-only",
+  "profiler": false,
+  "cache_summary": false,
+  "wave_timeout_s": 14400,
+  "http_timeout_s": 14400,
+  "baseline_shutdown": "Diagnostic matched 60-second worker grace and 90-second outer Orchestrator join; not baseline production-lifecycle qualification",
+  "candidate_shutdown": "Native NPU 60-second worker grace and 90-second outer Orchestrator join; require all eight actual worker exits zero",
+  "reservation": "All four 5-second servers in ONE physical 0..7 reservation; 6 h hard, 345 min soft TERM, 180 s kill-after",
+  "failure_policy": "Stop on a failed arm, retain every attempt, do not splice a later reservation into this pair",
+  "early_coverage_gate": "After A1 and B1 servers exit, score the three coverage pairs on CPU before B2/A2. No CPU scoring overlaps request timing. Stop if a gate fails; final scoring reuses and verifies these exact media receipts.",
+  "quality": "Unchanged frozen gates; score every measured output against matched duration/seed dense output and all three held-out pairs after timing",
+  "statistics": "Aggregate each duration separately within each server; two independent server aggregates per arm; no reliable p95/p99 claim",
+  "script_sha256": {
+    "run_host.sh": "a8d80cfb4e2a6cb5cecacf64c6d61d7acca4702f59459e5d90f7fed8727df363",
+    "run_inner.sh": "e6fd6cc545f49455ebc1b570f753552e4086ede97bc7472f775cbdc0b831cfee",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+    "coverage_gate.py": "48346b6f3dd3b5b0e85c7028a1889bb906e4c71b87c66cf0d9ce5d143f748529",
+    "heldout-quality.json": "ea5deb560cd26cedc628be282494a1e1cec8a7cf06c7c9e43ecc246fd3893021",
+    "candidate-profile.json": "72befe43e2837d88b0f37369a935847916600d6480b086f36ecf61b6e3d2b33c",
+    "selection.json": "14530d03cbc2345b03bd0fddf6262a3c3a99ab2b5ef7502d2879c4f47507ab1f",
+    "campaign.sh": "464cc92c61301344845ce5122323ebbd519ef9784e10084c4321e86e9755a905",
+    "launch_durable.sh": "53eb5cc994115bc5f2968688ab3ebf55a8d1867548d681a77b76e93805df261d"
+  }
+}

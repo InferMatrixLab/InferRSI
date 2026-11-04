@@ -1,5 +1,7 @@
 # Provenance
 
+Incremental inspection on 2026-10-22: [abort acknowledgment and deferred transfer reclamation](../sub-skills/omni-validation/references/abort-acknowledgment.md), upstream `18c3bd5d2d4323bc7adca1ac3c465c4a53bbfb6e`. Source archive read only; bounded CODE/TEST-SOURCE evidence, native/model/service validation not_run. The original provenance snapshot below remains applicable to the earlier guide.
+
 ```json
 {
   "schema": "disco.repo-provenance.v1",

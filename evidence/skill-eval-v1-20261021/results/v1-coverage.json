@@ -1,0 +1,140 @@
+{
+  "recorded": 9,
+  "scheduled": 33,
+  "not_run": [
+    {
+      "task_id": "holdout-3",
+      "condition": "E-benchmark",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-3",
+      "condition": "E-evidence",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-3",
+      "condition": "N",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-4",
+      "condition": "E-benchmark",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-4",
+      "condition": "E-evidence",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-4",
+      "condition": "N",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-4",
+      "condition": "N",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-4",
+      "condition": "E-benchmark",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-4",
+      "condition": "E-evidence",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-5",
+      "condition": "N",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-5",
+      "condition": "E-benchmark",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-5",
+      "condition": "E-evidence",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-5",
+      "condition": "E-evidence",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-5",
+      "condition": "N",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-5",
+      "condition": "E-benchmark",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-6",
+      "condition": "E-evidence",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-6",
+      "condition": "N",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-6",
+      "condition": "E-benchmark",
+      "repeat": 1
+    },
+    {
+      "task_id": "holdout-6",
+      "condition": "E-benchmark",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-6",
+      "condition": "E-evidence",
+      "repeat": 2
+    },
+    {
+      "task_id": "holdout-6",
+      "condition": "N",
+      "repeat": 2
+    },
+    {
+      "task_id": "R-relevant",
+      "condition": "R",
+      "repeat": 1
+    },
+    {
+      "task_id": "R-ambiguous",
+      "condition": "R",
+      "repeat": 1
+    },
+    {
+      "task_id": "R-irrelevant",
+      "condition": "R",
+      "repeat": 1
+    }
+  ],
+  "source_state": {
+    "attempts": 9,
+    "original_schedule": 33,
+    "execution_state": "operator_stopped",
+    "reason": "task_contract_ambiguity",
+    "usage_known_trials": 8,
+    "observed_tokens": 412196,
+    "elapsed_campaign_seconds": 998.5774595737457,
+    "verdicts": {
+      "PASS": 3,
+      "FAIL": 5,
+      "INCONCLUSIVE": 1
+    }
+  }
+}

@@ -1,0 +1,1 @@
+Prepare a short Splash Chat Completions body for local-model with a nonempty cache_salt. Do not contact a server or load a model. Does the salt authenticate the caller or isolate the encoded image cache?

@@ -1,0 +1,30 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "audit-h3-metal-fasth3-semantics",
+  "target_capability": "effective configuration, environment conflict and unavailable native evidence",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "h3.c:893-923",
+    "h3_dit.c:249-455,575-670,1313-1418,2421-2483",
+    "h3_dit_schedule.c:162-243,324-401",
+    "tests/test_vsa_coarse.c:225-316",
+    "tools/fasth3_keymap.py:43-191"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/semantic-contracts.md",
+    "references/preflight.md",
+    "references/source-notes.md",
+    "references/troubleshooting.md",
+    "scripts/audit_fasth3.py"
+  ],
+  "assertions": [
+    "Distinguishes requested20/45/reuse2/core4/token1/SSD1 from normalized4/50/reuse1/core1/token0/SSD0.",
+    "Rejects ordered Ref2VA references and does not confuse them with FL2VA first/last-frame anchors.",
+    "Flags ambient token-reduction enable despite normalized parameter0, with forward-disable qualification.",
+    "Explains sparse-disable key presence even value0 and dense-fine plus gated-coarse fallback.",
+    "Keeps pipeline availability unknown and native/model/quality/performance not_run.",
+    "Separates requested49 and aligned56 frames and identifies latent_t17/video120/topk12 as arithmetic only.",
+    "Uses bundled offline audit rather than source benchmark/keymap scripts."
+  ]
+}

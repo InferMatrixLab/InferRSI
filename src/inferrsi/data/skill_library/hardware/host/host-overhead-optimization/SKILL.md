@@ -49,6 +49,13 @@ needs matched full-stack measurement before a service claim. Re-profile and
 reconsider batching/instance configuration after a change, under the same budget
 and all SLOs. Reading this skill starts no autonomous loop or deployment.
 
+For a worked instance of moving host prep rather than shrinking it, see
+[zero-overhead scheduling in DeepInfer](references/deepinfer-zero-overhead-scheduling.md):
+the previous step's post-process is deferred to overlap the next forward, at the
+cost of enumerating and repairing the three quantities that become one step
+stale. It is the alternative to this skill's line-profiling loop when the prep
+is Python-bound and the device has slack.
+
 ## Profiling Setup
 
 ### line_profiler (Primary Method)

@@ -1,0 +1,80 @@
+{
+  "baseline": "6e6ee245d9e92ee9365976f2e4e262304999f147",
+  "curated_at_utc": "2026-10-30T03:45:22.798091+00:00",
+  "selection_basis": "Six different covered engineering decisions, no ranking calls/computation/output inspection. Not selected by measured wins.",
+  "labels": [
+    {
+      "capsule_id": "capsule-01",
+      "positive_ids": [
+        "inferrsi.common.skills.cgroup_resource_controls"
+      ],
+      "source_path": "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
+      "source_sha256": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
+      "start_line": 73,
+      "end_line": 87,
+      "exact_excerpt": "**F**: `memory.high` triggers reclaim/throttling without invoking OOM;\n`memory.max` can invoke OOM; `memory.low` supplies best-effort protection.\n`memory.pressure` exposes PSI; `memory.events.local` excludes descendant\nevents.\n\n**P** triage for host-memory stalls (latency regression):\n1. Align `memory.pressure` (PSI), `memory.events` vs `memory.events.local`\n   deltas (high / max / OOM), and the footprint mix of the group.\n2. Reclaim/throttle symptoms \u2192 draft a `memory.high` review.\n3. OOM risk \u2192 explicit `memory.max` review with OOM-risk assessment\n   (raising `max` trades crashes for capacity).\n4. Protection needs \u2192 `memory.low` is best-effort only; do not rely on it\n   as a guarantee.\n5. Track application outcomes and sibling pressure; additional headroom\n   consumes host capacity.",
+      "boundary": "Proposed diagnosis only: distinguish host memory pressure, limits and best-effort protection; no settings changes or claimed measured benefit."
+    },
+    {
+      "capsule_id": "capsule-02",
+      "positive_ids": [
+        "inferrsi.ascend.skills.ascend_device_health"
+      ],
+      "source_path": "src/inferrsi/data/skill_library/hardware/ascend/ascend-device-health/SKILL.md",
+      "source_sha256": "03829039860ece35519f2e4c339a48b5014ec25e07a2c150a3efb6a3a4e35b4a",
+      "start_line": 109,
+      "end_line": 111,
+      "exact_excerpt": "Changing the card group is a contract change. It invalidates any previous baseline measurement taken on a different group. After a card-group change:\n- Re-measure the baseline on the new group in the same session window.\n- Do not compare new-group results to old-group baselines (cross-group absolute values are not comparable, for the same reason cross-window measurements are not comparable on a shared machine).",
+      "boundary": "Measurement-contract question only. Do not initiate device runs, recovery or driver changes."
+    },
+    {
+      "capsule_id": "capsule-03",
+      "positive_ids": [
+        "inferrsi.common.skills.os_process_placement"
+      ],
+      "source_path": "src/inferrsi/data/skill_library/hardware/host/os-process-placement/SKILL.md",
+      "source_sha256": "2003492e4d89fde0443b180d74933e764bd1979435e109c8d26e20eb8f6e5053",
+      "start_line": 80,
+      "end_line": 84,
+      "exact_excerpt": "| Mode | Semantics | Implementation shape |\n|---|---|---|\n| `distribute` | spread execution evenly over all nodes | round-robin worker threads across nodes (`thread_n % n_nodes`) |\n| `isolate` | only spawn threads on the node execution started on | pin to the current node \u2014 NUMA-local, lowest cross-node traffic |\n| `numactl` | use the CPU map provided by numactl | re-apply the externally captured affinity cpuset |",
+      "boundary": "llama.cpp Linux NUMA mode semantics only, not a universal fastest-mode claim. No placement mutation."
+    },
+    {
+      "capsule_id": "capsule-04",
+      "positive_ids": [
+        "inferrsi.ascend.skills.ascend_aclgraph_capture_replay"
+      ],
+      "source_path": "src/inferrsi/data/skill_library/hardware/ascend/ascend-aclgraph-capture-replay/SKILL.md",
+      "source_sha256": "d494fc7e539cbb7388189bd7b3f04bb5c4983fdd7a82484348aad1cee7f741f2",
+      "start_line": 32,
+      "end_line": 33,
+      "exact_excerpt": "3. **Check replay correctness first.** Require caller-managed stable replay buffers. The wrapper neither owns persistent input buffers nor copies new inputs into them. Propose `VLLM_LOGGING_LEVEL=DEBUG` before wrapper creation for a diagnostic reproduction: its address assertion covers only top-level positional tensor arguments, not keyword/nested inputs or semantic correctness. Escalate an address mismatch to the buffer-owning caller; never suppress it to obtain a timing. [F3]\n4. **Preserve lifetime and ordering.** Review offloader synchronization/join, graph-pool ownership, output/workspace weak references, and the FULL replay/update branch before proposing code changes. Do not remove synchronization, reorder update/replay, or generalize weak-output handling as a performance shortcut. Follow the branch-specific invariants in source-notes. [F4\u2013F5]",
+      "boundary": "Pinned vLLM-Ascend wrapper source-derived guidance; installed-stack compatibility and runtime efficacy unverified. No execution."
+    },
+    {
+      "capsule_id": "capsule-05",
+      "positive_ids": [
+        "inferrsi.ascend.skills.torchnpu_pinned_host_memory_lifecycle"
+      ],
+      "source_path": "src/inferrsi/data/skill_library/hardware/ascend/torchnpu-pinned-host-memory-lifecycle/SKILL.md",
+      "source_sha256": "23e93ea7c98f99743509fdc04139d78ed2e7123c63e80b366c6beaba7eb70d0d",
+      "start_line": 28,
+      "end_line": 30,
+      "exact_excerpt": "3. **Choose a path-specific proposal.** F4: the host allocator is selected once. Default-path round/cache thresholds are explicitly inert with `pin_memory_expandable_segments=True`. P: in fresh-process trials only, consider `pinned_max_round_threshold_mb` for large rounding waste, or `pinned_max_cached_size_mb` for infrequently reused large buffers. Potential benefit is lower retained RAM; costs are less reuse and more allocation/free work. Require the pinned docs' TorchNPU 26.2.0/PyTorch 2.13.0 gate and verify the actual stack. Do not present the latter as a total-cache cap or permission to free in-flight buffers.\n\n4. **Match event-processing and expandable options to symptoms.** P: consider `pinned_use_background_threads` only when foreground event processing is material and its supported default-path implementation is verified; costs include CPU/thread activity. Consider host expandable segments for variable-size pressure only after its separate gates pass; the source uses 20 MiB physical segments, adding granularity/mapping costs. Do not transplant device `expandable_segments`, device split limits or 1 GiB page logic into host settings.",
+      "boundary": "Source-derived TorchNPU host-RAM allocator policy; gates and effective path must be checked. Not device HBM, total-cache quota or free-inflight authorization."
+    },
+    {
+      "capsule_id": "capsule-06",
+      "positive_ids": [
+        "inferrsi.common.skills.weight_loading_optimization"
+      ],
+      "source_path": "src/inferrsi/data/skill_library/methods/weight-loading-optimization/SKILL.md",
+      "source_sha256": "a1bf0e2ec066d5f30225c6cc5fb603f830f48eb5e2aee3fc3d084ed9d8aebe2f",
+      "start_line": 79,
+      "end_line": 85,
+      "exact_excerpt": "- Parallelize with bounded workers (`--max-workers 16` style), select only\n  needed shards (`--include '{subset}/**'`).\n- `.incomplete` marker files mean in-flight shards, not corruption; wait or\n  resume, do not re-download blindly.\n- Verify completeness structurally: shard numbering has no gaps **and** the\n  set matches `*.safetensors.index.json` `weight_map` keys. On mismatch,\n  cross-check weight_map and fetch only the missing shards.",
+      "boundary": "Structural download completeness only, not tensor correctness or model efficacy. No actual downloads requested."
+    }
+  ],
+  "overlap": "Coordinator recalled historical v1 DEV CPU-quota and weight-loading mmap cases. Before author delivery and any scoring, capsule01 changed from CPU quota to host-memory pressure/high-max-low semantics, capsule03 changed from affinity-measurement discipline to Linux NUMA mode semantics to distinguish from card-group contract and omit title crosslink. Same cgroup and weight-loading owner families remain familiar; weight-download completeness differs from mmap. This is source-conditioned DEV, not independent heldout."
+}

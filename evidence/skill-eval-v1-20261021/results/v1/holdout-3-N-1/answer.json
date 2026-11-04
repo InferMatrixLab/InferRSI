@@ -1,0 +1,19 @@
+{
+  "report_verdict": "FAIL",
+  "latency_reduction_pct": 30.548675508082418,
+  "findings": ["workload_mismatch"],
+  "claim_scope": "none",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成。每轮请求平均延迟的中位数：基线383.243923 ms，候选266.167980 ms，表面降幅30.548676%。但steps从8变为4，违反固定工作负载合同，因此不能支持该加速结论。质量、请求完整性和离散度均通过。最小下一步：补充steps=8、相同C1及形状的候选测量，保留质量与全部请求记录后重新验收。"
+}

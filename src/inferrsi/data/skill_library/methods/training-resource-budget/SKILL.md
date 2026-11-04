@@ -65,10 +65,16 @@ approval and memory/correctness evidence; this extraction changes neither.
 
 [MindSpeed adaptive memory](references/mindspeed-historical.md) illustrates
 spending spare NPU memory versus CPU swapping/recomputation. Preserve the
-`core_r0.8.0` exclusions and unresolved allocator/current-version checks.
+`core_r0.8.0` exclusions and distinguish its validation assertions from the
+separate feature-selection guard. The [pinned source readset](references/mindspeed-source-readset.md)
+recovers the historical full revision and license, allocator-to-swap callback
+and 910A/910B affinity branch. Check compatible allocator symbols, tracked
+swappable storage, host capacity and actual device/NUMA/CPU mapping before
+separately authorized reuse; `npu-smi` and `lspci` presence alone is insufficient.
 One reported comparison changes layer count; its headline gain is not reused.
-This historical document is not an implementation recipe or proof of current
-Ascend support.
+Current-stack compatibility, whole-model correctness and measured benefit remain
+unverified. These historical source observations do not establish current Ascend
+support.
 
 ## Paper-derived training decisions
 

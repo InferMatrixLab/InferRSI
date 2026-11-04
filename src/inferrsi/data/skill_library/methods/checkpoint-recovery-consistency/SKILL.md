@@ -1,6 +1,6 @@
 ---
 name: checkpoint-recovery-consistency
-description: 'Assess distributed checkpoint recovery using DLRover shared-memory readiness and step agreement, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate local publish, collective completeness, application-state validity and durable recovery.
+description: 'Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport, and NVIDIA Resiliency Extension complete-iteration selection. Distinguish worker, host and replica loss; separate queued saves, publication, application-state validity and durable recovery.
 
   '
 ---
@@ -34,7 +34,11 @@ higher write throughput does not establish recoverability.
 Neither equal steps nor complete rank IDs verifies tensor contents or whole
 application semantics. Record these as distinct evidence levels.
 
-## C3 — DLRover memory checkpoint agreement
+## C3 — DLRover memory, persistence and replicas
+
+For queued save versus persistence/tracker completion, POSIX synchronization,
+full/sharded Gloo replica transport and a bounded audit procedure, read the
+[DLRover persistence and replica reference](references/dlrover-persistence-replicas.md).
 
 The inspected save path filters to participating saving ranks, attempts the
 shared-memory lock, and reduces readiness over the saver group. If not all
@@ -50,13 +54,14 @@ an empty state dictionary is not proof of a successful restore.
 | Failure domain | What this source establishes | What remains conditional |
 |---|---|---|
 | Training worker exits | Shared-memory recovery is designed to survive under an appropriate launcher/helper owner | The fallback daemon saver started outside `dlrover-run` exits with training and cannot persist afterward |
-| One host loses local memory | Replica manager can gather from surviving nodes | Replica placement, completion and availability must actually cover the lost shard; manager transport was not audited |
+| One host loses local memory | Full/sharded managers exchange CPU bytes and metadata through Gloo | Actual surviving placement and restored payload values must cover the lost shard; inspected gather/consumer boundaries leave correctness unverified |
 | All copies of a required shard are lost | Local shared memory cannot supply that shard | A separately valid persistent checkpoint is needed; not established by step agreement |
 
 Code contains an HCCL-to-`npu` device branch. This is source availability, not
-NPU runtime qualification. The inspected replica restoration code exposes
-metadata/allocation and a manager call; end-to-end restored-byte validity was
-not tested. Do not upgrade this mechanism into proven recovery support.
+NPU runtime qualification. Replica transport is now source-inspected; the
+engine's new-memory consumer allocates/sets metadata without a visible copy
+from the received byte tensor. End-to-end restored-byte validity was not tested.
+Do not upgrade allocation, metadata or a completed collective into proven recovery.
 
 ## C4 — NVIDIA Resiliency Extension complete iterations
 

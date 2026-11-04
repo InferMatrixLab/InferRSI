@@ -1,0 +1,17 @@
+{
+  "state": "proposal_not_activated",
+  "scope": "quality_transport_termination_successor",
+  "files": {
+    "protocol.py": "5865b15e2101a17a024004be4c44b7715737b0a5face69e095a3aacd8fd1f2fd",
+    "prepare.py": "7a3fa40367871fbe775f9ddaa2c97e90c2672d49cbe4faf91a69b176898d72c3",
+    "run.py": "c0102c31c713758c0a35379e79cd162189ad44511d8ba90e1e5f85ab0d3f4af9",
+    "score.py": "79e93cf0cd73750821a438dc17380eead9883c1c6b84c75dff99c29c3cf96005",
+    "retrieval.py": "45f05a85cc1721dbe69beadc370cd84f7d1d5b1bb1d3593cc7d054d499cb53ec",
+    "source-lock.json": "d4f38283b893aebaa8ebd917c04ca78479370fd5d3e6a5e48552d54fb9e0df5f",
+    "prepare_guard.py": "8ca992130d624d659bf7c1d5deef53abf0df1ef5af07ca60753706c188fd429c",
+    "prepare-quality.sbatch": "cee87ec17bbcb45ab3cab16bd3990903b35e02aafdb4e82f9015144b590a0a70"
+  },
+  "generation_config_sha256": "e70c136c1b78ddc1fb0905bac8e733a4dc448d4f852a5dd75143fffc70be550e",
+  "materialization": "Apply retained null-echo patch then EOS-v4 patch to the authenticated v2 archive; full source remains in controlled task storage.",
+  "original_archive_sha256": "9c9cddd3242c00b6c39e4a6342a4ab7d17ab3e74f07bbd7c628c6952f4517099"
+}

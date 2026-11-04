@@ -1,0 +1,19 @@
+{
+  "report_verdict": "PASS",
+  "latency_reduction_pct": 28.864465920323216,
+  "findings": [],
+  "claim_scope": "fixed_workload",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计完成；报告按冻结合同判为 PASS。每轮请求均值的中位数：基线374.170214 ms，候选266.167980 ms，降幅28.8645%≥25%。两组相对极差（轮均值范围/中位数）分别为4.0415%、3.3173%，均≤12%。工作负载一致，质量通过，两组均完整报告15/15请求且零失败。技能 Statistical requirements 指导离散度核验，What a benchmark cannot prove 限定结论范围；冻结合同仅要求C1，无需追加replay或生产验证。最小下一步：记录此次固定工作负载验收通过。本结论来自给定历史及反事实记录，不是新硬件测量。"
+}

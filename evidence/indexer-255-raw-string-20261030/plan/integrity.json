@@ -1,0 +1,12 @@
+{
+  "README.md": "4830238c7cbddd4a209a0673aaeedd45fb979e86691d82d3124414cc5a04155b",
+  "patch/frozen-candidate.bundle": "ca30a22261cca91e520e6040522040171e04a22ff27bb526fc9b0e152e21c1e5",
+  "patch/frozen-candidate.diff": "5e94426574d7105f4354e76c10daa27aa0ac59365517372fa31e302c624e85ff",
+  "plan/protocol.md": "a91c63b85b3e168c06a4fb2986b92256a14679406b955baa6853e743712c3dfc",
+  "plan/publication.md": "5675418b722b852cbedc2f916d9b4052a4b7044bc867c0f4ffe53cf5a499cfc6",
+  "results/frozen-study.tar.gz": "3074dbc24d198ff3d8ec440f839578340222b85600a5ff67c9d4186f88ec2b23",
+  "results/independent-postrun-review.json": "0aa02a6745e91fb818baabfef5a5a9cf1eb7cdb3be1fb098cc54f01257429e9f",
+  "results/integration-check.json": "e696cbcdd4fee200d1e4ca82484e1689293a2bb71669802d2823bdad5bc7b399",
+  "results/readable-demo.txt": "bb47077e52ce03e6412caa938fd229b59c5a65357162560237ce1eb643dfd7d1",
+  "validator/README.md": "0ef597749b676eeb1df2ea1ad8c12c116f76890c172d985e1ab073d8653991bb"
+}

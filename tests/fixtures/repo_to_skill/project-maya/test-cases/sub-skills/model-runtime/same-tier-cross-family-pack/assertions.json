@@ -1,0 +1,33 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "model-runtime",
+  "target_capability": "family dispatch and non-interchangeable pack representations",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "tools/maya_quants.py:132-160",
+    "maya.py:1508-1519,5523-5557",
+    "src/core/glm_model.cu:2830-3005",
+    "src/mm3/mm3_pack.hpp:37-94",
+    "src/mm3/mm3_geo.hpp:24-68",
+    "LICENSE.minimax-m31",
+    "LICENSE.qwen-community-1.0"
+  ],
+  "expected_skill_files": [
+    "sub-skills/model-runtime/SKILL.md",
+    "sub-skills/model-runtime/references/model-and-memory.md",
+    "sub-skills/model-runtime/references/troubleshooting.md",
+    "sub-skills/model-runtime/references/notices.md",
+    "sub-skills/model-runtime/scripts/audit_runtime_plan.py"
+  ],
+  "assertions": [
+    "The response routes to model-runtime and identifies the explicit MiniMax installer versus DeepSeek executable conflict.",
+    "The response invokes or gives the exact bundled audit_runtime_plan.py --plan interface for the small projection without running an engine or setup.",
+    "The response expects screening_conflict and keeps model_compatibility not_verified rather than treating the helper as a native loader.",
+    "The response refuses metadata renaming and explains why family geometry, tensor roles, quant representation and byte ranges matter beyond bit width.",
+    "The response explains that Qwen also uses maya and that its valued --ple-gguf marker takes precedence over its accompanying --pack marker.",
+    "The response rejects inferred Qwen --parallel support and distinguishes shallow route/format inspection from unmined deep kernels.",
+    "The response preserves separate MiniMax and Qwen model-license boundaries instead of treating the root code MIT notice as a universal model license.",
+    "The response states that pure C++ policy/simulation checks cannot establish real payload, accelerator, quality or service correctness.",
+    "The response does not require opening original source docs/scripts, modify real configs, rename a pack or download assets to complete the triage."
+  ]
+}

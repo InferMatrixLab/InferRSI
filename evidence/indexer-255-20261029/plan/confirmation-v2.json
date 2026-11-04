@@ -1,0 +1,33 @@
+{
+  "version": 2,
+  "purpose": "One prospective focused replication of unexplained full-CLI catalog-search tail; never replace or pool v1 FAIL",
+  "baseline_revision": "ab03f3ffb8f2e5bc02c304828c5c41890eef673e",
+  "candidate_revision": "6da28494891b21cdc89f632d84d763bc997b7d15",
+  "candidate_source_sha256": "16bbb0e523e4026dc4f189e81b96e79988c795b5e54b5abb66305d295a62bf31",
+  "frozen_v1_runner_sha256": "ea5b91ff17e80a422fd373621528dfe74ff144976bb55d6432501df452757ca5",
+  "command": "python -m inferrsi knowledge search cgroupv2 --limit 5 --json",
+  "timing": "Exactly v1 tools.evaluate_indexer.cli(mode=search): full subprocess including interpreter startup and stdout capture; JSON decode separately outside clock",
+  "warmup": "No explicit warmup; repeated process calls under existing OS cache, not cold cache",
+  "samples": 120,
+  "order": "60 AB and60 BA shuffled with random.Random(25502); paired successive subprocess calls; sequential only",
+  "negative_control": {
+    "pairs": 40,
+    "order": "20 AB and20 BA shuffled with random.Random(25503), both labels use baseline tree; after primary confirmation; diagnostic only, never pooled or acceptance substitute"
+  },
+  "gates": {
+    "p50_max_regression_percent": 10,
+    "p95_max_regression_percent": 20,
+    "output_parity": "Exact canonical output SHA-256 per pair; constant within both arms",
+    "identity": "Same exact baseline/candidate runtime/corpus as v1, source/corpus before/after unchanged",
+    "failure": "Any completed guard miss FAIL; missing/changed evidence INCONCLUSIVE. No trimming or pooling. Exactly one confirmation study regardless of outcome; do not repeat to obtain PASS."
+  },
+  "statistics": {
+    "p50": "median",
+    "p95": "nearest rank ceil(.95*n)",
+    "paired_bootstrap": "10000 paired group resamples random.Random(25504) for p50 and p95 relative change; percentile2.5/97.5 intervals descriptive, no extra posthoc acceptance rule"
+  },
+  "raw": "Every sample latency/decode_ns/outputhash/bytecount, pair index/order, UTC start and monotonic offsets; preserve failures/timeouts separately",
+  "budget": "One fixed study including40baseline-baselinepairs; CPU only, estimated3-5minutes, no install/model/GPU/service calls",
+  "coordination": "Start only after parent freeze receipt and otherworkers acknowledge no heavy CPU work; never edit source/runner/protocol mid-run",
+  "decision": "This study alone cannot turn v1 into PASS or authorize runtime merge; assess all evidence and uncertainty explicitly"
+}

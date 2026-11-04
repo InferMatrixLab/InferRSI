@@ -1,0 +1,409 @@
+{
+  "schema": "source-conditioned-manual-cue-authoring-v1",
+  "status": "FROZEN_SOURCE_CONDITIONED_SYNTHETIC_INPUTS_BEFORE_INTENT_SOURCE_AUDIT",
+  "frozen_at_utc": "2026-10-30T03:46:41.865109+00:00",
+  "baseline": "6e6ee245d9e92ee9365976f2e4e262304999f147",
+  "protocol_sha256": "4512e1ea3d56235b207e4926c0ed84e8eb3022a461830c919ad29810ee27b026",
+  "capsules_sha256": "5fa54fb0ec903c9839dc1e1d26e14cf8469c7ca7cd79843bd5147e7ca901b822",
+  "provenance": "Six fresh tasks, each grounded in one prospectively supplied sanitized source capsule. Source familiarity is explicit. Not blind source labelling, observed user traffic, independent real-user sampling, or evidence about the user-query distribution. Earlier blind-study artifacts are unchanged and not pooled or replaced.",
+  "access_attestation": {
+    "read_for_this_study": [
+      "protocol-draft.md",
+      "author-capsules.json",
+      "Coordinator and curator instructions without source IDs or ranking results"
+    ],
+    "source_familiarity": "Author saw technical names, facts, boundaries and potential answers in all six source excerpts. Sanitizing titles/IDs does not remove source-conditioning bias.",
+    "prior_context": "This same agent authored the separate blind-input set. New protocol/coordinator instructions disclose its aggregate preparation-INCONCLUSIVE status. No prior per-case source labels, ranked outputs, old DEV cases or sealed heldout content were read. No prior tasks were reused.",
+    "not_accessed": [
+      "Catalog or repository source",
+      "curator-source-labels",
+      "Skill titles or catalog IDs",
+      "Scorer implementation",
+      "Retrieval calls or outputs",
+      "Model services"
+    ],
+    "basis": "Self-reported process history, not forensic isolation."
+  },
+  "manual_rule": "Verbatim OPERATION, OBJECT, and all CONSTRAINTS spans joined with semicolon-space. Deterministic serialization after manual span selection, not automatic semantic extraction. No cue synonyms, new terms, answer hints, translation or catalog-informed edits.",
+  "offset_convention": "Zero-based Unicode code-point offsets, end-exclusive. All raw text is ASCII. Selected and removed spans exactly partition the raw text; original separators are recorded as removed and the serialization delimiter inserted.",
+  "effort": {
+    "started_at_utc": "2026-10-30T03:45:30+00:00",
+    "frozen_at_utc": "2026-10-30T03:46:41.865109+00:00",
+    "elapsed_seconds": 71.865109,
+    "work": "One six-task authoring pass followed by programmatic source-capsule hash, span partition, verbatim serialization and identity checks. No retrieval or outcome revisions."
+  },
+  "interpretation_limit": "The four non-control changes remove polite framing only and change separators. This set does not establish broad narrative normalization. Semantic information was not compressed.",
+  "cases": [
+    {
+      "case_id": "covered255-01",
+      "capsule_id": "capsule-01",
+      "source_excerpt_sha256": "6b9c52eeea14351003bdba75b5f1dd99b419ef923fc48c27d472cd9f4a5449ce",
+      "intent": "Diagnose host-memory latency symptoms",
+      "raw_task": "Could you help with this investigation? Help me distinguish throttling, an out-of-memory limit, and memory protection when investigating a latency regression. The affected inference service runs in a Linux memory cgroup, and I can collect host-memory pressure and event counters for that group and its children. Give a diagnostic plan that separates local events from child activity and considers pressure on sibling workloads; explain the limits of any protection guarantee, but do not change settings or claim a measured improvement.",
+      "cue": "Help me distinguish throttling, an out-of-memory limit, and memory protection when investigating a latency regression.; The affected inference service runs in a Linux memory cgroup, and I can collect host-memory pressure and event counters for that group and its children.; Give a diagnostic plan that separates local events from child activity and considers pressure on sibling workloads; explain the limits of any protection guarantee, but do not change settings or claim a measured improvement.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 40,
+          "end": 158,
+          "text": "Help me distinguish throttling, an out-of-memory limit, and memory protection when investigating a latency regression."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 159,
+          "end": 311,
+          "text": "The affected inference service runs in a Linux memory cgroup, and I can collect host-memory pressure and event counters for that group and its children."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 312,
+          "end": 535,
+          "text": "Give a diagnostic plan that separates local events from child activity and considers pressure on sibling workloads; explain the limits of any protection guarantee, but do not change settings or claim a measured improvement."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 40,
+          "text": "Could you help with this investigation? ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 158,
+          "end": 159,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        },
+        {
+          "start": 311,
+          "end": 312,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        }
+      ],
+      "constraints_retained": [
+        "Give a diagnostic plan that separates local events from child activity and considers pressure on sibling workloads; explain the limits of any protection guarantee, but do not change settings or claim a measured improvement."
+      ],
+      "counts": {
+        "raw_characters": 535,
+        "cue_characters": 497,
+        "raw_whitespace_tokens": 80,
+        "cue_whitespace_tokens": 74
+      },
+      "raw_sha256": "00afcad041bb0d08b55e214038337d1b7328df5c686f160c377578eac9f308f0",
+      "cue_sha256": "f1e1015d23c46651683b22f691edf082fda0a178ddc453fef21b3692ce439464",
+      "compression_scope": "Only polite framing removed and original slot whitespace replaced; all substantive text retained."
+    },
+    {
+      "case_id": "covered255-02",
+      "capsule_id": "capsule-02",
+      "source_excerpt_sha256": "9f14a05d00c4caf690e145f5cf6448ee9fbe52d4b6f82d6b7b0e7ea56c2d2e46",
+      "intent": "Assess a changed measurement contract",
+      "raw_task": "Decide whether our before-and-after performance comparison is valid and specify what evidence is needed; an accelerator experiment whose assigned card group changed between baseline and candidate measurements on a shared machine; provide a measurement plan only; do not run devices or change drivers",
+      "cue": "Decide whether our before-and-after performance comparison is valid and specify what evidence is needed; an accelerator experiment whose assigned card group changed between baseline and candidate measurements on a shared machine; provide a measurement plan only; do not run devices or change drivers",
+      "identity_control": true,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 0,
+          "end": 103,
+          "text": "Decide whether our before-and-after performance comparison is valid and specify what evidence is needed"
+        },
+        {
+          "slot": "OBJECT",
+          "start": 105,
+          "end": 228,
+          "text": "an accelerator experiment whose assigned card group changed between baseline and candidate measurements on a shared machine"
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 230,
+          "end": 299,
+          "text": "provide a measurement plan only; do not run devices or change drivers"
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 103,
+          "end": 105,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        },
+        {
+          "start": 228,
+          "end": 230,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        }
+      ],
+      "constraints_retained": [
+        "provide a measurement plan only; do not run devices or change drivers"
+      ],
+      "counts": {
+        "raw_characters": 299,
+        "cue_characters": 299,
+        "raw_whitespace_tokens": 43,
+        "cue_whitespace_tokens": 43
+      },
+      "raw_sha256": "be5b0bde412e5264be433d9b8739ef428f4465f22b17af7ca2bc027974273675",
+      "cue_sha256": "be5b0bde412e5264be433d9b8739ef428f4465f22b17af7ca2bc027974273675",
+      "compression_scope": "Byte-identical control."
+    },
+    {
+      "case_id": "covered255-03",
+      "capsule_id": "capsule-03",
+      "source_excerpt_sha256": "eb035c5bca1cc4132da484433140331b1d8da9803d12cdfad3e9ffd525720940",
+      "intent": "Interpret NUMA placement options",
+      "raw_task": "Explain which placement mode respects an externally supplied CPU affinity map and how the alternatives differ; llama.cpp on Linux with NUMA modes distribute, isolate, and numactl; describe thread placement only; do not change affinity or claim one mode is universally fastest",
+      "cue": "Explain which placement mode respects an externally supplied CPU affinity map and how the alternatives differ; llama.cpp on Linux with NUMA modes distribute, isolate, and numactl; describe thread placement only; do not change affinity or claim one mode is universally fastest",
+      "identity_control": true,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 0,
+          "end": 109,
+          "text": "Explain which placement mode respects an externally supplied CPU affinity map and how the alternatives differ"
+        },
+        {
+          "slot": "OBJECT",
+          "start": 111,
+          "end": 178,
+          "text": "llama.cpp on Linux with NUMA modes distribute, isolate, and numactl"
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 180,
+          "end": 275,
+          "text": "describe thread placement only; do not change affinity or claim one mode is universally fastest"
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 109,
+          "end": 111,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        },
+        {
+          "start": 178,
+          "end": 180,
+          "text": "; ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        }
+      ],
+      "constraints_retained": [
+        "describe thread placement only; do not change affinity or claim one mode is universally fastest"
+      ],
+      "counts": {
+        "raw_characters": 275,
+        "cue_characters": 275,
+        "raw_whitespace_tokens": 41,
+        "cue_whitespace_tokens": 41
+      },
+      "raw_sha256": "824eab8170070bd47e061f025c5b21059673316f7dcc7ef03ff8d34a2916c14f",
+      "cue_sha256": "824eab8170070bd47e061f025c5b21059673316f7dcc7ef03ff8d34a2916c14f",
+      "compression_scope": "Byte-identical control."
+    },
+    {
+      "case_id": "covered255-04",
+      "capsule_id": "capsule-04",
+      "source_excerpt_sha256": "e58c8780c7863b5e2e980c0c82aaaef097740f4be4b2551e8490f50970aa9c63",
+      "intent": "Review graph replay correctness before optimization",
+      "raw_task": "Please help me review this. Prepare a correctness review for replaying a captured graph with a new input and identify what a diagnostic reproduction could and could not establish. The component is a vLLM-Ascend graph wrapper, and the call can contain positional tensors as well as nested or keyword inputs. Check who is responsible for input storage and updates, include lifetime and ordering concerns, and keep this source-based rather than claiming installed-stack compatibility; do not run the reproduction or trade correctness checks for a better timing.",
+      "cue": "Prepare a correctness review for replaying a captured graph with a new input and identify what a diagnostic reproduction could and could not establish.; The component is a vLLM-Ascend graph wrapper, and the call can contain positional tensors as well as nested or keyword inputs.; Check who is responsible for input storage and updates, include lifetime and ordering concerns, and keep this source-based rather than claiming installed-stack compatibility; do not run the reproduction or trade correctness checks for a better timing.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 28,
+          "end": 179,
+          "text": "Prepare a correctness review for replaying a captured graph with a new input and identify what a diagnostic reproduction could and could not establish."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 180,
+          "end": 306,
+          "text": "The component is a vLLM-Ascend graph wrapper, and the call can contain positional tensors as well as nested or keyword inputs."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 307,
+          "end": 558,
+          "text": "Check who is responsible for input storage and updates, include lifetime and ordering concerns, and keep this source-based rather than claiming installed-stack compatibility; do not run the reproduction or trade correctness checks for a better timing."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 28,
+          "text": "Please help me review this. ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 179,
+          "end": 180,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        },
+        {
+          "start": 306,
+          "end": 307,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        }
+      ],
+      "constraints_retained": [
+        "Check who is responsible for input storage and updates, include lifetime and ordering concerns, and keep this source-based rather than claiming installed-stack compatibility; do not run the reproduction or trade correctness checks for a better timing."
+      ],
+      "counts": {
+        "raw_characters": 558,
+        "cue_characters": 532,
+        "raw_whitespace_tokens": 86,
+        "cue_whitespace_tokens": 81
+      },
+      "raw_sha256": "ba303f534fa4b61eddf9f9cff550ff131638b17d8d86ea5aff9da4de252d0824",
+      "cue_sha256": "057361325d0d9dcf3ec851c66c4545cdeb2fdff5abd6912307b41b1b27559846",
+      "compression_scope": "Only polite framing removed and original slot whitespace replaced; all substantive text retained."
+    },
+    {
+      "case_id": "covered255-05",
+      "capsule_id": "capsule-05",
+      "source_excerpt_sha256": "2dac103907442504227e2b2e3984df18845c4cb7d51aa05d3b2944608875851d",
+      "intent": "Propose gated host allocator investigation",
+      "raw_task": "Could you advise on this memory issue? Propose how to investigate retained host RAM from large, rarely reused pinned buffers and decide which allocator options are relevant. The workload uses TorchNPU, and we have not yet verified the installed versions or whether pin_memory_expandable_segments=True is active. First establish the applicable version and allocator-path gates, describe the trade-offs of any proposed settings in fresh-process trials, and distinguish host allocation from device memory; do not run trials, promise a total-cache quota, or free buffers that are still in flight.",
+      "cue": "Propose how to investigate retained host RAM from large, rarely reused pinned buffers and decide which allocator options are relevant.; The workload uses TorchNPU, and we have not yet verified the installed versions or whether pin_memory_expandable_segments=True is active.; First establish the applicable version and allocator-path gates, describe the trade-offs of any proposed settings in fresh-process trials, and distinguish host allocation from device memory; do not run trials, promise a total-cache quota, or free buffers that are still in flight.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 39,
+          "end": 173,
+          "text": "Propose how to investigate retained host RAM from large, rarely reused pinned buffers and decide which allocator options are relevant."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 174,
+          "end": 311,
+          "text": "The workload uses TorchNPU, and we have not yet verified the installed versions or whether pin_memory_expandable_segments=True is active."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 312,
+          "end": 592,
+          "text": "First establish the applicable version and allocator-path gates, describe the trade-offs of any proposed settings in fresh-process trials, and distinguish host allocation from device memory; do not run trials, promise a total-cache quota, or free buffers that are still in flight."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 39,
+          "text": "Could you advise on this memory issue? ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 173,
+          "end": 174,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        },
+        {
+          "start": 311,
+          "end": 312,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        }
+      ],
+      "constraints_retained": [
+        "First establish the applicable version and allocator-path gates, describe the trade-offs of any proposed settings in fresh-process trials, and distinguish host allocation from device memory; do not run trials, promise a total-cache quota, or free buffers that are still in flight."
+      ],
+      "counts": {
+        "raw_characters": 592,
+        "cue_characters": 555,
+        "raw_whitespace_tokens": 86,
+        "cue_whitespace_tokens": 79
+      },
+      "raw_sha256": "05c6f3800ea5435bc40620175ac1e8861984e071643f0c723ae546d22cfd25d8",
+      "cue_sha256": "63f839a4d76b92359e7e082c1373885800ee7da2e94731a2d40ca49f50d166d3",
+      "compression_scope": "Only polite framing removed and original slot whitespace replaced; all substantive text retained."
+    },
+    {
+      "case_id": "covered255-06",
+      "capsule_id": "capsule-06",
+      "source_excerpt_sha256": "10341da8e139eeb169ed90e0656cb655072f8d61ac7c19a38841fb80589280d0",
+      "intent": "Plan structural shard download verification",
+      "raw_task": "Please help me check this download. Explain how to tell whether a sharded model download is complete and how to recover only what is missing. The download directory contains numbered safetensors shards, an index JSON, and some .incomplete marker files. Base the assessment on shard structure and the index rather than assuming the markers prove corruption; describe a bounded-concurrency recovery plan without downloading anything, and do not treat structural completeness as proof of tensor correctness or model quality.",
+      "cue": "Explain how to tell whether a sharded model download is complete and how to recover only what is missing.; The download directory contains numbered safetensors shards, an index JSON, and some .incomplete marker files.; Base the assessment on shard structure and the index rather than assuming the markers prove corruption; describe a bounded-concurrency recovery plan without downloading anything, and do not treat structural completeness as proof of tensor correctness or model quality.",
+      "identity_control": false,
+      "spans": [
+        {
+          "slot": "OPERATION",
+          "start": 36,
+          "end": 141,
+          "text": "Explain how to tell whether a sharded model download is complete and how to recover only what is missing."
+        },
+        {
+          "slot": "OBJECT",
+          "start": 142,
+          "end": 252,
+          "text": "The download directory contains numbered safetensors shards, an index JSON, and some .incomplete marker files."
+        },
+        {
+          "slot": "CONSTRAINTS",
+          "start": 253,
+          "end": 521,
+          "text": "Base the assessment on shard structure and the index rather than assuming the markers prove corruption; describe a bounded-concurrency recovery plan without downloading anything, and do not treat structural completeness as proof of tensor correctness or model quality."
+        }
+      ],
+      "removed_spans": [
+        {
+          "start": 0,
+          "end": 36,
+          "text": "Please help me check this download. ",
+          "reason": "politeness",
+          "detail": "Polite request opening."
+        },
+        {
+          "start": 141,
+          "end": 142,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        },
+        {
+          "start": 252,
+          "end": 253,
+          "text": " ",
+          "reason": "redundant framing",
+          "detail": "Original inter-slot separator replaced by mandated semicolon-space serialization; no semantic information removed."
+        }
+      ],
+      "constraints_retained": [
+        "Base the assessment on shard structure and the index rather than assuming the markers prove corruption; describe a bounded-concurrency recovery plan without downloading anything, and do not treat structural completeness as proof of tensor correctness or model quality."
+      ],
+      "counts": {
+        "raw_characters": 521,
+        "cue_characters": 487,
+        "raw_whitespace_tokens": 78,
+        "cue_whitespace_tokens": 72
+      },
+      "raw_sha256": "df71e136fa0d3e8acb447155cf2bafb02abd5037d7bf9408377f42658e9568b9",
+      "cue_sha256": "dca21e95755b0da6f3169a7f71fa27adf943834ea2b8d98fef2df4543cbb3902",
+      "compression_scope": "Only polite framing removed and original slot whitespace replaced; all substantive text retained."
+    }
+  ],
+  "audit_status": "Independent intent/source audit pending; author will not read source labels or alter inputs after catalog/result exposure."
+}

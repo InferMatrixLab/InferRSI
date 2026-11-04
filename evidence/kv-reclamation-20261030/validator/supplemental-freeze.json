@@ -1,0 +1,11 @@
+{
+  "files_sha256": {
+    "BENCHMARK_PROVENANCE.md": "54ba35ab354e0305f101bfb78d96eee016d1c3bad50b7a97d9452b8f254f2111",
+    "benchmark.py": "c9fd5bdb12ad82ea4bdf9b1cace13e56053d7294eceb9d9357ffdae304984c69",
+    "source_workload.py": "aac18d5edc5c9421ea7d28bec475f7089478baa7ae644ec12ddb368a0efe4bc7",
+    "test_benchmark.py": "b3f06f781b5839b666e5b1e51e691bc88351ef9640b2c1e62b93af3364fd45da"
+  },
+  "parent_freeze_sha256": "163c21134a8155da2a6469d9dbddb6ea71cb162e14f53e1c4266fe8ce75126f7",
+  "schema": "synthetic-kv-reclamation-benchmark-supplement-v1",
+  "status": "independent_expected_output_freeze_before_qualification"
+}

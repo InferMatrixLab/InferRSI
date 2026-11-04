@@ -1,0 +1,22 @@
+{
+  "scope": "eight-rank HCCL correctness and clean process exit only; not model performance",
+  "rank_results": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7
+  ],
+  "expected_sum": 36,
+  "container_exit": 0,
+  "probe_sha256": "9884176c01b157c8e820201b0ec8beb1f96e2c60c0cad122140af9446a05c9da",
+  "root_cause_evidence": [
+    "HCCL NET: pwd is NULL! getpwuid fail",
+    "HCCL: get_saved_tls_config_file_path failed, ret:-22",
+    "Eight-rank all-reduce completes after supplying the process UID passwd entry"
+  ],
+  "raw_logs": "Retained privately; redacted causal excerpts only"
+}

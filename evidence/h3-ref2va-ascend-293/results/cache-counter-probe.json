@@ -1,0 +1,28 @@
+{
+  "cache_dit_version": "1.5.0",
+  "source_sha256": "768006a6942cc6f45b61e05f47752a70752f23ed8e743a92780452bb32b06a53",
+  "observations": [
+    {
+      "step": 4,
+      "counter": 1
+    },
+    {
+      "step": 6,
+      "counter": 0
+    },
+    {
+      "step": 7,
+      "counter": 2
+    }
+  ],
+  "cached_steps": [
+    4,
+    6,
+    7
+  ],
+  "scope": "Counter transition only; manager reset is explicitly simulated. Not a performance measurement.",
+  "process_exit_code": 0,
+  "probe_sha256": "7f2dd513dbda6b6110f0360282581c0fd703f5a5bb470a7f9716166c2007b95b",
+  "verdict": "INCONCLUSIVE",
+  "interpretation": "Installed counter behavior is reproduced, but this probe simulates the manager reset and is not a full policy correctness verdict. Actual NPU summaries show adjacent cache hits under the MC1-labelled profile. No runtime patch was applied."
+}

@@ -1,0 +1,16 @@
+{
+  "source": "https://github.com/containers/bubblewrap",
+  "tag": "v0.13.1",
+  "commit": "362936aea0d5c6e70f7af75d2d44b5a914cb4ba2",
+  "release_url": "https://github.com/containers/bubblewrap/releases/tag/v0.13.1",
+  "release_date": "2026-10-14",
+  "published_tar_filename": "bubblewrap-0.13.1.tar.xz",
+  "published_tar_sha256": "0e85c8702248b8dd64144f594147553650cdd0e4c951690345faace79c217c4d",
+  "source_git_blobs": {
+    "meson.build": "08d28c97e64932dd24811c41623a12506fa84ce1",
+    "meson_options.txt": "f4f4ac708911764eebbbecb0dee84391366f3a8d",
+    "README.md": "69addd6f4cbda5ccd1c47e7022a022d305ad4965"
+  },
+  "observed_build_requirements": ["C compiler", "Meson >=0.49.0", "libcap development dependency required", "optional libselinux", "explicit registered Python via -Dpython"],
+  "state": "source read only; archive not downloaded, source not built, no isolation capability validated"
+}

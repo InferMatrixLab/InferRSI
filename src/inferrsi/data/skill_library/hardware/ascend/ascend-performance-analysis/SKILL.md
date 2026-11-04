@@ -1,6 +1,6 @@
 ---
 name: ascend-performance-analysis
-description: 'Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines. Use when profiling data is available and you need to find the bottleneck and its cause.
+description: 'Diagnose performance bottlenecks on Ascend NPU systems using CANN profiling data. Maps GPU profiling concepts (nsys, ncu, SOL%, roofline) to their NPU equivalents (msprof, torch_npu.profiler, CSV/JSON outputs, AI Core utilization, HCCL communication analysis). Covers measurement discipline on shared NPU machines and evidence acceptance for automated NPU optimization stages. Use when profiling data is available or a stage report needs its execution and validation evidence checked.
 
   '
 ---
@@ -10,6 +10,21 @@ description: 'Diagnose performance bottlenecks on Ascend NPU systems using CANN 
 Status: candidate. Source-grounded from MindIE-SD @ 8481d39b. Device-specific
 claims are unverified locally (no NPU on this machine). Verify against CANN docs
 and actual profiler outputs before using.
+
+## Accepting an automated optimization stage
+
+For a CannBot fixed-stage model-inference report, first use the
+[stage-evidence reference](references/cannbot-stage-evidence.md). Bind the model,
+current stage and loaded candidate code to the baseline, actual quality-validator
+output and comparable measurement artifacts before accepting a stage conclusion.
+Progress-file markers and self-check keywords establish only the conditions
+their callbacks inspect; they do not establish numerical accuracy or a speedup.
+Missing execution or validator evidence leaves the conclusion `INCONCLUSIVE`;
+an observed validator failure remains `FAIL` under the frozen campaign gate.
+
+This source-derived candidate rule adds no device result or new numeric bar.
+The existing five-layer analysis and shared-machine measurement procedure below
+remain the path for interpreting valid profiling evidence.
 
 ## GPU→NPU concept mapping
 

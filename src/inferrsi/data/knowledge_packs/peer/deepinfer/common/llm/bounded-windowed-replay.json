@@ -1,0 +1,171 @@
+{
+  "schema_version": 1,
+  "id": "deepinfer.common.llm.bounded_windowed_replay",
+  "tier": "peer",
+  "repo": "deepinfer",
+  "backend": "common",
+  "component": "llm",
+  "scenario": "llm.*",
+  "title": "DeepInfer bounded replay: compact query rows with a derived dependency closure and separately preserved historical state",
+  "status": "imported",
+  "summary": "A decoder stack split at an explicit producer/consumer boundary can replay only a retained suffix if the boundary captures the full-length state the consumer needs. The retain arithmetic is small and transferable; which layers are safe to shorten is a per-model dependency question and must be derived, not assumed from per-layer windowing.",
+  "tags": [
+    "deepinfer",
+    "sliding_window_attention",
+    "prefix_replay",
+    "kv_cache",
+    "metadata",
+    "correctness",
+    "transfer_hypothesis"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/csrc/engine/input_metadata/prepare_tensor_input_v4.cpp",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "93a6b1dd533db116d2f7540c78d6bb5419bdb8c1d2063b031ab8b1a8cc138fe2"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/input_metadata/yoco.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "882a33de3da0fba81644adde9e9e1a90ec3d3ff34a8f3ad4dda18faafebd6460"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/environ.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "fe2c531989c419f0b51b169a07f5ed826dcec7f95c0c5bc3a351805923c4f218"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/yoco.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "7dc8ad7b6ca4902bcef67b1cbc4804592995c5b6af9ebaa00b59cc338c1aa6ec"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/v4_modules/attn.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "cb228c8fd4c76200e2ec266c51872107cfe7b384fdc88458b3d1c0ff101f3116"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/cache_engine.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "ca3d80120fe6bc50971b180278dd575d585e1a6c7a3c2174a8a6fd6213454161"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/engine/llm_engine.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-20",
+      "content_sha256": "a636d60ca5711f6b7c21e68370c3bd9c2de6fc3f4439a7429ca4f572f0edeebe"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/model_metadata_utils.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "1ef7803d2b0083d025de676c841db9a317235b881fb9ebf6781ec76d49d7b22c"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/worker/model_runner.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "9e2e18d136c9e0c9f23905ff994e9d23afaa94aa7a133d425e7fc1fc069033ef"
+    },
+    {
+      "url": "https://github.com/deepseek-ai/DeepInfer/blob/8b16149741a4935e1dec8cea27853f273b374c5b/deepinfer/model_executor/models/decoder_layer.py",
+      "type": "source_code",
+      "commit": "8b16149741a4935e1dec8cea27853f273b374c5b",
+      "accessed_at": "2026-10-22",
+      "content_sha256": "2189fa14c0665a3a211b47c5440748273fd92b39a68268a0080530d3c95b7297"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "Backend-independent retain rule; the reference asserts support only for NVIDIA SM100 and Ascend 950"
+    ],
+    "software": [
+      "deepseek-ai/DeepInfer at 8b16149741a4935e1dec8cea27853f273b374c5b; the model's window sizes and layer boundary come from its config and do not transfer"
+    ],
+    "conditions": [
+      "The decoder has an explicit boundary: earlier layers run over the full prefix, later consumer layers run compact query rows while reading all required preserved state",
+      "A dependency closure shows each retained query's inputs are available from retained producer outputs or explicitly preserved historical state",
+      "Full-length consumer KV is written at the boundary, independent of the compact query",
+      "The rollback depth is known and floored at the speculation width plus one"
+    ]
+  },
+  "claims": [
+    {
+      "kind": "source_observed",
+      "description": "The retain length is window plus backtracking depth, and the backtracking depth cannot be configured below the speculative width plus one, so a full-width rollback still leaves a full window."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The retain check is guarded by the truncation mode: the metadata entrypoint returns early when the mode is off, so the keep-length assertions apply only when truncation is enabled. The keep length has no default value and is not derived from the window, so enabling truncation without setting it fails rather than silently clipping. The same condition is checked at model-metadata construction and at worker setup."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The SWA path's visible keys intersect the sliding window start, retained rectangle and valid-state start; recompute clears SWA state below the last bound. This does not constrain all main/index historical KV to the compact query suffix. An empty SWA visible region is represented explicitly."
+    },
+    {
+      "kind": "source_observed",
+      "description": "Two modes exist: a mask mode that keeps every query and only narrows visibility, and a compact mode that removes clipped rows. Only the second saves compute, and the first is therefore the natural equivalence reference."
+    },
+    {
+      "kind": "source_observed",
+      "description": "The boundary returns both a compact copy and the original full hidden and residual; the caller stores the full one and continues with the compact one. The full-length consumer KV is written from the full hidden in a separate pass, so the persistent cache stays complete while the query is compact."
+    },
+    {
+      "kind": "source_observed",
+      "description": "For a positive window the inference ring is window plus rollback; otherwise it is zero. Both kvstore-ring additions are gated by the store-extra-state flag. Within that branch the store-granularity margin is added, plus the keep margin only when truncation mode is not off. The keep margin therefore requires both gates."
+    },
+    {
+      "kind": "source_observed",
+      "description": "Prompt logprobs are not reconstructable from a clipped region; the engine forces them off with a warning rather than rejecting the request, so the request still runs with per-token prompt logprobs disabled."
+    }
+  ],
+  "downstream_impact": [
+    "The retain arithmetic and the visible-region formula are reusable in any decoder that can derive the same boundary dependency; the boundary index, window sizes and ring lengths must be re-derived per model.",
+    "Query-row compaction and historical-key retention are separate decisions. A consumer may keep full-layout keys in a compressed or shared index while computing over fewer query rows, so compaction is not evidence that historical keys were dropped.",
+    "Prompt logprobs become unavailable for the clipped region, whether by being forced off or by rejection; which of the two is a policy choice, not a consequence of the mechanism.",
+    "The mask/compact split is a reusable testing pattern: a compute-neutral diagnostic mode isolates the visibility math from the gather."
+  ],
+  "recommendations": [
+    "Derive the producer/consumer dependency closure before applying window arithmetic; one layer's finite window does not determine the whole stack's dependency horizon. Preserved historical state remains a valid input.",
+    "Enforce the retain length at every entry, not once, because the value can arrive through an environment variable.",
+    "Do not report the diagnostic mode as an optimization; it is compute-neutral by construction.",
+    "State whether historical keys are preserved, compacted or compressed, separately from the query-compaction decision.",
+    "State the anchor explicitly. Preemption-and-recompute moves the retained rectangle, so bit-identical results across preemption are not available."
+  ],
+  "validation_plan": [
+    "Dependency closure: for every consumer layer, list what it reads and where it was produced.",
+    "Full-length KV write exists at the boundary and is independent of the compact query.",
+    "Metadata equivalence between the two modes at chunk boundaries: visible-key sets, store slots and compressed-key ranges.",
+    "End-to-end equivalence on a fixed teacher-forcing trajectory, comparing logprobs and top-k element-wise.",
+    "A dependency-probe run that keeps all historical keys and shortens only the query, to separate the two decisions.",
+    "Chunk sizes that do and do not align with store granularity, including a fully clipped chunk.",
+    "Preemption count during the comparison run, which must be zero for the result to be interpretable."
+  ],
+  "limitations": [
+    "No equivalence run was performed; the metadata argument is from the shared formula, not from a measurement.",
+    "Applies to architectures with a demonstrated boundary dependency, not to arbitrary sliding-window stacks.",
+    "Window sizes, boundary-layer index and ring lengths are specific to one model and must not be carried across.",
+    "Query-row compaction does not imply dropping historical keys.",
+    "Prompt logprobs are not reconstructable from a clipped region.",
+    "The truncation path is off by default in the source."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "source_observed"
+  }
+}

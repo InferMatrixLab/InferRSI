@@ -1,0 +1,29 @@
+{
+  "schema_version": "2.0",
+  "repo_id": "mw00/project-maya",
+  "skill_id": "project-maya",
+  "taxonomy_sha256": "f8c306386015711634ddbb43a5eb95d1f58909c3513ce2063ba42efdd583a431",
+  "routing_status": "classified",
+  "assignments": [
+    {
+      "area": "Model Deployment and Optimization",
+      "family": "Inference Serving"
+    }
+  ],
+  "source_commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+  "rationale": "The repository primarily implements model-specific native execution engines and a shared serving API, not a dependency-only or example-only inference reference.",
+  "evidence": [
+    {
+      "path": "CMakeLists.txt",
+      "scope": "Native engine/backend targets and registration"
+    },
+    {
+      "path": "serve/server.py",
+      "scope": "Actual inference service entry and protocol/native boundary"
+    },
+    {
+      "path": "src/ds4/ds4_main.cpp",
+      "scope": "Model-specific single and multi-sequence execution"
+    }
+  ]
+}

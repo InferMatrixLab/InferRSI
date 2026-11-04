@@ -1,0 +1,19 @@
+{
+  "report_verdict": "FAIL",
+  "latency_reduction_pct": 30.548675508082418,
+  "findings": ["unsupported_service_claim"],
+  "claim_scope": "kernel_only",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "每轮先计算请求延迟均值，再取五轮中位数：基线383.243923 ms，候选266.167980 ms；相对基线降低30.548676%，超过20%门槛。两组轮均值的相对极差（极差/中位数）分别为5.903%和3.317%，均低于12%。工作负载一致，质量通过，两组均报告全部15个请求且无失败。唯一实质问题是用kernel计时证明HTTP服务增益。依据dense-performance-evidence的“Level 1 — Microbenchmark”和“Claim-evidence matching”，现有证据仅支持kernel_only。FAIL针对报告的验收声明。最小下一步是在相同C1工作负载下补充覆盖全部请求的端到端HTTP对照计时，并按原合同重新验收。"
+}

@@ -1,0 +1,63 @@
+{
+  "job_id": 2163,
+  "scheduler_state": "COMPLETED",
+  "scheduler_exit": "0:0",
+  "scheduler_seconds": 2244,
+  "allocated_gpu_seconds": 2244,
+  "allocated_gpus": 1,
+  "allocated_cpus": 8,
+  "sacct_agrees": true,
+  "archive_sha256": "7a2774618dee78bf60ba0def9fc8e605d22f80475c4648fe29db3235a076bcb1",
+  "safe_extraction": true,
+  "frozen_files_overwritten": false,
+  "binder_exit": 0,
+  "binder_output_sha256": "818046ab9571161fb631ff07d17e9ac267c95d1e1f50ce2b741fdb14cac93137",
+  "binder_stdout_stderr_bytes": 0,
+  "validated_measurement_rows": 60,
+  "postflight_all_zero": true,
+  "campaign_verdict": "INCONCLUSIVE",
+  "metric_verdicts": {
+    "ttft_s": "FAIL",
+    "tpot_s": "FAIL"
+  },
+  "warnings": [
+    {
+      "category": "Deprecated vLLM API server entrypoint/module command",
+      "count": 6
+    },
+    {
+      "category": "Missing or mismatched FlashInfer precompiled kernels; startup compilation warning",
+      "count": 3
+    },
+    {
+      "category": "FlashInfer GDN prefill JIT compilation warning",
+      "count": 3
+    },
+    {
+      "category": "TritonBundler cached cubin reload failures, missing saved cubin; RuntimeError traces during baseline startup",
+      "count": 30
+    },
+    {
+      "category": "Model generation_config overrides default sampling parameters",
+      "count": 3
+    },
+    {
+      "category": "Chat template system-first ordering warning",
+      "count": 3
+    },
+    {
+      "category": "Forced remaining EngineCore process shutdown",
+      "count": 3,
+      "log_lines": 6
+    },
+    {
+      "category": "One leaked semaphore reported by resource tracker at shutdown",
+      "count": 3
+    }
+  ],
+  "limits": [
+    "Warnings retained; successful scheduler exit is not a claim of warning-free execution.",
+    "Authenticated 8K paired performance only; quality and retrieval remain required.",
+    "Validator unchanged; no new scheduled jobs or model executions during receipt review."
+  ]
+}

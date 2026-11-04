@@ -15,6 +15,7 @@ from .inspection import inspect_environment
 from .knowledge_operations import KnowledgeReader
 from .knowledge_store import KnowledgeStore
 from .reporting import write_report
+from .research import research_knowledge
 
 
 def _print(value: object) -> None:
@@ -42,6 +43,16 @@ def _revisions(pairs: list[str]) -> dict[str, str]:
             raise ValueError(f"Duplicate revision request: {identity}")
         revisions[identity] = revision
     return revisions
+
+
+def _tsv(value: str) -> str:
+    # One line per record: free-text fields may contain tabs or line breaks.
+    return (
+        value.replace("\\", "\\\\")
+        .replace("\t", "\\t")
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+    )
 
 
 def _run_directory(output_dir: str, run_id: str) -> Path:
@@ -139,6 +150,22 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "knowledge":
             if args.knowledge_action == "show":
                 _print(get_knowledge(args.id))
+            elif args.knowledge_action == "research":
+                _print(research_knowledge(
+                    args.model,
+                    frameworks=args.framework,
+                    tasks=args.task,
+                    modalities=args.modality,
+                    mechanisms=args.mechanism,
+                    repo=args.repo_type,
+                    tier=args.tier,
+                    backend=args.backend,
+                    scenario=args.scenario,
+                    limit=args.limit,
+                    target_backend=args.target_backend,
+                    target_device=args.target_device,
+                    target_memory_gib=args.target_memory_gib,
+                ))
             else:
                 records = search_knowledge(
                     args.query,
@@ -165,15 +192,56 @@ def main(argv: list[str] | None = None) -> int:
                 limit=args.limit,
                 max_bytes=args.max_bytes,
                 material=args.material,
+                relevance=args.relevance,
+                relevance_method=args.relevance_method,
+                context_bytes=args.context_bytes,
             )
             if args.json:
                 _print(result)
             else:
+                for identity in result["collisions"]:
+                    print(
+                        f"{identity}\tcollision\towned by multiple authorities; qualify the ref"
+                    )
                 for item in result["items"]:
-                    print(f"{item['ref']}\t{item['revision']}\t{item.get('title', item['ref'])}")
+                    if "applicability" in item:
+                        value = item["applicability"]
+                        applicability = (
+                            _tsv(value)
+                            if isinstance(value, str)
+                            else json.dumps(value, ensure_ascii=False, sort_keys=True)
+                        )
+                    else:
+                        applicability = "-"
+                    print(
+                        f"{item['ref']}\t{item['revision']}\t{item['kind']}"
+                        f"\t{_tsv(item['state'])}\t{applicability}"
+                    )
+                    if args.material and "content" in item:
+                        print(f"--- begin content {item['ref']} @ {item['revision']} ---")
+                        print(item["content"], end="" if item["content"].endswith("\n") else "\n")
+                        print(f"--- end content {item['ref']} ---")
+                for context in result.get("contexts", []):
+                    for resource in context["resources"]:
+                        print(
+                            f"--- begin context {context['ref']} @ {context['revision']} "
+                            f"{resource['path']} ---"
+                        )
+                        print(resource["content"], end="" if resource["content"].endswith("\n")
+                              else "\n")
+                        print(f"--- end context {resource['path']} ---")
+                    for omission in context["omissions"]:
+                        print(f"{omission['path']}\tcontext_omitted\t{omission['reason']}")
+                for omission in result.get("context_omissions", []):
+                    print(f"{omission['ref']}\tcontext_omitted\t{omission['reason']}")
                 for omission in result["omissions"]:
-                    detail = f"\t{omission['detail']}" if "detail" in omission else ""
-                    print(f"{omission['id']}\tomitted\t{omission['reason']}{detail}")
+                    detail = f"\t{_tsv(omission['detail'])}" if "detail" in omission else ""
+                    print(f"{_tsv(omission['id'])}\tomitted\t{omission['reason']}{detail}")
+                if result["no_match"]:
+                    print(
+                        "no_match\tnothing selected from the requested sources; "
+                        "use --json for the full envelope"
+                    )
             return 0
         if args.command == "read":
             bundle = _knowledge_reader(args).read(args.id, revision=args.revision)
@@ -223,11 +291,12 @@ def main(argv: list[str] | None = None) -> int:
         environment["invocation"] = argv if argv is not None else sys.argv[1:]
         if args.command == "doctor":
             _print(environment)
-            healthy = environment["repository"].get("available", False) and environment[
+            device = environment["device"]
+            known = device["status"] == "available" and device.get("selection_verified", True)
+            available = environment["repository"].get("available", False) and environment[
                 "target_python"
             ].get("environment")
-            available = environment["device"]["status"] in ("available", "tool_available")
-            return 0 if healthy and available else 1
+            return 0 if available and known else 1
 
         spec = make_spec(args)
         if args.command == "plan" or args.dry_run:
@@ -242,8 +311,10 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if not environment["repository"].get("available"):
             raise ValueError("The baseline must be a readable Git checkout for source provenance")
-        if environment["device"]["status"] not in ("available", "tool_available"):
+        if environment["device"]["status"] != "available":
             raise ValueError(f"Backend inspection failed: {environment['device']['status']}")
+        if not environment["device"].get("selection_verified", True):
+            raise ValueError("Requested device selection is not verified by platform discovery")
         if not environment["target_python"].get("environment"):
             raise ValueError("Target Python inspection failed")
 

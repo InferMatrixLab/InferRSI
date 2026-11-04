@@ -1,0 +1,9 @@
+{
+  "scope": "exact_wrapper_environment_line",
+  "inherited_ninja": "/outside-synthetic/ninja",
+  "selected_ninja": "/task/build-venv/bin/ninja",
+  "actual_ninja_or_meson_executed": false,
+  "wrapper_sha256": "ed569b39048680adede8817fd045310e06e55555b87b3cbd5923343ba3b49b47",
+  "exit_code": 0,
+  "stdout": "ninja-boundary-ok\n"
+}

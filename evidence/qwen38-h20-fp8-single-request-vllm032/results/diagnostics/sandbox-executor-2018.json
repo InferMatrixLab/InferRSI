@@ -1,0 +1,231 @@
+{
+  "terminal": {
+    "completed": true,
+    "signal": "none",
+    "exit_code": 0,
+    "job_id": "2018"
+  },
+  "source_sha256": {
+    "runtime.py": "997cbfed8398e8ad62d1beb4f6b4bc6e61a0f4572b9156cfd0c6f3fb52b03233",
+    "bounds_driver.py": "bfeeb6ea794c0ebf24e72a0127458ff74951253471daee080b3a3b1d82a062ba",
+    "synthetic_probe.py": "236920f27573447b9f3833afb72739033c965e22a9e406b09f28da815529ca64",
+    "contract.py": "bcd6a4a4d69f163075b89ae2e55c8fd475a9cc78ac64d39eadda1a54b4557dec",
+    "inner.py": "5a635ae5773d08a3cbcda07551450b38d3fd6af64f8ca251cc61a7a94c388342",
+    "executor.py": "15613932aec108c27b2de2390a965aaba4074535f0e02295f4e7846e405f282c",
+    "fixtures.py": "166dc7c82c9b0847144a56f46a30f97e93f65967a017e79cb9f8b916219364cc",
+    "exercise.py": "cc4f31657a89f0ca1a3bacd86e9060f2fbf633557ee05b6695f6ccba91d6e92f",
+    "test_contract.py": "94b32dfc8bc80d4f46f211fc6d0d36065d6043a47bff04a4856d3eb942e7cf1e",
+    "policy.json": "222326a1b27e48fd55988a2c10a7065fa44ad8cd22e71348bff355aa1c15996d",
+    "run-executor.sbatch": "99626cbef13f865de7fee59746fe228ebae885aac76bcc6029955c1a36cca16f"
+  },
+  "summary": {
+    "checks": {
+      "complete_raw_result_larger_than_old_cap": true,
+      "four_official_status_pairs": true,
+      "not_qualified": true,
+      "old_output_rejected": true,
+      "raw_result_digest_bound": true,
+      "runtime_stable": true,
+      "runtime_stable_after_negative_controls": true,
+      "wrong_export_rejected_without_score": true,
+      "wrong_policy_rejected_without_score": true
+    },
+    "generated_code_executed": false,
+    "negative_controls": [
+      {
+        "cleanup_complete": true,
+        "exit_code": 1,
+        "name": "wrong_policy",
+        "passed": true
+      },
+      {
+        "cleanup_complete": true,
+        "exit_code": 1,
+        "name": "wrong_export",
+        "passed": true
+      }
+    ],
+    "observed_identity": {
+      "driver_sha256": "15613932aec108c27b2de2390a965aaba4074535f0e02295f4e7846e405f282c",
+      "evaluator_revision": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+      "executor_sha256": "5a635ae5773d08a3cbcda07551450b38d3fd6af64f8ca251cc61a7a94c388342",
+      "policy_sha256": "222326a1b27e48fd55988a2c10a7065fa44ad8cd22e71348bff355aa1c15996d",
+      "runtime_digest": "sha256:255878920d08f74025857e60a12afb19bd71df0815ad00da926c4ee4986ffa94",
+      "runtime_kind": "readonly-bind-set-v1",
+      "sandbox_binary_sha256": "04683adbb7f45376ba56d6936a02203535ff9451b1592299ac4ba69838c33627",
+      "schema_version": 1
+    },
+    "passed": true,
+    "qualified": false,
+    "real_benchmark_data_mounted": false,
+    "results_bytes": 1145014,
+    "results_sha256": "48b84ec5e8c77b8966b539cd201d4cb2d4482001b8d7f2fb9e2532f54de824a4",
+    "scope": "four-handwritten-fixtures-through-external-export-interface",
+    "statuses": {
+      "Synthetic/correct": [
+        "pass",
+        "pass"
+      ],
+      "Synthetic/exception": [
+        "fail",
+        "fail"
+      ],
+      "Synthetic/input_timeout": [
+        "fail",
+        "fail"
+      ],
+      "Synthetic/plus_wrong": [
+        "pass",
+        "fail"
+      ]
+    },
+    "verdict": "INCONCLUSIVE"
+  },
+  "rootfs_digest": "sha256:255878920d08f74025857e60a12afb19bd71df0815ad00da926c4ee4986ffa94",
+  "readonly_entry_count": 25249,
+  "package_count": 97,
+  "source_checks": 43,
+  "postflight_passed": 12,
+  "reports": [
+    {
+      "authorization_sent": true,
+      "cleanup_complete": true,
+      "cleanup_or_evidence_errors": [],
+      "cleanup_registered_child_exits": [],
+      "elapsed_seconds": 23.39196834107861,
+      "exit_code": 0,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": 0,
+      "forced_cleanup": false,
+      "generated_code_executed": false,
+      "init_exit_observed": true,
+      "mode": "external-export",
+      "outputs_stable": true,
+      "passed": true,
+      "qualified": false,
+      "rootfs_digest": "sha256:255878920d08f74025857e60a12afb19bd71df0815ad00da926c4ee4986ffa94",
+      "status_eof": true,
+      "status_sha256": "4587479e05f85283bf8db0935810b93b5f611c667754d4c3f499ad78313ac38a",
+      "stderr_sha256": "9103a705569e790af442f33baa27625a0da1a92d14a1018d243f50b66711df8e",
+      "stdout_sha256": "48b84ec5e8c77b8966b539cd201d4cb2d4482001b8d7f2fb9e2532f54de824a4",
+      "timed_out": false
+    },
+    {
+      "authorization_sent": true,
+      "cleanup_complete": true,
+      "cleanup_or_evidence_errors": [],
+      "cleanup_registered_child_exits": [],
+      "elapsed_seconds": 0.16353529004845768,
+      "exit_code": 1,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": 1,
+      "forced_cleanup": false,
+      "generated_code_executed": false,
+      "init_exit_observed": true,
+      "mode": "external-export",
+      "outputs_stable": true,
+      "passed": false,
+      "qualified": false,
+      "rootfs_digest": "sha256:255878920d08f74025857e60a12afb19bd71df0815ad00da926c4ee4986ffa94",
+      "status_eof": true,
+      "status_sha256": "e73278e67a675d4fc9a886d6aafe6ce30525d40976ae03e083c6b4d44a5f2dfc",
+      "stderr_sha256": "b6c666434c91bf3dcc00228d7ac5cf7d67b4d60019626e4f596cac542456a5d8",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "timed_out": false
+    },
+    {
+      "authorization_sent": true,
+      "cleanup_complete": true,
+      "cleanup_or_evidence_errors": [],
+      "cleanup_registered_child_exits": [],
+      "elapsed_seconds": 0.11348454200197011,
+      "exit_code": 1,
+      "final_init_exit_observed": true,
+      "final_launcher_exit_code": 1,
+      "forced_cleanup": false,
+      "generated_code_executed": false,
+      "init_exit_observed": true,
+      "mode": "external-export",
+      "outputs_stable": true,
+      "passed": false,
+      "qualified": false,
+      "rootfs_digest": "sha256:255878920d08f74025857e60a12afb19bd71df0815ad00da926c4ee4986ffa94",
+      "status_eof": true,
+      "status_sha256": "dd63e0a71fdb6e1cfe8115f2fecf304c60c011fb9ca1de9c3e8b938a19fe732a",
+      "stderr_sha256": "dd11936aad600f64a9ccfd661641c380b0c81a2d073f0e2804dae3e99715272c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "timed_out": false
+    }
+  ],
+  "execution_record": {
+    "cleanup_complete": true,
+    "cohort_sha256": "043fe8deb6e0ae81e0059f04cc84d30bea70651d416d85789d2ba85438380631",
+    "dataset_sha256": "2724dd628450f17c594e8398ec1044aa506060d93429dc1abbf0409839c43659",
+    "execution_completed": true,
+    "exit_code": 0,
+    "export_sha256": "d021a39f8908756c4bea0cb55f862e6fdafce1bcf6122ff59b9e199ea7a673d3",
+    "network": "none",
+    "observed_identity": {
+      "driver_sha256": "15613932aec108c27b2de2390a965aaba4074535f0e02295f4e7846e405f282c",
+      "evaluator_revision": "26d6d00bb1fd0fa37f39c99d5290da67891d1c5e",
+      "executor_sha256": "5a635ae5773d08a3cbcda07551450b38d3fd6af64f8ca251cc61a7a94c388342",
+      "policy_sha256": "222326a1b27e48fd55988a2c10a7065fa44ad8cd22e71348bff355aa1c15996d",
+      "runtime_digest": "sha256:255878920d08f74025857e60a12afb19bd71df0815ad00da926c4ee4986ffa94",
+      "runtime_kind": "readonly-bind-set-v1",
+      "sandbox_binary_sha256": "04683adbb7f45376ba56d6936a02203535ff9451b1592299ac4ba69838c33627",
+      "schema_version": 1
+    },
+    "protocol": null,
+    "qualified": false,
+    "results_sha256": "48b84ec5e8c77b8966b539cd201d4cb2d4482001b8d7f2fb9e2532f54de824a4",
+    "runtime_unchanged": true,
+    "samples_sha256": "2059f9bc7837cc93b13ca28d15caa2fd76d97be3ed410637e8f441eaf728fd9e",
+    "scope": "four-handwritten-fixtures-readiness",
+    "statuses": {
+      "Synthetic/correct": [
+        "pass",
+        "pass"
+      ],
+      "Synthetic/exception": [
+        "fail",
+        "fail"
+      ],
+      "Synthetic/input_timeout": [
+        "fail",
+        "fail"
+      ],
+      "Synthetic/plus_wrong": [
+        "pass",
+        "fail"
+      ]
+    },
+    "supervisor_stdout_sha256": "48b84ec5e8c77b8966b539cd201d4cb2d4482001b8d7f2fb9e2532f54de824a4",
+    "timed_out": false,
+    "validation_error": null,
+    "verdict": "INCONCLUSIVE"
+  },
+  "raw_archive_sha256": "2bb6d2d7a9acc53926c7cb7661b696cd8fb49d6987c0f86f62ee87eaa0d10cfd",
+  "raw_archive_bytes": 38502400,
+  "results_bytes": 1145014,
+  "results_sha256": "48b84ec5e8c77b8966b539cd201d4cb2d4482001b8d7f2fb9e2532f54de824a4",
+  "scope": "external_export_evaluator_trusted_readiness",
+  "verdict": "INCONCLUSIVE",
+  "job": 2018,
+  "scheduler_state": "COMPLETED",
+  "scheduler_exit": "0:0",
+  "allocated_seconds": 186,
+  "allocated_cpus": 4,
+  "allocated_gpus": 0,
+  "allocation_released": true,
+  "scheduler_evidence": "sacct after scontrol retention expired; active queue excludes this job",
+  "collection_notes": [
+    "One SSH transfer failed; retry did not rerun the job.",
+    "Job-specific scontrol/squeue queries expired before final capture; accounting succeeded."
+  ],
+  "e2e_effect": null,
+  "qualified_generated_code_executor": false,
+  "readiness_gpu_seconds_used": 2388,
+  "readiness_gpu_seconds_cap": 7200,
+  "initial_gpu_seconds_separate": 147,
+  "private_raw_archive_available_in_repository": false
+}

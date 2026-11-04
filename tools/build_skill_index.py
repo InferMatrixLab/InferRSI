@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import io
 import json
 import subprocess
 from pathlib import Path
@@ -18,12 +19,35 @@ PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = Path("src/inferrsi/data/skill_library")
 DESTINATION = Path("src/inferrsi/data/repo_packs/inferrsi/knowledge")
 REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
+# Match the comparison tool: replacement refs and lazy promisor fetches must not
+# change the bytes hashed for a pinned revision.
+GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
 
 
 def _git(project: Path, *args: str) -> bytes:
     return subprocess.run(
-        ["git", "-C", str(project), *args], check=True, capture_output=True
+        [*GIT_READ, "-C", str(project), *args], check=True, capture_output=True
     ).stdout
+
+
+def _source_hashes(project: Path, revision: str, paths: set[str]) -> dict[str, str]:
+    ordered = sorted(paths)
+    requests = "".join(f"{revision}:{path}\n" for path in ordered).encode("utf-8")
+    completed = subprocess.run(
+        [*GIT_READ, "-C", str(project), "cat-file", "--batch"],
+        input=requests, check=True, capture_output=True,
+    )
+    stream = io.BytesIO(completed.stdout)
+    hashes = {}
+    for path in ordered:
+        _, kind, size = stream.readline().split()
+        if kind != b"blob":
+            raise ValueError(f"Skill source is not a Git blob: {path}")
+        content = stream.read(int(size))
+        if stream.read(1) != b"\n":
+            raise ValueError(f"Invalid Git batch boundary for skill source: {path}")
+        hashes[path] = hashlib.sha256(content).hexdigest()
+    return hashes
 
 
 def build_index(project: Path, source_revision: str) -> dict[str, str]:
@@ -40,12 +64,14 @@ def build_index(project: Path, source_revision: str) -> dict[str, str]:
     }
     if inputs != pinned_inputs:
         raise ValueError("Skill input paths differ from the source revision; commit sources first")
-    if _git(project, "diff", "--name-only", revision, "--", *sorted(inputs)):
+    # Compare the whole tree diff and intersect locally: passing several hundred
+    # paths on the command line exceeds the Windows process-argument limit.
+    dirty = set(
+        _git(project, "diff", "--name-only", revision).decode("utf-8").splitlines()
+    )
+    if dirty & inputs:
         raise ValueError("Skill inputs differ from the source revision; commit sources first")
-    source_files = {
-        path: hashlib.sha256(_git(project, "show", f"{revision}:{path}")).hexdigest()
-        for path in sorted(inputs)
-    }
+    source_files = _source_hashes(project, revision, inputs)
     return render_index(root, revision, source_files)
 
 
@@ -62,6 +88,23 @@ def source_inputs(root: Path) -> set[str]:
         for item in _registry(root).values()
         for path in (root / item["path"]).rglob("*") if path.is_file()
     }
+
+
+DEFAULT_RECOMMENDATIONS = [
+    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
+    "Read the packaged references and owner-local cases alongside the procedure.",
+]
+
+
+def recommendations(metadata: dict) -> list[str]:
+    """Owner-supplied procedure advice, or generic navigation when absent.
+
+    A declared empty list means the owner states there is no procedure-specific
+    advice; it is not the same as an absent field and does not fall back.
+    """
+    if "recommendations" in metadata:
+        return list(metadata["recommendations"])
+    return list(DEFAULT_RECOMMENDATIONS)
 
 
 def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dict[str, str]:
@@ -110,10 +153,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
             "source_files": hashes,
             "skill_metadata": metadata,
             "applicability": metadata.get("applicability", {}),
-            "recommendations": [
-                "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-                "Read the packaged references and owner-local cases alongside the procedure.",
-            ],
+            "recommendations": recommendations(metadata),
             "limitations": [
                 "This generated abstract points to the complete packaged skill; "
                 "external evidence and upstream repositories remain source links.",
@@ -132,7 +172,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         links.append(f"| [{name}]({relative}) | {backend} | {state} |")
     outputs["README.md"] = "\n".join([
         "# InferRSI skill discovery index", "",
-        "Generated abstracts for all 48 registered skills in `data/skill_library/`.",
+        f"Generated abstracts for all {len(entries)} registered skills in `data/skill_library/`.",
         "Their complete procedures, references and cases ship in the same package.",
         "`skill-index.json` maps stable skill IDs to categorized directories. The",
         "reference and searchspace matrices",

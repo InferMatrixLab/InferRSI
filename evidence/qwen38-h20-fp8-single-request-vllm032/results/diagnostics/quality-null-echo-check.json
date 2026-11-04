@@ -1,0 +1,50 @@
+{
+  "scope": "prospective_quality_transport_fix_only",
+  "verdict": "INCONCLUSIVE",
+  "original_run_sha256": "3a5685f5d5728e6b28521fb2385e407c9b21e777ff96a15612f0b9832def8baf",
+  "candidate_run_sha256": "5255b0fe1aa6896f57e9dc7cfcf61aab5b03104186cafd55a1358321bea2b7dc",
+  "source_archive_sha256": "9c9cddd3242c00b6c39e4a6342a4ab7d17ab3e74f07bbd7c628c6952f4517099",
+  "cases": [
+    {
+      "index": 0,
+      "input_tokens": 32,
+      "output_tokens": 8,
+      "wire_sha256": "b0a324d872cadaaa510d8ea834429ce02150d1f115f7ab6af6f130fb4335cacc",
+      "old_error": "prompt IDs must occur once in the first choice",
+      "candidate_parse_valid": true
+    },
+    {
+      "index": 1,
+      "input_tokens": 32,
+      "output_tokens": 8,
+      "wire_sha256": "f908a8271c0b9a61997d3d48f75fcb14a76e227e36d7d1901ce6d32c685d31d5",
+      "old_error": "prompt IDs must occur once in the first choice",
+      "candidate_parse_valid": true
+    },
+    {
+      "index": 2,
+      "input_tokens": 8192,
+      "output_tokens": 32,
+      "wire_sha256": "2e1b811c1713c7216f530cc453ee306da3bf315c9a017227d007757b1f62991d",
+      "old_error": "prompt IDs must occur once in the first choice",
+      "candidate_parse_valid": true
+    },
+    {
+      "index": 3,
+      "input_tokens": 65536,
+      "output_tokens": 8,
+      "wire_sha256": "576105c92deb99d4e1af0ca2b5562d20515ca9f1e43141d8a0ae689904703c68",
+      "old_error": "prompt IDs must occur once in the first choice",
+      "candidate_parse_valid": true
+    },
+    {
+      "index": 4,
+      "input_tokens": 131072,
+      "output_tokens": 8,
+      "wire_sha256": "72b8195b0af091869382a5efb61897a3648dd5bbef5372160a6bc2e135d431a1",
+      "old_error": "prompt IDs must occur once in the first choice",
+      "candidate_parse_valid": true
+    }
+  ],
+  "duplicate_nonnull_rejected": true
+}

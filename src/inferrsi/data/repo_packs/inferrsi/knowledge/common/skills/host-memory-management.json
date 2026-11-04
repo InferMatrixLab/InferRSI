@@ -8,7 +8,7 @@
   "component": "skills",
   "scenario": "skills.discovery",
   "status": "imported",
-  "summary": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
+  "summary": "Audit pinned host buffers and asynchronous CUDA transfers: distinguish copy ordering, host mutation/reuse and device allocator lifetime; use bounded PyTorch source evidence, a reusable staging-slot example and a hardware validation recipe. Also route Ascend native descriptor retention, Python preprocessing and NUMA placement to their scoped sources.",
   "tags": [
     "host",
     "cpu",
@@ -17,7 +17,12 @@
     "h2d",
     "gil",
     "numa",
-    "inference"
+    "inference",
+    "ascend",
+    "descriptor-pool",
+    "cuda-streams",
+    "allocator-lifetime",
+    "buffer-reuse"
   ],
   "origin": [
     "external"
@@ -25,14 +30,23 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ee06e5eeda65c779d9ac25f4b53f7fb3d4f14f55/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
-      "commit": "ee06e5eeda65c779d9ac25f4b53f7fb3d4f14f55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-PSF-LICENSE.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-free-threading-readset.json",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/legacy-source-notes.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-LICENSE.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy-readset.json",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json",
+        "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md",
         "src/inferrsi/data/skill_library/skill-index.json"
       ],
-      "content_sha256": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f"
+      "content_sha256": "4c8db9f603cd581d002e8f41da65af9cbd03699be05c4965a55de47e044e4dd8"
     }
   ],
   "index_type": "packaged-skill",
@@ -41,13 +55,22 @@
   },
   "checkout_ref": "checkout:host-memory-management",
   "source_files": {
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md": "b42e565be94d60e0a1557d5ed76a0548e89b8e054dc249c46215e7b90fe4277f",
-    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "f98060ed3c2ef815832eae549bfb21ca02811ff980a629bf995a5b8e7f48c7cd",
-    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/SKILL.md": "4c8db9f603cd581d002e8f41da65af9cbd03699be05c4965a55de47e044e4dd8",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/metadata.json": "9fe5988b136da9aeff9d00b0c6c607cac00b4071efaf637d287a350e5d4fcafb",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-PSF-LICENSE.md": "33f1a470702f459c160751bf3188b3fa7462fc761a006e03e80ef3f0a7a01ed6",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/cpython-free-threading-readset.json": "46336623b3c573fad97d4c686d9836baab807adf10f4bea05352d7a46236e004",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/legacy-source-notes.md": "bb1c0fb7a4d1a0301ca9e699e733224f3dcf0ded3cfe13e612e5c04d48a8cab5",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-LICENSE.md": "a8a2c6b67cf8a597ffaa5c82380a6bd1b82629c0417e00673d8013d662eb500a",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy-readset.json": "881258c97edfee0a89f2392c2ff61cd7fe37ff8344f18620f281e841fb92cbc8",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/pytorch-host-copy.md": "fa9da5c39d37ebe44e5a336a7b88d7aece6a0f118ec47cb38271e29925e11117",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-LICENSE.md": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload-readset.json": "cc6c2011be746002ba3ff96ccefab1809863748ddd17eb102b75e7b0e134fe55",
+    "src/inferrsi/data/skill_library/hardware/host/host-memory-management/references/vllm-ascend-native-offload.md": "6c2a72b5ba3708a01d229e0576570837a617e6a42dbb0b5312a26a65a6c31542",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "host-memory-management",
-    "description": "Configure host memory for inference serving: pinned memory for fast H2D transfers, async transfer streams, Python GIL avoidance patterns, and NUMA-aware allocation. Complements host-overhead-profiling (detect the bottleneck) and host-overhead-optimization (optimize Python execution).\n",
+    "description": "Audit pinned host buffers and asynchronous CUDA transfers: distinguish copy ordering, host mutation/reuse and device allocator lifetime; use bounded PyTorch source evidence, a reusable staging-slot example and a hardware validation recipe. Also route Ascend native descriptor retention, Python preprocessing and NUMA placement to their scoped sources.",
     "tags": [
       "host",
       "cpu",
@@ -56,7 +79,12 @@
       "h2d",
       "gil",
       "numa",
-      "inference"
+      "inference",
+      "ascend",
+      "descriptor-pool",
+      "cuda-streams",
+      "allocator-lifetime",
+      "buffer-reuse"
     ],
     "status": "candidate",
     "profile": "local-skill-v1",
@@ -65,25 +93,104 @@
     "origin": [
       "external"
     ],
-    "sources": [],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-ascend",
+        "commit": "8a8e1e05ecb64a30804c99c8f362909f9a0cb5bf",
+        "paths": [
+          "LICENSE",
+          "requirements.txt",
+          "vllm_ascend/distributed/kv_transfer/__init__.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/npu.py",
+          "vllm_ascend/distributed/kv_transfer/kv_pool/kv_offload/native/cpu_npu.py",
+          "csrc/torch_binding.cpp",
+          "tests/ut/kv_offload/test_native_cpu_offload.py"
+        ],
+        "readset": "references/vllm-ascend-native-offload-readset.json"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/pytorch/pytorch",
+        "commit": "ba56102387ef21a3b04b357e5b183d48f0afefc7",
+        "paths": [
+          "aten/src/ATen/core/CachingHostAllocator.h",
+          "aten/src/ATen/cuda/CachingHostAllocator.cpp",
+          "aten/src/ATen/native/cuda/Copy.cu",
+          "aten/src/ATen/native/Memory.cpp",
+          "c10/cuda/CUDAFunctions.h",
+          "docs/source/notes/cuda.rst",
+          "torch/cuda/streams.py",
+          "torch/_tensor_docs.py",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "selected_implementation_and_official_documentation",
+        "license": "BSD-3-Clause",
+        "readset": "references/pytorch-host-copy-readset.json"
+      },
+      {
+        "type": "git",
+        "url": "https://github.com/python/cpython",
+        "commit": "60403a5409ff2c3f3b07dd2ca91a7a3e096839c7",
+        "paths": [
+          "Doc/howto/free-threading-python.rst",
+          "LICENSE"
+        ],
+        "source_channel": "official_repository",
+        "inspected_scope": "official_documentation_only",
+        "license": "PSF-2.0",
+        "readset": "references/cpython-free-threading-readset.json"
+      }
+    ],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
-      "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+      "Legacy live source links remain unnormalized in references/legacy-source-notes.md; only the declared immutable source slices are normalized.",
+      "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified.",
+      "PyTorch source-derived CUDA transfer/host allocator candidate; hardware, graph implementation, custom allocators, NUMA and service efficacy are not qualified.",
+      "CPython v3.13.0 documentation corrects GIL detection only; no free-threaded interpreter or inference-stack compatibility test was run."
     ],
-    "provenance_readsets": [],
-    "references": [],
-    "consumption_mode": "packaged"
+    "provenance_readsets": [
+      "references/vllm-ascend-native-offload.md",
+      "references/vllm-ascend-native-offload-readset.json",
+      "references/pytorch-host-copy-readset.json",
+      "references/cpython-free-threading-readset.json"
+    ],
+    "references": [
+      "references/vllm-ascend-native-offload.md",
+      "references/vllm-ascend-native-offload-readset.json",
+      "references/vllm-ascend-LICENSE.md",
+      "references/pytorch-host-copy.md",
+      "references/pytorch-host-copy-readset.json",
+      "references/pytorch-LICENSE.md",
+      "references/cpython-free-threading-readset.json",
+      "references/cpython-PSF-LICENSE.md",
+      "references/legacy-source-notes.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Audit host preparation, pinned-host pressure and asynchronous CUDA-copy ownership/order/lifetime, with separately scoped routing for Ascend descriptor retention, Python preprocessing and NUMA placement.",
+      "input_contract": "Host buffer ownership and alias/mutation behavior, copy direction/dtype/layout, producer/consumer streams, live/in-flight/cache budget and the actual interpreter/placement context.",
+      "produced_artifact": "An ownership and dependency audit with bounded transfer candidates and a correctness-first validation plan separating enqueue, pinning, transfer, model and end-to-end cost.",
+      "failure_modes": "A stream wait does not prevent CPU mutation and record_stream does not create a data dependency; cached host storage may outlive Python scope, and the eager reusable-slot example is not capture-safe."
+    },
+    "recommendations": [
+      "Track copy-before-consumer order, CPU payload reuse and device storage lifetime as three independent obligations; wait for D2H completion before CPU reads.",
+      "Compare pageable, per-request pinning and bounded reuse on the real workload while budgeting all live and in-flight slots, cache and preprocessing memory.",
+      "Keep the eager staging-slot preconditions explicit and validate ordering/lifetime under stress before performance; a small passing sample does not establish a hazardous pattern is safe."
+    ]
   },
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Audit host preparation, pinned-host pressure and asynchronous CUDA-copy ownership/order/lifetime, with separately scoped routing for Ascend descriptor retention, Python preprocessing and NUMA placement.",
+    "input_contract": "Host buffer ownership and alias/mutation behavior, copy direction/dtype/layout, producer/consumer streams, live/in-flight/cache budget and the actual interpreter/placement context.",
+    "produced_artifact": "An ownership and dependency audit with bounded transfer candidates and a correctness-first validation plan separating enqueue, pinning, transfer, model and end-to-end cost.",
+    "failure_modes": "A stream wait does not prevent CPU mutation and record_stream does not create a data dependency; cached host storage may outlive Python scope, and the eager reusable-slot example is not capture-safe."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Track copy-before-consumer order, CPU payload reuse and device storage lifetime as three independent obligations; wait for D2H completion before CPU reads.",
+    "Compare pageable, per-request pinning and bounded reuse on the real workload while budgeting all live and in-flight slots, cache and preprocessing memory.",
+    "Keep the eager staging-slot preconditions explicit and validate ordering/lifetime under stress before performance; a small passing sample does not establish a hazardous pattern is safe."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
@@ -91,7 +198,10 @@
     "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
     "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Legacy live source links remain unnormalized in references/legacy-source-notes.md; only the declared immutable source slices are normalized.",
+    "Added Ascend case is limited to normal native single-tier CPU descriptor-pool ownership; vLLM compatibility and CANN retention/teardown contracts remain unqualified.",
+    "PyTorch source-derived CUDA transfer/host allocator candidate; hardware, graph implementation, custom allocators, NUMA and service efficacy are not qualified.",
+    "CPython v3.13.0 documentation corrects GIL detection only; no free-threaded interpreter or inference-stack compatibility test was run."
   ],
   "verification": {
     "locally_verified": false,

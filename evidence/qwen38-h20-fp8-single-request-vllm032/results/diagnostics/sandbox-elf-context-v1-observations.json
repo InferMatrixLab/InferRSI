@@ -1,0 +1,41 @@
+{
+  "scope": "controlled_elf_loader_context_diagnostic",
+  "verdict": "INCONCLUSIVE",
+  "runtime_changed": false,
+  "package_imports_performed": false,
+  "cooperative_deadline_seconds": 240,
+  "slurm_walltime_limit_seconds": 300,
+  "cooperative_deadline_excludes_blocking_file_enumeration_and_output_io": true,
+  "inherited_loader_variable_presence": {
+    "LD_LIBRARY_PATH": false,
+    "LD_PRELOAD": false,
+    "LD_AUDIT": false
+  },
+  "controls": {
+    "clean": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C"
+    },
+    "base_lib": {
+      "PATH": "/usr/bin:/bin",
+      "LC_ALL": "C",
+      "LD_LIBRARY_PATH": "/opt/python/lib"
+    }
+  },
+  "selected_elf": [],
+  "target_comparison": {},
+  "full_scan": [],
+  "command_attempts": [
+    {
+      "command": "readelf",
+      "artifact_prefix": "selected-0",
+      "completed": true,
+      "exception_type": null,
+      "exit_code": 0,
+      "stdout_sha256": "2ae63aeeeeaceba7d11d42087df89c42e6d07b62d47247eb4a8049026cf7c0e2",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "full_scan_complete": false,
+  "error_type": "ValueError"
+}

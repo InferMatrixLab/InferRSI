@@ -4,6 +4,7 @@
   "origin": ["internal"],
   "state": "historical_observation",
   "content": "drama3-rejected-directions.md",
+  "required_resources": ["drama3-rejected-directions.json"],
   "sources": [{
     "type": "git",
     "url": "https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/evidence/drama3-b300-scale150/results/diagnostic-lessons.md",

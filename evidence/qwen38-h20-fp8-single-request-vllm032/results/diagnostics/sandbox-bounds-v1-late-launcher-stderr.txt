@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/opt/probe.py", line 450, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/opt/probe.py", line 445, in main
+    return cleanup(mode)
+           ^^^^^^^^^^^^^
+  File "/opt/probe.py", line 289, in cleanup
+    grandchild = os.fork()
+                 ^^^^^^^^^
+BlockingIOError: [Errno 11] Resource temporarily unavailable

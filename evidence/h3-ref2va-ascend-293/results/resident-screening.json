@@ -1,0 +1,87 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Profile-enabled single-sample screening; no final speedup acceptance",
+  "source_revision": "1e6d88ad44d3acede515896968ce54935883c919",
+  "configuration": {
+    "diagnostic_shutdown_grace_s": 60.0,
+    "arm": "resident",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "8",
+      "--usp",
+      "8",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "8",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "8",
+      "--enable-distributed-layerwise-offload",
+      "--enable-diffusion-pipeline-profiler",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN",
+      "--diffusion-offload-config",
+      "{\"mode\":\"layer\",\"components\":[\"dit\",\"text_encoder\"],\"layer_options\":{\"dit\":{\"weight_transfer\":\"allgather\"},\"text_encoder\":{\"weight_transfer\":\"rank-local\"}}}"
+    ]
+  },
+  "samples": [
+    {
+      "label": "measured-5-0",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 458523.95013161004,
+      "bytes": 6514652,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-964921276d0587b0",
+        "X-Inference-Time-S": "458.459",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":1.9358319388702512,\"MiniMaxH3Pipeline._encode_local_media\":6.954098494723439,\"MiniMaxH3Pipeline.diffuse\":371.60374520812184,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.058797632344067,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":0.9114953251555562,\"MiniMaxH3Pipeline.decode\":4.335846063680947,\"queue_wait_ms\":1.7248857766389847,\"stage_0_gen_ms\":457366.464138031}",
+        "X-Peak-Memory-MB": "21212.000"
+      },
+      "valid": true,
+      "output_sha256": "4dee441474b5a98f55631f70e46c7003347d2d22140485c0873ab2ad37860b83"
+    },
+    {
+      "label": "warmup-5",
+      "steps": 50,
+      "seconds": 5,
+      "http_status": 200,
+      "e2e_ms": 500521.51064760983,
+      "bytes": 6510474,
+      "response_metrics": {
+        "X-Request-Id": "video_sync-86cfb7af1f5e3fb6",
+        "X-Inference-Time-S": "500.427",
+        "X-Stage-Durations": "{\"MiniMaxH3Pipeline.encode_prompt\":4.3129951218143106,\"MiniMaxH3Pipeline._encode_local_media\":68.58703692164272,\"MiniMaxH3Pipeline.diffuse\":373.21597007568926,\"MiniMaxH3Pipeline.video_vae.decode_latent\":3.4411659063771367,\"MiniMaxH3Pipeline.audio_vae.decode_latent\":39.77929268218577,\"MiniMaxH3Pipeline.decode\":43.567891425453126,\"queue_wait_ms\":0.38054026663303375,\"stage_0_gen_ms\":499256.38246536255}",
+        "X-Peak-Memory-MB": "21172.000"
+      },
+      "valid": true,
+      "output_sha256": "0385c21d432117cf8e45691d2895e362efd4e475d548131d6d78f3ea7a59b82c"
+    }
+  ],
+  "lifecycle": {
+    "server_exit": 0,
+    "container_exit": 0,
+    "worker_terminate_count": 0,
+    "worker_kill_count": 0,
+    "client_complete_to_container_exit_s": 26.288216,
+    "worker_exit_codes": "Not individually captured; no forced termination or error traceback observed"
+  },
+  "raw_log_sha256": "3ef943ade81ad1b79b1dcea48fbb3a5a5ba4aa55834a668fd7af8b82c8ca3ea5",
+  "sampled_peak_mib_any_device": 26912,
+  "memory_scope": "10-second driver HBM samples across startup, requests and cleanup; not an exact active-tensor peak",
+  "cache_summaries_in_request_order": [],
+  "quality_result": "resident-quality.json",
+  "verification_limits": "Raw logs and generated media are private campaign artifacts. Single-workload quality does not establish held-out quality. Diagnostic shutdown grace does not establish clean exit with production defaults. Final unprofiled independent AB/BA remains required.",
+  "quality_process_exit": 0,
+  "upstream_source": "https://github.com/vllm-project/vllm-omni/pull/8577",
+  "notes": [
+    "Explicit offload components are dit and text_encoder. No Cache-DiT enabled in this arm.",
+    "Single-warmup pilot includes peer cold-work tail; not a steady-state E2E ranking or accepted speedup."
+  ]
+}

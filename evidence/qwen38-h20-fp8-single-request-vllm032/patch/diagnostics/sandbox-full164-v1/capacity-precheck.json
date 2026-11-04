@@ -1,0 +1,12 @@
+{
+  "all_failure_details_with_empty_solutions_bytes": 7491894,
+  "all_failure_details_sha256": "95db8433152b97d1f65475431c6611104c232993d97c6f6131d57562c3b63736",
+  "samples_file_byte_cap": 67108864,
+  "solution_serialization_bound_bytes": 402653184,
+  "metadata_slack_bytes": 4096,
+  "result_upper_bound_bytes": 410149174,
+  "dataset_bytes": 7714666,
+  "task_count": 164,
+  "official_json_dump_defaults_preserved": true,
+  "reference_or_model_code_executed": false
+}

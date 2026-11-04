@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "source_commit": "3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac",
+  "cases": [
+    {
+      "id": "compiled-host-control",
+      "owner": "generation-lifecycle",
+      "backend_requirement": "cpu-only",
+      "backend_criticality": "required",
+      "cpu_substitute": "No Python helper substitute for compiled Swift/MLX; actual CPU host-control is partial evidence only where source explicitly selects it.",
+      "dependency_variant": "Swift 6.2 / matched Xcode SDK and actually resolved MLX Swift artifacts",
+      "hardware_prerequisites": "Prepared native Swift/MLX stack; compatible actual Apple Metal host for required accelerator evidence",
+      "assigned_environment": "unavailable-native-swift-stack",
+      "verification_expectation": "Actual Swift/MLX CPU override, worker/tasklocal/queue/cancel-during-next/finalization assertions; does not qualify Metal",
+      "evidence_paths": [
+        "Tests/MLXLMTests/GenerationExecutionTests.swift"
+      ],
+      "safety_class": "BLOCKED_REQUIRED_BACKEND",
+      "execution": "not_run"
+    },
+    {
+      "id": "native-cancellation",
+      "owner": "generation-lifecycle",
+      "backend_requirement": "cpu-partial",
+      "backend_criticality": "required",
+      "cpu_substitute": "No Python helper substitute for compiled Swift/MLX; actual CPU host-control is partial evidence only where source explicitly selects it.",
+      "dependency_variant": "Swift 6.2 / matched Xcode SDK and actually resolved MLX Swift artifacts",
+      "hardware_prerequisites": "Prepared native Swift/MLX stack; compatible actual Apple Metal host for required accelerator evidence",
+      "assigned_environment": "unavailable-native-swift-stack",
+      "verification_expectation": "Matched actual backend, stop/count/task join and separately observed Metal/backgrounding; retain GPU admission skips",
+      "evidence_paths": [
+        "Tests/MLXLMTests/CancellationTests.swift",
+        "Tests/MLXLMTests/GenerationExecutionTests.swift"
+      ],
+      "safety_class": "BLOCKED_REQUIRED_BACKEND",
+      "execution": "not_run"
+    },
+    {
+      "id": "native-gated-delta",
+      "owner": "gated-delta-contract",
+      "backend_requirement": "accelerator-specific",
+      "backend_criticality": "required",
+      "cpu_substitute": "No Python helper substitute for compiled Swift/MLX; actual CPU host-control is partial evidence only where source explicitly selects it.",
+      "dependency_variant": "Swift 6.2 / matched Xcode SDK and actually resolved MLX Swift artifacts",
+      "hardware_prerequisites": "Prepared native Swift/MLX stack; compatible actual Apple Metal host for required accelerator evidence",
+      "assigned_environment": "unavailable-native-swift-stack",
+      "verification_expectation": "Actual fused dispatch, tail dimensions/FP32 chunk state/compensated dot and ops/reference parity; add discriminating masked-output/provider-stride controls",
+      "evidence_paths": [
+        "Tests/MLXLMTests/GatedDeltaTests.swift",
+        "Tests/MLXLMTests/GatedDeltaQKNormTests.swift"
+      ],
+      "safety_class": "BLOCKED_REQUIRED_BACKEND",
+      "execution": "not_run"
+    }
+  ],
+  "external_plans_only_not_executed": [
+    "xcodebuild test -scheme mlx-swift-lm-Package -destination platform=macOS -skipPackagePluginValidation -only-testing:MLXLMTests/CancellationTests",
+    "xcodebuild test -scheme mlx-swift-lm-Package -destination platform=macOS -skipPackagePluginValidation -only-testing:MLXLMTests/GenerationExecutionTests",
+    "xcodebuild test -scheme mlx-swift-lm-Package -destination platform=macOS -skipPackagePluginValidation -only-testing:MLXLMTests/GatedDeltaTests"
+  ],
+  "execution_conditions": "First inspect exact Xcode listing/selectors, actual resolved offline dependencies and device, finite resources/time; retain nonzero tests/skips/exit and actual fused route evidence. Do not resolve/download/build implicitly. Source broad nightly integration/model tests excluded."
+}

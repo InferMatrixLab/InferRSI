@@ -1,0 +1,19 @@
+{
+  "report_verdict": "PASS",
+  "latency_reduction_pct": 28.864465920323216,
+  "findings": [],
+  "claim_scope": "fixed_workload",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "各轮请求均值的中位数：基线374.170214毫秒，候选266.167980毫秒，降幅28.864466%，超过25%门槛。工作负载一致，覆盖所需C1；质量通过，全部15个请求均完成并报告。按（最大轮均值−最小轮均值）/中位数计算，相对极差分别为4.041516%和3.317282%，均低于12%。所给历史记录支持固定工作负载验收通过。最小下一步：记录该范围内的PASS结论。"
+}

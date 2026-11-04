@@ -1,0 +1,35 @@
+{
+  "scope": "first_missing_elf_inventory_diagnostic",
+  "verdict": "INCONCLUSIVE",
+  "job": 2003,
+  "slurm_state": "COMPLETED",
+  "slurm_exit_code": "0:0",
+  "allocated_seconds": 3,
+  "allocated_cpus": 2,
+  "allocated_gpus": 0,
+  "requested_memory_gib": 4,
+  "walltime_limit_seconds": 180,
+  "allocation_released": true,
+  "terminal": {
+    "completed": true,
+    "exit_code": 0,
+    "phase": "complete",
+    "signal": "none",
+    "job_id": "2003"
+  },
+  "observations_sha256": "f5a623f69d61d7bb24298a72ef9a8310c8dc555846bee73cb4f3043b73104aef",
+  "runtime_changed": false,
+  "root_cause_established": false,
+  "isolation_or_evaluator_executed": false,
+  "measured_e2e_effect": null,
+  "private_evidence_sha256": {
+    "submission.private.txt": "da58630296e2c5e23dd11e88a60e46bf8bedadaf44a59882fd01083ca74bc7a3",
+    "scontrol-final.private.txt": "412d7766424ff4d7fadeebdab62bbe8a459553b637fe0a59e415cfb39323a3ac",
+    "squeue-final.private.txt": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "diagnostic.private.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "output.private.tar": "0d957ca066f2d33e4bfe396e37d82243c315b98f27d4e7c486e835d951ca7fce"
+  },
+  "readiness_gpu_seconds_used": 2388,
+  "readiness_gpu_seconds_cap": 7200,
+  "earlier_diagnostic_gpu_seconds_separate": 147
+}

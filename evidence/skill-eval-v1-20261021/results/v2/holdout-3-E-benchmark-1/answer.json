@@ -1,0 +1,14 @@
+{
+  "report_verdict": "INCONCLUSIVE",
+  "latency_reduction_pct": null,
+  "findings": ["workload_mismatch"],
+  "claim_scope": "none",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload"
+  ],
+  "reason": "审计已完成。每轮先取请求延迟均值，再取各轮中位数：基线374.170214 ms，候选266.167980 ms，纯算术下降28.864466%。但基线steps=8、候选steps=4，工作负载不可比；依冻结合同，增益字段为null，验收不可判定。技能“What must be pinned before comparing two runs”及“Search integrity and final-state verification”支持核对工作量一致性，具体门槛以冻结合同为准。最小下一步：将候选steps恢复为8，保持其余工作负载一致，重测全部请求并验证质量，再评估20%门槛。"
+}

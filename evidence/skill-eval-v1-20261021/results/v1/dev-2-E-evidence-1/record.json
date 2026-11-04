@@ -1,0 +1,102 @@
+{
+  "task_id": "dev-2",
+  "condition": "E-evidence",
+  "repeat": 1,
+  "split": "development",
+  "execution_state": "completed",
+  "verdict": "FAIL",
+  "checks": {
+    "passed": false,
+    "assertions": {
+      "report_verdict": false,
+      "claim_scope": true,
+      "findings": true,
+      "reduction": true,
+      "evidence": true,
+      "explanation": true
+    }
+  },
+  "elapsed_seconds": 73.39675819990225,
+  "inputs_unchanged": true,
+  "input_hashes": {
+    "task.json": "2042f476f579bd1619f8735225391f14bf0e3a719d57f9fea34939f823385c4f",
+    "knowledge/methods/dense-performance-evidence/metadata.json": "d8cfc7c93d0a96d5240f085732f3f6a45159c125238a693220687489d6fd1979",
+    "knowledge/methods/dense-performance-evidence/SKILL.md": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933",
+    "knowledge/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+    "knowledge/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+  },
+  "output_sha256": "1030e58d1dc77e05281724f324590bb8c3369d46b28e21c4bd5dcb8e37191d3b",
+  "candidate_skill_accesses": [
+    "dense-performance-evidence"
+  ],
+  "activation_observation": "matching_successful_command_requires_review",
+  "supplied_skills": [
+    "dense-performance-evidence"
+  ],
+  "declared_exposure_bundles": [
+    {
+      "id": "dense-performance-evidence",
+      "revision": "sha256:9183ec24c1f9ce7641a72044e75f1b6559cf882176068bb059c7660f9c130ad7",
+      "entrypoint": "methods/dense-performance-evidence/SKILL.md",
+      "resources": {
+        "methods/dense-performance-evidence/SKILL.md": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933",
+        "methods/dense-performance-evidence/metadata.json": "d8cfc7c93d0a96d5240f085732f3f6a45159c125238a693220687489d6fd1979",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+      },
+      "dependencies": {
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "sha256:755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "sha256:41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+      }
+    }
+  ],
+  "observations": {
+    "usage": {
+      "input_tokens": 56862,
+      "cached_input_tokens": 35968,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 1704,
+      "reasoning_output_tokens": 979
+    },
+    "completed_turns": 1,
+    "errors": [],
+    "commands": [
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content -Raw -LiteralPath 'task.json'\"",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "{\r\n  \"id\": \"dev-2\",\r\n  \"split\": \"development\",\r\n  \"mode\": \"audit\",\r\n  \"provenance\": \"Historical latency slices plus explicitly counterfactual test metadata; this exercise is not a new hardware measurement.\",\r\n  \"request\": \"Audit the claimed fixed-workload latency acceptance; compute median of per-trial request means and percentage reduction. Identify only material contract violations and the strongest supported scope. Do not infer production/deployment qualification. Explain the smallest next action. The author claims these kernel timings establish HTTP service gain.\",\r\n  \"contract\": {\r\n    \"min_reduction_pct\": 20,\r\n    \"scope\": \"fixed_workload\",\r\n    \"required_regimes\": [\r\n      \"C1\"\r\n    ],\r\n    \"quality_required\": true,\r\n    \"all_requests_required\": true,\r\n    \"max_relative_spread_pct\": 12,\r\n    \"statistical_significance_required\": false\r\n  },\r\n  \"evidence_scope\": \"kernel\",\r\n  \"baseline\": {\r\n    \"latencies_ms\": [\r\n      [\r\n        377.86599702667445,\r\n        376.172867952846,\r\n        379.17164200916886\r\n      ],\r\n      [\r\n        401.05408598901704,\r\n        399.7857089852914,\r\n        400.2391319954768\r\n      ],\r\n      [\r\n        383.62530700396746,\r\n        378.7631769664585",
+        "output_tail_excerpt": " \"total_requests\": 15,\r\n    \"reported_requests\": 15,\r\n    \"failed_requests\": 0\r\n  },\r\n  \"evidence_keys\": [\r\n    \"contract\",\r\n    \"baseline.latencies_ms\",\r\n    \"candidate.latencies_ms\",\r\n    \"baseline.workload\",\r\n    \"candidate.workload\",\r\n    \"candidate.quality\",\r\n    \"candidate.total_requests\",\r\n    \"candidate.reported_requests\",\r\n    \"candidate.failed_requests\",\r\n    \"evidence_scope\"\r\n  ]\r\n}\r\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 2816,
+        "original_output_sha256": "2ef4c4170a4f47f783dd2c9b926eaca85b76e2cc71fe2c108bbae5aecb200abd"
+      },
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content -Raw -LiteralPath 'knowledge/methods/dense-performance-evidence/SKILL.md'\"",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "---\nname: dense-performance-evidence\ndescription: 'Taxonomy of performance evidence an optimization agent needs, ordered by collection cost and diagnostic power. Maps evidence types to the questions they answer and the claims they can support. Use to decide which evidence to collect next, avoid over-claiming from cheap evidence, and structure a measurement campaign.\n\n  '\n---\n\n# Dense Performance Evidence Taxonomy\n\nStatus: candidate. Source-grounded from TensorRT-LLM @ f33e0e5f and MindIE-SD\n@ 8481d39b.\n\nAn optimization agent must not conflate different evidence levels. This skill\ndefines what each level proves and what it cannot prove.\n\n## Evidence hierarchy\n\nListed from cheapest to most expensive to collect.\n\n### Level 0 — Correctness\n\n**What it is:** Output matches expected (test pass, md5 match, output schema valid).\n\n**What it proves:** The change does not break the declared output contract.\n\n**What it does NOT prove:** Any performance claim. A change can pass all tests\nand be slower. An md5 match does not mean the output is semantically correct\n(it could match a wrong baseline).\n\n**When to collect:** Always, before any performance measurement.\n\n**Key discipline:** md5 ≠ correc",
+        "output_tail_excerpt": "cy case](../inference-optimization-casebook/cases/admission-drain-occupancy.md) when interpreting finite service cohorts. It separates recorded observation, action and interpretation; phase-selected occupancy is not end-to-end gain. The original frozen evidence remains linked, not copied. This shared reference is included in the packaged skill library; standalone folder export is not supported.\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 8281,
+        "original_output_sha256": "787d2094a40324029798375fe6c3c4dabe4a372a133ddfc8d4a753c9b5a832fd"
+      },
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command \"Get-Content -Raw -LiteralPath 'task.json'\"",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "{\r\n  \"id\": \"dev-2\",\r\n  \"split\": \"development\",\r\n  \"mode\": \"audit\",\r\n  \"provenance\": \"Historical latency slices plus explicitly counterfactual test metadata; this exercise is not a new hardware measurement.\",\r\n  \"request\": \"Audit the claimed fixed-workload latency acceptance; compute median of per-trial request means and percentage reduction. Identify only material contract violations and the strongest supported scope. Do not infer production/deployment qualification. Explain the smallest next action. The author claims these kernel timings establish HTTP service gain.\",\r\n  \"contract\": {\r\n    \"min_reduction_pct\": 20,\r\n    \"scope\": \"fixed_workload\",\r\n    \"required_regimes\": [\r\n      \"C1\"\r\n    ],\r\n    \"quality_required\": true,\r\n    \"all_requests_required\": true,\r\n    \"max_relative_spread_pct\": 12,\r\n    \"statistical_significance_required\": false\r\n  },\r\n  \"evidence_scope\": \"kernel\",\r\n  \"baseline\": {\r\n    \"latencies_ms\": [\r\n      [\r\n        377.86599702667445,\r\n        376.172867952846,\r\n        379.17164200916886\r\n      ],\r\n      [\r\n        401.05408598901704,\r\n        399.7857089852914,\r\n        400.2391319954768\r\n      ],\r\n      [\r\n        383.62530700396746,\r\n        378.7631769664585",
+        "output_tail_excerpt": " \"total_requests\": 15,\r\n    \"reported_requests\": 15,\r\n    \"failed_requests\": 0\r\n  },\r\n  \"evidence_keys\": [\r\n    \"contract\",\r\n    \"baseline.latencies_ms\",\r\n    \"candidate.latencies_ms\",\r\n    \"baseline.workload\",\r\n    \"candidate.workload\",\r\n    \"candidate.quality\",\r\n    \"candidate.total_requests\",\r\n    \"candidate.reported_requests\",\r\n    \"candidate.failed_requests\",\r\n    \"evidence_scope\"\r\n  ]\r\n}\r\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 2816,
+        "original_output_sha256": "2ef4c4170a4f47f783dd2c9b926eaca85b76e2cc71fe2c108bbae5aecb200abd"
+      }
+    ]
+  },
+  "publication": {
+    "original_result_sha256": "b43ef440790f6e33f2c3c97bb8f3e445220488c7fe001d3cc1071b9d9e152abe",
+    "original_events_sha256": "6109cf91a344add055b1159de6081dd9e1d5cba83b8be0af12f28c511cb83c1f",
+    "omitted": "Raw service/session events, host argv/paths and process identifiers. Command outputs are explicitly truncated excerpts; private originals retained.",
+    "task_reconstruction": "From frozen tasks and controller R transformations; matches recorded input SHA-256 when available."
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "report_verdict": "PASS",
+  "latency_reduction_pct": 28.86446592032322,
+  "findings": [],
+  "claim_scope": "fixed_workload",
+  "evidence": [
+    "contract",
+    "baseline.latencies_ms",
+    "candidate.latencies_ms",
+    "baseline.workload",
+    "candidate.workload",
+    "candidate.quality",
+    "candidate.total_requests",
+    "candidate.reported_requests",
+    "candidate.failed_requests",
+    "evidence_scope"
+  ],
+  "reason": "审计已完成。每轮先计算请求平均延迟，再取五轮中位数：基线为374.170214毫秒，候选为266.167980毫秒，降低28.864466%，超过25%门槛。工作负载一致，质量通过，双方均完整报告15个请求且无失败。按轮均值极差/中位数计算，相对波动分别为4.041516%和3.317282%，均低于12%。给定记录满足仅要求C1的固定工作负载验收，报告结论为PASS；这不是新硬件测量，也不推及生产资格。最小下一步是记录C1验收通过，无需扩展至replay或生产验证。"
+}

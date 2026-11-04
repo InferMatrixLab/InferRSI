@@ -1,0 +1,33 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "serving-state",
+  "target_capability": "restart recovery and separation of API history, isolation and native persistence",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/RESPONSES.md",
+    "serve/server.py",
+    "serve/response_store.py",
+    "serve/test_response_store.py",
+    "src/program/generate.cpp",
+    "src/ds4/ds4_main.cpp",
+    "src/mm3/mm3_main.cpp"
+  ],
+  "expected_skill_files": [
+    "sub-skills/serving-state/SKILL.md",
+    "sub-skills/serving-state/references/api-and-history.md",
+    "sub-skills/serving-state/references/native-state.md",
+    "sub-skills/serving-state/references/troubleshooting.md",
+    "sub-skills/serving-state/scripts/request_template.py"
+  ],
+  "assertions": [
+    "The response routes the concrete history and native-state questions to serving-state.",
+    "The response states that Responses snapshots are process-local memory and native slot files do not recreate previous_response_id after a service restart.",
+    "The response recovers with complete client-held history and explicitly resupplied tools, instructions and settings as needed, without silently omitting history or rerunning a side-effecting tool.",
+    "The response states that absent configured API authentication all callers have the public history owner and prompt_cache_key neither partitions native caches nor provides tenant isolation.",
+    "The response describes DS4 save-all-resident-parallel-conversations on QUIT as unverified from the inspected exit path, not a guaranteed save or a reproduced runtime defect.",
+    "The response distinguishes GLM RAM-only parked state dying with the run from GLM disk keep mode, and does not invent MiniMax conversation-disk persistence or a MAYA_MM3_SLOT_KEEP setting.",
+    "The response uses or references the bundled request_template.py with accepted options for an offline text-only JSON example and says it cannot check actual retained IDs, authentication or native restore.",
+    "The response does not start a model, contact a service, install dependencies, delete slot files, or direct execution of original repository scripts.",
+    "The response does not turn source inspection or helper success into a validated CUDA/HIP persistence or security claim."
+  ]
+}

@@ -21,8 +21,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/ee06e5eeda65c779d9ac25f4b53f7fb3d4f14f55/src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md",
-      "commit": "ee06e5eeda65c779d9ac25f4b53f7fb3d4f14f55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md",
         "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json",
@@ -38,8 +38,8 @@
   "checkout_ref": "checkout:dense-performance-evidence",
   "source_files": {
     "src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md": "53cc1867a13f54d1006d50517dea8848869ca50df3f0cd610b2424cc8d18c933",
-    "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json": "d8cfc7c93d0a96d5240f085732f3f6a45159c125238a693220687489d6fd1979",
-    "src/inferrsi/data/skill_library/skill-index.json": "75910d82c93d829cc995e1724f4f7e372625f435682640ec5a2fced45d791a21"
+    "src/inferrsi/data/skill_library/methods/dense-performance-evidence/metadata.json": "041780985dcaf76809d29dc0d4e242359b17b6bcfaadab2d05674fa4699a5427",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "dense-performance-evidence",
@@ -57,11 +57,27 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
     "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
+      "scope": "Deciding which performance evidence to collect next and which claim each evidence level supports, from correctness through microbenchmark, component profile, isolated scenario benchmark and multi-regime serving benchmark to a production A/B experiment; also structuring a measurement campaign",
+      "prerequisites": "Level 0 correctness evidence is collected before any performance measurement; a Level 5 experiment needs production infrastructure, traffic splitting and statistical power",
+      "input_contract": "The claim to be made or the question to answer, and the evidence already collected with its level, workload, hardware/software context and controls",
+      "produced_artifact": "The minimum evidence level each claim requires, the next evidence to collect under the escalation rule, and negative-result records with hypothesis, evidence level, the metric that did not improve, context and the reason if known; a classification of evidence, not a measurement",
+      "failure_modes": [
+        "An md5 match or a test pass is read as semantically correct output or as support for a performance claim",
+        "A microbenchmark improvement is reported as an inference throughput gain",
+        "Absolute kernel durations or single collective latencies are compared across devices or sessions",
+        "A win on one fixed workload or concurrency is generalized to production traffic",
+        "Worse metrics, per-task regressions or negative results are discarded, or a shared task budget is taken as equal total cost"
+      ],
+      "refusal_point": "Withholds any claim above the level its evidence reaches, leaves an unresolved source protocol or denominator mismatch unresolved, and lets neither upstream scores nor local packaging checks promote an InferRSI candidate"
     },
+    "recommendations": [
+      "Collect Level 0 first and profile at Level 2 before implementing; escalate to Level 3 only after a promising Level 2 result, and to Level 4 only after a Level 3 win worth validating across regimes.",
+      "Collect a Level 1 microbenchmark only for an isolated-kernel question after Level 2 has confirmed that kernel is on the critical path.",
+      "For a Level 1 claim, pin input shape and dtype, exclude warmup, synchronize before timing, run at least 10 repetitions and report median and IQR; for a Level 3 claim, match hardware, software stack, model revision and inputs, run at least 3 repetitions and alternate A/B/A order.",
+      "Read the admission/drain occupancy case when interpreting finite service cohorts; phase-selected occupancy is not end-to-end gain."
+    ],
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
@@ -74,11 +90,24 @@
     "consumption_mode": "packaged"
   },
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Deciding which performance evidence to collect next and which claim each evidence level supports, from correctness through microbenchmark, component profile, isolated scenario benchmark and multi-regime serving benchmark to a production A/B experiment; also structuring a measurement campaign",
+    "prerequisites": "Level 0 correctness evidence is collected before any performance measurement; a Level 5 experiment needs production infrastructure, traffic splitting and statistical power",
+    "input_contract": "The claim to be made or the question to answer, and the evidence already collected with its level, workload, hardware/software context and controls",
+    "produced_artifact": "The minimum evidence level each claim requires, the next evidence to collect under the escalation rule, and negative-result records with hypothesis, evidence level, the metric that did not improve, context and the reason if known; a classification of evidence, not a measurement",
+    "failure_modes": [
+      "An md5 match or a test pass is read as semantically correct output or as support for a performance claim",
+      "A microbenchmark improvement is reported as an inference throughput gain",
+      "Absolute kernel durations or single collective latencies are compared across devices or sessions",
+      "A win on one fixed workload or concurrency is generalized to production traffic",
+      "Worse metrics, per-task regressions or negative results are discarded, or a shared task budget is taken as equal total cost"
+    ],
+    "refusal_point": "Withholds any claim above the level its evidence reaches, leaves an unresolved source protocol or denominator mismatch unresolved, and lets neither upstream scores nor local packaging checks promote an InferRSI candidate"
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Collect Level 0 first and profile at Level 2 before implementing; escalate to Level 3 only after a promising Level 2 result, and to Level 4 only after a Level 3 win worth validating across regimes.",
+    "Collect a Level 1 microbenchmark only for an isolated-kernel question after Level 2 has confirmed that kernel is on the critical path.",
+    "For a Level 1 claim, pin input shape and dtype, exclude warmup, synchronize before timing, run at least 10 repetitions and report median and IQR; for a Level 3 claim, match hardware, software stack, model revision and inputs, run at least 3 repetitions and alternate A/B/A order.",
+    "Read the admission/drain occupancy case when interpreting finite service cohorts; phase-selected occupancy is not end-to-end gain."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",

@@ -2,7 +2,7 @@ name: Campaign acceptance
 description: Acceptance-first campaign (baseline vs candidate) — pin SHAs in this issue only
 title: "acceptance: <campaign-name>"
 labels:
-  - acceptance
+  - kind:acceptance
 body:
   - type: markdown
     attributes:

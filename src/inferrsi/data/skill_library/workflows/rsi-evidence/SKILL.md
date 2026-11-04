@@ -69,3 +69,14 @@ Freeze **repo × revision × backend × device × model × scenario** before com
 ## Downstream citation
 
 External PRs link the acceptance issue and SHAs; they do not redefine thresholds. Mark summaries **unverified** if artifacts are missing.
+
+## Goal authority and accounting decisions
+
+When a recommendation, stop/resume decision or repeated settlement depends on
+source state, use the [LoopX Goal governance reference](references/loopx-goal-governance/README.md).
+It separates canonical Todo authority from Markdown/index projections, Python
+fact preparation from TypeScript decisions, and local accounting recovery from
+external execution guarantees. Read its counterexamples before interpreting
+`should_run`, missing state or a replay lookup. This source-derived candidate
+adds no execution permission or empirical validation; the evidence, RunSpec and
+verdict rules above still apply.

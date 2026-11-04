@@ -1,0 +1,28 @@
+[
+  {
+    "label": "initial_transport",
+    "passed": false,
+    "execution_state": "timeout",
+    "elapsed_seconds": 180.07315429998562,
+    "usage": null,
+    "completed_turns": 0,
+    "original_readiness_sha256": "f8779ee76e77651d4b39b683e306cdfc1e42966e298f16dd93e7ffbf2c824e61",
+    "original_execution_sha256": "beeedb545c65e7f4c3534b3cbcdc7a88dca6adbb4813df10ad83a960b0ede68f"
+  },
+  {
+    "label": "configured_transport",
+    "passed": true,
+    "execution_state": "completed",
+    "elapsed_seconds": 92.3771425000159,
+    "usage": {
+      "input_tokens": 76992,
+      "cached_input_tokens": 50048,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 631,
+      "reasoning_output_tokens": 279
+    },
+    "completed_turns": 1,
+    "original_readiness_sha256": "ac71cb6b27026eac44b9831bc3a128649407f580135063cafd17417a61676bb1",
+    "original_execution_sha256": "7dd0792440cb6974e0b0c4aef289b51d0ac9c10e47f274951d0672fd810ef3f0"
+  }
+]

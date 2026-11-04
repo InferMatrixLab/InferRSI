@@ -1,0 +1,5 @@
+# Keep SCM discovery from adding repository evidence, workflows or local tooling.
+global-exclude *
+graft src/inferrsi
+include pyproject.toml README.md LICENSE MANIFEST.in
+global-exclude __pycache__ *.py[cod]

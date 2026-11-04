@@ -1,0 +1,56 @@
+{
+  "schema_version": 1,
+  "cases": [
+    {
+      "id": "pure-config-env-defaults",
+      "owner": "platform-config",
+      "backend_requirement": "cpu",
+      "backend_criticality": "required",
+      "cpu_substitute": "full for selected pure parser/default behavior only",
+      "dependency_variant": "installed source editable, pytest-only runner; selected test files copied byte-for-byte to isolated directory, heavyweight upstream conftest intentionally absent",
+      "hardware_prerequisites": "compatible Python3.12 CPU",
+      "verification_expectation": "original assertions pass without root conftest; not entire native suite or registration/backend test",
+      "evidence_paths": [
+        "tests/test_config.py",
+        "tests/test_envs.py",
+        "tests/test_macos_defaults.py"
+      ],
+      "safety_class": "safe-runnable",
+      "assigned_environment": "partial-cpu-inspection"
+    },
+    {
+      "id": "offload-native-storage",
+      "owner": "cache-lifecycle",
+      "backend_requirement": "accelerator-specific",
+      "backend_criticality": "required",
+      "cpu_substitute": "none for actual backing storage/page ordering",
+      "dependency_variant": "matched vLLM, MLX, torch, NumPy and native extension",
+      "hardware_prerequisites": "actual supported Apple/macOS device and compatible native artifacts",
+      "verification_expectation": "backing-allocation restore and pending-zeroing ordering, sleep/reuse and index reset assertions",
+      "evidence_paths": [
+        "tests/test_kv_offload_worker.py",
+        "tests/test_kv_offload_tiering.py"
+      ],
+      "safety_class": "BLOCKED_REQUIRED_BACKEND",
+      "assigned_environment": "unavailable-required-apple"
+    },
+    {
+      "id": "native-pipeline-spec-dispatch",
+      "owner": "qualification",
+      "backend_requirement": "accelerator-specific",
+      "backend_criticality": "required",
+      "cpu_substitute": "none",
+      "dependency_variant": "matched vLLM, MLX, torch, native shaders; exact supported target/draft as applicable",
+      "hardware_prerequisites": "actual Apple Metal device and authorized local model assets",
+      "verification_expectation": "actual evaluated worker dispatch plus parity/partial-acceptance/deferred ownership under real runtime",
+      "evidence_paths": [
+        "vllm_metal/v1/decode_pipeline.py",
+        "docs/speculative_decoding.md",
+        "docs/gqa-decode.md"
+      ],
+      "safety_class": "BLOCKED_REQUIRED_BACKEND",
+      "assigned_environment": "unavailable-required-apple"
+    }
+  ],
+  "timing": "Declared before final tests; native runs occur only after whole graph integration."
+}

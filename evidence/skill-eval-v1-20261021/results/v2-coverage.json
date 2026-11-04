@@ -1,0 +1,12 @@
+{
+  "recorded": 21,
+  "scheduled": 21,
+  "not_run": [],
+  "source_state": {
+    "expected_trials": 21,
+    "recorded_trials": 21,
+    "observed_tokens": 1068601,
+    "execution_state": "completed",
+    "stop_reason": null
+  }
+}

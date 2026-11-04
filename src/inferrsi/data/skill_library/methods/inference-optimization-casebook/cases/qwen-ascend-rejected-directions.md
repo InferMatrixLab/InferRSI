@@ -1,11 +1,13 @@
 # Qwen Ascend: reported rejected directions
 
 These observations come from the [pinned Ascend guide](https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc57807c1e16ea698cd9291f414110c45/docs/qwen-image-2.1-turbo-ascend.md),
-which attributes them to amy-why-3459 at upstream head
-`399cc01d1bc4542964d91aaa17fb43862a8cf3b3`.
+which attributes them to amy-why-3459 at the upstream head recorded in the
+typed record below.
 They apply to its one-910B1, BF16, eager, 1280x704, native eight-sigma cohort.
 They are author-reported, `locally_verified=false`, with InferRSI acceptance
 INCONCLUSIVE. No raw timings, images or frozen validator were imported.
+Kind, origin, state and source identities belong to the
+[typed source and scope record](qwen-ascend-rejected-directions.json).
 
 | Direction | Recorded observation and disposition | Suggested revisit condition and first check |
 | --- | --- | --- |

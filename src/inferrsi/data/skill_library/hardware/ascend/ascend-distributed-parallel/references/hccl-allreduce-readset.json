@@ -1,0 +1,378 @@
+{
+  "repository": "cann/hccl",
+  "repository_url": "https://gitcode.com/cann/hccl",
+  "revision": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+  "tree": "3ac156724b043a9acc8ff9975f3c4552bd5292fe",
+  "source_channel": "official_repository",
+  "source_type": "selected_native_implementation_and_simulator_test_definitions",
+  "inspection_date": "2026-10-30",
+  "license": "CANN Open Software License Agreement Version 2.0",
+  "license_resource": "hccl-LICENSE.md",
+  "acquisition": "Read selected bodies from a full-tree shallow clone fetched directly from https://gitcode.com/cann/hccl.git at the declared commit. File identities were computed from immutable git show bytes and independently checked against their Git blob SHA-1. SHA-256, bytes and line_count cover each full blob; ranges alone describe the evidence used here. No GitHub mirror was used and no upstream build/test was executed.",
+  "range_convention": "One-based inclusive lines; line_count uses splitlines(), excluding a phantom line after a terminal newline.",
+  "scope": "Positive-count, multi-rank OPBASE AllReduce on the inspected open-device route, following a selected AICPU one-level mesh one-shot executor through cache-disabled native orchestration, peer writes and local reduction. Cost-table eligibility and simulated semantic test definitions are included; external HCOMM/ACL behavior is a boundary.",
+  "files": [
+    {
+      "path": "src/common/hccl_common.h",
+      "ranges": [
+        [
+          333,
+          354
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Device-enum gate for the inspected open implementation",
+      "blob": "8098a832aa018a1c39905ecc5d0fc408c038f7e3",
+      "bytes": 13572,
+      "sha256": "70c930e8fe8c1359538d51df8e9448cfd763ac2e913a138f0d58e3db7f849488",
+      "line_count": 356,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/common/hccl_common.h"
+    },
+    {
+      "path": "src/ops/all_reduce/all_reduce.cc",
+      "ranges": [
+        [
+          23,
+          56
+        ],
+        [
+          194,
+          269
+        ],
+        [
+          305,
+          314
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "API compatibility/zero-count/rank-one bypasses, OPBASE route, selection and execution",
+      "blob": "024caf4d1c7eace93d575915456d10b95fb0684b",
+      "bytes": 13082,
+      "sha256": "1c4a87f192659a7b1633f67d8efe521ed0dede3a567fc7865702b4bfdc9ba88a",
+      "line_count": 316,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/all_reduce/all_reduce.cc"
+    },
+    {
+      "path": "src/ops/op_common/op_common.cc",
+      "ranges": [
+        [
+          93,
+          148
+        ],
+        [
+          160,
+          200
+        ],
+        [
+          987,
+          1086
+        ],
+        [
+          1093,
+          1115
+        ],
+        [
+          1222,
+          1238
+        ],
+        [
+          1310,
+          1392
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Topology selector routing, plugin/cached fallback/resource boundary and AICPU launch",
+      "blob": "8a809f139934207c8a83e74b9e9f67fb047c7299",
+      "bytes": 217295,
+      "sha256": "58f4fc207b85275fb750ec7bc1e0940f116ed213b79d07bc803a6837f455df96",
+      "line_count": 4682,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/op_common/op_common.cc"
+    },
+    {
+      "path": "src/ops/op_common/selector/selector_engine.cc",
+      "ranges": [
+        [
+          388,
+          456
+        ],
+        [
+          572,
+          659
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Cost-model/table and tuner sequence, minimum-cost choice and selected engine",
+      "blob": "336ec8f3e9d3aad9809f78ee0e287c3db34d039c",
+      "bytes": 30281,
+      "sha256": "7d934fea6145d1b2cd63e89285618bffb8aa6642385c0ba682bea50fac7e40fd",
+      "line_count": 662,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/op_common/selector/selector_engine.cc"
+    },
+    {
+      "path": "src/ops/op_common/selector/cost_model.cc",
+      "ranges": [
+        [
+          387,
+          444
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Topology and executor-cost eligibility; preferred algorithms can fail topology filtering",
+      "blob": "b5a73156ea9359fd0fa1930b1b59f9b79164136a",
+      "bytes": 26105,
+      "sha256": "ae7c83277febd06777f695c7c2a68309efb4cb10ea5ada0ded35770a750d6ecb",
+      "line_count": 653,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/op_common/selector/cost_model.cc"
+    },
+    {
+      "path": "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+      "ranges": [
+        [
+          18,
+          35
+        ],
+        [
+          530,
+          564
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Comparison-only heuristic branch; its size constants do not select the inspected MESH_1D entry route",
+      "blob": "77b2affc7eaacb4d45a6a0984c0c70c2992feeef",
+      "bytes": 36514,
+      "sha256": "9583fa4c3ba2adfbcfc6bb755c74a5cae9c78fd2e4df11316df4e4399c813ba6",
+      "line_count": 736,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/all_reduce/selector/all_reduce_auto_selector.cc"
+    },
+    {
+      "path": "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+      "ranges": [
+        [
+          80,
+          107
+        ],
+        [
+          133,
+          298
+        ],
+        [
+          373,
+          379
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Executor registration, topology/resource delegation, scratch-bounded loops and template invocation",
+      "blob": "df4c371403bc11dd960835a57c0d3203ad8c69c8",
+      "bytes": 33767,
+      "sha256": "c1028f43ac66e4910aa4b3af49f1063680aecbd8f6b5fd47f4c94c912b07c0c9",
+      "line_count": 637,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc"
+    },
+    {
+      "path": "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+      "ranges": [
+        [
+          1,
+          108
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Selection of an engine-compatible physical level containing all communicator ranks",
+      "blob": "1f93df53c7d824f310dd3198298f1258617151e3",
+      "bytes": 5245,
+      "sha256": "33fc4ddb2d5c26ba4dd04be23afaee638528ac61673e00a6d12d9e88cf376fb1",
+      "line_count": 108,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc"
+    },
+    {
+      "path": "src/ops/op_common/algorithm/template/alg_template_base.h",
+      "ranges": [
+        [
+          26,
+          34
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Pinned slice-alignment constant used by the executor",
+      "blob": "91517e014e9e5e2cf662431b12f0335f091c45c4",
+      "bytes": 8751,
+      "sha256": "b0ad31f3bfcbbd25be42b806146a37530235e50c130c9baa4066209590da3782",
+      "line_count": 211,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/op_common/algorithm/template/alg_template_base.h"
+    },
+    {
+      "path": "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+      "ranges": [
+        [
+          276,
+          323
+        ],
+        [
+          654,
+          730
+        ],
+        [
+          823,
+          833
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Native AICPU entry, V2/cache branch and cache-disabled registry-to-Orchestrate call",
+      "blob": "55741561abefd108448a02eef5ba442393af0206",
+      "bytes": 48917,
+      "sha256": "20c3042f3c497dccc95b79d636acb85da11bfab5a6e44fb532fe1994e4a8656f",
+      "line_count": 1195,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc"
+    },
+    {
+      "path": "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+      "ranges": [
+        [
+          1,
+          264
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Multi-rank one-shot resources, rank-sized scratch, peer writes, synchronization and local reductions",
+      "blob": "0449ffc7b09450c9fadf17e19afc09c62dc8f0ba",
+      "bytes": 12331,
+      "sha256": "c0edd830bd93b8b83dc4213351be403614397d91a90ba73cc98da3f80a330fd9",
+      "line_count": 264,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc"
+    },
+    {
+      "path": "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+      "ranges": [
+        [
+          157,
+          180
+        ],
+        [
+          245,
+          270
+        ],
+        [
+          428,
+          479
+        ],
+        [
+          880,
+          928
+        ],
+        [
+          1010,
+          1078
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "Batch/fallback write notifications, local copy/reduction and thread joins at the HCOMM boundary",
+      "blob": "ae502b1b412166b744c93de7a419d019c0364bae",
+      "bytes": 67044,
+      "sha256": "a96eb4bdd8e86d13d10eb4a51fc426d109ea5e704455b1ecdc17e82422672832",
+      "line_count": 1360,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc"
+    },
+    {
+      "path": "test/st/algorithm/testcase/all_reduce_testcase.cc",
+      "ranges": [
+        [
+          11,
+          183
+        ]
+      ],
+      "source_type": "simulator_test_definition",
+      "role": "DEV_TYPE_950 SimWorld runner, six one-shot-named cases and a neighboring two-shot-named case",
+      "blob": "04fca128665eab08a8a7ef4e1f0446fc9abb8d84",
+      "bytes": 11579,
+      "sha256": "e87a74f07046e8f329551094adce57d77dfe81e0dedfa7b9eba6283fba1c4964",
+      "line_count": 296,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/test/st/algorithm/testcase/all_reduce_testcase.cc"
+    },
+    {
+      "path": "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+      "ranges": [
+        [
+          11,
+          24
+        ]
+      ],
+      "source_type": "simulator_test_implementation",
+      "role": "AllReduce task-graph checker setup; not a device tensor oracle",
+      "blob": "c8deb49bc5bab47bc99a14c74f2b31e2e4d973b9",
+      "bytes": 7335,
+      "sha256": "f50556db62a893a494d40b7b2a82036dc7e537911f2b83eab3564f42bda8dc77",
+      "line_count": 172,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc"
+    },
+    {
+      "path": "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+      "ranges": [
+        [
+          1,
+          92
+        ]
+      ],
+      "source_type": "simulator_test_implementation",
+      "role": "Output coverage, source-rank/offset/reduction semantics checks",
+      "blob": "5f2acddef330daeefa50093cad4508914550625c",
+      "bytes": 4042,
+      "sha256": "33ab1f767556571e4e5fa387248b7b85573cf55ebf321dc241eb9d1d241b7433",
+      "line_count": 92,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc"
+    },
+    {
+      "path": "src/common/log.h",
+      "ranges": [
+        [
+          200,
+          212
+        ],
+        [
+          243,
+          254
+        ]
+      ],
+      "source_type": "implementation",
+      "role": "CHK_RET propagates errors while CHK_PRT only logs; selected PostLocalReduce call-site boundary",
+      "blob": "25be77f7ee073362caef8de279c5cc81b2ce0cd9",
+      "bytes": 17827,
+      "sha256": "9639b74099b0347daf983f5a28697b5d70a2b780f5c6055701d561d008c33450",
+      "line_count": 327,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/src/common/log.h"
+    },
+    {
+      "path": "LICENSE",
+      "ranges": [
+        [
+          1,
+          38
+        ]
+      ],
+      "source_type": "license",
+      "role": "Upstream CANN Open Software License Agreement Version 2.0; retained local copy normalizes trailing spaces only",
+      "blob": "84ca11b789ebf3cc7664974f907a97c76550a793",
+      "bytes": 5273,
+      "sha256": "0cd634b25394fbdcf931b500a4be68c8659da4f7e84971a662ea20860fef1e8f",
+      "line_count": 38,
+      "url": "https://gitcode.com/cann/hccl/blob/96fab0a2acb761e7f8ab0f94aeb5138f200a345b/LICENSE"
+    }
+  ],
+  "excluded": [
+    "HCOMM repository, communication-domain/rank-table construction, physical transport/protocol internals, driver, firmware and ACL runtime implementation.",
+    "Legacy HcclAllReduceInner, unsupported device generations, graph/capture mode, AIV/CCU/DPU implementations, multi-level topology algorithms, plugins and task-cache replay qualification.",
+    "Complete topology discovery, all cost-model/op filters and tuner implementations; no exhaustive algorithm selection or performance prediction.",
+    "64-bit/PROD AicpuReduce internals, arbitrary rank-map qualification, fault recovery, teardown and concurrency safety.",
+    "Native numerical precision/determinism, actual bandwidth/overlap, model quality, service performance and agent efficacy."
+  ],
+  "validation": {
+    "source_identity": "raw_git_bytes_match_declared_git_blobs",
+    "upstream_test_definitions": "inspected_selected_simulator_cases_and_checker_only",
+    "upstream_build_and_tests": "not_run",
+    "native_execution": "not_run",
+    "model_quality": "not_run",
+    "memory_and_performance": "not_run"
+  },
+  "attribution": "Huawei Technologies Co., Ltd. and upstream contributors; retained upstream license applies to the cited source. This owner reference contains original analysis, not vendored HCCL implementation. Existing wrapper/strategy provenance and license uncertainty are unchanged.",
+  "license_resource_transform": "Only trailing ASCII spaces on upstream LICENSE lines 2 and 3 removed; all legal text retained.",
+  "license_resource_sha256": "05205a02acebd671c78d3b876c1f6097b84cce89780f5d9bdc204bfbea92d0c1"
+}

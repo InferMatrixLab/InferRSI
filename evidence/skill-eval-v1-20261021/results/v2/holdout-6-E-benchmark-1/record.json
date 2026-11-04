@@ -1,0 +1,102 @@
+{
+  "task_id": "holdout-6",
+  "condition": "E-benchmark",
+  "repeat": 1,
+  "split": "holdout",
+  "execution_state": "completed",
+  "verdict": "PASS",
+  "checks": {
+    "passed": true,
+    "assertions": {
+      "report_verdict": true,
+      "claim_scope": true,
+      "findings": true,
+      "reduction": true,
+      "evidence": true,
+      "explanation": true
+    }
+  },
+  "elapsed_seconds": 67.71905810001772,
+  "inputs_unchanged": true,
+  "input_hashes": {
+    "task.json": "a63127b2d53f117d75c79906a012efdd451ff975ca262a7972de62c30356bdbd",
+    "knowledge/methods/inference-benchmark-design/metadata.json": "1e04bcca099b0cdbcbdfd8e9c88b47c1accb656cb5317ccb7a929fcacb0a0d87",
+    "knowledge/methods/inference-benchmark-design/SKILL.md": "dcaa6d7bdcbe4c29116b9679d95ec076faaada3e66c647e95acdd46c2343a2eb",
+    "knowledge/methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+    "knowledge/methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+  },
+  "output_sha256": "c5bf54520b97c9399b19701b4aebb95f53739b1d9b95322c74558c829cf8f48b",
+  "candidate_skill_accesses": [
+    "inference-benchmark-design"
+  ],
+  "activation_observation": "matching_successful_command_requires_review",
+  "supplied_skills": [
+    "inference-benchmark-design"
+  ],
+  "declared_exposure_bundles": [
+    {
+      "id": "inference-benchmark-design",
+      "revision": "sha256:54184fe055e1f072ca8c311eb8571ef54d458a25be86671d9af06b55f0bf845a",
+      "entrypoint": "methods/inference-benchmark-design/SKILL.md",
+      "resources": {
+        "methods/inference-benchmark-design/SKILL.md": "dcaa6d7bdcbe4c29116b9679d95ec076faaada3e66c647e95acdd46c2343a2eb",
+        "methods/inference-benchmark-design/metadata.json": "1e04bcca099b0cdbcbdfd8e9c88b47c1accb656cb5317ccb7a929fcacb0a0d87",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+      },
+      "dependencies": {
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.json": "sha256:755e13febcc48c825e96c37f5239c6b4263378ef0fb15e639bb5df4feaad4d08",
+        "methods/inference-optimization-casebook/cases/admission-drain-occupancy.md": "sha256:41bb032da77149b55f9c8319c03815b75553102d0d148d2b5638f38343d86c39"
+      }
+    }
+  ],
+  "observations": {
+    "usage": {
+      "input_tokens": 57028,
+      "cached_input_tokens": 35840,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 1567,
+      "reasoning_output_tokens": 773
+    },
+    "completed_turns": 1,
+    "errors": [],
+    "commands": [
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command 'Get-Content -LiteralPath task.json -Raw'",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "{\r\n  \"id\": \"holdout-6\",\r\n  \"split\": \"holdout\",\r\n  \"mode\": \"audit\",\r\n  \"provenance\": \"Historical latency slices plus explicitly counterfactual test metadata; this exercise is not a new hardware measurement.\",\r\n  \"request\": \"Audit the claimed fixed-workload latency acceptance; compute median of per-trial request means and percentage reduction. Identify only material contract violations and the strongest supported scope. Do not infer production/deployment qualification. Explain the smallest next action. The campaign requires only C1; replay and production are outside its claim.\",\r\n  \"contract\": {\r\n    \"min_reduction_pct\": 25,\r\n    \"scope\": \"fixed_workload\",\r\n    \"required_regimes\": [\r\n      \"C1\"\r\n    ],\r\n    \"quality_required\": true,\r\n    \"all_requests_required\": true,\r\n    \"max_relative_spread_pct\": 12,\r\n    \"statistical_significance_required\": false,\r\n    \"verdict_definitions\": {\r\n      \"PASS\": \"Comparable and sufficient evidence satisfies all frozen acceptance gates.\",\r\n      \"FAIL\": \"Comparable and sufficient evidence demonstrates a quality, request-completion or gain gate violation. Do not use FAIL merely to reject an unsupported claim.\",\r\n      \"INCONCLUSIVE\": \"Workloads are inc",
+        "output_tail_excerpt": " \"total_requests\": 15,\r\n    \"reported_requests\": 15,\r\n    \"failed_requests\": 0\r\n  },\r\n  \"evidence_keys\": [\r\n    \"contract\",\r\n    \"baseline.latencies_ms\",\r\n    \"candidate.latencies_ms\",\r\n    \"baseline.workload\",\r\n    \"candidate.workload\",\r\n    \"candidate.quality\",\r\n    \"candidate.total_requests\",\r\n    \"candidate.reported_requests\",\r\n    \"candidate.failed_requests\",\r\n    \"evidence_scope\"\r\n  ]\r\n}\r\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 3719,
+        "original_output_sha256": "3796c78122d64ba087093f753fecf3397b4e0243126c2ce94749261bd0a48803"
+      },
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command 'Get-Content -LiteralPath knowledge/methods/inference-benchmark-design/SKILL.md -Raw'",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "---\nname: inference-benchmark-design\ndescription: 'How to design a benchmark for inference serving that produces trustworthy, actionable results. Covers workload regime selection, SLO-aware metrics, trace replay, multi-seed evaluation, inconclusive handling, and the common mistakes that invalidate benchmark results. Drawn from vllm-evolve and InferRSI''s evidence framework.\n\n  '\n---\n\n# Inference Benchmark Design\n\nStatus: candidate. Source-grounded from vllm-evolve @ 43cc82c and\nInferRSI evidence framework @ 4c8e1285.\n\n## Core principle: goodput over throughput\n\nRaw throughput (tokens/second, frames/second) is misleading because a system\ncan maximize throughput by accepting requests it then fails to serve within\nthe user's latency expectation. The meaningful metric is goodput: the rate of\nrequests that complete AND meet the declared SLO.\n\n```\ngoodput = (requests completed within SLO) / time\n```\n\nA candidate that improves raw throughput by trading latency away cannot \"win\"\nunder a goodput metric if it causes SLO violations.\nSource: vllm-evolve README @ 43cc82c.\n\n## Three required workload regimes\n\nA single benchmark run at one concurrency level does not characterize serving\nperforman",
+        "output_tail_excerpt": "cy case](../inference-optimization-casebook/cases/admission-drain-occupancy.md) when interpreting finite service cohorts. It separates recorded observation, action and interpretation; phase-selected occupancy is not end-to-end gain. The original frozen evidence remains linked, not copied. This shared reference is included in the packaged skill library; standalone folder export is not supported.\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 7741,
+        "original_output_sha256": "0cc7762923aa9be32b0cd38afce753752f943a6323626d471d759fd649e5c37c"
+      },
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -Command 'Get-Content -LiteralPath task.json -Raw'",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "{\r\n  \"id\": \"holdout-6\",\r\n  \"split\": \"holdout\",\r\n  \"mode\": \"audit\",\r\n  \"provenance\": \"Historical latency slices plus explicitly counterfactual test metadata; this exercise is not a new hardware measurement.\",\r\n  \"request\": \"Audit the claimed fixed-workload latency acceptance; compute median of per-trial request means and percentage reduction. Identify only material contract violations and the strongest supported scope. Do not infer production/deployment qualification. Explain the smallest next action. The campaign requires only C1; replay and production are outside its claim.\",\r\n  \"contract\": {\r\n    \"min_reduction_pct\": 25,\r\n    \"scope\": \"fixed_workload\",\r\n    \"required_regimes\": [\r\n      \"C1\"\r\n    ],\r\n    \"quality_required\": true,\r\n    \"all_requests_required\": true,\r\n    \"max_relative_spread_pct\": 12,\r\n    \"statistical_significance_required\": false,\r\n    \"verdict_definitions\": {\r\n      \"PASS\": \"Comparable and sufficient evidence satisfies all frozen acceptance gates.\",\r\n      \"FAIL\": \"Comparable and sufficient evidence demonstrates a quality, request-completion or gain gate violation. Do not use FAIL merely to reject an unsupported claim.\",\r\n      \"INCONCLUSIVE\": \"Workloads are inc",
+        "output_tail_excerpt": " \"total_requests\": 15,\r\n    \"reported_requests\": 15,\r\n    \"failed_requests\": 0\r\n  },\r\n  \"evidence_keys\": [\r\n    \"contract\",\r\n    \"baseline.latencies_ms\",\r\n    \"candidate.latencies_ms\",\r\n    \"baseline.workload\",\r\n    \"candidate.workload\",\r\n    \"candidate.quality\",\r\n    \"candidate.total_requests\",\r\n    \"candidate.reported_requests\",\r\n    \"candidate.failed_requests\",\r\n    \"evidence_scope\"\r\n  ]\r\n}\r\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 3719,
+        "original_output_sha256": "3796c78122d64ba087093f753fecf3397b4e0243126c2ce94749261bd0a48803"
+      }
+    ]
+  },
+  "publication": {
+    "original_result_sha256": "8e3b15cae343ee42eb96e4c6a3b5075bba85d1328f813d60930f43dd4d98ad1d",
+    "original_events_sha256": "4b1a9d55387703213e888f25e0d866e91f746c815f48af98a0e62c8996e04d19",
+    "omitted": "Raw service/session events, host argv/paths and process identifiers. Command outputs are explicitly truncated excerpts; private originals retained.",
+    "task_reconstruction": "From frozen tasks and controller R transformations; matches recorded input SHA-256 when available."
+  }
+}

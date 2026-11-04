@@ -1,0 +1,58 @@
+{
+  "task_id": "dev-2",
+  "condition": "N",
+  "repeat": 1,
+  "split": "development",
+  "execution_state": "completed",
+  "verdict": "FAIL",
+  "checks": {
+    "passed": false,
+    "assertions": {
+      "report_verdict": false,
+      "claim_scope": true,
+      "findings": true,
+      "reduction": true,
+      "evidence": true,
+      "explanation": true
+    }
+  },
+  "elapsed_seconds": 74.84782169992104,
+  "inputs_unchanged": true,
+  "input_hashes": {
+    "task.json": "2042f476f579bd1619f8735225391f14bf0e3a719d57f9fea34939f823385c4f"
+  },
+  "output_sha256": "cdf45fc6a2ff356edb24d943504bb11fa88550f58547b00ad4471e5db35d7f22",
+  "candidate_skill_accesses": [],
+  "activation_observation": "unknown",
+  "supplied_skills": [],
+  "declared_exposure_bundles": [],
+  "observations": {
+    "usage": {
+      "input_tokens": 28162,
+      "cached_input_tokens": 13056,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 2043,
+      "reasoning_output_tokens": 1436
+    },
+    "completed_turns": 1,
+    "errors": [],
+    "commands": [
+      {
+        "command": "\"C:\\\\Program Files\\\\PowerShell\\\\7\\\\pwsh.exe\" -NoProfile -Command \"Get-Content -Raw -LiteralPath .\\\\task.json\"",
+        "exit_code": 0,
+        "status": "completed",
+        "output_excerpt": "{\r\n  \"id\": \"dev-2\",\r\n  \"split\": \"development\",\r\n  \"mode\": \"audit\",\r\n  \"provenance\": \"Historical latency slices plus explicitly counterfactual test metadata; this exercise is not a new hardware measurement.\",\r\n  \"request\": \"Audit the claimed fixed-workload latency acceptance; compute median of per-trial request means and percentage reduction. Identify only material contract violations and the strongest supported scope. Do not infer production/deployment qualification. Explain the smallest next action. The author claims these kernel timings establish HTTP service gain.\",\r\n  \"contract\": {\r\n    \"min_reduction_pct\": 20,\r\n    \"scope\": \"fixed_workload\",\r\n    \"required_regimes\": [\r\n      \"C1\"\r\n    ],\r\n    \"quality_required\": true,\r\n    \"all_requests_required\": true,\r\n    \"max_relative_spread_pct\": 12,\r\n    \"statistical_significance_required\": false\r\n  },\r\n  \"evidence_scope\": \"kernel\",\r\n  \"baseline\": {\r\n    \"latencies_ms\": [\r\n      [\r\n        377.86599702667445,\r\n        376.172867952846,\r\n        379.17164200916886\r\n      ],\r\n      [\r\n        401.05408598901704,\r\n        399.7857089852914,\r\n        400.2391319954768\r\n      ],\r\n      [\r\n        383.62530700396746,\r\n        378.7631769664585",
+        "output_tail_excerpt": " \"total_requests\": 15,\r\n    \"reported_requests\": 15,\r\n    \"failed_requests\": 0\r\n  },\r\n  \"evidence_keys\": [\r\n    \"contract\",\r\n    \"baseline.latencies_ms\",\r\n    \"candidate.latencies_ms\",\r\n    \"baseline.workload\",\r\n    \"candidate.workload\",\r\n    \"candidate.quality\",\r\n    \"candidate.total_requests\",\r\n    \"candidate.reported_requests\",\r\n    \"candidate.failed_requests\",\r\n    \"evidence_scope\"\r\n  ]\r\n}\r\n\r\n",
+        "output_truncated": true,
+        "original_output_characters": 2816,
+        "original_output_sha256": "2ef4c4170a4f47f783dd2c9b926eaca85b76e2cc71fe2c108bbae5aecb200abd"
+      }
+    ]
+  },
+  "publication": {
+    "original_result_sha256": "ee927884a15504637615a42f8613ab9a74dc9851a101e5f439230db2df6f8c24",
+    "original_events_sha256": "6003a0c3b0a86685dc6cd6ce4cbc5401627fb9f5451ffa47e37ac5669e1d5389",
+    "omitted": "Raw service/session events, host argv/paths and process identifiers. Command outputs are explicitly truncated excerpts; private originals retained.",
+    "task_reconstruction": "From frozen tasks and controller R transformations; matches recorded input SHA-256 when available."
+  }
+}

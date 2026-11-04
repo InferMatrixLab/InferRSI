@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="2003" height="291" viewBox="0 0 2003 291" role="img">
+<title>Branch layout: independent trials, gains and losses</title>
+<rect width="2003" height="291" fill="#fcfcfb"/>
+<text x="24.0" y="40.0" font-size="16.5" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" font-weight="bold">Branch layout: independent trials, gains and losses</text>
+<text x="24.0" y="66.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">baseline: pinned baseline snapshot</text>
+<text x="24.0" y="81.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">Illustrative shape only. Values are the template example, not any engine's measurements.</text>
+<text x="24.0" y="96.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">Every trial shows its own gain against the same baseline, so a no-gain or loss row stays visible.</text>
+<rect x="668.6" y="125.0" width="860.0" height="78.0" fill="#f1f1ee"/>
+<text x="24.0" y="138.0" font-size="9.6" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" font-weight="bold" dominant-baseline="middle">Kernel</text>
+<text x="24.0" y="216.0" font-size="9.6" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" font-weight="bold" dominant-baseline="middle">Replication</text>
+<line x1="668.6" y1="125.0" x2="668.6" y2="229.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="668.6" y="117.0" font-size="8.2" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#8a8984" text-anchor="middle">-50%</text>
+<line x1="840.6" y1="125.0" x2="840.6" y2="229.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="840.6" y="117.0" font-size="8.2" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#8a8984" text-anchor="middle">0%</text>
+<line x1="1012.6" y1="125.0" x2="1012.6" y2="229.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="1012.6" y="117.0" font-size="8.2" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#8a8984" text-anchor="middle">+50%</text>
+<line x1="1184.6" y1="125.0" x2="1184.6" y2="229.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="1184.6" y="117.0" font-size="8.2" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#8a8984" text-anchor="middle">+100%</text>
+<line x1="1356.6" y1="125.0" x2="1356.6" y2="229.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="1356.6" y="117.0" font-size="8.2" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#8a8984" text-anchor="middle">+150%</text>
+<line x1="1528.6" y1="125.0" x2="1528.6" y2="229.0" stroke="#e4e3df" stroke-width="1"/>
+<text x="1528.6" y="117.0" font-size="8.2" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#8a8984" text-anchor="middle">+200%</text>
+<line x1="840.6" y1="125.0" x2="840.6" y2="229.0" stroke="#52514e" stroke-width="1.1"/>
+<line x1="1422.7" y1="125.0" x2="1422.7" y2="229.0" stroke="#52514e" stroke-width="1.5" stroke-dasharray="5 3"/>
+<text x="1426.7" y="245.0" font-size="8.6" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" font-style="italic">peer target, C32</text>
+<line x1="841.3" y1="138.0" x2="844.0" y2="138.0" stroke="#e4e3df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="844.0" cy="138.0" r="3.8" fill="#2a78d6" stroke="#fcfcfb" stroke-width="1.2"/>
+<circle cx="841.3" cy="138.0" r="4.6" fill="#eb6834" stroke="#fcfcfb" stroke-width="1.2"/>
+<text x="1538.6" y="138.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" dominant-baseline="middle" font-weight="normal">+0.2%   521 frames/s  ×</text>
+<text x="1744.5" y="138.0" font-size="8.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" dominant-baseline="middle">flat — no gain versus its parent</text>
+<text x="656.6" y="138.0" font-size="9.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" text-anchor="end" dominant-baseline="middle">graph capacity raise</text>
+<line x1="826.8" y1="164.0" x2="853.8" y2="164.0" stroke="#e4e3df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="826.8" cy="164.0" r="3.8" fill="#2a78d6" stroke="#fcfcfb" stroke-width="1.2"/>
+<circle cx="853.8" cy="164.0" r="4.6" fill="#eb6834" stroke="#fcfcfb" stroke-width="1.2"/>
+<text x="1538.6" y="164.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" dominant-baseline="middle" font-weight="normal">+3.8%   540 frames/s  (C16 -4.0%)  ×</text>
+<text x="1744.5" y="164.0" font-size="8.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" dominant-baseline="middle">regressed — 4.0% slower than baseline at C16</text>
+<text x="656.6" y="164.0" font-size="9.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" text-anchor="end" dominant-baseline="middle">pooled precision path</text>
+<line x1="909.4" y1="190.0" x2="920.0" y2="190.0" stroke="#e4e3df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="909.4" cy="190.0" r="3.8" fill="#2a78d6" stroke="#fcfcfb" stroke-width="1.2"/>
+<circle cx="920.0" cy="190.0" r="4.6" fill="#eb6834" stroke="#fcfcfb" stroke-width="1.2"/>
+<text x="1538.6" y="190.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" dominant-baseline="middle" font-weight="normal">+23.1%   640 frames/s</text>
+<text x="1744.5" y="190.0" font-size="8.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" dominant-baseline="middle">open — one screen on the tuning cohort</text>
+<text x="656.6" y="190.0" font-size="9.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" text-anchor="end" dominant-baseline="middle">fused epilogue</text>
+<line x1="1115.8" y1="216.0" x2="1224.3" y2="216.0" stroke="#e4e3df" stroke-width="4" stroke-linecap="round"/>
+<circle cx="1115.8" cy="216.0" r="3.8" fill="#2a78d6" stroke="#fcfcfb" stroke-width="1.2"/>
+<circle cx="1224.3" cy="216.0" r="4.6" fill="#eb6834" stroke="#fcfcfb" stroke-width="1.2"/>
+<text x="1538.6" y="216.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" dominant-baseline="middle" font-weight="normal">+111.5%   1,100 frames/s</text>
+<text x="1744.5" y="216.0" font-size="8.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" dominant-baseline="middle">rejected — quality gate failed</text>
+<text x="656.6" y="216.0" font-size="9.8" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#0b0b0b" text-anchor="end" dominant-baseline="middle">two replicas</text>
+<circle cx="1455.5" cy="98.0" r="4" fill="#2a78d6"/>
+<circle cx="1467.5" cy="98.0" r="4" fill="#eb6834"/>
+<text x="1479.5" y="101.0" font-size="9.4" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e">C16   C32</text>
+<text x="1098.6" y="263.0" font-size="9.6" font-family="system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif" fill="#52514e" text-anchor="middle">End-to-end gain versus the baseline</text>
+</svg>

@@ -7,13 +7,25 @@ experiment; repository conventions stay with their owning repository.
 | Tier / CLI value | Sources | Learning output |
 | --- | --- | --- |
 | Contribution / `contribution` | vLLM, vLLM-Omni, vllm-ascend; legacy repository packs also retain imported Strata, SGLang and SGLang-Omni procedures | L2C blind attempt → comparison → scoped skill; separate performance evidence/candidates |
-| Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, Triton, Diffusers, Transformers | API/capability constraints and downstream impact; no blind coding session required |
-| Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
+| Dependency / `dependency` | FlashInfer, FlashAttention, PyTorch/Inductor, Triton, Diffusers, Transformers, MLX | API/capability constraints and downstream impact; no blind coding session required |
+| Peer technique / `peer` | SGLang, TensorRT-LLM, LMDeploy, xDiT, Cache-DiT, Qwen3-TTS engine, DeepInfer | Technique, hardware, reported benefit, costs, quality risks and a reproduction hypothesis |
 
 This is an acquisition policy, not a ranking or fixed dependency graph.
 Cache-DiT, for example, can also be a direct dependency of vLLM-Omni. Its entry
 is classified as a peer technique for this initial extraction; reclassify an
 entry when the learning use case changes instead of duplicating its claims.
+
+For `pytorch/pytorch`, the [compiler/checkpoint scope map](../skill_library/README.md#pytorch-compiler-and-checkpoint-scope-routing)
+relates the [compiler dependency card](dependency/pytorch/cuda/compiler/cudagraph-shapes-and-lifetimes.json)
+to the existing [DCP async-save owner](../skill_library/frameworks/pytorch/dcp-async-save-performance/SKILL.md),
+keeping its fixed implementation and live recipe separate from compiler
+documentation, with each owner's completion and version boundaries intact.
+
+For TensorRT-LLM, the [methodology and disaggregation map](../skill_library/README.md#tensorrt-llm-source-and-responsibility-routing)
+routes the existing mixed-source performance methods alongside the
+[PD/KV-transfer card](peer/tensorrt_llm/cuda/llm/prefill-decode-disaggregation.json).
+It assesses shared measurement controls and separate startup, host and network
+costs while retaining the card's source revision and transfer-hypothesis limits.
 
 ## Storage and compatibility
 
@@ -37,7 +49,7 @@ against the owning directory as well as ID/repository/backend/component.
 `repo` always identifies the source owner, not a validated downstream target.
 
 The [InferRSI skill catalog](../repo_packs/inferrsi/knowledge/README.md)
-adds generated contribution-tier records for all 48 migrated skills. Their full
+provides generated contribution-tier records for registered skills. Their full
 procedures, sidecars, references and cases now live in the
 [packaged skill library](../skill_library/README.md); `skill_documents.original`
 links each record to its procedure. Hardware guidance lives under the matching
@@ -116,6 +128,40 @@ speedup numbers whose conditions or isolated contribution are unclear.
 | peer | lmdeploy | [LMDeploy KV quantization: preserve capacity gains and latency counterexamples](peer/lmdeploy/cuda/llm/kv-quantization-capacity-cost.json) |
 | peer | xdit | [xDiT parallelism: separate current-state attention from stale-state pipelines](peer/xdit/cuda/diffusion/parallelism-freshness-and-topology.json) |
 | peer | cache_dit | [Cache-DiT residual reuse needs model- and schedule-specific calibration](peer/cache_dit/common/diffusion/residual-cache-calibration.json) |
+
+## DeepInfer extraction: 2026-10-20
+
+Three source-derived candidates at the same immutable DeepInfer revision.
+Owner review on 2026-10-22 corrected query/KV ownership, nested feature gates,
+verification budgeting and release-scope attribution. Original access dates
+are retained; newly inspected sources carry their own access date. No native,
+model, service or performance validation is claimed.
+
+| Tier | Source | Card |
+| --- | --- | --- |
+| peer | deepinfer | [DeepInfer zero-overhead scheduling: defer the previous step's post-process to overlap host prep with device work](peer/deepinfer/common/llm/zero-overhead-deferred-scheduling.json) |
+| peer | deepinfer | [DeepInfer verification budget: spend verification rows by marginal acceptance, not by fixed draft width](peer/deepinfer/common/llm/speculative-verification-budget.json) |
+| peer | deepinfer | [DeepInfer bounded replay: compact query rows with a derived dependency closure and separately preserved historical state](peer/deepinfer/common/llm/bounded-windowed-replay.json) |
+
+## MLX source cards
+
+Three dependency cards reuse the existing
+[MLX evaluation/stream/lifetime procedure](../skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md)
+and its original 2026-10-21 readset. Their selected implementation ranges were
+rechecked on 2026-10-23 at the same bff10220c742907f0c68e55ff174aaea56f74e3d pin.
+They retain MIT/Apple attribution and imported, locally unverified state.
+
+| Source | Card |
+| --- | --- |
+| dependency / mlx | [Evaluation submission versus readable completion](dependency/mlx/mlx/execution/evaluation-completion.json) |
+| dependency / mlx | [Cross-stream producer-consumer dependency](dependency/mlx/mlx/execution/cross-stream-dependency.json) |
+| dependency / mlx | [Buffer ownership after graph detachment](dependency/mlx/mlx/execution/post-detachment-buffer-lifetime.json) |
+
+Search with --tier dependency --repo-type mlx --backend mlx. These source-owned
+IDs are separate from the existing inferrsi.common.skills discovery abstracts.
+MLX discovery does not qualify a backend or model, and the separate MLX-LM
+procedure/source identity is unchanged. Compiler/fusion and allocator policy are
+outside these three bounded observations.
 
 ## Maintaining the tiers
 

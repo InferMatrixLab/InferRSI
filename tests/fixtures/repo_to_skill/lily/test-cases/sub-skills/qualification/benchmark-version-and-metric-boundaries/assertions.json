@@ -1,0 +1,27 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "version-bound production cadence and benchmark attribution",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/2026-09-01-performance-mlx-0.31.2.md:1-97",
+    "docs/2026-09-02-performance-mlx-0.32.2.md:1-101",
+    "benchmarks/run_matrix.py:27,268-278,486-577",
+    "benchmarks/bench_mlx.py:27-31,53-84,97-99",
+    "src/bin/lily-bench.rs:49-180"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/qualification/references/troubleshooting.md",
+    "sub-skills/qualification/scripts/audit_benchmark_record.py"
+  ],
+  "assertions": [
+    "The response identifies the current 0.31.2 pins versus the later 0.32.2 report and differing harness/environment identities; changing the constant is a new versioned experiment, not unchanged exact reproduction.",
+    "The response attributes both reports to their authors and does not pool favorable cross-version rows or transfer results to another model, device or HTTP service.",
+    "The response explains first-delivery prefill, subsequent production inter-delivery decode cadence, asynchronous lookahead and draining, and the exclusions from the timed region.",
+    "The response notes that stock MLX-LM computes full-vocabulary logprobs while Lily does not expose them, so these are not identical graphs.",
+    "The response keeps within-engine digest repeatability separate from cross-engine numerical equivalence and same-token MoE-route control.",
+    "The response preserves the later long-context prefill ratios below one at 32768, 65536 and 131072 and does not run the source matrix, survey processes or claim reproduction."
+  ]
+}

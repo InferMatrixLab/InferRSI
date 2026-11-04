@@ -1,0 +1,33 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "metadata-target-no-native-qualification",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:python/mlc_llm/protocol/artifact_manifest.py",
+    "mlc-ai/mlc-llm:python/mlc_llm/support/auto_target.py",
+    "mlc-ai/relax:src/backend/metal/codegen/metal_fallback_module.cc"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/repo-provenance.md",
+    "references/scope-and-notices.md",
+    "sub-skills/artifact-contract/SKILL.md",
+    "sub-skills/artifact-contract/references/contract-mechanisms.md",
+    "sub-skills/artifact-contract/references/helper-contract.md",
+    "sub-skills/metal-build-runtime/SKILL.md",
+    "sub-skills/metal-build-runtime/references/targets-and-export.md",
+    "sub-skills/metal-build-runtime/references/modules-and-streams.md",
+    "sub-skills/metal-build-runtime/references/native-evidence.md",
+    "sub-skills/runtime-kv-limits/SKILL.md",
+    "sub-skills/runtime-kv-limits/references/limits-and-workspace.md",
+    "sub-skills/runtime-kv-limits/references/cache-lowering-and-evidence.md",
+    "sub-skills/runtime-kv-limits/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Separate opt-in consumer support, interface/parameter schema identity, target declaration, binary/runnable module and actual dispatch/model/service evidence.",
+    "Parameter-only bytes exclude KV/workspace/copies/allocator pressure; target strings do not inspect SDK or runtime.",
+    "Serializable Metal fallback and matching metadata cannot establish native load or numerical behavior.",
+    "Preserve candidate/native gaps; no unsupported capacity/latency or universal acceptance claim."
+  ]
+}

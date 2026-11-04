@@ -1,0 +1,359 @@
+{
+  "issue": 67,
+  "scope": "single-case engineering diagnostic, not formal acceptance",
+  "verdict": "INCONCLUSIVE",
+  "job": 2097,
+  "execution": "COMPLETED 0:0",
+  "allocated_gpu_seconds": 196,
+  "engine_tested": "ed5d2b2a672ea54666cfd198052083e0321a13ab",
+  "raw_archive_sha256": "87915b8893d5eaced9668dde75731cc5beff27decaee0b066978c06b0950369f",
+  "requests_verified": 4,
+  "metrics": {
+    "native": {
+      "ttft_s": 3.535637284978293,
+      "tpot_s": 0.01636294174399573,
+      "latency_s": 37.030579034937546
+    },
+    "flashinfer": {
+      "ttft_s": 2.836416517966427,
+      "tpot_s": 0.013279105203260786,
+      "latency_s": 30.018744869041257
+    }
+  },
+  "flashinfer_ratios": {
+    "native": {
+      "ttft_s": 0.8022362842527386,
+      "tpot_s": 0.8115353223776809,
+      "latency_s": 0.8106474608652278
+    }
+  },
+  "token_comparisons": {
+    "native": {
+      "matching_positions": 2048,
+      "total": 2048,
+      "first_mismatch": null
+    }
+  },
+  "cleanup": [
+    {
+      "phase": "cleanup",
+      "arm": "native",
+      "exit_code": 0,
+      "forced": false,
+      "owned_group_remaining": 0,
+      "cleanup_errors": [],
+      "cleanup_complete": true
+    },
+    {
+      "phase": "cleanup",
+      "arm": "flashinfer",
+      "exit_code": 0,
+      "forced": false,
+      "owned_group_remaining": 0,
+      "cleanup_errors": [],
+      "cleanup_complete": true
+    }
+  ],
+  "graph_check": {
+    "complete": true,
+    "scope": "fixed_capacity_eager_graph_integration_not_task_quality",
+    "capacity": 10240,
+    "predictions": 16,
+    "graph_replays": 15,
+    "history": "shared eager argmax chosen online",
+    "rows": [
+      {
+        "step": 0,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 1,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 2,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 3,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 4,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 5,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 6,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 7,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 8,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 9,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 10,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 11,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 12,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 13,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 14,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      },
+      {
+        "step": 15,
+        "exact": true,
+        "finite": true,
+        "max_abs": 0.0
+      }
+    ],
+    "state_exact": true,
+    "prewarm": {
+      "policy": "full_context",
+      "buckets": {
+        "10240": {
+          "capture_seconds": 7.374566382961348,
+          "resident_MiB": 853.51171875
+        }
+      },
+      "started_unix": 1792731172.0327299,
+      "total_seconds": 7.374566382961348,
+      "resident_MiB_total": 853.51171875,
+      "completed_unix": 1792731179.407932
+    },
+    "loader": {
+      "loaded_parameters": 1251,
+      "excluded_tensors": {
+        "vision": 333,
+        "mtp": 22
+      },
+      "scope": "text_only",
+      "dtype": "fp8",
+      "activation_dtype": "bfloat16",
+      "weight_dtype": "float8_e4m3fn",
+      "scale_dtype": "float32",
+      "checkpoint_scale_dtype": "bfloat16",
+      "quantization": {
+        "activation_scheme": "dynamic",
+        "fmt": "e4m3",
+        "quant_method": "fp8",
+        "weight_block_size": [
+          128,
+          128
+        ]
+      },
+      "execution": "native_fp8",
+      "fp8_linear_modules": 400,
+      "dequantized": false,
+      "backend": "flashinfer_small_m_deepgemm_prefill",
+      "kernel_name": "fp8_blockscale_gemm_sm90+deep_gemm.fp8_gemm_nt"
+    }
+  },
+  "overlay_prepost_exact": true,
+  "readiness_before_gpu_seconds": 6796,
+  "readiness_used_gpu_seconds": 6992,
+  "readiness_remaining_gpu_seconds": 208,
+  "payload_hashes_verified": 32,
+  "source_archive_files_verified": 58,
+  "gdn_operator": {
+    "complete": true,
+    "scope": "operator observations, no task-quality threshold",
+    "rows": [
+      {
+        "phase": "prefill",
+        "length": 1,
+        "nonzero_state": false,
+        "output": {
+          "finite": true,
+          "max_abs": 1.52587890625e-05,
+          "nrmse": 0.0035691505763679743
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 0.00013778358697891235,
+          "nrmse": 0.0016552112065255642
+        }
+      },
+      {
+        "phase": "prefill_decode_boundary",
+        "length": 1,
+        "nonzero_state": false,
+        "output": {
+          "finite": true,
+          "max_abs": 1.52587890625e-05,
+          "nrmse": 0.0012014282401651144
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 3.565102815628052e-05,
+          "nrmse": 0.0003891643136739731
+        }
+      },
+      {
+        "phase": "prefill",
+        "length": 1,
+        "nonzero_state": true,
+        "output": {
+          "finite": true,
+          "max_abs": 1.52587890625e-05,
+          "nrmse": 0.003268066793680191
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 0.00024002790451049805,
+          "nrmse": 0.0010504568926990032
+        }
+      },
+      {
+        "phase": "prefill_decode_boundary",
+        "length": 1,
+        "nonzero_state": true,
+        "output": {
+          "finite": true,
+          "max_abs": 7.62939453125e-06,
+          "nrmse": 0.001036513363942504
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 5.151703953742981e-05,
+          "nrmse": 0.0003984594368375838
+        }
+      },
+      {
+        "phase": "prefill",
+        "length": 65,
+        "nonzero_state": false,
+        "output": {
+          "finite": true,
+          "max_abs": 3.0517578125e-05,
+          "nrmse": 0.00404905341565609
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 0.00029150955379009247,
+          "nrmse": 0.002732997527346015
+        }
+      },
+      {
+        "phase": "prefill_decode_boundary",
+        "length": 65,
+        "nonzero_state": false,
+        "output": {
+          "finite": true,
+          "max_abs": 1.52587890625e-05,
+          "nrmse": 0.0020262340549379587
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 7.519079372286797e-05,
+          "nrmse": 0.0012903996976092458
+        }
+      },
+      {
+        "phase": "prefill",
+        "length": 65,
+        "nonzero_state": true,
+        "output": {
+          "finite": true,
+          "max_abs": 3.0517578125e-05,
+          "nrmse": 0.004230331629514694
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 0.0002579540014266968,
+          "nrmse": 0.0027470663189888
+        }
+      },
+      {
+        "phase": "prefill_decode_boundary",
+        "length": 65,
+        "nonzero_state": true,
+        "output": {
+          "finite": true,
+          "max_abs": 7.62939453125e-06,
+          "nrmse": 0.002458286238834262
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 6.591342389583588e-05,
+          "nrmse": 0.001306867809034884
+        }
+      },
+      {
+        "phase": "decode",
+        "output": {
+          "finite": true,
+          "max_abs": 0.0,
+          "nrmse": 0.0
+        },
+        "state": {
+          "finite": true,
+          "max_abs": 7.450580596923828e-09,
+          "nrmse": 8.087441472071077e-08
+        }
+      },
+      {
+        "phase": "changed_input_graph",
+        "output_exact": true,
+        "state_exact": true,
+        "finite": true
+      }
+    ],
+    "api_hashes": {
+      "flashinfer.gdn_prefill": "3dc5005eded5c9e152ebf32359e7a3238e0c0924522a1a3482f19fb8138b4f5f",
+      "flashinfer.gdn_decode": "e5a5a796613a48f5750bed2e7cd4f9917a9580374ce3fa6bc0ea2aa47db3d280"
+    }
+  }
+}

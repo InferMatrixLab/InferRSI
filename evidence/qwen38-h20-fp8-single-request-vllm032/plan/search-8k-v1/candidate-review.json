@@ -1,0 +1,28 @@
+{
+  "scope": "independent parent review of delegated PR16 candidate GPU component",
+  "candidate": "2d676dfa615d0c773970e0124183458a9101748b",
+  "component_sha256": "a274225b0d4c746326b364e02a37fcc8e6962bcac3aaf3af56ca08537e476fdf",
+  "reviewed_files": {
+    "candidate.sbatch": "fdb9bf145e68ac65d0134c506b1c26be37972a42be6556256102de04bc4428d5",
+    "operator_probe.py": "45a60d21da9a7024e0b2e559b7846bca6d2c30e6c6c2c4de9a5b8546519aa00d",
+    "graph_probe.py": "3e52a9972870d753356d18bba4ac471c9e6ee908237864c363590e6eba7e44b2",
+    "plan.md": "eac01629d27a529e733bdb70ac1502cd3bd1d00f74a1d18fa2e986d009632fd6",
+    "source-identities.json": "1bee0b9c78bd8f2474cd2a199325735bbf108f38122d9cb3408e403d1a5e5440"
+  },
+  "findings_resolved": [
+    "Plan incorrectly described request-latency statistic; corrected to TTFT/TPOT before freeze."
+  ],
+  "findings_open": [],
+  "checks": [
+    "7 exact production-shape operator cases, original FP8 bytes/scales and row views, changed-input eager/Graph replay controls",
+    "actual checkpoint merged256module whole-model Graph state check",
+    "copied official collector/audit/guard identities",
+    "isolated baseline child and candidate-only operator overlay",
+    "allocation/deadline/EXIT/postflight/source integrity and failures preserved"
+  ],
+  "limitations": [
+    "No GPU/model-performance execution yet",
+    "Performance binding requires its independent review/freeze before submission",
+    "No quality or campaign PASS"
+  ]
+}
