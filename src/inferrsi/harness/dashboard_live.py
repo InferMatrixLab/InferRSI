@@ -6,13 +6,13 @@ import hashlib
 import json
 import re
 import sys
-from http.server import BaseHTTPRequestHandler, HTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .dashboard import dashboard_snapshot, render_dashboard
 
 
-class DashboardServer(HTTPServer):
+class DashboardServer(ThreadingHTTPServer):
     """Only expose the generated view, never the underlying directory."""
 
     def __init__(self, source: Path, translations: Path | None, port: int):
@@ -26,6 +26,7 @@ class DashboardServer(HTTPServer):
 
 class DashboardHandler(BaseHTTPRequestHandler):
     server: DashboardServer
+    timeout = 10
 
     def log_message(self, format: str, *args: object) -> None:
         pass

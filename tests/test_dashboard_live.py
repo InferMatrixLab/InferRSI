@@ -3,6 +3,7 @@
 import http.client
 import json
 import shutil
+import socket
 import subprocess
 import threading
 from pathlib import Path
@@ -64,6 +65,25 @@ def test_live_endpoint_is_loopback_only_and_does_not_serve_source_files(dashboar
     status, headers, _ = request(dashboard_server, "/api/state")
     assert status == 200 and headers["Cross-Origin-Resource-Policy"] == "same-origin"
     assert "Access-Control-Allow-Origin" not in headers
+
+
+def test_idle_browser_connection_does_not_block_other_requests(dashboard_server):
+    accepted = threading.Event()
+    original = dashboard_server.get_request
+
+    def observe_connection():
+        connection = original()
+        accepted.set()
+        return connection
+
+    dashboard_server.get_request = observe_connection
+    idle = socket.create_connection(("127.0.0.1", dashboard_server.server_port), timeout=2)
+    try:
+        idle.sendall(b"GET / HTTP/1.1\r\nHost: localhost\r\n")
+        assert accepted.wait(2)
+        assert request(dashboard_server, "/api/state")[0] == 200
+    finally:
+        idle.close()
 
 
 def test_live_and_offline_html_keep_separate_network_policies(dashboard_server, tmp_path):
