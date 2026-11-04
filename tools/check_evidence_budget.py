@@ -220,7 +220,7 @@ def check_file_budgets(
     allowed = allowlist or set()
 
     for rel_path, current_size, net_addition in file_records:
-        norm_path = rel_path
+        norm_path = rel_path.replace("\\", "/")
         if norm_path in allowed:
             continue
 
@@ -245,8 +245,8 @@ def check_file_budgets(
 def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
     """Verify external asset manifest syntax and fields conform to the schema.
 
-    Validates schema structure, types, and GitHub Release download URL syntax.
-    Does not probe remote HTTP endpoints or verify remote payload bytes over the network.
+    Validates schema structure, types, and performs a format check on GitHub Release download URLs.
+    This is a format check only and does not verify asset downloadability or remote hashes.
     """
     errors: list[str] = []
     if not manifest_path.exists():
@@ -290,14 +290,15 @@ def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
                 errors.append(f"{prefix}: expected JSON object")
                 continue
 
-            # url check
+            # url format check
             url = asset.get("url")
             if url is None:
                 errors.append(f"{prefix}: missing or null required field 'url'")
             elif not isinstance(url, str) or not RELEASE_ASSET_URL_PATTERN.match(url):
                 errors.append(
-                    f"{prefix}: url must point to a downloadable GitHub Release asset "
-                    f"(https://github.com/<owner>/<repo>/releases/download/<tag>/<filename>)"
+                    f"{prefix}: url format check failed: url must match pattern "
+                    f"https://github.com/<owner>/<repo>/releases/download/<tag>/<filename> "
+                    f"(format check only; does not verify downloadability or remote hash)"
                 )
 
             # sha256 check
@@ -330,12 +331,14 @@ def validate_external_asset_manifest(manifest_path: Path) -> list[str]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(
-        description="Check evidence byte budgets and external asset metadata."
+        description="Check evidence byte budgets and external asset metadata (format check)."
     )
     parser.add_argument("--base", help="Base git reference/SHA (e.g. origin/main or $BASE_SHA)")
     parser.add_argument("--files", nargs="*", help="Explicit list of files to check")
     parser.add_argument(
-        "--inventory", default="tools/evidence_inventory.json", help="Path to evidence inventory"
+        "--inventory",
+        default="tools/evidence_inventory.json",
+        help="Path to evidence inventory (performs format check only on asset metadata)",
     )
     parser.add_argument(
         "--max-file-bytes", type=int, default=PER_FILE_MAX_BYTES, help="Per-file max byte budget"
@@ -346,6 +349,14 @@ def main() -> int:
         default=PER_PR_EVIDENCE_MAX_BYTES,
         help="Per-PR max byte budget",
     )
+    parser.add_argument(
+        "--report-only",
+        action="store_true",
+        help=(
+            "Report candidate budget violations as warnings without exiting with error code "
+            "(for evaluation while candidate thresholds are under discussion in #273)"
+        ),
+    )
     args = parser.parse_args()
 
     violations: list[str] = []
@@ -355,10 +366,13 @@ def main() -> int:
             file_list: list[tuple[str, int, int]] = []
             for p_str in args.files:
                 p = Path(p_str)
+                if not p.is_absolute():
+                    p = (ROOT / p)
                 if p.is_file() or p.is_symlink():
-                    rel = str(
-                        p.relative_to(ROOT) if p.is_relative_to(ROOT) else p
-                    )
+                    try:
+                        rel = p.relative_to(ROOT).as_posix()
+                    except ValueError:
+                        rel = p_str.replace("\\", "/")
                     sz = p.lstat().st_size
                     file_list.append((rel, sz, sz))
             diff_violations, _ = check_file_budgets(
@@ -384,6 +398,12 @@ def main() -> int:
 
     if violations:
         print(ADVICE)
+        if args.report_only:
+            print(
+                "[NOTICE] Running in report-only mode: candidate byte budget violations "
+                "reported above as warnings; check will not fail CI (Refs #273)."
+            )
+            return 0
         return 1
 
     return 0

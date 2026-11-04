@@ -144,6 +144,7 @@ def test_validate_external_asset_manifest_rejects_tag_view_url(tmp_path: Path):
     errors = check.validate_external_asset_manifest(manifest)
     assert len(errors) == 1
     assert "releases/download" in errors[0]
+    assert "format check" in errors[0]
 
 
 def test_validate_external_asset_manifest_rejects_non_list_external_assets(tmp_path: Path):
@@ -372,3 +373,96 @@ def test_local_mode_untracked_files_expanded(tmp_path: Path):
 
     violations, _ = check.check_file_budgets(records)
     assert any("large_raw.bin" in v and "exceeds per-file limit" in v for v in violations)
+
+
+def test_main_negative_case_fails_without_report_only(tmp_path: Path, monkeypatch, capsys):
+    """Negative case: candidate budget violation without --report-only exits with code 1."""
+    monkeypatch.setattr(check, "ROOT", tmp_path)
+    ev_dir = tmp_path / "evidence"
+    ev_dir.mkdir()
+    ev_file = ev_dir / "large_raw.bin"
+    ev_file.write_bytes(b"A" * (600 * 1024))
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "check_evidence_budget.py",
+            "--files",
+            str(ev_file),
+            "--max-file-bytes",
+            str(512 * 1024),
+            "--inventory",
+            "nonexistent_inv.json",
+        ],
+    )
+    rc = check.main()
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert "exceeds per-file limit" in captured.out
+    assert "Candidate evidence byte budget exceeded" in captured.out
+    assert "Running in report-only mode" not in captured.out
+
+
+def test_main_report_only_mode_warns_and_exits_zero(tmp_path: Path, monkeypatch, capsys):
+    """Report-only mode: candidate budget violation warns but exits 0 pending #273 acceptance."""
+    monkeypatch.setattr(check, "ROOT", tmp_path)
+    ev_dir = tmp_path / "evidence"
+    ev_dir.mkdir()
+    ev_file = ev_dir / "candidate_large.bin"
+    ev_file.write_bytes(b"B" * (600 * 1024))
+
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "check_evidence_budget.py",
+            "--files",
+            str(ev_file),
+            "--max-file-bytes",
+            str(512 * 1024),
+            "--report-only",
+            "--inventory",
+            "nonexistent_inv.json",
+        ],
+    )
+    rc = check.main()
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "exceeds per-file limit" in captured.out
+    assert "Running in report-only mode" in captured.out
+    assert "Refs #273" in captured.out
+
+
+def test_validate_external_asset_manifest_explicit_format_check_diagnostic(tmp_path: Path):
+    """External asset manifest URL diagnostic explicitly identifies validation as a format check."""
+    manifest = tmp_path / "invalid_manifest.json"
+    data = {
+        "bundles": {
+            "test_bundle": {
+                "external_assets": [
+                    {
+                        "url": "https://example.com/asset.zip",
+                        "sha256": "0" * 64,
+                        "bytes": 1024,
+                        "retention_owner": "maintainer",
+                    }
+                ]
+            }
+        }
+    }
+    manifest.write_text(json.dumps(data), encoding="utf-8")
+    errors = check.validate_external_asset_manifest(manifest)
+    assert len(errors) == 1
+    assert "url format check failed" in errors[0]
+    assert "format check only; does not verify downloadability or remote hash" in errors[0]
+
+
+def test_main_cli_help_mentions_format_check_and_report_only(monkeypatch, capsys):
+    """CLI help output explicitly mentions format check and --report-only mode."""
+    monkeypatch.setattr("sys.argv", ["check_evidence_budget.py", "--help"])
+    with pytest.raises(SystemExit) as exc:
+        check.main()
+    assert exc.value.code == 0
+    captured = capsys.readouterr()
+    assert "format check" in captured.out
+    assert "--report-only" in captured.out
+

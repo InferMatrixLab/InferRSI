@@ -69,7 +69,7 @@ jobs:
         run: python3 tools/check_pr_references.py
 
   evidence-budget:
-    # Candidate evidence byte budget check (Refs #273, R6 under discussion)
+    # Candidate evidence byte budget check (Refs #273, R6 under discussion - report-only pending owner acceptance)
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -79,10 +79,10 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - name: Verify evidence byte budgets
+      - name: Verify evidence byte budgets (report-only pending #273 owner acceptance)
         env:
           BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: python3 tools/check_evidence_budget.py --base "$BASE_SHA"
+        run: python3 tools/check_evidence_budget.py --base "$BASE_SHA" --report-only
 
   kv-task-qualification:
     # Bounded software-control qualification; not a branch-protection or efficacy gate.
