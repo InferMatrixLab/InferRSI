@@ -68,6 +68,36 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: python3 tools/check_pr_references.py
 
+  benchmark-artifact-controls:
+    # Software correctness only: no model, secrets, device or performance gates.
+    runs-on: ubuntu-22.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          persist-credentials: false
+      - name: Install isolated artifact test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends bubblewrap
+          sudo /usr/bin/python3 -m pip install -e ".[dev]"
+          /usr/bin/python3 -I -c "import numpy; print(numpy.__version__)"
+      - name: Real NumPy sandbox and authored two-arm software controls
+        env:
+          INFERRSI_REQUIRE_BENCHMARK_SANDBOX: "1"
+        run: |
+          /usr/bin/python3 -m pytest tests/test_skill_eval_benchmark.py tests/test_skill_eval_benchmark_compare.py --junitxml=benchmark-controls.xml
+      - name: Retain software-control results including failures
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: benchmark-artifact-controls-${{ github.run_id }}-${{ github.run_attempt }}
+          path: benchmark-controls.xml
+          if-no-files-found: error
+          retention-days: 14
+
   kv-task-qualification:
     # Bounded software-control qualification; not a branch-protection or efficacy gate.
     if: github.event.pull_request.draft == false

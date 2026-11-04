@@ -85,10 +85,18 @@ The shared oracle independently grades actual implementation behavior. This
 offline handoff does not modify production engineering sandbox or paid execution.
 Live artifact production and skill/search benefit need separate controlled runs.
 
-This low-level verifier integration does not register these tasks with the existing
-`skill_eval_compare` adapter or the offline harness-improvement controller. See
-[the RSI integration audit](plans/issue-252/rsi-integration.md) for callers,
-decisions and the remaining end-to-end acceptance work.
+For formal paired artifact evaluation, `tools.skill_eval_compare` now supports
+`engineering-benchmark-v1`: freeze the common public task and two skill bundles,
+retain each arm's actual `implementation.py`, and independently check its output
+outside the artifact's Linux bubblewrap sandbox. Local stage/capture uses the
+same controller. This adapter evaluates correctness only; it does not accept
+child-reported timing, launch an unqualified default agent, or fall back to host
+execution when the sandbox/NumPy runtime is unavailable. It is separate from the
+trusted-source worker above. See [setup and handoff](plans/issue-252/formal-integration.md).
+
+The offline harness-improvement controller and provider generation mode do not
+yet support these tasks. See [the RSI integration audit](plans/issue-252/rsi-integration.md)
+for decisions and remaining acceptance work.
 
 Exceptions, missing dependencies, drift and timeouts leave incomplete evidence.
 Wrong results emit no usable performance metric. Workbench statistics remain

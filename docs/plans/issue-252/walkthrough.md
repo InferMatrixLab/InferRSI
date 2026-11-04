@@ -12,7 +12,7 @@
 
 这次把规则放进一个任务包。当前 `rmsnorm-cpu` 明确要求：CPU、NumPy、float32、沿 axis=1 归约，保留 epsilon，不修改输入。Agent 只交付 `implementation.py` 中的 `compute(x, *, eps)`。工具检查这个文件的实际行为，并记录是哪一版题目、裁判、源码和运行环境产生了结果。
 
-它在 RSI 中的位置是**任务与评测层**。Workbench 继续负责运行实验；主 Agent 继续负责调查、读论文、分析 profile、写代码和决定下一轮。评估 skill 是否有效时，可以复用这层任务，但还需要正式的两臂产物交接。
+它在 RSI 中的位置是**任务与评测层**。Workbench 继续负责运行实验；主 Agent 继续负责调查、读论文、分析 profile、写代码和决定下一轮。评估 skill 是否有效时，新增的[正式两臂产物 adapter](formal-integration.md)复用这层任务；实际技能收益仍需要受控 Agent 实验。
 
 ## 2. 四个子任务，具体交付了什么
 
@@ -23,7 +23,7 @@
 | ① **选题复用** · [#334](https://github.com/InferMatrixLab/InferRSI/issues/334) | 读论文和固定版本源码，对照现有 RSI，决定首批范围 | [调研与选型](01-research.md) | 确定先做 Softmax/RMSNorm，复用任务分工与数学题意，避免重复已有执行器 | CPU 子集是提议，范围待维护者接受 |
 | ② **统一规则** · [#335](https://github.com/InferMatrixLab/InferRSI/issues/335) | 定义题目格式、候选入口、执行动作和内容身份 | [契约说明](02-contract.md)、`TaskPackage`、worker、CLI | 不同消费者使用同一题目和裁判；比较中源码或规则漂移会被发现 | 当前只接受 `numpy-axis1-v2`，新设备需要自己的 adapter |
 | ③ **交付题包** · [#336](https://github.com/InferMatrixLab/InferRSI/issues/336) | 将两道题变成可运行包，补边界输入与独立答案 | [任务说明](03-tasks.md)、两套 manifest/基线/候选/许可 | Agent 有具体修改对象；错误轴、漏 epsilon、输出重放等错误可被独立检查 | 只覆盖声明的 CPU 输入；不能外推 GPU、通信、容量或服务 |
-| ④ **接入验证** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) | 生成真实 RunSpec，接现有 Workbench 与底层 SkillEval verifier，运行对照 | [集成说明](04-integration.md)、复现工具、验证记录 | 实验结果进入已有结果目录，错误产物被拒绝，正确实现留下计时证据 | Workbench 和底层 verifier 已接通；正式 SkillEval 两臂、可靠性能排序和技能收益未完成 |
+| ④ **接入验证** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) | 生成真实 RunSpec，接现有 Workbench 与底层 SkillEval verifier，运行对照 | [集成说明](04-integration.md)、复现工具、验证记录 | 实验结果进入已有结果目录，错误产物被拒绝，正确实现留下计时证据 | Workbench、底层 verifier 和正式两臂正确性产物入口已实现；可靠性能排序和技能收益未完成 |
 
 因此，“四项都有代码或文档交付”和“整个 #252 已验收”是两个状态。尤其第④项只完成了表中明确列出的接入层级。
 
@@ -34,7 +34,7 @@
 | **优化引擎实现** | `implementation.py` 或真实引擎中的实现 | 原版和候选版是否正确、是否有可分辨的性能差异 | 主 Agent / 实验负责人 |
 | **优化优化者** | Agent 使用的 skill、知识或 harness | 两种条件下，Agent 产出的实现质量、速度、成功率和资源成本 | SkillEval 实验负责人及其支持的改进流程 |
 
-第一条路径已有实际执行。第二条目前只验证了“已审核文件能通过底层 verifier 判分”。我们用固定脚本提交文件哈希来验证通路；没有让两组 Agent 分别使用旧/新 skill 生成代码，所以没有得到 skill 有效性的结论。
+第一条路径已有实际执行。第二条早期只有底层 verifier，后续已补上正式 `skill_eval_compare` 与 local stage/capture：两臂交付真实文件，隔离执行候选，父进程独立检查并形成配对报告。验证使用作者脚本和正确/错误软件对照；没有让两组真实 Agent 分别使用旧/新 skill 生成代码，所以没有 skill 有效性的结论。具体平台验证见[正式接入说明](formal-integration.md)。
 
 即便一份事先写好的候选在可靠测量中更快，也不能说明“某个 skill 帮助 Agent 写出了它”。需要先固定任务、模型和预算，再比较 Agent 在两种技能条件下真实交付的文件。
 
@@ -94,7 +94,7 @@ AB/BA 是调换执行顺序：一轮先原版再候选，下一轮先候选再�
 | **candidate** | 用户/Agent 交付的 `compute` | 待优化和受检查的实现 |
 | **oracle** | 评测器中的标量 double、`math.fsum` 参考算法 | 判断答案是否正确；不拿它的慢速执行时间作为性能基线 |
 
-“独立 oracle”指算法实现独立，减少基线和候选共享同一错误的风险。当前 worker 执行的是已审核可信源码；它没有恶意代码隔离，不能直接接收任意模型输出。
+“独立 oracle”指算法实现独立，减少基线和候选共享同一错误的风险。Workbench 的 worker 执行已审核可信源码，没有恶意代码隔离。正式 SkillEval 的新 adapter 使用另一条产物隔离路径，在父进程保留 oracle；两条执行边界详见[正式接入说明](formal-integration.md)。
 
 六类基础输入覆盖普通值、跨步布局、全零、大数值、极小值和单元素归约。其中 `large` 指数值大，`tiny` 指数值小；不是张量规模大小。极小值可揭示遗漏 epsilon；跨步输入可揭示对内存连续性的错误假设。
 
@@ -185,8 +185,9 @@ AMD [AgentKernelArena 的固定版本任务契约](https://github.com/AMD-AGI/Ag
 | 3 | [contract.py](../../../src/inferrsi/harness/benchmarks/contract.py)、[worker.py](../../../src/inferrsi/harness/benchmarks/worker.py) | manifest 合法性、内容身份、执行前后检查、RunSpec |
 | 4 | [consumers.py](../../../src/inferrsi/harness/benchmarks/consumers.py)、[CLI](../../../src/inferrsi/harness/benchmarks/cli.py) | 如何复用执行器，如何呈现状态和结果 |
 | 5 | [skill_verifier.py](../../../src/inferrsi/harness/benchmarks/skill_verifier.py) | 已审核产物如何交给现有底层 verifier |
-| 6 | [测试](../../../tests/test_engineering_benchmarks.py)、[复现入口](../../../tools/engineering_benchmark_validate.py) | 正确/错误对照和实际消费者验证 |
+| 6 | [正式 adapter](../../../src/inferrsi/harness/skill_eval_benchmark.py)、[正式接入说明](formal-integration.md) | 两臂产物交接、隔离计算与父进程检查 |
+| 7 | [测试](../../../tests/test_engineering_benchmarks.py)、[复现入口](../../../tools/engineering_benchmark_validate.py) | 正确/错误对照和实际消费者验证 |
 
-下一步优先级是：维护者确认首批范围；建立能分辨差异的 CPU 测量条件与同码对照；沿既有 `skill_eval_compare` 补正式产物交接和受支持的隔离环境；再用受控 Agent 实验检验技能收益。目标硬件确定后，新增设备 adapter、真实负载和对应层级验收。
+下一步优先级是：维护者确认首批范围；建立能分辨差异的 CPU 测量条件与同码对照；在已接入的正式两臂入口上选定受支持的生产者与隔离运行环境，再用受控 Agent 实验检验技能收益。目标硬件确定后，新增设备 adapter、真实负载和对应层级验收。
 
-本次 PR 保持 Draft，四个子 Issue 保持打开。我们已经交付了共享任务、真实评测入口及组件证据；正式两臂系统接入、可靠性能排序、真实优化者收益和设备/服务收益各自仍需完成。
+本次 PR 保持 Draft，四个子 Issue 保持打开。我们已经交付了共享任务、真实评测入口及组件证据；正式两臂正确性产物入口已实现，实际平台控制结果见接入记录；可靠性能排序、真实优化者收益、改进控制器和设备/服务收益仍需完成。

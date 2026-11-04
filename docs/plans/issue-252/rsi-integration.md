@@ -20,7 +20,7 @@
 | `benchmarks plan/compare` → `TaskPackage.runspec` → `run_experiment` | 同一任务生成既有 RunSpec，由 Workbench 执行配对比较并保留证据 | 自动从用户目标/profile 选出适用任务；服务与目标硬件验收 |
 | `benchmarks check/profile/measure` | 分开的数值校验、CPU 诊断、测量操作 | 强制宿主 Agent 按整个优化流程执行 |
 | `skill_verifier.task_descriptor` → `skill_evaluation.run_trial` | 对 controller 已审核的保留实现运行真实 verifier；答案提交该实现的 SHA | Agent 根据不同技能实际产出两份实现的比较 |
-| `tools.skill_eval_compare` | 已有冻结两臂、模型/预算、产物与报告机制 | 新 benchmark descriptor 尚未成为正式支持的 adapter；现有 engineering adapter 限定 parser 任务及隔离执行 |
+| `tools.skill_eval_compare` | 新增 `engineering-benchmark-v1`：共享题目/两臂 skill 冻结、实际文件留存、隔离计算与父进程 oracle、配对报告重验；支持现有 local stage/capture | 当前仅正确性；真实受控 Agent/skill 收益、性能排序、provider generation 模式未接入 |
 | `tools.skill_eval_improve` | 已有面向支持的离线 audit 任务的选择、重跑和 holdout 流程 | 共享工程基准尚未接入该控制器的任务/grader 契约 |
 
 依据为 [CLI 适配](../../../src/inferrsi/harness/benchmarks/cli.py)、[保留产物 verifier](../../../src/inferrsi/harness/benchmarks/skill_verifier.py)、[SkillEval 比较入口](../../../tools/skill_eval_compare.py)、[现有 engineering adapter](../../../src/inferrsi/harness/skill_eval_engineering.py) 和 [改进入口](../../../tools/skill_eval_improve.py)。主 Agent 的调查与代码修改职责见[现有插件入口](../../../plugins/inferrsi/skills/inferrsi/SKILL.md)。
@@ -46,11 +46,11 @@
 
 最小演练应沿已有入口保留“profile → 假设 → 产物 → check → compare → 决策”链，并至少包含：错误产物被拒绝、正确但证据不足的产物不被当作改进、负结果留下适用条件。既有 [RMSNorm 对照](usefulness.md) 提供了部分输入与结果；当前没有程序化的全流程强制或真实 agent 对照，不能据此宣布完整闭环验收。
 
-### C. 再接到已有 SkillEval 两臂入口
+### C. 接到已有 SkillEval 两臂入口
 
-沿 `skill_eval_compare` 扩展任务适配与产物交接，保留其冻结、模型/预算一致性、独立 verifier、隔离和日志机制。两边分别接收旧/新 skill（或无/有 skill），各自交付实现，再交给同一任务包判分。
+已沿 `skill_eval_compare` 扩展 `engineering-benchmark-v1`，支持 update 模式的旧/新 skill 两臂，保留冻结、模型/预算、日志与报告。两边分别交付 `implementation.py`，控制器留存实际字节；候选在既有 bubblewrap 边界内计算，父进程使用共享输入与 oracle 独立检查。`skill_eval_local` 也支持 stage/capture；完整使用方法和验证分层见[正式接入说明](formal-integration.md)。
 
-当前可信 CPU worker 不能直接接未经审核的模型代码，也不能代替现有 engineering adapter 的隔离。没有支持的产物执行环境时，应保留未验证状态；换一个 scripted client 只证明通路，不证明技能帮助。
+原有可信 CPU worker 仍不能直接接未经审核的模型代码；新 formal adapter 为产物 replay 使用隔离路径，没有宿主回退。当前只输出正确性，不使用候选自报 latency；真实 Agent 执行权限、技能收益和性能排序另行验证。固定作者脚本只证明通路和裁判行为，不能证明技能帮助。
 
 ### D. 最后评估优化者本身是否改善
 
@@ -60,4 +60,4 @@
 
 ## 当前结论
 
-共享任务与底层消费者复用已有实际证据，已补正影响测量语义的输入重放缺陷；端到端 SkillEval 接入、优化者收益和可靠性能排序尚未完成。四个子项的组件实现不能替代这些系统验收。PR 继续作为 Draft 评审，按现有 RSI 接口补齐接入，不把独立题目数量或另建编排系统作为进展指标。
+共享任务与底层消费者复用已有实际证据，输入重放缺陷已修复；后续正式两臂 adapter 也已实现产物交接与独立正确性检查。真实 Agent/skill 收益、可靠性能排序、provider generation 和改进控制器接入仍未完成。具体平台软件对照结果见正式接入记录，不能用接口实现代替系统收益验收。PR 继续作为 Draft 评审，不另建编排系统。

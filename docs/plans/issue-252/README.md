@@ -27,7 +27,7 @@
 | **① 选定第一批任务和复用方案** · [#334](https://github.com/InferMatrixLab/InferRSI/issues/334) · [详细说明](01-research.md) | 论文/开源对照、任务选择、复用和适配决定 | 开发者据此确定先做哪几题、复用哪些设计，以及当前硬件范围 | 调研与方案已完成，范围待维护者接受 |
 | **② 规定任务怎样提交、运行和判定** · [#335](https://github.com/InferMatrixLab/InferRSI/issues/335) · [详细说明](02-contract.md) | 统一任务格式、候选入口、check/profile/measure 接口和版本记录 | Workbench 与评估工具读取同一题目和裁判；题目或源码变更后不能继续当作原比较 | 已实现共享接口和内容冻结 |
 | **③ 把第一批任务做成可执行的包** · [#336](https://github.com/InferMatrixLab/InferRSI/issues/336) · [详细说明](03-tasks.md) | Softmax、RMSNorm CPU 任务；每题带输入、基线、独立参考答案和测量规则 | Agent 有明确修改对象，工具有真实可运行的正确性、诊断和测量任务 | 已实现并实测；可靠性能排序未建立 |
-| **④ 接入现有 RSI，并验证结果能被使用** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) · [详细说明](04-integration.md) | Workbench 绑定、离线 verifier、复现入口和证据记录 | 现有实验流程执行任务、拒绝错误实现并保留证据；后续用于评估不同技能产出的实现 | Workbench 和底层 verifier 已接通；正式 SkillEval 两臂接入未完成 |
+| **④ 接入现有 RSI，并验证结果能被使用** · [#337](https://github.com/InferMatrixLab/InferRSI/issues/337) · [详细说明](04-integration.md) | Workbench 绑定、正式两臂产物 adapter、复现入口和证据记录 | 现有实验流程执行任务；两臂分别交付实现，由同一裁判检查并保留证据 | Workbench、底层 verifier、正式 SkillEval 正确性产物入口已实现；真实技能收益和性能排序仍未完成 |
 
 ## 放在我们 RSI 的哪里
 
@@ -38,7 +38,7 @@
 | 这个引擎实现是否正确、有可验证的改进？ | 主 Agent + Workbench | 提供共同工作负载、独立正确性检查和测量规则 |
 | 新 skill/知识是否帮助 Agent 产出更好的实现？ | SkillEval 两臂比较；后续衔接已有改进流程 | 两边产出的实现使用同一套任务和裁判，不随技能条件更换答案 |
 
-第一条路径已有实际执行。第二条目前只验证了已审核产物经过底层 verifier 的通路；尚未比较旧/新技能如何影响真实 Agent 的交付。完整调用关系和分层验收见 [RSI 接入审计](rsi-integration.md)。
+第一条路径已有实际执行。第二条现已增加 `skill_eval_compare` 的正式产物交接：两臂分别交付 `implementation.py`，候选在隔离进程运行，父进程以共享 oracle 检查，报告重验留存源码。接入方法及平台验证边界见[正式接入说明](formal-integration.md)；尚未比较旧/新技能对真实 Agent 交付的影响。完整调用关系和分层验收见 [RSI 接入审计](rsi-integration.md)。
 
 当前由主 Agent 决定下一步尝试什么；任务包决定要算什么、怎样检查和测量。Optimization Search Policy 的提案讨论如何选择下一次尝试，本次没有实现该策略。Profiling 是独立诊断，不冒充速度比较。#252 提供可调用的评测操作，不负责强制主 Agent 遵守整个流程或另建搜索控制器。
 
