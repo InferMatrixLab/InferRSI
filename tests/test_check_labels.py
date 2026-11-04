@@ -59,11 +59,19 @@ def test_duplicate_names_are_reported():
     ({"name": "bot-reviewed"}, "exactly name and owner"),
     ({"name": "bot-reviewed", "owner": "a", "note": "b"}, "exactly name and owner"),
     ({"name": "", "owner": "a"}, "nonempty string"),
+    ({"name": None, "owner": "a"}, "nonempty string"),
     ({"name": "bot-reviewed", "owner": "  "}, "owner must name the app"),
 ])
 def test_invalid_external_entries_are_reported(bad, message):
     [problem] = check.external_problems([bad], [])
     assert message in problem
+
+
+@pytest.mark.parametrize("name", [["a", "b"], {"a": 1}, 7])
+def test_an_unhashable_or_nonstring_external_name_is_reported_not_raised(name):
+    # An unusable name must not reach the duplicate/overlap sets and crash the check.
+    [problem] = check.external_problems([{"name": name, "owner": "app"}], [entry("kind:bug")])
+    assert "name must be a nonempty string" in problem
 
 
 def test_external_duplicates_and_overlap_with_the_manifest_are_reported():

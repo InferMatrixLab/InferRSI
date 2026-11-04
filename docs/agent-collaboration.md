@@ -232,6 +232,14 @@ do not apply to them. A name cannot be in both files. An Issue template or
 `tools/skill_eval_*_config.json` still may not reference one, since this repository must not
 depend on a label it does not own.
 
+Each `owner` is a required, informational attribution: the reviewer's record of which app
+applies that label, so a later reader can tell why the name is exempt rather than missing. No
+check verifies it, and none can — GitHub does not report which app created a label, and an
+app's configuration is outside this repository. Treat an entry as evidence of a past decision,
+not as a verified fact: before relying on one, confirm from the label's own event history that
+the named app still applies it. Adding an entry is a scope decision, so it goes through review
+like any other change to this file.
+
 ## Evidence refresh — hypothetical example
 
 **Hypothetical illustration only; it records no actual PR, run or result in this

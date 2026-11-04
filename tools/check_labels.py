@@ -40,18 +40,21 @@ def manifest_problems(manifest: list[dict]) -> list[str]:
 
 def external_problems(external: list[dict], manifest: list[dict]) -> list[str]:
     problems = []
+    names = []
     for entry in external:
         name = entry.get("name")
         if set(entry) != {"name", "owner"}:
             problems.append(f"{name}: expected exactly name and owner")
             continue
-        if not isinstance(name, str) or not name:
+        # Only a usable name joins the duplicate and overlap comparisons below.
+        if isinstance(name, str) and name:
+            names.append(name)
+        else:
             problems.append(f"{name}: name must be a nonempty string")
         if not isinstance(entry["owner"], str) or not entry["owner"].strip():
             problems.append(f"{name}: owner must name the app that applies it")
-    names = [entry.get("name") for entry in external]
     problems += [f"{name}: listed more than once"
-                 for name in sorted({n for n in names if names.count(n) > 1}, key=str)]
+                 for name in sorted({n for n in names if names.count(n) > 1})]
     listed = {e["name"] for e in manifest if isinstance(e.get("name"), str)}
     problems += [f"{name}: external labels cannot also be in labels.json"
                  for name in sorted(set(names) & listed)]
