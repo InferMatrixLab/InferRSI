@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "repo_id": "vllm-project/vllm-metal",
+  "source_commit": "e7df7a6ff215f99c7842552d230fdbc709835934",
+  "scope": "Informational fixed-taxonomy classification only; no managed import",
+  "taxonomy_sha256": "f8c306386015711634ddbb43a5eb95d1f58909c3513ce2063ba42efdd583a431",
+  "assignments": [
+    {
+      "area": "Model Deployment and Optimization",
+      "family": "Inference Serving",
+      "confidence": "high",
+      "rationale": "The plugin integrates native Apple attention with upstream continuous serving scheduler/API; not merely an optional inference example.",
+      "evidence": [
+        {
+          "path": "README.md",
+          "line_start": 13,
+          "line_end": 45
+        },
+        {
+          "path": "pyproject.toml",
+          "line_start": 124,
+          "line_end": 139
+        }
+      ]
+    }
+  ]
+}

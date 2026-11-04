@@ -5,6 +5,8 @@ The [pinned ledger](https://github.com/InferMatrixLab/InferRSI/blob/d51c941dc578
 and [acceptance issue #3](https://github.com/InferMatrixLab/InferRSI/issues/3)
 own the observations. The final campaign PASS belongs to its retained stack,
 not these rejected alternatives. No source experiment is rerun here.
+Kind, origin, state and source identities belong to the
+[typed source and scope record](qwen-b300-rejected-directions.json).
 
 | Direction | Recorded observation and disposition | Suggested revisit condition and first check |
 | --- | --- | --- |

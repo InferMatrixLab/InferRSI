@@ -58,7 +58,7 @@ def run_case(tmp_path, mode="correct", fault=None, case_id="equal-threshold", in
         task, "N", 1, workspace, tmp_path / "trial", schema, verifier,
         "Offline fixture only", time.monotonic() + 45,
     )
-    # 检查真实落盘记录，不能只检查返回值或进程退出码。
+    # Check persisted records, not only the return value or process exit code.
     assert json.loads((tmp_path / "trial/result.json").read_text(encoding="utf-8")) == record
     execution = json.loads((tmp_path / "trial/execution.json").read_text(encoding="utf-8"))
     assert execution["status"] == record["execution_state"]
@@ -171,7 +171,7 @@ def test_pilot_persists_mixed_summary_without_model_calls(tmp_path, monkeypatch)
     status = json.loads(status_path.read_text(encoding="utf-8"))
     assert status["observed_tokens"] == 77
     assert status["token_usage_complete"] is False
-    # 恢复已完成记录也必须能读取部分 usage，且不能重跑客户端。
+    # Recovered completed records must retain partial usage without rerunning the client.
     monkeypatch.setattr(FakeClient, "command", lambda *args: pytest.fail("Unexpected rerun"))
     skill_eval_pilot.execute(tmp_path)
     assert json.loads(status_path.read_text(encoding="utf-8"))["observed_tokens"] == 77

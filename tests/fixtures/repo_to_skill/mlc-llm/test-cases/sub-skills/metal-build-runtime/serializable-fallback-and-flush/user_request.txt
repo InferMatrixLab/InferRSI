@@ -1,0 +1,1 @@
+A kind=metal module exported successfully and a test named export_load_with_fallback is green. After a CPU-to-private copy, Flush is called; declare runnable load, completion and cross-stream-safe release.

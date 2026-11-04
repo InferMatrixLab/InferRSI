@@ -1,0 +1,17 @@
+{
+  "reviewer": "root",
+  "scope": "independent review of delegated receipt collection plus direct recomputation of frozen statistics",
+  "checks": [
+    "66raw requests and60measurements",
+    "arm medians and30paired medians",
+    "10000input-cluster draws seed670032 hash andlinear95%upper",
+    "unchanged source/model/runtime/overlay receipt andcleanup binding",
+    "failure wording and scoped quality limits"
+  ],
+  "result_sha256": "818046ab9571161fb631ff07d17e9ac267c95d1e1f50ce2b741fdb14cac93137",
+  "metric_verdicts": {
+    "ttft_s": "FAIL",
+    "tpot_s": "FAIL"
+  },
+  "campaign_verdict": "INCONCLUSIVE"
+}

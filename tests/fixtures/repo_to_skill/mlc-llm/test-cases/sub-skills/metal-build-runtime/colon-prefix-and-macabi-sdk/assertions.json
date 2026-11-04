@@ -1,0 +1,21 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "metal-build-runtime",
+  "target_capability": "colon-prefix-and-macabi-sdk",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:python/mlc_llm/support/auto_target.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/metal-build-runtime/SKILL.md",
+    "sub-skills/metal-build-runtime/references/targets-and-export.md",
+    "sub-skills/metal-build-runtime/references/modules-and-streams.md",
+    "sub-skills/metal-build-runtime/references/native-evidence.md"
+  ],
+  "assertions": [
+    "At this pin explicit prefix is returned for the bare hint but discarded for colon-generic; preserve literal behavior rather than silently fixing it.",
+    "Missing static prefix warns, not immediate rejection; auto prefix derives model/quant identity and must agree with packaged model_lib.",
+    "macabi Metal SDK is macosx while host triple is x86_64-apple-ios18.0-macabi; SDK/export arch/host target are different declarations.",
+    "A source declaration does not prove compiler/SDK/ABI availability."
+  ]
+}

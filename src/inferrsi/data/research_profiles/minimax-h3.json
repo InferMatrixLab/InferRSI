@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "model": "MiniMax-H3",
+  "aliases": ["MiniMax-H3", "MiniMax H3", "MiniMax_H3"],
+  "tasks": ["diffusion"],
+  "modalities": ["video", "audio"],
+  "input_modalities": ["text", "image", "video", "audio"],
+  "output_modalities": ["video", "audio"],
+  "mechanisms": ["quantization", "offload", "memory"],
+  "components": [
+    {"role": "denoiser", "identity": "MiniMax-H3 joint video/audio DiT; select one task checkpoint"},
+    {"role": "text_encoder", "identity": "Qwen3-VL-32B-derived language/vision encoder; inventory task-specific visual paths and selected full/truncated export"},
+    {"role": "video_vae", "identity": "MiniMax-H3 video VAE, including input encoding and output decoding"},
+    {"role": "audio_vae", "identity": "MiniMax-H3 audio VAE, including reference encoding and output decoding"}
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/MiniMax-AI/MiniMax-H3/blob/d21241f0a4b3acbb34c97dae47fa417b7065e438/README.md",
+      "commit": "d21241f0a4b3acbb34c97dae47fa417b7065e438",
+      "accessed_at": "2026-10-23"
+    }
+  ],
+  "verification": {"locally_verified": false, "evidence_level": "guidance"},
+  "limitations": [
+    "The profile supplies source-grounded discovery terms and component roles, not a parameter total, compatible engine/weight pair or target memory estimate.",
+    "Quantization, offload and memory are investigation queries, not asserted supported settings.",
+    "Inventory the actual selected weights, including task-specific encoder/decoder requirements; do not count alternative DiT checkpoints twice."
+  ],
+  "skill_id": "audit-h3-runtime-residency",
+  "knowledge_ids": ["inferrsi.common.skills.audit_h3_runtime_residency"],
+  "skill_resource": "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md",
+  "worked_example_resource": "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-apple.md",
+  "inventory_resource": "data/skill_library/repositories/h3-c/audit-h3-runtime-residency/references/minimax-h3-weight-inventory.json"
+}

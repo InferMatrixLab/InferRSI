@@ -1,0 +1,15 @@
+{
+  "scope": "metadata-only capacity intake; no solution or tests inspected in optimization context or executed",
+  "gzip_sha256": "272720b90ac375502c8ed23cd791c2a93dfb22a911641a494da74a426c09f101",
+  "gzip_bytes": 925932,
+  "dataset_sha256": "42526ec0e7d5f3ee0b06d6ced98f8c8bae3d76519151bfb3d36f79010645bd7f",
+  "dataset_bytes": 7714666,
+  "task_count": 164,
+  "cohort_sha256": "8c4a9413be6b6b793de94b702ab733ca734db2f5d6bca361605f1d7f71dd9ebe",
+  "reference_solution_utf8_bytes": 101353,
+  "base_input_count": 1570,
+  "plus_input_count": 122683,
+  "prepared_manifest_sha256": "7a969339239edd8596baffb3977f9394249afa1b9266b880739470a834249a36",
+  "prepared_dataset_match": true,
+  "prepared_cohort_match": true
+}

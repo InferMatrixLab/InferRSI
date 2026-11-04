@@ -1,0 +1,54 @@
+{
+  "scope": "prospective_quality_evaluator_binding_repair",
+  "verdict": "INCONCLUSIVE",
+  "state": "proposal_not_activated",
+  "files": {
+    "protocol.py": "10309bca4eccd0de375c2a824546dd7ec230321dffd9655e27edfc7b752718bc",
+    "prepare.py": "7a3fa40367871fbe775f9ddaa2c97e90c2672d49cbe4faf91a69b176898d72c3",
+    "run.py": "c0102c31c713758c0a35379e79cd162189ad44511d8ba90e1e5f85ab0d3f4af9",
+    "score.py": "1e5d454c50c8ec742f74281938a5b28d49f1e815cb058274085e90a1d82bfaaa",
+    "sandbox_provenance.py": "b48d48bc2be63ac73eb39f9923b4517224db80fb60b4e18114e88a2aa538626f",
+    "retrieval.py": "45f05a85cc1721dbe69beadc370cd84f7d1d5b1bb1d3593cc7d054d499cb53ec",
+    "source-lock.json": "d4f38283b893aebaa8ebd917c04ca78479370fd5d3e6a5e48552d54fb9e0df5f",
+    "prepare_guard.py": "d0c941c8e7f3d82ceb86385454d6fe792e920ae956f292470de7e9b0028baebe",
+    "prepare-quality.sbatch": "cee87ec17bbcb45ab3cab16bd3990903b35e02aafdb4e82f9015144b590a0a70"
+  },
+  "predecessor": "quality-v4-source-identities.json",
+  "patch_sha256": "9b71d2528f8e1642da1f954cfbb369659161cead9bad69ab8a5a06558d50e8d1",
+  "original_archive_sha256": "9c9cddd3242c00b6c39e4a6342a4ab7d17ab3e74f07bbd7c628c6952f4517099",
+  "materialization": "Authenticate the original v2 archive, apply the retained null-echo patch, EOS-v4 patch, then sandbox-binding-v5 patch. Compare every file with this nine-file inventory before use.",
+  "review_rejected_files": {
+    "check_v5.py": "6cde03cdf5dad837bbfc3345d67cf501a1f8e7cfe8671924a9c09df4285a7524",
+    "prepare_guard.py": "8ca992130d624d659bf7c1d5deef53abf0df1ef5af07ca60753706c188fd429c",
+    "protocol.py": "41edefbd9a73dfdd34f5298c46763bc4298f7ff7f1d110c64b76bdbc2b42ad8c",
+    "sandbox_provenance.py": "88765aa80c6fbf53cb55baad092ec21572dffd681994ce1015db3adb1dce4ef4",
+    "score.py": "8204df5e7509c5c6bad1dc234eb09a63ee272c1476dcaaf3a6c2de67c470a24a",
+    "v5-controls.json": "62759eb531de143c09edcbe29997075570d53c98121c93c60979a4dd286df4e9"
+  },
+  "checks": {
+    "provenance_synthetic": 117,
+    "synthetic_score": 6,
+    "existing_protocol": 35,
+    "existing_preparation_guard": 7,
+    "new_preparation_guard": 3,
+    "eos_synthetic": 19,
+    "historical_retrieval_streams_replayed": 30
+  },
+  "controls": {
+    "check_v5.py": "f864c85e006f1c2238daaee450269573336283bc0b66f3245e2ab05eac46b9ce",
+    "check_score_v5.py": "97008a257bab3ad650df6d4fab4c4f0cf1db0317e4388d6826e54b916262de85",
+    "test_guard_v5.py": "8c6141180aad564d8d3edb385723e7c6ca7692b3d8708ae8d56a9d534a66023e",
+    "v5-controls.json": "9890322012c0b5bcf6b08fc08705cc5f5ab1e8b58e0e03fe843c3e38c80c7374",
+    "v5-score-controls.json": "fde226d9c076f3bece5b6e43e4d6d273cb2c82434d4e65a3f2b0188a580ca522",
+    "audit_compare.py": "ce4000e238ce626a9723e8a1d268aa864cd89de112d81ee6762820b14c126853",
+    "comparison-binding-observations.json": "7dcde38110d99a8e73d9283f9e96d27012d600c596d6af8090d844434dbf4961"
+  },
+  "reference_guard_test_sha256": "ba129023593aeb1b16832219a02c151a06c12f8f1f4df9257efa121525677bb2",
+  "independent_review": "Three P2 findings corrected; reviewer confirmed exact four source identities, scope and retained rejected version.",
+  "actual_qualification_exists": false,
+  "evaluator_executed": false,
+  "model_executed": false,
+  "gpu_work_performed": false,
+  "heldout_task_data_read": false,
+  "measured_e2e_effect": null
+}

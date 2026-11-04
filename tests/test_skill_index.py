@@ -1,5 +1,3 @@
-"""The installed index preserves categorized skills and their complete resources."""
-
 import hashlib
 import json
 import subprocess
@@ -23,7 +21,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
     records = search_knowledge(repo="inferrsi", limit=100)
     names = {record["name"] for record in skill_records(ROOT)}
     registry = json.loads((ROOT / "skill-index.json").read_text(encoding="utf-8"))["skills"]
-    assert len(records) == len(names) == 58
+    assert len(records) == len(names) == 79
     assert {record["skill_metadata"]["name"] for record in records} == names
     states = []
     for record in records:
@@ -41,8 +39,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
         }
         assert set(record["source_files"]) == set(record["sources"][0]["paths"])
         states.append(metadata.get("status"))
-    assert states.count("candidate") == 53
-    assert states.count(None) == 5
+    assert states.count("candidate") == 79
     profiling = next(r for r in records if r["title"] == "ascend-operator-profiling")
     assert profiling["skill_metadata"]["license"] == "UNKNOWN"
     assert profiling["skill_metadata"]["synced-commit"] == (
@@ -56,12 +53,21 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
     assert len(revisions) == 1
     # CI uses shallow checkouts. Compare the whole generated projection and its
     # text hashes without requiring the old source commit in the local object DB.
-    source_files = {
-        relative: hashlib.sha256(
-            (PROJECT / relative).read_bytes().replace(b"\r\n", b"\n")
-        ).hexdigest()
-        for relative in source_inputs(ROOT)
+    recorded_hashes = {
+        relative: digest
+        for record in records for relative, digest in record["source_files"].items()
     }
+    source_files = {}
+    for relative in source_inputs(ROOT):
+        data = (PROJECT / relative).read_bytes()
+        raw_hash = hashlib.sha256(data).hexdigest()
+        # Byte-preserved upstream notices can contain canonical CRLF. Ordinary
+        # text may instead have platform checkout newlines; match the recorded
+        # blob hash before trying that existing LF equivalence.
+        source_files[relative] = (
+            raw_hash if raw_hash == recorded_hashes.get(relative)
+            else hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
+        )
     generated = render_index(ROOT, revisions.pop(), source_files)
     destination = PROJECT / DESTINATION
     actual = {
@@ -99,6 +105,33 @@ def test_committed_source_hashes_preserve_binary_and_newline_bytes(tmp_path):
     assert hashes == {
         name: hashlib.sha256(content).hexdigest() for name, content in resources.items()
     }
+
+
+def test_replacement_refs_cannot_rewrite_indexed_source_bytes(tmp_path):
+    # refs/replace/* leaves rev-parse alone but changes what cat-file returns,
+    # so the pinned revision must be read with the hardened Git invocation.
+    def git(*args):
+        return subprocess.run(
+            ["git", "-C", str(tmp_path), *args], check=True, capture_output=True, text=True
+        ).stdout
+
+    git("init")
+    (tmp_path / "source.md").write_bytes(b"original bytes\n")
+    git("add", "source.md")
+    git(
+        "-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
+        "commit", "-s", "-m", "Original",
+    )
+    original = git("rev-parse", "HEAD").strip()
+    (tmp_path / "source.md").write_bytes(b"replacement bytes\n")
+    git("add", "source.md")
+    git(
+        "-c", "user.name=Index test fixture", "-c", "user.email=index@example.invalid",
+        "commit", "-s", "-m", "Replacement",
+    )
+    git("replace", original, git("rev-parse", "HEAD").strip())
+    hashes = index_builder._source_hashes(tmp_path, original, {"source.md"})
+    assert hashes == {"source.md": hashlib.sha256(b"original bytes\n").hexdigest()}
 
 
 def test_index_checks_drift_and_rejects_changed_or_added_source_inputs(tmp_path, monkeypatch):
@@ -156,12 +189,14 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
     assert "data/skill_library/workflows/claim-contract/SKILL.md" in bundle.content
     assert bundle.dependencies
     assert bundle.metadata["kind"] == "knowledge"
-    assert bundle.metadata["origin"] == ["unknown"]
+    # The sidecar now declares an origin, so the package record stops falling
+    # back to unknown; the checkout read still resolves the skill itself.
+    assert bundle.metadata["origin"] == ["first-party"]
     assert reader.resolve(identity) == f"package:{identity}"
     assert reader.resolve("claim-contract") == "checkout:claim-contract"
     assert reader.read("claim-contract").metadata["kind"] == "skill"
     collected = reader.collect(repo="inferrsi", kind="knowledge", limit=100, material=True)
-    assert len(collected["items"]) == 58
+    assert len(collected["items"]) == 79
     assert not collected["collisions"] and not collected["omissions"]
     assert all(item["authority"] == "package" for item in collected["items"])
     assert all("record.json" in item["resources"] for item in collected["items"])
@@ -191,9 +226,9 @@ def test_index_cli_search_show_context_and_execution_boundary(capsys):
 
 
 def test_hardware_filters_include_only_matching_and_shared_skills():
-    for backend, count in (("ascend", 56), ("cuda", 45), ("cpu", 43)):
+    for backend, count in (("ascend", 74), ("cuda", 64), ("cpu", 59)):
         records = search_knowledge(repo="inferrsi", backend=backend, limit=100)
         assert len(records) == count
         assert all(record["backend"] in (backend, "common") for record in records)
     assert not (PROJECT / "skills").exists()
-    assert len(list(ROOT.rglob("SKILL.md"))) == 79
+    assert len(list(ROOT.rglob("SKILL.md"))) == 142

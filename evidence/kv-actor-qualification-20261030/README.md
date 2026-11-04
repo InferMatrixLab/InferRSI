@@ -1,0 +1,11 @@
+# Scripted KV actor qualification
+
+Prospective software-control plan only. No hosted actor qualification receipt or paid model result is committed here. The existing Ready Ubuntu 22.04 job retains each exact-revision result separately; unavailable isolation stays INCONCLUSIVE. This does not overwrite the earlier task qualification or its first successful hosted receipt.
+
+The pinned complete K owner is exposed only to the scripted A3 control. A2 receives no K. Both receive the same contract, correct starter and fixed visible workbench. No links outside the explicit owner file list are traversed. Scripted messages test mechanics, not K utility or model efficacy.
+
+The visible timing workload is prospectively fixed at 1,800 leases, matching the qualified task's distribution and count. It is explicitly non-held-out timing; separate grader-only semantic traces remain unavailable to the actor and run only after immutable submission. Identical-algorithm scripted revisions may be faster or slower: CI checks correct measurement/receipt mechanics, not a positive speedup.
+
+The exact-host receipt additionally requires production-profile denial of real package/K/oracle/reference paths and synthetic sensitive canaries. The trusted runtime inventory resolves bind roots but does not follow escaped descendant symlinks; it bounds enumeration and hashing, detects sensitive paths or complete renamed copies including the large hidden corpus inside mounts, and requires escaped aliases to be unreadable under the unchanged candidate profile. It retains only inventory digests/counts, not raw host paths. A trusted fork/setsid probe checks normal, outer-worker hard timeout and cancellation through the outer executor, trusted worker and nested sandbox executor. The surviving observer binds a specific detached host PID/starttime to its namespace marker and requires zero live survivors. Candidate execution retains the stricter no-fork limit. Missing host visibility is INCONCLUSIVE, never a fallback.
+
+The trusted actor/tool worker itself is not OS-sandboxed; it parses bounded JSON into fixed tools. Only generated candidate execution is sandboxed. Scripted qualification identities and exposure are distinct from any future live actor; exact live manifests, transport and credentials remain separately qualified and authorized.

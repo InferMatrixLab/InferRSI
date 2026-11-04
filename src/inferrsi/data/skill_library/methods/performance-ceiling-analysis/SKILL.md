@@ -36,6 +36,25 @@ Before profiling, gather what you can analytically:
 
 Requires only model config and a hardware table entry.
 
+For supplied single-resource work/traffic counts, the bundled
+[pure helper](scripts/roofline.py) implements the arithmetic under an explicit
+[input/output contract and synthetic attachment example](references/roofline-contract.md).
+It preserves sources and unknowns; it does not collect hardware facts, estimate
+model work or establish attainable speedup, goal acceptance or E2E performance.
+
+For a remotely reusable input prefix, the
+[Mooncake source comparison](references/mooncake-prefix-reuse-feasibility.md)
+relates KV loading time to saved prefill work. Its paper-specific inequality
+screens a candidate; current cache validity, effective rates, exposed costs and
+service outcomes still require evidence.
+
+For throughput-oriented offline inference with CPU/disk offload, use the
+[FlexGen feasibility comparison](references/flexgen-offload-feasibility.md) to
+check joint weights/KV/activation placement, resident plus working-memory peaks,
+and exposed transfer/CPU costs against the latency objective. Its fitted,
+overlap-dependent prediction is separate from the L1 helper and requires
+current resource and execution evidence before a throughput recommendation.
+
 **FLOPs per forward pass:**
 
 For a linear projection of shape (batch × seq, in_channels, out_channels):
@@ -334,5 +353,6 @@ and [decision cases](references/papers-20261015/cases/decision-cases.md) retain
 paper-specific costs, counter-signals and unresolved metric discrepancies.
 Use [simulator calibration](../calibrate-serving-simulation/SKILL.md) for a
 prediction-based shortlist and [attention diagnosis](../../hardware/cuda/diagnose-attention-bottlenecks/SKILL.md)
-for algorithm/operation-class changes. These are candidate guidance, not local
-performance measurements or an automatic ceiling calculator.
+for algorithm/operation-class changes. These remain candidate guidance, not local
+performance measurements. The bundled helper only computes explicitly supplied
+L1 inputs under the contract above.

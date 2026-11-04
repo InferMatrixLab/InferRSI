@@ -1,0 +1,1 @@
+I need DSpark with MoE, image prompts and multi-host PP on a new Apple model. Treat the candidate graph as enough to deploy it without rereading implementation.

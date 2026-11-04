@@ -1,0 +1,20 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "artifact-contract",
+  "target_capability": "symbols-and-crossed-role-pairs",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "mlc-ai/mlc-llm:python/mlc_llm/protocol/artifact_manifest.py"
+  ],
+  "expected_skill_files": [
+    "sub-skills/artifact-contract/SKILL.md",
+    "sub-skills/artifact-contract/references/contract-mechanisms.md",
+    "sub-skills/artifact-contract/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Parameter schema retains the symbol name and sorted records, so symbolic-size changes leave schema ID stable while max/sum bytes change 80/104 to 160/184.",
+    "Missing symbol resolution is unsupported; missing executor/adapter or crossed/partial role pairs remain findings despite ID agreement.",
+    "A complete token pair, complete embedding pair or both complete pairs are distinct from a partial extra pair.",
+    "Parameter-only resources exclude KV/runtime and do not authenticate weights, symbols or physical fit."
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "schema": "kv-one-additional-attempt-v1",
+  "key": {
+    "repository_id": 1409534281,
+    "pr_number": 275
+  },
+  "pr_lifetime_cap_microusd": 350000000,
+  "pilot_lifetime_cap_microusd": 1000000000,
+  "additional_attempts": 1,
+  "prior_binding": {
+    "plan_digest": "1f7051e0872e8b790c8d1a7c0aa1e03a6bcd08385af510c3d0b1621f54adac6c",
+    "run_id": "kv-reclamation-one-pair-v1:kv-reclamation-feasibility-20261031",
+    "worst_case": 162720000
+  },
+  "pr_checkpoint": "23bae89818a0eb4f1ed9ccda2361d10cbf3908ed",
+  "daily_checkpoint": "936569a520083cb359a375d3d474a2391a15edae",
+  "campaign_id": "kv-reclamation-feasibility-20261031-second",
+  "execution_id": "kv-reclamation-one-pair-2"
+}

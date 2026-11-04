@@ -1,0 +1,18 @@
+{
+  "mode": "update",
+  "skill": "inference-benchmark-design",
+  "skill_root": "src/inferrsi/data/skill_library",
+  "snapshots": {
+    "baseline": {"git_revision": "<baseline_sha>"},
+    "candidate": {"git_revision": "<candidate_sha>"}
+  },
+  "cases": "cases.json",
+  "model": {"name": "<authorized-model>", "effort": "xhigh"},
+  "limits": {
+    "repeats": 2,
+    "max_task_calls": 4,
+    "timeout_seconds": 180,
+    "campaign_seconds": 900,
+    "token_stop_new_trials": 50000
+  }
+}

@@ -1,6 +1,6 @@
 ---
 name: inference-benchmark-design
-description: 'Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.'
+description: 'Select task quality gates, reference parity checks and performance workloads for text, agentic coding, work agents, cache-aware ASR, TTS, full-duplex audio/video, image and video inference. Covers AIPerf AgentX/Exgentic replay, vLLM/SGLang benchmark boundaries, SLO-aware metrics and InferRSI integration.'
 ---
 
 # Inference Benchmark Design
@@ -17,6 +17,17 @@ videos, with pinned provenance from InferRSI issue #60. Use the
 [command templates](references/benchmark-commands.md) for entry points and a
 bounded HTTP smoke. These references are candidate knowledge, not qualification
 of every model or backend.
+
+For cache-aware speech recognition, read the
+[ASR stream-boundary procedure](references/cache-aware-asr-stream-boundaries.md)
+before selecting tests or comparing chunk latency. It separates startup/steady geometry, decoded
+progress, stream-slot reuse, reset, EOU and EOF; its source tests and
+author benchmark reports are not local model or serving qualification.
+
+For treatment-enabled tuning comparisons or claimed protocol integrity, read
+[treatment delivery and trial validity](references/autotunebench-trial-validity.md).
+Trace feedback to the eligible consumer input and apply the frozen arm-validity
+precedence before interpreting benefit, saturation or a null.
 
 Freeze one primary objective, timing boundary, quality gates and sample/failure
 accounting before optimization. Recorded agent task scores and replay completion
@@ -90,6 +101,24 @@ The decision of which regimes must improve and which must not regress is the
 caller's policy, not the benchmark's. Encode it in a decision config file
 (`decision.yaml` in vllm-evolve) so it is explicit, versioned, and auditable.
 
+## Audit a supplied fixed-workload report
+
+Preserve the request-to-trial grouping and every observation covered by the
+contract. Late requests and outliers remain included unless the frozen protocol
+explicitly excludes them; retain exclusion and failure counts. Apply aggregation
+in the declared order: a median of per-trial request means uses every included
+request to calculate each trial mean, then takes the median across trials. A
+pooled request median is a different statistic, especially with unequal trial
+sizes. If the report omits an aggregation rule that changes the verdict, expose
+that ambiguity rather than choosing one after seeing the result.
+
+For a lower-is-better metric with a positive baseline, calculate percentage
+reduction as `100 * (baseline - candidate) / baseline` and compare it with the
+declared threshold before rounding. Check workload equivalence, output quality
+and completion evidence separately from this arithmetic. Report the computed
+threshold result and any missing evidence under the frozen contract's verdict
+semantics; an attractive aggregate alone does not establish an accepted gain.
+
 ## What must be pinned before comparing two runs
 
 Every valid A/B comparison requires these to be identical:
@@ -149,6 +178,12 @@ validate that exact state; report best-seen results separately from delivered on
 and [source audit](../performance-ceiling-analysis/references/papers-20261015/references/inferencebench.md)
 retain author-reported evidence and counterexamples. No local experiment is
 established by integrating these notes.
+
+For controlled kernel-agent comparisons, use the
+[JustGoal source reference](references/justgoal-evaluation-contracts.md).
+Keep model/budget/task scope, independent acceptance, released versus repaired
+artifacts and workspace/stream/cache contracts explicit. Its results remain
+author-reported; it adds no runner or device/performance qualification.
 
 ## Evidence trail requirements (InferRSI compatibility)
 

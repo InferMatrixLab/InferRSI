@@ -36,15 +36,22 @@ Nightly checks cover Linux and Windows checkouts with `core.autocrlf` set to
 `false`, `true` and `input`.
 
 Use `harness/scenarios` and `model/protocols` / `model/validators` for new models,
-`infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` with
-`data/platform_packs` for hardware. Reuse the common AB/BA loop, cleanup and
-adjudication. See [extension contracts](architecture.md#where-to-extend).
+`infra/targets` with `data/repo_packs` for repositories, and `infra/platforms` for
+hardware. A backend is registered in `infra/platforms/__init__.py`; its probe
+command is defined in the implementing module under `infra/platforms/`. That
+module owns the command name and the discovery boundary. Reuse the common AB/BA loop,
+cleanup and adjudication. See [extension contracts](architecture.md#where-to-extend).
 
 For knowledge, edit one named JSON record under
 `data/repo_packs/<repo>/knowledge/<backend>/<component>/` for contribution sources,
 or `data/knowledge_packs/<dependency|peer>/<repo>/<backend>/<component>/` for
 external sources, and add its navigation link to the owning README. See the
 [three learning tiers](../src/inferrsi/data/knowledge_packs/README.md).
+`data/repo_packs/inferrsi/knowledge/` is the exception: it is generated from
+`data/skill_library/` and must be refreshed, never edited. Change the skill body,
+sidecar or registry, commit, then run
+`python tools/build_skill_index.py --source-revision <committed-revision>`; a
+hand edit there is reverted by the next run and only `--check` reports it.
 Do not maintain a second per-entry Markdown summary.
 Keep IDs stable, omit PR links, retain source attribution and negative results,
 and qualify new backends independently. See the
@@ -53,8 +60,10 @@ and qualify new backends independently. See the
 Protected changes also require a current-head
 [knowledge authorship declaration](knowledge-model-policy.md). Every material AI
 author must use an approved model at `xhigh` or `max`; human-only work is declared
-explicitly. Mechanical/generated changes have no automatic exemption. The first
-rollout reports failures without yet requiring the check for merging.
+explicitly. Mechanical/generated changes have no automatic exemption. The check
+is a required status on `main`, so a failing declaration blocks merging; the
+`protect-main` ruleset is the source of truth for that enforcement. A passing
+check establishes declaration compliance only, not execution settings or results.
 
 The [skill library](../src/inferrsi/data/skill_library/README.md) owns complete
 procedures, metadata, references and cases. Place platform-specific skills under
@@ -77,6 +86,10 @@ identify research evidence, not campaign defaults. Check linked resources,
 licenses, local links and reads from a noneditable wheel installation.
 
 ## Acceptance checklist
+
+For software packaging and automatic daily Releases, follow the
+[release guide](releases.md). Release preparation is separate from campaign
+acceptance and the four CI lanes.
 
 Open an issue using the [acceptance form](../.github/ISSUE_TEMPLATE/campaign-acceptance.yml)
 before claiming a result. Record:
@@ -214,7 +227,7 @@ Keep the existing four lanes:
 | [Draft](../.github/workflows/ci-draft.yml) | Lint and lightweight CPU smoke |
 | [Ready](../.github/workflows/ci-ready.yml) | Full repository checks for PRs |
 | [Merge](../.github/workflows/ci-merge.yml) | Manifest check and lightweight CPU smoke on main |
-| [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests and evidence layout |
+| [Nightly](../.github/workflows/ci-nightly.yml) | Scheduled lint/tests, evidence layout and label drift |
 
 Ready CI also builds the source distribution and wheel, installs the wheel with
 the optional `skills` parser in a fresh virtual environment, and runs
@@ -224,6 +237,15 @@ helpers and CLI reads without installing any inference engine.
 The ready test and installed-package jobs cover the declared minimum Python
 3.10 alongside Python 3.11. This matrix does not certify later Python releases
 or accelerator runtime compatibility.
+The `pr-references` job fails when GitHub closing syntax appears inside PR body
+text, including negated sentences (working rule 6 in the
+[collaboration guide](agent-collaboration.md#working-rules)). It reads the body at
+the triggering event, so a body edit is checked at the next push. It is not a
+required check.
+The nightly `safety-net` job compares the repository labels with
+[`labels.json`](../.github/labels.json) and fails on drift
+([labels](agent-collaboration.md#labels)). It reads labels with `issues: read` and never
+changes them.
 
 The merge lane runs the same small smoke selection as draft on every main push,
 including direct pushes. It is a post-push safety check, not a branch-protection

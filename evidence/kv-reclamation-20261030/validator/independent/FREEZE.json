@@ -1,0 +1,15 @@
+{
+  "files_sha256": {
+    "CONTRACT.md": "85714ad11d360ca885c417cb4d56ef4ecf289e3a0c24696e94808e45661d2ccd",
+    "INDEPENDENCE.md": "94acf341905fb171ef34aedbefb6f4d13fd485d0fc8013d9dc3027b64d97e6e6",
+    "build_fixtures.py": "d1d3f77b96d4187a4e12f5943703daa2de7507175c37faa34e96c57451c7bb46",
+    "control_spec.json": "8db4fece4e266bd1c41d3ae56ecaad3be3fcdcc6ef7a970bb574749cf20d7de5",
+    "fixtures.json": "5f00b3782b85d0f0c5294ab7f191f2b4e58996a14ab609d3de22c9a291c0e34c",
+    "oracle.py": "1521b278a258d6579d000e640068a981b697ab679b3d967593ed62dcf6af2712",
+    "test_verifier.py": "88ef532797ebb502d5a9e0f0a5aea22080a1aec0f3a429bf23f260d0cd64e30f",
+    "verifier.py": "e641fa6088032e15568fe17e87385a9f97e7e1d8d702a65fb62084f99741f862"
+  },
+  "schema": "synthetic-kv-reclamation-freeze-v1",
+  "source_kind": "newly_authored_synthetic_not_historical_holdout",
+  "status": "prequalification_freeze"
+}

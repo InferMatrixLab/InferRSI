@@ -1,0 +1,57 @@
+{
+  "scope": "reviewed_dependency_wheel_bytes",
+  "checks_passed": true,
+  "job": 1986,
+  "state": "COMPLETED",
+  "exit_code": "0:0",
+  "allocated_seconds": 89,
+  "allocated_cpus": 4,
+  "allocated_gpu_count": 0,
+  "allocation_released": true,
+  "verdict": "INCONCLUSIVE",
+  "model_executed": false,
+  "generated_code_executed": false,
+  "evaluator_installed": false,
+  "sandbox_qualified": false,
+  "output_manifest_sha256": "020c2e2f96dc5ac4b86adb897ea72acde2770124aa296031ffe4bf93da1c173a",
+  "build_script_sha256": "20ddd8c1225eb4fdbd5dc19e5d3716d2b0e2b0fbba9ce48d9007f67d9134785a",
+  "input_manifest_sha256": "5d1312e8d64c6f0b371049ea227ced1813dc9c5fd4ec385d5a6339151b4d0cc0",
+  "build_lock_sha256": "8f033a8ba24ddabb64ac12e4e5e701d7c52986902a7943cd3c2aee2dc46c0bd1",
+  "python": "3.12.13",
+  "build_installed": [
+    "packaging==26.3",
+    "setuptools==84.2.1",
+    "setuptools-scm==10.3.4",
+    "vcs-versioning==2.6.0",
+    "wheel==0.48.0"
+  ],
+  "uv_version": "uv 0.11.13 (x86_64-unknown-linux-gnu)",
+  "uv_sha256": "8cf3edc13033942f865e1b7513c9f10b3ad1f2278a249fa3181dbc94aefc33e8",
+  "python_executable_sha256": "202c17d1671602a4ef1d43e9b2fdbef0769443f37bf5e51f6b603e0b2c27d9d8",
+  "wheels": [
+    {
+      "package": "wget",
+      "version": "3.2",
+      "wheel": "wget-3.2-py3-none-any.whl",
+      "wheel_sha256": "c00a5fd7032ccf1c4af99f26155f5a379892d2e9d94520b36859d3f010922553",
+      "module_sha256": "17e1e138d89005e6d0c487878f0489f9ec60d7f0c632135627e4efb26a0c115f",
+      "module_bytes_match_source": true,
+      "record_entries_verified": 5,
+      "requires_dist": [],
+      "pure_python": true,
+      "tag": "py3-none-any"
+    },
+    {
+      "package": "tempdir",
+      "version": "0.7.1",
+      "wheel": "tempdir-0.7.1-py3-none-any.whl",
+      "wheel_sha256": "b70640b48d5379585b85ff7dc46a989a8a82ef1292dc22c057a79cf47842256c",
+      "module_sha256": "1b95b88bf5fbce8568a938b55441df54a7590747a9aa8ba9fa232a4bd01232b6",
+      "module_bytes_match_source": true,
+      "record_entries_verified": 5,
+      "requires_dist": [],
+      "pure_python": true,
+      "tag": "py3-none-any"
+    }
+  ]
+}

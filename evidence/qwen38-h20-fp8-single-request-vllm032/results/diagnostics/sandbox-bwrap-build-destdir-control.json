@@ -1,0 +1,10 @@
+{
+  "scope": "exact_wrapper_boundary_lines_with_mock_meson",
+  "inherited_destdir": "/outside-synthetic",
+  "environment_unset": true,
+  "explicit_empty_destdir_argument": true,
+  "actual_meson_or_installation_executed": false,
+  "wrapper_sha256": "b250d44ec7cbad2727a9f2cdb0055abf0b2648948026c064ba41cd44a27c2776",
+  "exit_code": 0,
+  "stdout": "boundary-ok\n"
+}

@@ -1,0 +1,5 @@
+I'm using Project Maya 1.1.34 and want to recover a conversation after restarting the service. Before the restart, a synthetic Responses request used store:true and returned resp_synthetic_before_restart. Now previous_response_id gets 404, but I still see native slot files and had enabled MAYA_DS4_SLOT_KEEP=1 with two parallel conversations. Can the files recreate the Responses ID, and are both resident conversations guaranteed to have been saved on QUIT?
+
+I did not configure API authentication. Two local clients use different prompt_cache_key values, and I assumed that isolated their history and native cache. Please check that assumption. Also explain how the recovery answer changes for GLM RAM-only slots and MiniMax's resident prefix cache. I have complete synthetic client-held history and tools; do not discard history or rerun a side-effecting tool.
+
+Do not start a model, install anything, delete slots or contact a server. Give the smallest discriminating checks, safe recovery steps and an offline text request example using the bundled helper, making clear which facts the helper cannot verify.

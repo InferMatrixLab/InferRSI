@@ -1,0 +1,126 @@
+{
+  "status": "INCONCLUSIVE",
+  "decision": "Reject audio-owner from the final optimization set: no qualified steady-state gain in the paired pilot.",
+  "before_mean_ms": 196666.12702173492,
+  "after_mean_ms": 199093.23998851082,
+  "observed_latency_increase_percent": 1.2341286237399052,
+  "independent_servers_per_arm": 1,
+  "measured_requests_per_arm": 3,
+  "warmups_per_arm": 2,
+  "order": [
+    "baseline",
+    "candidate"
+  ],
+  "quality": "PASS for all three candidate outputs versus matched baseline and original dense output; baseline repeats also pass. See warmed-quality-summary.json. This does not establish semantic quality.",
+  "lifecycle_before": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 8,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-4",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-5",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-6",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-7",
+        "exit_code": 0,
+        "alive": false
+      }
+    ],
+    "scope": "Pass under explicitly diagnostic60 baseline cleanup, not baseline production defaults"
+  },
+  "lifecycle_after": {
+    "status": "pass",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 0,
+    "host_cleanup_intervention": false,
+    "expected_workers": 8,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-4",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-5",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-6",
+        "exit_code": 0,
+        "alive": false
+      },
+      {
+        "name": "DiffusionWorker-7",
+        "exit_code": 0,
+        "alive": false
+      }
+    ]
+  },
+  "scope": "One paired unprofiled 5-second MC2 pilot in one fixed 8-card reservation. Descriptive latency change is not a significance claim. Baseline uses diagnostic 60 s grace; candidate uses production NPU 60 s grace.",
+  "source_revisions": [
+    "1e6d88ad44d3acede515896968ce54935883c919",
+    "ff6ac7b3fc242c9a2b1b3bed3e4cb6fa5ebdd9ba"
+  ],
+  "raw_receipt_sha256": {
+    "audio-ab-baseline.json": "1656c7c391dcd8eabc16194538b364628b10924723c4cfd139c3b0e8b64157a2",
+    "audio-ab-candidate.json": "46feba6525dea6dcbfff28f3ba47093bfcf5e97b9f6f31bd1a9f2c588926f554"
+  },
+  "engine_removal_revision": "c18fff65a1fedfa55e3f5f2c97b9422942197c8f"
+}

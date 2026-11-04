@@ -1,0 +1,348 @@
+{
+  "schema_version": 1,
+  "repository": "https://github.com/zuiho-kai/h3-metal",
+  "commit": "4ba47a3eabdbebf801ac6664b31f8ec168bc57a8",
+  "tree": "bedf4b65161f774c287f43ff4a7c2686f0ff2448",
+  "observed_at": "2026-10-28",
+  "method": "Clean pinned source checkout; selected file bytes compared with git show, then hashed. Ranges bound semantic inspection; whole-file hashes do not imply full-file review. No remote headers, weights or source scripts executed.",
+  "native_execution": "not_run",
+  "readset": "source-notes.md",
+  "files": [
+    {
+      "path": "LICENSE",
+      "git_blob": "67c2cdbbb26acfc627090f27c3d56475ecde995f",
+      "bytes": 1077,
+      "sha256": "663e51edcd9a3a8f858018ce6924ad2895a24c269c26c39ad75325bcd0f7e5bc",
+      "inspected_ranges": [
+        [
+          1,
+          21
+        ]
+      ]
+    },
+    {
+      "path": "THIRD_PARTY_NOTICES.md",
+      "git_blob": "460e0a0f6d4dfac8ce4990162907784fbd52a11f",
+      "bytes": 1774,
+      "sha256": "a0d77db7d2aca0eda811ab3c386cc32b3143f2c2609a042cf4642954f0f6fb09",
+      "inspected_ranges": [
+        [
+          1,
+          32
+        ]
+      ]
+    },
+    {
+      "path": "Makefile",
+      "git_blob": "674405ccda15cb261b232a69f47f6cd43ecbaedf",
+      "bytes": 7783,
+      "sha256": "b1ccc1e65ff8f2a26fa02d73cf68155b16f11cadcae390676b7a5d3127760079",
+      "inspected_ranges": [
+        [
+          1,
+          221
+        ]
+      ]
+    },
+    {
+      "path": "README.md",
+      "git_blob": "8d67e54364515aaa08c79e109d67cec69664a1b1",
+      "bytes": 9772,
+      "sha256": "cf6c492a5929fdfc7309845dd9081a0546413c6bd7716bb0509865ddab882771",
+      "inspected_ranges": [
+        [
+          1,
+          175
+        ]
+      ]
+    },
+    {
+      "path": "docs/USAGE.md",
+      "git_blob": "f890e61b6823c8fecb0f930c9d93ea649548a745",
+      "bytes": 42951,
+      "sha256": "016ad1a72a4626279eb83d6ce6ddadec6523ac0c2989684c6b3b4b9c7624d747",
+      "inspected_ranges": [
+        [
+          1,
+          46
+        ]
+      ]
+    },
+    {
+      "path": "h3.h",
+      "git_blob": "bcfd7ead170f99db7e2064f68ee65d1812f6e8da",
+      "bytes": 6557,
+      "sha256": "40b26373d9f929f19fea38478c84a22ace19f92d2832c91ac5eda3fc701a9019",
+      "inspected_ranges": [
+        [
+          13,
+          19
+        ],
+        [
+          129,
+          137
+        ]
+      ]
+    },
+    {
+      "path": "h3.c",
+      "git_blob": "150c0f6672b6dd235fd82c99a708dfe0ee2cce86",
+      "bytes": 80388,
+      "sha256": "f62609f490915e899148ec1365e18bd9a8e0339a3e2e050d0e10527634efac2d",
+      "inspected_ranges": [
+        [
+          893,
+          940
+        ],
+        [
+          979,
+          989
+        ],
+        [
+          1558,
+          1575
+        ],
+        [
+          1670,
+          1705
+        ],
+        [
+          1864,
+          1877
+        ]
+      ]
+    },
+    {
+      "path": "main.c",
+      "git_blob": "8355e4feeaa2c02d9e98804a035b5d045752f62e",
+      "bytes": 23253,
+      "sha256": "03acd441aa196f44f08ad05bf5051e11d0b3a5b20b6c412091920c2c90e47c5a",
+      "inspected_ranges": [
+        [
+          1,
+          42
+        ],
+        [
+          338,
+          354
+        ]
+      ]
+    },
+    {
+      "path": "h3_host.h",
+      "git_blob": "eda08df0b4504edf3cf721490a6dd83c7be74496",
+      "bytes": 4369,
+      "sha256": "c01956a55bd28de36bbfe7f65b109a5add96eab051c0b8b1ef05b7eacab1ef1d",
+      "inspected_ranges": [
+        [
+          1,
+          20
+        ],
+        [
+          110,
+          119
+        ]
+      ]
+    },
+    {
+      "path": "h3_host.c",
+      "git_blob": "da2e565a957d4695823effeeddf32e0fac641c1e",
+      "bytes": 25476,
+      "sha256": "e47d5508b3c59bf61aedce86c770e3e3db955074707b60f17bd519dbc79c0d97",
+      "inspected_ranges": [
+        [
+          1,
+          46
+        ],
+        [
+          130,
+          177
+        ]
+      ]
+    },
+    {
+      "path": "h3_dit.c",
+      "git_blob": "cb5d874fe6e104b835d9bb2b16a7d5284584ce52",
+      "bytes": 172773,
+      "sha256": "ebcf46c7515d9089f7a3a3411936e1c81952c6897170a329ec08c8bc634f5843",
+      "inspected_ranges": [
+        [
+          249,
+          455
+        ],
+        [
+          489,
+          565
+        ],
+        [
+          575,
+          670
+        ],
+        [
+          1116,
+          1238
+        ],
+        [
+          1313,
+          1418
+        ],
+        [
+          1984,
+          2068
+        ],
+        [
+          2421,
+          2483
+        ],
+        [
+          2515,
+          2555
+        ],
+        [
+          2704,
+          2748
+        ],
+        [
+          3170,
+          3255
+        ]
+      ]
+    },
+    {
+      "path": "h3_dit_schedule.c",
+      "git_blob": "0b93aaa4efc7788354aa872d032959dc4354f9c5",
+      "bytes": 23629,
+      "sha256": "c2f5d0953324f37b24050c3dbb67a6862d4a4b919baa90769aa00b49fa0f58f4",
+      "inspected_ranges": [
+        [
+          1,
+          401
+        ]
+      ]
+    },
+    {
+      "path": "h3_gpu.m",
+      "git_blob": "f6cd40e1556187211dda0a5bdcb84785b59b7f9b",
+      "bytes": 248071,
+      "sha256": "61ccf058671fb214ef4efc8a9d6cb41ea16036263644b25c5c016180f9630507",
+      "inspected_ranges": [
+        [
+          335,
+          405
+        ],
+        [
+          437,
+          448
+        ],
+        [
+          1642,
+          1695
+        ]
+      ]
+    },
+    {
+      "path": "h3_shaders.metal",
+      "git_blob": "530070a7caa700ceed1f77c1a6478b2f0516cbb9",
+      "bytes": 222335,
+      "sha256": "2a4e344126310b8badae459cfd8d0fc06ca312f8cf7e158f0adb10e59f2a3610",
+      "inspected_ranges": [
+        [
+          31,
+          213
+        ],
+        [
+          4550,
+          4685
+        ]
+      ]
+    },
+    {
+      "path": "tests/test_h3.c",
+      "git_blob": "3f66fa325e393b19e069063862fb8ef6c05a2698",
+      "bytes": 16911,
+      "sha256": "509680b971d8b75e42a318de0ebc634a3bc77962723b4f776fbde7697a80b554",
+      "inspected_ranges": [
+        [
+          23,
+          115
+        ]
+      ]
+    },
+    {
+      "path": "tests/test_vsa_coarse.c",
+      "git_blob": "7f16264db3f9c2af6c9aa7aeee025ac63798abde",
+      "bytes": 14243,
+      "sha256": "2f32b9700f9ce4176a4b91d0ed1858b6911473635ce4628d089e1cc42fd13ab9",
+      "inspected_ranges": [
+        [
+          1,
+          317
+        ]
+      ]
+    },
+    {
+      "path": "tests/test_real_dit_schedule.c",
+      "git_blob": "bd66e99c2c975c5aacaeceef68683fc00810ed49",
+      "bytes": 5728,
+      "sha256": "209521e554fe923bf4706341b7d444c78fdb66539814c8cb03e96beb86541f15",
+      "inspected_ranges": [
+        [
+          1,
+          130
+        ]
+      ]
+    },
+    {
+      "path": "tests/bench_dit.c",
+      "git_blob": "7a1d44405ffa3eb5c75efdec44e84358df781801",
+      "bytes": 90084,
+      "sha256": "4347fcfb40eb89ea9fbd291c0d1c0fc572eaf24c1c21c7d5ff68c1b76dd8e28a",
+      "inspected_ranges": [
+        [
+          1,
+          210
+        ],
+        [
+          1530,
+          1655
+        ]
+      ]
+    },
+    {
+      "path": "tools/fasth3_keymap.py",
+      "git_blob": "0dfb8309e5e5545ddfe870f6b92e21790129a192",
+      "bytes": 9970,
+      "sha256": "81f9d8bd7c75f1c10846c230bc521a7c90c108064a9a5d482c94da16efe6ac64",
+      "inspected_ranges": [
+        [
+          1,
+          233
+        ]
+      ]
+    },
+    {
+      "path": "tools/fasth3_keymap.md",
+      "git_blob": "f67a5669c316d512a773ac510df59ad5e47e6338",
+      "bytes": 2334,
+      "sha256": "e8755894312315360e567d538fee1664dc9cae54006d5257dafc7379976904c6",
+      "inspected_ranges": [
+        [
+          1,
+          55
+        ]
+      ]
+    },
+    {
+      "path": "bench/run_fox2.sh",
+      "git_blob": "2195f9933f355af161cfab7e3cf1fc6f3c625cb2",
+      "bytes": 936,
+      "sha256": "cfa2e97bc5ca46ac0e57734b430b19657cf0c6823e5aa0d240fba52ac13c7a8f",
+      "inspected_ranges": [
+        [
+          1,
+          16
+        ]
+      ]
+    }
+  ]
+}

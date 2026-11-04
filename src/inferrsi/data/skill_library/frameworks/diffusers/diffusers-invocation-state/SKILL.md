@@ -9,6 +9,25 @@ Use for a concrete repeated/overlapping-call, wrapper-reuse, interrupted denoisi
 
 This source-derived candidate has runtime validation not_run. Its [source map](references/source-map.md) covers FluxPipeline and FlowMatchEulerDiscreteScheduler at one pin; other pipelines and schedulers need their own contracts. Read the [ownership path](references/ownership.md) before proposing a change.
 
+## Offload or invocation state?
+
+These materials answer different questions at independent source pins. Keep the
+original evidence date and validation scope when choosing an entry.
+
+| Question | Existing material | Fixed evidence / carried date | Boundary |
+| --- | --- | --- | --- |
+| Group/leaf offload, host-memory pressure or transfer scheduling | Catalog ID `diffusers.cuda.diffusion.group_offload_transfer_overlap` ([canonical record](https://github.com/InferMatrixLab/InferRSI/blob/28ddd06a48128c187f093763c7f52ffdfd04a5f0/src/inferrsi/data/knowledge_packs/dependency/diffusers/cuda/diffusion/group-offload-transfer-overlap.json)) | Memory documentation at `efe46a5b177af67c64b3666da8ddddac7ee12163`; accessed 2026-10-15 | CUDA dependency card; imported, locally_verified=false; host capacity, transfer bandwidth and hook compatibility require their own checks |
+| Repeated/from_pipe calls, scheduler progress or cooperative interruption | This invocation procedure and its [source map](references/source-map.md) | FluxPipeline / FlowMatchEulerDiscreteScheduler at `aea7b70be0f594bcdc15a6f2677ee2ca85e49e8e`; read 2026-10-22 from a supplied archive | Candidate, runtime not_run; common indexing does not qualify CUDA, NPU or another backend |
+
+Read the offload card separately through its stable catalog ID, for example
+`inferrsi knowledge show diffusers.cuda.diffusion.group_offload_transfer_overlap`.
+The canonical-record link identifies its retained source; it is not an implicit
+resource of this invocation bundle.
+
+Normal-tail hook cleanup in the invocation readset does not establish offload
+hook compatibility, exception cleanup or asynchronous transfer completion.
+Neither pin supersedes the other or establishes a tested combined stack.
+
 ## Inputs
 
 Record the exact Diffusers/PyTorch revisions, pipeline and scheduler classes and object identities, construction/from_pipe path, actual model/adapter/tokenizer contents, scheduler config, effective timesteps/sigmas, image/latent shape and dtype, callback, interrupt timing, output_type and cleanup path. If calls overlap, inspect the existing caller's admission/serialization contract and keep their actual intervals.

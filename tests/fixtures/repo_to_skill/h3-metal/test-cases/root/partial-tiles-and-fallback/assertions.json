@@ -1,0 +1,29 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "audit-h3-metal-fasth3-semantics",
+  "target_capability": "VSA edge membership, prefix merge and dispatch",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "h3.c:893-923",
+    "h3_dit.c:249-455,575-670,1313-1418,2421-2483",
+    "h3_dit_schedule.c:162-243,324-401",
+    "tests/test_vsa_coarse.c:225-316",
+    "tools/fasth3_keymap.py:43-191"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/semantic-contracts.md",
+    "references/preflight.md",
+    "references/source-notes.md",
+    "references/troubleshooting.md",
+    "scripts/audit_fasth3.py"
+  ],
+  "assertions": [
+    "Merges adjacent same-kind cond segments before64-row splitting.",
+    "Derives patch grid5x5x5, eight video tiles, real row histogram64:1/16:3/4:3/1:1 totaling125.",
+    "Separates all-prefix key retention from top-k video ranking and deterministic score/index ties.",
+    "Shows double120-tile topk12 versus float32 counterexample13.",
+    "Prevents double coarse addition on sparse fine and describes dense fine plus gated coarse fallback.",
+    "Keeps actual pipeline/constraints unverified and coarse-only source test distinct from sparse-fine execution."
+  ]
+}

@@ -6,7 +6,10 @@
     "parallelism",
     "usp",
     "hccl",
-    "communication"
+    "communication",
+    "allreduce",
+    "topology-dispatch",
+    "collective-correctness"
   ],
   "status": "candidate",
   "profile": "local-skill-v1",
@@ -15,16 +18,79 @@
   "origin": [
     "external"
   ],
-  "sources": [],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/ascend-ai-coding/awesome-ascend-skills",
+      "commit": "75ec89ce9d401be8ac95980e1c3f42f8d4315057",
+      "paths": [
+        "README.md",
+        "skills/training/hccl-test/scripts/quick-verify.sh",
+        "skills/training/hccl-test/scripts/parse-hccl-result.py",
+        "skills/training/torch-npu-comm-test/scripts/comm-bench.py",
+        "skills/training/torch-npu-comm-test/references/supported-ops.md"
+      ],
+      "readset": "references/awesome-ascend-communication-tests.md"
+    },
+    {
+      "type": "git",
+      "url": "https://gitcode.com/cann/hccl",
+      "commit": "96fab0a2acb761e7f8ab0f94aeb5138f200a345b",
+      "paths": [
+        "src/common/hccl_common.h",
+        "src/ops/all_reduce/all_reduce.cc",
+        "src/ops/op_common/op_common.cc",
+        "src/ops/op_common/selector/selector_engine.cc",
+        "src/ops/op_common/selector/cost_model.cc",
+        "src/ops/all_reduce/selector/all_reduce_auto_selector.cc",
+        "src/ops/all_reduce/algorithm/executor/ins_v2_all_reduce_sole_executor.cc",
+        "src/ops/op_common/algorithm/topo_match/topo_match_one_level.cc",
+        "src/ops/op_common/algorithm/template/alg_template_base.h",
+        "src/ops/op_common/algorithm/template/aicpu/kernel_launch.cc",
+        "src/ops/all_reduce/algorithm/template/aicpu/ins_temp_all_reduce_mesh_1D_one_shot.cc",
+        "src/ops/op_common/algorithm/template/wrapper/alg_data_trans_wrapper.cc",
+        "test/st/algorithm/testcase/all_reduce_testcase.cc",
+        "test/st/algorithm/utils/src/hccl_verifier/hccl_verifier.cc",
+        "test/st/algorithm/utils/src/hccl_verifier/semantics_check/allreduce_semantics_checker.cc",
+        "src/common/log.h",
+        "LICENSE"
+      ],
+      "source_channel": "official_repository",
+      "inspected_scope": "selected_native_implementation_and_simulator_test_definitions",
+      "license": "CANN Open Software License Agreement Version 2.0",
+      "readset": "references/hccl-allreduce-readset.json"
+    }
+  ],
   "empirical_validation": "not_run",
-  "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
-  },
   "limitations": [
     "Source-derived candidate; no local efficacy validation.",
-    "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
+    "Only the declared communication-test and native HCCL source slices are normalized; inherited strategy guidance and its source identities remain unchanged.",
+    "Wrapper inspection does not qualify native HCCL/TorchNPU implementations, transport algorithms, numerical correctness, backend compatibility or measured gains.",
+    "Native source coverage is one selected multi-rank AICPU mesh one-shot AllReduce path at the HCCL pin; legacy device routes, other engines/collectives and HCOMM transport/runtime implementations are not qualified.",
+    "Inspected upstream tests use simulated task-graph semantics; neither those tests nor native numerical, memory, bandwidth, model-quality or service experiments were run."
   ],
-  "provenance_readsets": [],
-  "references": [],
-  "consumption_mode": "packaged"
+  "provenance_readsets": [
+    "references/awesome-ascend-communication-tests.md",
+    "references/hccl-allreduce.md",
+    "references/hccl-allreduce-readset.json"
+  ],
+  "consumption_mode": "packaged",
+  "references": [
+    "references/awesome-ascend-communication-tests.md",
+    "references/hccl-allreduce.md",
+    "references/hccl-allreduce-readset.json",
+    "references/hccl-LICENSE.md"
+  ],
+  "applicability": {
+    "scope": "Select and diagnose Ascend parallel strategies and their activation/overlap, with a separately bounded native multi-rank HCCL AllReduce dispatch and correctness procedure.",
+    "input_contract": "Installed collective/runtime builds, rank/device map and topology, workload/strategy settings, count/dtype/reduction, effective dispatch, per-rank outputs and completed-collective/application timing evidence.",
+    "produced_artifact": "A topology- and workload-qualified strategy/dispatch diagnosis, activation and correctness checks, stage-cost attribution and a target-validation proposal; isolated test completion is not a service result.",
+    "failure_modes": "Requested parallel settings can silently fall back; stale local-head/chunk/shard parameters can disable a path, and changed topology/card count can confound strategy comparisons."
+  },
+  "recommendations": [
+    "Confirm the final collective algorithm/engine after fallback and observe sharding/collective activation before interpreting correct outputs or tuning performance.",
+    "Preserve peer/thread waits and test distinct rank/position data with explicit completion on every rank; keep enqueue time, collective completion and application-stage timing separate.",
+    "Recompute topology-derived parameters and remeasure the anchor after changing card groups or parallel degree; inherited diffusion topology restrictions are not universal HCCL gates.",
+    "Require producer/consumer timeline and exposed-communication evidence for overlap; compare the real pipeline wait cost rather than extrapolating small collectives from bytes."
+  ]
 }

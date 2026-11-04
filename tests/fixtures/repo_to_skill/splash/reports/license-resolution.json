@@ -1,0 +1,12 @@
+{
+  "repository": "incoai/splash",
+  "source_commit": "39a97385f8560cf8a93972cec9b0a963c9195250",
+  "source": "GitHub CLI (gh api)",
+  "value": "NO_LICENSE",
+  "status": "unavailable",
+  "reason": "GitHub CLI is not authenticated",
+  "old_license_value": "unavailable",
+  "runtime_files_updated": 4,
+  "independent_source_license": "Apache-2.0",
+  "independent_source_evidence": "Pinned LICENSE and THIRD_PARTY_NOTICES retained; helper unavailable status unchanged."
+}

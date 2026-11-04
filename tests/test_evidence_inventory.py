@@ -182,6 +182,6 @@ def test_checked_in_inventory():
     repo = Path(__file__).resolve().parents[1]
     result = validate_inventory(repo)
     assert result["errors"] == []
-    assert len(result["bundles"]) == 9
-    assert result["checked_hashes"] == 158
+    assert len(result["bundles"]) == 22
+    assert result["checked_hashes"] == 476
     assert result["unavailable"]  # Historical raw artifacts are not in this checkout.

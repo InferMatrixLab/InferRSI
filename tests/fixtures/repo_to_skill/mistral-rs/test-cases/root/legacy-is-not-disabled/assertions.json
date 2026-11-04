@@ -1,0 +1,26 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "root",
+  "target_capability": "legacy-is-not-disabled",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "docs/src/content/docs/guides/perf/paged-attention.mdx",
+    "mistralrs-core/src/paged_attention/mod.rs"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/scope-and-notices.md",
+    "sub-skills/decode-contract/SKILL.md",
+    "sub-skills/decode-contract/references/layout-and-features.md",
+    "sub-skills/decode-contract/references/workspace-and-evidence.md",
+    "sub-skills/decode-contract/references/helper-contract.md",
+    "sub-skills/prefill-contract/SKILL.md",
+    "sub-skills/prefill-contract/references/prefill-and-metadata.md",
+    "sub-skills/prefill-contract/references/helper-contract.md"
+  ],
+  "assertions": [
+    "Legacy layout still uses paged attention and prefix caching; off is the disable control.",
+    "Global engine decode block choices 8/16/32 differ from the standalone prefill primitive, whose source tests use block 7.",
+    "Do not claim a source-tested primitive geometry qualifies a full engine configuration."
+  ]
+}

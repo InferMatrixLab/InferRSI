@@ -1,0 +1,29 @@
+{
+  "synthetic": true,
+  "scope": "CPU validator smoke, not model quality",
+  "identity": {
+    "verdict": "PASS",
+    "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+    "metrics": {
+      "ssim": 1.0,
+      "psnr_db": "inf",
+      "lpips": 0.0,
+      "audio_spectral_cosine": 1.0000017285346985,
+      "audio_rms_ratio": 1.0,
+      "audio_samples": 16384
+    }
+  },
+  "silence": {
+    "verdict": "FAIL",
+    "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+    "metrics": {
+      "ssim": 1.0,
+      "psnr_db": "inf",
+      "lpips": 0.0,
+      "audio_spectral_cosine": 0.0,
+      "audio_rms_ratio": 0.0,
+      "audio_samples": 16384
+    }
+  },
+  "wrong_frame_count": "rejected"
+}

@@ -17,6 +17,7 @@ Effect classes used below:
 | Intent | Entry | Effect class | Boundary |
 | --- | --- | --- | --- |
 | Search packaged records | CLI `knowledge search` / `knowledge show`; catalog API | Read-only | Installed package catalog with the existing tier/repo/backend/scenario filters and IDs; these package-only filters exclude skills and cases from every other authority |
+| Prepare model-aware engine research | CLI `knowledge research`; Python `research_knowledge` | Read-only | Independent model/framework/task/modality/mechanism queries over the same package catalog; source-grounded known profiles, deduplicated matches and explicit target annotations; no engine/hardware qualification |
 | Discover/read packaged or custom skills | CLI `skills list` / `show` / `resource` / `reference` | Read-only | Metadata-first listing; `show` loads one named instruction body; `resource`/`reference` resolve paths for your file reader without loading or executing them |
 | Collect normalized knowledge | CLI `collect`; Python `KnowledgeReader.collect` | Read-only | Explicit sources, authority-qualified identities, exact revisions, bounded output and explicit omissions |
 | Read exact material/resources | CLI `read` / `resource`; Python `KnowledgeReader.read` / `KnowledgeReader.resource` | Read-only | Returns the requested revision or an explicit unavailable/stale error; never substitutes newer bytes |
@@ -25,13 +26,62 @@ Effect classes used below:
 | Amend repository-owned knowledge | Scoped repository PR | — | Repository review and integration authority apply; this is not a runtime store Update |
 | Inspect/prepare experiments | CLI `doctor`; `plan` or `--dry-run` | Read-only inspection / preview | `doctor` may invoke bounded probes and does not certify target compatibility; `plan` previews a specification without persisting a campaign or authorizing execution |
 | Execute/inspect experiments | CLI `run`; `status`; `report` | Experiment-executing / read-only / report-generating | `run` executes caller-supplied commands and records evidence; `status` reads recorded progress; `report` generates HTML from recorded evidence |
+| Adapt existing Flare delivery evidence | [Offline qualification adapter](flare-qualification.md), `python -m inferrsi.model.validators.flare` | Read-only | Existing raw packets and a separate receipt; one HTTP delivery metric, no model/server/device execution |
 | Evaluate selected skill revisions | [Bounded skill-evaluation driver](skill-evaluation.md) | Experiment-executing | Explicitly authorized real Codex calls, independent task verdicts and private evidence; separate from numeric engine-performance scoring |
+| Compare skill additions or updates | [Configured skill comparison](skill-eval-comparison.md), `python -m tools.skill_eval_compare` | Read-only preparation / experiment-executing / report-generating | Fixed Git snapshots and one shared exam; explicit plan authorization for execution; JSON + Markdown regeneration makes no model calls |
+| Export a cloud-generated parser pair | [Generation-only protocol](skill-eval-generation-only.md), `python -m tools.skill_eval_cloud_export` | Local evidence-writing; no execution or publication | Validates frozen inputs and retained sources; writes one bounded inert JSON bundle, never executes parser source |
+| Run the fixed historical parser generation pilot | [Main-only historical job](skill-eval-historical-job.md), `python -m tools.skill_eval_historical_job` | Authorized paid generation / ledger-writing / evidence-writing | No dispatch inputs; reviewed main policy, pre-secret freeze, existing credentials, two-request cap; no generated-source execution or automatic retry |
+| Qualify an artifact verifier host | [Manual reviewer qualification](skill-eval-reviewer-qualification.md), `python -m tools.skill_eval_qualify` | Trusted-control execution / report-generating | Manual main-only workflow; fixed software controls, no model or external artifact input; unavailable isolation fails rather than skips |
+| Qualify the synthetic CPU reclamation task | [Task qualification](kv-reclamation-qualification.md), `python -m tools.qualify_kv_reclamation` | Trusted-control execution / report-generating | Explicit frozen plan; independent verifier, isolated controls and existing AB/BA runner; no paid actor or efficacy claim |
+| Qualify fixed KV editing mechanics | [Actor integration](kv-edit-integration.md), `python -m tools.qualify_kv_edit_actor` | Scripted trusted-control execution / report-generating | Existing Ready Ubuntu host; real isolated artifact replay, fixed edit/check/ABBA tools, immutable final grading and descendant cleanup; zero provider calls, no paid launcher or efficacy claim |
+| Exercise pilot admission offline | [Admission seam](kv-pilot-admission.md), Python `tools.kv_pilot_admission.run_admitted` | Explicit injected-controller effect | Reuses audited PR/day ledger contracts; fake stores for tests, no credential discovery, ledger initialization, CLI or automatic paid launch |
+| Run the one-pair gated KV launcher | [Live launcher boundaries](kv-live-launcher.md), `python -m tools.kv_live_job` (`prepare`, `execute`, `package`, `grade`, `package-grade`) | Manual workflow-only gated provider/ledger execution; separate grading and interruption-safe, data-only `package-grade` projection | Existing credentials bind only to the trusted execute step after secret-free preparation; exact public freeze, hosted/current-host qualification and durable full-pair admission required; `package-grade` never reruns candidates or models; no default CI spending |
+| Replay a cloud-generated parser pair | [Isolated cloud replay](skill-eval-cloud-replay.md), `python -m tools.skill_eval_cloud_replay` | Untrusted-artifact execution / report-generating | Manual pinned data ingress; same-host controls before bubblewrap-only replay; no models or credentials |
+| Validate one harness-improvement step | [Offline improvement](harness-improvement.md), Python `tools.skill_eval_improve.prepare` / `run_offline` | Snapshot-writing / offline experiment-executing | Supplied declarative INV/DOM edits, shared total limits, rerun and one holdout gate; trusted fixed-output clients only; no real-model or Store execution |
+| Plan and report skill PR evaluations | [Skill PR integration](skill-eval-pr.md), `python -m tools.skill_eval_pr` | Read-only planning / authorized experiment-executing / PR-publishing | Trusted mapping, exact operator approval, consumed execution identity and credential-separated publication from retained evidence; no automatic paid trials |
+| Recover goal progress and the next proposal | [Offline goal checkpoints](goal-checkpoints.md), `python -m tools.goal_checkpoint` | Read-only | Explicit scope/criteria, pinned owner decisions and existing comparison receipts; a disposable view, never execution or acceptance authority |
+| Summarize campaign gains | `tools/campaign_summary_chart.py`; `report`/`run` figure | Figure-generating | Renders recorded values into one gain figure plus a matching table; validates the specification and computes nothing new |
 
 The `collect`, `read` and `resource` commands share the reader's rules; they
 are distinct from `knowledge search`, whose package catalog filters
 (tier/repo/backend/scenario) intentionally exclude checkout and store items.
 
 ## Discovery and reading
+
+### Discover MLX hardware — doctor --backend mlx
+
+- **Inputs:** a prepared Git checkout and its existing repo type, target Python,
+  optional case-insensitive --device-model chip match. Discrete --device-ids are
+  unsupported for this unified-memory discovery probe.
+- **Effect:** read-only. On macOS, the existing bounded command runner queries
+  sysctl hw.optional.arm64 machdep.cpu.brand_string. Non-macOS hosts are rejected
+  without a sysctl call. Target-Python metadata includes mlx version/null without
+  importing MLX.
+- **Output:** actual probe facts and chip identity when available; explicit
+  unavailable or device_model_mismatch reasons otherwise. doctor exits 1 for
+  unavailable/mismatched discovery. compatibility stays unverified even when
+  the chip is available or the MLX package is installed.
+- **Boundary:** no engine adapter, package installation, model execution or
+  Metal/performance qualification. The dependency/mlx source cards are separate
+  imported guidance; common skill discovery records are not counted as MLX
+  backend records.
+- **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend mlx
+
+### Discover discrete accelerators — doctor --backend rocm|ascend
+
+- **Inputs:** a prepared Git checkout and its existing repo type, target Python,
+  optional repeatable --device-ids and one case-insensitive --device-model.
+- **Effect:** read-only. The bounded command runner calls `rocminfo` or
+  `npu-smi info`; the output is parsed into device records (Agent blocks, or the
+  pipe-framed NPU table) rather than searched for loose tokens.
+- **Output:** the parsed records plus the probe facts. A requested ID and the
+  requested model must match the same record; an ID appearing only in a
+  temperature or power cell does not count. Empty or unrecognized output yields
+  no records, so discovery stays unavailable and records why. selection_verified
+  is true only for a matched record.
+- **Boundary:** discovery proves that a tool reported a device, not that the
+  backend, engine or kernel path is compatible. compatibility stays unverified.
+- **Example:** inferrsi doctor --repo . --repo-type vllm_omni --backend ascend --device-ids 0 --device-model 910B3
 
 ### Search packaged records — `knowledge search` / `knowledge show`
 
@@ -45,6 +95,28 @@ are distinct from `knowledge search`, whose package catalog filters
 The tier/repo/backend/scenario filters are package-only: an empty filtered
 result does not mean that no checkout or store knowledge exists. See the
 [three-tier guide](../src/inferrsi/data/knowledge_packs/README.md) for all sources.
+
+### Prepare model-aware research — `knowledge research`
+
+- **Inputs:** model identity; repeatable `--framework`, `--task`, `--modality`, `--mechanism`; existing `--tier`, `--repo-type`, `--backend`, `--scenario` hard filters and `--limit` output cap; optional `--target-backend`, `--target-device`, positive finite `--target-memory-gib` annotations.
+- **Scope:** installed package records only. A packaged MiniMax-H3 profile supplies its source-grounded diffusion/video/audio identity and component roles. Unknown models use only caller-supplied dimensions and need source inspection; no architecture is guessed.
+- **Output:** JSON query groups and match counts, a bounded deduplicated union with `matched_queries`, unchanged full records/provenance, active filters, component roles, preparation/example resource paths and an unverified target state. Queries take turns contributing results; this ordering does not rank engine quality.
+- **Side effects:** none; no network requests, hardware probes, model download or engine execution. Target annotations do not add runtime backends.
+- **Failure behavior:** no match returns an explicit empty envelope and exits 0; invalid limits/memory or unsupported catalog filters exit 2. A zero-match dimension stays visible.
+- **Example:** `inferrsi knowledge research MiniMax-H3 --framework mlx --target-backend metal --target-device "M5 Mac Studio" --target-memory-gib 64 --limit 12`
+- **Python:** `from inferrsi.research import research_knowledge`; `research_knowledge("MiniMax-H3", frameworks=["mlx"], modalities=["video"], limit=12)`.
+
+Exact `knowledge search` and `context` still AND query tokens. Independent
+research queries broaden discovery without relaxing the active package filters.
+Keep those filters explicit when transferring mechanisms from other backends;
+target intent does not qualify their applicability. Read the canonical
+[preparation procedure](../src/inferrsi/data/skill_library/workflows/inference-engine-research/references/model-aware-preparation.md)
+and the repository-owned [h3.c residency audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
+for native-engine reference selection, full encoder/DiT/VAE accounting,
+quantized-package compatibility and target hardware decisions. Returned resource
+paths are relative to `importlib.resources.files("inferrsi")` and ship in the wheel.
+The small model profile links that skill's full inventory and worked example;
+those resources retain their repository owner and source attribution.
 
 ### Discover/read packaged or custom skills — `skills list` / `show` / `resource` / `reference`
 
@@ -73,6 +145,15 @@ upstream instructions.
 ## Normalized knowledge (Python)
 
 ### Collect — `collect` / `KnowledgeReader.collect`
+
+Optional `--relevance <CUE>` ranks generated packaged skills after the existing
+query and filters; `--context-bytes <N>` returns their complete core plus bounded
+whole reference resources in a separate view. They preserve default calls,
+explicit-ID membership/order, `material` and the serialized-item `max_bytes`
+budget. Context counts UTF-8 body bytes separately and reports unavailable or
+oversized context explicitly. See [selection and context](knowledge-operations.md#optional-packaged-skill-selection-and-context)
+for scoring, provenance and accounting. For example:
+`inferrsi collect 'cpu.stat.local' --relevance cgroupv2 --context-bytes 65536 --json`.
 
 - **Inputs:** optional query, `--kind`, repeatable explicit `--id`, repeatable `--revision ID=REV`, `--limit`, `--max-bytes`, `--material`; `--skill-root` selects an explicit skills root, `--store` opens an existing store read-only (the store records its reserved skills root and rejects a mismatched or missing `--skill-root`).
 - **Scope:** installed package records plus (with `--skill-root`) skills and cases from the explicitly selected root, plus (with `--store`) store candidates; bounded output.
@@ -133,3 +214,14 @@ compatibility.
 Operation success, recorded execution state and the experiment verdict are
 distinct conclusions; a completed run does not upgrade imported knowledge or
 unvalidated candidates.
+
+## Campaign summary figure
+
+### Summarize a campaign figure — `tools/campaign_summary_chart.py`
+
+- **Inputs:** one JSON specification (chain of accumulating steps, or a set of independent trials); an output path.
+- **Scope:** recorded values only. The renderer computes gains, validates the specification and writes a figure; it measures nothing.
+- **Output:** an SVG figure, plus a Markdown table with the same values when `--markdown` is given. `report` and `run` also write `summary-chart.svg` into the run directory and inline it in the HTML report.
+- **Side effects:** writes the requested files; nothing is executed and no network or GPU is touched.
+- **Failure behavior:** exit code 2 with the offending field name when the specification is incomplete, ambiguous or inconsistent; a report without a paired measurement states why it has no figure.
+- **Example:** [campaign summary chart](campaign-summary-chart.md)

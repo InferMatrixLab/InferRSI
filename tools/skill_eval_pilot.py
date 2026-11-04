@@ -7,7 +7,13 @@ import tempfile
 import time
 from pathlib import Path
 
-from inferrsi.harness.skill_evaluation import CodexClient, export_bundle, run_trial, summarize
+from inferrsi.harness.skill_evaluation import (
+    CodexClient,
+    export_bundle,
+    normalize_usage,
+    run_trial,
+    summarize,
+)
 from inferrsi.infra.artifacts import sha256, write_json
 from inferrsi.knowledge_operations import KnowledgeReader
 
@@ -174,7 +180,7 @@ def build_schedule(tasks: list[dict], final_only=False) -> list[dict]:
             repeats = 2 if task["id"] in {"holdout-4", "holdout-6"} else 1
         for repeat in range(1, repeats + 1):
             conditions = ["N", "E-benchmark", "E-evidence"]
-            # 每个 matched group 只轮换一次；repeat 仅用于配对标识。
+            # Rotate each matched group once; repeat identifies the pair only.
             shift = (len(schedule) // 3) % 3
             for condition in conditions[shift:] + conditions[:shift]:
                 schedule.append({"task_id": task["id"], "condition": condition, "repeat": repeat})
@@ -281,7 +287,8 @@ def recover_attempts(output: Path, schedule: list[dict]) -> list[dict]:
 
 
 def observed_tokens(usage: dict | None) -> int:
-    # 预算计数只累计已观测字段；完整性在状态与 summary 中单独表达。
+    # Count observed token fields only; report completeness separately in status and summary.
+    usage = normalize_usage(usage)
     if usage is None:
         return 0
     return sum(
@@ -422,12 +429,9 @@ def execute(output: Path, max_new_trials: int | None = None):
             "recorded_trials": len(trials),
             "observed_tokens": tokens,
             "token_usage_complete": all(
-                trial["observations"]["usage"] is not None
-                and all(
-                    trial["observations"]["usage"].get(key) is not None
-                    for key in ("input_tokens", "output_tokens")
-                )
-                for trial in trials
+                usage is not None
+                and all(usage.get(key) is not None for key in ("input_tokens", "output_tokens"))
+                for usage in (normalize_usage(t["observations"]["usage"]) for t in trials)
             ),
             "execution_state": "completed" if len(trials) == len(plan["schedule"]) else "stopped",
             "stop_reason": stop_reason,

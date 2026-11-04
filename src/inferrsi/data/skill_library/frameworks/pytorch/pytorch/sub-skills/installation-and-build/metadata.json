@@ -1,0 +1,50 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "license": "NOASSERTION",
+  "disable-model-invocation": true,
+  "metadata": {
+    "disco-role": "operating"
+  },
+  "tags": [
+    "pytorch",
+    "installation-and-build"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/pytorch/pytorch",
+      "commit": "9a90a4fefcaafa63ac984621963a6fcc66aee68c",
+      "paths": [
+        "README.md",
+        "pyproject.toml",
+        "setup.py",
+        "cmake/EnvVarForwarding.cmake"
+      ],
+      "readset": "../../references/source-readset.json"
+    }
+  ],
+  "applicability": {
+    "scope": "Install, inspect, or build PyTorch for a selected OS, Python ABI and device backend; diagnose import and binary-extension mismatches.",
+    "prerequisites": [
+      "An explicitly selected installed torch environment; actual devices for backend-specific checks."
+    ],
+    "input_contract": "A bounded model, tensor, data or environment reproduction and expected behavior.",
+    "produced_artifact": "Build a versioned environment plan and distinguish source, wheel, toolkit and driver identities.",
+    "failure_modes": [
+      "Transferring source facts to another wheel or backend without checking drift."
+    ],
+    "refusal_point": "Withhold backend success when the required device check cannot execute."
+  },
+  "limitations": [
+    "Source-supported procedures are not full-repository execution coverage.",
+    "Required unavailable backends retain BLOCKED_REQUIRED_BACKEND; no measured efficacy claim."
+  ],
+  "consumption_mode": "packaged"
+}

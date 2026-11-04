@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "compiler_check": "not_run",
+  "live_swift_api_or_cli": "not_run",
+  "package_resolution": "not_run",
+  "original_source_tests": "not_run",
+  "required_backend_results": [
+    {
+      "id": "compiled-host-control",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "reason": "Native Swift/Xcode/MLX prerequisites unavailable; actual accelerator evidence additionally requires Apple Metal."
+    },
+    {
+      "id": "native-cancellation",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "reason": "Native Swift/Xcode/MLX prerequisites unavailable; actual accelerator evidence additionally requires Apple Metal."
+    },
+    {
+      "id": "native-gated-delta",
+      "execution": "BLOCKED_REQUIRED_BACKEND",
+      "reason": "Native Swift/Xcode/MLX prerequisites unavailable; actual accelerator evidence additionally requires Apple Metal."
+    }
+  ],
+  "engine_empirical_validation": "not_run",
+  "scope": "Integrated source candidate; offline support/metadata/evidence checks do not substitute for compiled Swift or native execution."
+}

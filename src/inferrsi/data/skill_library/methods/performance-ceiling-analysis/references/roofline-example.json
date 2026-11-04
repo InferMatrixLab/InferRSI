@@ -1,0 +1,72 @@
+{
+  "workload": {
+    "workload_id": "synthetic-component-v1",
+    "shape": "one synthetic matrix operation",
+    "boundary": "one invocation; stated compute and HBM traffic only",
+    "hardware_id": "synthetic-reference",
+    "resource_scope": "logical-device-0",
+    "operation": {
+      "dtype": "bfloat16",
+      "accumulator_dtype": "float32",
+      "op_class": "matrix",
+      "sparsity": "dense",
+      "fma_flops": 2
+    },
+    "work": {
+      "value": 600,
+      "unit": "FLOP",
+      "source": {
+        "kind": "synthetic",
+        "locator": "fixture:roofline-example",
+        "revision": "v1",
+        "time_unknown_reason": "Undated synthetic arithmetic fixture"
+      }
+    },
+    "traffic": {
+      "value": 100,
+      "unit": "byte",
+      "tier": "HBM",
+      "source": {
+        "kind": "synthetic",
+        "locator": "fixture:roofline-example",
+        "revision": "v1",
+        "time_unknown_reason": "Undated synthetic arithmetic fixture"
+      }
+    },
+    "assumptions": ["Counts are synthetic and apply only to this stated invocation."]
+  },
+  "hardware": {
+    "hardware_id": "synthetic-reference",
+    "resource_scope": "logical-device-0",
+    "device_count": 1,
+    "operation": {
+      "dtype": "bfloat16",
+      "accumulator_dtype": "float32",
+      "op_class": "matrix",
+      "sparsity": "dense",
+      "fma_flops": 2
+    },
+    "peak_compute": {
+      "value": 100,
+      "unit": "FLOP/s",
+      "source": {
+        "kind": "synthetic",
+        "locator": "fixture:roofline-example",
+        "revision": "v1",
+        "time_unknown_reason": "Undated synthetic arithmetic fixture"
+      }
+    },
+    "bandwidth": {
+      "value": 10,
+      "unit": "byte/s",
+      "tier": "HBM",
+      "source": {
+        "kind": "synthetic",
+        "locator": "fixture:roofline-example",
+        "revision": "v1",
+        "time_unknown_reason": "Undated synthetic arithmetic fixture"
+      }
+    },
+    "assumptions": ["Rates are synthetic references, not measured or rated device facts."]
+  }
+}

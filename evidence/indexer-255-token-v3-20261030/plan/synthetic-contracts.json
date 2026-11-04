@@ -1,0 +1,282 @@
+{
+  "status": "prospective before implementation; manually specified expected arithmetic, no candidate evaluated",
+  "baseline": "b3549ce1aea1556f76de1d2e14a4240474947b6b",
+  "cases": [
+    {
+      "id": "token-dev01",
+      "cue": "ram",
+      "fields": [
+        [
+          4,
+          "program analysis"
+        ],
+        [
+          1,
+          "RAM pressure"
+        ]
+      ],
+      "expected_whole_token_score": 1
+    },
+    {
+      "id": "token-dev02",
+      "cue": "io",
+      "fields": [
+        [
+          4,
+          "optimization"
+        ],
+        [
+          3,
+          "I/O telemetry"
+        ],
+        [
+          1,
+          "io tracing"
+        ]
+      ],
+      "expected_whole_token_score": 1
+    },
+    {
+      "id": "token-dev03",
+      "cue": "GPU gpu",
+      "fields": [
+        [
+          4,
+          "gpu GPU"
+        ],
+        [
+          1,
+          "GPU"
+        ]
+      ],
+      "expected_whole_token_score": 5
+    },
+    {
+      "id": "token-dev04",
+      "cue": "cpu.stat.local",
+      "fields": [
+        [
+          4,
+          "cpu stat local"
+        ],
+        [
+          1,
+          "cpu.stat.local"
+        ]
+      ],
+      "expected_whole_token_score": 15
+    },
+    {
+      "id": "token-dev05",
+      "cue": "read_cache",
+      "fields": [
+        [
+          4,
+          "read cache"
+        ],
+        [
+          1,
+          "read_cache"
+        ]
+      ],
+      "expected_whole_token_score": 1
+    },
+    {
+      "id": "token-dev06",
+      "cue": "checkpoint",
+      "fields": [
+        [
+          4,
+          "checkpoints"
+        ],
+        [
+          1,
+          "checkpoint"
+        ]
+      ],
+      "expected_whole_token_score": 1
+    },
+    {
+      "id": "token-dev07",
+      "cue": "\u6570\u636e",
+      "fields": [
+        [
+          4,
+          "\u6570\u636e\u5904\u7406"
+        ],
+        [
+          1,
+          "\u6570\u636e"
+        ]
+      ],
+      "expected_whole_token_score": 1
+    },
+    {
+      "id": "token-dev08",
+      "cue": "orchid",
+      "fields": [
+        [
+          4,
+          "memory allocator"
+        ],
+        [
+          1,
+          "stream ownership"
+        ]
+      ],
+      "expected_whole_token_score": 0
+    },
+    {
+      "id": "string-dev09",
+      "cue": "whether next",
+      "fields": [
+        [
+          1,
+          "prefix\nwhether\tnext"
+        ]
+      ],
+      "expected_whole_token_score": 2
+    },
+    {
+      "id": "string-dev10",
+      "cue": "whether next",
+      "fields": [
+        [
+          1,
+          "prefix whether next"
+        ]
+      ],
+      "expected_whole_token_score": 2
+    },
+    {
+      "id": "string-dev11",
+      "cue": "quote beta",
+      "fields": [
+        [
+          3,
+          "\"quote\" \\ beta"
+        ]
+      ],
+      "expected_whole_token_score": 6
+    },
+    {
+      "id": "string-dev12",
+      "cue": "input_contract source",
+      "fields": [
+        [
+          2,
+          {
+            "input_contract": "source"
+          }
+        ]
+      ],
+      "expected_whole_token_score": 2
+    },
+    {
+      "id": "string-dev13",
+      "cue": "gpu cpu ram",
+      "fields": [
+        [
+          2,
+          [
+            "GPU",
+            {
+              "x": [
+                "CPU",
+                "RAM",
+                "gpu"
+              ]
+            }
+          ]
+        ]
+      ],
+      "expected_whole_token_score": 6
+    },
+    {
+      "id": "string-dev14",
+      "cue": "null true 42",
+      "fields": [
+        [
+          2,
+          [
+            null,
+            true,
+            42
+          ]
+        ]
+      ],
+      "expected_whole_token_score": 0
+    },
+    {
+      "id": "string-dev15",
+      "cue": "null true 42",
+      "fields": [
+        [
+          2,
+          [
+            "null",
+            "true",
+            "42"
+          ]
+        ]
+      ],
+      "expected_whole_token_score": 6
+    },
+    {
+      "id": "string-dev16",
+      "cue": "download",
+      "fields": [
+        [
+          3,
+          "downloads"
+        ],
+        [
+          1,
+          "download"
+        ]
+      ],
+      "expected_whole_token_score": 1
+    },
+    {
+      "id": "string-dev17",
+      "cue": "ram",
+      "fields": [
+        [
+          4,
+          "program"
+        ],
+        [
+          1,
+          {
+            "ram": "dram"
+          }
+        ]
+      ],
+      "expected_whole_token_score": 0
+    },
+    {
+      "id": "string-dev18",
+      "cue": "read_cache",
+      "fields": [
+        [
+          1,
+          "read_cache"
+        ],
+        [
+          4,
+          "read cache"
+        ]
+      ],
+      "expected_whole_token_score": 1
+    }
+  ],
+  "unchanged_contracts": [
+    "default mode byte parity",
+    "explicit ID order/membership/revision",
+    "query substring AND matching",
+    "filters before ranking",
+    "mandatory-resource byte/hash/revision and budget omission",
+    "legacy optional-resource scorer",
+    "qualified-ID deterministic tie order"
+  ]
+}

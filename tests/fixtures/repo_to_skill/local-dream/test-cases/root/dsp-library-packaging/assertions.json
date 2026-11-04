@@ -1,0 +1,22 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "local-dream",
+  "target_capability": "packaging",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "app/src/main/cpp/dit/build.sh",
+    "app/src/main/cpp/include/DitEngine.h",
+    "app/src/main/cpp/src/PipelineDit.hpp"
+  ],
+  "expected_skill_files": [
+    "SKILL.md",
+    "references/packaging-and-abi.md",
+    "scripts/screen_declarations.py"
+  ],
+  "assertions": [
+    "Separate CPU DiT shared library from DSP skels staged in assets.",
+    "Distinguish dlopen, entry, ABI negotiation, create and actual device work.",
+    "Retain native block and separate SDK/gitlink/patch identities."
+  ],
+  "case_kind": "synthetic source-informed; not an upstream native execution or agent efficacy trial"
+}

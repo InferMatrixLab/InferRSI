@@ -1,0 +1,216 @@
+{
+  "scope": "local_read_only_network_control",
+  "completed": true,
+  "platform": "Darwin",
+  "deadline_seconds": 60,
+  "probe_sha256": "12bbacf986425c5fa5fea035203de7599902fa9a7f98124e6e8eccb3f4f40d5d",
+  "policy_sha256": "7173e2fa6a695bdf5ce0bd0befb2bb8416f1648bd723c901d8a77c2d4b3c5d67",
+  "installed_or_executed_downloaded_content": false,
+  "network": {
+    "completed": true,
+    "received_bytes": 8388608,
+    "operations": [
+      {
+        "operation": "open",
+        "completed": true,
+        "seconds": 0.28121462499257177
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.17104508297052234,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.042939625040162355,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.024082666030153632,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.01586479099933058,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.01461920898873359,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.012693958007730544,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.008928166993428022,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.008984124986454844,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.007372667023446411,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.006897041981574148,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.006161833007354289,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.008043500012718141,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.0035255830152891576,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.004775915993377566,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.006231208040844649,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.003548417007550597,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.003585957980249077,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.003366290999110788,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.007226750021800399,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.000678334035910666,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.003909958002623171,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.0029172920039854944,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.005058458016719669,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.0037045410135760903,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.0060718340100720525,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.004302916000597179,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.00480533397058025,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.003976000007241964,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.0053678330150432885,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.0034230000455863774,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.006996500014793128,
+        "received_bytes": 262144
+      },
+      {
+        "operation": "read",
+        "completed": true,
+        "seconds": 0.0032092080218717456,
+        "received_bytes": 262144
+      }
+    ],
+    "whole_wheel_authenticated": false,
+    "payload_written_to_disk": false,
+    "received_prefix_sha256": "3e934ebe82a6e87ac3b917c2ba7aafa35e88699364670f93c9de685251029755",
+    "elapsed_seconds": 0.6985260000219569
+  }
+}

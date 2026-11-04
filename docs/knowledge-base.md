@@ -14,7 +14,7 @@ separate work, not an implemented capability of this knowledge base.
 ```text
 src/inferrsi/data/skill_library/
   README.md                         Library navigation
-  skill-index.json                   Stable IDs → categorized paths/backend (58 skills)
+  skill-index.json                   Stable IDs → categorized paths/backend (79 skills)
   hardware/{ascend,cuda,host}/<id>/   Hardware/platform-specific complete skills
   frameworks/<framework>/<id>/      Framework-owned complete skills
   repositories/<repo>/              Engine entry, sub-skills and focused complete skills
@@ -65,13 +65,16 @@ metadata authority or maintained matrix.
 | Legacy sidecars | Existing keys retained unless explicitly normalized | Conflicting duplicate fields fail visibly; matching historical fields can be read |
 | Catalog JSON | Existing record owns ID, tier, scope, recommendations, attribution and limitations | Do not migrate it into local sidecars or relabel imported records |
 | Engine procedures/resources | Imported English library and source manifest | Preserve licenses, source relationships and installed access; catalog abstracts link the complete English procedures |
-| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results |
+| Case | One owner-local case document plus structured identity/source record | Raw evidence stays frozen; case interpretation may evolve without rewriting results. Source identities and digests live only in the record; the document links it and cites the same source URLs. The record lists its own basename in `required_resources`, so that link resolves inside the read bundle |
 
 The 43 branch-added candidate headers were normalized without replacing their
 procedures. All structured frontmatter fields, including tags, synchronization
 lineage, unknown license and source-pack notes, are retained in sidecars. Existing
 sidecar name/status duplication agreed with the frontmatter; normalization found
-no contradictory values. Abbreviated historical repository pins remain explicitly
+no contradictory values. Sidecars omit fields equal to the reader defaults:
+empty `sources` and `references`, and the former shared placeholder
+`applicability`; absent sources still read as explicit unknown provenance.
+Abbreviated historical repository pins remain explicitly
 prefixes, not invented full SHAs. Legacy untyped source inventories remain marked
 incomplete, with their substantive procedure/readsets retained for inspection.
 
@@ -80,7 +83,59 @@ is not promoted by import, translation, a passing reader test or matrix placemen
 External/internal origin and Skill/Knowledge/Case kind are attributes; contribution,
 dependency and peer remain independent repository relationships.
 
+### Applicability keys and recommendations
+
+Sidecar `applicability` keys follow the contract settled in
+[issue #91](https://github.com/InferMatrixLab/InferRSI/issues/91#issuecomment-6512087181).
+
+| Key | States | Must not |
+|---|---|---|
+| `scope` | What the procedure applies to | Become a capability or efficacy claim |
+| `prerequisites` | What must hold first: access, tooling, authorization | Restate the input contract |
+| `input_contract` | What the caller supplies | Enumerate the procedure's own steps |
+| `produced_artifact` | What it emits, at the body's evidence level | Upgrade a proposal into a validated configuration or measured result |
+| `failure_modes` | How the procedure yields a wrong or unusable result | Restate `limitations` |
+| `refusal_point` | Where the body says it withholds a conclusion | Invent a refusal the body does not state |
+| `hardware` | A device dependency the body establishes | Be inferred from a source's hardware |
+
+`recommendations` holds owner-supplied procedure advice. `tools/build_skill_index.py`
+copies a declared list unchanged. A declared empty list states that the procedure
+has no specific advice and does not fall back; only an absent field produces the
+generic navigation defaults.
+
+`limitations` is not owner-only. The generator emits four sentences of its own and
+then appends the sidecar's `limitations` entries. `failure_modes` is therefore a
+separate field rather than more `limitations` entries.
+
+No mechanical allowlist restricts `applicability` keys. The packaged library uses
+nine distinct keys: the seven above plus `architectures` and `excluded_mechanisms`,
+which appear only in `hardware/cuda/reason-hopper-kernels`. A closed key set would
+reject that sidecar or have to grandfather it. Revisiting this is proposed for
+batch 4 of issue #91 and is not agreed.
+
 ## Sources and revisions
+
+### Resource-layer applicability
+
+The SearchSpace Matrix owns positive resource-layer and lifecycle-stage mappings.
+Its supplementary `Resource` tables describe guidance without claiming numbered
+layer coverage. A missing mapping means unknown, not that a procedure applies
+everywhere or nowhere.
+
+A sidecar may declare `searchspace_not_applicable` as a non-empty reason when its
+procedure does not address any of the five resource layers. The reason identifies
+the procedure's actual scope and its source section. Omit the field for positive
+or unanalyzed mappings; it is not a second mapping table. Device-independent
+guidance may still address a resource layer, so `applicability.hardware` does not
+determine this declaration.
+
+The coverage view shows unknown, N/A, numbered coverage and supplementary guidance
+separately. An N/A declaration alongside a positive matrix mapping is a visible
+conflict; it counts as neither N/A nor coverage until reconciled. The generated
+catalog retains the reason in `skill_metadata`. None of these declarations alters
+skill maturity, empirical validation or execution authority.
+
+### Source identities
 
 | Type | Identity and scope | Not interchangeable with |
 |---|---|---|
@@ -163,24 +218,50 @@ standalone export: retain the declared dependencies or the complete library.
 
 All 48 former root skills now have one canonical home under
 [`src/inferrsi/data/skill_library/`](../src/inferrsi/data/skill_library/README.md).
-Complete procedures, sidecars, references and cases are packaged, with 13 Ascend,
-2 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
+Complete procedures, sidecars, references and cases are packaged, with 14 Ascend,
+3 CUDA and 5 host skills under `hardware/`; the rest are grouped as frameworks,
 repositories, methods or workflows. The 21 engine and research-router skills
 use the same ownership layout under `repositories/<engine>/` and
 `workflows/inference-engine-research/`, including their sub-skills and references.
-The library contains 79 `SKILL.md` files, all in English.
+The library contains 142 `SKILL.md` files, all in English. The registered
+[Lithos Metal candidate](../src/inferrsi/data/skill_library/repositories/lithos-metal/SKILL.md)
+adds three owner-local subskills for compiler/fusion, generation state and
+serving/cache contracts; it adds no executable repository target.
 The collection overview, import notes and source manifest belong to the research
 workflow's references; Strata design-space analysis belongs to Strata. The library
 root contains only navigation and the registry.
 
 The [generated catalog](../src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md)
-projects the 58 registered skills into the contribution catalog. Its records
+projects the 79 registered skills into the contribution catalog. Its records
 use `inferrsi.<backend>.skills.<name_with_underscores>` IDs, with `ascend` and
-`cuda` for those hardware-specific scopes and `common` for the remaining skills.
+`cuda` for scopes that depend on those backends and `common` for the remaining skills.
 Each `skill_documents.original` points to the full packaged procedure. The
 `skills` CLI retains the original hyphenated skill IDs and defaults to this
-58-ID registry; engine procedures remain available through library navigation
+79-ID registry; engine procedures remain available through library navigation
 and catalog document pointers.
+
+The registered [PyTorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md)
+and [TorchNPU](../src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md)
+operating graphs each retain eight child procedures, their sidecars, references,
+scripts and source notices under one root. The children are available through
+root resource reads and complete normalized bundles; they add no separate
+registry IDs or executable repository targets. Earlier compiler, DCP and
+TorchNPU allocator owners retain their independent source revisions.
+All new profiles use `local-skill-v1`: only name and description are in YAML;
+the AREX license, invocation and operating-role fields remain in sidecars.
+An upstream AREX license check of a temporary frontmatter projection is distinct
+from final InferRSI format checks, backend execution and managed DisCo import.
+Required accelerator/distributed gaps remain `BLOCKED_REQUIRED_BACKEND`;
+installed-wheel CPU observations do not validate the pinned source build.
+
+Historical construction and verification records remain at the immutable
+original delivery: [PyTorch](https://github.com/InferMatrixLab/InferRSI/blob/e668cff3b12e46a0dae1a007099c521afa848152/tests/fixtures/repo_to_skill/pytorch/reports/final/author-handoff.md),
+[TorchNPU](https://github.com/InferMatrixLab/InferRSI/blob/e668cff3b12e46a0dae1a007099c521afa848152/tests/fixtures/repo_to_skill/torch-npu/reports/final/final-skill-report.md)
+and [independent review](https://github.com/InferMatrixLab/InferRSI/blob/e668cff3b12e46a0dae1a007099c521afa848152/tests/fixtures/repo_to_skill/framework-review/independent-review.md).
+These external records retain their original environments, native failures,
+backend gaps and verification scope. Repackaging the unchanged runtime bytes
+does not rerun those checks or establish new backend, quality or performance
+results. The process fixture trees are not part of this delivery.
 
 The registered [h3.c runtime audit](../src/inferrsi/data/skill_library/repositories/h3-c/audit-h3-runtime-residency/SKILL.md)
 owns MiniMax-H3 component/lifetime, AdaLN, precision/SSD mechanisms and the
@@ -201,6 +282,12 @@ provenance and unknown licenses. Its own `imported` state describes the catalog
 record, not promotion or verification of the source skill. Backend placement
 describes content scope; `common` and `skills.discovery` imply no cross-hardware
 qualification. `inferrsi` is a knowledge source, not an executable target.
+
+The CUDA-owned [Hopper kernel reasoning candidate](../src/inferrsi/data/skill_library/hardware/cuda/reason-hopper-kernels/SKILL.md)
+adds pinned KDA/KernelWiki source screening, selected primary-code qualification
+and architecture-specific synchronization/resource/FP8 procedures. Its coverage
+inventory distinguishes inspected bodies from source headers and excluded SM100
+recipes; native execution and efficacy remain not_run.
 
 The complete library is the single content owner. Maintain stable paths and
 backend classifications in `skill-index.json`, then refresh generated records
@@ -254,3 +341,22 @@ ownership, source-linked references and scoped case pattern here. Its mandatory
 perf-loop, fixed skill count, global numeric policies and separate case registry
 are not imported. Exactly two primary matrices remain; HBM is not host RAM and
 H2D/IPC/team coordination do not establish Network coverage.
+
+The registered [vllm-metal candidate](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md) adds selected platform/ABI, KV/offload lifecycle and speculative/deferred/dispatch procedures. Installed pure API/parser evidence is partial; required Apple native/model/quality/service evidence remains blocked. It is portable AREX-informed repository integration, not DisCo CLI execution or managed import.
+
+The registered [mistral-rs candidate](../src/inferrsi/data/skill_library/repositories/mistral-rs/SKILL.md) adds selected Metal paged-attention layout, metadata/workspace and preparation/evidence contracts. Rust tooling and required Apple native/model evidence are unavailable; offline helpers and source test definitions are not native execution or candidate promotion.
+
+The [mlx-swift-lm candidate](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md) owns selected Swift generation-lifetime and recurrent native/ops contracts, with source/observation limits preserved. No Swift compile, original native/host-control test, actual Metal/model/quality/service run is implied by its helpers or packaged discovery.
+
+The [mlc-llm candidate](../src/inferrsi/data/skill_library/repositories/mlc-llm/SKILL.md) separates artifact metadata, supported consumers, Apple targets, pinned TVM runnable/runtime boundaries and compiled/runtime KV configuration. Canonical hashes, serializable fallback or estimated limits are not native/model/quality/fit/service evidence.
+
+The registered [h3-metal FastH3 audit](../src/inferrsi/data/skill_library/repositories/h3-metal/audit-h3-metal-fasth3-semantics/SKILL.md) supplements earlier h3.c residency with fork-specific effective configuration, tensor/schedule semantics and VSA eligibility/fallback. Its offline declaration arithmetic and label probes do not qualify native conversion, sparse attention, media, memory fit or performance; required Apple/model evidence remains blocked/not_run.
+
+The registered [local-dream candidate](../src/inferrsi/data/skill_library/repositories/local-dream/SKILL.md)
+owns selected Android desired/serving/readiness and unauthenticated-host
+boundaries, native diffusion dispatch/cancellation/cache and DiT/QNN packaging
+contracts. Its helper compares declarations only; required Android/Qualcomm,
+model, image quality, fit and service/performance evidence remains
+`BLOCKED_REQUIRED_BACKEND / not_run`. This is portable AREX-informed candidate
+integration, not a fully verified DisCo import. Pinned CC BY-NC 4.0 source rights
+and machine SPDX `NOASSERTION` remain separate.

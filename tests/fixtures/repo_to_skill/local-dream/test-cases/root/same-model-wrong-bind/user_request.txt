@@ -1,0 +1,1 @@
+Local Dream reports the same model ID and Running, but host mode changed and a resolution preference changed. May I reuse the process and declare the controller ready from that ID?

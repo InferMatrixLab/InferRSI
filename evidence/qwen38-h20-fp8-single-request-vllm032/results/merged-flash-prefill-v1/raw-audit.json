@@ -1,0 +1,79 @@
+{
+  "schema": 1,
+  "scope": "single-case engineering HTTP comparison only",
+  "verdict": "INCONCLUSIVE",
+  "formal_statistics_eligible": false,
+  "runtime_scheduler_quality_bindings_required": true,
+  "raw_accounting_valid": true,
+  "requests_audited": 4,
+  "warmups_discarded": 2,
+  "measurements": [
+    {
+      "arm": "native",
+      "case": "n8192-s0",
+      "input_tokens": 8192,
+      "output_tokens": 2048,
+      "ttft_s": 2.864008470089175,
+      "tpot_s": 0.012212332627739672,
+      "latency_s": 27.862653359072283,
+      "output_tokens_per_second": 73.50340879624648,
+      "wire_sha256": "d3493ef42b60f1e912734d3f20a81ecd648598deb967250d5d972898d64ca5ef"
+    },
+    {
+      "arm": "sdpa_flash",
+      "case": "n8192-s0",
+      "input_tokens": 8192,
+      "output_tokens": 2048,
+      "ttft_s": 2.3214649580186233,
+      "tpot_s": 0.012188997568606304,
+      "latency_s": 27.272342980955727,
+      "output_tokens_per_second": 75.09439146574675,
+      "wire_sha256": "64efde7c644737d28b30d11c3e4d8df990bee56e56f9f8072e7b40f90b814e85"
+    }
+  ],
+  "measurement_token_ids_equal": false,
+  "attention_mode_evidence": "launch options plus bound constructor; no attention counter",
+  "source_identities_sha256": "5a8672bfc8982581b304d4a6137926aadf2b7a174bcff328770c9dae22541b9b",
+  "collector_sha256": "389c26a2d11978125fb4e06b4c1f5fc983f3758a1b048998cb39bf46d11fda69",
+  "auditor_sha256": "f252787270e1f4331b1ff18c29d95d353dfe793e8f75b2b6dcb7e305e93cbef3",
+  "receipts": [
+    {
+      "arm": "native",
+      "purpose": "warmup",
+      "wire_sha256": "0fad85f1c60b93198166b0f535bb956660628bc845cb9c6a2ead29b0880416a5",
+      "client_sha256": "c7c07bec49b811be9e8fe0a7f83cf4926e97710816ffd5dc04450bc0374d5ec7"
+    },
+    {
+      "arm": "native",
+      "purpose": "measurement",
+      "wire_sha256": "d3493ef42b60f1e912734d3f20a81ecd648598deb967250d5d972898d64ca5ef",
+      "client_sha256": "8c841d5fad535296427f434a2ab42536cd8296a4324da3d13bc1d4188dc45775"
+    },
+    {
+      "arm": "native",
+      "ready_health_sha256": "0d164321ef0d38008e65f2c2454966c65bf129cd79500eacf348dea89397911c",
+      "health_sha256": "11ba85ffac373d4ee7c5d3f703d633ac2ab810c6fb3ff3f4b3ee5d96cf6ab230",
+      "config_sha256": "f2946e0e21de6066aa5505075a882610b2951e253a78865be32f5bd994811e9f",
+      "shutdown_sha256": "7e33d01f9def10f57fab56f508af7a0a707e0edfb517dac5cdf7ac32ed6c15c9"
+    },
+    {
+      "arm": "sdpa_flash",
+      "purpose": "warmup",
+      "wire_sha256": "351242a1b81d3fe861453e872d38e248e14cab034fe34b95bcc3f566c15827bb",
+      "client_sha256": "1eabe84479d42a064979d61799c26557017938ff8df490310f028a065021c5ff"
+    },
+    {
+      "arm": "sdpa_flash",
+      "purpose": "measurement",
+      "wire_sha256": "64efde7c644737d28b30d11c3e4d8df990bee56e56f9f8072e7b40f90b814e85",
+      "client_sha256": "ee0023ae9765ceae889e0fdab23f08d0c4089da3ca5d3335d0a1b943f16ae643"
+    },
+    {
+      "arm": "sdpa_flash",
+      "ready_health_sha256": "5da7d129c8e00538afa10ca41935607a80c7f662baae8fe0ba24e22d8544d6c1",
+      "health_sha256": "720ba1fcc7027bccc1a9e07d1c7405bc701a8d851029d6d20e6f1ab85eadab41",
+      "config_sha256": "ea81d7077bc3321de9884d5f7f9241b45d6a3628c9238e3d1f71f87e50a575aa",
+      "shutdown_sha256": "97bc349f290872d4e9828373a86414c84126b9863db30dd0b1f023d0c5749122"
+    }
+  ]
+}

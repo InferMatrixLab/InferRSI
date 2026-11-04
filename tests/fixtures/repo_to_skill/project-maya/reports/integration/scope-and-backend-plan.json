@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "source_commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+  "decision": "User explicitly resumed #198 for source+safe CPU candidate completion; accelerator/model evidence remains blocked and is not replaced.",
+  "included": [
+    "Selected family dispatch/format/memory and native state bodies",
+    "Shared Python API/history/background/structured-output contracts",
+    "Selected speculation/calibration/test/quality-report evidence",
+    "Bounded Qwen dispatch/format/guard/license map"
+  ],
+  "excluded_execution": [
+    "Installer, source Python imports and service startup",
+    "CMake FetchContent/full engine configuration",
+    "All model/draft/vision payloads, packing/calibration/bench runners",
+    "Native accelerator/model/quality/service execution"
+  ],
+  "unmined": [
+    "Deep Qwen model/state/kernels",
+    "Exhaustive CUDA/HIP kernels/quant types/devices/Windows/aarch64",
+    "Every CLI/UI/maintenance/error path and complete backend/model matrix"
+  ],
+  "minimum_native_environment": [
+    "C++20 host compiler for selected pure policy slices",
+    "Actual supported CUDA/HIP toolchain/devices and compatible family model resources for complete native evidence; unavailable"
+  ],
+  "cpu_substitution": "Full only for the selected host policy/test functions; none for complete inference/model/state outcomes",
+  "auto_import": false,
+  "required_backend_status": "BLOCKED_REQUIRED_BACKEND",
+  "final_manual_admission": "Reported separately after actual verification; no automatic promotion"
+}

@@ -1,0 +1,28 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "qualification",
+  "target_capability": "test cfg, CPU oracle, ignored golden and native execution boundaries",
+  "difficulty": "troubleshooting",
+  "evidence_basis": [
+    "src/lib.rs:8-33",
+    "CONTRIBUTING.md:16-42",
+    "tests/unit/kernels/gemm.rs:12-57",
+    "tests/test_shader_compile.rs:1-74",
+    "tests/test_e2e_35b.rs:20-47",
+    "tests/unit/kernels/skinny.rs:315-369"
+  ],
+  "expected_skill_files": [
+    "sub-skills/qualification/SKILL.md",
+    "sub-skills/qualification/references/verification-contract.md",
+    "sub-skills/qualification/references/troubleshooting.md",
+    "sub-skills/qualification/scripts/audit_benchmark_record.py"
+  ],
+  "assertions": [
+    "The response routes to qualification and distinguishes non-macOS library-only compilation from all-target compilation or a CPU inference backend.",
+    "The response explains that CPU-reference algorithms are numerical oracles and selected matches_cpu tests create a Metal context, dispatch and read back GPU results.",
+    "The response reports cfg-omitted, ignored, filtered, completed and not-run checks separately and does not treat a green summary or short duration as native proof.",
+    "The response separates shader function/pipeline construction from numerical, route-selection, recurrent-state, matched-model and service correctness.",
+    "The response requires the route predicate and actual numerical GPU checks on both sides, including packing/tails/views and stack-versus-slice reduction consistency.",
+    "The response keeps absent Rust/compiler/M5/macOS/model evidence blocked and does not install, execute a model, rewrite a golden or claim Metal PASS."
+  ]
+}

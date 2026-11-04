@@ -1,0 +1,148 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.cuda.skills.audit_afd_p2p_exchanges",
+  "title": "audit-afd-p2p-exchanges",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "cuda",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Audit CUDA P2pNccl Attention/FFN rank namespaces and per-stage, per-peer hidden-state ownership when uneven worker counts or a mismatched return slice make an AFD exchange ambiguous.",
+  "tags": [
+    "afd-plugin",
+    "cuda",
+    "p2p",
+    "rank-mapping",
+    "hidden-states",
+    "ownership"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md",
+        "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "a46110891eca860915e314d6921a22856d631453b22b17837fe30262d6780535"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md"
+  },
+  "checkout_ref": "checkout:audit-afd-p2p-exchanges",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/SKILL.md": "a46110891eca860915e314d6921a22856d631453b22b17837fe30262d6780535",
+    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/metadata.json": "ae8c7582265dd6902cc4172293fc709244cc915df9390672fde25687b9e79b4b",
+    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/afd-plugin-LICENSE.md": "0e8566ea362276878e1f38f97da49964dbea301c15d4aa9d727f97a4c39fd943",
+    "src/inferrsi/data/skill_library/repositories/afd-plugin/audit-afd-p2p-exchanges/references/source-notes.md": "5073d87450cb60d1b245308dff8807e73749c07de976d50f2fa26694fad81a72",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+  },
+  "skill_metadata": {
+    "name": "audit-afd-p2p-exchanges",
+    "description": "Audit CUDA P2pNccl Attention/FFN rank namespaces and per-stage, per-peer hidden-state ownership when uneven worker counts or a mismatched return slice make an AFD exchange ambiguous.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "license": "Apache-2.0",
+    "tags": [
+      "afd-plugin",
+      "cuda",
+      "p2p",
+      "rank-mapping",
+      "hidden-states",
+      "ownership"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/afd-plugin",
+        "commit": "df8d6a0c403c3ca1b4ed9cf1687e7204908bebec",
+        "paths": [
+          "README.md",
+          "LICENSE",
+          "afd_plugin/config.py",
+          "afd_plugin/distributed/topology.py",
+          "afd_plugin/connectors/factory.py",
+          "afd_plugin/connectors/metadata.py",
+          "afd_plugin/connectors/gpu/p2p.py",
+          "afd_plugin/v1/worker/attention_metadata.py",
+          "afd_plugin/v1/worker/attention_model_runner_v2.py",
+          "afd_plugin/v1/worker/ffn_worker.py",
+          "afd_plugin/v1/worker/ffn_model_runner.py",
+          "afd_plugin/model_executor/models/deepseek_v2.py",
+          "afd_plugin/model_executor/models/forward_context.py",
+          "tests/unit/distributed/test_topology_partition.py"
+        ],
+        "readset": "references/source-notes.md"
+      }
+    ],
+    "applicability": {
+      "scope": "Source-based CUDA P2pNccl rank/payload audit; selected eager dense-FFN path with compute_gate_on_attention=false. Repository identity afd_plugin; runtime/backend compatibility unverified.",
+      "prerequisites": "Access to the pinned source ledger and caller-level evidence for the selected eager dense FFN path with Attention-side gating disabled; any proposed cross-stream reuse needs an established communicator completion contract.",
+      "input_contract": "Plugin and dependency revisions, connector and role, A/F worker counts, DP/PCP/TP coordinates, worker/device ranks, subgroup roster, stage, per-peer token counts, payload shape/dtype/device, transfer context and returned slices.",
+      "produced_artifact": "A bounded rank-namespace and per-peer payload ownership ledger, the earliest evidenced mismatch or missing edge, and a proposed verification plan.",
+      "failure_modes": "Inferring data peers from control senders, accepting equal total row counts despite a peer permutation, or treating an even-split fallback or Python return as proof of ownership/completion can produce a wrong exchange diagnosis.",
+      "refusal_point": "Stop on A < F, invalid role ranks, duplicate/missing assignments or an unresolved rank namespace; return the conflicting callers and ledger entries without inventing ranks or attributing the fault to networking."
+    },
+    "limitations": [
+      "Source-derived candidate; native exchange, model quality, backend compatibility, performance and agent efficacy not_run.",
+      "Selected Python readset is Apache-2.0; the retained MIT notice concerns excluded NPU async CAM implementation and adapted bindings.",
+      "No qualification of graph/DBO, remote-expert MoE, multi-host transport, complete token-count projection or underlying communicator completion semantics."
+    ],
+    "provenance_readsets": [
+      "references/source-notes.md"
+    ],
+    "references": [
+      "../../vllm/audit-vllm-kv-lifetimes/SKILL.md",
+      "../../../methods/inference-benchmark-design/SKILL.md",
+      "../../../methods/dense-performance-evidence/SKILL.md"
+    ],
+    "consumption_mode": "packaged",
+    "recommendations": [
+      "Record role, world and subgroup-local ranks separately; reconstruct the actual subgroup roster before interpreting send/receive peers.",
+      "Track distinct row identities and stage-specific peer lengths through concatenation and splitting; use same-total swapped lengths as a countercheck.",
+      "Establish the last communicator/stream completion obligation before reusing or releasing a receive buffer."
+    ]
+  },
+  "applicability": {
+    "scope": "Source-based CUDA P2pNccl rank/payload audit; selected eager dense-FFN path with compute_gate_on_attention=false. Repository identity afd_plugin; runtime/backend compatibility unverified.",
+    "prerequisites": "Access to the pinned source ledger and caller-level evidence for the selected eager dense FFN path with Attention-side gating disabled; any proposed cross-stream reuse needs an established communicator completion contract.",
+    "input_contract": "Plugin and dependency revisions, connector and role, A/F worker counts, DP/PCP/TP coordinates, worker/device ranks, subgroup roster, stage, per-peer token counts, payload shape/dtype/device, transfer context and returned slices.",
+    "produced_artifact": "A bounded rank-namespace and per-peer payload ownership ledger, the earliest evidenced mismatch or missing edge, and a proposed verification plan.",
+    "failure_modes": "Inferring data peers from control senders, accepting equal total row counts despite a peer permutation, or treating an even-split fallback or Python return as proof of ownership/completion can produce a wrong exchange diagnosis.",
+    "refusal_point": "Stop on A < F, invalid role ranks, duplicate/missing assignments or an unresolved rank namespace; return the conflicting callers and ledger entries without inventing ranks or attributing the fault to networking."
+  },
+  "recommendations": [
+    "Record role, world and subgroup-local ranks separately; reconstruct the actual subgroup roster before interpreting send/receive peers.",
+    "Track distinct row identities and stage-specific peer lengths through concatenation and splitting; use same-total swapped lengths as a countercheck.",
+    "Establish the last communicator/stream completion obligation before reusing or releasing a receive buffer."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived candidate; native exchange, model quality, backend compatibility, performance and agent efficacy not_run.",
+    "Selected Python readset is Apache-2.0; the retained MIT notice concerns excluded NPU async CAM implementation and adapted bindings.",
+    "No qualification of graph/DBO, remote-expert MoE, multi-host transport, complete token-count projection or underlying communicator completion semantics."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

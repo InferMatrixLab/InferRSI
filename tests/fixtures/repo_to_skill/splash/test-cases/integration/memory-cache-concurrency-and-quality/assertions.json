@@ -1,0 +1,22 @@
+{
+  "schema": "disco.usability-case.v1",
+  "target_skill_area": "integration",
+  "target_capability": "memory-cache-concurrency-and-quality",
+  "difficulty": "advanced",
+  "evidence_basis": [
+    "DEVELOPMENT.md",
+    "runtime/engine/Cache.cpp",
+    "runtime/model/VerifyBudget.hpp"
+  ],
+  "expected_skill_files": [
+    "sub-skills/runtime-planning/references/memory-and-formats.md",
+    "sub-skills/serving-cache/references/state-and-api.md",
+    "sub-skills/qualification/references/verification-contract.md"
+  ],
+  "assertions": [
+    "The answer separates syntax, planner floors, dynamic admission and process RSS.",
+    "The answer explains that PLE off means whole-load, not removing weights.",
+    "The answer preserves BF16 state rounding/chunk/cache identity and requires renewed relevant quality checks.",
+    "The answer does not clear actual Metal/ANE/model evidence from CPU checks."
+  ]
+}

@@ -1,0 +1,83 @@
+diff --git a/nanovllm/qwen38/engine.py b/nanovllm/qwen38/engine.py
+index 3976480..1d770cb 100644
+--- a/nanovllm/qwen38/engine.py
++++ b/nanovllm/qwen38/engine.py
+@@ -181,6 +181,9 @@ class DedicatedEngine:
+                        if isinstance(module, FP8Linear)}
+             calls = {name: module.native_fp8_calls for name, module in modules.items()}
+             execution = {"fp8_execution": {"modules": len(calls), "total_calls": sum(calls.values()),
++                         "call_counter_scope": "python_forward_only_includes_warmup_and_capture_excludes_graph_replay",
++                         "backend": self.loader_report["backend"],
++                         "kernel_name": self.loader_report["kernel_name"],
+                          "executed_modules": sum(count > 0 for count in calls.values()), "per_module_calls": calls,
+                          "weight_dtype": "float8_e4m3fn", "scale_dtype": "float32",
+                          "actual_dtypes_valid": all(module.weight.dtype == torch.float8_e4m3fn
+diff --git a/nanovllm/qwen38/quant.py b/nanovllm/qwen38/quant.py
+index 34863c5..6df0144 100644
+--- a/nanovllm/qwen38/quant.py
++++ b/nanovllm/qwen38/quant.py
+@@ -2,6 +2,8 @@
+ 
+ from __future__ import annotations
+ 
++import os
++
+ import torch
+ from torch import nn
+ 
+@@ -21,6 +23,12 @@ class FP8Linear(nn.Module):
+ 
+     def __init__(self, in_features: int, out_features: int, *, device=None):
+         super().__init__()
++        requested = os.environ.get("NANOVLLM_FP8_GEMM", "triton")
++        if requested not in ("triton", self.backend):
++            raise ValueError(
++                f"Unsupported NANOVLLM_FP8_GEMM={requested!r}; this build implements "
++                f"only {self.backend}. No fallback was selected."
++            )
+         if in_features <= 0 or out_features <= 0:
+             raise ValueError("FP8 linear dimensions must be positive")
+         self.in_features = in_features
+diff --git a/nanovllm/qwen38/server.py b/nanovllm/qwen38/server.py
+index e4adf9e..4fe45d2 100644
+--- a/nanovllm/qwen38/server.py
++++ b/nanovllm/qwen38/server.py
+@@ -397,9 +397,9 @@ def main():
+           "max_active_requests=%d graph=%s fp8_gemm=%s headroom=%s"
+           % (server.server_address, args.model, args.max_context_tokens,
+              args.max_active_requests,
+-             os.environ.get("NANOVLLM_CUDA_GRAPH", "0"),
+-             os.environ.get("NANOVLLM_FP8_GEMM", "triton"),
+-             os.environ.get("NANOVLLM_GRAPH_HEADROOM", "256")),
++             int(engine.runner.graph_enabled),
++             engine.loader_report.get("backend", "unquantized"),
++             engine.runner.graph_headroom),
+           file=sys.stderr, flush=True)
+     try:
+         server.serve_forever(poll_interval=0.05)
+diff --git a/tests/test_qwen38_quant.py b/tests/test_qwen38_quant.py
+index 52e9016..8dd0767 100644
+--- a/tests/test_qwen38_quant.py
++++ b/tests/test_qwen38_quant.py
+@@ -12,6 +12,21 @@ from nanovllm.qwen38.model import Qwen38ForCausalLM
+ from nanovllm.qwen38.quant import FP8Linear, convert_fp8_linears
+ 
+ 
++@pytest.mark.parametrize("backend", ["flashinfer", "deepgemm", "typo"])
++def test_unimplemented_backend_is_not_silently_ignored(monkeypatch, backend):
++    monkeypatch.setenv("NANOVLLM_FP8_GEMM", backend)
++    with pytest.raises(ValueError, match="Unsupported NANOVLLM_FP8_GEMM"):
++        FP8Linear(128, 128, device="meta")
++
++
++@pytest.mark.parametrize("backend", ["triton", "triton_block_fp8"])
++def test_supported_backend_aliases_report_implemented_kernel(monkeypatch, backend):
++    monkeypatch.setenv("NANOVLLM_FP8_GEMM", backend)
++    module = FP8Linear(128, 128, device="meta")
++    assert module.backend == "triton_block_fp8"
++    assert module.kernel_name == "qwen38_block_fp8"
++
++
+ def tiny_fp8_model():
+     model = Qwen38ForCausalLM(Qwen38TextConfig.for_testing()).to(torch.bfloat16)
+     exclusions = ("lm_head", "model.language_model.layers.0.linear_attn.in_proj_a",

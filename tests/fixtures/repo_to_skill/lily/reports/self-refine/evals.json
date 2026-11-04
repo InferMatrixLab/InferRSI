@@ -1,0 +1,185 @@
+{
+  "skill_name": "lily",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "The Lily test compares against a CPU reference and reports green on my Linux log, so I want to publish GPU quality and HTTP speed. I also ran the current matrix with MLX0.32.2 because the later report uses it. Is that the same experiment?",
+      "expected_output": "The answer distinguishes cfg/ignored/actual GPU execution and does not treat a CPU reference as CPU-only GPU proof.; The answer preserves the current0.31.2 runner versus later0.32.2 report and distinct harness identity.; The answer distinguishes in-process throughput from HTTP/cache/service quality evidence.; The answer preserves reported long-context prefill disadvantages rather than a universal faster claim.",
+      "files": [
+        "sub-skills/qualification/references/verification-contract.md",
+        "sub-skills/serving-cache/references/api-and-session.md"
+      ],
+      "assertions": [
+        "The answer distinguishes cfg/ignored/actual GPU execution and does not treat a CPU reference as CPU-only GPU proof.",
+        "The answer preserves the current0.31.2 runner versus later0.32.2 report and distinct harness identity.",
+        "The answer distinguishes in-process throughput from HTTP/cache/service quality evidence.",
+        "The answer preserves reported long-context prefill disadvantages rather than a universal faster claim."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "I have an MLX4bit checkpoint and a Lily cache key that matched yesterday. I changed an earlier user message, set max_tokens so prompt plus output equals max-seq, and want to bypass all loader checks because the config screen passed. Diagnose without a Mac.",
+      "expected_output": "The answer distinguishes selected JSON config screening from exact tensor/roleQ8/native compatibility.; The answer preserves the extra lookahead slot beyond rendered prompt plus max_tokens.; The answer applies exact strict-token-prefix eligibility before key preference and does not force reuse after history edits.; The answer retains missing compiler/Metal/model gaps without native execution.",
+      "files": [
+        "sub-skills/model-runtime/references/model-and-memory.md",
+        "sub-skills/serving-cache/references/api-and-session.md"
+      ],
+      "assertions": [
+        "The answer distinguishes selected JSON config screening from exact tensor/roleQ8/native compatibility.",
+        "The answer preserves the extra lookahead slot beyond rendered prompt plus max_tokens.",
+        "The answer applies exact strict-token-prefix eligibility before key preference and does not force reuse after history edits.",
+        "The answer retains missing compiler/Metal/model gaps without native execution."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Prepare a tiny valid Lily request offline, without Rust, a model or network. My SDK normally includes temperature0 and streamtrue. Which fields must I remove, and can a JSON helper prove the actual token budget?",
+      "expected_output": "The answer uses the bundled offline request helper and exact supported model/fields.; The answer rejects temperature and streaming fields rather than silently treating them as supported.; The answer does not claim native tokenizer/token-capacity/backend validation.",
+      "files": [
+        "sub-skills/serving-cache/scripts/request_template.py",
+        "sub-skills/serving-cache/references/api-and-session.md"
+      ],
+      "assertions": [
+        "The answer uses the bundled offline request helper and exact supported model/fields.",
+        "The answer rejects temperature and streaming fields rather than silently treating them as supported.",
+        "The answer does not claim native tokenizer/token-capacity/backend validation."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "The small JSON supplied here passes Lily's selected shape screen. Does that prove the checkpoint and Metal runtime work? I requested max_seq 4096, but the checkpoint declares max_position_embeddings 2048. My actual rendered prompt has 1900 tokens and I requested 148 output tokens. Also, I cloned a tensor view and want to reset its buffers while a submitted decode pass is still pending. Explain the effective sequence and ownership checks without running native inference.",
+      "expected_output": "The response calls the fixture a selected-rule screen only and preserves all unchecked fields, tensor payloads, Rust compilation and Metal execution gaps.; The response clamps requested max_seq4096 to the smaller nonzero checkpoint limit2048 and retains the kernel ceiling.; The response calculates actual prompt1900 plus output148 plus extra slot1 as2049, refusing the request at2048 rather than claiming equality fits.; The response explains that Tensor clone and view alias backing storage and that buffer offsets matter to bindings and identity.; The response waits for pending GPU work before host reset/read/write and retains recurrent/conv reset versus KV frontier semantics.; The response distinguishes model weights, each cached DecodeState, KV growth, GDN and scratch from a total physical-memory estimate.; The response does not launch native code, install tools, download weights or turn source/helper success into backend qualification.",
+      "files": [
+        "sub-skills/model-runtime/SKILL.md",
+        "sub-skills/model-runtime/references/model-and-memory.md",
+        "sub-skills/model-runtime/references/troubleshooting.md",
+        "sub-skills/model-runtime/scripts/screen_config.py"
+      ],
+      "assertions": [
+        "The response calls the fixture a selected-rule screen only and preserves all unchecked fields, tensor payloads, Rust compilation and Metal execution gaps.",
+        "The response clamps requested max_seq4096 to the smaller nonzero checkpoint limit2048 and retains the kernel ceiling.",
+        "The response calculates actual prompt1900 plus output148 plus extra slot1 as2049, refusing the request at2048 rather than claiming equality fits.",
+        "The response explains that Tensor clone and view alias backing storage and that buffer offsets matter to bindings and identity.",
+        "The response waits for pending GPU work before host reset/read/write and retains recurrent/conv reset versus KV frontier semantics.",
+        "The response distinguishes model weights, each cached DecodeState, KV growth, GDN and scratch from a total physical-memory estimate.",
+        "The response does not launch native code, install tools, download weights or turn source/helper success into backend qualification."
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "I have a Qwen-branded 4-bit checkpoint with group_size 128 and GPTQ packing. Can Lily use it if I change config.json to say affine, bits 4 and group_size 64? Its router is also 4-bit, which seems consistent with the global config. Explain the actual tensor/layout contract, what a config-only screen can and cannot establish, and where to stop. Do not modify the checkpoint, install Rust or download another model.",
+      "expected_output": "The response routes to model-runtime and refuses to treat changing config fields as conversion of GPTQ or group128 payloads.; The response specifies MLX affine group64, U32 low-element-first packed codes, BF16 multiplicative scales and additive biases.; The response distinguishes global Q4 from required Q8 router and shared-expert-gate storage.; The response uses or names the bundled screen as selected-rule screening only, with tensor names/shapes/dtypes/packing/payload and native execution unchecked.; The response rejects the wrong-group fixture without claiming it represents a complete checkpoint.; The response retains missing Rust1.92 and Apple Metal requirements and does not call Python checks native validation.; The response stops before modifying weights, installing a compiler, downloading a model or asserting quality/performance.",
+      "files": [
+        "sub-skills/model-runtime/SKILL.md",
+        "sub-skills/model-runtime/references/model-and-memory.md",
+        "sub-skills/model-runtime/references/troubleshooting.md",
+        "sub-skills/model-runtime/scripts/screen_config.py"
+      ],
+      "assertions": [
+        "The response routes to model-runtime and refuses to treat changing config fields as conversion of GPTQ or group128 payloads.",
+        "The response specifies MLX affine group64, U32 low-element-first packed codes, BF16 multiplicative scales and additive biases.",
+        "The response distinguishes global Q4 from required Q8 router and shared-expert-gate storage.",
+        "The response uses or names the bundled screen as selected-rule screening only, with tensor names/shapes/dtypes/packing/payload and native execution unchecked.",
+        "The response rejects the wrong-group fixture without claiming it represents a complete checkpoint.",
+        "The response retains missing Rust1.92 and Apple Metal requirements and does not call Python checks native validation.",
+        "The response stops before modifying weights, installing a compiler, downloading a model or asserting quality/performance."
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "I have a saved Lily production benchmark JSON and its expected full source SHA and decode count. I want an offline consistency check only: source identity, production versus diagnostic fields, finite timings, interval/token counts and token digest. Can the bundled helper do this without MLX, model files or process inspection, and would success prove the GPU run happened?",
+      "expected_output": "The response references audit_benchmark_record.py with --report, --source-id and --decode-steps, and --diagnostic only for a declared diagnostic record.; The response describes selected source/mode/count/positive-finite-value/token-ID/FNV digest consistency rather than a full matrix verdict.; The response rejects diagnostic GPU timing fields in production records and missing required shapes in diagnostic records.; The response explains that the helper imports neither upstream runner nor MLX and starts no model process, machine survey, download or subprocess.; The response states that internally consistent supplied metadata can be fabricated or stale and does not authenticate actual source/binary/model bytes or execution.; The response leaves native compiler/Metal/model/service qualification and final admission separate from a successful offline audit.",
+      "files": [
+        "sub-skills/qualification/SKILL.md",
+        "sub-skills/qualification/references/verification-contract.md",
+        "sub-skills/qualification/references/troubleshooting.md",
+        "sub-skills/qualification/scripts/audit_benchmark_record.py"
+      ],
+      "assertions": [
+        "The response references audit_benchmark_record.py with --report, --source-id and --decode-steps, and --diagnostic only for a declared diagnostic record.",
+        "The response describes selected source/mode/count/positive-finite-value/token-ID/FNV digest consistency rather than a full matrix verdict.",
+        "The response rejects diagnostic GPU timing fields in production records and missing required shapes in diagnostic records.",
+        "The response explains that the helper imports neither upstream runner nor MLX and starts no model process, machine survey, download or subprocess.",
+        "The response states that internally consistent supplied metadata can be fabricated or stale and does not authenticate actual source/binary/model bytes or execution.",
+        "The response leaves native compiler/Metal/model/service qualification and final admission separate from a successful offline audit."
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "The September 2 Lily report uses MLX 0.32.2, but this checkout's requirements and both benchmark scripts require 0.31.2. Can I change that constant and call it exact reproduction, then combine the best ratios from both reports to claim faster HTTP latency and equivalent graphs? Each engine repeats its own output digest. Explain the limits, including long-context prefill, without running the matrix or surveying processes.",
+      "expected_output": "The response identifies the current 0.31.2 pins versus the later 0.32.2 report and differing harness/environment identities; changing the constant is a new versioned experiment, not unchanged exact reproduction.; The response attributes both reports to their authors and does not pool favorable cross-version rows or transfer results to another model, device or HTTP service.; The response explains first-delivery prefill, subsequent production inter-delivery decode cadence, asynchronous lookahead and draining, and the exclusions from the timed region.; The response notes that stock MLX-LM computes full-vocabulary logprobs while Lily does not expose them, so these are not identical graphs.; The response keeps within-engine digest repeatability separate from cross-engine numerical equivalence and same-token MoE-route control.; The response preserves the later long-context prefill ratios below one at 32768, 65536 and 131072 and does not run the source matrix, survey processes or claim reproduction.",
+      "files": [
+        "sub-skills/qualification/SKILL.md",
+        "sub-skills/qualification/references/verification-contract.md",
+        "sub-skills/qualification/references/troubleshooting.md",
+        "sub-skills/qualification/scripts/audit_benchmark_record.py"
+      ],
+      "assertions": [
+        "The response identifies the current 0.31.2 pins versus the later 0.32.2 report and differing harness/environment identities; changing the constant is a new versioned experiment, not unchanged exact reproduction.",
+        "The response attributes both reports to their authors and does not pool favorable cross-version rows or transfer results to another model, device or HTTP service.",
+        "The response explains first-delivery prefill, subsequent production inter-delivery decode cadence, asynchronous lookahead and draining, and the exclusions from the timed region.",
+        "The response notes that stock MLX-LM computes full-vocabulary logprobs while Lily does not expose them, so these are not identical graphs.",
+        "The response keeps within-engine digest repeatability separate from cross-engine numerical equivalence and same-token MoE-route control.",
+        "The response preserves the later long-context prefill ratios below one at 32768, 65536 and 131072 and does not run the source matrix, survey processes or claim reproduction."
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Our Linux library check was green. Lily's tests say matches_cpu, and the model goldens are ignored, so I want to record Metal correctness as passed without an M5 or checkpoint. The shader test is also cfg-gated. Review that conclusion and give the smallest evidence ladder for a new shape-dependent Q4 route. Do not install Rust, run models or change fixtures.",
+      "expected_output": "The response routes to qualification and distinguishes non-macOS library-only compilation from all-target compilation or a CPU inference backend.; The response explains that CPU-reference algorithms are numerical oracles and selected matches_cpu tests create a Metal context, dispatch and read back GPU results.; The response reports cfg-omitted, ignored, filtered, completed and not-run checks separately and does not treat a green summary or short duration as native proof.; The response separates shader function/pipeline construction from numerical, route-selection, recurrent-state, matched-model and service correctness.; The response requires the route predicate and actual numerical GPU checks on both sides, including packing/tails/views and stack-versus-slice reduction consistency.; The response keeps absent Rust/compiler/M5/macOS/model evidence blocked and does not install, execute a model, rewrite a golden or claim Metal PASS.",
+      "files": [
+        "sub-skills/qualification/SKILL.md",
+        "sub-skills/qualification/references/verification-contract.md",
+        "sub-skills/qualification/references/troubleshooting.md",
+        "sub-skills/qualification/scripts/audit_benchmark_record.py"
+      ],
+      "assertions": [
+        "The response routes to qualification and distinguishes non-macOS library-only compilation from all-target compilation or a CPU inference backend.",
+        "The response explains that CPU-reference algorithms are numerical oracles and selected matches_cpu tests create a Metal context, dispatch and read back GPU results.",
+        "The response reports cfg-omitted, ignored, filtered, completed and not-run checks separately and does not treat a green summary or short duration as native proof.",
+        "The response separates shader function/pipeline construction from numerical, route-selection, recurrent-state, matched-model and service correctness.",
+        "The response requires the route predicate and actual numerical GPU checks on both sides, including packing/tails/views and stack-versus-slice reduction consistency.",
+        "The response keeps absent Rust/compiler/M5/macOS/model evidence blocked and does not install, execute a model, rewrite a golden or claim Metal PASS."
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "For Lily, assume the retained rendered token history is [1, 2] with prompt_cache_key \"conversation-a\". A new request with the same key renders [1, 9, 3]; another renders exactly [1, 2]. Can either skip prefill because the key matches? What about a request with a different key rendering [1, 2, 3]? Explain the two-entry cache selection and decode-state consistency rules without running a model or treating the key as authentication.",
+      "expected_output": "The response rejects [1,2] reuse for [1,9,3] despite the same explicit key.; It rejects an equal-length [1,2] prompt as not a strict prefix and does not return an empty generation suffix.; It allows a different-key [1,2,3] candidate to be considered because key equality is preference, not an eligibility or authentication barrier.; It explains that valid strict prefixes are filtered before matching-key then prefix-length ranking.; It identifies the fixed two-entry released-session LRU and reset/reuse cold path without inventing concurrent serving lanes or disk persistence.; It requires retained token length to equal DecodeState.pos and appends only returned tokens actually fed into state.; It does not run inference or equate source/Python checks with Rust/Metal/model cache verification.",
+      "files": [
+        "sub-skills/serving-cache/SKILL.md",
+        "sub-skills/serving-cache/references/api-and-session.md",
+        "sub-skills/serving-cache/references/troubleshooting.md"
+      ],
+      "assertions": [
+        "The response rejects [1,2] reuse for [1,9,3] despite the same explicit key.",
+        "It rejects an equal-length [1,2] prompt as not a strict prefix and does not return an empty generation suffix.",
+        "It allows a different-key [1,2,3] candidate to be considered because key equality is preference, not an eligibility or authentication barrier.",
+        "It explains that valid strict prefixes are filtered before matching-key then prefix-length ranking.",
+        "It identifies the fixed two-entry released-session LRU and reset/reuse cold path without inventing concurrent serving lanes or disk persistence.",
+        "It requires retained token length to equal DecodeState.pos and appends only returned tokens actually fed into state.",
+        "It does not run inference or equate source/Python checks with Rust/Metal/model cache verification."
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "My OpenAI client sends Lily this body: {\"model\":\"Qwen3.6-35B-A3B\",\"messages\":[{\"role\":\"assistant\",\"content\":\"Continue\"}],\"temperature\":0,\"stream\":true,\"tools\":[],\"max_tokens\":32}. It fails although I asked for greedy output. Explain every relevant interface mismatch and show how to prepare a valid text-only request without silently dropping required user features. Also explain why a rendered prompt of 10 tokens and max_tokens 20 needs capacity 31, not 30. Use only offline checks; do not start a server or load weights.",
+      "expected_output": "The response identifies temperature and tools as unknown fields, including zero/empty values, rather than supported ignored options.; It identifies stream:true as unsupported and the final assistant role as invalid for the required user-last request.; It explains that the server is inherently greedy and uses disabled-thinking template rendering, not configurable sampling or reasoning fields.; It offers a valid explicitly text-only user request while disclosing lost streaming/tool semantics instead of silently changing the user's goal.; It uses or references the bundled offline request helper without starting a service or loading a model.; It states the checked budget is rendered_prompt_tokens + max_tokens + 1 and computes 10 + 20 + 1 = 31.; It distinguishes helper structural screening from native template token counts, Rust API execution and Metal/model verification.",
+      "files": [
+        "sub-skills/serving-cache/SKILL.md",
+        "sub-skills/serving-cache/references/api-and-session.md",
+        "sub-skills/serving-cache/references/troubleshooting.md",
+        "sub-skills/serving-cache/scripts/request_template.py"
+      ],
+      "assertions": [
+        "The response identifies temperature and tools as unknown fields, including zero/empty values, rather than supported ignored options.",
+        "It identifies stream:true as unsupported and the final assistant role as invalid for the required user-last request.",
+        "It explains that the server is inherently greedy and uses disabled-thinking template rendering, not configurable sampling or reasoning fields.",
+        "It offers a valid explicitly text-only user request while disclosing lost streaming/tool semantics instead of silently changing the user's goal.",
+        "It uses or references the bundled offline request helper without starting a service or loading a model.",
+        "It states the checked budget is rendered_prompt_tokens + max_tokens + 1 and computes 10 + 20 + 1 = 31.",
+        "It distinguishes helper structural screening from native template token counts, Rust API execution and Metal/model verification."
+      ]
+    }
+  ]
+}

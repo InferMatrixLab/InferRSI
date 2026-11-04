@@ -1,0 +1,5 @@
+# Whole-content self-refinement
+
+Reviewed all root/sub-skill references/helpers against ten explicit case contracts. Confirmed source-defined unsupported differs from unverified; no native claims. Fixed source-versus-effective MM_PREFIX default distinction, made helper unknown-key/type behavior explicit, distinguished completed-subset rates from concurrent wall-clock throughput and documented entire unsupported long-tail map. All cases have local resource targets and discriminating falsifiers. Grading is content inspection, not independently measured agent efficacy. Independent stable-head review follows separately.
+
+Final-head correction: actual license-apply serialization wrapped descriptions after the initial24-test pass. Initial CI exposed that formatting and a missed candidate-count assertion. Restore all4quoted descriptions to single lines; keep strict test, update candidate count63. Initial local watched-tree digest failure did not reproduce in its unchanged-head isolated rerun (1passed13.70s); no baseline claim or implementation workaround. Full suite is rerun serially without concurrent build/checkout/collection.

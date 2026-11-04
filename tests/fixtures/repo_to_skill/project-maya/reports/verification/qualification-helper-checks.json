@@ -1,0 +1,277 @@
+{
+  "schema_version": 1,
+  "helper": "sub-skills/qualification/scripts/summarize_decode_records.py",
+  "helper_sha256": "a7d255686d1609f99fd81724bf2bf7f346d0f61b57e082b874c0a4f64a375733",
+  "source_commit": "249f9a87d1a9d72bec2b684d704b0aa9296b1c9c",
+  "execution": "completed",
+  "scope": "bundled offline helper only; synthetic supplied records; no upstream native execution",
+  "checks_total": 60,
+  "checks_passed": 60,
+  "checks_failed": 0,
+  "duplicate_identity_scope": "Duplicate JSON identity keys rejected. Sample IDs are unsupported and unknown sample_id fields are rejected; identical rows are not deduplicated.",
+  "command_templates": [
+    [
+      "python",
+      "-B",
+      "<BUNDLED_HELPER>",
+      "--help"
+    ],
+    [
+      "python",
+      "-B",
+      "<BUNDLED_HELPER>",
+      "--input",
+      "<SYNTHETIC_RECORDS_JSON>",
+      "--source-commit",
+      "<SYNTHETIC_SOURCE_SHA>"
+    ]
+  ],
+  "checks": [
+    {
+      "id": "api-token-weighted-not-mean",
+      "passed": true
+    },
+    {
+      "id": "api-median-sample-rate",
+      "passed": true
+    },
+    {
+      "id": "api-warmup-excluded",
+      "passed": true
+    },
+    {
+      "id": "api-blocked-subset-visible",
+      "passed": true
+    },
+    {
+      "id": "api-subset-relative-change",
+      "passed": true
+    },
+    {
+      "id": "api-draft-acceptance-descriptive",
+      "passed": true
+    },
+    {
+      "id": "api-no-verdict-or-winner",
+      "passed": true
+    },
+    {
+      "id": "api-blocked-only-candidate-null",
+      "passed": true
+    },
+    {
+      "id": "api-failed-skipped-blocked-retained",
+      "passed": true
+    },
+    {
+      "id": "api-missing-variant-is-not-zero-rate",
+      "passed": true
+    },
+    {
+      "id": "api-family-glm",
+      "passed": true
+    },
+    {
+      "id": "api-family-ds4",
+      "passed": true
+    },
+    {
+      "id": "api-family-mm3",
+      "passed": true
+    },
+    {
+      "id": "api-family-qwen",
+      "passed": true
+    },
+    {
+      "id": "reject-schema-bool",
+      "passed": true
+    },
+    {
+      "id": "reject-schema-version",
+      "passed": true
+    },
+    {
+      "id": "reject-family",
+      "passed": true
+    },
+    {
+      "id": "reject-metric",
+      "passed": true
+    },
+    {
+      "id": "reject-controls-id-short",
+      "passed": true
+    },
+    {
+      "id": "reject-controls-id-uppercase",
+      "passed": true
+    },
+    {
+      "id": "reject-source-mismatch",
+      "passed": true
+    },
+    {
+      "id": "reject-extra-top-field",
+      "passed": true
+    },
+    {
+      "id": "reject-empty-samples",
+      "passed": true
+    },
+    {
+      "id": "reject-expected-source-short",
+      "passed": true
+    },
+    {
+      "id": "reject-expected-source-uppercase",
+      "passed": true
+    },
+    {
+      "id": "reject-too-many-samples",
+      "passed": true
+    },
+    {
+      "id": "reject-tokens-bool",
+      "passed": true
+    },
+    {
+      "id": "reject-tokens-zero",
+      "passed": true
+    },
+    {
+      "id": "reject-tokens-float",
+      "passed": true
+    },
+    {
+      "id": "reject-duration-zero",
+      "passed": true
+    },
+    {
+      "id": "reject-duration-bool",
+      "passed": true
+    },
+    {
+      "id": "reject-duration-nan",
+      "passed": true
+    },
+    {
+      "id": "reject-duration-inf",
+      "passed": true
+    },
+    {
+      "id": "reject-duration-negative",
+      "passed": true
+    },
+    {
+      "id": "reject-offered-bool",
+      "passed": true
+    },
+    {
+      "id": "reject-accepted-negative",
+      "passed": true
+    },
+    {
+      "id": "reject-accepted-greater-than-offered",
+      "passed": true
+    },
+    {
+      "id": "reject-variant",
+      "passed": true
+    },
+    {
+      "id": "reject-phase",
+      "passed": true
+    },
+    {
+      "id": "reject-execution",
+      "passed": true
+    },
+    {
+      "id": "reject-sample-ids-not-supported",
+      "passed": true
+    },
+    {
+      "id": "reject-noncompleted-measured-values",
+      "passed": true
+    },
+    {
+      "id": "reject-duration-overflow",
+      "passed": true
+    },
+    {
+      "id": "reject-rate-overflow",
+      "passed": true
+    },
+    {
+      "id": "reject-median-overflow",
+      "passed": true
+    },
+    {
+      "id": "reject-relative-rate-overflow",
+      "passed": true
+    },
+    {
+      "id": "cli-help",
+      "passed": true
+    },
+    {
+      "id": "cli-valid-json-and-api-agree",
+      "passed": true
+    },
+    {
+      "id": "cli-source-mismatch",
+      "passed": true
+    },
+    {
+      "id": "cli-malformed-json",
+      "passed": true
+    },
+    {
+      "id": "cli-missing-input",
+      "passed": true
+    },
+    {
+      "id": "cli-nonfinite-nan",
+      "passed": true
+    },
+    {
+      "id": "cli-nonfinite-inf",
+      "passed": true
+    },
+    {
+      "id": "cli-json-exponent-overflow",
+      "passed": true
+    },
+    {
+      "id": "cli-duplicate-source-identity-key",
+      "passed": true
+    },
+    {
+      "id": "cli-duplicate-controls-identity-key",
+      "passed": true
+    },
+    {
+      "id": "cli-duplicate-sample-key",
+      "passed": true
+    },
+    {
+      "id": "cli-invalid-utf8",
+      "passed": true
+    },
+    {
+      "id": "cli-parser-size-bound",
+      "passed": true
+    },
+    {
+      "id": "cli-deep-json-refused",
+      "passed": true
+    }
+  ],
+  "mechanical_format_refresh": {
+    "before_sha256": "a7d255686d1609f99fd81724bf2bf7f346d0f61b57e082b874c0a4f64a375733",
+    "final_sha256": "cc0ac3c403aba79a131f631290d68e1640283e9f0d564aeef431b577824e3036",
+    "ast_equivalent": true,
+    "scope": "Only formatting after actual lane fixtures. Original fixture results remain explicitly bound to preformat bytes; current consumer smoke is run separately."
+  }
+}

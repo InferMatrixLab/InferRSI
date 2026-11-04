@@ -25,8 +25,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5303e5ad3ec5b9b18929a1358e6e6f03270b7b35/src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
-      "commit": "5303e5ad3ec5b9b18929a1358e6e6f03270b7b35",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
+      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json",
@@ -42,8 +42,8 @@
   "checkout_ref": "checkout:cgroup-resource-controls",
   "source_files": {
     "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/SKILL.md": "fd1f5a7e6a55714730044155f5b38c1d700383d4e16c3e91963bbfbe1c773af5",
-    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json": "e0cf9b8e1b92899da1564df2f2fd5c842fa2113925b188358c4984f5e31712ce",
-    "src/inferrsi/data/skill_library/skill-index.json": "1be36694cba1902d5ab11a55e96fb7b7ab14d154089a75b051136dd7f4a4dc6d"
+    "src/inferrsi/data/skill_library/hardware/host/cgroup-resource-controls/metadata.json": "155aa391e573fa5bd90a089f4e3d06f357795f5d89c8cf9260e3e8ec3636b243",
+    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
   },
   "skill_metadata": {
     "name": "cgroup-resource-controls",
@@ -65,25 +65,39 @@
     "origin": [
       "external"
     ],
-    "sources": [],
     "empirical_validation": "not_run",
-    "applicability": {
-      "scope": "See procedure prerequisites and counter-signals"
-    },
     "limitations": [
       "Source-derived candidate; no local efficacy validation.",
       "Original typed source inventory is not normalized; retain source identities and limits in the procedure/readsets."
     ],
     "provenance_readsets": [],
-    "references": [],
-    "consumption_mode": "packaged"
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "Audit Linux cgroup v2 CPU quota/shares, effective placement, memory pressure/protection and conditional block-device IO controls for serving or training workloads.",
+      "prerequisites": "Identify workload cgroup membership, kernel/controller support, ancestor limits and the authorized file owner; prepare previous values and stop conditions before a separately authorized trial.",
+      "input_contract": "Target PID and hierarchy/namespace view, requested/effective cpusets, time-aligned CPU/memory/IO counters and application/sibling observations; IO proposals require resolved block-backed traffic.",
+      "produced_artifact": "An evidence-qualified control review/proposal with capacity tradeoff, configuration provenance, rollback manifest and matched-window application/sibling checks.",
+      "failure_modes": "Ancestor constraints can invalidate requested placement; pressure movement alone is not application causality, and unsupported IO accounting or shared-inode attribution can misassign traffic."
+    },
+    "recommendations": [
+      "Separate own-quota throttling, ancestor limits and sibling contention before choosing a cpu.max or cpu.weight review.",
+      "Compare requested with effective CPU/node sets and budget cpuset.mems migration before proposing placement; align memory PSI with local versus descendant event deltas.",
+      "Treat increased headroom as a shared-capacity spend and verify application outcomes and sibling impact, not just counter improvements.",
+      "Resolve actual block-backed traffic and supported IO controls before proposing caps; preserve inaccessible-ancestor uncertainty and do not infer container write authority."
+    ]
   },
   "applicability": {
-    "scope": "See procedure prerequisites and counter-signals"
+    "scope": "Audit Linux cgroup v2 CPU quota/shares, effective placement, memory pressure/protection and conditional block-device IO controls for serving or training workloads.",
+    "prerequisites": "Identify workload cgroup membership, kernel/controller support, ancestor limits and the authorized file owner; prepare previous values and stop conditions before a separately authorized trial.",
+    "input_contract": "Target PID and hierarchy/namespace view, requested/effective cpusets, time-aligned CPU/memory/IO counters and application/sibling observations; IO proposals require resolved block-backed traffic.",
+    "produced_artifact": "An evidence-qualified control review/proposal with capacity tradeoff, configuration provenance, rollback manifest and matched-window application/sibling checks.",
+    "failure_modes": "Ancestor constraints can invalidate requested placement; pressure movement alone is not application causality, and unsupported IO accounting or shared-inode attribution can misassign traffic."
   },
   "recommendations": [
-    "Read the pinned SKILL.md and its prerequisites before choosing this procedure.",
-    "Read the packaged references and owner-local cases alongside the procedure."
+    "Separate own-quota throttling, ancestor limits and sibling contention before choosing a cpu.max or cpu.weight review.",
+    "Compare requested with effective CPU/node sets and budget cpuset.mems migration before proposing placement; align memory PSI with local versus descendant event deltas.",
+    "Treat increased headroom as a shared-capacity spend and verify application outcomes and sibling impact, not just counter improvements.",
+    "Resolve actual block-backed traffic and supported IO controls before proposing caps; preserve inaccessible-ancestor uncertainty and do not infer container write authority."
   ],
   "limitations": [
     "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
