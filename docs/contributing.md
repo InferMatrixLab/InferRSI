@@ -263,3 +263,7 @@ template's copy, validation and catalog-registration steps. Missing hardware
 verification remains explicit. Workbench experiments use the
 [quickstart](quickstart.md) and [evidence template](../evidence/_template/);
 the four CI lanes retain their current roles.
+
+For feedback-coupled models, stochastic audio and streaming/graph experiments,
+use the [Omni experiment contract](../src/inferrsi/data/skill_library/workflows/rsi-evidence/references/omni-experiments.md) to select
+reference, preflight and executable per-trial qualification checks.
