@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import gzip
 import hashlib
 import json
 import re
@@ -32,7 +33,7 @@ class DashboardHandler(BaseHTTPRequestHandler):
         pass
 
     def _reply(self, status: int, body: bytes = b"", *, content_type: str = "text/plain",
-               etag: str | None = None) -> None:
+               etag: str | None = None, encoding: str | None = None) -> None:
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
@@ -40,11 +41,33 @@ class DashboardHandler(BaseHTTPRequestHandler):
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Vary", "Accept-Encoding")
+        if encoding:
+            self.send_header("Content-Encoding", encoding)
         if etag:
             self.send_header("ETag", etag)
         self.end_headers()
         if body:
             self.wfile.write(body)
+
+    def _representation(self, body: bytes) -> tuple[bytes, str | None]:
+        for item in self.headers.get("Accept-Encoding", "").split(","):
+            name, *parameters = item.split(";")
+            if name.strip().lower() != "gzip":
+                continue
+            quality = 1.0
+            for parameter in parameters:
+                key, separator, value = parameter.partition("=")
+                if separator and key.strip().lower() == "q":
+                    try:
+                        quality = float(value.strip())
+                    except ValueError:
+                        quality = 0.0
+            if 0 < quality <= 1:
+                compressed = gzip.compress(body, compresslevel=3, mtime=0)
+                if len(compressed) < len(body):
+                    return compressed, "gzip"
+        return body, None
 
     def do_GET(self) -> None:
         # Checking the Host blocks DNS rebinding. A different port is allowed for
@@ -61,15 +84,19 @@ class DashboardHandler(BaseHTTPRequestHandler):
         try:
             snapshot = dashboard_snapshot(self.server.source, self.server.translations)
             if self.path == "/":
-                body = render_dashboard(snapshot, live=True).encode("utf-8")
-                self._reply(200, body, content_type="text/html; charset=utf-8")
+                html = render_dashboard(snapshot, live=True)
+                body, encoding = self._representation(html.encode("utf-8"))
+                self._reply(200, body, content_type="text/html; charset=utf-8", encoding=encoding)
                 return
-            body = json.dumps(snapshot, ensure_ascii=False, allow_nan=False).encode("utf-8")
+            body, encoding = self._representation(
+                json.dumps(snapshot, ensure_ascii=False, allow_nan=False).encode("utf-8")
+            )
             etag = '"' + hashlib.sha256(body).hexdigest() + '"'
             if self.headers.get("If-None-Match") == etag:
-                self._reply(304, etag=etag)
+                self._reply(304, etag=etag, encoding=encoding)
             else:
-                self._reply(200, body, content_type="application/json; charset=utf-8", etag=etag)
+                self._reply(200, body, content_type="application/json; charset=utf-8", etag=etag,
+                            encoding=encoding)
         except Exception as exc:
             print(f"Dashboard refresh failed: {type(exc).__name__}: {exc}", file=sys.stderr)
             self._reply(503, b"Dashboard snapshot is temporarily unavailable")

@@ -1,5 +1,6 @@
 """The live dashboard reads recorded updates without exposing the campaign tree."""
 
+import gzip
 import http.client
 import json
 import shutil
@@ -54,6 +55,29 @@ def test_poll_reads_new_records_and_uses_conditional_updates(dashboard_server, t
     assert status == 200 and headers["ETag"] != first_etag
     assert [row["candidate_id"] for row in rows] == ["new"]
     assert rows[0]["improvement_pct"] is None
+
+
+def test_compressed_live_responses_preserve_content_and_representation_etags(dashboard_server):
+    status, plain_headers, plain = request(dashboard_server, "/api/state")
+    assert status == 200
+    status, headers, compressed = request(
+        dashboard_server, "/api/state", {"Accept-Encoding": "gzip"}
+    )
+    assert status == 200 and headers["Content-Encoding"] == "gzip"
+    assert headers["Vary"] == "Accept-Encoding"
+    assert gzip.decompress(compressed) == plain and len(compressed) < len(plain)
+    assert headers["ETag"] != plain_headers["ETag"]
+    assert request(dashboard_server, "/api/state", {
+        "Accept-Encoding": "gzip", "If-None-Match": headers["ETag"]
+    })[0] == 304
+    assert request(dashboard_server, "/api/state", {"If-None-Match": headers["ETag"]})[0] == 200
+    status, headers, uncompressed = request(dashboard_server, "/api/state", {
+        "Accept-Encoding": "gzip;q=0"
+    })
+    assert status == 200 and "Content-Encoding" not in headers and uncompressed == plain
+    status, headers, html = request(dashboard_server, "/", {"Accept-Encoding": "gzip"})
+    assert status == 200 and headers["Content-Encoding"] == "gzip"
+    assert b'"live": true' in gzip.decompress(html)
 
 
 def test_live_endpoint_is_loopback_only_and_does_not_serve_source_files(dashboard_server):
