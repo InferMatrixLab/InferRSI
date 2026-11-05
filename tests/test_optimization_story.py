@@ -168,6 +168,91 @@ def test_story_joins_log_with_captures_and_runs_without_conflicts(tmp_path):
     assert options["launch.fuse"]["uses"] == []
 
 
+def test_story_keeps_candidate_but_flags_its_missing_run(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    run = tmp_path / "runs" / "run-b"
+    unavailable = tmp_path / "unavailable-run-b"
+    assert run.resolve().is_relative_to(tmp_path.resolve())
+    assert unavailable.resolve().is_relative_to(tmp_path.resolve())
+    run.rename(unavailable)
+
+    view = load_dashboard(tmp_path)
+    assert any(row["candidate_id"] == "b" for row in view["candidates"])
+    story = view["story"]
+    assert story["iterations"][0]["candidates"][0]["measured"]["state"] == "recorded"
+    assert story["iterations"][1]["candidates"][0]["measured"]["state"] == "not_recorded"
+    assert story["summary"]["failures"][0]["links"][0]["state"] == "not_recorded"
+    messages = [check["message"] for check in story["checks"]]
+    assert "candidate b has no recorded run" in messages
+    assert "evidence candidate:b has no recorded run" in messages
+
+
+def test_story_marks_corrupt_run_evidence_as_unavailable(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    run = tmp_path / "runs" / "run-b"
+    for relative in (
+        "run.lock.json", "status.json", "evaluation.json", "validation/execution.json"
+    ):
+        (run / relative).write_text("{not valid json", encoding="utf-8")
+    (run / "events.jsonl").write_text("{not valid json\n", encoding="utf-8")
+
+    story = load_dashboard(tmp_path)["story"]
+    assert story["iterations"][1]["candidates"][0]["measured"]["state"] == "unavailable"
+    assert story["summary"]["failures"][0]["links"][0]["state"] == "unavailable"
+    messages = [check["message"] for check in story["checks"]]
+    assert "candidate b has unavailable run evidence" in messages
+    assert "evidence candidate:b has unavailable run evidence" in messages
+
+
+def test_story_does_not_treat_a_running_candidate_as_a_recorded_failure(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    run = tmp_path / "runs" / "run-b"
+    write_json(run / "status.json", {"state": "running"})
+    write_json(run / "evaluation.json", {})
+    write_json(run / "validation" / "execution.json", {"status": "pending"})
+
+    story = load_dashboard(tmp_path)["story"]
+    measured = story["iterations"][1]["candidates"][0]["measured"]
+    assert measured["state"] == "recorded" and measured["outcome"] == "not_recorded"
+    assert story["summary"]["failures"][0]["links"][0]["state"] == "outcome_not_recorded"
+    assert any(check["message"] == "evidence candidate:b has no recorded outcome"
+               for check in story["checks"])
+
+
+def test_story_retains_a_recorded_failure_when_other_run_files_are_corrupt(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    run = tmp_path / "runs" / "run-b"
+    for relative in ("run.lock.json", "evaluation.json", "validation/execution.json"):
+        (run / relative).write_text("{not valid json", encoding="utf-8")
+    write_json(run / "status.json", {"state": "failed"})
+
+    story = load_dashboard(tmp_path)["story"]
+    measured = story["iterations"][1]["candidates"][0]["measured"]
+    assert measured["state"] == "recorded" and measured["outcome"] == "failed"
+    assert story["summary"]["failures"][0]["links"][0]["state"] == "recorded"
+    assert not any("unavailable run evidence" in check["message"] for check in story["checks"])
+
+
+def test_story_keeps_a_valid_event_without_inventing_a_result(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    run = tmp_path / "runs" / "run-b"
+    for relative in (
+        "run.lock.json", "status.json", "evaluation.json", "validation/execution.json"
+    ):
+        (run / relative).write_text("{not valid json", encoding="utf-8")
+    (run / "events.jsonl").write_text(json.dumps({"phase": "crashed"}) + "\n", encoding="utf-8")
+
+    story = load_dashboard(tmp_path)["story"]
+    measured = story["iterations"][1]["candidates"][0]["measured"]
+    assert measured["state"] == "recorded" and measured["outcome"] == "not_recorded"
+    assert story["summary"]["failures"][0]["links"][0]["state"] == "outcome_not_recorded"
+
+
 def test_story_flags_narrative_that_disagrees_with_evidence(tmp_path):
     digest = campaign(tmp_path)
     document = log_document(digest)

@@ -165,6 +165,8 @@ evidence**:
 - a decision that differs from `rounds.jsonl`, or an adopted candidate whose
   recorded outcome is not an improvement;
 - a search option marked `tried` that no round tried, or the reverse;
+- a candidate whose run evidence is missing or unreadable, and a summary that
+  cites a run before its outcome is recorded; candidate metadata alone is not a run;
 - a success whose evidence did not improve, and a recorded failure, regression
   or rollback that no failure summary cites;
 - a capture that is missing, edited or fails its hash checks (its text is withheld).

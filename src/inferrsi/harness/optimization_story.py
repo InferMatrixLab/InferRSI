@@ -17,6 +17,7 @@ from .optimization_log import read_latest_log
 _IDENTIFIER = re.compile(r"[A-Za-z0-9][A-Za-z0-9_.-]{0,127}")
 _GOOD = {"improved"}
 _MEASURED_BAD = {"failed", "quality_failed", "regressed"}
+_RUN_OBJECTS = ("run_lock", "status", "evaluation", "quality")
 
 
 def _capture(root: Path, entry: dict, campaign_id: str) -> dict:
@@ -114,6 +115,15 @@ def build_story(root: Path, rows: list[dict], decisions: dict, campaign_id: obje
         if len(matches) != 1:
             return {"state": "not_recorded" if not matches else "ambiguous"}
         row = matches[0]
+        refs = row.get("artifacts", {})
+        run_refs = [refs.get(kind, {}) for kind in (*_RUN_OBJECTS, "events")]
+        has_evidence = (any(ref.get("state") == "present" for ref in run_refs[:-1])
+                        or any(event.get("source") == "events" for event in row.get("events", [])))
+        if not row.get("run_id") or not has_evidence:
+            unavailable = (any(ref.get("missing_reason") in {"corrupt", "unreadable", "unsafe_path"}
+                               for ref in run_refs)
+                           or bool(row.get("corrupt_event_sources", {}).get("events")))
+            return {"state": "unavailable" if unavailable else "not_recorded"}
         return {"state": "recorded", "run_id": row.get("run_id"), "round": row.get("round"),
                 "outcome": row.get("outcome"), "verdict": row.get("verdict"),
                 "quality": row.get("quality"), "improvement_pct": row.get("improvement_pct"),
@@ -137,8 +147,9 @@ def build_story(root: Path, rows: list[dict], decisions: dict, campaign_id: obje
                     {"round": iteration["round"], "candidate_id": candidate["candidate_id"],
                      "outcome": result.get("outcome")})
             if result["state"] != "recorded":
-                check("warning", where, f"candidate {candidate['candidate_id']} has no "
-                      f"{'unique ' if result['state'] == 'ambiguous' else ''}recorded run")
+                reason = ("unavailable run evidence" if result["state"] == "unavailable" else
+                          f"no {'unique ' if result['state'] == 'ambiguous' else ''}recorded run")
+                check("warning", where, f"candidate {candidate['candidate_id']} has {reason}")
             elif result.get("round") not in (None, iteration["round"]):
                 check("warning", where, f"candidate {candidate['candidate_id']} is recorded "
                       f"in round {result['round']}")
@@ -188,15 +199,23 @@ def build_story(root: Path, rows: list[dict], decisions: dict, campaign_id: obje
                 if evidence.startswith("candidate:"):
                     candidate_id = evidence.partition(":")[2]
                     result = measured(candidate_id)
-                    links.append({"ref": evidence, **result})
+                    link = {"ref": evidence, **result}
                     outcome = result.get("outcome")
                     if result["state"] != "recorded":
+                        reason = ("unavailable run evidence" if result["state"] == "unavailable"
+                                  else "no unique recorded run" if result["state"] == "ambiguous"
+                                  else "no recorded run")
                         check("warning", f"{kind} {index + 1}",
-                              f"evidence {evidence} has no recorded run")
+                              f"evidence {evidence} has {reason}")
+                    elif outcome in (None, "not_recorded"):
+                        link["state"] = "outcome_not_recorded"
+                        check("warning", f"{kind} {index + 1}",
+                              f"evidence {evidence} has no recorded outcome")
                     elif kind == "success" and outcome not in _GOOD:
                         check("error", f"{kind} {index + 1}",
                               f"evidence {evidence} recorded {str(outcome).replace('_', ' ')}, "
                               "not an improvement")
+                    links.append(link)
                 else:
                     problem = unread(evidence)
                     links.append({"ref": evidence, "state": "recorded" if not problem

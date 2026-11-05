@@ -334,6 +334,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'Optimization process':'优化过程', 'Knowledge context':'知识上下文', 'Search space':'搜索空间', 'Successes and failures':'成功与失败',
     'Hypothesis':'假设', 'Why this optimization':'为什么这样优化', 'Knowledge cited':'引用的知识', 'Observations':'观察',
     'Decision reason':'决策原因', 'Next step':'下一步', 'Measured':'实测', 'No recorded run':'没有记录的运行', 'no gain value':'未记录提升数值',
+    'Run evidence unavailable':'运行证据不可用', 'No recorded outcome':'未记录结果',
     'Why it was retrieved':'为什么检索', 'What was taken from it':'从中得到了什么', 'Search request':'检索请求', 'Captured':'采集信息',
     'Selected by search':'检索选中', 'Left out of the context':'未放进上下文', 'Nothing omitted':'没有遗漏', 'Used':'实际使用',
     'Retrieved but not used':'检索到但未使用', 'Successes':'成功', 'Failures':'失败', 'Lessons for the framework':'对框架的改进建议',
@@ -411,12 +412,15 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       [/^cites (.+), which (.+)$/, m => `引用了 ${m[1]}，但它${translated(m[2])}`],
       [/^evidence (.+) (was not retrieved by any capture|was selected by search but its text was omitted from the context)$/, m => `证据 ${m[1]} ${translated(m[2])}`],
       [/^candidate (.+) has no (unique )?recorded run$/, m => `候选方案 ${m[1]} 没有${m[2]?'唯一的':''}运行记录`],
+      [/^candidate (.+) has unavailable run evidence$/, m => `候选方案 ${m[1]} 的运行证据不可用`],
       [/^candidate (.+) is recorded in round (\d+)$/, m => `候选方案 ${m[1]} 记录在第 ${m[2]} 轮`],
       [/^the decision names (.+), which is not a candidate of this round$/, m => `决策指定了 ${m[1]}，但它不是本轮候选方案`],
       [/^the log says (.+), rounds\.jsonl records (.+)$/, m => `日志记为${translated(m[1])}，rounds.jsonl 记为${translated(m[2])}`],
       [/^(.+) is adopted but its recorded outcome is (.+)$/, m => `已采纳 ${m[1]}，但其记录结果为${translated(m[2])}`],
       [/^marked (.+), but round (\d+) tried it$/, m => `标记为${translated(m[1])}，但第 ${m[2]} 轮已尝试`],
-      [/^evidence (.+) has no recorded run$/, m => `证据 ${m[1]} 没有运行记录`],
+      [/^evidence (.+) has no (unique )?recorded run$/, m => `证据 ${m[1]} 没有${m[2]?'唯一的':''}运行记录`],
+      [/^evidence (.+) has unavailable run evidence$/, m => `证据 ${m[1]} 的运行证据不可用`],
+      [/^evidence (.+) has no recorded outcome$/, m => `证据 ${m[1]} 未记录结果`],
       [/^evidence (.+) recorded (.+), not an improvement$/, m => `证据 ${m[1]} 的记录结果为${translated(m[2])}，并非提升`],
       [/^(.+) recorded (.+), but no failure cites it$/, m => `${m[1]} 的记录结果为${translated(m[2])}，但失败总结未引用它`]
     ];
@@ -702,7 +706,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const target=byId('candidate-inspection');target.setAttribute('tabindex','-1');target.focus({preventScroll:true});target.scrollIntoView({block:'start'});
   }
   function measuredText(result){
-    if(!result || result.state!=='recorded')return result && result.state==='ambiguous'?'Ambiguous':'No recorded run';
+    if(!result || result.state!=='recorded')return ({ambiguous:'Ambiguous',unavailable:'Run evidence unavailable',outcome_not_recorded:'No recorded outcome'})[result && result.state] || 'No recorded run';
     const gain=typeof result.improvement_pct==='number'?`${result.improvement_pct>=0?'+':''}${result.improvement_pct.toFixed(1)}%`:'no gain value';
     return `${gain} · ${String(result.outcome).replaceAll('_',' ')} · quality ${String(result.quality).replaceAll('_',' ')}`;
   }

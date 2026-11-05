@@ -30,6 +30,11 @@ const verdict = text('FAIL'), inconclusive = text('INCONCLUSIVE');
 const quality = text('failed'), cancelled = text('cancelled'), missing = text('MISSING');
 const completeness = text('1 present / 1 missing');
 const storyDecision = text('Decision: rejected · candidate-a');
+const missingRun = text('candidate b has no recorded run');
+const unavailable = text('evidence candidate:b has unavailable run evidence');
+const missingOutcome = text('evidence candidate:b has no recorded outcome');
+const unavailableLabel = text('Run evidence unavailable');
+const missingOutcomeLabel = text('No recorded outcome');
 const narrative = text('Explain the experiment', true);
 const attr = {value: 'FAIL', hasAttribute: key => key === 'aria-label',
   getAttribute() { return this.value; }, setAttribute(_, value) { this.value = value; }};
@@ -57,6 +62,11 @@ assert.equal(cancelled.nodeValue, '已中止');
 assert.equal(missing.nodeValue, '缺失');
 assert.equal(completeness.nodeValue, '已记录 1 / 缺失 1');
 assert.equal(storyDecision.nodeValue, '决策：拒绝 · candidate-a');
+assert.equal(missingRun.nodeValue, '候选方案 b 没有运行记录');
+assert.equal(unavailable.nodeValue, '证据 candidate:b 的运行证据不可用');
+assert.equal(missingOutcome.nodeValue, '证据 candidate:b 未记录结果');
+assert.equal(unavailableLabel.nodeValue, '运行证据不可用');
+assert.equal(missingOutcomeLabel.nodeValue, '未记录结果');
 assert.equal(attr.value, 'FAIL（失败）');
 assert.equal(narrative.nodeValue, '解释实验');
 
@@ -68,6 +78,11 @@ assert.equal(cancelled.nodeValue, 'cancelled');
 assert.equal(missing.nodeValue, 'MISSING');
 assert.equal(completeness.nodeValue, '1 present / 1 missing');
 assert.equal(storyDecision.nodeValue, 'Decision: rejected · candidate-a');
+assert.equal(missingRun.nodeValue, 'candidate b has no recorded run');
+assert.equal(unavailable.nodeValue, 'evidence candidate:b has unavailable run evidence');
+assert.equal(missingOutcome.nodeValue, 'evidence candidate:b has no recorded outcome');
+assert.equal(unavailableLabel.nodeValue, 'Run evidence unavailable');
+assert.equal(missingOutcomeLabel.nodeValue, 'No recorded outcome');
 assert.equal(attr.value, 'FAIL');
 assert.equal(narrative.nodeValue, 'English explanation');
 """
