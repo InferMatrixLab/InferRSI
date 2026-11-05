@@ -1,8 +1,9 @@
-import importlib.util
 import json
 import re
+import runpy
 import subprocess
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -19,7 +20,7 @@ NAME = "vllm-ascend"
     ("DeepSeek-V4-Flash DSpark", "dspark-pd.md"),
     ("Kimi K3", "model-performance.md"),
     ("GLM5.3", "model-performance.md"),
-    ("fusion performance", "fused-operators.md"),
+    ("v0.27.1rc1 fusion performance", "fused-operators.md"),
     ("DSA-CP FlashComm1 Fused-MC2", "communication-config.md"),
 ])
 def test_release_skill_is_discoverable_and_its_routes_ship(query, route):
@@ -41,10 +42,7 @@ def test_release_skill_distinguishes_source_coverage_from_native_validation():
 
 def history_module():
     path = skill_resource(LIBRARY, NAME, "scripts/screen_history.py")
-    spec = importlib.util.spec_from_file_location("ascend_history", path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+    return SimpleNamespace(**runpy.run_path(str(path)))
 
 
 def test_history_screen_combines_messages_paths_and_patch_evidence():
@@ -93,3 +91,12 @@ def test_packaged_history_preserves_separate_screening_and_semantic_levels():
     inspected = set(re.findall(r'"commit": "([a-f0-9]{40})"', reviewed))
     assert inspected <= {row["commit"] for row in commits}
     assert inventory["commit"] == skill_metadata(LIBRARY, NAME)["sources"][0]["commit"]
+
+
+def test_history_screen_rejects_incomplete_history(monkeypatch, tmp_path):
+    module = history_module()
+    monkeypatch.setitem(
+        module.inventory.__globals__, "git", lambda *args: "true\n"
+    )
+    with pytest.raises(ValueError, match="non-shallow"):
+        module.inventory(tmp_path, "HEAD")

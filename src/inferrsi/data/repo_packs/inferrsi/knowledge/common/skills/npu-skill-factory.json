@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e5ba044efd64ad874345f58c9cbcc8e3228420d8/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
-      "commit": "e5ba044efd64ad874345f58c9cbcc8e3228420d8",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/5004c0efeafb4772449588d23a6e6d8e00dd1a9d/src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
+      "commit": "5004c0efeafb4772449588d23a6e6d8e00dd1a9d",
       "paths": [
         "src/inferrsi/data/skill_library/skill-index.json",
         "src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md",
