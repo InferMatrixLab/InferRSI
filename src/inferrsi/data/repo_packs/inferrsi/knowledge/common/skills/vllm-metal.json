@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
-      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e5ba044efd64ad874345f58c9cbcc8e3228420d8/src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
+      "commit": "e5ba044efd64ad874345f58c9cbcc8e3228420d8",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm-metal/LICENSE",
         "src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md",
@@ -86,7 +86,7 @@
     "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/speculation-and-pipeline.md": "64faced7f31d489e9b0c4b9523a803ff1a76dca0f9315bdc6d0b83935bd338a4",
     "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/references/troubleshooting.md": "a2e85696120ffc2af4249ac9c1e1b96320e02287e5099577c0474c025ab4f5f6",
     "src/inferrsi/data/skill_library/repositories/vllm-metal/sub-skills/qualification/scripts/summarize_serving_records.py": "78e660a13a6a6941d006cb11fc2f401a34f489e54273860ae6a208dca6a6a3c2",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "vllm-metal",

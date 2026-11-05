@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "id": "inferrsi.ascend.skills.vllm_ascend",
+  "title": "vllm-ascend",
+  "repo": "inferrsi",
+  "tier": "contribution",
+  "backend": "ascend",
+  "component": "skills",
+  "scenario": "skills.discovery",
+  "status": "imported",
+  "summary": "Diagnose vLLM Ascend v0.27.1rc1 plugin registration, MiniMax-M3 mixed KV-cache dtypes, and DeepSeek-V4-Flash DSpark prefill/decode configuration on the documented release hardware.",
+  "tags": [
+    "vllm-ascend",
+    "v0.27.1rc1",
+    "MiniMax-M3",
+    "FP8",
+    "KV cache",
+    "DeepSeek-V4-Flash",
+    "DSpark",
+    "PD",
+    "plugin registration"
+  ],
+  "origin": [
+    "external"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e5ba044efd64ad874345f58c9cbcc8e3228420d8/src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md",
+      "commit": "e5ba044efd64ad874345f58c9cbcc8e3228420d8",
+      "paths": [
+        "src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-ascend/metadata.json",
+        "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/dspark-pd.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/minimax-cache.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/plugin-registration.md",
+        "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/sources.md",
+        "src/inferrsi/data/skill_library/skill-index.json"
+      ],
+      "content_sha256": "e1d20d042b18465af150e5b3aefa810258c6e0eb15553c27a037cef4829239ff"
+    }
+  ],
+  "index_type": "packaged-skill",
+  "skill_documents": {
+    "original": "data/skill_library/repositories/vllm-ascend/SKILL.md"
+  },
+  "checkout_ref": "checkout:vllm-ascend",
+  "source_files": {
+    "src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md": "e1d20d042b18465af150e5b3aefa810258c6e0eb15553c27a037cef4829239ff",
+    "src/inferrsi/data/skill_library/repositories/vllm-ascend/metadata.json": "e6151ac00231c30f5a9320b19845603f588f7eb217f7b369ffc3a473ab325133",
+    "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/dspark-pd.md": "2f5112acfff4f114998c2737ef3ca4cb81a16c754541421f95fc08e30e13860b",
+    "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/minimax-cache.md": "6a6196eb2e69bf70796f8436630a5e524b67068c439d482727193b961cb6228e",
+    "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/plugin-registration.md": "ab1b090f22bd0315d2a2e14324064a1c04653fd4eabeffa60de80b9e606de75c",
+    "src/inferrsi/data/skill_library/repositories/vllm-ascend/references/sources.md": "da011651e501eb20d4bd0f19794a25f0015b8d8ada85badd9729fafe9b31ad16",
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+  },
+  "skill_metadata": {
+    "name": "vllm-ascend",
+    "description": "Diagnose vLLM Ascend v0.27.1rc1 plugin registration, MiniMax-M3 mixed KV-cache dtypes, and DeepSeek-V4-Flash DSpark prefill/decode configuration on the documented release hardware.",
+    "profile": "local-skill-v1",
+    "schema_version": 1,
+    "kind": "skill",
+    "origin": [
+      "external"
+    ],
+    "status": "candidate",
+    "empirical_validation": "not_run",
+    "tags": [
+      "vllm-ascend",
+      "v0.27.1rc1",
+      "MiniMax-M3",
+      "FP8",
+      "KV cache",
+      "DeepSeek-V4-Flash",
+      "DSpark",
+      "PD",
+      "plugin registration"
+    ],
+    "sources": [
+      {
+        "type": "git",
+        "url": "https://github.com/vllm-project/vllm-ascend",
+        "commit": "3b31886237ed65c435e0965b10e8002ff5769766",
+        "license": "Apache-2.0",
+        "paths": [
+          "LICENSE",
+          "docs/source/user_guide/release_notes.md",
+          "setup.py",
+          "vllm_ascend/__init__.py",
+          "vllm_ascend/models/__init__.py",
+          "vllm_ascend/platform.py",
+          "vllm_ascend/models/minimax_m3/minimax_m3.py",
+          "vllm_ascend/models/minimax_m3/msa_m3.py",
+          "docs/source/tutorials/models/MiniMax-M3.md",
+          "tests/ut/test_platform.py",
+          "tests/ut/models/minimax_m3/test_msa_m3.py",
+          "tests/e2e/pull_request/one_card/test_minimax_m3_sparse_attn.py",
+          "docs/source/tutorials/models/DeepSeek-V4-Flash.md",
+          "vllm_ascend/spec_decode/dspark_proposer.py",
+          "tests/e2e/pull_request/four_card/spec_decode/test_dspark_deepseekv4.py",
+          "tests/e2e/pull_request/utils.py",
+          "tests/0.27.1rc_vllm-ascend_overall_conclusion_release_notes_EN.md"
+        ],
+        "readset": "references/sources.md"
+      }
+    ],
+    "provenance_readsets": [
+      "references/sources.md"
+    ],
+    "consumption_mode": "packaged",
+    "applicability": {
+      "scope": "v0.27.1rc1 plugin discovery, MiniMax-M3 mixed cache configuration and 950DT DeepSeek-V4-Flash DSpark PD diagnosis.",
+      "prerequisites": "Pinned release evidence or a matching installed stack and role-specific logs.",
+      "input_contract": "Model and draft revisions, hardware profile, plugin and vLLM versions, requested and effective layer or rank configuration, failing phase.",
+      "produced_artifact": "First failing boundary with effective values, source locator and smallest discriminating check.",
+      "refusal_point": "Report an evidence gap when package, role, cache dtype or release identity cannot be established."
+    },
+    "recommendations": [
+      "Check the registered general hook in the failing process.",
+      "Resolve the per-layer cache skip set before interpreting FP8 storage.",
+      "Compare both DSpark role budgets and connector layouts before changing capture tiers."
+    ],
+    "limitations": [
+      "Source-derived guidance for the selected release paths only.",
+      "Native NPU execution, performance and behavioral skill evaluation not run."
+    ]
+  },
+  "applicability": {
+    "scope": "v0.27.1rc1 plugin discovery, MiniMax-M3 mixed cache configuration and 950DT DeepSeek-V4-Flash DSpark PD diagnosis.",
+    "prerequisites": "Pinned release evidence or a matching installed stack and role-specific logs.",
+    "input_contract": "Model and draft revisions, hardware profile, plugin and vLLM versions, requested and effective layer or rank configuration, failing phase.",
+    "produced_artifact": "First failing boundary with effective values, source locator and smallest discriminating check.",
+    "refusal_point": "Report an evidence gap when package, role, cache dtype or release identity cannot be established."
+  },
+  "recommendations": [
+    "Check the registered general hook in the failing process.",
+    "Resolve the per-layer cache skip set before interpreting FP8 storage.",
+    "Compare both DSpark role budgets and connector layouts before changing capture tiers."
+  ],
+  "limitations": [
+    "This generated abstract points to the complete packaged skill; external evidence and upstream repositories remain source links.",
+    "The imported status describes this index, not the original skill; its declared status is candidate.",
+    "Reading or indexing does not authorize execution, validate efficacy, promote a candidate or grant a license.",
+    "The backend categorizes the procedure's hardware dependency; it does not certify compatibility, and skills.discovery is a discovery scenario.",
+    "Source-derived guidance for the selected release paths only.",
+    "Native NPU execution, performance and behavioral skill evaluation not run."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

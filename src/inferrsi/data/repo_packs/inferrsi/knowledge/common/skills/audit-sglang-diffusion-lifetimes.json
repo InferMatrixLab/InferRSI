@@ -23,8 +23,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
-      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e5ba044efd64ad874345f58c9cbcc8e3228420d8/src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
+      "commit": "e5ba044efd64ad874345f58c9cbcc8e3228420d8",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/LICENSE",
         "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md",
@@ -45,7 +45,7 @@
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/SKILL.md": "b0a4ba4751087126143ef86983798deb0ed00e24b6ff06bf6ef76a9df6e274f2",
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/metadata.json": "e2cb137978960d29b3644967a29dab930c768d3453bce8aff2aad96fd90a56d9",
     "src/inferrsi/data/skill_library/repositories/sglang/audit-sglang-diffusion-lifetimes/references/source-notes.md": "d0fcfd1177ae2f351041c5b2abba7f5121cec133006d9e4dca8f74ddb567332d",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "audit-sglang-diffusion-lifetimes",

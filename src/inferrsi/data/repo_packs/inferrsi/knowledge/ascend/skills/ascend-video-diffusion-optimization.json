@@ -26,8 +26,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/7aa3344bf84c42467f43b3a927e1c7d13642bd55/src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
-      "commit": "7aa3344bf84c42467f43b3a927e1c7d13642bd55",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/e5ba044efd64ad874345f58c9cbcc8e3228420d8/src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
+      "commit": "e5ba044efd64ad874345f58c9cbcc8e3228420d8",
       "paths": [
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md",
         "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json",
@@ -46,7 +46,7 @@
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/SKILL.md": "53c21e64f0dd47f9510faef1f2c01e1283899787ba7ebfe70cdabd8e57a76f00",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/metadata.json": "35f725c9d9e0a8638b234da798232d2ae49a37b70f0b0360710bce333f9265ca",
     "src/inferrsi/data/skill_library/hardware/ascend/ascend-video-diffusion-optimization/references/field-notes-video-diffusion.md": "dadac7b23462fdc325218c72ddf8a2ac553151761a5d3e45b854b53d2c8c6908",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "ascend-video-diffusion-optimization",
