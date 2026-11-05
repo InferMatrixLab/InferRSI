@@ -1,0 +1,181 @@
+src/inferrsi/data/repo_packs/inferrsi/knowledge/README.md
+  s_33b92c38f948ae::t_7cb9fd8bf0a77d 18,32
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-aclgraph-capture-replay.json
+  s_33b92c38f948ae::t_b4aad7323632e2 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-device-health.json
+  s_33b92c38f948ae::t_d29f2c382f9b98 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-distributed-parallel.json
+  s_33b92c38f948ae::t_2fdf5d76f405a3 30-31
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-graph-mode.json
+  s_33b92c38f948ae::t_c44b9eea354cc4 29-30
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-model-adaptation.json
+  s_33b92c38f948ae::t_24416edd307687 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-operator-profiling.json
+  s_33b92c38f948ae::t_ba12464202f805 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-operator-tuning.json
+  s_33b92c38f948ae::t_a5ffa17a1d05b7 27-28
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-optimization-casebook.json
+  s_33b92c38f948ae::t_86bfc681fb4eb4 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-performance-analysis.json
+  s_33b92c38f948ae::t_44631dcb780193 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascend-video-diffusion-optimization.json
+  s_33b92c38f948ae::t_66f5bb207a24ef 29-30
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/ascendc-tiling-design.json
+  s_33b92c38f948ae::t_f24aee1643598f 27-28
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/cann-attribution-overlap.json
+  s_33b92c38f948ae::t_13834cad95994a 27-28
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/torch-npu.json
+  s_33b92c38f948ae::t_83c848e4bc90df 23-24
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/torchnpu-device-memory-lifecycle.json
+  s_33b92c38f948ae::t_17de1051fc4180 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/torchnpu-pinned-host-memory-lifecycle.json
+  s_33b92c38f948ae::t_4b66b5edfc99b0 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/ascend/skills/vllm-ascend.json
+  s_33b92c38f948ae::t_bdf488c8627e69 11,21-34,42-43,47-48,50-53,55,58,61,70-73,75-78,80,82-83,88,106-119,129-130,133-165,167-180,182-185,188-202,204-207,213-216,220,222,229-231,239,241,248-250
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/assess-serving-preemption.json
+  s_33b92c38f948ae::t_ab6e1b6c2cadf9 19-20
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/assess-split-backward-schedule.json
+  s_33b92c38f948ae::t_4dc17b33d41f70 19-20
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-fixed-workload-claim.json
+  s_33b92c38f948ae::t_3d1011dd8471ef 23-24
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-h3-metal-fasth3-semantics.json
+  s_33b92c38f948ae::t_e61b5779260c16 32-33
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-h3-runtime-residency.json
+  s_33b92c38f948ae::t_83949493c22c25 33-34
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-llama-runtime-state.json
+  s_33b92c38f948ae::t_011292876add24 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-recurrent-kv-finalization.json
+  s_33b92c38f948ae::t_629b3506453377 29-30
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-sd-cpp-residency.json
+  s_33b92c38f948ae::t_fce507f16a26e8 28-29
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-sglang-diffusion-lifetimes.json
+  s_33b92c38f948ae::t_3a4a7ca8a77d57 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/audit-vllm-kv-lifetimes.json
+  s_33b92c38f948ae::t_e15ead44362ffc 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/bound-windowed-attention-replay.json
+  s_33b92c38f948ae::t_73c5dcfb0027c4 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/budget-speculative-verification.json
+  s_33b92c38f948ae::t_d84f239211e98c 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/calibrate-serving-simulation.json
+  s_33b92c38f948ae::t_fe9f1dba8ea30f 19-20
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/cgroup-resource-controls.json
+  s_33b92c38f948ae::t_da9f3d418e4f99 28-29
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/checkpoint-recovery-consistency.json
+  s_33b92c38f948ae::t_3645e7a91a3ca9 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/choose-parallel-training-plan.json
+  s_33b92c38f948ae::t_cb0c54b1fc21c9 19-20
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/cite-check-downstream-pr.json
+  s_33b92c38f948ae::t_842a4fca18a527 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/claim-contract.json
+  s_33b92c38f948ae::t_58796c7fe0f44a 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/comfy-ui.json
+  s_33b92c38f948ae::t_be47da247bc726 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/competitor-scan.json
+  s_33b92c38f948ae::t_e5f4299a73d68a 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/dcp-async-save-performance.json
+  s_33b92c38f948ae::t_a89d78015847e0 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/dense-performance-evidence.json
+  s_33b92c38f948ae::t_e4a86d8fc139dc 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/diagnose-vllm-admission-pressure.json
+  s_33b92c38f948ae::t_3d187d41e732f7 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/diffusers-invocation-state.json
+  s_33b92c38f948ae::t_96143d36e6110c 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/draft-acceptance-issue.json
+  s_33b92c38f948ae::t_e49523fb518166 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/dwarfstar.json
+  s_33b92c38f948ae::t_9f55951378b1e2 28-29
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/evaluate-elastic-serving-placement.json
+  s_33b92c38f948ae::t_861771d8533b1c 19-20
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/generation-cache-lifecycle.json
+  s_33b92c38f948ae::t_fb1df9f66aebda 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/host-memory-management.json
+  s_33b92c38f948ae::t_db350a73db7bda 33-34
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/host-overhead-optimization.json
+  s_33b92c38f948ae::t_664e640f8fbc67 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/husky.json
+  s_33b92c38f948ae::t_38788eb1cf3489 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/inference-benchmark-design.json
+  s_33b92c38f948ae::t_e4656a74351d30 38-39
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/inference-optimization-casebook.json
+  s_33b92c38f948ae::t_2b65b0001c8abe 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/kernel-writing-guide.json
+  s_33b92c38f948ae::t_f34c2e9123c8d8 42-43
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/kv-tier-management.json
+  s_33b92c38f948ae::t_89f944d24e0eba 27-28
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/lazy-evaluation-stream-lifetimes.json
+  s_33b92c38f948ae::t_248cd97704387e 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/lily.json
+  s_33b92c38f948ae::t_a1b4d257ea77bb 28-29
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/lithos-metal.json
+  s_33b92c38f948ae::t_4e91453d51b49b 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/local-dream.json
+  s_33b92c38f948ae::t_0a1b88dda900ea 32-33
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/mistral-rs.json
+  s_33b92c38f948ae::t_22fce5a1c7f399 29-30
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/mlc-llm.json
+  s_33b92c38f948ae::t_5b7685c7cb89f3 30-31
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/mlx-swift-lm.json
+  s_33b92c38f948ae::t_67cf26ad5f14c4 30-31
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/npu-skill-factory.json
+  s_33b92c38f948ae::t_4e872bbb1f859c 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/optimization-search-policy.json
+  s_33b92c38f948ae::t_b1291ad941891f 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/os-process-placement.json
+  s_33b92c38f948ae::t_11d0e4e7c50548 27-28
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/performance-ceiling-analysis.json
+  s_33b92c38f948ae::t_fcd6af10670cf1 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/plan-activation-residency.json
+  s_33b92c38f948ae::t_415f6d1060d0c4 19-20
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/project-maya.json
+  s_33b92c38f948ae::t_6f85b64b91090c 28-29
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/pytorch.json
+  s_33b92c38f948ae::t_999a7fcb673399 27-28
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/repository-evolution-analysis.json
+  s_33b92c38f948ae::t_f608e5c5f116d6 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/rsi-evidence.json
+  s_33b92c38f948ae::t_8d44ee2e75be97 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/skill-evolution-playbook.json
+  s_33b92c38f948ae::t_92a730aa34c8ba 24-25
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/splash.json
+  s_33b92c38f948ae::t_d71de03ca37f5b 28-29
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/storage-io-measurement.json
+  s_33b92c38f948ae::t_3763f63796f261 27-28
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/training-input-pipeline.json
+  s_33b92c38f948ae::t_f59615604d40cf 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/training-resource-budget.json
+  s_33b92c38f948ae::t_84dd440fd48ed9 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/video-diffusion-optimization.json
+  s_33b92c38f948ae::t_f69593bec989a9 29-30
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/vllm-metal.json
+  s_33b92c38f948ae::t_2eac931e1efff2 29-30
+src/inferrsi/data/repo_packs/inferrsi/knowledge/common/skills/weight-loading-optimization.json
+  s_33b92c38f948ae::t_5dd7ed3b0c2d87 32-33
+src/inferrsi/data/repo_packs/inferrsi/knowledge/cuda/skills/audit-afd-p2p-exchanges.json
+  s_33b92c38f948ae::t_5fcffc4d145480 26-27
+src/inferrsi/data/repo_packs/inferrsi/knowledge/cuda/skills/audit-flare-session-lifecycle.json
+  s_33b92c38f948ae::t_6eeeac45f42b06 32-33
+src/inferrsi/data/repo_packs/inferrsi/knowledge/cuda/skills/diagnose-attention-bottlenecks.json
+  s_33b92c38f948ae::t_6f5f83ecb47002 19-20
+src/inferrsi/data/repo_packs/inferrsi/knowledge/cuda/skills/host-overhead-profiling.json
+  s_33b92c38f948ae::t_384580f6bf2d92 25-26
+src/inferrsi/data/repo_packs/inferrsi/knowledge/cuda/skills/reason-hopper-kernels.json
+  s_33b92c38f948ae::t_eec363b57710c3 39-40
+tests/test_vllm_ascend_rc_skill.py
+  s_33b92c38f948ae::t_58414f66264fff 3,6,23,45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b8c199bdf06aeba41291e845c2a281b7f4d05f01",
+  "prompts": {},
+  "sessions": {
+    "s_33b92c38f948ae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a999-4b43-7fb3-8dab-9aeba113b3d9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
