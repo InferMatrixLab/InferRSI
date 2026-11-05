@@ -46,6 +46,13 @@ two-point default, because it records the whole campaign rather than one
 pairing. When neither exists, the report states why no figure was drawn
 instead of showing an empty chart.
 
+For runs with `--require-trial-check`, chart generation also requires the
+evaluator to publish a comparison in `improvement_pct`. If the checks or the
+paired measurements are incomplete, the report labels the medians as raw
+measurements and omits both the default and campaign figures. The historical
+`summary-chart.json` stays intact. Rebuilding a report removes a previously
+generated `summary-chart.svg` when the current evaluation cannot support it.
+
 ## Use the command line for a campaign figure
 
 ```bash

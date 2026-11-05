@@ -929,6 +929,23 @@ def _build_branch(spec: dict) -> str:
     return "\n".join(parts) + "\n"
 
 
+def check_trial_chart_eligibility(evaluation: dict) -> None:
+    """Keep the evaluator's selected-check decision authoritative for charts.
+
+    With required checks, the evaluator publishes an improvement only for a
+    complete, qualified pairing. Its raw medians cannot substitute for that
+    decision. Older evaluations without selected checks retain their behavior.
+    """
+    if not isinstance(evaluation, dict):
+        raise SpecError("evaluation must be an object")
+    if evaluation.get("required_trial_checks") and evaluation.get("improvement_pct") is None:
+        raise SpecError(
+            "required trial checks have not established a complete comparison; "
+            "retained medians are raw measurements only. Campaign specifications "
+            "are retained as separate evidence and are not plotted for this run"
+        )
+
+
 def spec_from_evaluation(evaluation: dict, *, title: str | None = None) -> dict:
     """Build a one-step chain specification from one recorded evaluation.
 
@@ -936,8 +953,7 @@ def spec_from_evaluation(evaluation: dict, *, title: str | None = None) -> dict:
     recorded pair as a two-point chain: the baseline at 1.00x and the measured
     candidate. Nothing is inferred beyond the evaluation's own numbers.
     """
-    if not isinstance(evaluation, dict):
-        raise SpecError("evaluation must be an object")
+    check_trial_chart_eligibility(evaluation)
     before = evaluation.get("baseline") or {}
     after = evaluation.get("candidate") or {}
     baseline_value = before.get("median")

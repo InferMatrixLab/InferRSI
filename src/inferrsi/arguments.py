@@ -86,6 +86,10 @@ def parser() -> argparse.ArgumentParser:
             default="metrics.latency_ms",
             help="Flat or dotted key in benchmark JSON",
         )
+        child.add_argument(
+            "--require-trial-check", action="append", default=[], metavar="DOTTED_KEY",
+            help="Require a literal true qualification field in every benchmark JSON; repeatable",
+        )
         child.add_argument("--metric-unit", default="ms")
         child.add_argument("--comparison-scope", default="external_command")
         child.add_argument("--direction", choices=("minimize", "maximize"), default="minimize")
@@ -367,6 +371,7 @@ def make_spec(args: argparse.Namespace) -> RunSpec:
         candidate_command=command(args.candidate_command),
         validation_command=command(args.validation_command),
         metric_key=args.metric_key,
+        required_trial_checks=tuple(args.require_trial_check),
         metric_unit=args.metric_unit,
         comparison_scope=args.comparison_scope,
         direction=args.direction,
