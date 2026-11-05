@@ -10,3 +10,6 @@
 
 # Retain this upstream license's original CRLF Git blob bytes.
 /src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/references/licenses/op-plugin-LICENSE.txt -text
+
+# Generated third-party SSH transport, with source and notices beside it.
+/plugins/inferrsi-dsh/vendor/ssh2.cjs linguist-generated=true linguist-vendored=true

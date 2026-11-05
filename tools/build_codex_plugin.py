@@ -42,6 +42,43 @@ def _version(path: Path) -> str:
     raise ValueError("Runtime __version__ is missing")
 
 
+def bundle_runtime(source: Path, runtime: Path, *, plugin_version: str,
+                   runtime_version: str) -> int:
+    """Stage the canonical runtime and resource manifest for a host package."""
+    hashes = {}
+    for path in sorted(source.rglob("*")):
+        if not path.is_file():
+            continue
+        relative = path.relative_to(source)
+        package_data = relative.parts[0] == "data" and (
+            path.suffix in (".md", ".json") or path.name in ("LICENSE", "THIRD_PARTY_NOTICES")
+            or (
+                path.suffix == ".txt"
+                and relative.parts[-3:-1] == ("references", "licenses")
+            )
+            or (path.suffix == ".html" and relative.parent.parts == ("data", "dashboard"))
+            or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
+        )
+        if path.suffix != ".py" and not package_data:
+            continue
+        if path.is_symlink():
+            raise ValueError(f"Package input must not be a symlink: {relative}")
+        destination = runtime / "inferrsi" / relative
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        data = path.read_bytes()
+        destination.write_bytes(data)
+        hashes[(Path("inferrsi") / relative).as_posix()] = hashlib.sha256(data).hexdigest()
+    identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
+    _json(runtime / "manifest.json", {
+        "schema_version": 1,
+        "plugin_version": plugin_version,
+        "runtime_version": runtime_version,
+        "content_sha256": hashlib.sha256(identity.encode("utf-8")).hexdigest(),
+        "files": hashes,
+    })
+    return len(hashes)
+
+
 def build_plugin(
     output: Path, *, project: Path = PROJECT, release_version: str | None = None,
 ) -> dict:
@@ -73,44 +110,14 @@ def build_plugin(
         shutil.copytree(template, plugin, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
         shutil.copyfile(project / "LICENSE", plugin / "LICENSE")
         shutil.copyfile(project / "docs" / "codex-plugin.md", plugin / "README.md")
-        runtime = plugin / "runtime"
-        hashes = {}
-        for path in sorted(source.rglob("*")):
-            if not path.is_file():
-                continue
-            relative = path.relative_to(source)
-            package_data = relative.parts[0] == "data" and (
-                path.suffix in (".md", ".json") or path.name in ("LICENSE", "THIRD_PARTY_NOTICES")
-                or (
-                    path.suffix == ".txt"
-                    and relative.parts[-3:-1] == ("references", "licenses")
-                )
-                or (path.suffix == ".html" and relative.parent.parts == ("data", "dashboard"))
-                or (path.name == "upstream-NOTICE" and relative.parent.name == "references")
-            )
-            if path.suffix != ".py" and not package_data:
-                continue
-            if path.is_symlink():
-                raise ValueError(f"Package input must not be a symlink: {relative}")
-            destination = runtime / "inferrsi" / relative
-            destination.parent.mkdir(parents=True, exist_ok=True)
-            data = path.read_bytes()
-            destination.write_bytes(data)
-            hashes[(Path("inferrsi") / relative).as_posix()] = (
-                hashlib.sha256(data).hexdigest()
-            )
-        identity = "\n".join(f"{name}\0{digest}" for name, digest in sorted(hashes.items()))
         metadata = json.loads((plugin / "plugin.json").read_text(encoding="utf-8"))
         if release_version is not None:
             metadata["version"] = release_version
             _json(plugin / "plugin.json", metadata)
-        _json(runtime / "manifest.json", {
-            "schema_version": 1,
-            "plugin_version": metadata["version"],
-            "runtime_version": runtime_version,
-            "content_sha256": hashlib.sha256(identity.encode("utf-8")).hexdigest(),
-            "files": hashes,
-        })
+        runtime_files = bundle_runtime(
+            source, plugin / "runtime", plugin_version=metadata["version"],
+            runtime_version=runtime_version,
+        )
         # Stable ZIP metadata makes repeated builds of identical bytes comparable.
         with zipfile.ZipFile(archive, "x", compression=zipfile.ZIP_DEFLATED) as bundle:
             for path in sorted(plugin.rglob("*")):
@@ -126,7 +133,7 @@ def build_plugin(
     return {
         "plugin": str(output),
         "archive": str(archive),
-        "runtime_files": len(hashes),
+        "runtime_files": runtime_files,
     }
 
 

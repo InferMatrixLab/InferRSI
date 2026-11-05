@@ -3,7 +3,7 @@ name: inferrsi
 description: Use InferRSI to research inference-engine bottlenecks, prepare controlled baseline/candidate comparisons, and inspect experiment evidence. Use when the user asks to use InferRSI or needs its inference-optimization knowledge and comparison workbench.
 ---
 
-# InferRSI in Codex
+# InferRSI
 
 Use the bundled InferRSI CLI for knowledge and experiment operations. The host
 agent owns investigation and code changes; the existing runtime owns execution,
@@ -111,11 +111,39 @@ pipelines and service lifecycle in reviewed target-owned scripts. Use forward
 slashes in Windows paths inside command strings. The runner is local: execute
 on the prepared target machine. This plugin does not dispatch SSH jobs.
 
-Run in the foreground through Codex's terminal/process tools, retain the returned
+Run in the foreground through the host's terminal/process tools, retain the returned
 process/session identity, and inspect recorded status during long work. Cancel
 through that process so the existing executor can clean up. After a timeout,
 interruption or reconnect, inspect evidence before proposing another invocation;
 never silently retry a measurement.
+
+## Open the optimization dashboard
+
+When the user asks to monitor optimization progress, rounds or history, use the
+bundled dashboard. Select the campaign directory already associated with the
+task to show its recorded rounds and candidates. For a single-run view, select
+that existing run directory. Resolve the input from the user's task and known
+artifacts; ask for the directory when its identity is ambiguous.
+
+```text
+python -X utf8 "<launcher>" dashboard --input "<campaign-or-run-directory>" --live --port 0
+```
+
+Start this command through the host's terminal/process tools and retain its
+process/session identity. Wait for the startup JSON and open or link the exact
+printed `dashboard` URL in a browser. The dashboard refreshes recorded progress
+about every three seconds. If an owned server for the same input is already
+running, reuse its URL. Stop it through the retained process when requested or
+when the monitoring session ends.
+
+The server listens on the machine where the launcher runs. For a remote target,
+use the existing authorized port-forwarding setup before opening the URL on the
+client. The dashboard's headers require a separate browser page. To export an
+offline snapshot, omit `--live --port 0` and supply `--output "<output.html>"`.
+
+Preserve explicit campaign round/candidate associations through `campaign record`
+and the recorded optimization log. Missing history or context needs its source
+record; an open dashboard alone creates no experiment or campaign evidence.
 
 ## Inspect and explain
 
