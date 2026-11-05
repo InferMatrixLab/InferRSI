@@ -160,6 +160,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   <div class="var"><span>metric</span><output id="metric-value"></output></div>
 </div>
 <main>
+<div id="integration-note" class="panel panel-body"></div>
   <div class="section-title">Overview · all candidates <small id="overview-note"></small></div>
   <div id="stats" class="stats" aria-label="Overview statistics"></div>
   <div class="section-title">Workflow <small>Technical events only; select a stage to filter candidates and events</small></div>
@@ -220,6 +221,34 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   const liveMode = data.live === true;
   const byId = id => document.getElementById(id);
   const chinese = {
+    'stages_declared is explicitly empty: undeclared stages mean not applicable, not backend unsupported.':'stages_declared 显式声明为空：未声明的阶段表示不适用，不表示后端不受支持。',
+    'Source collection':'数据采集',
+    'live':'已连接',
+    'stale':'数据陈旧',
+    'Performance':'性能判定',
+    'Environment identity':'环境身份',
+    'protocol_specific':'按协议独立展示',
+    'Caller-adapted records; hashes check bytes, not experimental validity.':'调用方适配的记录；哈希验证文件字节，不证明实验结论。',
+    'Protocol-specific absolute measurements; recorded verdicts are not recomputed.':'按协议展示绝对测量值；保留原始判定，不重新裁决。',
+    'Per metric':'按指标分别查看',
+    'Recorded performance failures':'已记录的性能未通过',
+    'Native failed / regressed':'原生运行失败 / 下降',
+    'Recorded external performance failures':'已记录的外部性能未通过',
+    'Native runs only; includes failures and rollbacks':'仅统计原生运行，包含失败和回退',
+    'Independent axes; select a candidate for parent and two rounds':'各指标独立展示；选择候选查看父版本和双轮结果',
+    'Absolute target gaps appear in candidate details':'候选详情显示各档位距绝对目标的差距',
+    'Recorded quality passes; see individual results':'已记录的质量通过数；详见各候选',
+    'Caller verdicts; independent of quality':'记录中的性能判定，与质量判定分开',
+    'External record summaries; full optimization log not recorded':'外部记录摘要；完整优化日志尚未接入',
+    'Protocol measurements':'协议指标',
+    'Parent':'父版本',
+    'Round 1':'第1轮',
+    'Round 2':'第2轮',
+    'Aggregate':'聚合值',
+    'No comparable measurements':'暂无可比较的测量',
+    'Data source not connected: add candidate/run records or external_record_ref. Existing files elsewhere are not imported automatically.':'数据源未接入：请添加候选/运行记录或 external_record_ref。其他目录的实验数据不会自动导入。',
+    'External records connected. Protocol-specific measurements and recorded verdicts are shown separately; generic gain ranking does not validate them.':'外部记录已接入。按原协议展示测量和判定，通用提升排名不替代原协议验收。',
+
     'Language':'语言', 'InferRSI · Optimization dashboard':'InferRSI · 优化看板',
     'Dashboards › InferRSI ›':'看板 › InferRSI ›', 'SYNTHETIC DATA':'合成数据',
     'READ ONLY · OFFLINE':'只读 · 离线', 'READ ONLY · LIVE':'只读 · 实时', 'Dashboard filters':'看板筛选',
@@ -357,6 +386,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     if (typeof text !== 'string') return text;
     if (language !== 'zh') return text;
     if (Object.prototype.hasOwnProperty.call(chinese, text)) return chinese[text];
+    const protocolPrefix='Protocol-specific absolute measurements; recorded verdicts are not recomputed.';
+    if(text.startsWith(protocolPrefix+' '))return chinese[protocolPrefix]+' '+text.slice(protocolPrefix.length+1).replace(/(\d+) external record\(s\) have no recorded metrics; see candidate details and events\./,(_,count)=>`${count} 条外部记录未记录指标；请查看候选详情和事件。`);
     const temporalPrefix='Terminal events place results; stage dots are events, not durations.';
     if(text.startsWith(`${temporalPrefix} `)) {
       return chinese[temporalPrefix] + ' ' + text.slice(temporalPrefix.length+1)
@@ -463,7 +494,8 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   }
   const stageNames = {diagnosis:'Diagnosis', knowledge:'Knowledge', search:'Candidate search', execution:'Execution', validation:'Validation', review:'Review'};
   const stageSelect = byId('stage-filter'), runSelect = byId('run-filter'), candidateSelect = byId('candidate-filter');
-  let selected = null, jumpNotice = '';
+  let selected = data.candidates.findIndex(r=>r.external?.metrics?.length), jumpNotice = '';
+  if(selected<0)selected=null;
   const node = (tag, text, cls) => { const el = document.createElement(tag); if (text !== undefined) el.textContent = text; if (cls) el.className = cls; return el; };
   const narrativeNode = (tag, text, cls) => {const el=node(tag,text,cls);el.setAttribute('data-narrative','');return el;};
   const clear = el => { while (el.firstChild) el.removeChild(el.firstChild); };
@@ -496,17 +528,44 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       (candidateSelect.value === '' || index === Number(candidateSelect.value)) &&
       (!stageSelect.value || row.events.some(event => event.stage === stageSelect.value)));
   }
+  function renderIntegration(integration) {
+    const root=byId('integration-note');clear(root);
+    const message=integration.state==='not_connected'
+      ? 'Data source not connected: add candidate/run records or external_record_ref. Existing files elsewhere are not imported automatically.'
+      : integration.external_records ? 'External records connected. Protocol-specific measurements and recorded verdicts are shown separately; generic gain ranking does not validate them.' : '';
+    if(message)root.appendChild(node('p',message));
+    if(integration.collection?.observed_at){
+      const line=node('p');
+      line.appendChild(node('span','Source collection'));
+      line.appendChild(node('span',': '));
+      line.appendChild(node('span',integration.collection.state));
+      line.appendChild(node('span',' · '+integration.collection.observed_at));
+      root.appendChild(line);
+    }
+    if(integration.stage_declaration==='explicit_empty')root.appendChild(node('p','stages_declared is explicitly empty: undeclared stages mean not applicable, not backend unsupported.'));
+    root.hidden=!root.firstChild;
+  }
   function renderStats() {
+    renderIntegration(data.integration || {});
     const root=byId('stats'); clear(root); const rows=data.candidates, o=data.overview;
     const missing=rows.flatMap(missingRefs).length;
+    const external=rows.filter(r=>r.external?.metrics), metrics=external.flatMap(r=>r.external.metrics);
+    const native=rows.filter(r=>!r.external?.metrics);
     const figures=[
-      ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'incompatible' ? 'Incompatible records' : o.comparison_state === 'unverified' ? 'Comparison evidence missing or unsupported' : 'Quality and source checks required','green'],
+      ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'no_data' ? 'No comparable measurements' : o.comparison_state === 'incompatible' ? 'Incompatible records' : o.comparison_state === 'unverified' ? 'Comparison evidence missing or unsupported' : 'Quality and source checks required','green'],
       ['Target gap',value(o.target_gap_pct,' pp'),o.target_improvement_pct === null ? 'Target not recorded' : `Target ${value(o.target_improvement_pct,'%')}`,'orange'],
       ['Candidate / run views',rows.length ? String(rows.length) : 'Not recorded','Recorded candidate or run views',''],
       ['Within noise',rows.some(r=>['noise','improved','regressed'].includes(r.outcome)) ? String(rows.filter(r => r.outcome === 'noise').length) : 'Not recorded','Uses recorded noise band','orange'],
-      ['Failed / regressed',rows.some(r=>r.state !== 'not_recorded' || r.quality !== 'not_recorded') ? String(rows.filter(r => ['failed','quality_failed','regressed'].includes(r.outcome) || r.decision==='rolled_back').length) : 'Not recorded','Includes failures and rollbacks','red'],
+      [external.length ? 'Native failed / regressed' : 'Failed / regressed',native.some(r=>r.state !== 'not_recorded' || r.quality !== 'not_recorded') ? String(native.filter(r => ['failed','quality_failed','regressed'].includes(r.outcome) || r.decision==='rolled_back').length) : 'Not recorded',external.length ? 'Native runs only; includes failures and rollbacks' : 'Includes failures and rollbacks','red'],
       ['Missing evidence',rows.length ? String(missing) : 'Not recorded','See completeness panel','red']
     ];
+    if(external.length===rows.length && external.length){
+      figures[0]=['Protocol measurements',String(metrics.length),'Independent axes; select a candidate for parent and two rounds','green'];
+      figures[1]=['Target gap','Per metric','Absolute target gaps appear in candidate details','orange'];
+      figures[3]=['Quality',String(external.filter(r=>r.external.quality_verdict==='PASS').length)+' / '+external.length,'Recorded quality passes; see individual results',''];
+      figures[4]=['Recorded performance failures',String(external.filter(r=>r.external.performance_verdict==='FAIL').length),'Caller verdicts; independent of quality','red'];
+    }
+    if(external.length && native.length)figures.push(['Recorded external performance failures',String(external.filter(r=>r.external.performance_verdict==='FAIL').length),'Caller verdicts; independent of quality','red']);
     for(const [label,number,note,colour] of figures){const box=node('div',undefined,'panel stat');box.appendChild(node('div',label,'stat-label'));box.appendChild(node('strong',number,`stat-value ${colour}`));box.appendChild(node('small',note,'hint'));root.appendChild(box);}
     byId('overview-note').textContent = data.rounds === null ? 'Rounds not recorded' : `${data.rounds.length} recorded rounds${data.corrupt_round_lines.length ? ` · corrupt lines ${data.corrupt_round_lines.join(', ')}` : ''}`;
   }
@@ -551,6 +610,18 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     heading.appendChild(node('small','Narrative is caller recorded; verdicts and measurements are separate evidence.'));
     root.appendChild(heading);
     const grid=node('div',undefined,'insight-grid');root.appendChild(grid);
+    if(row.external && row.external.protocol){
+      const e=row.external, box=insight(grid,'Protocol measurements',`${e.backend} · ${e.protocol}`,true);
+      detailLine(box,'Performance',e.performance_verdict);
+      detailLine(box,'Quality',e.quality_verdict+(e.quality_total!==null?' · '+measurement(e.quality_correct)+' / '+measurement(e.quality_total):''));
+      const table=node('table'), header=node('tr');
+      for(const h of ['Metric','Parent','Round 1','Round 2','Aggregate','Target','Target gap'])header.appendChild(node('th',h));table.appendChild(header);
+      for(const m of e.metrics){const tr=node('tr');for(const v of [m.name+' ('+m.unit+')',measurement(m.baseline),measurement(m.samples[0]),measurement(m.samples[1]),measurement(m.aggregate),measurement(m.target),m.aggregate!==null&&m.target!==null?measurement(m.aggregate-m.target):'Not recorded'])tr.appendChild(node('td',v));table.appendChild(tr);}box.appendChild(table);
+      box.appendChild(node('p',e.note));box.appendChild(node('small',e.provenance));
+      detailLine(box,'Environment identity',e.identity_state);
+      for(const ref of e.source_refs)box.appendChild(node('code',refText(ref)));
+      return;
+    }
     const info=row.optimization, context=row.benchmark_context;
     const optimization=insight(grid,'Change and rationale','Caller recorded',true);
     detailLine(optimization,'Change type',info.kind || 'Not recorded');
@@ -690,7 +761,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       entry.appendChild(node('pre',Object.keys(event.details).length ? JSON.stringify(event.details,null,2) : translated('No additional structured fields recorded.')));
       entry.appendChild(node('code',event.refs.map(refText).join(' | ')));trace.appendChild(entry);
     }
-    if(row.artifacts.tool_calls.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
+    if(row.artifacts.tool_calls?.state==='missing')item(trace,'MISSING · tool calls',row.artifacts.tool_calls.missing_reason).classList.add('missing-item');
     if(row.agent_trace_links.unlinked.length)item(trace,'UNLINKED AGENT EVENTS',`Lines ${row.agent_trace_links.unlinked.join(', ')}`).classList.add('missing-item');
     if(row.agent_trace_links.mismatched.length)item(trace,'MISMATCHED AGENT EVENTS',`Lines ${row.agent_trace_links.mismatched.join(', ')}`).classList.add('missing-item');
     for(const [source,lines] of Object.entries(row.corrupt_event_sources)){if(lines.length)item(trace,`CORRUPT ${source} LINES`,lines.join(', ')).classList.add('missing-item');}
@@ -838,6 +909,15 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
   function renderStory(){
     const root=byId('story');clear(root);const story=data.story||{state:'not_recorded',versions:[]};
     const note=byId('story-note');
+    if(story.state!=='present' && data.candidates.some(r=>r.external?.metrics)){
+      note.textContent='External record summaries; full optimization log not recorded';
+      for(const row of data.candidates.filter(r=>r.external?.metrics)){
+        const box=node('section',undefined,'item');box.appendChild(node('h3',row.title));
+        box.appendChild(narrativeNode('p',row.external.note || 'Not recorded'));
+        box.appendChild(node('small',row.external.provenance));root.appendChild(box);
+      }
+      return;
+    }
     if(story.state!=='present'){
       note.textContent=story.state==='not_applicable'?'Single runs have no campaign log':'Not recorded';
       root.appendChild(node('p',story.state==='not_applicable'?'A single run has no optimization log. Record a campaign to explain why each optimization was chosen.':`No usable optimization log (${story.state.replaceAll('_',' ')}). Record one with: inferrsi campaign log --directory <CAMPAIGN> --file <LOG.json>`,'empty'));
