@@ -3,6 +3,7 @@
 torchrun workers may create their own sessions, outside the executor's process
 group. Only the launcher receives a fresh marker; it cannot reach the invoking
 shell or allocator. This is lifecycle supervision for reviewed code, not a sandbox.
+The marker must be generated in this driver after it starts, as evaluate() does.
 """
 
 import os
@@ -16,6 +17,12 @@ MARKER = "INFERRSI_MOE_RUN_ID"
 def _members(token: str, proc: Path = Path("/proc")) -> list[dict]:
     marker = (MARKER + "=" + token).encode()
     found = []
+    # A fresh marker can only be inherited by processes started after this
+    # driver. Older same-user services may have unreadable environments; they
+    # cannot own this invocation. Keep same-tick processes in scope because
+    # Linux start times have tick granularity, not a strict ordering within it.
+    driver_fields = (proc / "self" / "stat").read_text().rsplit(")", 1)[1].split()
+    driver_start = int(driver_fields[19])
     # A missing procfs must raise, never be interpreted as successful cleanup.
     for entry in proc.iterdir():
         if not entry.name.isdigit() or int(entry.name) == os.getpid():
@@ -26,16 +33,20 @@ def _members(token: str, proc: Path = Path("/proc")) -> list[dict]:
             fields = (entry / "stat").read_text().rsplit(")", 1)[1].split()
             if fields[0] == "Z":
                 continue
+            start_ticks = int(fields[19])
+            if start_ticks < driver_start:
+                continue
             if marker in (entry / "environ").read_bytes().split(b"\0"):
-                found.append({"pid": int(entry.name), "start_ticks": int(fields[19])})
+                found.append({"pid": int(entry.name), "start_ticks": start_ticks})
         except (FileNotFoundError, ProcessLookupError):
             continue
-        # Unreadable live same-user processes make the cleanup check inconclusive.
+        # Unreadable in-scope live same-user processes still make the cleanup
+        # check inconclusive; in particular never swallow PermissionError.
     return found
 
 
 def cleanup(token: str, *, grace_seconds: float = 5.0) -> dict:
-    """Kill and verify only exact-marker workers; preserve PID-reuse protection."""
+    """Clean a marker minted by this driver; preserve PID-reuse protection."""
     killed = set()
     deadline = time.monotonic() + grace_seconds
     try:

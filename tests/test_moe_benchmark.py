@@ -1,6 +1,7 @@
 """No-device contract tests; these do not claim NPU performance acceptance."""
 
 import copy
+import errno
 import json
 import os
 import subprocess
@@ -251,15 +252,66 @@ def test_resources_stage_without_importing_candidate_or_device(tmp_path):
     assert json.loads((output / "request.json").read_text()) == {"repetitions": 2}
 
 
+def _fake_proc_entry(proc, pid, marker, *, state="S", start_ticks=123):
+    entry = proc / str(pid)
+    entry.mkdir(parents=True, exist_ok=True)
+    (entry / "environ").write_bytes((_moe_processes.MARKER + "=" + marker + "\0").encode())
+    fields = [state] + ["0"] * 18 + [str(start_ticks)]
+    (entry / "stat").write_text(f"{pid} (python) " + " ".join(fields))
+    return entry
+
+
 def test_exact_marker_and_zombie_filter(tmp_path, monkeypatch):
     monkeypatch.setattr(os, "getuid", lambda: (tmp_path.stat().st_uid), raising=False)
+    _fake_proc_entry(tmp_path, "self", "", start_ticks=100)
     for pid, marker, state in ((111, "token", "S"), (222, "other", "S"), (333, "token", "Z")):
-        entry = tmp_path / str(pid)
-        entry.mkdir()
-        (entry / "environ").write_bytes((_moe_processes.MARKER + "=" + marker + "\0").encode())
-        fields = [state] + ["0"] * 18 + ["123"]
-        (entry / "stat").write_text(f"{pid} (python) " + " ".join(fields))
+        _fake_proc_entry(tmp_path, pid, marker, state=state)
     assert _moe_processes._members("token", tmp_path) == [{"pid": 111, "start_ticks": 123}]
+
+
+@pytest.mark.parametrize("start_ticks,verified", [(99, True), (100, False), (101, False)])
+def test_unreadable_environment_only_excludes_strictly_older_process(
+    tmp_path, monkeypatch, start_ticks, verified
+):
+    monkeypatch.setattr(os, "getuid", lambda: tmp_path.stat().st_uid, raising=False)
+    _fake_proc_entry(tmp_path, "self", "", start_ticks=100)
+    entry = _fake_proc_entry(tmp_path, 111, "other", start_ticks=start_ticks)
+    read_bytes = Path.read_bytes
+
+    def unreadable(path):
+        if path == entry / "environ":
+            raise PermissionError(errno.EACCES, "Permission denied", str(path))
+        return read_bytes(path)
+
+    members = _moe_processes._members
+    monkeypatch.setattr(Path, "read_bytes", unreadable)
+    monkeypatch.setattr(_moe_processes, "_members", lambda token: members(token, tmp_path))
+    guard = _moe_processes.cleanup("token", grace_seconds=0)
+    assert guard["verified"] is verified, guard
+    assert guard["signalled_pids"] == []
+    if not verified:
+        assert repr(str(entry / "environ")) in guard["error"]
+
+
+def test_same_tick_owned_process_remains_visible(tmp_path, monkeypatch):
+    monkeypatch.setattr(os, "getuid", lambda: tmp_path.stat().st_uid, raising=False)
+    _fake_proc_entry(tmp_path, "self", "", start_ticks=100)
+    _fake_proc_entry(tmp_path, 111, "token", start_ticks=100)
+    assert _moe_processes._members("token", tmp_path) == [{"pid": 111, "start_ticks": 100}]
+
+
+def test_reused_pid_is_not_signalled(monkeypatch):
+    scans = iter([[{"pid": 111, "start_ticks": 123}], []])
+    monkeypatch.setattr(_moe_processes, "_members", lambda token: next(scans))
+    # The PID was reused after enumeration; its new start time must be checked
+    # immediately before signalling even though the original marker matched.
+    fields = ["S"] + ["0"] * 18 + ["124"]
+    monkeypatch.setattr(Path, "read_text", lambda *a, **k: "111 (python) " + " ".join(fields))
+    signalled = []
+    monkeypatch.setattr(os, "kill", lambda *args: signalled.append(args))
+    monkeypatch.setattr(time, "sleep", lambda _: None)
+    guard = _moe_processes.cleanup("token")
+    assert guard["verified"] and not signalled, guard
 
 
 @pytest.mark.skipif(sys.platform != "linux", reason="real /proc and detached process sessions")
