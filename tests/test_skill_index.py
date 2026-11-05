@@ -21,7 +21,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
     records = search_knowledge(repo="inferrsi", limit=100)
     names = {record["name"] for record in skill_records(ROOT)}
     registry = json.loads((ROOT / "skill-index.json").read_text(encoding="utf-8"))["skills"]
-    assert len(records) == len(names) == 79
+    assert len(records) == len(names) == 80
     assert {record["skill_metadata"]["name"] for record in records} == names
     states = []
     for record in records:
@@ -39,7 +39,7 @@ def test_complete_index_retains_metadata_states_and_unknown_license():
         }
         assert set(record["source_files"]) == set(record["sources"][0]["paths"])
         states.append(metadata.get("status"))
-    assert states.count("candidate") == 79
+    assert states.count("candidate") == 80
     profiling = next(r for r in records if r["title"] == "ascend-operator-profiling")
     assert profiling["skill_metadata"]["license"] == "UNKNOWN"
     assert profiling["skill_metadata"]["synced-commit"] == (
@@ -196,7 +196,7 @@ def test_package_index_and_checkout_skill_have_distinct_read_boundaries():
     assert reader.resolve("claim-contract") == "checkout:claim-contract"
     assert reader.read("claim-contract").metadata["kind"] == "skill"
     collected = reader.collect(repo="inferrsi", kind="knowledge", limit=100, material=True)
-    assert len(collected["items"]) == 79
+    assert len(collected["items"]) == 80
     assert not collected["collisions"] and not collected["omissions"]
     assert all(item["authority"] == "package" for item in collected["items"])
     assert all("record.json" in item["resources"] for item in collected["items"])

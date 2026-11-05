@@ -1,0 +1,69 @@
+{
+  "profile": "local-skill-v1",
+  "schema_version": 1,
+  "kind": "skill",
+  "origin": [
+    "external"
+  ],
+  "status": "candidate",
+  "empirical_validation": "not_run",
+  "tags": [
+    "vllm-ascend",
+    "v0.27.1rc1",
+    "MiniMax-M3",
+    "FP8",
+    "KV cache",
+    "DeepSeek-V4-Flash",
+    "DSpark",
+    "PD",
+    "plugin registration"
+  ],
+  "sources": [
+    {
+      "type": "git",
+      "url": "https://github.com/vllm-project/vllm-ascend",
+      "commit": "3b31886237ed65c435e0965b10e8002ff5769766",
+      "license": "Apache-2.0",
+      "paths": [
+        "LICENSE",
+        "docs/source/user_guide/release_notes.md",
+        "setup.py",
+        "vllm_ascend/__init__.py",
+        "vllm_ascend/models/__init__.py",
+        "vllm_ascend/platform.py",
+        "vllm_ascend/models/minimax_m3/minimax_m3.py",
+        "vllm_ascend/models/minimax_m3/msa_m3.py",
+        "docs/source/tutorials/models/MiniMax-M3.md",
+        "tests/ut/test_platform.py",
+        "tests/ut/models/minimax_m3/test_msa_m3.py",
+        "tests/e2e/pull_request/one_card/test_minimax_m3_sparse_attn.py",
+        "docs/source/tutorials/models/DeepSeek-V4-Flash.md",
+        "vllm_ascend/spec_decode/dspark_proposer.py",
+        "tests/e2e/pull_request/four_card/spec_decode/test_dspark_deepseekv4.py",
+        "tests/e2e/pull_request/utils.py",
+        "tests/0.27.1rc_vllm-ascend_overall_conclusion_release_notes_EN.md"
+      ],
+      "readset": "references/sources.md"
+    }
+  ],
+  "provenance_readsets": [
+    "references/sources.md"
+  ],
+  "consumption_mode": "packaged",
+  "applicability": {
+    "scope": "v0.27.1rc1 plugin discovery, MiniMax-M3 mixed cache configuration and 950DT DeepSeek-V4-Flash DSpark PD diagnosis.",
+    "prerequisites": "Pinned release evidence or a matching installed stack and role-specific logs.",
+    "input_contract": "Model and draft revisions, hardware profile, plugin and vLLM versions, requested and effective layer or rank configuration, failing phase.",
+    "produced_artifact": "First failing boundary with effective values, source locator and smallest discriminating check.",
+    "refusal_point": "Report an evidence gap when package, role, cache dtype or release identity cannot be established."
+  },
+  "recommendations": [
+    "Check the registered general hook in the failing process.",
+    "Resolve the per-layer cache skip set before interpreting FP8 storage.",
+    "Compare both DSpark role budgets and connector layouts before changing capture tiers."
+  ],
+  "limitations": [
+    "Source-derived guidance for the selected release paths only.",
+    "Native NPU execution, performance and behavioral skill evaluation not run."
+  ]
+}

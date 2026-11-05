@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:7640b171256091efd1514a33d5e434eef3feaed238fc92fe3eeba02fee94e9ff`
+- Input digest: `sha256:2e26f0691a8a5433088540178319e85efeb681f18e51a135c70924f9fb71c93f`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -33,18 +33,18 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 79 |
-| By category | frameworks 5, hardware 22, methods 20, repositories 26, workflows 6 |
-| By backend | ascend 15, common 59, cuda 5 |
+| Registered skill ids | 80 |
+| By category | frameworks 5, hardware 22, methods 20, repositories 27, workflows 6 |
+| By backend | ascend 16, common 59, cuda 5 |
 | Recorded on a numbered SearchSpace resource layer | 51 |
-| Recorded only in a supplementary guidance table (†) | 20 |
+| Recorded only in a supplementary guidance table (†) | 21 |
 | Resource layers explicitly not applicable | 7 |
 | Conflicting resource-layer declarations | 0 |
 | Recorded on two or more resource layers | 24 |
-| Recorded in the Reference Matrix | 71 |
-| With a `metadata.json` sidecar | 79 |
+| Recorded in the Reference Matrix | 72 |
+| With a `metadata.json` sidecar | 80 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 142 |
+| `SKILL.md` documents in the library | 143 |
 | Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
@@ -88,7 +88,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [pytorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md) | common | Operate and diagnose PyTorch installation, tensors and autograd, training and data, compilation and export, accelerator ... | Major user workflows and selected deep mechanisms of pinned pytorch/pytorch source; exact ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: PyTorch framework source procedures<br>2 RAM/Host † guidance: PyTorch framework source procedures<br>3 SSD † guidance: PyTorch framework source procedures<br>4 Network † guidance: PyTorch framework source procedures | PyTorch framework operating graph (pytorch/pytorch @ `9a90a4fefcaafa63ac984621963a6fcc66aee68c`, source ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [torch-npu](../src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md) | ascend | Operate and diagnose TorchNPU on Ascend across installation, PrivateUse1 dispatch, operator development, memory and ... | Source-grounded TorchNPU operation and diagnosis; qualify the selected installed stack ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: TorchNPU framework source procedures<br>2 RAM/Host † guidance: TorchNPU framework source procedures<br>4 Network † guidance: TorchNPU framework source procedures | TorchNPU framework operating graph (Ascend/pytorch @ `046934140b96836c3fcef14d0f39ae54dc0a06bf` ...) | candidate · not_run · 2 readset(s) | no-eval |
 
-## Registered: Repositories (26)
+## Registered: Repositories (27)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
@@ -117,6 +117,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [mlx-swift-lm](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md) | common | Investigate MLX Swift LM generation ownership, cancellation and settled task completion, and recurrent GatedDelta Metal ... | Selected Swift ownership/cancellation/settling and actual GatedDelta Metal/ops contracts ... | failure_modes, input_contract, produced_artifact<br>3 advice | 1 Accelerator † guidance: MLX Swift LM ownership and recurrent Metal source contracts<br>2 RAM/Host † guidance: MLX Swift LM ownership and recurrent Metal source contracts | MLX Swift LM lifecycle and recurrent Metal extraction (ml-explore/mlx-swift-lm @ `3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac` ...) | candidate · not_run · 2 readset(s) | no-eval |
 | [project-maya](../src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md) | common | Investigate Project Maya model-family dispatch, representation and memory tiers, API versus native state, speculative ... | Model-specific dispatch/residency, API/native state and qualification investigation ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator † guidance: Project Maya model-specific source contracts<br>2 RAM/Host † guidance: Project Maya model-specific source contracts<br>3 SSD † guidance: Project Maya model-specific source contracts | Project Maya source and CPU-slice extraction (mw00/project-maya @ `249f9a87d1a9d72bec2b684d704b0aa9296b1c9c` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 | [splash](../src/inferrsi/data/skill_library/repositories/splash/SKILL.md) | common | Investigate Splash model-format compatibility, automatic memory planning, Metal and ANE execution, DFlash2 ... | Pinned Splash representation, planning, state/serving and verification investigation ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator † guidance: Splash source-derived planning and state<br>2 RAM/Host † guidance: Splash source-derived planning and state<br>3 SSD † guidance: Splash source-derived planning and state | Splash portable AREX extraction (incoai/splash @ `39a97385f8560cf8a93972cec9b0a963c9195250`; AREX ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
+| [vllm-ascend](../src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md) | ascend | Diagnose vLLM Ascend v0.27.1rc1 plugin registration, MiniMax-M3 mixed KV-cache dtypes, and DeepSeek-V4-Flash DSpark ... | v0.27.1rc1 plugin discovery, MiniMax-M3 mixed cache configuration and 950DT ... | input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis<br>2 RAM/Host † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis | vLLM Ascend v0.27.1rc1 serving scope (vllm-project/vllm-ascend at `3b31886237ed65c435e0965b10e8002ff5769766`) | candidate · not_run · 1 readset(s) | no-eval |
 | [vllm-metal](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md) | common | Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership ... | Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch ... | failure_modes, input_contract, produced_artifact<br>3 advice | 1 Accelerator † guidance: vLLM Metal selected source contracts<br>2 RAM/Host † guidance: vLLM Metal selected source contracts<br>3 SSD † guidance: vLLM Metal selected source contracts | vLLM Metal portable AREX source and CPU extraction (vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 
 ## Registered: Methods (20)
@@ -230,7 +231,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 79 of 79.
+- Registered ids resolve to an existing `SKILL.md`: 80 of 80.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 0.
@@ -244,7 +245,7 @@ an entrypoint routes to procedures below it rather than adding one.
 | `no-Reference-Matrix-row` | 8: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence, video-diffusion-optimization |
 | `no-sidecar` | 0: — |
 | `no-applicability` | 0: — |
-| `no-eval` | 77: as listed in the Gaps column above |
+| `no-eval` | 78: as listed in the Gaps column above |
 
 These are inventory gaps, not efficacy results. Missing layer mappings stay
 unknown unless the sidecar records a reasoned N/A. N/A is not coverage;
