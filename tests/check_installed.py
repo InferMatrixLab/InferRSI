@@ -10,12 +10,17 @@ import inferrsi
 from inferrsi.catalog import knowledge_records, repository_pack, search_knowledge
 from inferrsi.cli import main
 from inferrsi.harness.benchmarks import builtin_tasks, load_task
+from inferrsi.harness.scenarios.moe import TASK_FILES, task_resources
 from inferrsi.knowledge_operations import KnowledgeReader
 
 assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 assert set(builtin_tasks()) == {"softmax-cpu", "rmsnorm-npu"}
+assert "torch" not in sys.modules and "torch_npu" not in sys.modules
+for resource_name in TASK_FILES:
+    assert task_resources().joinpath(resource_name).is_file(), resource_name
+assert files("inferrsi.harness.scenarios").joinpath("moe_grader.py").is_file()
 for benchmark_id in builtin_tasks():
     benchmark = load_task(benchmark_id)
     benchmark.assert_unchanged()
