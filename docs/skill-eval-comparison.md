@@ -10,6 +10,15 @@ authorization and retained-result publication around these interfaces.
 The [offline improvement MVP](harness-improvement.md) reuses the same interfaces
 for bounded INV/DOM probes, successor rerun and a one-shot held-out gate.
 
+Shared Softmax CPU artifacts use the `engineering-benchmark-v1` adapter
+in **update mode**, with the same prepare/execute/report and local stage/capture
+interfaces. The trusted parent grades output from a Linux bubblewrap NumPy
+worker; unsupported sandbox/runtime leaves INCONCLUSIVE without host fallback.
+This is correctness-only artifact evaluation, not timing or skill-efficacy
+qualification. See the [task contract and handoff example](engineering-task-artifacts.md).
+The provider generation mode and offline improvement controller do not support
+this adapter yet.
+
 ```mermaid
 flowchart LR
     A["New: small JSON config"] --> B["New: fixed Git snapshots"]

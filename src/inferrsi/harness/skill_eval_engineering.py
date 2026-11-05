@@ -171,7 +171,7 @@ def read_regular(path: Path, limit: int) -> bytes:
     return data
 
 
-def input_hashes(workspace: Path) -> dict:
+def input_hashes(workspace: Path, *, editable: str = "parser.py") -> dict:
     """Frozen engineering inputs only; special nodes are never opened."""
     if any(path.is_symlink() for path in (workspace.absolute(), *workspace.absolute().parents)):
         raise ValueError("Workspace paths must not contain symlinks")
@@ -181,7 +181,7 @@ def input_hashes(workspace: Path) -> dict:
         mode = path.lstat().st_mode
         if stat.S_ISLNK(mode) or not (stat.S_ISREG(mode) or stat.S_ISDIR(mode)):
             raise ValueError("Workspace contains a symlink or special node")
-        if stat.S_ISREG(mode) and name != "parser.py":
+        if stat.S_ISREG(mode) and name != editable:
             hashes[name] = hashlib.sha256(read_regular(path, 16 * 1024 * 1024)).hexdigest()
     return hashes
 
