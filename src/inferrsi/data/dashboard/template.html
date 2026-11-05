@@ -232,6 +232,9 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     'Protocol-specific absolute measurements; recorded verdicts are not recomputed.':'按协议展示绝对测量值；保留原始判定，不重新裁决。',
     'Per metric':'按指标分别查看',
     'Recorded performance failures':'已记录的性能未通过',
+    'Native failed / regressed':'原生运行失败 / 下降',
+    'Recorded external performance failures':'已记录的外部性能未通过',
+    'Native runs only; includes failures and rollbacks':'仅统计原生运行，包含失败和回退',
     'Independent axes; select a candidate for parent and two rounds':'各指标独立展示；选择候选查看父版本和双轮结果',
     'Absolute target gaps appear in candidate details':'候选详情显示各档位距绝对目标的差距',
     'Recorded quality passes; see individual results':'已记录的质量通过数；详见各候选',
@@ -547,12 +550,13 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
     const root=byId('stats'); clear(root); const rows=data.candidates, o=data.overview;
     const missing=rows.flatMap(missingRefs).length;
     const external=rows.filter(r=>r.external?.metrics), metrics=external.flatMap(r=>r.external.metrics);
+    const native=rows.filter(r=>!r.external?.metrics);
     const figures=[
       ['Best gain',value(o.best_improvement_pct,'%'),o.comparison_state === 'no_data' ? 'No comparable measurements' : o.comparison_state === 'incompatible' ? 'Incompatible records' : o.comparison_state === 'unverified' ? 'Comparison evidence missing or unsupported' : 'Quality and source checks required','green'],
       ['Target gap',value(o.target_gap_pct,' pp'),o.target_improvement_pct === null ? 'Target not recorded' : `Target ${value(o.target_improvement_pct,'%')}`,'orange'],
       ['Candidate / run views',rows.length ? String(rows.length) : 'Not recorded','Recorded candidate or run views',''],
       ['Within noise',rows.some(r=>['noise','improved','regressed'].includes(r.outcome)) ? String(rows.filter(r => r.outcome === 'noise').length) : 'Not recorded','Uses recorded noise band','orange'],
-      ['Failed / regressed',rows.some(r=>r.state !== 'not_recorded' || r.quality !== 'not_recorded') ? String(rows.filter(r => ['failed','quality_failed','regressed'].includes(r.outcome) || r.decision==='rolled_back').length) : 'Not recorded','Includes failures and rollbacks','red'],
+      [external.length ? 'Native failed / regressed' : 'Failed / regressed',native.some(r=>r.state !== 'not_recorded' || r.quality !== 'not_recorded') ? String(native.filter(r => ['failed','quality_failed','regressed'].includes(r.outcome) || r.decision==='rolled_back').length) : 'Not recorded',external.length ? 'Native runs only; includes failures and rollbacks' : 'Includes failures and rollbacks','red'],
       ['Missing evidence',rows.length ? String(missing) : 'Not recorded','See completeness panel','red']
     ];
     if(external.length===rows.length && external.length){
@@ -561,6 +565,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
       figures[3]=['Quality',String(external.filter(r=>r.external.quality_verdict==='PASS').length)+' / '+external.length,'Recorded quality passes; see individual results',''];
       figures[4]=['Recorded performance failures',String(external.filter(r=>r.external.performance_verdict==='FAIL').length),'Caller verdicts; independent of quality','red'];
     }
+    if(external.length && native.length)figures.push(['Recorded external performance failures',String(external.filter(r=>r.external.performance_verdict==='FAIL').length),'Caller verdicts; independent of quality','red']);
     for(const [label,number,note,colour] of figures){const box=node('div',undefined,'panel stat');box.appendChild(node('div',label,'stat-label'));box.appendChild(node('strong',number,`stat-value ${colour}`));box.appendChild(node('small',note,'hint'));root.appendChild(box);}
     byId('overview-note').textContent = data.rounds === null ? 'Rounds not recorded' : `${data.rounds.length} recorded rounds${data.corrupt_round_lines.length ? ` · corrupt lines ${data.corrupt_round_lines.join(', ')}` : ''}`;
   }

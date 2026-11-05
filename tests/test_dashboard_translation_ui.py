@@ -117,3 +117,56 @@ assert.equal(narrative.nodeValue, 'English explanation');
 """
     subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
                    capture_output=True, text=True)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
+def test_mixed_campaign_counts_native_and_external_failures_separately():
+    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    script = r"""
+const fs=require('node:fs'), assert=require('node:assert/strict');
+const html=fs.readFileSync(process.argv[1],'utf8');
+const render=html.slice(html.indexOf('  function renderStats()'),
+                        html.indexOf('  function renderWorkflow()'));
+function node(tag,text){return {tag,text,children:[],
+  appendChild(child){this.children.push(child);}};}
+const elements={'stats':node('div'),'overview-note':node('small')};
+const data={candidates:[],overview:{comparison_state:'no_data',best_improvement_pct:null,
+  target_gap_pct:null,target_improvement_pct:null},rounds:null};
+const run=new Function('data','byId','node','clear','renderIntegration','missingRefs','value',
+  render+';renderStats();');
+function stats(rows){
+  data.candidates=rows;
+  run(data,id=>elements[id],node,el=>{el.children=[];},()=>{},()=>[],()=> 'Not recorded');
+  return Object.fromEntries(elements.stats.children.map(card=>
+    [card.children[0].text,{value:card.children[1].text,note:card.children[2].text}]));
+}
+const native={state:'completed',quality:'passed',outcome:'improved',decision:'not_recorded'};
+const external={state:'completed',quality:'passed',outcome:'unverified',decision:'not_recorded',
+  external:{metrics:[],performance_verdict:'FAIL',quality_verdict:'PASS'}};
+let cards=stats([native,external]);
+assert.equal(cards['Native failed / regressed'].value,'0');
+assert.equal(cards['Recorded external performance failures'].value,'1');
+assert(!('Failed / regressed' in cards));
+assert.equal(cards['Native failed / regressed'].note,
+  'Native runs only; includes failures and rollbacks');
+for(const failure of [{outcome:'failed'},{outcome:'quality_failed'},{outcome:'regressed'},
+                      {decision:'rolled_back'}]){
+  cards=stats([{...native,...failure},external]);
+  assert.equal(cards['Native failed / regressed'].value,'1');
+  assert.equal(cards['Recorded external performance failures'].value,'1');
+}
+for(const verdict of ['PASS','INCONCLUSIVE','not_recorded']){
+  cards=stats([native,{...external,external:{...external.external,performance_verdict:verdict}}]);
+  assert.equal(cards['Recorded external performance failures'].value,'0');
+}
+cards=stats([external]);
+assert.equal(cards['Recorded performance failures'].value,'1');
+assert(!('Native failed / regressed' in cards));
+cards=stats([native]);
+assert.equal(cards['Failed / regressed'].value,'0');
+assert(!('Recorded external performance failures' in cards));
+cards=stats([]);
+assert.equal(cards['Failed / regressed'].value,'Not recorded');
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], check=True,
+                   capture_output=True, text=True)
