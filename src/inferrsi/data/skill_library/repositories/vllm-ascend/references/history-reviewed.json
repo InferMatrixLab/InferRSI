@@ -1,0 +1,421 @@
+{
+  "communication": {
+    "fully_reviewed_commits": [
+      {
+        "commit": "2295ef002de030df621a276317648925114aef03",
+        "takeaway": "Adds conditional PCP migration guidance while retaining DSA-CP."
+      },
+      {
+        "commit": "4b25eb34793efa9f00201d654eb2f107ecebfbbd",
+        "takeaway": "Rolls normal fused-MC2 value 1 back to dispatch_ffn_combine; value 2 tests MegaMoe."
+      },
+      {
+        "commit": "813f7374bb2a0fa88bdd50c3d726a37e3614bbd7",
+        "takeaway": "Propagates MegaMoe rollback through a runtime accessor instead of imported Boolean snapshots."
+      },
+      {
+        "commit": "583aee2800142494ebc1907d4362222b0bb108df",
+        "takeaway": "Lazily probes MegaMoe and forces availability false for config 0 and 1."
+      },
+      {
+        "commit": "93b7942540c53d8d4486c2cc4579f356f520d0e0",
+        "takeaway": "Restores device-local QLI query maxima on cache misses; high-concurrency validation remains pending upstream."
+      }
+    ],
+    "selected_path_review": [
+      {
+        "commit": "80c833fb86b105391d164c9e3fc60d0bfecbf85e",
+        "paths": [
+          "vllm_ascend/ascend_config.py",
+          "vllm_ascend/envs.py",
+          "vllm_ascend/lora/fused_moe.py",
+          "vllm_ascend/platform.py",
+          "tests/ut/test_ascend_config.py",
+          "tests/ut/lora/test_lora.py"
+        ],
+        "scope": "Selected source hunks and current release consumers, not whole-commit review"
+      },
+      {
+        "commit": "92616f3a64e7218655c2d009aa8ecf855091e54d",
+        "paths": [
+          "vllm_ascend/ascend_config.py",
+          "vllm_ascend/utils.py"
+        ],
+        "scope": "Selected source hunks and current release consumers, not whole-commit review"
+      },
+      {
+        "commit": "9cf7a0a23944b032d512040f4da542777042cc3e",
+        "paths": [
+          "vllm_ascend/utils.py",
+          "tests/ut/test_ascend_config.py"
+        ],
+        "scope": "Selected source hunks and current release consumers, not whole-commit review"
+      },
+      {
+        "commit": "78bf96a55bc91466eae7ac5fe080596fac7b9d5a",
+        "paths": [
+          "vllm_ascend/ascend_config.py",
+          "vllm_ascend/models/deepseek_v4/model.py",
+          "vllm_ascend/ops/dsa.py",
+          "vllm_ascend/attention/context_parallel/dsa_cp.py",
+          "vllm_ascend/models/common/ops/sequence_parallel.py"
+        ],
+        "scope": "Selected source hunks and current release consumers, not whole-commit review"
+      },
+      {
+        "commit": "2044419f8f3dec6288eb1b1b1f54245d4c2b0904",
+        "paths": [
+          "vllm_ascend/ascend_config.py"
+        ],
+        "scope": "Selected source hunks and current release consumers, not whole-commit review"
+      },
+      {
+        "commit": "32d9a31387ee7f14bd9c01a8d69dab4a8a397741",
+        "paths": [
+          "vllm_ascend/ascend_config.py",
+          "vllm_ascend/ops/fused_moe/token_dispatcher.py",
+          "vllm_ascend/utils.py"
+        ],
+        "scope": "Selected source hunks and current release consumers, not whole-commit review"
+      }
+    ]
+  },
+  "models": [
+    {
+      "commit": "0a023b094e9e88ffaca0b1fda02529cef6277f8e",
+      "takeaway": "Kimi K3 v0.27 adapter introduces Ascend KDA, residual and model integration; selected model and operator consumers inspected."
+    },
+    {
+      "commit": "cc3537bd59ccb1297bc21619624d1cd7d2ac04c3",
+      "takeaway": "Mixed KDA composes F weights, packs BFG and overlaps Vector/Cube work while preserving loader and graph joins."
+    },
+    {
+      "commit": "9272234d7d7bb41a5a2a58213d0a20540e5f6365",
+      "takeaway": "Attention residual token count becomes runtime/do_not_specialize; mathematical tile dimensions remain compile-time."
+    },
+    {
+      "commit": "3da432751b879aa529f2399d020eaf25e3793e7f",
+      "takeaway": "Preprocessing-copy and output-mask removal proposed; inspected through the exact restoring diff in the later revert."
+    },
+    {
+      "commit": "67dd255260e531e159c9de0103b70613ed140107",
+      "takeaway": "Reverts KDA preprocessing optimization following reported A3 4P4D corruption and acceptance regression; restores contiguous inputs and padding masks."
+    },
+    {
+      "commit": "215043676e00696c0c0c2f89984c57ba495ee532",
+      "takeaway": "Dense Kimi MLP must gather sequence rows before TP weights and reduce-scatter outputs once."
+    },
+    {
+      "commit": "1c4b2768bd3c3362387286431bbea70106765eb9",
+      "takeaway": "Post-WU workspace uses padded chunk count rather than packed live tokens to prevent overwrite."
+    },
+    {
+      "commit": "9e2ba22f767e6d3deef757c77f6e91f226d37d7c",
+      "takeaway": "K3 DSpark+DCP preserves target N+1 query classification and per-group/interleaved draft slot metadata."
+    },
+    {
+      "commit": "05841f71a6c29e6e0d9752a8adacbe681bd0ab78",
+      "takeaway": "K3 mixed KV grouping compares attention block sizes separately from Mamba block size; all page sizes still agree."
+    },
+    {
+      "commit": "fd9298242a923fe85546564cb7d30a2d2fe9d688",
+      "takeaway": "M3 index decode trades replicated full score work for query gathering and rank-local candidate selection/merge; reported benchmark mixes gains and regressions."
+    },
+    {
+      "commit": "4146cae0d0e567f9f66e2296294cd3eadbf9f1b9",
+      "takeaway": "AscendC MSA index score integration adds stable decode metadata, TP block-parallel scoring and causal masks."
+    },
+    {
+      "commit": "9080ea88bc2d753aa4735144be971be356e970ff",
+      "takeaway": "M3 sparse decode moves to the AscendC sparse_attention_score wrapper with FlashDecoding support and runtime shape validation."
+    },
+    {
+      "commit": "1acbcc36c30717a233c26a032038089533f6e9d8",
+      "takeaway": "MiniMax ModelOpt MXFP8 integration adds A5-specific index cache writes and precision-specific projections/operators."
+    },
+    {
+      "commit": "e61a5d7204fe4a0fc329471df8e4c3c90e9bb2f1",
+      "takeaway": "M3 native E4M3 attention/index cache path plus dense GQA skip policy and reusable dequant scale."
+    },
+    {
+      "commit": "19ee63ec9518475cbdce309352ccfaeb7e70e061",
+      "takeaway": "A5 MSA prefill uses bundled AscendC FP8 score; A5 decode retains Triton."
+    },
+    {
+      "commit": "77c12740036c29d3905be53f41594c3c65e41894",
+      "takeaway": "M3 index query normalization reshapes by index head dimension rather than total query width."
+    },
+    {
+      "commit": "f0c320e6fa88f00dc059ef8dbc1a99305e88ac13",
+      "takeaway": "Removes scalar prefill specialization and revises Triton scalar argument specialization behavior."
+    },
+    {
+      "commit": "cf0617597b97f341044e08073213eb01c038546c",
+      "takeaway": "Prefill top-k preparation assigns vector-core-sized work and contiguous score-block stores."
+    },
+    {
+      "commit": "6588370e7457098bff6f736582667906e65b2326",
+      "takeaway": "M3 EPLB adds logical/physical expert metadata and load balancing integration."
+    },
+    {
+      "commit": "929e461de828de233c2047def41a26a02c768084",
+      "takeaway": "GLM5.1 runtime skip_topk retains checkpoint indexers while GLM5.2 explicit shared layers may omit them."
+    },
+    {
+      "commit": "463a6a1d065d246918e4cb4319e07ae63a2d2c9e",
+      "takeaway": "GLM5.2 MTP shares top-k buffer and toggles recomputation at draft step zero versus subsequent steps."
+    },
+    {
+      "commit": "12276de8059151c56c876154abc536b92d8681e4",
+      "takeaway": "PP validation rejects index-sharing and cached-top-k dependencies crossing stage boundaries."
+    },
+    {
+      "commit": "03cc154cb33d499f21db1afab63cdc6923797ee1",
+      "takeaway": "GLM5.2 DSpark supports checkpoint rotation of fc and distinguishes draft query/sample widths."
+    },
+    {
+      "commit": "041f111a17930dc9a096b79d6144567333cba87c",
+      "takeaway": "GLM5.2 DSpark reads sample_from_anchor and draft causality from the model contract."
+    },
+    {
+      "commit": "89df31d7ed27658101d84ac0c3968163b2bee29a",
+      "takeaway": "Runner V2 rotates DSpark fc using target QuaRot metadata after upstream loading replaces draft quant config."
+    },
+    {
+      "commit": "c2806729033d98c53c2a782fefa424791e466c5f",
+      "takeaway": "GLM5.3 native FP8 loads partial scale tiles, requantizes supported weights, preserves absorbed kv_b_proj and shares missing MTP head."
+    },
+    {
+      "commit": "542258ac9d9229aab4e8822de42443245a93f001",
+      "takeaway": "GLM5 MLA preprocess derives LoRA, RoPE and head dimensions from tensor shapes, including workspace/tiling."
+    },
+    {
+      "commit": "640ecd1b772b1c3dcdc57336b762cc02d011eba8",
+      "takeaway": "GLM5 routed scaling factor participates in muls-add pattern matching; fixed scale 1 misses model graph."
+    },
+    {
+      "commit": "2bd9c357886f04eca1ce5f9a00fe09aa77570479",
+      "takeaway": "GLM5/DSV3.2 SFA refactor splits preprocess and parallel paths and uses single-input/output RoPE."
+    },
+    {
+      "commit": "7ed9e9de69160daa66ab61400358da0ecf85107a",
+      "takeaway": "Initial GLM5/DSV3.2 W8A8C8 implementation adds quantized indexer cache plus scale and KV spec changes."
+    },
+    {
+      "commit": "0c299f79b92af96b36518b6497d4817a84aeb49e",
+      "takeaway": "Initial W8A8C8 change was reverted before being restored with manager registration fix."
+    },
+    {
+      "commit": "4d443b922811e1094fba660a8faed0d493541571",
+      "takeaway": "W8A8C8 restoration registers the patched MLA cache-spec class with the scheduler manager."
+    }
+  ],
+  "deepseek": [
+    {
+      "commit": "7bce23cc0572a7793636ae215015a528e4503f1e",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Initial integration joins model/MTP, DSA, compressed KV groups and plugin registration; original architecture differs from the tag layout."
+    },
+    {
+      "commit": "fcb30bebed4bc493238f2c432844b1f1be16ae6d",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Ascend950 attention introduces hardware-specific sparse attention, metadata and slot formats."
+    },
+    {
+      "commit": "d31c223a8b74a0367ce4946c9053b6abb15d1e32",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Switch HcPre to v2 fused operator."
+    },
+    {
+      "commit": "c1be5934e36d0afd448bca5d2eef5a5ccd8de981",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Revert HcPre call to older operator for correctness."
+    },
+    {
+      "commit": "baf4a9d0bd1e6432ed799b0d1ee16c7ebe73a5a0",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Later synchronized HcPre implementation restores v2."
+    },
+    {
+      "commit": "77e1e1fc6430b166abd4715271bf55f817b38630",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Preserve FP32 RoPE tables on A2/A3 for compressor precision."
+    },
+    {
+      "commit": "20e338bd7c1267799dcf611acee025f37cdc9535",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Separate compressor and indexer preparation into dependent streams; source-hunk review."
+    },
+    {
+      "commit": "711a09f73305847f22f9ad062c5e317837f4a26f",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "IndexCache skips selected indexer-bearing layers and shares per-forward TopK buffers."
+    },
+    {
+      "commit": "45e0634c1ba2ccbc400cc2167009a11b687d74ef",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Apply IndexCache skip/update logic to DSA-CP prefill."
+    },
+    {
+      "commit": "84c647f198944ccdd306eb196d35e59c1e2b70c5",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Fused local metadata kernel replaces tensor-op sequence and adds RoPE padding."
+    },
+    {
+      "commit": "53f698ff7a48ce1f2b6c6ae5d26811883001bcd5",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Stage/group metadata events, stable output buffers and worker-owned stream overlap eligible V1 metadata."
+    },
+    {
+      "commit": "93b7942540c53d8d4486c2cc4579f356f520d0e0",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Restore device-local QLI max query length to avoid stale host metadata under async scheduling."
+    },
+    {
+      "commit": "78bf96a55bc91466eae7ac5fe080596fac7b9d5a",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "DSA-CP receives SP token shards and conditionally gathers KV or reduces output."
+    },
+    {
+      "commit": "8db29fde7ec642061230048db696ce74106d2142",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Explicit BF16 plan uses SparseFlashMla with BBND layout and block-offset slots; FP8 plan retains compressed epilog."
+    },
+    {
+      "commit": "749bb6c82d2aed0d54f7eb898f33ea5a8169ba2e",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Replace compression-specific manager with logical scheduler geometry and physical storage_block_size."
+    },
+    {
+      "commit": "79044c4369e3f30ef86e6042952a3c9ee8a8dd13",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Layerwise reuse layout preserves multiple main-cache specifications of a physical DSV4 layer."
+    },
+    {
+      "commit": "cadefd2cb87a8b0dc6d4e80abc2d770121a92f42",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Propagate speculative retention bit to merged same-spec managers to preserve hybrid prefix hits."
+    },
+    {
+      "commit": "8fe122d95fc8cc94f32525f9ed36c2b5e3fbfdcc",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "DSV4 DSpark adds standard multi-group draft cache setup and block query proposer."
+    },
+    {
+      "commit": "cb1e180dc3734cc8e1fa89e40da8310cad01be10",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Restore short-extend decode classification required for DSpark precision."
+    },
+    {
+      "commit": "acbd2bb28de6d5104a538806950687523c20407a",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Vectorize copy/expand over independent context and query work ranges with vector-core cap."
+    },
+    {
+      "commit": "1f3418a1a7fbede99f78d95f12b4cff1bd58a805",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Shard DSpark main projection by output features and gather before normalization."
+    },
+    {
+      "commit": "f69831343a1850a363f4892b1f5d5cfe8e4a051d",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Load full draft attention sinks under DSA-CP; otherwise shard heads."
+    },
+    {
+      "commit": "beedc8b8db84d56c72a2d4d6a3c9de85a741f8e5",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Keep Markov head replicated, bound LMHead TP padding to active draft/target bucket."
+    },
+    {
+      "commit": "6f9e86a714ffbc2d5cfd6740bccf3252b7c81d30",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Handle zero retained context using the first request position instead of previous-row memory."
+    },
+    {
+      "commit": "d95acdd8884aa8dd142be9f95a479fa910edc147",
+      "review": "selected-diff-and-tag-consumer",
+      "takeaway": "Batch-level exact draft width fit check with DP-aligned dummy and cleared publication."
+    }
+  ],
+  "fusion": {
+    "scope": "Selected source hunks, current consumers and historical author reports; per-commit whole-diff review is not claimed.",
+    "commits": [
+      {
+        "commit": "0b1da2474260bd30c5a70f8090c2e6d14ee5d684",
+        "subject": "[Main][Perf] Add fused matmul/reduce-scatter kernel for performance optimization. (#3693)"
+      },
+      {
+        "commit": "128ecf890fc36f29492f7232214e8d63d2e3c28e",
+        "subject": "[Refactor]unify calls to torch_npu.npu_mla_prolog_v3 (#14676)"
+      },
+      {
+        "commit": "2ee50f3847e4873e61d280911b2a24d85f5278d6",
+        "subject": "[Refactor] Remove matmulallreduce and pass optimization techniques (#12119)"
+      },
+      {
+        "commit": "2fda60464c287fe456b4a2f27e63996edc65dd40",
+        "subject": "[Perf] Use fused ops npu_top_k_top_p (#1308)"
+      },
+      {
+        "commit": "344931832c3f7fb14ce7fe3f8d5c9d8a7b61e2fa",
+        "subject": "[Performance] Optimize split_qkv_tp_rmsnorm_rope with grid stride andh loading (#9830)"
+      },
+      {
+        "commit": "515267de22dd499a768fdcadae79f45e4a58ba49",
+        "subject": "[perf][bugfix] improve performance of rejection sampler and eliminate HD synchronize in TopKTopPSampler (#4154)"
+      },
+      {
+        "commit": "56269eae0e553909ab8dad60deb5c9235988a04e",
+        "subject": "[BugFix] Fix AddRMSNormQuant not taking effect (#6620)"
+      },
+      {
+        "commit": "5c59cfba98045f49645284745be035346a4d82d8",
+        "subject": "[Performance](attention): fuse SFA DCP output all-to-all (#14457)"
+      },
+      {
+        "commit": "640ecd1b772b1c3dcdc57336b762cc02d011eba8",
+        "subject": "[BugFix] Fix muls_add fusion not working for GLM5 models (#6928)"
+      },
+      {
+        "commit": "657df3efae6479822970081636ffb9684f936d2f",
+        "subject": "[BugFix][SFA] Use DCP-sharded slot mapping in prolog v3 KV write (#14536)"
+      },
+      {
+        "commit": "77d13e2c0bfa9862b711b68811889e36b9d56aca",
+        "subject": "[Performance] Add fused torch_npu chunk gated delta rule for GDN prefill (#12647)"
+      },
+      {
+        "commit": "7ba437c5f6fdb08fc71bd4bb9864eb654cabedfd",
+        "subject": "[v0.27.1][Feature][MoE] Integrate GMM-SiTU operator (#15871)"
+      },
+      {
+        "commit": "832552836842e00cc9de75bc853a90338694ccc4",
+        "subject": "[Kernel]: Optimize DispatchFFNCombine performance (#6468)"
+      },
+      {
+        "commit": "87a0b7b7c7630ae112c8384ad1af11ed29d55801",
+        "subject": "[bugfix] adapt bugfix for norm_quant_fusion_pass to npugraph_ex (#6726)"
+      },
+      {
+        "commit": "994765d7ab3ac2661865d149c803146927366b26",
+        "subject": "[Performance] use sort-based top-k/top-p in non-reduce mode for consistent performance (#13842)"
+      },
+      {
+        "commit": "aff5189c8781f1127d7dbca6c59a9ec44a427100",
+        "subject": "[main] Fuse GroupedMatmul, Swiglu and DynamicQuant in `W8A8_DYNAMIC` quantized MoE layers (#2275)"
+      },
+      {
+        "commit": "bb2666df29c4cddab74fd340103f18bd5bf2bb9f",
+        "subject": "[Feature] Add rmsnorm dynamic mx quant fusion pass (#10730)"
+      },
+      {
+        "commit": "d1523852b416be34cfea126a9134bb3519771834",
+        "subject": "[Feature] Add fused_sparse_attention_overlap operator for DSA with CPU offloading (#14278)"
+      },
+      {
+        "commit": "c794923e62b4050b8e812ec8f0d0b635088e064d",
+        "subject": "GDN gating AscendC rollback to Triton"
+      }
+    ]
+  }
+}
