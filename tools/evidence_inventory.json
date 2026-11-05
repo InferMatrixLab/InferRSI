@@ -1,6 +1,13 @@
 {
   "version": 1,
   "bundles": {
+    "moe-agent-comparison-20261104": {
+      "kind": "campaign",
+      "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
+      "external": [
+        "Labelled redacted extracts preserve all 54 attempt scores and available per-case timing samples; original rank logs, condition/session access audits and host-specific launch configuration remain outside this checkout. Their absence limits independent replay of the full historical audit. No device rerun or new TaskPackage acceptance is claimed."
+      ]
+    },
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [

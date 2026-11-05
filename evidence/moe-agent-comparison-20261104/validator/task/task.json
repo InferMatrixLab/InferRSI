@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "id": "moe-shared-ep2-npu-v1",
+  "title": "Expert-parallel MoE FFN with a shared expert",
+  "status": "frozen",
+  "backend": "ascend",
+  "world_size": 2,
+  "dtype": "bfloat16",
+  "entrypoint": "compute(x, params, *, config, group)",
+  "num_experts": 8,
+  "experts_per_rank": 4,
+  "semantics": {
+    "router": "FP32 linear with bias; sorted top-k logits; softmax over selected logits",
+    "expert": "linear_gate_up -> silu(gate) * up -> linear_down",
+    "shared": "one replicated SwiGLU expert evaluated on this rank's input",
+    "output": "routed weighted sum plus shared output, BF16, original local token order",
+    "dropless": true,
+    "residual": false,
+    "weight_ownership": "contiguous EP partition; rank r owns experts 4*r through 4*r+3"
+  },
+  "correctness": {
+    "oracle": "independent CPU FP32 calculation from BF16-quantized inputs/weights",
+    "rtol": 0.03,
+    "atol": 0.03,
+    "max_nrmse": 0.01,
+    "tolerances_frozen": true,
+    "preserve_inputs_and_parameters": true,
+    "check_all_ranks": true,
+    "check_all_outputs": true,
+    "finite_required": true
+  },
+  "measurement": {
+    "unit": "ms",
+    "scope": "complete forward, host scheduling and all communication included",
+    "rank_aggregation": "maximum elapsed for each paired call",
+    "case_aggregation": "geometric mean of baseline/candidate per-case median latency ratios",
+    "warmups": 2,
+    "samples": 16,
+    "new_input_each_call": true,
+    "final_pairs": 4,
+    "timed_case_ids": [
+      "balanced-small",
+      "skewed-medium",
+      "balanced-large"
+    ],
+    "samples_per_pair": 8,
+    "exploration_pairs": 2,
+    "matched_shape_warmup": {
+      "enabled": true,
+      "calls_per_implementation_per_timed_seed": 1,
+      "input": "distinct BF16 values from router-nullspace noise; same selected expert set for every token",
+      "noise_std_before_projection": 0.3,
+      "minimum_row_rms_input_change": 0.15,
+      "minimum_router_boundary_margin": 0.02,
+      "max_row_resampling_attempts": 32,
+      "verify_all_warm_outputs": true,
+      "require_warm_oracle_outside_timed_output_tolerance": true,
+      "cost": "recorded separately from scored forward latency"
+    }
+  },
+  "cases": [
+    {
+      "id": "balanced-small",
+      "rank_tokens": [
+        64,
+        64
+      ],
+      "hidden": 512,
+      "intermediate": 1024,
+      "top_k": 2,
+      "routing": "balanced",
+      "weight_seed": 1729,
+      "weight_variant": 0,
+      "measured": true
+    },
+    {
+      "id": "skewed-medium",
+      "rank_tokens": [
+        256,
+        256
+      ],
+      "hidden": 1024,
+      "intermediate": 2048,
+      "top_k": 2,
+      "routing": "skewed",
+      "weight_seed": 2718,
+      "weight_variant": 0,
+      "measured": true
+    },
+    {
+      "id": "balanced-large",
+      "rank_tokens": [
+        1024,
+        1024
+      ],
+      "hidden": 2048,
+      "intermediate": 4096,
+      "top_k": 2,
+      "routing": "balanced",
+      "weight_seed": 3141,
+      "weight_variant": 0,
+      "measured": true
+    },
+    {
+      "id": "unequal-top1",
+      "rank_tokens": [
+        31,
+        7
+      ],
+      "hidden": 128,
+      "intermediate": 256,
+      "top_k": 1,
+      "routing": "balanced",
+      "weight_seed": 1618,
+      "weight_variant": 0,
+      "measured": false
+    },
+    {
+      "id": "empty-rank-experts",
+      "rank_tokens": [
+        23,
+        17
+      ],
+      "hidden": 128,
+      "intermediate": 256,
+      "top_k": 2,
+      "routing": "empty-rank-experts",
+      "weight_seed": 1618,
+      "weight_variant": 0,
+      "measured": false
+    },
+    {
+      "id": "zero-input-rank",
+      "rank_tokens": [
+        0,
+        19
+      ],
+      "hidden": 128,
+      "intermediate": 256,
+      "top_k": 2,
+      "routing": "balanced",
+      "weight_seed": 1618,
+      "weight_variant": 0,
+      "measured": false
+    },
+    {
+      "id": "weight-update",
+      "rank_tokens": [
+        31,
+        7
+      ],
+      "hidden": 128,
+      "intermediate": 256,
+      "top_k": 1,
+      "routing": "balanced",
+      "weight_seed": 1618,
+      "weight_variant": 1,
+      "measured": false
+    }
+  ],
+  "source_provenance": [
+    {
+      "project": "vLLM-Ascend",
+      "revision": "0f85ed44bbbbdc0f0447f83ce62a82a8ad55afb3",
+      "url": "https://github.com/vllm-project/vllm-ascend/blob/0f85ed44bbbbdc0f0447f83ce62a82a8ad55afb3/vllm_ascend/ops/fused_moe/prepare_finalize.py",
+      "role": "AllGather preparation and local expert / combine workload architecture; implementation here is newly written"
+    },
+    {
+      "project": "vLLM-Ascend",
+      "revision": "0f85ed44bbbbdc0f0447f83ce62a82a8ad55afb3",
+      "url": "https://github.com/vllm-project/vllm-ascend/blob/0f85ed44bbbbdc0f0447f83ce62a82a8ad55afb3/vllm_ascend/ops/fused_moe/moe_comm_method.py",
+      "role": "complete dispatch / expert MLP / combine forward boundary"
+    }
+  ],
+  "tolerance": {
+    "atol": 0.03,
+    "rtol": 0.03,
+    "nrmse": 0.01,
+    "frozen": true
+  }
+}
