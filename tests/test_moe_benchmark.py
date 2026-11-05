@@ -281,7 +281,8 @@ def test_deadline_cleans_detached_workers_but_preserves_unrelated_process(tmp_pa
         assert execution["status"] == "timeout"
         pids = json.loads((tmp_path / "workers.json").read_text())
         guard = _moe_processes.cleanup(token)
-        assert guard["verified"] and set(pids) <= set(guard["signalled_pids"])
+        assert guard["verified"], guard
+        assert set(pids) <= set(guard["signalled_pids"]), guard
         assert not _moe_processes._members(token)
         assert unrelated.poll() is None
     finally:
