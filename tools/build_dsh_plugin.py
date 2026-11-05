@@ -13,7 +13,7 @@ import textwrap
 import zipfile
 from pathlib import Path
 
-from tools.build_codex_plugin import PROJECT, _io_path, _version, bundle_runtime
+from tools.plugin_bundle import PROJECT, _io_path, _version, bundle_runtime
 
 
 def client_bundle() -> str:

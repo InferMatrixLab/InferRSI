@@ -12,8 +12,8 @@ import zipfile
 
 import pytest
 
-from tools.build_codex_plugin import PROJECT, _io_path
 from tools.build_dsh_plugin import build_bundle
+from tools.plugin_bundle import PROJECT, _io_path
 
 
 @pytest.fixture(scope="module", autouse=True)
