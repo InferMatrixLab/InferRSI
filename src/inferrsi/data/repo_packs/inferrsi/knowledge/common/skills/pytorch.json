@@ -24,8 +24,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/f8a7e832feab05f8262ebe4057f34e2c8a48fd95/src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md",
-      "commit": "f8a7e832feab05f8262ebe4057f34e2c8a48fd95",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md",
+      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/LICENSE",
         "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md",
@@ -142,7 +142,7 @@
     "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/troubleshooting.md": "4e5c687a20e8066a9673625fc780667f490f9558a343d4d7d47d7ad278180824",
     "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/sub-skills/training-and-data/references/workflows.md": "791c86dc3c13c3c87da3c4144cafb082e84f9ba2978bb71dea99f0cf649fe727",
     "src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/sub-skills/training-and-data/scripts/tiny_training.py": "46af58f6ba0c7d69373efc416fcc2ae8dcada717ed29336ac84f84857b1240bb",
-    "src/inferrsi/data/skill_library/skill-index.json": "9ea8b2ef190777e683a3905f0614612a37782be4d655d230c000188b0c7073db"
+    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
   },
   "skill_metadata": {
     "name": "pytorch",

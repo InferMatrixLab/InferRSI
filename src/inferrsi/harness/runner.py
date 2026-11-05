@@ -13,7 +13,7 @@ from ..infra.targets import repository_identity
 from ..runspec import RunSpec
 from .evaluation import evaluate
 from .reporting import write_report
-from .scenarios.external import execute_trial
+from .scenarios.external import collect_trial_checks, execute_trial
 
 
 def run_experiment(
@@ -67,6 +67,9 @@ def run_experiment(
     ) -> dict:
         source_before = snapshot(repos[label], run_dir)
         record = execute(command, repos[label], trial_dir, deadline, metric_key)
+        if metric_key is not None and spec.required_trial_checks:
+            record["trial_checks"] = collect_trial_checks(record, spec.required_trial_checks)
+            _write_json(trial_dir / "execution.json", record)
         source_after = snapshot(repos[label], run_dir)
         check = {
             "path": str(trial_dir),

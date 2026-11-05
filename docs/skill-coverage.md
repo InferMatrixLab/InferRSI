@@ -4,7 +4,7 @@ Generated from the registry, the skill sidecars and the two maintained
 matrices. **Do not edit by hand**; regenerate after any registry, skill,
 matrix or frozen-plan change.
 
-- Input digest: `sha256:930a3c698dd502804d2bff47cd6c49311e51492d68497d2986110f51bf18ceae`
+- Input digest: `sha256:f3358ad6ec7526a64d17fa293e937aaa648efa88b7efb485deb98f9f08d07fae`
 - Regenerate: `python tools/build_skill_coverage.py`
 - Verify without writing: `python tools/build_skill_coverage.py --check`
 
@@ -33,18 +33,18 @@ matrix: every field is copied from an owner that already maintains it.
 
 | Measure | Value |
 |---|---|
-| Registered skill ids | 79 |
-| By category | frameworks 5, hardware 22, methods 20, repositories 26, workflows 6 |
-| By backend | ascend 15, common 59, cuda 5 |
+| Registered skill ids | 80 |
+| By category | frameworks 5, hardware 22, methods 20, repositories 27, workflows 6 |
+| By backend | ascend 16, common 59, cuda 5 |
 | Recorded on a numbered SearchSpace resource layer | 51 |
-| Recorded only in a supplementary guidance table (†) | 20 |
+| Recorded only in a supplementary guidance table (†) | 21 |
 | Resource layers explicitly not applicable | 7 |
 | Conflicting resource-layer declarations | 0 |
 | Recorded on two or more resource layers | 24 |
-| Recorded in the Reference Matrix | 71 |
-| With a `metadata.json` sidecar | 79 |
+| Recorded in the Reference Matrix | 72 |
+| With a `metadata.json` sidecar | 80 |
 | Selected by a frozen evaluation plan | 2 |
-| `SKILL.md` documents in the library | 142 |
+| `SKILL.md` documents in the library | 143 |
 | Unregistered documents (excluded from every count above) | 63 |
 
 A complete inventory is not a coverage claim. Every registered row below
@@ -88,7 +88,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [pytorch](../src/inferrsi/data/skill_library/frameworks/pytorch/pytorch/SKILL.md) | common | Operate and diagnose PyTorch installation, tensors and autograd, training and data, compilation and export, accelerator ... | Major user workflows and selected deep mechanisms of pinned pytorch/pytorch source; exact ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: PyTorch framework source procedures<br>2 RAM/Host † guidance: PyTorch framework source procedures<br>3 SSD † guidance: PyTorch framework source procedures<br>4 Network † guidance: PyTorch framework source procedures | PyTorch framework operating graph (pytorch/pytorch @ `9a90a4fefcaafa63ac984621963a6fcc66aee68c`, source ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [torch-npu](../src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md) | ascend | Operate and diagnose TorchNPU on Ascend across installation, PrivateUse1 dispatch, operator development, memory and ... | Source-grounded TorchNPU operation and diagnosis; qualify the selected installed stack ... | failure_modes, input_contract, produced_artifact, refusal_point | 1 Accelerator † guidance: TorchNPU framework source procedures<br>2 RAM/Host † guidance: TorchNPU framework source procedures<br>4 Network † guidance: TorchNPU framework source procedures | TorchNPU framework operating graph (Ascend/pytorch @ `046934140b96836c3fcef14d0f39ae54dc0a06bf` ...) | candidate · not_run · 2 readset(s) | no-eval |
 
-## Registered: Repositories (26)
+## Registered: Repositories (27)
 
 | Skill | Backend | Declared task | Applicability | Conditions | SearchSpace layer / stage | Reference Matrix | State | Gaps |
 |---|---|---|---|---|---|---|---|---|
@@ -117,6 +117,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [mlx-swift-lm](../src/inferrsi/data/skill_library/repositories/mlx-swift-lm/SKILL.md) | common | Investigate MLX Swift LM generation ownership, cancellation and settled task completion, and recurrent GatedDelta Metal ... | Selected Swift ownership/cancellation/settling and actual GatedDelta Metal/ops contracts ... | failure_modes, input_contract, produced_artifact<br>3 advice | 1 Accelerator † guidance: MLX Swift LM ownership and recurrent Metal source contracts<br>2 RAM/Host † guidance: MLX Swift LM ownership and recurrent Metal source contracts | MLX Swift LM lifecycle and recurrent Metal extraction (ml-explore/mlx-swift-lm @ `3d066d3a0ffdc7e70c476a3d31488ea62dfdd0ac` ...) | candidate · not_run · 2 readset(s) | no-eval |
 | [project-maya](../src/inferrsi/data/skill_library/repositories/project-maya/SKILL.md) | common | Investigate Project Maya model-family dispatch, representation and memory tiers, API versus native state, speculative ... | Model-specific dispatch/residency, API/native state and qualification investigation ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator † guidance: Project Maya model-specific source contracts<br>2 RAM/Host † guidance: Project Maya model-specific source contracts<br>3 SSD † guidance: Project Maya model-specific source contracts | Project Maya source and CPU-slice extraction (mw00/project-maya @ `249f9a87d1a9d72bec2b684d704b0aa9296b1c9c` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 | [splash](../src/inferrsi/data/skill_library/repositories/splash/SKILL.md) | common | Investigate Splash model-format compatibility, automatic memory planning, Metal and ANE execution, DFlash2 ... | Pinned Splash representation, planning, state/serving and verification investigation ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator † guidance: Splash source-derived planning and state<br>2 RAM/Host † guidance: Splash source-derived planning and state<br>3 SSD † guidance: Splash source-derived planning and state | Splash portable AREX extraction (incoai/splash @ `39a97385f8560cf8a93972cec9b0a963c9195250`; AREX ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
+| [vllm-ascend](../src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md) | ascend | Analyze vLLM Ascend v0.27.1rc1 performance and commit evolution for DeepSeek-V4, Kimi K3, MiniMax-M3 and GLM5+, fused ... | Release-pinned performance diagnosis and historical optimization analysis for ... | input_contract, produced_artifact, refusal_point<br>5 advice | 1 Accelerator † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis<br>2 RAM/Host † guidance: vLLM Ascend v0.27.1rc1 serving diagnosis | vLLM Ascend v0.27.1rc1 serving scope (vllm-project/vllm-ascend at `3b31886237ed65c435e0965b10e8002ff5769766`) | candidate · not_run · 3 readset(s) | no-eval |
 | [vllm-metal](../src/inferrsi/data/skill_library/repositories/vllm-metal/SKILL.md) | common | Investigate vllm-metal Apple inference through platform and native-ABI selection, paged KV/offload ownership ... | Selected plugin preparation, KV/offload ownership and speculative/deferred/dispatch ... | failure_modes, input_contract, produced_artifact<br>3 advice | 1 Accelerator † guidance: vLLM Metal selected source contracts<br>2 RAM/Host † guidance: vLLM Metal selected source contracts<br>3 SSD † guidance: vLLM Metal selected source contracts | vLLM Metal portable AREX source and CPU extraction (vllm-project/vllm-metal @ `e7df7a6ff215f99c7842552d230fdbc709835934` ...) | candidate · partial_cpu_only · 2 readset(s) | no-eval |
 
 ## Registered: Methods (20)
@@ -126,7 +127,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [assess-serving-preemption](../src/inferrsi/data/skill_library/methods/assess-serving-preemption/SKILL.md) | common | Assess whether LLM serving queue delays justify token-boundary priority preemption, accounting for suspended KV, host ... | Diagnosing whether LLM serving queue delay justifies token-boundary priority preemption ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Diagnose / Configure / Optimize / Verify<br>2 RAM/Host · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Orca — OSDI 2022 proceedings) | candidate · not_run · 1 readset(s) | no-eval |
 | [assess-split-backward-schedule](../src/inferrsi/data/skill_library/methods/assess-split-backward-schedule/SKILL.md) | common | Evaluate memory-capped split-backward and V-shaped pipeline scheduling proposals, preserving synchronous update ... | Assessing memory-capped split-backward and V-shaped pipeline schedule proposals when a ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Zero Bubble — [2401.10241v1](https://arxiv.org/abs/2401.10241v1)) | candidate · not_run · 1 readset(s) | no-eval |
 | [audit-fixed-workload-claim](../src/inferrsi/data/skill_library/methods/audit-fixed-workload-claim/SKILL.md) | common | Audit a performance claim from supplied fixed-workload reports and an explicit measurement contract. Check aggregation ... | Auditing a performance claim against supplied fixed-workload reports and an explicit ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | N/A: SKILL.md §§ Preserve the observation hierarchy, Check what was actually compared, and Return an auditable conclusion audit supplied measurements and verdicts; device identity is comparison metadata, not a hardware-resource mechanism. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
-| [calibrate-serving-simulation](../src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md) | common | Build an evidence-gated serving-configuration shortlist from a profiled simulator while separating empirical ... | Building an evidence-gated serving-configuration shortlist when a profiled simulator or ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Verify | 1 · Systems sources (Vidur — [2405.05465v2](https://arxiv.org/abs/2405.05465v2))<br>1 · Systems sources ([AMD Infera @ ff1136e4](https://github.com/AMD-AGI/Infera/tree/ff1136e ...) | candidate · not_run · 3 readset(s) | no-eval |
+| [calibrate-serving-simulation](../src/inferrsi/data/skill_library/methods/calibrate-serving-simulation/SKILL.md) | common | Build an evidence-gated serving-configuration shortlist from a profiled simulator while separating empirical ... | Building an evidence-gated serving-configuration shortlist when a profiled simulator or ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Verify | 1 · Systems sources (Vidur — [2405.05465v2](https://arxiv.org/abs/2405.05465v2)) | candidate · not_run · 1 readset(s) | no-eval |
 | [checkpoint-recovery-consistency](../src/inferrsi/data/skill_library/methods/checkpoint-recovery-consistency/SKILL.md) | common | Assess distributed checkpoint recovery using DLRover memory agreement, persistence completion and replica transport ... | Assessing distributed checkpoint recovery through DLRover memory agreement, persistence ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 2 RAM/Host · Configure / Verify<br>3 SSD · Configure / Verify<br>4 Network · Diagnose / Configure / Verify<br>5 OS · Diagnose / Configure | 1 · Systems sources (C3 / DLRover FlashCheckpoint @ `e35b1ad90e2928ca6bacf5d22117f71356 ...)<br>1 · Systems sources (C4 / NVIDIA Resiliency Extension @ ...) | candidate · not_run · 1 readset(s) | no-eval |
 | [choose-parallel-training-plan](../src/inferrsi/data/skill_library/methods/choose-parallel-training-plan/SKILL.md) | common | Compare stage, device-mesh and operator-sharding candidates for static distributed training while accounting for ... | Comparing stage, device-mesh and operator-sharding candidates for static distributed ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | 1 Accelerator · Diagnose / Configure / Optimize / Verify<br>4 Network · Diagnose / Configure / Optimize / Verify | 1 · Systems sources (Alpa — [2201.12023v3](https://arxiv.org/abs/2201.12023v3)) | candidate · not_run · 1 readset(s) | no-eval |
 | [dense-performance-evidence](../src/inferrsi/data/skill_library/methods/dense-performance-evidence/SKILL.md) | common | Taxonomy of performance evidence an optimization agent needs, ordered by collection cost and diagnostic power. Maps ... | Deciding which performance evidence to collect next and which claim each evidence level ... | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Observe / Profile / Verify<br>2 RAM/Host · Verify<br>4 Network · Verify | 1 · Systems sources (NVIDIA/TensorRT-LLM @ f33e0e5fd)<br>2 · Methodology and corpus references (JiusiServe/vllm-evolve @ 43cc82c)<br>2 · Methodology and corpus references (microsoft/SkillOpt @ 343db22) | candidate · not_run · 0 readset(s) | — |
@@ -153,7 +154,7 @@ optimization is fully covered or that any procedure has measured benefit.
 | [competitor-scan](../src/inferrsi/data/skill_library/workflows/competitor-scan/SKILL.md) | common | Structure a lightweight competitive scan without inventing benchmark numbers or campaign verdicts. | Qualitative positioning of a new RSI repository against other projects before acceptance ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | N/A: SKILL.md §§ Frame, Rules and Deliverable produce a qualitative competitive comparison with evidence limits, not a hardware-resource decision or implementation mechanism. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
 | [draft-acceptance-issue](../src/inferrsi/data/skill_library/workflows/draft-acceptance-issue/SKILL.md) | common | Draft a campaign acceptance issue with checklist, RunSpec, evidence paths, and placeholders for baseline/candidate SHAs. | Opening a new acceptance campaign in an RSI-style repository, before any baseline or ... | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | N/A: SKILL.md §§ Steps and Output prepare an acceptance issue, RunSpec, frozen gates and evidence paths; device identifiers are campaign metadata rather than a hardware-resource mechanism. | — | candidate · not_run · 0 readset(s) | no-Reference-Matrix-row, no-eval |
 | [npu-skill-factory](../src/inferrsi/data/skill_library/workflows/npu-skill-factory/SKILL.md) | common | Design and operation of the InferRSI NPU skill factory: artifact lifecycle, skill evaluation contract, corpus ... | InferRSI skill lifecycle management | failure_modes, input_contract, produced_artifact, refusal_point<br>3 advice | N/A: SKILL.md §§ Choose the evidence product, Artifact lifecycle, and What this skill does not do define skill-distillation/evaluation methodology; NPU task tiers are evaluation prerequisites, not a hardware-resource mechanism. | 2 · Methodology and corpus references (Dong1017/OmniRSI @ `codex/skill-eval-bootstrap` (82218b4))<br>2 · Methodology and corpus references (InferMatrixLab/InferRSI PR #9 @ 4ad551a9)<br>2 · Methodology and corpus references (VectorSpaceLab/AREX-Skill @ ac3fe1af)<br>2 · Methodology and corpus references (microsoft/SkillOpt @ 343db22) | candidate · not_run · 14 readset(s) | no-eval |
-| [rsi-evidence](../src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md) | common | Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE ... | Documenting or reviewing an optimization campaign whose verdict will be cited downstream | failure_modes, input_contract, produced_artifact, refusal_point<br>4 advice | 1 Accelerator · Verify | — | candidate · not_run · 1 readset(s) | no-Reference-Matrix-row, no-eval |
+| [rsi-evidence](../src/inferrsi/data/skill_library/workflows/rsi-evidence/SKILL.md) | common | Guide agents to publish and cite RSI evidence using plan/results/patch/validator paths and PASS/FAIL/INCONCLUSIVE ... | Documenting or reviewing an optimization campaign whose verdict will be cited downstream | failure_modes, input_contract, produced_artifact, refusal_point<br>5 advice | 1 Accelerator · Verify | — | candidate · not_run · 1 readset(s) | no-Reference-Matrix-row, no-eval |
 
 ## Documents outside the registry
 
@@ -230,7 +231,7 @@ an entrypoint routes to procedures below it rather than adding one.
 
 ## Integrity checks
 
-- Registered ids resolve to an existing `SKILL.md`: 79 of 79.
+- Registered ids resolve to an existing `SKILL.md`: 80 of 80.
 - Duplicate ids or paths: none; `skill_catalog` rejects them before this view is built.
 - Skill links in the two matrices that do not resolve: 0.
 - Registered skills without a `metadata.json` sidecar: 0.
@@ -244,7 +245,7 @@ an entrypoint routes to procedures below it rather than adding one.
 | `no-Reference-Matrix-row` | 8: ascend-video-diffusion-optimization, audit-fixed-workload-claim, cite-check-downstream-pr, claim-contract, competitor-scan, draft-acceptance-issue, rsi-evidence, video-diffusion-optimization |
 | `no-sidecar` | 0: — |
 | `no-applicability` | 0: — |
-| `no-eval` | 77: as listed in the Gaps column above |
+| `no-eval` | 78: as listed in the Gaps column above |
 
 These are inventory gaps, not efficacy results. Missing layer mappings stay
 unknown unless the sidecar records a reasoned N/A. N/A is not coverage;
