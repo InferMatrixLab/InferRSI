@@ -171,6 +171,10 @@ evidence**:
   or rollback that no failure summary cites;
 - a capture that is missing, edited or fails its hash checks (its text is withheld).
 
+A recorded iteration indicates available run evidence, not a completed result.
+For example, an in-progress run may have no recorded outcome; a success or
+failure summary citing a run with no recorded outcome is flagged.
+
 ### Per-candidate narrative (schema version 1)
 
 The dashboard can show the assembled knowledge text and the caller's account of
