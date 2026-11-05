@@ -822,7 +822,7 @@ textarea { display:block; width:100%; min-height:85px; resize:vertical; backgrou
         if(entry.cause_stage)claim.appendChild(node('small',`Cause: ${stageNames[entry.cause_stage]}`,'hint'));
         const links=node('div');
         for(const link of entry.links){
-          if(link.ref.startsWith('candidate:')){const b=node('button',`${link.ref.slice(10)} · ${measuredText(link)}`,'chip');b.type='button';b.disabled=link.state!=='recorded';b.addEventListener('click',()=>selectCandidate(link.ref.slice(10)));links.appendChild(b);}
+          if(link.ref.startsWith('candidate:')){const b=node('button',`${link.ref.slice(10)} · ${measuredText(link)}`,'chip');b.type='button';b.disabled=!['recorded','outcome_not_recorded'].includes(link.state);b.addEventListener('click',()=>selectCandidate(link.ref.slice(10)));links.appendChild(b);}
           else{const c=node('span',link.ref,`chip${link.state==='recorded'?'':' missing'}`);c.setAttribute('data-no-translate','');links.appendChild(c);}
         }
         claim.appendChild(links);box.appendChild(claim);

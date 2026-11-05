@@ -3,6 +3,8 @@
 import copy
 import hashlib
 import json
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -220,6 +222,81 @@ def test_story_does_not_treat_a_running_candidate_as_a_recorded_failure(tmp_path
     assert story["summary"]["failures"][0]["links"][0]["state"] == "outcome_not_recorded"
     assert any(check["message"] == "evidence candidate:b has no recorded outcome"
                for check in story["checks"])
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node.js is needed for the UI regression")
+def test_summary_navigates_to_run_without_outcome_but_not_missing_runs(tmp_path):
+    digest = campaign(tmp_path)
+    write_log(tmp_path, log_document(digest))
+    run = tmp_path / "runs" / "run-b"
+    write_json(run / "status.json", {"state": "running"})
+    write_json(run / "evaluation.json", {})
+    write_json(run / "validation" / "execution.json", {"status": "pending"})
+
+    data = load_dashboard(tmp_path)
+    story = data["story"]
+    link = story["summary"]["failures"][0]["links"][0]
+    assert link["state"] == "outcome_not_recorded" and link["run_id"] == "run-b"
+    assert any(check["message"] == "evidence candidate:b has no recorded outcome"
+               for check in story["checks"])
+    story["summary"]["failures"][0]["links"].extend([
+        {"ref": "candidate:missing", "state": "not_recorded"},
+        {"ref": "candidate:corrupt", "state": "unavailable"},
+        {"ref": "candidate:duplicate", "state": "ambiguous"},
+    ])
+
+    template = Path(__file__).parents[1] / "src/inferrsi/data/dashboard/template.html"
+    script = r"""
+const fs = require('node:fs'), assert = require('node:assert/strict');
+const data = JSON.parse(fs.readFileSync(0, 'utf8'));
+const html = fs.readFileSync(process.argv[1], 'utf8');
+const selectStart = html.indexOf('  function selectCandidate(');
+const selectEnd = html.indexOf('  function renderIterations(', selectStart);
+const summaryStart = html.indexOf('  function renderSummary(');
+const summaryEnd = html.indexOf('  function renderStory(', summaryStart);
+assert(selectStart >= 0 && selectEnd > selectStart);
+assert(summaryStart >= 0 && summaryEnd > summaryStart);
+const source = html.slice(selectStart, selectEnd) + html.slice(summaryStart, summaryEnd);
+function node(tag, text, cls) {
+  return {tag, text, cls, children: [], style: {}, disabled: false, listeners: {},
+    appendChild(child) { this.children.push(child); },
+    setAttribute() {}, addEventListener(type, fn) { this.listeners[type] = fn; },
+    click() { if (!this.disabled) this.listeners.click(); }};
+}
+const target = {setAttribute(name, value) { this[name] = value; },
+  focus() { this.focused = true; }, scrollIntoView() { this.scrolled = true; }};
+const runSelect = {value: 'old'}, stageSelect = {value: 'old'}, candidateSelect = {value: 'old'};
+const api = new Function('data', 'node', 'narrativeNode', 'translatedNarrative',
+  'stageNames', 'runSelect', 'stageSelect', 'candidateSelect', 'byId', 'render', 'detailLine',
+  'let selected = -1, jumpNotice = "old";\n' + source +
+  '\nreturn {renderSummary, selected: () => selected, jumpNotice: () => jumpNotice};')(
+  data, node, node, value => value, {search: 'Search'}, runSelect, stageSelect,
+  candidateSelect, id => { assert.equal(id, 'candidate-inspection'); return target; },
+  () => {}, () => {});
+const root = node('div'); api.renderSummary(root, data.story);
+const buttons = [];
+function visit(element) {
+  if (element.tag === 'button') buttons.push(element);
+  element.children.forEach(visit);
+}
+visit(root);
+const button = id => buttons.find(b => b.text.startsWith(id + ' · '));
+assert.equal(button('a').disabled, false);
+assert.equal(button('b').text, 'b · No recorded outcome');
+assert.equal(button('b').disabled, false);
+button('b').click();
+assert.equal(data.candidates[api.selected()].candidate_id, 'b');
+assert.equal(api.jumpNotice(), '');
+assert.equal(runSelect.value, ''); assert.equal(stageSelect.value, '');
+assert.equal(candidateSelect.value, '');
+assert.equal(target.tabindex, '-1'); assert(target.focused && target.scrolled);
+for (const id of ['missing', 'corrupt', 'duplicate']) {
+  assert.equal(button(id).disabled, true); button(id).click();
+  assert.equal(data.candidates[api.selected()].candidate_id, 'b');
+}
+"""
+    subprocess.run([shutil.which("node"), "-e", script, str(template)], input=json.dumps(data),
+                   check=True, capture_output=True, text=True)
 
 
 def test_story_retains_a_recorded_failure_when_other_run_files_are_corrupt(tmp_path):
