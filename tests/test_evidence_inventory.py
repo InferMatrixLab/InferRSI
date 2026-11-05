@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from tools.validate_evidence import SEGMENTS, validate_inventory
+from tools.validate_evidence import SEGMENTS, validate_inventory, validate_manifest
 
 
 def write_json(path, value):
@@ -145,6 +145,20 @@ def test_checked_in_inventory():
     repo = Path(__file__).resolve().parents[1]
     result = validate_inventory(repo)
     assert result["errors"] == []
-    assert len(result["bundles"]) == 21
-    assert result["checked_hashes"] == 430
     assert result["unavailable"]  # Historical raw artifacts are not in this checkout.
+    # This bundle's manifests stay registered on their own. Another campaign can
+    # land without rewriting a shared bundle or hash total.
+    inventory = json.loads((repo / "tools/evidence_inventory.json").read_text(encoding="utf-8"))
+    entry = inventory["bundles"]["h3-ref2va-lossless-293"]
+    assert [(item["path"], item["schema"]) for item in entry["manifests"]] == [
+        ("plan/integrity.json", "bundle-sha256"),
+        ("plan/integrity-screening-v2.json", "bundle-sha256"),
+    ]
+    bundle = repo / "evidence" / "h3-ref2va-lossless-293"
+    unavailable = []
+    checked = sum(
+        validate_manifest(repo, bundle, manifest, unavailable) for manifest in entry["manifests"]
+    )
+    assert unavailable == []
+    assert checked == 13  # plan/integrity.json (9) and plan/integrity-screening-v2.json (4).
+    assert any(item["name"] == "h3-ref2va-lossless-293" for item in result["bundles"])

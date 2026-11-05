@@ -1,0 +1,48 @@
+{
+  "acceptance": "No lossy cache, no quantization, no omitted diffusion steps; complete audio and no demonstrated quality regression. No candidate has qualified yet.",
+  "candidates": [
+    {
+      "name": "rank-local layer weight transfers",
+      "source": "https://github.com/vllm-project/vllm-omni/pull/5929",
+      "source_revision": "ea3cf9989",
+      "kind": "existing configuration, not new engine code",
+      "hypothesis": "Replicated host reads may avoid all-gather overhead",
+      "screening": "ranklocal0 versus allgather on the same reserved devices",
+      "status": "pending",
+      "gain": null,
+      "qualification_note": "Unified ranklocal0 policy selects layer_wise backend; ranklocal16 selects distributed_layer_wise. Report complete config gains, not isolated collective gains."
+    },
+    {
+      "name": "bounded resident DiT layers",
+      "source": "https://github.com/vllm-project/vllm-omni/pull/5929",
+      "kind": "existing configuration, not new engine code",
+      "hypothesis": "Keep 16 layers resident to avoid repeated weight transfer if memory permits",
+      "screening": "ranklocal16 versus ranklocal0; combined versus allgather",
+      "status": "pending",
+      "gain": null,
+      "implementation_source": "https://github.com/vllm-project/vllm-omni/pull/5764",
+      "implementation_revision": "1c2a81f6d84aea4fff53bd2f894c2a287c237245",
+      "source_revision": "ea3cf99894f379c7732e6d62aa464a6f4285fbd9"
+    },
+    {
+      "name": "combined strict QKV collective",
+      "source": "https://github.com/vllm-project/vllm-omni/pull/4150",
+      "source_revision": "5c0cdb7916bff945ba6b6a3c645a17e6973e5990",
+      "kind": "local NPU H3 adaptation of upstream proposal, reuses existing 5D collective",
+      "hypothesis": "One collective instead of three may reduce launch overhead, but packing and noncontiguous consumers can erase benefit",
+      "status": "10 CPU dispatch cases pass; real collective and NPU validation pending",
+      "gain": null
+    }
+  ],
+  "not_selected": [
+    {
+      "source": "https://github.com/vllm-project/vllm-omni/pull/9353",
+      "reason": "Author reports eager regression; no basis for assuming benefit on current eager H3 workload."
+    },
+    {
+      "source": "https://github.com/vllm-project/vllm-omni/pull/9510",
+      "reason": "Additional SHMEM NPU implementation/dependencies; draft is not evidence of qualified H3 lossless benefit."
+    }
+  ],
+  "reporting": "Report baseline, individual and combined E2E directly. Do not add component percentages. Synthetic collective speed is never reported as model E2E gain."
+}

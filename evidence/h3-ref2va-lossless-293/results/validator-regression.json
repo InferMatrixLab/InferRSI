@@ -1,0 +1,51 @@
+{
+  "synthetic": true,
+  "scope": "CPU validator regression only; not model quality or speedup",
+  "scorer_state_matches_legacy": true,
+  "weights": {
+    "alexnet_sha256": "7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02",
+    "lpips_sha256": "df73285e35b22355a2df87cdb6b70b343713b667eddbda73e1977e0c860835c0"
+  },
+  "complete_identity": {
+    "verdict": "PASS",
+    "media_gate_verdict": "PASS",
+    "scope": "decoded media equality; unequal outputs require separate baseline-repeatability adjudication",
+    "exact_video": true,
+    "exact_audio": true,
+    "coverage": [
+      {
+        "expected_duration_s": 0.5,
+        "decoded_audio_end_s": 0.512
+      },
+      {
+        "expected_duration_s": 0.5,
+        "decoded_audio_end_s": 0.512
+      }
+    ],
+    "scorer_identity": {
+      "alexnet_sha256": "7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02",
+      "lpips_sha256": "df73285e35b22355a2df87cdb6b70b343713b667eddbda73e1977e0c860835c0"
+    },
+    "metrics": {
+      "ssim": 1.0,
+      "psnr_db": "inf",
+      "lpips": 0.0,
+      "audio_spectral_cosine": 1.0000017285346985,
+      "audio_rms_ratio": 1.0,
+      "audio_samples": 16384
+    }
+  },
+  "legacy_truncated_identity": {
+    "verdict": "PASS",
+    "scope": "matched decoded video/audio parity only; not semantic or temporal quality",
+    "metrics": {
+      "ssim": 1.0,
+      "psnr_db": "inf",
+      "lpips": 0.0,
+      "audio_spectral_cosine": 1.0000033179918926,
+      "audio_rms_ratio": 1.0,
+      "audio_samples": 4096
+    }
+  },
+  "new_truncated_rejection": "Audio stream ends before the expected video duration"
+}

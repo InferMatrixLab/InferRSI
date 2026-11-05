@@ -1,0 +1,43 @@
+{
+  "source": "vllm_omni/diffusion/offloader/config.py at 098b51f6b96dd160a0959e74e8822422527ff06d",
+  "scope": "real pure config resolver, not engine startup",
+  "results": {
+    "allgather": {
+      "strategy": "distributed_layer_wise",
+      "components": [
+        "dit"
+      ],
+      "transfers": {
+        "dit": "allgather",
+        "text_encoder": "rank-local"
+      },
+      "resident_layers": 0,
+      "pin_memory": true
+    },
+    "ranklocal0": {
+      "strategy": "layer_wise",
+      "components": [
+        "dit"
+      ],
+      "transfers": {
+        "dit": "rank-local",
+        "text_encoder": "rank-local"
+      },
+      "resident_layers": 0,
+      "pin_memory": true
+    },
+    "ranklocal16": {
+      "strategy": "distributed_layer_wise",
+      "components": [
+        "dit"
+      ],
+      "transfers": {
+        "dit": "rank-local",
+        "text_encoder": "rank-local"
+      },
+      "resident_layers": 16,
+      "pin_memory": true
+    }
+  },
+  "note": "ranklocal0 and ranklocal16 select different backend strategies automatically; treat as complete configuration candidates, not isolated communication microbenchmarks"
+}
