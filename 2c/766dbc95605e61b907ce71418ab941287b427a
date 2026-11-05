@@ -1,0 +1,43 @@
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/fused-operators.md
+  s_33b92c38f948ae::t_bde30e923a0253 3
+tests/check_installed.py
+  s_33b92c38f948ae::t_bde30e923a0253 51-57
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/model-performance.md
+  s_33b92c38f948ae::t_bde30e923a0253 82-83
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/communication-config.md
+  s_33b92c38f948ae::t_bde30e923a0253 8,37,70-71
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/deepseek-v4-evolution.md
+  s_33b92c38f948ae::t_bde30e923a0253 71-72
+tests/test_vllm_ascend_rc_skill.py
+  s_33b92c38f948ae::t_bde30e923a0253 11,32-33,84-87,106-124
+  s_33b92c38f948ae::t_cc6b2cf79a11c3 83
+docs/skill-coverage.md
+  s_33b92c38f948ae::t_bde30e923a0253 7,120
+tools/check_vllm_ascend_source_anchors.py
+  s_33b92c38f948ae::t_393ead3f5e93a3 1,39-40
+  s_33b92c38f948ae::t_0356bb5ceb1ca6 2-38,41-109
+tests/test_vllm_ascend_source_anchors.py
+  s_33b92c38f948ae::t_393ead3f5e93a3 67,71-72,79-80
+  s_33b92c38f948ae::t_3b00d9b566f8c1 66,68-70,73-78
+  s_33b92c38f948ae::t_0356bb5ceb1ca6 1-65,81-165
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/history-scope.md
+  s_33b92c38f948ae::t_cc6b2cf79a11c3 36
+  s_33b92c38f948ae::t_7982e32dc891f7 37
+  s_33b92c38f948ae::t_bde30e923a0253 14,28,34-35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "2c766dbc95605e61b907ce71418ab941287b427a",
+  "prompts": {},
+  "sessions": {
+    "s_33b92c38f948ae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a999-4b43-7fb3-8dab-9aeba113b3d9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
