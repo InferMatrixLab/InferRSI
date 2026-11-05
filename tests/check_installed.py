@@ -43,7 +43,9 @@ skill_index = search_knowledge(repo="inferrsi", limit=100)
 assert len(skill_index) == 80, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")
-for resource in ("plugin-registration", "minimax-cache", "dspark-pd", "sources"):
+for resource in ("plugin-registration", "minimax-cache", "dspark-pd", "sources",
+                 "deepseek-v4-evolution", "communication-config", "model-performance",
+                 "fused-operators", "history-scope"):
     key = f"data/skill_library/repositories/vllm-ascend/references/{resource}.md"
     assert ascend_rc.content[key] == files("inferrsi").joinpath(*key.split("/")).read_bytes()
 indexed = KnowledgeReader().read("inferrsi.ascend.skills.ascend_operator_profiling")
