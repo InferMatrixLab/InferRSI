@@ -1,0 +1,45 @@
+docs/reference-matrix.md
+  s_33b92c38f948ae::t_3312393a439ff0 549-554
+docs/searchspace-matrix.md
+  s_33b92c38f948ae::t_0f23e3466215c2 617-623
+docs/skill-coverage.md
+  s_33b92c38f948ae::t_15d9d8fcabe739 7,36-38,40,44-45,47,91,120,234,248
+src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md
+  s_33b92c38f948ae::t_24c5cd6c0623e7 1-23
+src/inferrsi/data/skill_library/repositories/vllm-ascend/metadata.json
+  s_33b92c38f948ae::t_19c5ae5e3f91ba 1-69
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/dspark-pd.md
+  s_33b92c38f948ae::t_7f43901c2b10bd 1-15
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/minimax-cache.md
+  s_33b92c38f948ae::t_af2a8b7539d631 1-15
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/plugin-registration.md
+  s_33b92c38f948ae::t_ccbdb1bcbb236c 1-21
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/sources.md
+  s_33b92c38f948ae::t_76f383f92a95d2 1-27
+src/inferrsi/data/skill_library/skill-index.json
+  s_33b92c38f948ae::t_eba5accd995bc0 308-311
+tests/check_installed.py
+  s_33b92c38f948ae::t_87784ae4e5eca9 43,207
+tests/test_knowledge_contract.py
+  s_33b92c38f948ae::t_1e59b46e06a42f 34
+tests/test_skill_index.py
+  s_33b92c38f948ae::t_c71f809a5c4aa6 24,42,199
+tests/test_vllm_ascend_rc_skill.py
+  s_33b92c38f948ae::t_4a2fe62b19eaec 1-33
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "e5ba044efd64ad874345f58c9cbcc8e3228420d8",
+  "prompts": {},
+  "sessions": {
+    "s_33b92c38f948ae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a999-4b43-7fb3-8dab-9aeba113b3d9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
