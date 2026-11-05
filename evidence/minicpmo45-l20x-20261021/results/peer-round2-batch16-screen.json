@@ -1,0 +1,43 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "64 reused tuning prompts, one measured repeat; throughput improvement is exploratory, not final qualification",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "cells": {
+    "1": {
+      "throughput_frames_s": 195.06704675552575,
+      "ttfa_p50_s": 0.29740623012185097,
+      "ttfa_p95_s": 0.3303545414470136,
+      "rtf_mean": 0.12942367030367663,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "16": {
+      "throughput_frames_s": 760.1710863988206,
+      "ttfa_p50_s": 1.1695650070905685,
+      "ttfa_p95_s": 1.7888787986710668,
+      "rtf_mean": 0.5135984359048855,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "32": {
+      "throughput_frames_s": 895.0384019394737,
+      "ttfa_p50_s": 1.8793323999270797,
+      "ttfa_p95_s": 3.3891150186769647,
+      "rtf_mean": 0.8585077294911585,
+      "n_failed": 0,
+      "n_requests": 64
+    }
+  },
+  "separate_diagnostic_mean": {
+    "thinker_ttft_ms": 113.00430819392204,
+    "thinker_gen_ms": 173.65941777825356,
+    "thinker_tpot_ms": 7.928317298807252,
+    "talker_first_output_ms": 813.5854601860046,
+    "talker_gen_ms": 1647.305954247713,
+    "code2wav_first_output_ms": 1954.1207887232304,
+    "code2wav_gen_ms": 3570.487316697836,
+    "audio_s": 4.386875,
+    "client_ttfa_s": 1.9877856113744201
+  },
+  "diagnostic_note": "Stage times overlap and include pipeline waiting; they are not isolated kernel durations. Diagnostic run is excluded from throughput aggregates."
+}

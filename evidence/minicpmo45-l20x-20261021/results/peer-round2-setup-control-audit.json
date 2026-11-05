@@ -1,0 +1,35 @@
+{
+  "scope": "Identical-state A/A control and A/B diagnostic only; prior waveform gate remains unchanged",
+  "rows": [
+    {
+      "prompt_index": 0,
+      "aa_audio_l2": 4.089455956091115e-07,
+      "aa_mel_l2": 0.0,
+      "ab_audio_l2": 0.10460823029279709,
+      "ab_mel_l2": 8.788213017396629e-05
+    },
+    {
+      "prompt_index": 1,
+      "aa_audio_l2": 3.6402414593794674e-07,
+      "aa_mel_l2": 0.0,
+      "ab_audio_l2": 0.01225988008081913,
+      "ab_mel_l2": 9.224325185641646e-05
+    },
+    {
+      "prompt_index": 2,
+      "aa_audio_l2": 9.018204423227871e-07,
+      "aa_mel_l2": 0.0,
+      "ab_audio_l2": 0.011363813653588295,
+      "ab_mel_l2": 0.00010425836080685258
+    },
+    {
+      "prompt_index": 3,
+      "aa_audio_l2": 1.195786921925901e-06,
+      "aa_mel_l2": 0.0,
+      "ab_audio_l2": 0.04626587778329849,
+      "ab_mel_l2": 8.516170782968402e-05
+    }
+  ],
+  "verdict": "FAIL: A/A mel exact and waveform near1e-6, but A/B waveform still exceeds0.01. Original setup failure remains unchanged.",
+  "limitations": "Model construction random noise was not seeded in either probe; cross-run magnitudes are not directly comparable. Within each A/A/B comparison the model and its noise buffers are fixed."
+}

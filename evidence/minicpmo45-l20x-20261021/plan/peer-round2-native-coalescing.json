@@ -1,0 +1,47 @@
+{
+  "frozen_at_utc": "2026-10-21T08:13:37.431694+00:00",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "Bounded native generation input coalescing collects more ready streams per CFM call and amortizes dispatch; increasing microbatch capacity alone did not ensure full batches.",
+  "evidence": [
+    "Stage2 profiler observed small actual HiFT batches despite microbatch16 capacity",
+    "Peer runtime/t2w_worker.py already batches ready windows (target8,max_wait40ms) with first/final exceptions",
+    "Current OmniGenerationScheduler supports bounded coalescing only on native MRV2; older all-stage MRV2 control had capacities8 and no explicit coalescing"
+  ],
+  "contrast": [
+    "Control: FP32 batch16+MPS profile, only stage2 model_runner=v2, capacities16 everywhere; no first-chunk express scheduling",
+    "Candidate: same control plus generation_min_batch_size8,generation_max_wait_ms6,generation_coalescing_policy idle_wait"
+  ],
+  "gates": [
+    "Run existing bounded coalescing scheduler tests",
+    "Resolve both configs and verify V1/V1/V2,capacity16,microbatch16,FP32",
+    "Check runtime coalescing engages rather than ignored fallback",
+    "64 reused tuning C1/C16/C32,discard+one; all failures and quality retained"
+  ],
+  "decision": "Do not combine with replica or precision changes until this contrast is evaluated.",
+  "holdout": "256 reserved IDs remain unused",
+  "pre_service_checks": {
+    "bounded_coalescing_and_initialization_tests": "42 passed",
+    "resolved_configs": "PASS for V1/V1/V2,16/16/16 capacities,MPS in both profiles"
+  },
+  "initial_service_outcome": {
+    "control_fps": {
+      "1": 186.9,
+      "16": 774.6,
+      "32": 898.2
+    },
+    "candidate": "Startup failed before requests: constructor restricts batch waiting to retains_state_across_chunks=true, while MiniCPM intentionally has chunk-owned runner slots.",
+    "next_change": "Remove only fixed-slot retention prerequisite; retain native data-plane and TP1/PP1 constraints. Readiness coalescing precedes allocation and does not access model slot state. Do not change MiniCPM lifetime/admission flag.",
+    "regression": "Real MiniCPM pipeline constructor with coalescing must succeed with retains_state_across_chunks=false; existing lifecycle, bounded wait, control progress and distributed rejection tests must pass.",
+    "control_equivalence": "The changed guard is entered only when coalescing is configured. Disabled control behavior remains unchanged."
+  },
+  "retry": {
+    "source_revision": "e9b12cf223b4a3900f6f30772065eb058550319a",
+    "regression_before": "1 failed at original state retention guard",
+    "regression_after": "104 passed",
+    "pre_commit": "All applicable hooks passed",
+    "change": "Remove fixed-slot-retention prerequisite only; native TP1/PP1 constraints retained.",
+    "retry_frozen_at_utc": "2026-10-21T08:42:49.209878+00:00",
+    "control_runtime": "Previously completed control uses identical disabled-coalescing path.",
+    "log_policy": "Initial attempt3 failure preserved; retry uses distinct attempt4 server log."
+  }
+}

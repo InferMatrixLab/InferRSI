@@ -1,0 +1,103 @@
+{
+  "schema_version": 1,
+  "id": "minicpmo_single_gpu_engine.cuda.audio.streaming_transfer_constraints",
+  "tier": "peer",
+  "repo": "minicpmo_single_gpu_engine",
+  "backend": "cuda",
+  "component": "audio",
+  "scenario": "audio.tts",
+  "title": "MiniCPM-o 4.5: streaming batching, launch overlap and quality-constrained transfer",
+  "status": "imported",
+  "summary": "Transfer hypotheses for streaming MiniCPM-o serving: measure complete audio delivery, preserve request-owned state, and qualify combined numerical changes separately from isolated kernels.",
+  "tags": [
+    "minicpm-o",
+    "streaming",
+    "cuda_graph",
+    "mps",
+    "code2wav",
+    "throughput",
+    "quality"
+  ],
+  "sources": [
+    {
+      "url": "https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine/blob/a4f4778f312791c2d190b48e521141887ed160c8/docs/optimizations.md",
+      "type": "documentation",
+      "commit": "a4f4778f312791c2d190b48e521141887ed160c8",
+      "accessed_at": "2026-10-21",
+      "content_sha256": "54a836ed42d64f5212bcf040256abf4a38f6d92b2bb0582b8e16099d0f1d0565"
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine/blob/a4f4778f312791c2d190b48e521141887ed160c8/docs/baselines.md",
+      "type": "documentation",
+      "commit": "a4f4778f312791c2d190b48e521141887ed160c8",
+      "accessed_at": "2026-10-21",
+      "content_sha256": "f56647d01348ea76b57b22457172fa06efec2b6edab980e25ed0aa2cb155c62b"
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine/blob/a4f4778f312791c2d190b48e521141887ed160c8/bench/metrics.py",
+      "type": "source_code",
+      "commit": "a4f4778f312791c2d190b48e521141887ed160c8",
+      "accessed_at": "2026-10-21",
+      "content_sha256": "ef40121126464c9b120bd37710b145895a0a784a4caab5319d3f535b64ab35a0"
+    },
+    {
+      "url": "https://github.com/InferMatrixLab/minicpm-o-4.5-single-gpu-engine/blob/a4f4778f312791c2d190b48e521141887ed160c8/bench/protocol.py",
+      "type": "source_code",
+      "commit": "a4f4778f312791c2d190b48e521141887ed160c8",
+      "accessed_at": "2026-10-21",
+      "content_sha256": "c739883456a14c0717121af1c1d7e6fd0ec6601f9a657c1d0d577a27f23dab74"
+    }
+  ],
+  "applicability": {
+    "hardware": [
+      "NVIDIA L20X source campaign; other devices need independent qualification"
+    ],
+    "software": [
+      "openbmb/MiniCPM-o-4_5",
+      "Dedicated single-GPU engine source snapshot; downstream vLLM-Omni and SGLang-Omni revisions must be checked independently"
+    ],
+    "conditions": [
+      "Fixed checkpoint bytes, sampling parameters, reference audio and workload across comparisons.",
+      "Separate tuning/evaluation requests and consistent warmup/cache policies."
+    ]
+  },
+  "claims": [
+    {
+      "kind": "upstream_reported",
+      "description": "The source reports separating Token2Wav into an MPS worker, batching streaming windows, graph replay and asynchronous host-to-device preparation."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "The measured fast profile is not quality-qualified: combining TF32 HiFT and batched setup exceeded a chunk error bound despite individual mechanisms passing their checks."
+    },
+    {
+      "kind": "upstream_reported",
+      "description": "Several plausible launch reductions measured neutral or negative at service level, including larger HiFT graph buckets and asynchronous Token2Wav results."
+    }
+  ],
+  "downstream_impact": [
+    "Inspect current vLLM-Omni implementation before porting: it may already provide fused CFM, cross-reference batching and graph replay absent from historical measurements.",
+    "Keep reference extraction, setup, decode, output delivery and queueing distinct when profiling.",
+    "MPS and graph bucket choices are device/workload tuning hypotheses, not universally optimal defaults."
+  ],
+  "recommendations": [
+    "Report frames/s as 25 times delivered audio seconds divided by wall time, TTFA from first delivered samples, and request RTF from last delivered samples. Preserve chunk counts and failures.",
+    "Label a one-waveform response non-streaming; its TTFA is close to full-response latency and differs semantically from an incremental stream.",
+    "Compare lossless execution/configuration changes first; numerical precision, smaller first windows and sampling changes require separate quality qualification."
+  ],
+  "validation_plan": [
+    "Pin source and dependency identities; verify that editable imports do not escape the tested checkout.",
+    "Run disjoint warmup and evaluation prompts at every reported concurrency; retain per-request audio, timing, failures and run-level variability.",
+    "Use numerical/state tests plus complete served WER, speaker similarity and quality scoring; test combinations, not just each mechanism alone.",
+    "Compare paired baseline/candidate service runs with equivalent caches and devices; keep microbench and imported results separate."
+  ],
+  "limitations": [
+    "Source-backed import only; no locally verified downstream acceleration.",
+    "Historical vLLM-Omni plateau and SGLang non-streaming observations apply only to their pinned source campaign revisions.",
+    "A dedicated engine schedule cannot be transplanted as a deployment parameter; state and runtime ownership differ."
+  ],
+  "verification": {
+    "locally_verified": false,
+    "evidence_level": "guidance"
+  }
+}

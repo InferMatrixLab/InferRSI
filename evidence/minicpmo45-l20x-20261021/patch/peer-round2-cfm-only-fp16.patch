@@ -1,0 +1,340 @@
+diff --git a/tests/model_executor/models/minicpmo_4_5/test_cfm_tiled_attention.py b/tests/model_executor/models/minicpmo_4_5/test_cfm_tiled_attention.py
+new file mode 100644
+index 0000000000..39c416ddaf
+--- /dev/null
++++ b/tests/model_executor/models/minicpmo_4_5/test_cfm_tiled_attention.py
+@@ -0,0 +1,57 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Tiled attention must preserve masking and pooled-row ownership in FP16."""
++
++import pytest
++import torch
++import torch.nn.functional as F
++from torch.nn.attention import SDPBackend, sdpa_kernel
++
++from tests.helpers.mark import hardware_marks
++from vllm_omni.model_executor.models.minicpmo_4_5.cfm_attention import cfm_attention
++
++pytestmark = [pytest.mark.core_model, *hardware_marks(res={"cuda": "L4"}, num_cards=1)]
++
++
++@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
++@pytest.mark.parametrize("dtype", [torch.float32, torch.float16])
++@pytest.mark.parametrize("pooled", [False, True])
++@pytest.mark.parametrize("masked", [False, True])
++@pytest.mark.parametrize("frames,history", [(1, 17), (23, 65), (50, 513)])
++def test_tiled_attention_matches_math_sdpa(dtype, pooled, masked, frames, history):
++    generator = torch.Generator(device="cuda").manual_seed(43)
++    batch, heads, width = 3, 4, 64
++    q = torch.randn(batch, heads, frames, width, device="cuda", dtype=dtype, generator=generator)
++    # K and V are interleaved in the real resident pool, so both views are strided.
++    storage = torch.randn(
++        7 if pooled else batch, heads, history, 2 * width, device="cuda", dtype=dtype, generator=generator
++    )
++    k, v = storage[..., :width], storage[..., width:]
++    rows = torch.tensor([5, 1, 5], device="cuda") if pooled else None
++    mask = None
++    if masked:
++        mask = torch.rand(batch, frames, history, device="cuda", generator=generator) > 0.3
++        mask[0, 0] = False
++    expected_k = k.index_select(0, rows) if pooled else k
++    expected_v = v.index_select(0, rows) if pooled else v
++    with sdpa_kernel(SDPBackend.MATH):
++        expected = F.scaled_dot_product_attention(
++            q.float(),
++            expected_k.float(),
++            expected_v.float(),
++            attn_mask=mask.unsqueeze(1) if mask is not None else None,
++        ).to(dtype)
++    actual = cfm_attention(q, k, v, mask, rows)
++    torch.testing.assert_close(actual, expected, atol=2e-3, rtol=2e-3)
++    assert torch.isfinite(actual).all()
++    if masked:
++        assert torch.count_nonzero(actual[0, :, 0]) == 0
++
++
++@pytest.mark.parametrize("dtype", [torch.float32, torch.float16])
++def test_tiled_attention_rejects_mixed_cache_dtype(dtype):
++    q = torch.empty(1, 1, 1, 16, dtype=dtype)
++    cache_dtype = torch.float16 if dtype == torch.float32 else torch.float32
++    k = torch.empty_like(q, dtype=cache_dtype)
++    with pytest.raises(ValueError, match="matching float32 or float16"):
++        cfm_attention(q, k, k)
+diff --git a/tests/model_executor/models/minicpmo_4_5/test_dit_fused.py b/tests/model_executor/models/minicpmo_4_5/test_dit_fused.py
+index 3cf8bdd941..e40424b57c 100644
+--- a/tests/model_executor/models/minicpmo_4_5/test_dit_fused.py
++++ b/tests/model_executor/models/minicpmo_4_5/test_dit_fused.py
+@@ -44,14 +44,17 @@ def _run(body, estimator, *, rows: int, frames: int, cached: int, lengths):
+     channels = estimator.blocks[0].conv.block[1].in_channels
+     attn = estimator.blocks[0].attn
+     device = next(estimator.parameters()).device
+-    estimator_input = torch.randn(rows, 320, frames, device=device)
+-    time_embedding = estimator.t_embedder(torch.rand((), device=device).expand(rows)).unsqueeze(1)
++    dtype = next(estimator.parameters()).dtype
++    estimator_input = torch.randn(rows, 320, frames, device=device, dtype=dtype)
++    time_embedding = estimator.t_embedder(torch.rand((), device=device, dtype=dtype).expand(rows)).unsqueeze(1)
+     mask = torch.rand(rows, frames, cached + frames, device=device) > 0.3
+     mask[..., 0] = True
+-    cnn = [torch.randn(rows, 2 * channels, 2, device=device) for _ in range(depth)]
+-    att = [torch.randn(rows, attn.num_heads, cached, 2 * attn.head_dim, device=device) for _ in range(depth)]
+-    cnn_out = torch.zeros((depth, rows, 2 * channels, 2), device=device)
+-    att_out = torch.zeros((depth, rows, attn.num_heads, cached + frames, 2 * attn.head_dim), device=device)
++    cnn = [torch.randn(rows, 2 * channels, 2, device=device, dtype=dtype) for _ in range(depth)]
++    att = [
++        torch.randn(rows, attn.num_heads, cached, 2 * attn.head_dim, device=device, dtype=dtype) for _ in range(depth)
++    ]
++    cnn_out = torch.zeros((depth, rows, 2 * channels, 2), device=device, dtype=dtype)
++    att_out = torch.zeros((depth, rows, attn.num_heads, cached + frames, 2 * attn.head_dim), device=device, dtype=dtype)
+     with torch.no_grad():
+         out = body(estimator, estimator_input, time_embedding, mask, cnn, att, cnn_out, att_out, lengths)
+     return out, cnn_out, att_out
+@@ -93,3 +96,64 @@ def test_ragged_body_reuses_modulation_without_recomputing_adaln(monkeypatch, ca
+     actual = _run(precomputed, estimator, rows=4, frames=6, cached=cached, lengths=[6, 4])
+     for want, got in zip(expected, actual, strict=True):
+         torch.testing.assert_close(got, want, rtol=1e-4, atol=2e-5)
++
++
++@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
++def test_fp16_fused_body_matches_fp16_ragged_body(monkeypatch):
++    estimator = _upstream_dit("cuda").half()
++    driver = BatchedToken2Wav.__new__(BatchedToken2Wav)
++    nn.Module.__init__(driver)
++    driver._ragged_fused_body = True
++    calls = []
++
++    def fused(*args, **kwargs):
++        calls.append(True)
++        return blocks_forward_chunk_fused(*args, **kwargs)
++
++    monkeypatch.setattr(
++        "vllm_omni.model_executor.models.minicpmo_4_5.batched_token2wav.blocks_forward_chunk_fused",
++        fused,
++    )
++    with torch.inference_mode(), torch.autocast("cuda", dtype=torch.float16):
++        expected = _run(
++            BatchedToken2Wav._blocks_forward_chunk_ragged,
++            estimator,
++            rows=4,
++            frames=6,
++            cached=5,
++            lengths=[6, 4],
++        )
++        actual = _run(driver._ragged_body, estimator, rows=4, frames=6, cached=5, lengths=[6, 4])
++    assert calls, "FP16 service dispatch must use the fused body"
++    for want, got in zip(expected, actual, strict=True):
++        torch.testing.assert_close(got, want, rtol=2e-3, atol=2e-3)
++
++
++@pytest.mark.skipif(not torch.cuda.is_available(), reason="requires CUDA")
++def test_cfm_only_fp16_preserves_encoder_precision_and_returns_half_caches():
++    from tests.model_executor.models.minicpmo_4_5.test_code2wav_batching import _FakeToken2Wav
++
++    token2wav = _FakeToken2Wav()
++    token2wav.flow.encoder.register_parameter("anchor", nn.Parameter(torch.ones(1, device="cuda")))
++    token2wav.flow.decoder.estimator = _upstream_dit("cuda")
++    token2wav.flow.decoder.rand_noise = torch.randn(1, 80, 100, device="cuda")
++    backend = BatchedToken2Wav(token2wav, cfm_float16=True)
++    assert not backend.float16
++    assert token2wav.flow.encoder.anchor.dtype == torch.float32
++    assert next(token2wav.flow.decoder.estimator.parameters()).dtype == torch.float16
++    matrix = torch.randn(8, 8, device="cuda")
++    with backend._autocast(matrix.device):
++        assert (matrix @ matrix).dtype == torch.float32
++    with backend._cfm_autocast(matrix.device):
++        assert (matrix @ matrix).dtype == torch.float16
++    assert not torch.is_autocast_enabled("cuda")
++    with torch.inference_mode():
++        mel, cnn, att = backend._decode_cfm(
++            torch.randn(1, 80, 6, device="cuda"),
++            torch.randn(1, 80, device="cuda"),
++            torch.randn(1, 80, 6, device="cuda"),
++            cnn_cache=None,
++            att_cache=None,
++        )
++    assert mel.dtype == cnn.dtype == att.dtype == torch.float16
++    assert token2wav.flow.encoder.anchor.dtype == torch.float32
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py b/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
+index 3e9c849670..96bf8528d1 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
+@@ -322,14 +322,20 @@ def _cfm_matmul_tf32(fn):
+ 
+     @functools.wraps(fn)
+     def wrapper(self, *args, **kwargs):
+-        if not getattr(self, "_cfm_tf32", False):
+-            return fn(self, *args, **kwargs)
+-        previous = torch.backends.cuda.matmul.allow_tf32
+-        torch.backends.cuda.matmul.allow_tf32 = True
+-        try:
+-            return fn(self, *args, **kwargs)
+-        finally:
+-            torch.backends.cuda.matmul.allow_tf32 = previous
++        precision = (
++            self._cfm_autocast(next(self.flow.parameters()).device)
++            if getattr(self, "_cfm_only_float16", False)
++            else nullcontext()
++        )
++        with precision:
++            if not getattr(self, "_cfm_tf32", False):
++                return fn(self, *args, **kwargs)
++            previous = torch.backends.cuda.matmul.allow_tf32
++            torch.backends.cuda.matmul.allow_tf32 = True
++            try:
++                return fn(self, *args, **kwargs)
++            finally:
++                torch.backends.cuda.matmul.allow_tf32 = previous
+ 
+     return wrapper
+ 
+@@ -355,6 +361,7 @@ class BatchedToken2Wav(nn.Module):
+         setup_cache_size: int = 1,
+         cfm_tf32: bool = False,
+         encoder_graph_config: Mapping[str, Any] | None = None,
++        cfm_float16: bool = False,
+     ):
+         super().__init__()
+         if setup_cache_size < 0:
+@@ -371,6 +378,13 @@ class BatchedToken2Wav(nn.Module):
+         self.flow = token2wav.flow
+         self.hift = token2wav.hift
+         flow_parameter = next(self.flow.parameters(), None)
++        self._cfm_only_float16 = bool(cfm_float16 and not token2wav.float16)
++        if self._cfm_only_float16:
++            if flow_parameter is None or flow_parameter.device.type != "cuda":
++                raise ValueError("cfm_float16 requires CUDA")
++            self.flow.decoder.estimator.half()
++            self.flow.decoder.rand_noise = self.flow.decoder.rand_noise.half()
++
+         if flow_parameter is not None and flow_parameter.device.type == "npu":
+             from vllm_omni.platforms.npu.models.minicpmo_fused import prepare_estimator
+ 
+@@ -431,7 +445,7 @@ class BatchedToken2Wav(nn.Module):
+             del speech, source
+             torch.accelerator.empty_cache()
+         self.float16 = bool(token2wav.float16)
+-        self._estimator_att_compute_dtype = torch.float16 if self.float16 else torch.float32
++        self._estimator_att_compute_dtype = torch.float16 if self.float16 or self._cfm_only_float16 else torch.float32
+         self._estimator_att_cache_dtype = (
+             torch.bfloat16 if bfloat16_attention_cache else self._estimator_att_compute_dtype
+         )
+@@ -494,17 +508,25 @@ class BatchedToken2Wav(nn.Module):
+                 micro_batch_size = int(micro_batch_size_cfg) if micro_batch_size_cfg is not None else 4
+                 enable_whole_euler = bool(cfm_graph_cfg.get("enable_whole_euler", True))
+                 if bool(cfm_graph_cfg.get("fused_body", False)):
+-                    # A reduced-precision attention cache keeps the ragged body,
+-                    # which attends in the activation dtype through upstream.
++                    # A BF16 storage-only cache still uses the ragged body.
++                    # CUDA FP16 flow can keep its matching FP16 cache resident.
+                     # NPU uses the same schedule with AddLayerNorm and packed QKV.
+                     self._ragged_fused_body = (
+                         flow_parameter.device.type in {"cuda", "npu"}
+                         and supports_fused_body(estimator)
+-                        and self._estimator_att_cache_dtype == torch.float32
++                        and (
++                            self._estimator_att_cache_dtype == torch.float32
++                            or (
++                                flow_parameter.device.type == "cuda"
++                                and self._estimator_att_cache_dtype == torch.float16
++                                and self._estimator_att_compute_dtype == torch.float16
++                            )
++                        )
+                     )
+                     if not self._ragged_fused_body:
+                         logger.warning(
+-                            "cfm_fused_body requested but unsupported here (DiT blocks or a non-fp32 attention cache)"
++                            "cfm_fused_body requested but unsupported here "
++                            "(DiT blocks or incompatible attention cache dtype)"
+                         )
+                 # Resident request caches need the fused body and its tiled
+                 # attention, which reads keys/values out of the pool in place.
+@@ -688,6 +710,11 @@ class BatchedToken2Wav(nn.Module):
+             projected = torch.cat([self._project_speakers(feature.speaker_embedding) for feature in features])
+         return [int(feature.mels.shape[1]) for feature in features], projected
+ 
++    def _cfm_autocast(self, device: torch.device):
++        if self._cfm_only_float16:
++            return torch.amp.autocast(device.type, dtype=torch.float16)
++        return self._autocast(device)
++
+     def _autocast(self, device: torch.device):
+         if device.type != "cuda":
+             return nullcontext()
+@@ -1086,7 +1113,10 @@ class BatchedToken2Wav(nn.Module):
+         ``modulation`` comes from the Whole-Euler arena, for either body.
+         """
+         estimator_input = args[1]
+-        if slots is not None or (self._ragged_fused_body and estimator_input.dtype == torch.float32):
++        fused_dtype = estimator_input.dtype == torch.float32 or (
++            estimator_input.is_cuda and estimator_input.dtype == torch.float16
++        )
++        if slots is not None or (self._ragged_fused_body and fused_dtype):
+             # Slot-pool graphs are only built over the fused body (``slot_pool`` above).
+             if estimator_input.device.type == "npu":
+                 from vllm_omni.platforms.npu.models.minicpmo_fused import (
+@@ -1339,6 +1369,8 @@ class BatchedToken2Wav(nn.Module):
+         cache in the same form, already trimmed by ``att_keep``; the eager
+         path returns it stacked and untrimmed (ragged: per request, untrimmed).
+         """
++        if self._cfm_only_float16:
++            mu, speakers, cond = mu.half(), speakers.half(), cond.half()
+         decoder = self.flow.decoder
+         estimator = decoder.estimator
+         batch_size = int(mu.shape[0])
+@@ -1734,7 +1766,7 @@ class BatchedToken2Wav(nn.Module):
+         wrapper = self._whole_euler_graph_wrapper
+         prompt_len = int(features.mels.shape[1])
+         steady = prompt_len + _CACHE_TRIM_SUFFIX
+-        with self._autocast(wrapper.device):
++        with self._cfm_autocast(wrapper.device):
+             return wrapper.precapture(
+                 offsets=range(prompt_len, steady + 1),
+                 steady=steady,
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/cfm_attention.py b/vllm_omni/model_executor/models/minicpmo_4_5/cfm_attention.py
+index 3ab3f7f96a..e64fcd2f82 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/cfm_attention.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/cfm_attention.py
+@@ -1,6 +1,6 @@
+ # SPDX-License-Identifier: Apache-2.0
+ # SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
+-"""Tiled CFM attention: float32 tensors, ordinary TF32 Tensor Core dots."""
++"""Tiled CFM attention with FP32/TF32 or FP16 Tensor Core dots."""
+ 
+ import torch
+ from vllm.triton_utils import tl, triton
+@@ -80,7 +80,7 @@ def _attention(
+             (keys[:, None] < nk) & (ds[None, :] < dim),
+             0,
+         )
+-        accumulator = accumulator * correction[:, None] + tl.dot(prob, values, input_precision="tf32")
++        accumulator = accumulator * correction[:, None] + tl.dot(prob.to(values.dtype), values, input_precision="tf32")
+         maximum = new_max
+     result = accumulator / tl.where(denominator > 0, denominator, 1.0)[:, None]
+     tl.store(
+@@ -98,11 +98,11 @@ def cfm_attention(
+     mask: torch.Tensor | None = None,
+     kv_rows: torch.Tensor | None = None,
+ ) -> torch.Tensor:
+-    """Tiled attention with TF32 dots; optional ``kv_rows`` indexes a pooled K/V cache."""
++    """Tiled attention; optional ``kv_rows`` indexes a pooled K/V cache in place."""
+     b, heads, nq, dim = q.shape
+     nk = k.shape[2]
+-    if q.dtype != torch.float32 or k.dtype != torch.float32 or v.dtype != torch.float32:
+-        raise ValueError("CFM tiled attention requires float32 Q/K/V")
++    if q.dtype not in (torch.float32, torch.float16) or k.dtype != q.dtype or v.dtype != q.dtype:
++        raise ValueError("CFM tiled attention requires matching float32 or float16 Q/K/V")
+     num_stages = 2
+     out = torch.empty((b, nq, heads, dim), device=q.device, dtype=q.dtype)
+     _attention[(b, heads, triton.cdiv(nq, 32))](
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+index 4fdbe44879..6da73488a3 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+@@ -1618,6 +1618,7 @@ class MiniCPMO45Code2Wav(nn.Module):
+             setup_cache_size=self._setup_cache_size,
+             cfm_tf32=tf32_mode != "off",
+             encoder_graph_config=self._encoder_graph_config,
++            cfm_float16=read_bool_flag(extra, "cfm_float16", False),
+         )
+         # Captured by the first forward (the warmup run): under vLLM's weight load a graph held GiBs.
+         self._precapture_pending = read_bool_flag(extra, "cfm_graph_precapture", True)

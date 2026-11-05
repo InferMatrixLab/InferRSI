@@ -1,0 +1,62 @@
+[
+  {
+    "file": "wavlm_large_finetune.pth",
+    "bytes": 1301926579,
+    "sha256": "51f07e3b94d9e0262a6a675ef5a087be3dd09e8c62e9d886827f44f82fe7f94b"
+  },
+  {
+    "file": "wavlm_large.pt",
+    "bytes": 1261965425,
+    "sha256": "6fb4b3c3e6aa567f0a997b30855859cb81528ee8078802af439f7b2da0bf100f"
+  },
+  {
+    "file": "utmos.jit",
+    "bytes": 413019495,
+    "sha256": "3080923f49ee69eb81ad875491eef94e533bf329d70e0cc37fa23745c464669d"
+  },
+  {
+    "file": "config.json",
+    "bytes": 6194,
+    "sha256": "2e74a751548b8ad7d7526d29365ad8144c345d8b412b1152d25dc6698452712f"
+  },
+  {
+    "file": "vocab.json",
+    "bytes": 2776833,
+    "sha256": "ca10d7e9fb3ed18575dd1e277a2579c16d108e32f27439684afa0e10b1440910"
+  },
+  {
+    "file": "tokenizer_config.json",
+    "bytes": 12487,
+    "sha256": "4942d005604266809309cabc9f4e9cb89ce855d59b14681fdc0e1cc62ea26c4c"
+  },
+  {
+    "file": "model.safetensors.index.json",
+    "bytes": 64821,
+    "sha256": "f994739fe38e5210b9e3e8ce6c6307315e2ceac3cb630e7b7414d69dce520f60"
+  },
+  {
+    "file": "chat_template.json",
+    "bytes": 1161,
+    "sha256": "75a8cfca24f00de72d796fbfed6858fc9614ef3dabd8696684cc3bc03a9c58ff"
+  },
+  {
+    "file": "generation_config.json",
+    "bytes": 142,
+    "sha256": "1da527824d81e07118facff437e03f2e24a23311e3bdeb2368973fe77e5f275c"
+  },
+  {
+    "file": "preprocessor_config.json",
+    "bytes": 330,
+    "sha256": "45e120a4eda2c20c5d7f2ea9354e63536bf35e27aa573fb7cdf78017b378770d"
+  },
+  {
+    "file": "model-00002-of-00002.safetensors",
+    "bytes": 478200688,
+    "sha256": "6e0b9d9e09e2e0238e7ef3cc8a484ab387e91b90f1900bedf88bc92d7929ccfc"
+  },
+  {
+    "file": "model-00001-of-00002.safetensors",
+    "bytes": 4220320824,
+    "sha256": "a4cd1f1a04d90b757dc7f7dd26254e69a013b19e80efe590a83c6a3bde8608d6"
+  }
+]

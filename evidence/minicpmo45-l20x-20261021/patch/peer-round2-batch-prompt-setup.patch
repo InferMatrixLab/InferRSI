@@ -1,0 +1,171 @@
+diff --git a/tests/model_executor/models/minicpmo_4_5/test_prompt_setup_batch.py b/tests/model_executor/models/minicpmo_4_5/test_prompt_setup_batch.py
+new file mode 100644
+index 0000000000..a9c46a0a05
+--- /dev/null
++++ b/tests/model_executor/models/minicpmo_4_5/test_prompt_setup_batch.py
+@@ -0,0 +1,41 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++import pytest
++import torch
++
++from tests.model_executor.models.minicpmo_4_5.test_code2wav_batching import _FakeToken2Wav
++from vllm_omni.model_executor.models.minicpmo_4_5.batched_token2wav import BatchedToken2Wav
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++@pytest.mark.parametrize("cache_size", [0, 1, 4])
++def test_prompt_batch_preserves_cfg_rows_duplicates_and_cache_ownership(cache_size):
++    token2wav = _FakeToken2Wav()
++    backend = BatchedToken2Wav(token2wav, setup_cache_size=cache_size)
++    prompts = [backend.prepare_prompt(str(i), f"/fake/{i}.wav") for i in range(3)]
++    for i, prompt in enumerate(prompts):
++        prompt.speech_tokens.add_(i * 10)
++    expected = [backend._create_initial_states(prompt, 1)[0] for prompt in prompts]
++    token2wav.flow.decoder.estimator.cfg_batches.clear()
++    actual = backend.setup_many([prompts[2], prompts[0], prompts[2], prompts[1]])
++    assert actual[0] is actual[2]
++    assert token2wav.flow.decoder.estimator.cfg_batches == [6, 6]
++    for state, reference in zip(actual, [expected[2], expected[0], expected[2], expected[1]], strict=True):
++        for key in reference.flow_cache:
++            torch.testing.assert_close(state.flow_cache[key], reference.flow_cache[key], rtol=0, atol=0)
++    snapshot = actual[1].flow_cache["estimator_att_cache"].clone()
++    actual[0].flow_cache["estimator_att_cache"].add_(1)
++    torch.testing.assert_close(actual[1].flow_cache["estimator_att_cache"], snapshot, rtol=0, atol=0)
++    assert len(backend._setup_cache) <= cache_size
++
++
++def test_prompt_batch_reuses_existing_cached_state():
++    backend = BatchedToken2Wav(_FakeToken2Wav(), setup_cache_size=2)
++    first = backend.prepare_prompt("first", "/fake/first.wav")
++    second = backend.prepare_prompt("second", "/fake/second.wav")
++    cached = backend.setup_batch(first, 1)[0]
++    result = backend.setup_many([first, second, first])
++    assert result[0] is result[2] is cached
++    assert backend.setup_many([]) == []
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py b/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
+index 3e9c849670..55efe8186d 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/batched_token2wav.py
+@@ -1793,6 +1793,79 @@ class BatchedToken2Wav(nn.Module):
+             for row in split
+         ]
+ 
++    def _create_initial_states_many(self, features: list[PromptFeatures]) -> list[BatchedToken2WavState]:
++        """Share one Euler solve across equal-length, independently encoded prompts."""
++        if len(features) == 1:
++            return self._create_initial_states(features[0], 1)
++        encoded, speakers, mels, cnn, att = [], [], [], [], []
++        with self._autocast(features[0].speaker_embedding.device):
++            for prompt in features:
++                tokens, speaker, mel = self._repeat_prompt(prompt, 1)
++                lookahead_width = self._pre_lookahead_len()
++                lookahead = tokens.new_full((1, 3 if lookahead_width is None else lookahead_width), _SILENCE_TOKEN)
++                hidden, row_cnn, row_att = self._encode_chunk(
++                    torch.cat((tokens, lookahead), dim=1), last_chunk=False, cnn_cache=None, att_cache=None
++                )
++                encoded.append(hidden)
++                speakers.append(self._project_speakers(speaker))
++                mels.append(mel)
++                cnn.append(row_cnn)
++                att.append(row_att)
++            prompt_mels = torch.cat(mels, dim=0)
++            _, estimator_cnn, estimator_att = self._decode_cfm(
++                torch.cat(encoded, dim=0).transpose(1, 2).contiguous(),
++                torch.cat(speakers, dim=0),
++                prompt_mels.transpose(1, 2).contiguous(),
++                cnn_cache=None,
++                att_cache=None,
++                att_keep=(int(prompt_mels.shape[1]), _CACHE_TRIM_SUFFIX),
++            )
++        rows = self._split_flow_cache(
++            {
++                "conformer_cnn_cache": torch.cat(cnn, dim=0),
++                "conformer_att_cache": torch.cat(att, dim=1),
++                "estimator_cnn_cache": estimator_cnn,
++                "estimator_att_cache": estimator_att,
++            },
++            len(features),
++        )
++        return [
++            BatchedToken2WavState(
++                flow_cache=row,
++                hift_cache={
++                    "mel": prompt_mels.new_zeros((1, int(prompt_mels.shape[2]), 0)),
++                    "source": prompt_mels.new_zeros((1, 1, 0)),
++                    "speech": prompt_mels.new_zeros((1, 0)),
++                },
++            )
++            for row in rows
++        ]
++
++    def setup_many(self, features: list[PromptFeatures]) -> list[BatchedToken2WavState]:
++        """Reuse cached states and batch equal-length misses, preserving caller order."""
++        keys = [self._setup_cache_key(prompt) for prompt in features]
++        states: dict[tuple[tuple[str, str], int], BatchedToken2WavState] = {}
++        missing: dict[tuple[tuple[str, str], int], PromptFeatures] = {}
++        for key, prompt in zip(keys, features, strict=True):
++            if key in self._setup_cache:
++                states[key] = self._setup_cache[key]
++                self._setup_cache.move_to_end(key)
++            else:
++                missing.setdefault(key, prompt)
++        groups: dict[tuple[int, int], list[PromptFeatures]] = {}
++        for prompt in missing.values():
++            shape = (int(prompt.speech_tokens.shape[1]), int(prompt.mels.shape[1]))
++            groups.setdefault(shape, []).append(prompt)
++        for prompts in groups.values():
++            for prompt, state in zip(prompts, self._create_initial_states_many(prompts), strict=True):
++                key = self._setup_cache_key(prompt)
++                states[key] = state
++                if self._setup_cache_size > 0:
++                    self._setup_cache[key] = state
++                    while len(self._setup_cache) > self._setup_cache_size:
++                        self._setup_cache.popitem(last=False)
++        return [states[key] for key in keys]
++
+     def _setup_cache_key(self, features: PromptFeatures) -> tuple[tuple[str, str], int]:
+         bucket_frames = (
+             self._cfm_graph_bucket_frames
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+index 4fdbe44879..5ba424d4eb 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_code2wav.py
+@@ -505,6 +505,7 @@ class MiniCPMO45Code2Wav(nn.Module):
+         self._prompt_wav_override = extra.get("prompt_wav")
+         self._default_prompt_normalized: tuple[str, str] | None = None
+         self._onset_merge = read_bool_flag(extra, "cfm_onset_merge", False)
++        self._batch_prompt_setup = read_bool_flag(extra, "cfm_batch_prompt_setup", False)
+         self._cross_turn_buckets = read_bool_flag(extra, "cfm_cross_turn_buckets", False)
+         self._row_offset_merge = self._cfm_graph_config["row_offset_merge"]
+         self._precapture_empty_cache = read_bool_flag(extra, "cfm_precapture_empty_cache", False)
+@@ -890,9 +891,15 @@ class MiniCPMO45Code2Wav(nn.Module):
+             features.append(prompts[key])
+             if states[row] is None:
+                 fresh.setdefault(key, []).append(row)
+-        for key, rows in fresh.items():
+-            for row, state in zip(rows, self.backend.setup_batch(prompts[key], len(rows)), strict=True):
+-                states[row] = state
++        if getattr(self, "_batch_prompt_setup", False) and len(fresh) > 1:
++            prepared = self.backend.setup_many([prompts[key] for key in fresh])
++            for rows, state in zip(fresh.values(), prepared, strict=True):
++                for row in rows:
++                    states[row] = state
++        else:
++            for key, rows in fresh.items():
++                for row, state in zip(rows, self.backend.setup_batch(prompts[key], len(rows)), strict=True):
++                    states[row] = state
+         if any(state is None for state in states):
+             raise _batch_error("incomplete_setup")
+         return cast(list[BatchedToken2WavState], states), features[0] if len(prompts) == 1 else features
+@@ -1541,6 +1548,8 @@ class MiniCPMO45Code2Wav(nn.Module):
+         tf32_mode = self._tf32_mode if current_omni_platform.is_cuda() else "off"
+         if tf32_mode != "off":
+             logger.info("MiniCPM-o Code2Wav: ordinary TF32 enabled for CFM DiT GEMMs")
++        if self._batch_prompt_setup and not current_omni_platform.is_cuda():
++            raise ValueError("cfm_batch_prompt_setup requires CUDA")
+         use_float16 = read_bool_flag(extra, "token2wav_float16", False)
+         previous_dtype = torch.get_default_dtype()
+         try:

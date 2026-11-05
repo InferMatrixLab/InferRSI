@@ -1,0 +1,56 @@
+{
+  "scope": "Four reused real reference features; exact Torch CAM++ graph diagnostic, no service performance claim",
+  "rows": [
+    {
+      "index": 0,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.011056637484580278,
+      "graph_s": 0.004893266269937158
+    },
+    {
+      "index": 1,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.011136047448962927,
+      "graph_s": 0.004889287520200014
+    },
+    {
+      "index": 2,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.01085416846908629,
+      "graph_s": 0.0048878711182624105
+    },
+    {
+      "index": 3,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.012561971647664904,
+      "graph_s": 0.004896736517548561
+    }
+  ],
+  "gate": "PASS",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "implementation": "Standalone graph feasibility probe; production wrapper validation separately pending"
+}

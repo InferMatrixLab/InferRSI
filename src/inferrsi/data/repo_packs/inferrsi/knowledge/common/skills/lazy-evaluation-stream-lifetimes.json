@@ -22,8 +22,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/2c766dbc95605e61b907ce71418ab941287b427a/src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
-      "commit": "2c766dbc95605e61b907ce71418ab941287b427a",
+      "url": "https://github.com/InferMatrixLab/InferRSI/blob/323db123b66a83a5df1c97a34dc1739eabb38dbe/src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
+      "commit": "323db123b66a83a5df1c97a34dc1739eabb38dbe",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/mlx/lazy-evaluation-stream-lifetimes/metadata.json",

@@ -1,0 +1,8 @@
+{
+  "frozen_at_utc": "2026-10-21T06:11:02.764641+00:00",
+  "hypothesis": "FP16 flow may reduce the dominant Code2Wav compute time while preserving acceptable generated speech quality. Compare against otherwise identical Torch-speaker+MPS, not the failed CPU-reference speaker candidate.",
+  "changed_variable": "token2wav_float16 false -> true",
+  "scope": "64 original tuning prompts, C1/16/32, one discard and one measured repeat. Warmup/completion validity required before proceeding; no qualification from this screen.",
+  "next_gate": "Inspect numerical/audio health and native speech scorers before promotion; preserve failed outputs.",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12"
+}

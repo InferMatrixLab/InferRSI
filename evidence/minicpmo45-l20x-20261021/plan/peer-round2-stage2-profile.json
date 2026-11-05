@@ -1,0 +1,15 @@
+{
+  "recorded_at_utc": "2026-10-21T07:23:51.518941+00:00",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "profile": "Torch speaker, MPS, FP32 Flow, IEEE FP32 HiFT, micro_batch_size16",
+  "protocol": "Dedicated fresh service with stage2 torch profiler; warm64 reused tuning prompts atC32, then profile first32 reused tuning prompts atC32. No holdout data.",
+  "profiler": {
+    "activities": [
+      "CPU",
+      "CUDA"
+    ],
+    "with_stack": false,
+    "record_shapes": false
+  },
+  "exclusion": "All requests in this diagnostic service are excluded from performance aggregates. Only sanitized operator timing summaries may be published; raw traces stay local."
+}

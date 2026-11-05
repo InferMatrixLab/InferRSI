@@ -1,0 +1,75 @@
+{
+  "scope": "All three existing C1 measured repeats, SIM/UTMOS. Original run1 directional gate remains unchanged.",
+  "rows": [
+    {
+      "role": "main",
+      "repeat": 1,
+      "summary": {
+        "n": 320,
+        "sim": 49.964186012744904,
+        "utmos": 4.18846390992403,
+        "wer": 0.014785328404890531,
+        "wer_counts": {
+          "substitutions": 39,
+          "deletions": 5,
+          "insertions": 8,
+          "hits": 3473
+        },
+        "wer_mean": 0.015903905122655125
+      }
+    },
+    {
+      "role": "main",
+      "repeat": 2,
+      "summary": {
+        "n": 320,
+        "sim": 49.955288362503055,
+        "utmos": 4.188337291777134
+      }
+    },
+    {
+      "role": "main",
+      "repeat": 3,
+      "summary": {
+        "n": 320,
+        "sim": 49.974040660262105,
+        "utmos": 4.187696244567633
+      }
+    },
+    {
+      "role": "speaker",
+      "repeat": 1,
+      "summary": {
+        "n": 320,
+        "sim": 49.931253355741504,
+        "utmos": 4.181973429769277,
+        "wer": 0.014785328404890531,
+        "wer_counts": {
+          "substitutions": 39,
+          "deletions": 5,
+          "insertions": 8,
+          "hits": 3473
+        },
+        "wer_mean": 0.015903905122655125
+      }
+    },
+    {
+      "role": "speaker",
+      "repeat": 2,
+      "summary": {
+        "n": 320,
+        "sim": 49.94134067893028,
+        "utmos": 4.181830513477325
+      }
+    },
+    {
+      "role": "speaker",
+      "repeat": 3,
+      "summary": {
+        "n": 320,
+        "sim": 49.93109819591045,
+        "utmos": 4.182268233597279
+      }
+    }
+  ]
+}

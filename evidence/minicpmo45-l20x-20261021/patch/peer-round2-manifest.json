@@ -1,0 +1,58 @@
+{
+  "base_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "implementations": {
+    "fp16-dispatch": {
+      "source_revision": "b6dacdf03756dbedeee8592577798670f5e22329",
+      "patch": "peer-round2-fp16-dispatch.patch",
+      "status": "Exploratory implementation; not quality/performance qualified"
+    },
+    "hift-tf32": {
+      "source_revision": "460b64d7727585516be3b3c992cf0154b82f2cf9",
+      "patch": "peer-round2-hift-tf32.patch",
+      "status": "Exploratory implementation; not quality/performance qualified"
+    },
+    "batch-prompt-setup": {
+      "source_revision": "d255857c1d1441ba77362da6d4cb628fa5dc47a8",
+      "patch": "peer-round2-batch-prompt-setup.patch",
+      "status": "Exploratory implementation; not quality/performance qualified"
+    },
+    "cfm-only-fp16": {
+      "source_revision": "4671fdc3736c760f1abd637e30079b3cf65d1fdf",
+      "patch": "peer-round2-cfm-only-fp16.patch",
+      "status": "Screen completed, no peer win; descriptive quality means within margins, no final qualification"
+    },
+    "native-coalescing": {
+      "source_revision": "e9b12cf223b4a3900f6f30772065eb058550319a",
+      "patch": "peer-round2-native-coalescing.patch",
+      "status": "104 tests PASS; no material service gain; descriptive quality margins exceeded"
+    },
+    "speaker-torch-graph": {
+      "source_revision": "17246ce5e695c7f0c58d53f42aa586e1e94390f1",
+      "patch": "peer-round2-speaker-torch-graph.patch",
+      "status": "Bitwise component checks PASS; service screen no peer win"
+    },
+    "cfm-speaker-composition": {
+      "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+      "patch": "peer-round2-cfm-speaker-composition.patch",
+      "status": "113 combined tests PASS; C32 1510.9 with descriptive means within margins; no final qualification"
+    },
+    "tensor-handoff-composition": {
+      "source_revision": "60d71d16e0d77734239935ffc6b991c810ea1aa7",
+      "patch": "peer-round2-tensor-handoff-composition.patch",
+      "status": "213 regression checks; packed25/50 service screens below peer C32; quality pending"
+    },
+    "tensor-handoff-main": {
+      "base_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+      "source_revision": "e27ebb06da28f82d4cc0c2c10ae8455d551c5c07",
+      "patch": "peer-round2-tensor-handoff-main.patch",
+      "status": "Standalone transport213 tests+precommit PASS; not service-tested"
+    },
+    "clean-main-composition": {
+      "base_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+      "source_revision": "e7a63354b61209a0f27e78c336f038df992e71ef",
+      "patch": "peer-round2-clean-main-composition.patch",
+      "status": "305 CPU regression checks,37 skips,precommit PASS; not service-tested; no quality claim"
+    }
+  },
+  "note": "Apply each patch independently to its recorded base; entries with an explicit base_revision override the top-level base. Precision and speaker extensions are opt-in. Packed ordinary-turn transport preserves float32 values. Rejected profiles remain rejected; no patch is a qualified peer-beating release."
+}

@@ -17,7 +17,8 @@ KNOWLEDGE_SCOPES = {
         "flashinfer", "flashattention", "pytorch", "triton", "diffusers", "transformers", "mlx"
     ),
     "peer": (
-        "sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit", "qwen3_tts_engine", "deepinfer"
+        "sglang", "tensorrt_llm", "lmdeploy", "xdit", "cache_dit", "qwen3_tts_engine",
+        "deepinfer", "minicpmo_single_gpu_engine",
     ),
 }
 KNOWLEDGE_REPOS = tuple(

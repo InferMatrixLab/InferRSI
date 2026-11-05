@@ -1,0 +1,519 @@
+{
+  "scope": "Prompt component diagnostic sharing own idle ASR reservation; not isolated service performance, four reused six-second tuning references, warm iteration excluded; nested synchronized timings are inclusive and not E2E throughput",
+  "rows": [
+    {
+      "component": "audio_load",
+      "seconds": 0.00222743209451437,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0808898787945509,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.5961406100541353,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0023800544440746307,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.1305942228063941,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.002812364138662815,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.8215250112116337,
+      "repeat": 0,
+      "prompt_index": 0
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0013434253633022308,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0009352853521704674,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.00630524754524231,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0012820260599255562,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013131181709468365,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0018224390223622322,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.027979323640465736,
+      "repeat": 0,
+      "prompt_index": 1
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0012339260429143906,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007636835798621178,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005461284890770912,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.001182381995022297,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.012859727256000042,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0016882279887795448,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.025940904393792152,
+      "repeat": 0,
+      "prompt_index": 2
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0013107629492878914,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.000735788606107235,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005392691120505333,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.001179778017103672,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.01250709779560566,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0016116108745336533,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.025434394367039204,
+      "repeat": 0,
+      "prompt_index": 3
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0012814095243811607,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007853982970118523,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005374601110816002,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0011041276156902313,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013412974774837494,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0016488023102283478,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.026568925008177757,
+      "repeat": 1,
+      "prompt_index": 0
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0010826149955391884,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0008226819336414337,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005649314261972904,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0012772241607308388,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.01245445292443037,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0015652533620595932,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.025607343763113022,
+      "repeat": 1,
+      "prompt_index": 1
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0010627685114741325,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007336214184761047,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005252489820122719,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0010926323011517525,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.012276850640773773,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.001538267359137535,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.0245551485568285,
+      "repeat": 1,
+      "prompt_index": 2
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0011284416541457176,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007642339915037155,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005178985185921192,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0011135423555970192,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.012314298190176487,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0018228478729724884,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.024941821582615376,
+      "repeat": 1,
+      "prompt_index": 3
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.001186843030154705,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007385667413473129,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.005759908817708492,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.001135663129389286,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.012259207665920258,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.001584663987159729,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.025323770940303802,
+      "repeat": 2,
+      "prompt_index": 0
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0011039739474654198,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007463265210390091,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.00534647423774004,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0011474555358290672,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.013285061344504356,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0015755435451865196,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.025832464918494225,
+      "repeat": 2,
+      "prompt_index": 1
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.001107233576476574,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007722135633230209,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.00540195032954216,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0011067399755120277,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.012354578822851181,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0015863887965679169,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.024958879686892033,
+      "repeat": 2,
+      "prompt_index": 2
+    },
+    {
+      "component": "audio_load",
+      "seconds": 0.0011015795171260834,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_mel",
+      "seconds": 0.0007309708744287491,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "s3_tokens",
+      "seconds": 0.00519480649381876,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker_fbank",
+      "seconds": 0.0010839756578207016,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "speaker",
+      "seconds": 0.01241510733962059,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "flow_mel",
+      "seconds": 0.0016098162159323692,
+      "repeat": 2,
+      "prompt_index": 3
+    },
+    {
+      "component": "prompt_total",
+      "seconds": 0.024727752432227135,
+      "repeat": 2,
+      "prompt_index": 3
+    }
+  ],
+  "cuda_peak_bytes": 1319737856,
+  "means_seconds": {
+    "s3_mel": 0.0007617516675963998,
+    "prompt_total": 0.02531451336108148,
+    "speaker_fbank": 0.0011326700914651155,
+    "flow_mel": 0.0016164479311555624,
+    "speaker": 0.012596566462889314,
+    "s3_tokens": 0.005394816282205284,
+    "audio_load": 0.0011318580945953727
+  }
+}

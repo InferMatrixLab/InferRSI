@@ -1,0 +1,26 @@
+{
+  "frozen_at_utc": "2026-10-21T09:24:32.509328+00:00",
+  "base_plan_sha256": "8e204a1e6e95c7ff1148c26ce093d1de73a447ce46fe5b19f99b35b3c5e8f9ab",
+  "reason": "Reduce within-prompt inference variation before any holdout generation, retaining256 independent prompt clusters and all original margins.",
+  "measured_runs": [
+    1,
+    2,
+    3
+  ],
+  "discarded_run": 0,
+  "sampling_seed": 42,
+  "bootstrap_unit": "256 paired prompts; sum WER counts and average SIM/UTMOS across three repeats within each prompt before resampling prompts",
+  "bootstrap_draws": 20000,
+  "bootstrap_seed": 20261022,
+  "confidence": "One-sided95 percent upper degradation bound for each of three metrics at C1/C16/C32; all9 must pass",
+  "margins": {
+    "wer_percentage_points": 0.2,
+    "sim_x100_drop": 0.5,
+    "utmos_drop": 0.05
+  },
+  "reference_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+  "holdout_generated_before_freeze": false,
+  "prior_verdicts": "All earlier FAILs unchanged; original single-repeat validator retained unchanged",
+  "driver": "peer_round2_holdout.py --repeats 3; score all three measured runs with identical scorer weights/config",
+  "validator": "peer_round2_clustered_quality.py delegates to unchanged paired bootstrap after within-prompt aggregation"
+}

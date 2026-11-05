@@ -552,3 +552,11 @@ create a repo runtime descriptor, backend port or measured resource effect.
 | Source / revision | Inspected scope | Extraction and qualification boundary |
 | --- | --- | --- |
 | vllm-project/vllm-ascend at `3b31886237ed65c435e0965b10e8002ff5769766` | Release table, plugin hooks, DeepSeek-V4/DSpark evolution, Kimi K3/MiniMax-M3/GLM5+ optimization, DSA-CP/FlashComm1/Fused-MC2 and fusion dispatch, reversals and numerical oracles. [History screening and semantic scope](../src/inferrsi/data/skill_library/repositories/vllm-ascend/references/history-scope.md). [Source locators](../src/inferrsi/data/skill_library/repositories/vllm-ascend/references/sources.md) | [Release-specific diagnosis](../src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md). Candidate; device execution and downstream efficacy unverified. Older ACLGraph and checkpoint-adaptation owners retain their own source revisions. |
+
+## Issue #49: conditioning transport diagnostic
+
+[Owner-local case](../src/inferrsi/data/skill_library/methods/inference-optimization-casebook/cases/minicpm-conditioning-transport.md) preserves the pinned ordinary-turn bridge,
+worker list traversal, invalidated high-rate profiler and rehashed CPU component
+measurements. This is an internal diagnostic lineage, not independent evidence
+from the peer engine. Component value equality and synthetic timing do not
+establish service throughput or speech-quality acceptance.

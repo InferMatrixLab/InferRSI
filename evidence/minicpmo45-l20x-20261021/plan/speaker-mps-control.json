@@ -1,0 +1,19 @@
+{
+  "plane": "infra",
+  "hypothesis": "MPS may improve stage overlap after CPU speaker bottleneck removal; earlier main-only MPS did not improve both primary cells.",
+  "changed_setting": {
+    "cuda_mps": [
+      false,
+      true
+    ]
+  },
+  "fixed_setting": {
+    "token2wav_device_spk": true
+  },
+  "concurrency": [
+    16,
+    32
+  ],
+  "dataset": "same disjoint tuning64",
+  "gate": "Same frozen performance and speech quality gates; no promotion based on a single favorable cell."
+}

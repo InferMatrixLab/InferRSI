@@ -1,0 +1,11 @@
+{
+  "scope": "Partial monitoring from the recorded first sample until final control completion, nominally every ten seconds. Not continuous isolation certification; no retroactive coverage claim.",
+  "first_sample_utc": "2026-10-21T04:42:07.433555+00:00",
+  "last_sample_utc": "2026-10-21T05:17:46.082027+00:00",
+  "samples": 204,
+  "process_observations_during_own_runs": 842,
+  "unmatched_process_observations": [],
+  "identification": "Match known server stage PIDs from private startup logs or inspect only PYTHONPATH in process/ancestor environments. Initial direct process environments did not identify spawned workers; known startup PIDs resolve these observations. Public report omits PIDs, GPU UUIDs and private paths.",
+  "excluded": "Processes appearing on cards after our completion markers are other allocations and are excluded.",
+  "failed_previous_startup": "Unreserved unrelated process occupied the first control card; startup failed before measured requests. Other job left untouched and full controls moved to a free card."
+}

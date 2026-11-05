@@ -1,0 +1,56 @@
+{
+  "frozen_at_utc": "2026-10-21T08:55:29.736386+00:00",
+  "source_revision": "17246ce5e695c7f0c58d53f42aa586e1e94390f1",
+  "hypothesis": "Replicate both ordinary Talker and Code2Wav to overlap host work rather than only scaling the vocoder. Exact Torch speaker graphs reduce prompt host launch work.",
+  "evidence": [
+    "V1 Talker plus two vocoders reaches C32 1057.4 with descriptive quality means within margins",
+    "Native Talker adds11% but its C32 SIM screen exceeds margin; retain ordinary Talker",
+    "Torch speaker graph component is bitwise equal and2.3x faster"
+  ],
+  "candidate": {
+    "runners": [
+      "v1",
+      "v1",
+      "v1"
+    ],
+    "replicas": [
+      1,
+      2,
+      4
+    ],
+    "capacities_per_replica": [
+      16,
+      16,
+      16
+    ],
+    "stage0_kv_bytes": 8589934592,
+    "stage1_kv_bytes_per_replica": 4294967296,
+    "micro_batch_size": 4,
+    "cuda_mps": true,
+    "speaker_cuda_graph": true,
+    "precision": "FP32 CFM/HiFT unchanged"
+  },
+  "memory_policy": "Explicit8GiB stage0 KV exceeds single40960-token context requirement and leaves memory for replicas. This is a composite exploratory profile, not isolated attribution of replica or KV changes.",
+  "protocol": "64 reused tuning prompts,discard+one,C1/C16/C32; zero failed requests; native quality screening; no holdout use",
+  "qualification": "No final claim without paired repeated peer comparison and all frozen quality confidence bounds.",
+  "resolved_config_check": {
+    "runners": [
+      "v1",
+      "v1",
+      "v1"
+    ],
+    "capacities": [
+      16,
+      16,
+      16
+    ],
+    "replicas": [
+      1,
+      2,
+      4
+    ],
+    "mps": true,
+    "speaker_graph": true,
+    "result": "PASS"
+  }
+}

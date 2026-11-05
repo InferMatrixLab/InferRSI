@@ -1,0 +1,78 @@
+{
+  "scope": "Unused holdout noninferiority; original strict gate unchanged",
+  "cells": {
+    "1": {
+      "n": 320,
+      "metrics": {
+        "wer_percentage_points": {
+          "degradation": 0.028910089621277807,
+          "upper_one_sided_95": 0.08705745792222867,
+          "margin": 0.2,
+          "verdict": "PASS"
+        },
+        "sim_x100_drop": {
+          "degradation": -0.07919421195983886,
+          "upper_one_sided_95": -0.019602164924144752,
+          "margin": 0.5,
+          "verdict": "PASS"
+        },
+        "utmos_drop": {
+          "degradation": 0.0007672093808650971,
+          "upper_one_sided_95": 0.006295618638396261,
+          "margin": 0.05,
+          "verdict": "PASS"
+        }
+      },
+      "verdict": "PASS"
+    },
+    "16": {
+      "n": 320,
+      "metrics": {
+        "wer_percentage_points": {
+          "degradation": 0.40474125469788963,
+          "upper_one_sided_95": 0.904330580240175,
+          "margin": 0.2,
+          "verdict": "FAIL"
+        },
+        "sim_x100_drop": {
+          "degradation": -0.19301602840423585,
+          "upper_one_sided_95": 0.20127480596303937,
+          "margin": 0.5,
+          "verdict": "PASS"
+        },
+        "utmos_drop": {
+          "degradation": 0.0027266964316368103,
+          "upper_one_sided_95": 0.020062825754284856,
+          "margin": 0.05,
+          "verdict": "PASS"
+        }
+      },
+      "verdict": "FAIL"
+    },
+    "32": {
+      "n": 320,
+      "metrics": {
+        "wer_percentage_points": {
+          "degradation": 1.4165943914426136,
+          "upper_one_sided_95": 4.729768472601041,
+          "margin": 0.2,
+          "verdict": "FAIL"
+        },
+        "sim_x100_drop": {
+          "degradation": 0.09458468854427338,
+          "upper_one_sided_95": 0.4999546980857848,
+          "margin": 0.5,
+          "verdict": "PASS"
+        },
+        "utmos_drop": {
+          "degradation": 0.024590854346752167,
+          "upper_one_sided_95": 0.042992207407951344,
+          "margin": 0.05,
+          "verdict": "PASS"
+        }
+      },
+      "verdict": "FAIL"
+    }
+  },
+  "verdict": "FAIL"
+}

@@ -1,0 +1,17 @@
+{
+  "purpose": "Confirm service and speech results with matched fresh-start history; retain original steady-state results regardless of outcome.",
+  "baseline": "pinned main default turn profile",
+  "candidate": "same code, speaker-only overlay; no MPS or microbatch changes",
+  "concurrency": [
+    1,
+    16,
+    32
+  ],
+  "requests_per_cell": 320,
+  "discarded_runs": 1,
+  "measured_runs": 1,
+  "quality": "score run1 outputs at all three concurrency levels with unchanged scorers and original directional gates",
+  "hardware": "separate reserved L20X GPUs on same host",
+  "limitations": "One measured repeat per fresh-start cell; original same-GPU three-repeat comparison remains the throughput variation evidence. No server reset between concurrency cells.",
+  "motivation": "Both unchanged baseline and candidate produce nonidentical C1 WAVs across repeated identical requests; assess fresh-start reproducibility without assuming observed quality changes are caused solely by speaker arithmetic."
+}

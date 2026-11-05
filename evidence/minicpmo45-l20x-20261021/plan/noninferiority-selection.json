@@ -1,0 +1,40 @@
+{
+  "rule": "Highest geometric mean repeated C16/C32 throughput, fixed before opening unused holdout",
+  "profiles": {
+    "vllm-speaker-repeated": {
+      "geometric_mean_c16_c32": 765.2433361169411,
+      "runs": {
+        "16": [
+          733.2183577620565,
+          724.06899063543,
+          729.4779403496699
+        ],
+        "32": [
+          805.0347719563634,
+          789.7065648065687,
+          815.3830137392569
+        ]
+      },
+      "deploy_config": "speaker-only.yaml"
+    },
+    "vllm-speaker-mps-repeated": {
+      "geometric_mean_c16_c32": 884.0191911534453,
+      "runs": {
+        "16": [
+          836.0031648846023,
+          829.4632658606373,
+          822.6216914690485
+        ],
+        "32": [
+          941.8298721767356,
+          947.6880813868139,
+          937.3149508469672
+        ]
+      },
+      "deploy_config": "speaker-mps.yaml"
+    }
+  },
+  "selected": "vllm-speaker-mps-repeated",
+  "deploy_config": "speaker-mps.yaml",
+  "quality_not_used_for_selection": true
+}

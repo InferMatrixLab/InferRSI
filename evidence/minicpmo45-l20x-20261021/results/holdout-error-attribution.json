@@ -1,0 +1,155 @@
+{
+  "scope": "Post-failure attribution only. All prompts remain in the frozen decision. No clipped WER, outlier deletion or threshold change.",
+  "cells": {
+    "1": {
+      "net_extra_errors": 1,
+      "largest_increases": [
+        {
+          "id": "common_voice_en_19717736-common_voice_en_19717739",
+          "error_delta": 1,
+          "baseline_errors": 0,
+          "candidate_errors": 1,
+          "reference_words": 3,
+          "baseline_duration_s": 2.12,
+          "candidate_duration_s": 2.12
+        },
+        {
+          "id": "common_voice_en_103675-common_voice_en_103677",
+          "error_delta": 0,
+          "baseline_errors": 0,
+          "candidate_errors": 0,
+          "reference_words": 8,
+          "baseline_duration_s": 2.8,
+          "candidate_duration_s": 2.8
+        },
+        {
+          "id": "common_voice_en_1205005-common_voice_en_1205008",
+          "error_delta": 0,
+          "baseline_errors": 0,
+          "candidate_errors": 0,
+          "reference_words": 7,
+          "baseline_duration_s": 2.96,
+          "candidate_duration_s": 2.96
+        },
+        {
+          "id": "common_voice_en_123125-common_voice_en_123126",
+          "error_delta": 0,
+          "baseline_errors": 2,
+          "candidate_errors": 2,
+          "reference_words": 14,
+          "baseline_duration_s": 5.44,
+          "candidate_duration_s": 5.44
+        },
+        {
+          "id": "common_voice_en_1416089-common_voice_en_1416093",
+          "error_delta": 0,
+          "baseline_errors": 0,
+          "candidate_errors": 0,
+          "reference_words": 13,
+          "baseline_duration_s": 4.56,
+          "candidate_duration_s": 4.56
+        }
+      ]
+    },
+    "16": {
+      "net_extra_errors": 14,
+      "largest_increases": [
+        {
+          "id": "common_voice_en_20006910-common_voice_en_20006912",
+          "error_delta": 8,
+          "baseline_errors": 24,
+          "candidate_errors": 32,
+          "reference_words": 9,
+          "baseline_duration_s": 18.6,
+          "candidate_duration_s": 29.0
+        },
+        {
+          "id": "common_voice_en_18105426-common_voice_en_18105428",
+          "error_delta": 4,
+          "baseline_errors": 0,
+          "candidate_errors": 4,
+          "reference_words": 4,
+          "baseline_duration_s": 2.32,
+          "candidate_duration_s": 3.6
+        },
+        {
+          "id": "common_voice_en_19049396-common_voice_en_19049393",
+          "error_delta": 2,
+          "baseline_errors": 0,
+          "candidate_errors": 2,
+          "reference_words": 15,
+          "baseline_duration_s": 5.04,
+          "candidate_duration_s": 5.12
+        },
+        {
+          "id": "common_voice_en_18200641-common_voice_en_18200765",
+          "error_delta": 1,
+          "baseline_errors": 0,
+          "candidate_errors": 1,
+          "reference_words": 15,
+          "baseline_duration_s": 6.68,
+          "candidate_duration_s": 6.72
+        },
+        {
+          "id": "common_voice_en_19979514-common_voice_en_19979517",
+          "error_delta": 1,
+          "baseline_errors": 0,
+          "candidate_errors": 1,
+          "reference_words": 9,
+          "baseline_duration_s": 4.12,
+          "candidate_duration_s": 3.32
+        }
+      ]
+    },
+    "32": {
+      "net_extra_errors": 49,
+      "largest_increases": [
+        {
+          "id": "common_voice_en_20006910-common_voice_en_20006912",
+          "error_delta": 57,
+          "baseline_errors": 38,
+          "candidate_errors": 95,
+          "reference_words": 9,
+          "baseline_duration_s": 30.32,
+          "candidate_duration_s": 18.6
+        },
+        {
+          "id": "common_voice_en_18200641-common_voice_en_18200765",
+          "error_delta": 1,
+          "baseline_errors": 0,
+          "candidate_errors": 1,
+          "reference_words": 15,
+          "baseline_duration_s": 6.64,
+          "candidate_duration_s": 6.72
+        },
+        {
+          "id": "common_voice_en_19695366-common_voice_en_19695364",
+          "error_delta": 1,
+          "baseline_errors": 1,
+          "candidate_errors": 2,
+          "reference_words": 14,
+          "baseline_duration_s": 6.4,
+          "candidate_duration_s": 7.0
+        },
+        {
+          "id": "common_voice_en_103675-common_voice_en_103677",
+          "error_delta": 0,
+          "baseline_errors": 0,
+          "candidate_errors": 0,
+          "reference_words": 8,
+          "baseline_duration_s": 2.8,
+          "candidate_duration_s": 2.52
+        },
+        {
+          "id": "common_voice_en_1205005-common_voice_en_1205008",
+          "error_delta": 0,
+          "baseline_errors": 0,
+          "candidate_errors": 0,
+          "reference_words": 7,
+          "baseline_duration_s": 3.44,
+          "candidate_duration_s": 3.24
+        }
+      ]
+    }
+  }
+}

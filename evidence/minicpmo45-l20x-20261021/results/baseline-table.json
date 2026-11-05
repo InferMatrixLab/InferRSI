@@ -1,0 +1,210 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "Completed steady-state baseline measurements; no optimization verdict",
+  "rows": [
+    {
+      "engine": "vllm",
+      "concurrency": 1,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 192.6309728972112,
+      "throughput_frames_s_runs": [
+        191.46859704374864,
+        194.38639468569238,
+        192.03792696219256
+      ],
+      "ttfa_p50_ms_pooled": 307.4587588198483,
+      "ttfa_p95_ms_pooled": 343.0558750871569,
+      "rtf_mean": 0.13163823357797064,
+      "mean_audio_seconds": 4.403375
+    },
+    {
+      "engine": "vllm",
+      "concurrency": 2,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 295.48597389019307,
+      "throughput_frames_s_runs": [
+        295.3212311165908,
+        293.17643702367513,
+        297.9602535303133
+      ],
+      "ttfa_p50_ms_pooled": 410.91528814285994,
+      "ttfa_p95_ms_pooled": 534.6035631839186,
+      "rtf_mean": 0.1720971816832971,
+      "mean_audio_seconds": 4.401875
+    },
+    {
+      "engine": "vllm",
+      "concurrency": 4,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 394.0476581440165,
+      "throughput_frames_s_runs": [
+        389.97721596442943,
+        396.0669904546243,
+        396.0987680129957
+      ],
+      "ttfa_p50_ms_pooled": 881.6496999934316,
+      "ttfa_p95_ms_pooled": 1000.247368076816,
+      "rtf_mean": 0.2666428173622068,
+      "mean_audio_seconds": 4.421
+    },
+    {
+      "engine": "vllm",
+      "concurrency": 8,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 488.4001363373871,
+      "throughput_frames_s_runs": [
+        488.19399410559816,
+        480.3422803895024,
+        496.6641345170608
+      ],
+      "ttfa_p50_ms_pooled": 1375.2594594843686,
+      "ttfa_p95_ms_pooled": 1602.6222183834761,
+      "rtf_mean": 0.42630675701070436,
+      "mean_audio_seconds": 4.416125
+    },
+    {
+      "engine": "vllm",
+      "concurrency": 16,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 513.2861988294537,
+      "throughput_frames_s_runs": [
+        517.4996730783347,
+        502.39151536759675,
+        519.9674080424297
+      ],
+      "ttfa_p50_ms_pooled": 1702.651811297983,
+      "ttfa_p95_ms_pooled": 2727.534947451204,
+      "rtf_mean": 0.7967777842709449,
+      "mean_audio_seconds": 4.425833333333333
+    },
+    {
+      "engine": "vllm",
+      "concurrency": 32,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 540.2205300552778,
+      "throughput_frames_s_runs": [
+        536.7097060531476,
+        537.7713868577846,
+        546.1804972549013
+      ],
+      "ttfa_p50_ms_pooled": 2752.2785966284573,
+      "ttfa_p95_ms_pooled": 4732.173519395292,
+      "rtf_mean": 1.5019947916199494,
+      "mean_audio_seconds": 4.4185
+    },
+    {
+      "engine": "sglang",
+      "concurrency": 1,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 291.33565256989596,
+      "throughput_frames_s_runs": [
+        286.6952040139407,
+        294.1806012591891,
+        293.13115243655807
+      ],
+      "ttfa_p50_ms_pooled": 371.0423116572201,
+      "ttfa_p95_ms_pooled": 461.8933257646858,
+      "rtf_mean": 0.0888416606367711,
+      "mean_audio_seconds": 4.34975
+    },
+    {
+      "engine": "sglang",
+      "concurrency": 2,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 476.64068307533654,
+      "throughput_frames_s_runs": [
+        480.1043147330429,
+        470.5977098535817,
+        479.2200246393851
+      ],
+      "ttfa_p50_ms_pooled": 451.30864251405,
+      "ttfa_p95_ms_pooled": 578.6992390174418,
+      "rtf_mean": 0.10891612284894604,
+      "mean_audio_seconds": 4.353
+    },
+    {
+      "engine": "sglang",
+      "concurrency": 4,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 713.7879426625113,
+      "throughput_frames_s_runs": [
+        714.5980980520159,
+        704.8858647482879,
+        721.8798651872303
+      ],
+      "ttfa_p50_ms_pooled": 599.6185531839728,
+      "ttfa_p95_ms_pooled": 799.9201192986219,
+      "rtf_mean": 0.145134672745195,
+      "mean_audio_seconds": 4.355541666666666
+    },
+    {
+      "engine": "sglang",
+      "concurrency": 8,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 1043.2055569310974,
+      "throughput_frames_s_runs": [
+        1024.7273090715485,
+        1049.2862177883178,
+        1055.6031439334258
+      ],
+      "ttfa_p50_ms_pooled": 835.1065027527511,
+      "ttfa_p95_ms_pooled": 1042.5908281002194,
+      "rtf_mean": 0.1980206295767324,
+      "mean_audio_seconds": 4.344666666666667
+    },
+    {
+      "engine": "sglang",
+      "concurrency": 16,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 1558.5134910014297,
+      "throughput_frames_s_runs": [
+        1535.2437881502613,
+        1590.57818340838,
+        1549.7185014456477
+      ],
+      "ttfa_p50_ms_pooled": 1111.986730247736,
+      "ttfa_p95_ms_pooled": 1411.4549641031772,
+      "rtf_mean": 0.2638718498759094,
+      "mean_audio_seconds": 4.3460833333333335
+    },
+    {
+      "engine": "sglang",
+      "concurrency": 32,
+      "requests_per_repeat": 320,
+      "repeats": 3,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 1918.4671911997168,
+      "throughput_frames_s_runs": [
+        1857.1689109413321,
+        1926.0205346484738,
+        1972.2121280093443
+      ],
+      "ttfa_p50_ms_pooled": 1763.5161047801375,
+      "ttfa_p95_ms_pooled": 2479.3635668233037,
+      "rtf_mean": 0.4245844838355303,
+      "mean_audio_seconds": 4.335666666666667
+    }
+  ]
+}

@@ -1,0 +1,183 @@
+{
+  "scope": "Fresh-server same-GPU ordered main then speaker-only control; first cohort already used, not the new noninferiority holdout. One measured repeat, not a three-repeat certification.",
+  "baseline": [
+    {
+      "concurrency": 1,
+      "requests_per_repeat": [
+        320
+      ],
+      "repeats": 1,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 195.63182818891124,
+      "throughput_frames_s_runs": [
+        195.63182818891124
+      ],
+      "ttfa_p50_ms_pooled": 301.976156886667,
+      "ttfa_p95_ms_pooled": 335.2828514762223,
+      "rtf_mean": 0.12953641316987827,
+      "mean_audio_seconds": 4.403375
+    },
+    {
+      "concurrency": 16,
+      "requests_per_repeat": [
+        320
+      ],
+      "repeats": 1,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 518.6318853553925,
+      "throughput_frames_s_runs": [
+        518.6318853553925
+      ],
+      "ttfa_p50_ms_pooled": 1777.3926672525704,
+      "ttfa_p95_ms_pooled": 2787.7322832122445,
+      "rtf_mean": 0.7882931322197748,
+      "mean_audio_seconds": 4.421375
+    },
+    {
+      "concurrency": 32,
+      "requests_per_repeat": [
+        320
+      ],
+      "repeats": 1,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 546.9263779282637,
+      "throughput_frames_s_runs": [
+        546.9263779282637
+      ],
+      "ttfa_p50_ms_pooled": 2924.136787187308,
+      "ttfa_p95_ms_pooled": 4875.125219533224,
+      "rtf_mean": 1.4818314017837306,
+      "mean_audio_seconds": 4.421375
+    }
+  ],
+  "candidate": [
+    {
+      "concurrency": 1,
+      "requests_per_repeat": [
+        320
+      ],
+      "repeats": 1,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 190.49643347012628,
+      "throughput_frames_s_runs": [
+        190.49643347012628
+      ],
+      "ttfa_p50_ms_pooled": 311.7179465480149,
+      "ttfa_p95_ms_pooled": 348.39434004388755,
+      "rtf_mean": 0.1330708766918508,
+      "mean_audio_seconds": 4.403375
+    },
+    {
+      "concurrency": 16,
+      "requests_per_repeat": [
+        320
+      ],
+      "repeats": 1,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 689.3975797291423,
+      "throughput_frames_s_runs": [
+        689.3975797291423
+      ],
+      "ttfa_p50_ms_pooled": 1114.872995764017,
+      "ttfa_p95_ms_pooled": 1498.1277078390124,
+      "rtf_mean": 0.5894206331573023,
+      "mean_audio_seconds": 4.428625
+    },
+    {
+      "concurrency": 32,
+      "requests_per_repeat": [
+        320
+      ],
+      "repeats": 1,
+      "n_failed": 0,
+      "throughput_frames_s_mean": 799.2073557877923,
+      "throughput_frames_s_runs": [
+        799.2073557877923
+      ],
+      "ttfa_p50_ms_pooled": 1754.9862717278302,
+      "ttfa_p95_ms_pooled": 2275.2251386176795,
+      "rtf_mean": 1.0100244559004483,
+      "mean_audio_seconds": 4.418625
+    }
+  ],
+  "quality": {
+    "vllm-fresh-main-c1": {
+      "n": 320,
+      "sim": 49.96651079952717,
+      "utmos": 4.188894119858742,
+      "wer": 0.015069661643446119,
+      "wer_counts": {
+        "substitutions": 39,
+        "deletions": 6,
+        "insertions": 8,
+        "hits": 3472
+      },
+      "wer_mean": 0.016216405122655122
+    },
+    "vllm-fresh-main-c16": {
+      "n": 320,
+      "sim": 49.77642827630043,
+      "utmos": 4.1835591427981855,
+      "wer": 0.013363662212112597,
+      "wer_counts": {
+        "substitutions": 37,
+        "deletions": 4,
+        "insertions": 6,
+        "hits": 3476
+      },
+      "wer_mean": 0.01430364774114774
+    },
+    "vllm-fresh-main-c32": {
+      "n": 320,
+      "sim": 49.79138264656067,
+      "utmos": 4.179357252269983,
+      "wer": 0.013079328973557009,
+      "wer_counts": {
+        "substitutions": 34,
+        "deletions": 4,
+        "insertions": 8,
+        "hits": 3479
+      },
+      "wer_mean": 0.014219287656787658
+    },
+    "vllm-fresh-speaker-c1": {
+      "n": 320,
+      "sim": 49.93940706849098,
+      "utmos": 4.1814770475029945,
+      "wer": 0.014785328404890531,
+      "wer_counts": {
+        "substitutions": 39,
+        "deletions": 5,
+        "insertions": 8,
+        "hits": 3473
+      },
+      "wer_mean": 0.015903905122655125
+    },
+    "vllm-fresh-speaker-c16": {
+      "n": 320,
+      "sim": 49.47189713120461,
+      "utmos": 4.189760839939117,
+      "wer": 0.01393232868922377,
+      "wer_counts": {
+        "substitutions": 36,
+        "deletions": 5,
+        "insertions": 8,
+        "hits": 3476
+      },
+      "wer_mean": 0.015234643828393828
+    },
+    "vllm-fresh-speaker-c32": {
+      "n": 320,
+      "sim": 49.79509684443474,
+      "utmos": 4.18993492051959,
+      "wer": 0.01194199601933466,
+      "wer_counts": {
+        "substitutions": 35,
+        "deletions": 4,
+        "insertions": 3,
+        "hits": 3478
+      },
+      "wer_mean": 0.011782037407037408
+    }
+  }
+}

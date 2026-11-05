@@ -1,0 +1,13 @@
+{
+  "frozen_at_utc": "2026-10-21T07:03:43.700560+00:00",
+  "source_revision": "b6dacdf03756dbedeee8592577798670f5e22329",
+  "hypothesis": "With actual FP16 fusion enabled, a16-row microbatch gives18 resident slots, enough for stage capacity16; test whether fewer replays and cache copies outperform the6-slot trial.",
+  "changes_vs_dispatch_only": {
+    "micro_batch_size": 16,
+    "cfm_slot_pool": true,
+    "cfm_row_offset_merge": true
+  },
+  "limitations": "This is a combined batching/residency screen; do not attribute gain to any one toggle without an ablation.",
+  "protocol": "64 reused tuning prompts,C1/C16/C32,discard+one repeat; same sampling, Torch speaker, MPS, FP16 flow; HiFT remains IEEE FP32.",
+  "validation": "26 attention tests and6 DiT tests passed, including actual FP16 dispatch; speech quality screening remains required."
+}

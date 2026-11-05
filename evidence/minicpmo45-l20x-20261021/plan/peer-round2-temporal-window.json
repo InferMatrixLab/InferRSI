@@ -1,0 +1,22 @@
+{
+  "frozen_at_utc": "2026-10-21T09:13:38.765171+00:00",
+  "source_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+  "hypothesis": "Larger temporal codec windows amortize per-chunk CFM/HiFT dispatch and improve kernel utilization without requiring larger request batches.",
+  "priority": "User selected high-concurrency throughput priority, with TTFA/RTF reported; no latency threshold was specified.",
+  "contrast": "Same selective-CFM, Torch speaker graph, ordinary Talker2/Code2Wav4 profile; only codec_chunk_frames changes25 to50 or100. Existing graph geometry derives steady shapes from this value; exact short-tail admission remains unchanged.",
+  "tradeoff": "Initial window also grows: the current connector uses one configured window for every payload. TTFA may approach completion for short utterances; do not claim equivalent first-audio behavior.",
+  "candidates": [
+    50,
+    100
+  ],
+  "protocol": "Each fresh service:64 reused tuning,C1/C16/C32,discard+one,all native quality metrics. No sample exclusions or holdout use.",
+  "acceptance": "Zero failures and all original final quality confidence bounds; benchmark audio-frame accounting unchanged. Larger-window results must disclose first-chunk duration and TTFA.",
+  "fp32_control_addendum": {
+    "frozen_at_utc": "2026-10-21T09:19:47.883091+00:00",
+    "source_revision": "17246ce5e695c7f0c58d53f42aa586e1e94390f1",
+    "candidate": "100-frame window with FP32 CFM, otherwise ordinary Talker2/Code2Wav4 plus speaker graph",
+    "reason": "The FP32 25-frame pipeline screen now has all descriptive quality means within margins; test whether larger windows alone suffice, retaining this precision path. This also contrasts against selective-CFM100 before final selection.",
+    "protocol": "Same64 reused tuning,discard+one,C1/C16/C32 and native scoring; no holdout",
+    "chunk_processor_tests": "45 passed"
+  }
+}

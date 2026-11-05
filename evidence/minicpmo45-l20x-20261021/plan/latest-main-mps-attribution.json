@@ -1,0 +1,20 @@
+{
+  "frozen_at_utc": "2026-10-21T04:33:14.503627+00:00",
+  "purpose": "Disentangle the already available MPS switch from the new CPU-reference backend after upstream #9178 enabled Torch CUDA speaker extraction. This is a one-plane attribution control, not another selected candidate or untouched quality holdout.",
+  "baseline_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+  "profile_changes": {
+    "cuda_mps": true
+  },
+  "speaker_backend": "upstream Torch default",
+  "device": "same physical GPU as final sequential main/candidate confirmation, queued after it releases",
+  "concurrency": [
+    16,
+    32
+  ],
+  "requests": 320,
+  "discard_runs": 1,
+  "measured_repeats": 1,
+  "pool": "same first320 eval rows",
+  "quality": "Descriptive native scoring of the same two saved run1 cohorts; no all-concurrency noninferiority claim.",
+  "stop": "Complete this fixed control; retain all outcomes without retuning or changing margins."
+}

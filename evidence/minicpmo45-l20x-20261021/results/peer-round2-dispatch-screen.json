@@ -1,0 +1,32 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "scope": "64 reused tuning prompts, one measured repeat, no final performance or quality qualification",
+  "source_revision": "b6dacdf03756dbedeee8592577798670f5e22329",
+  "cells": {
+    "1": {
+      "throughput_frames_s": 192.78916450611223,
+      "ttfa_p50_s": 0.29299376625567675,
+      "ttfa_p95_s": 0.32444422915577886,
+      "rtf_mean": 0.1311724539505048,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "16": {
+      "throughput_frames_s": 825.9532673478732,
+      "ttfa_p50_s": 1.216235188767314,
+      "ttfa_p95_s": 1.8333380463533104,
+      "rtf_mean": 0.4847945349624937,
+      "n_failed": 0,
+      "n_requests": 64
+    },
+    "32": {
+      "throughput_frames_s": 857.742972869709,
+      "ttfa_p50_s": 1.8151386007666588,
+      "ttfa_p95_s": 3.2356737752910703,
+      "rtf_mean": 0.8832207689635144,
+      "n_failed": 0,
+      "n_requests": 64
+    }
+  },
+  "validation": "New dispatch assertion fails on parent; fixed implementation passes6 DiT tests and all changed-file precommit checks."
+}

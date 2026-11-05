@@ -1,0 +1,18 @@
+{
+  "frozen_at_utc": "2026-10-21T08:03:12.377856+00:00",
+  "source_revision": "172395ef6ea072c531a89dc18ab868ff2f9ada12",
+  "hypothesis": "Two Code2Wav processes on the same L20X can overlap host dispatch and GPU work under private MPS, improving high concurrency throughput without changing arithmetic.",
+  "evidence": [
+    "Instrumented stage2 span4.662s versus summed GPU kernels1.879s; instrumentation overhead prevents exact attribution",
+    "Prompt preparation diagnostic25.3ms per unique6s reference; optimizing this alone cannot close~2.8x throughput gap",
+    "Existing same-device stage2 replicas profile, previously validated only on NPU"
+  ],
+  "contrast": "Only stage2 num_replicas=2 and devices=0,0 over round2 Torch+MPS control; all capacities16, FP32, microbatch4, precision, sampling and workload unchanged.",
+  "quality_checks": "Existing orchestrator replica-routing tests and resolved-config assertions before launch; then64 reused tuning requests at C1/C16/C32 with no failed or missing audio and descriptive WER/SIM/UTMOS.",
+  "decision": "If two replicas improve, consider separately frozen four-replica trial after memory/runtime check. No speculative port of multi-frame Talker before bottleneck evidence.",
+  "holdout": "256 untouched; final acceptance still all9 bounds.",
+  "pre_service_checks": {
+    "replica_routing_tests": "17 passed,111 deselected",
+    "resolved_config": "PASS: capacities16/16/16,stage2 num_replicas2 devices0,0,MPS enabled"
+  }
+}

@@ -1,0 +1,6 @@
+base_config: minicpmo_4_5_turn.yaml
+cuda_mps: true
+connectors:
+  connector_of_shared_memory:
+    extra:
+      token2wav_device_spk: true

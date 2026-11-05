@@ -1,0 +1,32 @@
+{
+  "frozen_at_utc": "2026-10-21T10:34:21.760257+00:00",
+  "plane": "infra",
+  "candidate_revision": "60d71d16e0d77734239935ffc6b991c810ea1aa7",
+  "control": "screen-tensor-handoff25",
+  "hypothesis": "Earlier ordinary 1 Talker/2 vocoders to 2 Talkers/4 vocoders improved aggregate throughput, but changed both stages. After lossless transport, independently doubling either stage tests remaining host-side stage capacity versus GPU contention.",
+  "screens": [
+    {
+      "name": "screen-tensor-handoff4x4",
+      "replicas": [
+        1,
+        4,
+        4
+      ]
+    },
+    {
+      "name": "screen-tensor-handoff2x8",
+      "replicas": [
+        1,
+        2,
+        8
+      ]
+    }
+  ],
+  "fixed": "Same source,25-frame windows,CFM selective half,speaker graphs,8GiB Thinker KV,4GiB per Talker KV,model and sampling. Each screen varies one stage replica count only.",
+  "workload": "Same64 reused tuning prompts;C1/16/32 discard+one;all3 quality means;no holdout",
+  "resource_note": "One L20X per screen; use reservation queue; startup may take up to45min for13 processes. No same-device overlapping screens.",
+  "decision": "Run only if current packed25 screen completes without request errors and remains below matched peer at C16 or C32. Quality still independently gated.",
+  "acceptance": "Unchanged repeated same-GPU peer comparison and256-prompt clustered quality gates; these screens cannot qualify release.",
+  "verdict": "INCONCLUSIVE",
+  "holdout_used": false
+}

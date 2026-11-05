@@ -1,0 +1,21 @@
+{
+  "frozen_at_utc": "2026-10-21T03:57:10.759083+00:00",
+  "reason": "Upstream main advanced during the campaign and enabled Torch CUDA speaker extraction by default in #9178. Preserve the original baseline and add the new snapshot rather than calling old results current.",
+  "new_baseline_sha": "15bce34586",
+  "previous_baseline_sha": "aa3fd1d9b7f5c7191dec11975ac0aa7c4c4a18c5",
+  "concurrency": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "requests": 320,
+  "repeats": 3,
+  "discard_runs": 1,
+  "cohort": "original first320 eval rows, unchanged driver v2",
+  "quality": "Same existing scorers at C1/16/32 run1; separately report comparisons and original CPU-reference noninferiority holdout. No post-hoc threshold relaxation.",
+  "driver_sha256": "0c66908c5959e3b91e5a091af5cf2a6382443c3ba0c416d6917e7af3aef3222b",
+  "candidate_integration": "Preserve new upstream Torch defaults; introduce explicit token2wav_spk_cpu_reference opt-in for the previously measured CPU-reference TRT math."
+}

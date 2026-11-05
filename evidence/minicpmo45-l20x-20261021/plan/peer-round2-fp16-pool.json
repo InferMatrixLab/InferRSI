@@ -1,0 +1,12 @@
+{
+  "frozen_at_utc": "2026-10-21T06:30:41.036889+00:00",
+  "source_revision": "86732dde68fcfc90455e2db663c85f6e4fbc375d",
+  "hypothesis": "Resident K/V and merged prefix offsets may reduce copying and fragmented audio batches after FP16 fused-body support.",
+  "changes_vs_fp16_fused_screen": {
+    "cfm_slot_pool": true,
+    "cfm_row_offset_merge": true
+  },
+  "unchanged": "micro_batch_size4, stage capacities16, Torch speaker, MPS, sampling and64 tuning prompts",
+  "limitation": "Current pool has micro_batch_size+max(2,micro_batch_size//8)=6 stream slots; measure fallback behavior before enlarging it.",
+  "numerical_evidence": "26 GPU attention cases (including repeated resident rows) and6 DiT regression cases PASS; generated speech gate still required."
+}

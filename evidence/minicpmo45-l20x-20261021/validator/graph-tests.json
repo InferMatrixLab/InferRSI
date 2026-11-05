@@ -1,0 +1,14 @@
+{
+  "source": "vllm-omni baseline main pinned in plan/baseline-plan.json",
+  "tests": [
+    "tests/model_executor/models/minicpmo_4_5/test_flow_encoder_graph.py",
+    "tests/model_executor/models/minicpmo_4_5/test_code2wav_batching.py"
+  ],
+  "device": "NVIDIA L20X",
+  "passed": 170,
+  "skipped": 1,
+  "warnings": 16,
+  "elapsed_seconds": 39.62,
+  "scope": "Existing CPU and GPU exact-shape graph replay, state ownership and Code2Wav batching. Not a service quality verdict.",
+  "log_sha256": "0d9932308d994475c4f1f0e1419fb07232108c15cc45ae3479402da6e8caaf4a"
+}

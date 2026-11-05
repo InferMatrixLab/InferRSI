@@ -1,0 +1,62 @@
+{
+  "frozen_at_utc": "2026-10-21T09:59:30.955099+00:00",
+  "plane": "harness",
+  "parent_revision": "459ace4362ade365a299dc59fd9c30433dcd5af3",
+  "hypothesis": "Ordinary turn handoff materializes reference waveform and hidden states as Python lists, traverses them in worker storage, then recreates tensors. Packed CPU tensor bytes using the existing Omni serializer can preserve values while reducing host work.",
+  "evidence": "Both perturbed100Hz and limited2Hz GIL samples hit _store_value list comprehension; independent CPU counters show Talker processes highest CPU time. Samples do not quantify unprofiled savings.",
+  "wire_constraint": "model_intermediate_buffer values are Any; raw torch.Tensor cannot rely on typed vLLM MsgpackDecoder hooks. Use existing OmniSerde bytes, not a new unsafe serializer.",
+  "scope": "Ordinary turn llm2tts only; native duplex list producer unchanged; consumers accept legacy lists and packed bytes. No sampling, numeric kernel, window, cache-capacity or weights changes.",
+  "controls": [
+    "Bitwise float32 equivalence with legacy list-to-float32 path",
+    "Actual vLLM MsgpackEncoder/Decoder Any-field roundtrip",
+    "Owned snapshots and independent decode outputs",
+    "Empty/noncontiguous/bfloat16 inputs and invalid packed payloads",
+    "Existing stage-input, async connector and Talker tests",
+    "CPU transport microbenchmark before unprofiled service screen"
+  ],
+  "service": "Same64 reused tuning prompts C1/16/32 discard+one; compare selectiveCFM speaker2x4 window25 parent; quality score all3 cells",
+  "final_acceptance": "Unchanged peer comparison and unused256 prompt-cluster quality gates",
+  "holdout_used": false,
+  "verdict": "INCONCLUSIVE",
+  "microbenchmark": {
+    "reference_shape": [
+      144000
+    ],
+    "hidden_shape": [
+      32,
+      4096
+    ],
+    "source_hidden_dtype": "bfloat16",
+    "consumer_dtype": "float32",
+    "warmup_each": 10,
+    "iterations_each": 100,
+    "order": "alternating AB/BA",
+    "stages": "producer, actual vLLM msgpack Any-field roundtrip, existing runner storage, float32 consumer",
+    "gate": "bitwise equality mandatory; timing is descriptive, no service claim"
+  },
+  "pre_execution_composition_addendum": {
+    "at_utc": "2026-10-21T10:08:27.166322+00:00",
+    "screens": [
+      {
+        "candidate": "screen-tensor-handoff25",
+        "control": "screen-cfm-speaker-replicas2x4",
+        "window": 25
+      },
+      {
+        "candidate": "screen-tensor-handoff50",
+        "control": "screen-cfm-speaker-window50",
+        "window": 50
+      }
+    ],
+    "reason": "Both parent profiles had descriptive means within margins; vary only packed transport relative to each. Expanded HiFT coverage profile exceeded quality means and is not the chosen50-frame parent.",
+    "tests": "213 passed,1 pre-existing skipped; precommit in progress",
+    "holdout_used": false
+  },
+  "candidate_revision": "60d71d16e0d77734239935ffc6b991c810ea1aa7",
+  "validation": {
+    "regression_tests_passed": 213,
+    "pre_existing_skipped": 1,
+    "precommit": "PASS, including commit hooks",
+    "micro_bitwise_equal": true
+  }
+}

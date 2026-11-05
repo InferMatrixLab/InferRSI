@@ -1,0 +1,43 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "excluded_from_baseline": true,
+  "reason": "Model config and two model Python files did not match pinned official revision. Weights matched; official metadata replacement required a new cohort.",
+  "measurements": [
+    {
+      "concurrency": 1,
+      "n_requests": 64,
+      "n_failed": 0,
+      "throughput_frames_s": 192.99414181262983,
+      "ttfa_p50_s": 0.3030988499522209,
+      "ttfa_p95_s": 0.3350931538734585,
+      "rtf_mean": 0.13142912169653032
+    },
+    {
+      "concurrency": 2,
+      "n_requests": 64,
+      "n_failed": 0,
+      "throughput_frames_s": 306.1663253559082,
+      "ttfa_p50_s": 0.3919649701565504,
+      "ttfa_p95_s": 0.5106137109454721,
+      "rtf_mean": 0.1656832240376756
+    },
+    {
+      "concurrency": 4,
+      "n_requests": 64,
+      "n_failed": 0,
+      "throughput_frames_s": 390.4676265367766,
+      "ttfa_p50_s": 0.8487142664380372,
+      "ttfa_p95_s": 0.9391858957242221,
+      "rtf_mean": 0.2690079858724289
+    },
+    {
+      "concurrency": 8,
+      "n_requests": 64,
+      "n_failed": 0,
+      "throughput_frames_s": 473.62191003975323,
+      "ttfa_p50_s": 1.2351192804053426,
+      "ttfa_p95_s": 1.5106232981197536,
+      "rtf_mean": 0.4311442916392455
+    }
+  ]
+}

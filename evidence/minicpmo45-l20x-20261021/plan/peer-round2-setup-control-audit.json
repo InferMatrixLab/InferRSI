@@ -1,0 +1,7 @@
+{
+  "frozen_at_utc": "2026-10-21T08:27:47.230224+00:00",
+  "question": "Does the failed setup waveform probe have a stable identical-state A/A control? If yes, locate divergence at continuation mel or HiFT source.",
+  "source_revision": "d255857c1d1441ba77362da6d4cb628fa5dc47a8",
+  "protocol": "Same four normalized tuning references and fixed model/noise. Deep-copy reference state for two identical A decodes, reset torch seed before every A/A/B decode, capture exact continuation mel before HiFT. No service benchmarking.",
+  "decision": "Preserve original FAIL and0.01 gate. This diagnostic does not relax it, promote batching, or touch holdout."
+}

@@ -1,0 +1,9 @@
+{
+  "scope": "Speaker implementation source equality only; coordinator and default backend changes still require separate service comparison.",
+  "speaker_module_identical": true,
+  "speaker_module_sha256": "310129b4283200a71221e813185d14ef9b44873df1147e1d1e2a68baeff2d755",
+  "core_enable_trt_spk_embedding_ast_identical": true,
+  "routing_validation": "108 CPU tests passed, including explicit opt-in and preserved upstream defaults",
+  "historical_revision": "f2462435d79f0243ced93a02f3b8d6cd9c41511b",
+  "adapted_revision": "227a43e898f8b96236f48f16f399431c8ad0ddcc"
+}

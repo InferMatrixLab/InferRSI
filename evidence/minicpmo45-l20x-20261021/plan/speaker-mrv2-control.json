@@ -1,0 +1,18 @@
+{
+  "plane": "model",
+  "hypothesis": "MRv2 host scheduling may improve throughput after removing CPU speaker extraction, despite no gain in the unmodified-main control.",
+  "control": "existing main MRv2 profile",
+  "changed_setting": {
+    "token2wav_device_spk": true
+  },
+  "dataset": "same disjoint tuning64",
+  "concurrency": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "gate": "Same frozen performance and quality gates; compare with speaker V1 before selection."
+}

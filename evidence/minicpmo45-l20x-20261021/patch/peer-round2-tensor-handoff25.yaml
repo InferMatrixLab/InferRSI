@@ -1,0 +1,16 @@
+base_config: minicpmo_4_5_turn.yaml
+cuda_mps: true
+connectors:
+  connector_of_shared_memory:
+    extra:
+      token2wav_spk_cuda_graph: true
+      cfm_float16: true
+stages:
+  - stage_id: 0
+    kv_cache_memory_bytes: 8589934592
+  - stage_id: 1
+    num_replicas: 2
+    devices: "0,0"
+  - stage_id: 2
+    num_replicas: 4
+    devices: "0,0,0,0"

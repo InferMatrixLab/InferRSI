@@ -1,0 +1,80 @@
+{
+  "source": "Local launch arguments, resolved deploy configuration and server startup logs",
+  "runs": {
+    "vllm-official-repeated": {
+      "runtime": "main V1",
+      "cuda_mps": false,
+      "speaker_backend": "CPU ONNX Runtime",
+      "device_role": "same physical GPU A"
+    },
+    "vllm-speaker-repeated": {
+      "runtime": "candidate V1",
+      "cuda_mps": false,
+      "speaker_backend": "TensorRT CPU-reference graph, IEEE FP32",
+      "device_role": "same physical GPU A"
+    },
+    "vllm-speaker-mps-repeated": {
+      "runtime": "candidate V1",
+      "cuda_mps": true,
+      "speaker_backend": "TensorRT CPU-reference graph, IEEE FP32",
+      "device_role": "GPU B, same L20X SKU",
+      "mps_started_private_daemon": true
+    },
+    "vllm-fresh-main": {
+      "device_role": "GPU C, sequential fresh pair",
+      "cuda_mps": false,
+      "speaker_backend": "CPU ONNX Runtime"
+    },
+    "vllm-fresh-speaker": {
+      "device_role": "same GPU C, sequential fresh pair",
+      "cuda_mps": false,
+      "speaker_backend": "CPU-reference TensorRT IEEE FP32"
+    },
+    "vllm-holdout-main": {
+      "device_role": "GPU D, sequential fresh holdout pair",
+      "cuda_mps": false,
+      "speaker_backend": "CPU ONNX Runtime"
+    },
+    "vllm-holdout-candidate": {
+      "device_role": "same GPU D, sequential fresh holdout pair",
+      "cuda_mps": true,
+      "speaker_backend": "CPU-reference TensorRT IEEE FP32",
+      "state": "Completed and scored; noninferiority FAIL retained."
+    },
+    "vllm-latest-main": {
+      "cuda_mps": false,
+      "speaker_backend": "Torch CUDA",
+      "device_role": "GPU E, updated-main repeated matrix",
+      "mps_started_private_daemon": false
+    },
+    "vllm-integrated-candidate": {
+      "cuda_mps": true,
+      "speaker_backend": "CPU-reference TensorRT IEEE FP32",
+      "device_role": "GPU F, adapted-candidate repeated matrix",
+      "mps_started_private_daemon": true
+    },
+    "vllm-final-fresh-main": {
+      "device_role": "Same physical GPU G, sequential final controls",
+      "cuda_mps": false,
+      "speaker_backend": "Torch CUDA",
+      "state": "Completed and scored",
+      "mps_started_private_daemon": false
+    },
+    "vllm-final-fresh-candidate": {
+      "device_role": "Same physical GPU G, sequential final controls",
+      "cuda_mps": true,
+      "speaker_backend": "CPU-reference TensorRT IEEE FP32",
+      "state": "Completed and scored",
+      "mps_started_private_daemon": true
+    },
+    "vllm-final-fresh-torch_mps": {
+      "device_role": "Same physical GPU G, sequential final controls",
+      "cuda_mps": true,
+      "speaker_backend": "Torch CUDA",
+      "state": "Completed and scored",
+      "mps_started_private_daemon": true
+    }
+  },
+  "summary_metadata_warning": "Raw summary mps_policy=off/id_set=eval and blank source/device fields are reference-helper defaults. These runtime observations, source plans and pinned manifests are authoritative. No strict certification is inferred from those default fields.",
+  "host_limitations": "GPU reservations were acquired, but the scheduler cannot prevent unreserved jobs. A final-control startup was aborted when an unrelated job occupied its reserved GPU; no measured requests were produced and the control was moved to a free GPU. Host CPUs and filesystem remain shared; no CPU affinity isolation. See final-control-allocation-addendum.json."
+}

@@ -1,0 +1,494 @@
+diff --git a/docs/design/minicpm_o45_mrv2_performance.md b/docs/design/minicpm_o45_mrv2_performance.md
+index c7b1969841..f0e5ea8a5e 100644
+--- a/docs/design/minicpm_o45_mrv2_performance.md
++++ b/docs/design/minicpm_o45_mrv2_performance.md
+@@ -54,6 +54,21 @@ On CUDA, disabling TF32 with `token2wav_allow_tf32: false` or
+ Slot pooling and its `cfm_row_offset_merge` option remain opt-in. Fusion changes
+ floating-point rounding and does not promise identical waveforms.
+ 
++## Turn-mode conditioning transport
++
++Ordinary turn-mode `llm2tts` packs reference audio and thinker hidden states
++with the existing Omni tensor serializer. The request envelope's
++`model_intermediate_buffer` is untyped, so these values cross EngineCore as
++owned bytes and are restored to CPU float32 tensors by the Talker and codec
++bridge. This avoids scalar-list construction, worker list traversal and
++list-to-tensor conversion. Values match the previous list-to-float32 path;
++sampling and acoustic computation are unchanged.
++
++Legacy lists and local tensors remain accepted by consumers. Native duplex
++continues producing its existing lists. Each decode owns its storage, and the
++packed snapshot cannot be changed by later producer mutations. Transport
++microbenchmarks alone do not establish service throughput or speech quality.
++
+ ## Code2Wav batching across reference audio
+ 
+ With CUDA ragged Whole-Euler enabled, ready requests with different reference
+diff --git a/tests/model_executor/models/minicpmo_4_5/test_llm2tts.py b/tests/model_executor/models/minicpmo_4_5/test_llm2tts.py
+index d93755fec0..e10fecfc92 100644
+--- a/tests/model_executor/models/minicpmo_4_5/test_llm2tts.py
++++ b/tests/model_executor/models/minicpmo_4_5/test_llm2tts.py
+@@ -22,6 +22,7 @@ from types import SimpleNamespace
+ import pytest
+ import torch
+ 
++from vllm_omni.model_executor.models.minicpmo_4_5.handoff import unpack_handoff_tensor
+ from vllm_omni.model_executor.models.minicpmo_4_5.minicpmo_4_5_omni import (
+     MiniCPMO45OmniForConditionalGeneration,
+ )
+@@ -149,7 +150,10 @@ class TestBasicShape:
+         out = llm2tts([thinker_output], prompt=None)
+ 
+         assert out[0]["prompt_token_ids"] == [0, 0, 0]
+-        assert torch.equal(torch.tensor(out[0]["model_intermediate_buffer"]["hidden_states"]["tts"]), hidden[1:])
++        assert torch.equal(
++            torch.as_tensor(unpack_handoff_tensor(out[0]["model_intermediate_buffer"]["hidden_states"]["tts"])),
++            hidden[1:],
++        )
+ 
+     def test_returns_one_entry_per_input(self) -> None:
+         hidden = torch.zeros((3, _HIDDEN_DIM))
+@@ -210,7 +214,7 @@ class TestBasicShape:
+         buffer = result["model_intermediate_buffer"]
+         assert result["prompt_token_ids"] == [0, 0, 0, 0]
+         assert buffer["ids"]["tts"] == [20, 21]
+-        assert torch.equal(torch.tensor(buffer["hidden_states"]["tts"]), hidden[2:4])
++        assert torch.equal(torch.as_tensor(unpack_handoff_tensor(buffer["hidden_states"]["tts"])), hidden[2:4])
+ 
+     def test_latent_in_multimodal_output_takes_precedence(self) -> None:
+         # When both ``multimodal_output["latent"]`` and ``hidden_states`` are
+@@ -234,7 +238,9 @@ class TestBasicShape:
+         )
+         buffer = result[0]["model_intermediate_buffer"]
+         # latent (ones) won over hidden_states (zeros)
+-        assert torch.equal(torch.tensor(buffer["hidden_states"]["tts"]), latent[3:4].to(torch.float32))
++        assert torch.equal(
++            torch.as_tensor(unpack_handoff_tensor(buffer["hidden_states"]["tts"])), latent[3:4].to(torch.float32)
++        )
+ 
+ 
+ class TestTtsRegionDetection:
+@@ -269,7 +275,7 @@ class TestTtsRegionDetection:
+         # 4.5 BOS at idx 2 -> slice starts at 3; end at idx 5 -> slice ends at 5.
+         buffer, hidden = self._run([10, 11], [151703, 30, 31, tts_end_id, 40])
+         assert buffer["ids"]["tts"] == [30, 31]
+-        assert torch.equal(torch.tensor(buffer["hidden_states"]["tts"]), hidden[3:5])
++        assert torch.equal(torch.as_tensor(unpack_handoff_tensor(buffer["hidden_states"]["tts"])), hidden[3:5])
+ 
+     def test_bos_without_eos_runs_to_end(self) -> None:
+         # When BOS is found but EOS is missing (typical for an in-flight or
+@@ -278,12 +284,12 @@ class TestTtsRegionDetection:
+         # sequence: [10, 11, 151703, 30, 31]
+         buffer, hidden = self._run([10, 11], [151703, 30, 31])
+         assert buffer["ids"]["tts"] == [30, 31]
+-        assert torch.equal(torch.tensor(buffer["hidden_states"]["tts"]), hidden[3:5])
++        assert torch.equal(torch.as_tensor(unpack_handoff_tensor(buffer["hidden_states"]["tts"])), hidden[3:5])
+ 
+     def test_plain_chat_without_tts_markers_uses_assistant_span(self) -> None:
+         buffer, hidden = self._run([10, 11], [20, 21, 22])
+         assert buffer["ids"]["tts"] == [20, 21, 22]
+-        assert torch.equal(torch.tensor(buffer["hidden_states"]["tts"]), hidden[2:5])
++        assert torch.equal(torch.as_tensor(unpack_handoff_tensor(buffer["hidden_states"]["tts"])), hidden[2:5])
+ 
+ 
+ class TestPromptAndMultiModal:
+@@ -325,7 +331,7 @@ class TestPromptAndMultiModal:
+         )
+ 
+         intermediate_buffer = stage_outputs[0]["model_intermediate_buffer"]
+-        assert intermediate_buffer["codes"]["ref"] == [0.25, -0.5]
++        assert torch.equal(unpack_handoff_tensor(intermediate_buffer["codes"]["ref"]), torch.tensor([0.25, -0.5]))
+         assert intermediate_buffer["meta"]["ref_audio_sr"] == 16000
+ 
+     def test_serving_reference_audio_is_added_to_stage_handoff(self) -> None:
+@@ -338,7 +344,7 @@ class TestPromptAndMultiModal:
+         )
+ 
+         intermediate_buffer = stage_outputs[0]["model_intermediate_buffer"]
+-        assert intermediate_buffer["codes"]["ref"] == [0.125, -0.25]
++        assert torch.equal(unpack_handoff_tensor(intermediate_buffer["codes"]["ref"]), torch.tensor([0.125, -0.25]))
+         assert intermediate_buffer["meta"]["ref_audio_sr"] == 24000
+ 
+     def test_missing_reference_audio_does_not_add_stage_handoff_fields(self) -> None:
+diff --git a/tests/model_executor/models/minicpmo_4_5/test_talker_batching.py b/tests/model_executor/models/minicpmo_4_5/test_talker_batching.py
+index fc3b66cb36..eadfda43e7 100644
+--- a/tests/model_executor/models/minicpmo_4_5/test_talker_batching.py
++++ b/tests/model_executor/models/minicpmo_4_5/test_talker_batching.py
+@@ -13,6 +13,7 @@ import torch
+ import torch.nn as nn
+ from torch.overrides import TorchFunctionMode
+ 
++from vllm_omni.model_executor.models.minicpmo_4_5.handoff import pack_handoff_tensor
+ from vllm_omni.model_executor.models.minicpmo_4_5.minicpmo_4_5_omni import (
+     MiniCPMO45OmniForConditionalGeneration,
+ )
+@@ -1049,7 +1050,8 @@ def test_empty_speech_segment_finishes_without_sampling_codes() -> None:
+     assert decode_updates["codes"]["audio"].shape == (0,)
+ 
+ 
+-def test_chunked_prefill_tail_aligns_condition_with_prompt_length(mocker) -> None:
++@pytest.mark.parametrize("packed", [False, True])
++def test_chunked_prefill_tail_aligns_condition_with_prompt_length(mocker, packed) -> None:
+     talker = _make_talker()
+     talker.emb_text = nn.Embedding(1, 2)
+     condition = torch.arange(18, dtype=torch.float32).reshape(9, 2)
+@@ -1063,7 +1065,7 @@ def test_chunked_prefill_tail_aligns_condition_with_prompt_length(mocker) -> Non
+         _omni_prompt_len=68,
+         request_id="req-chunked-prefill",
+         tts_token_ids=torch.tensor([1]),
+-        tts_hidden_states=torch.ones(1, 2),
++        tts_hidden_states=pack_handoff_tensor(torch.ones(1, 2)) if packed else torch.ones(1, 2),
+     )
+ 
+     assert torch.equal(embeds, condition)
+diff --git a/tests/model_executor/models/test_minicpmo_handoff.py b/tests/model_executor/models/test_minicpmo_handoff.py
+new file mode 100644
+index 0000000000..f861646fab
+--- /dev/null
++++ b/tests/model_executor/models/test_minicpmo_handoff.py
+@@ -0,0 +1,51 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++
++from typing import Any
++
++import pytest
++import torch
++from vllm.v1.serial_utils import MsgpackDecoder, MsgpackEncoder
++
++from vllm_omni.distributed.omni_connectors.utils.serialization import OmniSerializer
++from vllm_omni.model_executor.models.minicpmo_4_5.handoff import pack_handoff_tensor, unpack_handoff_tensor
++
++pytestmark = [pytest.mark.core_model, pytest.mark.cpu]
++
++
++@pytest.mark.parametrize("dtype", [torch.float32, torch.float64, torch.bfloat16])
++@pytest.mark.parametrize("shape", [(), (0, 4), (3, 4), (144000,)])
++def test_packed_handoff_matches_legacy_values_across_untyped_wire(dtype, shape):
++    source = (
++        torch.linspace(-1.23456789, 1.987654321, int(torch.tensor(shape).prod().item()), dtype=torch.float64)
++        .reshape(shape)
++        .to(dtype)
++    )
++    if source.ndim == 2:
++        source = source.t()
++    expected = torch.tensor(source.tolist(), dtype=torch.float32).reshape(source.shape)
++    packed = pack_handoff_tensor(source)
++    envelope = {"model_intermediate_buffer": {"hidden_states": {"tts": packed}}}
++    # The real request field is dict[str, Any]: raw tensors cannot rely on a
++    # typed decoder hook here. Only standard bytes cross this boundary.
++    received = MsgpackDecoder(dict[str, Any]).decode(MsgpackEncoder().encode(envelope))
++    actual = unpack_handoff_tensor(received["model_intermediate_buffer"]["hidden_states"]["tts"])
++    assert isinstance(actual, torch.Tensor)
++    assert actual.shape == source.shape
++    assert torch.equal(actual, expected)
++    source.fill_(-7)
++    assert torch.equal(actual, expected)
++    other = unpack_handoff_tensor(packed)
++    actual.fill_(9)
++    assert torch.equal(other, expected)
++
++
++def test_legacy_handoff_values_remain_supported():
++    for value in (None, [1.0, 2.0], torch.ones(2)):
++        assert unpack_handoff_tensor(value) is value
++
++
++@pytest.mark.parametrize("payload", ["not a tensor", [1.0], torch.ones(2, dtype=torch.int64)])
++def test_invalid_packed_type_rejected(payload):
++    with pytest.raises(ValueError, match="CPU float32 tensor"):
++        unpack_handoff_tensor(OmniSerializer.serialize(payload))
+diff --git a/tests/model_executor/stage_input_processors/test_minicpmo_4_5_async_chunk.py b/tests/model_executor/stage_input_processors/test_minicpmo_4_5_async_chunk.py
+index 13036689ba..c3b8e69f90 100644
+--- a/tests/model_executor/stage_input_processors/test_minicpmo_4_5_async_chunk.py
++++ b/tests/model_executor/stage_input_processors/test_minicpmo_4_5_async_chunk.py
+@@ -8,6 +8,7 @@ import pytest
+ import torch
+ from vllm.v1.request import RequestStatus
+ 
++from vllm_omni.model_executor.models.minicpmo_4_5.handoff import pack_handoff_tensor
+ from vllm_omni.model_executor.stage_input_processors.minicpmo_4_5_omni import (
+     _extract_codec_delta,
+     tts2code2wav_async_chunk,
+@@ -237,11 +238,12 @@ def test_duplex_final_segment_preserves_every_code_and_closes_once(
+     assert not duplicate.meta.last_chunk
+ 
+ 
+-def test_first_chunk_forwards_reference_voice_and_duplex_identity() -> None:
++@pytest.mark.parametrize("packed", [False, True])
++def test_first_chunk_forwards_reference_voice_and_duplex_identity(packed) -> None:
+     manager = _manager()
+     request = _request("req")
+     request.model_intermediate_buffer = {
+-        "codes": {"ref": [0.1, -0.1]},
++        "codes": {"ref": pack_handoff_tensor(torch.tensor([0.1, -0.1])) if packed else [0.1, -0.1]},
+         "meta": {"ref_audio_sr": 16000},
+     }
+     request.additional_information = {
+@@ -292,11 +294,12 @@ def test_first_chunk_falls_back_to_legacy_reference_fields() -> None:
+     assert payload.meta.ref_audio_sr == 16000
+ 
+ 
+-def test_full_payload_forwards_all_codes_and_request_metadata() -> None:
++@pytest.mark.parametrize("packed", [False, True])
++def test_full_payload_forwards_all_codes_and_request_metadata(packed) -> None:
+     manager = _manager()
+     request = _request("req")
+     request.model_intermediate_buffer = {
+-        "codes": {"ref": [0.1, -0.1]},
++        "codes": {"ref": pack_handoff_tensor(torch.tensor([0.1, -0.1])) if packed else [0.1, -0.1]},
+         "meta": {
+             "ref_audio_sr": 16000,
+             "native_duplex_segment_text": "hello",
+diff --git a/tests/model_executor/stage_input_processors/test_minicpmo_4_5_omni.py b/tests/model_executor/stage_input_processors/test_minicpmo_4_5_omni.py
+index edb5a3535f..c9c385cc70 100644
+--- a/tests/model_executor/stage_input_processors/test_minicpmo_4_5_omni.py
++++ b/tests/model_executor/stage_input_processors/test_minicpmo_4_5_omni.py
+@@ -7,6 +7,7 @@ import pytest
+ import torch
+ 
+ from vllm_omni.engine.orchestrator import StreamingInputState
++from vllm_omni.model_executor.models.minicpmo_4_5.handoff import unpack_handoff_tensor
+ from vllm_omni.model_executor.stage_input_processors.minicpmo_4_5_omni import (
+     _extract_first_audio_ref,
+     llm2tts,
+@@ -71,7 +72,7 @@ def test_plain_chat_handoff_owns_talker_prompt_contract() -> None:
+ 
+     info = converted["model_intermediate_buffer"]
+     assert info["ids"]["tts"] == output_ids
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[2:4])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[2:4])
+     assert converted["prompt_token_ids"] == [0, 0, 0, 0]
+     assert info["meta"]["replace_streaming_prompt"] is True
+     assert info["meta"]["next_stage_prompt_len"] == 4
+@@ -98,7 +99,7 @@ def test_llm2tts_carries_request_ref_audio() -> None:
+     )[0]
+ 
+     info = converted["model_intermediate_buffer"]
+-    assert info["codes"]["ref"] == ref_waveform.tolist()
++    assert torch.equal(unpack_handoff_tensor(info["codes"]["ref"]), ref_waveform)
+     assert info["meta"]["ref_audio_sr"] == 22050
+     assert info["ids"]["tts"] == [11, 12]
+ 
+@@ -191,7 +192,7 @@ def test_native_duplex_uses_forwarded_row_ledger_after_later_audio_prefill() ->
+ 
+     info = converted["model_intermediate_buffer"]
+     assert info["ids"]["tts"] == [21, 22]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[3:5])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[3:5])
+ 
+ 
+ def test_native_duplex_selects_latest_contiguous_forwarded_span() -> None:
+@@ -224,7 +225,7 @@ def test_native_duplex_selects_latest_contiguous_forwarded_span() -> None:
+     converted = llm2tts([source], prompt=[{}], _streaming_context=context)[0]
+ 
+     info = converted["model_intermediate_buffer"]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[5:7])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[5:7])
+ 
+ 
+ def test_native_duplex_rejects_missing_forwarded_terminal_token() -> None:
+@@ -303,7 +304,7 @@ def test_native_duplex_ledger_tolerates_async_lookahead_row_after_terminator() -
+     info = _native_handoff(source)
+ 
+     assert info["ids"]["tts"] == [21, 22]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[3:5])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[3:5])
+ 
+ 
+ def test_native_duplex_ledger_without_forwarded_terminator() -> None:
+@@ -317,7 +318,7 @@ def test_native_duplex_ledger_without_forwarded_terminator() -> None:
+     info = _native_handoff(source)
+ 
+     assert info["ids"]["tts"] == [21, 22]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[3:5])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[3:5])
+ 
+ 
+ def test_native_duplex_turn_eos_row_is_handed_to_talker() -> None:
+@@ -333,7 +334,7 @@ def test_native_duplex_turn_eos_row_is_handed_to_talker() -> None:
+     info = _native_handoff(source)
+ 
+     assert info["ids"]["tts"] == [21, 9310]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[3:5])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[3:5])
+     assert info["meta"]["turn_end"] is True
+ 
+ 
+@@ -351,7 +352,7 @@ def test_native_duplex_ledger_anchors_on_unit_after_reinjected_listens() -> None
+     info = _native_handoff(source)
+ 
+     assert info["ids"]["tts"] == [21, 22]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[9:11])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[9:11])
+ 
+ 
+ @pytest.mark.parametrize("previous_terminator_forwarded", [False, True])
+@@ -372,7 +373,10 @@ def test_native_duplex_ledger_prefers_latest_repeat_of_the_unit(
+     info = _native_handoff(source)
+ 
+     assert info["ids"]["tts"] == [21, 22]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[current_start + 1 : current_start + 3])
++    assert torch.equal(
++        torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])),
++        latent[current_start + 1 : current_start + 3],
++    )
+ 
+ 
+ def test_native_duplex_ledger_rejects_non_contiguous_positions() -> None:
+@@ -397,7 +401,7 @@ def test_native_duplex_mid_turn_tts_bos_slices_after_boundary() -> None:
+     info = _native_handoff(source)
+ 
+     assert info["ids"]["tts"] == [21, 22]
+-    assert torch.equal(torch.tensor(info["hidden_states"]["tts"]), latent[3:5])
++    assert torch.equal(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[3:5])
+ 
+ 
+ @pytest.mark.parametrize("opening", [9304, 9301])
+@@ -417,7 +421,9 @@ def test_native_duplex_mid_unit_tts_bos_keeps_earlier_text(opening, turn_end) ->
+ 
+     expected = [21, 22, 9301, 9310] if turn_end else [21, 22, 9301]
+     assert info["ids"]["tts"] == expected
+-    torch.testing.assert_close(torch.as_tensor(info["hidden_states"]["tts"]), latent[3 : 3 + len(expected)])
++    torch.testing.assert_close(
++        torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[3 : 3 + len(expected)]
++    )
+     assert info.get("meta", {}).get("turn_end", False) is turn_end
+ 
+ 
+@@ -435,7 +441,9 @@ def test_native_duplex_folded_boundary_with_mid_unit_tts_bos(terminator) -> None
+ 
+     expected = [21, 22, 9301, *terminator[:-1]]
+     assert info["ids"]["tts"] == expected
+-    torch.testing.assert_close(torch.as_tensor(info["hidden_states"]["tts"]), latent[2 : 2 + len(expected)])
++    torch.testing.assert_close(
++        torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[2 : 2 + len(expected)]
++    )
+ 
+ 
+ @pytest.mark.parametrize("folded_decisions", [0, 1, 2])
+@@ -471,7 +479,7 @@ def test_native_duplex_tts_bos_aligns_after_window_rebuild(folded_decisions, bos
+     converted = llm2tts([source], prompt=[{}], _streaming_context=SimpleNamespace(bridge_states={}))[0]
+     info = converted["model_intermediate_buffer"]
+     assert info["ids"]["tts"] == [21, 22]
+-    torch.testing.assert_close(torch.as_tensor(info["hidden_states"]["tts"]), latent[-3:-1])
++    torch.testing.assert_close(torch.as_tensor(unpack_handoff_tensor(info["hidden_states"]["tts"])), latent[-3:-1])
+ 
+ 
+ def test_native_duplex_continuation_appends_only_new_talker_condition() -> None:
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/handoff.py b/vllm_omni/model_executor/models/minicpmo_4_5/handoff.py
+new file mode 100644
+index 0000000000..00314dfc12
+--- /dev/null
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/handoff.py
+@@ -0,0 +1,32 @@
++# SPDX-License-Identifier: Apache-2.0
++# SPDX-FileCopyrightText: Copyright contributors to the vLLM-Omni project
++"""Owned CPU tensor snapshots for the untyped turn-mode request envelope."""
++
++import torch
++
++from vllm_omni.distributed.omni_connectors.utils.serialization import OmniSerializer
++
++
++def pack_handoff_tensor(value: torch.Tensor) -> bytes:
++    """Keep legacy list-to-float32 values without creating Python scalar lists.
++
++    EngineCore's ``model_intermediate_buffer`` has Any-valued fields, so raw
++    tensors would lose their type on its msgpack wire. The existing Omni codec
++    packs an owned byte snapshot and restores the dtype/shape at the consumer.
++    """
++    tensor = value.detach().to(device="cpu", dtype=torch.float32).contiguous()
++    if tensor.numel() == 0:
++        # Empty transposed tensors may report contiguous with a nonunit last
++        # stride; the shared codec reinterprets that dimension as bytes.
++        tensor = torch.empty(tensor.shape, dtype=torch.float32)
++    return OmniSerializer.serialize(tensor)
++
++
++def unpack_handoff_tensor(value: object) -> object:
++    """Accept existing local tensors/lists as well as packed turn handoffs."""
++    if not isinstance(value, bytes):
++        return value
++    tensor = OmniSerializer.deserialize(value)
++    if not isinstance(tensor, torch.Tensor) or tensor.dtype != torch.float32 or tensor.device.type != "cpu":
++        raise ValueError("MiniCPM-o packed handoff must contain a CPU float32 tensor")
++    return tensor
+diff --git a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py
+index 6f0bf23388..ba09bf4814 100644
+--- a/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py
++++ b/vllm_omni/model_executor/models/minicpmo_4_5/minicpmo_4_5_omni_tts.py
+@@ -41,6 +41,7 @@ from vllm_omni.model_executor.models.minicpmo_4_5 import (
+ from vllm_omni.model_executor.models.minicpmo_4_5.config_flags import (
+     parse_bool_flag as _bool_flag,
+ )
++from vllm_omni.model_executor.models.minicpmo_4_5.handoff import unpack_handoff_tensor
+ from vllm_omni.model_executor.models.minicpmo_4_5.talker_codec_sample import (
+     HISTORY_WINDOW,
+     TalkerCodecDeviceState,
+@@ -1085,6 +1086,7 @@ class MiniCPMO45OmniTTSForConditionalGeneration(nn.Module, SupportsPP):
+ 
+         if is_prefill or first_call:
+             token_ids, hidden_states = get_tts_handoff(info_dict)
++            hidden_states = unpack_handoff_tensor(hidden_states)
+             # Cross-process stage transport serializes CPU tensors as lists.
+             # Normalize both local tensor handoffs and transported payloads
+             # before validating/building the Talker condition.
+diff --git a/vllm_omni/model_executor/stage_input_processors/minicpmo_4_5_omni.py b/vllm_omni/model_executor/stage_input_processors/minicpmo_4_5_omni.py
+index d707b8e53e..b8de386efa 100644
+--- a/vllm_omni/model_executor/stage_input_processors/minicpmo_4_5_omni.py
++++ b/vllm_omni/model_executor/stage_input_processors/minicpmo_4_5_omni.py
+@@ -20,6 +20,7 @@ from vllm_omni.model_executor.models.minicpmo_4_5 import (
+     MINICPMO45_DUPLEX_CODEC_TOKENS_PER_CHUNK,
+     MINICPMO45_DUPLEX_TURN_END_CODEC_TOKENS,
+ )
++from vllm_omni.model_executor.models.minicpmo_4_5.handoff import pack_handoff_tensor, unpack_handoff_tensor
+ from vllm_omni.model_executor.models.minicpmo_4_5.pipeline import MINICPMO45_REFERENCE_AUDIO_KEY
+ 
+ logger = logging.getLogger(__name__)
+@@ -461,7 +462,7 @@ def tts2code2wav_async_chunk(
+     if int(record["cache_epoch"]) == 0 and chunk_seq == 0:
+         codes_info = _request_intermediate_section(request, "codes")
+         meta_info = _request_intermediate_section(request, "meta")
+-        raw_ref_audio = codes_info.get("ref")
++        raw_ref_audio = unpack_handoff_tensor(codes_info.get("ref"))
+         raw_ref_audio_sr = meta_info.get("ref_audio_sr")
+         ref_audio_sr = _coerce_int(raw_ref_audio_sr)
+         if raw_ref_audio is not None:
+@@ -521,7 +522,7 @@ def tts2code2wav_full_payload(
+     meta_info = _request_intermediate_section(request, "meta")
+     duplex_info = _request_intermediate_section(request, "duplex")
+ 
+-    ref_audio = codes_info.get("ref")
++    ref_audio = unpack_handoff_tensor(codes_info.get("ref"))
+     finished = torch.tensor(True, dtype=torch.bool)
+     return OmniPayloadStruct(
+         codes=CodesStruct(
+@@ -1149,8 +1150,12 @@ def llm2tts(
+             )
+         if ref_audio is not None:
+             ref_waveform, ref_sr = ref_audio
+-            set_ref_audio(model_intermediate_buffer, _to_transport_list(ref_waveform), ref_sr)
+-        handoff_hidden = _to_transport_list(tts_hidden_slice) if tts_hidden_slice is not None else None
++            set_ref_audio(
++                model_intermediate_buffer,
++                _to_transport_list(ref_waveform) if is_native_duplex_handoff else pack_handoff_tensor(ref_waveform),
++                ref_sr,
++            )
++        handoff_hidden = _to_transport_list(tts_hidden_slice) if is_native_duplex_handoff else tts_hidden_slice
+         native_turn_end_handoff = False
+         turn_text_ends_sentence = False
+         if is_native_duplex_handoff:
+@@ -1158,7 +1163,11 @@ def llm2tts(
+             native_turn_end_handoff = turn_eos_id is not None and handoff_ids is not None and turn_eos_id in handoff_ids
+             if not handoff_ids:
+                 continue
+-        set_tts_handoff(model_intermediate_buffer, handoff_ids, handoff_hidden)
++        set_tts_handoff(
++            model_intermediate_buffer,
++            handoff_ids,
++            pack_handoff_tensor(handoff_hidden) if isinstance(handoff_hidden, torch.Tensor) else handoff_hidden,
++        )
+         if is_native_duplex_handoff:
+             # Always write the flag: the connector merges per-request meta across
+             # units, so a turn_end=True left by the previous turn's last unit would

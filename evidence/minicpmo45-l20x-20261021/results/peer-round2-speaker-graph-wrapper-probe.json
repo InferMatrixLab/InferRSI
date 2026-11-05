@@ -1,0 +1,56 @@
+{
+  "scope": "Four reused real reference features; exact Torch CAM++ graph diagnostic, no service performance claim",
+  "rows": [
+    {
+      "index": 0,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.011628901679068803,
+      "graph_s": 0.004940513847395777
+    },
+    {
+      "index": 1,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.011352018034085632,
+      "graph_s": 0.004936109529808164
+    },
+    {
+      "index": 2,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.011271076370030641,
+      "graph_s": 0.0049291577655822035
+    },
+    {
+      "index": 3,
+      "shape": [
+        598,
+        80
+      ],
+      "eager_repeat_equal": true,
+      "graph_equal": true,
+      "max_abs": 0.0,
+      "eager_s": 0.011377271730452776,
+      "graph_s": 0.004927852563560009
+    }
+  ],
+  "gate": "PASS",
+  "source_revision": "17246ce5e695c7f0c58d53f42aa586e1e94390f1",
+  "validation": "3 CPU/CUDA wrapper tests,318 existing integration tests,105 updated flag/CPU tests and pre-commit passed"
+}

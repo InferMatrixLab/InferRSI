@@ -1,0 +1,35 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "attempts": [
+    {
+      "framework": "vllm_omni",
+      "status": "cancelled",
+      "reason": "Original editable finder could import missing modules from another checkout; replaced with an isolated entry environment."
+    },
+    {
+      "framework": "vllm_omni",
+      "status": "failed",
+      "reason": "Transformers 5.16.1 required tokenizers>=0.23.1; dependency installation completed before retry."
+    },
+    {
+      "framework": "sglang_omni",
+      "status": "failed",
+      "reason": "Dependency resolution required prerelease support for pinned cuda-tile; resolution succeeded with prerelease=allow."
+    },
+    {
+      "framework": "sglang_omni",
+      "status": "failed",
+      "reason": "Default shared IPC directory was not writable; retry uses a task-owned IPC directory."
+    },
+    {
+      "framework": "sglang_omni",
+      "status": "failed",
+      "reason": "Thinker and Talker initialization conflicted on default distributed TCP port 29500; retry explicitly configures distinct loopback rendezvous ports."
+    },
+    {
+      "framework": "quality_harness",
+      "status": "failed_then_corrected",
+      "reason": "The reference save_run writes summary before WAV files. The asynchronous scoring watcher observed the summary too early and failed opening one WAV. Wait for the next run summary, which implies the previous save_run completed, before scoring run1. No service failure or changed output was inferred."
+    }
+  ]
+}

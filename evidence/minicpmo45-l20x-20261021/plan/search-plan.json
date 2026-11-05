@@ -1,0 +1,44 @@
+{
+  "state": "frozen_before_candidate_measurement",
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/49",
+  "primary": "C16 and C32 delivered-audio throughput",
+  "report": [
+    "C1,C2,C4,C8,C16,C32 throughput",
+    "TTFA p50/p95",
+    "RTF mean",
+    "completion coverage",
+    "audio duration",
+    "playback stalls"
+  ],
+  "hypotheses": [
+    {
+      "id": "mps",
+      "plane": "infra",
+      "change": "Enable the existing private cuda_mps daemon for colocated stages.",
+      "rationale": "Test whether separate stage CUDA contexts prevent useful concurrent kernel execution.",
+      "precondition": "Baseline stage timing and load observations completed."
+    },
+    {
+      "id": "encoder-capture",
+      "plane": "model",
+      "change": "Enable existing bounded exact-shape encoder capture after startup, with identical precision and chunk semantics.",
+      "rationale": "Startup continuation capture leaves recurring prompt/tail shapes eager.",
+      "precondition": "Baseline timing/source attribution supports encoder launch overhead; numerical/state checks and memory budget pass."
+    },
+    {
+      "id": "cfm-microbatch",
+      "plane": "model",
+      "change": "Compare existing Whole-Euler micro-batch sizes 4 and 8 with otherwise identical settings.",
+      "rationale": "Larger actual ready batches may amortize graph replay; verify shape/rounding and memory effects.",
+      "precondition": "Baseline demonstrates multirow decode batches; assess quality independently."
+    }
+  ],
+  "quality_gates": {
+    "request_completion": "All measured requests must finish successfully with nonempty finite audio and no missing/duplicated chunks.",
+    "sampling": "Keep checkpoint, prompt construction, sampling and output limits fixed.",
+    "speech": "Use fixed baseline/candidate outputs and identical existing scorer settings. WER must not increase, speaker similarity and available UTMOS must not decrease; report repeat/coverage limitations.",
+    "numerical": "Exact-shape graph-only changes require eager/replay numerical and state-ownership checks."
+  },
+  "performance_gate": "C16/C32 improvement must persist across repeated served comparisons; retain measured variation and latency tradeoffs. No global optimum claim.",
+  "inconclusive": "Missing required quality, environment identity or matched comparison evidence prevents PASS."
+}

@@ -1,0 +1,11 @@
+{
+  "repository": "https://github.com/vllm-project/vllm-omni",
+  "pull_request": "https://github.com/vllm-project/vllm-omni/pull/9188",
+  "candidate_revision": "f2462435d79f0243ced93a02f3b8d6cd9c41511b",
+  "measured_runtime_revision": "97efcf5cd8e611038a53d8e063204b2b5fa74085",
+  "later_changes": "Documentation, regression tests and one cache-key comment only; executable implementation unchanged.",
+  "baseline_revision": "aa3fd1d9b7f5c7191dec11975ac0aa7c4c4a18c5",
+  "configuration_delta": {
+    "token2wav_device_spk": true
+  }
+}

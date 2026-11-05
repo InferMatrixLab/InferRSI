@@ -159,9 +159,10 @@ campaign, template, source-import, review-summary and external-archive layouts;
 new directories and recognizable manifests require an explicit classification.
 The nightly lane runs this CPU-only check. It verifies available bytes using
 existing bundle SHA-256 maps, historical file mappings or archive SHA-256/size
-records. Historical mappings point only to preserved snapshots, never current
-implementations. Do not invent hashes or update frozen manifests to silence a
-failure.
+records. A descriptive manifest classifies a JSON record that is not a digest
+map; the checker does not invent or verify content hashes for it. Historical
+mappings point only to preserved snapshots, never current implementations. Do
+not invent hashes or update frozen manifests to silence a failure.
 
 The JSON result separates structural/hash errors (nonzero exit) from unavailable
 external dependencies. Remote archives are not downloaded; if supplied at their

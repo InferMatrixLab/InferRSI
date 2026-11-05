@@ -1,0 +1,14 @@
+{
+  "frozen_at_utc": "2026-10-21T08:57:27.534236+00:00",
+  "source_revision": "a4f4778f312791c2d190b48e521141887ed160c8",
+  "profile": "track_s_fast_r11 unchanged",
+  "purpose": "Match the exact64 reused tuning prompt workload and discard+one protocol of exploratory Omni screens. Existing320 evaluation repeated baseline remains unchanged; do not treat cross-cohort screening ratios as final wins.",
+  "concurrency": [
+    1,
+    16,
+    32
+  ],
+  "mps": true,
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "holdout_used": false
+}

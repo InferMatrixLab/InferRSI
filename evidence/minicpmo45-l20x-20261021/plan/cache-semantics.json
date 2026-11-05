@@ -1,0 +1,12 @@
+{
+  "protocol_cache_policy": "none",
+  "meaning": "No server restart or cache flush between cells. Does NOT mean runtime caches are disabled.",
+  "qualification": "Repeated steady-state exploratory measurement, not reference engine cold-cache certification.",
+  "vllm_main_defaults": {
+    "enable_prefix_caching": false,
+    "token2wav_runtime_prompt_cache_size": 4,
+    "token2wav_setup_cache_size": 1
+  },
+  "comparison_requirement": "Keep repository cache settings identical between baseline and candidate; retain this limitation and check selected high-concurrency gain after fresh launches.",
+  "source": "bench/protocol.py in pinned peer_engine revision"
+}

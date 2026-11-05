@@ -1,0 +1,40 @@
+{
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/49",
+  "objective": "Prioritize high-concurrency throughput while preserving quality; report TTFA p50/p95 and mean RTF",
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "gpu_count_per_server": 1,
+    "memory_mib": 143771,
+    "driver": "570.133.20"
+  },
+  "source_revisions": {
+    "vllm_omni": "aa3fd1d9b7f5c7191dec11975ac0aa7c4c4a18c5",
+    "sglang_omni": "dbd923cdd180f8bfe7ec85defd6c6f914af5ae57",
+    "peer_engine": "a4f4778f312791c2d190b48e521141887ed160c8"
+  },
+  "concurrency": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32
+  ],
+  "workload": "Seed-TTS English voice cloning",
+  "metrics": {
+    "throughput_frames_s": "25 * sum(delivered_audio_seconds) / measured_wall_seconds",
+    "ttfa": "first unique audio sample receipt minus dispatch",
+    "rtf_mean": "mean((last unique audio sample receipt minus dispatch) / audio_duration)"
+  },
+  "state": "baseline_complete_candidate_testing",
+  "verdict": "INCONCLUSIVE",
+  "candidate_search_started": true,
+  "limitations": [
+    "Steady-state repeats do not reset server caches and are not the peer engine cold-cache certification.",
+    "SGLang emits a terminal waveform; vLLM uses streamed chunks, so TTFA semantics differ.",
+    "English voice-clone TTS workload only.",
+    "Initial local-checkpoint scan excluded because config/custom code differed from official metadata."
+  ],
+  "model_revision": "503e754207c94da6bb26850b4469f367c9ea3582",
+  "model_manifest": "official-model-manifest.json"
+}

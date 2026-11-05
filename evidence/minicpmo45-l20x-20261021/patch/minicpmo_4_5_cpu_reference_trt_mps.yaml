@@ -1,0 +1,11 @@
+# Optional CUDA speaker-only TensorRT profile for turn-mode voice cloning.
+# Install TensorRT matching the CUDA runtime before selecting this profile.
+# See docs/design/minicpm_o45_mrv2_performance.md for reference semantics.
+base_config: minicpmo_4_5_turn.yaml
+cuda_mps: true
+connectors:
+  connector_of_shared_memory:
+    extra:
+      token2wav_device_spk: true
+      token2wav_spk_cpu_reference: true
+      token2wav_trt: false

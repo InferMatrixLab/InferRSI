@@ -1,0 +1,15 @@
+{
+  "at_utc": "2026-10-21T10:42:59.512910+00:00",
+  "base_revision": "15bce345863c6e2db882534876b8977f5b1ae1e3",
+  "candidate_revision": "e27ebb06da28f82d4cc0c2c10ae8455d551c5c07",
+  "scope": "Standalone packed ordinary-turn conditioning change, without earlier CPU-reference TRT, CFM precision or speaker-graph experiments. This branch is not the source of the active60d service screens.",
+  "validation": {
+    "regression_tests_passed": 213,
+    "pre_existing_skipped": 1,
+    "precommit": "PASS"
+  },
+  "service_tested": false,
+  "goal_achieved": false,
+  "verdict": "INCONCLUSIVE",
+  "patch": "patch/peer-round2-tensor-handoff-main.patch"
+}

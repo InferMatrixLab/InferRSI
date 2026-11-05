@@ -1,0 +1,47 @@
+{
+  "scope": "Four distinct six-second references from the first64 reused tuning IDs; individual encoders, shared FP32 prompt solve, paired continuation on reference speech tokens",
+  "rows": [
+    {
+      "prompt_index": 0,
+      "errors": {
+        "conformer_cnn_cache": 0.0,
+        "conformer_att_cache": 0.0,
+        "estimator_cnn_cache": 0.0003847459447570145,
+        "estimator_att_cache": 0.0004364989581517875,
+        "continuation_audio": 0.6314619183540344
+      }
+    },
+    {
+      "prompt_index": 1,
+      "errors": {
+        "conformer_cnn_cache": 0.0,
+        "conformer_att_cache": 0.0,
+        "estimator_cnn_cache": 0.0005224508349783719,
+        "estimator_att_cache": 0.0004373687843326479,
+        "continuation_audio": 0.5722200870513916
+      }
+    },
+    {
+      "prompt_index": 2,
+      "errors": {
+        "conformer_cnn_cache": 0.0,
+        "conformer_att_cache": 0.0,
+        "estimator_cnn_cache": 0.00037057462031953037,
+        "estimator_att_cache": 0.00042073868098668754,
+        "continuation_audio": 0.22678354382514954
+      }
+    },
+    {
+      "prompt_index": 3,
+      "errors": {
+        "conformer_cnn_cache": 0.0,
+        "conformer_att_cache": 0.0,
+        "estimator_cnn_cache": 0.00044068691204302013,
+        "estimator_att_cache": 0.0004504274984356016,
+        "continuation_audio": 0.0161434393376112
+      }
+    }
+  ],
+  "verdict": "FAIL",
+  "decision": "Do not promote or run a service performance qualification under this hypothesis: paired continuation waveform relative L2 exceeds frozen0.01 gate even though prompt-cache errors are small."
+}

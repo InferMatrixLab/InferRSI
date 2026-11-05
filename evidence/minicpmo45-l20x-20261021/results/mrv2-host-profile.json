@@ -1,0 +1,13 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "samples": 1535,
+  "inclusive_stack_samples": {
+    "_decode_cfm": 12,
+    "setup_batch": 86,
+    "decode_batch": 1198,
+    "prepare_prompt": 1109,
+    "_encode_chunk": 131,
+    "_forward_spk_embedding": 886
+  },
+  "limitation": "py-spy fell behind its 100 Hz target by up to 46 seconds and severely perturbed service. These are qualitative stacks, not time attribution; profiled requests excluded from performance results."
+}

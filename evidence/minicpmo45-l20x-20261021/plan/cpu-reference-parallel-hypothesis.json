@@ -1,0 +1,9 @@
+{
+  "plane": "model",
+  "hypothesis": "Parallel reference preparation on the existing CPU ONNX backend may remove serialized host work without changing speaker arithmetic. SGLang main uses reference_workers=8; direct transfer still needs target runtime lifecycle and numerical checks.",
+  "source": "sglang_omni/models/minicpm_o/components/code2wav.py submit_reference and config.py code2wav_stage at pinned SGLang baseline",
+  "first_check": "Prototype only: same normalized tuning WAVs, same model instance, same CUDA stream, explicit worker-local inference/autocast scopes; compare every returned prompt feature bitwise for serial vs parallel preparation.",
+  "numerical_gate": "All prompt tensors exactly equal on sampled references; unchanged ONNX session threads=1. No tolerance relaxation.",
+  "service_gate": "Unchanged frozen throughput and speech-quality gates if component probe warrants implementation.",
+  "scope": "No service PASS from a component prototype; do not mutate running candidate code."
+}

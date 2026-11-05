@@ -1,0 +1,8 @@
+{
+  "passed": 67,
+  "warnings": 16,
+  "scope": "CPU regression; CUDA/real model numerical validation separately recorded",
+  "command": "pytest -q tests/model_executor/models/minicpmo_4_5/test_code2wav_device_spk_flag.py tests/model_executor/models/cosyvoice3/test_speaker_embedding_cpu_reference.py tests/model_executor/models/step_audio2/test_step_audio2_token2wav_async_chunk.py -m 'core_model and cpu' --run-level core_model",
+  "ci_routing": ".buildkite/cuda/test-ready.yml existing tests/model_executor core_model and cpu step",
+  "precommit": "passed"
+}

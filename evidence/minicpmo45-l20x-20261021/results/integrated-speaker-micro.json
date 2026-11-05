@@ -1,0 +1,327 @@
+{
+  "verdict": "PASS",
+  "scope": "isolated speaker embedding only",
+  "backend": "trt",
+  "cpu_reference": true,
+  "asset_sha256": "a6ac6a63997761ae2997373e2ee1c47040854b4b759ea41ec48e4e42df0f4d73",
+  "quality": [
+    {
+      "id": "common_voice_en_19254683-common_voice_en_19254687",
+      "frames": 598,
+      "input_sha256": "66d28e062a17fa3a052b0e100f0a01d22f1a76897e6cb17ff7ed1ea904a11ee5",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 7.562339305877686e-07
+    },
+    {
+      "id": "common_voice_en_19967495-common_voice_en_19967497",
+      "frames": 598,
+      "input_sha256": "75e01d5f80f4b341ee5fb8f91dcfd9e6415637d923789356219d4b1f688183d2",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 3.3155083656311035e-07
+    },
+    {
+      "id": "common_voice_en_21555942-common_voice_en_21555950",
+      "frames": 598,
+      "input_sha256": "ff3cf3d8dbbb0f35fcdbee7c88c3d3e7370af0fea3a9d4075f006ff81cb85726",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 3.948807716369629e-07
+    },
+    {
+      "id": "common_voice_en_125386-common_voice_en_125388",
+      "frames": 598,
+      "input_sha256": "5c274a334bdc38dee252ee12cbf8521863a1c4c04c2e1101f9d2976a776ed762",
+      "cosine": 1.000000238418579,
+      "max_normalized_abs_error": 4.172325134277344e-07
+    },
+    {
+      "id": "common_voice_en_20236234-common_voice_en_20236233",
+      "frames": 598,
+      "input_sha256": "81b509425418da0bcbbededcbb6793b75b94ec0e9bb5942d25025672c778754e",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 3.0547380447387695e-07
+    },
+    {
+      "id": "common_voice_en_32144882-common_voice_en_32144886",
+      "frames": 598,
+      "input_sha256": "448b86c2f9fb16ec950c5975e253652c04a1c9d28691680090df548e554a41fc",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 5.066394805908203e-07
+    },
+    {
+      "id": "common_voice_en_35734335-common_voice_en_35734342",
+      "frames": 598,
+      "input_sha256": "d28e67ec0f6937f241e12719f451a39d1a8aa1ae98f15519188b1a115feb3c63",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 1.1548399925231934e-06
+    },
+    {
+      "id": "common_voice_en_19152197-common_voice_en_19152196",
+      "frames": 598,
+      "input_sha256": "1b6c2258aa0ef1c6a568344b822c38ec0a1af276117a65584169f90f7db9b61f",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 4.172325134277344e-07
+    },
+    {
+      "id": "common_voice_en_22713724-common_voice_en_22713725",
+      "frames": 598,
+      "input_sha256": "f0b36a6ec4de1b169f25b66ac83c7ac26bb764b6f0fa5747a17427d77aa1d144",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 5.662441253662109e-07
+    },
+    {
+      "id": "common_voice_en_523215-common_voice_en_523219",
+      "frames": 598,
+      "input_sha256": "664a36f1002940bb53d00ee40ecfda6a540e1c8288b5580298f022ad4daa1394",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 4.4330954551696777e-07
+    },
+    {
+      "id": "common_voice_en_28638628-common_voice_en_28638717",
+      "frames": 598,
+      "input_sha256": "08b0106b1779720b21d4ee6654b1481894ce8afd22c9d384caa47e070ea019f5",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 6.258487701416016e-07
+    },
+    {
+      "id": "common_voice_en_20303932-common_voice_en_20303934",
+      "frames": 598,
+      "input_sha256": "e827c1092855810f7b34b894a26d4c3a002841a5adcc36b34adb6aaba95fbf64",
+      "cosine": 0.9999999403953552,
+      "max_normalized_abs_error": 2.551823854446411e-07
+    },
+    {
+      "id": "common_voice_en_19619551-common_voice_en_19619549",
+      "frames": 598,
+      "input_sha256": "242973e0f62b45ca442894fe5c81b73d9f4c8edc92fea48cde589077e336959b",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 2.2426247596740723e-06
+    },
+    {
+      "id": "common_voice_en_25127181-common_voice_en_25127184",
+      "frames": 598,
+      "input_sha256": "8c17165100790157ebe0eed51e9fae98dc023b9c803bb05a4a240586920ddb02",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 5.21540641784668e-07
+    },
+    {
+      "id": "common_voice_en_19636954-common_voice_en_19636955",
+      "frames": 598,
+      "input_sha256": "158a2f7d0c87efd5eca5682d43cd699c5aa6cea6bf054e95fa8fce18c569ada6",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 4.33996319770813e-07
+    },
+    {
+      "id": "common_voice_en_557458-common_voice_en_557459",
+      "frames": 598,
+      "input_sha256": "d561932d8925f5231e9d1a1557bc0476ea5124fc8f0e02ee2ad964a89d073a43",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 4.0605664253234863e-07
+    },
+    {
+      "id": "common_voice_en_19640906-common_voice_en_19640909",
+      "frames": 598,
+      "input_sha256": "6e20e4fdac1e7115823fb0fc26314204e14ca7ce37f9e527b3ec82b41bc56077",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 3.0919909477233887e-07
+    },
+    {
+      "id": "common_voice_en_33966405-common_voice_en_33966447",
+      "frames": 598,
+      "input_sha256": "744a8707266756a72d98c26a7a827456c1fb3ef3b475ce62c44f15ec6b160a7f",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 5.718320608139038e-07
+    },
+    {
+      "id": "common_voice_en_18177486-common_voice_en_18177499",
+      "frames": 598,
+      "input_sha256": "d06caca2955829937fc8e4f4ae6236f71ef14fe5449b02fe472bcbca2fa8bc29",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 3.632158041000366e-07
+    },
+    {
+      "id": "common_voice_en_75329-common_voice_en_75332",
+      "frames": 598,
+      "input_sha256": "1e580b9055592e1265f496a08b95b54faa64d037d285831f8d9aa5dc14c25d1a",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 3.287494507731026e-07
+    },
+    {
+      "id": "common_voice_en_25821292-common_voice_en_25821295",
+      "frames": 598,
+      "input_sha256": "9bbc513960a470d107b68d185288499cb030ef1f399b1b357de1fa9f446ac77a",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 2.980232238769531e-07
+    },
+    {
+      "id": "common_voice_en_22941073-common_voice_en_22941090",
+      "frames": 598,
+      "input_sha256": "40e6f3af7415155967ee7c68fd4c7f2b9e46bd463e7e2ba7f4810e0848d7220b",
+      "cosine": 0.9999998807907104,
+      "max_normalized_abs_error": 4.3958425521850586e-07
+    },
+    {
+      "id": "common_voice_en_9559-common_voice_en_9560",
+      "frames": 598,
+      "input_sha256": "f0df63e069b21c23cd5327c8868713d6e329da06a00ea3ac7cbf01f62472c188",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 2.980232238769531e-07
+    },
+    {
+      "id": "common_voice_en_19724030-common_voice_en_19724029",
+      "frames": 598,
+      "input_sha256": "46844dc6cad629e5f640505ef7916265364be2d71d76b3fc2387984bc4fe4cb4",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 2.905726432800293e-07
+    },
+    {
+      "id": "common_voice_en_19789569-common_voice_en_19789566",
+      "frames": 598,
+      "input_sha256": "73fba0cc1726b1baca04443eb4db4ae8461dbe9542ae29e6a69d405490e6cbc5",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 4.116445779800415e-07
+    },
+    {
+      "id": "common_voice_en_26324572-common_voice_en_26324575",
+      "frames": 598,
+      "input_sha256": "dd094324b44537adba0c65cf6fad2597a7525570d8c40b20c428f8e96f9e13db",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 3.948807716369629e-07
+    },
+    {
+      "id": "common_voice_en_37368335-common_voice_en_37368333",
+      "frames": 598,
+      "input_sha256": "5030a5997b6986aaca53e9c79c55eb2ea8051af6691d902e40aaec3b2c213748",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 3.2782554626464844e-07
+    },
+    {
+      "id": "common_voice_en_25896925-common_voice_en_25896927",
+      "frames": 598,
+      "input_sha256": "4ddb94771c4af8a237331733e462363c361bb6549527b85a9c9d65f35d1b27a8",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 3.2782554626464844e-07
+    },
+    {
+      "id": "common_voice_en_20065698-common_voice_en_20065702",
+      "frames": 598,
+      "input_sha256": "b3c11d06d6ee90ccd421961e93e77a168198a198e986795ae68b04585b0afd9e",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 5.364418029785156e-07
+    },
+    {
+      "id": "common_voice_en_19819944-common_voice_en_19819946",
+      "frames": 598,
+      "input_sha256": "01e3b142199627771e3286cb1b58c98f2ed4d27675cc5b84338af7bdf892438e",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 3.688037395477295e-07
+    },
+    {
+      "id": "common_voice_en_17281385-common_voice_en_17281386",
+      "frames": 598,
+      "input_sha256": "77c9ff9721132c504686f41bd8b40eb119f1420c22368077b3511f475767967a",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 3.427267074584961e-07
+    },
+    {
+      "id": "common_voice_en_19635046-common_voice_en_19635048",
+      "frames": 598,
+      "input_sha256": "801a552786736c6119d22a33eb6b5654e3e43d37adcb417ac95ffd9aa2512f54",
+      "cosine": 1.0000001192092896,
+      "max_normalized_abs_error": 2.980232238769531e-07
+    },
+    {
+      "id": "common_voice_en_19254683-common_voice_en_19254687-short97",
+      "frames": 97,
+      "input_sha256": "40ec462baf3c235271adc6d07bdc93287508f1ccf64a2d8a83a41f868a941b97",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 1.5944242477416992e-06
+    },
+    {
+      "id": "common_voice_en_19254683-common_voice_en_19254687-short200",
+      "frames": 200,
+      "input_sha256": "74dabc0f34713bccc89ce477830663adfee99fa0e83e81bdb227370680931bdc",
+      "cosine": 1.0,
+      "max_normalized_abs_error": 4.507601261138916e-07
+    }
+  ],
+  "latency": {
+    "cpu_onnx": {
+      "mean_ms": 76.12581802532077,
+      "median_ms": 75.66323783248663,
+      "samples_ms": [
+        75.28356648981571,
+        75.65794046968222,
+        75.74428897351027,
+        82.74769596755505,
+        76.44805405288935,
+        76.57146733254194,
+        75.12849662452936,
+        74.82006028294563,
+        75.49498323351145,
+        77.54056621342897,
+        77.09976006299257,
+        77.48062629252672,
+        76.81003026664257,
+        76.64819527417421,
+        76.8316462635994,
+        76.97683479636908,
+        77.02266704291105,
+        76.4662241563201,
+        75.58114919811487,
+        75.20853914320469,
+        74.93902090936899,
+        74.5461955666542,
+        74.8028364032507,
+        75.12526959180832,
+        74.83249250799417,
+        75.46242419630289,
+        75.90541336685419,
+        75.60489419847727,
+        75.32466668635607,
+        75.66853519529104
+      ]
+    },
+    "trt": {
+      "mean_ms": 4.288755916059017,
+      "median_ms": 4.289424512535334,
+      "samples_ms": [
+        4.29057702422142,
+        4.280947148799896,
+        4.29108552634716,
+        4.2944978922605515,
+        4.280210472643375,
+        4.289867356419563,
+        4.295859485864639,
+        4.28492296487093,
+        4.28183376789093,
+        4.285754635930061,
+        4.292311146855354,
+        4.28945105522871,
+        4.276644438505173,
+        4.295739345252514,
+        4.287521354854107,
+        4.282126203179359,
+        4.28572203963995,
+        4.283134825527668,
+        4.2938487604260445,
+        4.30272426456213,
+        4.293902777135372,
+        4.292722791433334,
+        4.289734177291393,
+        4.294850863516331,
+        4.286226816475391,
+        4.287326708436012,
+        4.299360327422619,
+        4.27979975938797,
+        4.284575581550598,
+        4.289397969841957
+      ]
+    }
+  },
+  "settings": {
+    "torch": "2.13.0+cu130",
+    "cuda": "13.0",
+    "cudnn_allow_tf32": true,
+    "matmul_allow_tf32": false
+  }
+}
