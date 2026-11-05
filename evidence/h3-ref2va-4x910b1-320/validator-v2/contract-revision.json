@@ -1,0 +1,11 @@
+{
+  "reason": "Correct model-specific audio duration contract; not a tolerance expansion",
+  "source_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+  "source_paths": [
+    "vllm_omni/diffusion/models/minimax_h3/time_request.py:_audio_latent_t",
+    "vllm_omni/diffusion/models/minimax_h3/pipeline_minimax_h3.py:expected_audio_t"
+  ],
+  "formula": "round((video_frames / fps) * 40) / 40",
+  "old_failure_retained": "quality/baseline15-w0-m0/scorer.log",
+  "limits": "Coverage follows exact model audio duration; perceptual metric gates and exact-output adjudication unchanged. No lossless acceptance based on metadata alone."
+}

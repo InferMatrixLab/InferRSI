@@ -1,6 +1,82 @@
 {
   "version": 1,
   "bundles": {
+    "h3-ref2va-4x910b1-320": {
+      "kind": "campaign",
+      "manifests": [
+        {
+          "path": "plan/preflight-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/status-v2-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/first-warmup-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/baseline-complete-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/lifecycle-diagnostic-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "plan/acceptance-30pct-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/baseline15-profile-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/rejected-candidates-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/rejected-residency-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/pinned-interruption-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/tp4-placement-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/tp4-followup-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/hybrid-negative-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/critical-path-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/fia-v2-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/operator-followup-integrity.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "results/strict-followup-integrity.json",
+          "schema": "bundle-sha256"
+        }
+      ],
+      "external": [
+        "Original runtime scripts and logs, model and input bytes, physical allocation details and output media are external. No four-device performance or quality validation is claimed."
+      ]
+    },
     "h3-ref2va-ascend-293": {
       "kind": "campaign",
       "manifests": [

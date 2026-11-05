@@ -1,0 +1,12 @@
+{
+  "results/baseline15-complete.json": "2637694184f2e31c780dc84d36e9a33cd0dacef0614842c71e178c21991a081d",
+  "results/baseline15-repeatability-v2.json": "865e4acf0fa5fe34f1d723aa428036d4427333add3569756162f9790c4728901",
+  "results/five-step-kernel-summary.json": "5087243d2625cd4053ef08f0fe6b7af6fa97452df11d7c648c8b1e3d100e73d5",
+  "validator-v2/contract-revision.json": "1540951d54bb9c0448aa4fb78ea8c8049837d2ae2ea04c3957272bd4ec333eb9",
+  "validator-v2/gates.json": "4fc26315d42731cf3af1b63e6a46563783f22e997f46bbc3c946fba6f630651f",
+  "validator-v2/compare.py": "bd14b3fb51941af9dfe8ce5a3818b745c281ae3ee872ef281d8d52932e2fcad0",
+  "validator-v2/integrity.py": "0b24bab056d4e8436fb71b6b3d8a6d8ff74006ca4f7757cf9439e83d866e6208",
+  "validator-v2/upstream_metrics.py": "d76f3c66300e4a396fedb92da7a24e436f6241102c65032eb1eb16593cdabf71",
+  "validator-v2/weights.json": "605e463a0b64244974f5475dead6b3bdc9cc4899930801e161cdf48d8c057171",
+  "validator-v2/README.md": "d9e411488ae84e46d6d78e0326d58a99198df8711ea09b1787747318d295d8bd"
+}

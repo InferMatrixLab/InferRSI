@@ -1,0 +1,138 @@
+{
+  "status": "rejected_candidates_no_qualified_gain",
+  "target_achieved": false,
+  "resident24": {
+    "source": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+    "sources": [
+      "https://github.com/vllm-project/vllm-omni/pull/5764",
+      "https://github.com/vllm-project/vllm-omni/pull/5929"
+    ],
+    "variable": "AllGather DiT streaming versus rank-local24resident blocks; text encoder rank-local in both",
+    "scope": "5steps5s, one warmup and one measured per arm, same four910B1 devices; early rejected, incomplete planned ABBA",
+    "baseline_ms": [
+      173210.57523414493
+    ],
+    "candidate_ms": [
+      365883.9429579675
+    ],
+    "baseline_lifecycle": {
+      "status": "pass",
+      "container_exit": 0,
+      "server_exit": 0,
+      "forced_signals": 0,
+      "host_cleanup_intervention": false,
+      "expected_workers": 4,
+      "workers": [
+        {
+          "name": "DiffusionWorker-0",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-1",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-2",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-3",
+          "exit_code": 0,
+          "alive": false
+        }
+      ]
+    },
+    "candidate_lifecycle": {
+      "status": "pass",
+      "container_exit": 0,
+      "server_exit": 0,
+      "forced_signals": 0,
+      "host_cleanup_intervention": false,
+      "expected_workers": 4,
+      "workers": [
+        {
+          "name": "DiffusionWorker-0",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-1",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-2",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-3",
+          "exit_code": 0,
+          "alive": false
+        }
+      ]
+    },
+    "media_gate_verdict": "PASS",
+    "quality_verdict": "INCONCLUSIVE",
+    "quality_metrics": {
+      "ssim": 0.985081,
+      "psnr_db": 45.843622,
+      "lpips": 0.01714623005940549,
+      "audio_spectral_cosine": 0.9987955391407013,
+      "audio_rms_ratio": 1.0013017132976463,
+      "audio_samples": 165888
+    },
+    "reason": "More than2x slower in first measured pair. Final50step5s15s validation not promoted."
+  },
+  "prompt_attention": {
+    "source": "Installed MindIE SD3.1.0 prompt_flash_attn full-window npu_prompt_flash_attention",
+    "scope": "Synthetic tensors at captured5s model kernel shapes; not E2E or losslessness acceptance",
+    "rows": [
+      {
+        "shape": [
+          1,
+          56,
+          7168,
+          128
+        ],
+        "median_ms": {
+          "ascend_laser_attention": 7.2264596819877625,
+          "prompt_flash_attn": 11.593843344599009
+        },
+        "exact": false,
+        "rmse": 5.215294731897302e-05,
+        "finite": true
+      },
+      {
+        "shape": [
+          1,
+          14,
+          82944,
+          128
+        ],
+        "median_ms": {
+          "ascend_laser_attention": 201.82542828842998,
+          "prompt_flash_attn": 325.69412514567375
+        },
+        "exact": false,
+        "rmse": 1.5541883840342052e-05,
+        "finite": true
+      }
+    ],
+    "exit_code": 0,
+    "reason": "Slower on both actual-shape synthetic inputs; numerical outputs differ."
+  },
+  "raw_artifact_hashes": {
+    "resident-screen/plan.json": "935fcddadf65059f5fd0a81dcd07a0d8a1aaeb409fd7d06461c759df34cc64f6",
+    "resident-screen/early-rejection.json": "9c808edd1c60339650a7734bc11c02cdb5c4138469e82ab7a9e81137f6f31a9a",
+    "post-resident-screen/base0.json": "08e107e1c8d93f422aa8d2a98040b7ac26229e45ab7819725d253598aeef73ad",
+    "post-resident-screen/resident24a.json": "fb11c1ea3f8d17f1eecd784a75bb4aa62d49a08fab567948207971cc4315fdd1",
+    "quality/resident24-early-rejected/result.json": "e50018e7607aebabd701ac71005b19f441971f7cebcad194f24daf9ce3115889",
+    "prompt-kernel-probe/result.json": "8baa793c5adede6bfbe61fa7fd039217e68a1b0c70b605f74a178c94437958d1",
+    "prompt-kernel-probe/probe.py": "836e9f93fccd5adf8210ef1e7793a54722141aaa61eff7c83bf5dafa59301a61",
+    "prompt-kernel-probe/launch-after-rejection.log": "83c5507470dcc23a28aabf51f6deb9eb8fe4382be189c6ee4c6a177820a93f91"
+  }
+}

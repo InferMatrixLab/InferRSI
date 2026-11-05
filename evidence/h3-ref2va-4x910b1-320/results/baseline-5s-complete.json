@@ -1,0 +1,159 @@
+{
+  "run": "baseline-5s-preflight",
+  "source_revision": "c7f56f0155953c7d4a77276a2f4fcbd844ab0da2",
+  "configuration": {
+    "pipeline_profiler": false,
+    "heldout_quality_cases": false,
+    "diagnostic_shutdown_override": false,
+    "shutdown_mode": "native",
+    "arm": "base",
+    "steps": 50,
+    "requests": 1,
+    "serve_args": [
+      "--num-gpus",
+      "4",
+      "--usp",
+      "4",
+      "--ring",
+      "1",
+      "--text-encoder-tp-size",
+      "4",
+      "--vae-parallel-mode",
+      "tile",
+      "--vae-use-tiling",
+      "--vae-patch-parallel-size",
+      "4",
+      "--enable-distributed-layerwise-offload",
+      "--disable-log-stats",
+      "--diffusion-attention-backend",
+      "FLASH_ATTN"
+    ],
+    "warmups_per_duration": 2,
+    "durations_s": [
+      5
+    ],
+    "dlo_wave_timeout_s": 7200.0,
+    "seeds": [
+      0
+    ],
+    "inputs_sha256": {
+      "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+      "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+      "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+    }
+  },
+  "runtime_settings_sha256": "b7f691c4621a21611c7ce4d61a7a14db898ba4394d4230a378471c99d5bda6f9",
+  "cells": [
+    {
+      "duration_s": 5,
+      "seed": 0,
+      "expected_measured_requests": 1,
+      "completed": 1,
+      "failed": 0,
+      "missing": 0,
+      "samples_ms": [
+        814064.1126520932
+      ],
+      "mean_ms": 814064.1126520932,
+      "median_ms": 814064.1126520932,
+      "min_ms": 814064.1126520932,
+      "max_ms": 814064.1126520932,
+      "request_sample_stdev_ms": null,
+      "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+    }
+  ],
+  "samples_including_warmups": [
+    {
+      "label": "measured-5-seed0-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 814064.1126520932,
+      "http_status": 200,
+      "bytes": 6510797,
+      "response_metrics": {
+        "X-Inference-Time-S": "814.003",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.4363926127552986,\"stage_0_gen_ms\":812797.1453666687}",
+        "X-Peak-Memory-MB": "19908.000"
+      },
+      "output_sha256": "76d24b9b6ff0bccfc6f3d09c5cf657ec38fa3b383ad68be161acdaaa3d8592d4"
+    },
+    {
+      "label": "warmup-5-0",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 965546.0942862555,
+      "http_status": 200,
+      "bytes": 6515503,
+      "response_metrics": {
+        "X-Inference-Time-S": "965.448",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.4564328119158745,\"stage_0_gen_ms\":964555.6063652039}",
+        "X-Peak-Memory-MB": "19828.000"
+      },
+      "output_sha256": "0a92630ef195d304f559e2b7e973be363f539912d146af8e4c4eaa5308097fd2"
+    },
+    {
+      "label": "warmup-5-1",
+      "seconds": 5,
+      "seed": 0,
+      "steps": 50,
+      "valid": true,
+      "e2e_ms": 855532.035458833,
+      "http_status": 200,
+      "bytes": 6508771,
+      "response_metrics": {
+        "X-Inference-Time-S": "855.465",
+        "X-Stage-Durations": "{\"queue_wait_ms\":0.6018057465553284,\"stage_0_gen_ms\":854387.8092765808}",
+        "X-Peak-Memory-MB": "19848.000"
+      },
+      "output_sha256": "c30c23c6a753294914ef457789f70f5f0255d279d6233dc8d9fb1b2e82cdd483"
+    }
+  ],
+  "quality": "All three repeated-baseline pairs pass media gates, but decoded video and audio differ; separate repeatability adjudication required",
+  "lifecycle": {
+    "status": "fail",
+    "container_exit": 0,
+    "server_exit": 0,
+    "forced_signals": 8,
+    "host_cleanup_intervention": false,
+    "expected_workers": 4,
+    "workers": [
+      {
+        "name": "DiffusionWorker-0",
+        "exit_code": null,
+        "alive": true
+      },
+      {
+        "name": "DiffusionWorker-1",
+        "exit_code": null,
+        "alive": true
+      },
+      {
+        "name": "DiffusionWorker-2",
+        "exit_code": null,
+        "alive": true
+      },
+      {
+        "name": "DiffusionWorker-3",
+        "exit_code": null,
+        "alive": true
+      }
+    ]
+  },
+  "service_log_sha256": "5f9d2174ff94ee46f2dbbf8ec274321fcfc7ad4e23f2640d551c23d3a8d0dd71",
+  "verdict": "INCONCLUSIVE",
+  "scope": "5s feasibility and baseline repeatability only; original lifecycle FAIL; no optimization gain certified",
+  "hardware": {
+    "type": "Ascend 910B1",
+    "count": 4
+  },
+  "limitations": [
+    "One measured request after two warmups, one server; no reliable tail estimate.",
+    "Warmup reduction is not optimization gain.",
+    "HTTP, service and container success do not override failed worker teardown.",
+    "Rank-reported memory header is not an all-rank physical peak."
+  ]
+}

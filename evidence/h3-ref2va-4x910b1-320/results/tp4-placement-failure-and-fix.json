@@ -1,0 +1,75 @@
+{
+  "status": "No qualified lossless gain",
+  "target_achieved": false,
+  "failure": {
+    "source": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+    "configuration": "4x910B1 TP4SP1 DiT resident and module-only encoder offload, originalLaser,5steps5s",
+    "warmup_http_status": 500,
+    "measured_completed": 0,
+    "error": "Expected all tensors on same device; RoPE preparation accesses CPU buffer with NPU positions before first model forward",
+    "call_path": [
+      "MiniMaxH3Pipeline.diffuse",
+      "minimax_h3_denoise_loop",
+      "MiniMaxH3DenoiseBranch.prepare_rope_table",
+      "MiniMaxH3DiTModel.prepare_rope_table"
+    ],
+    "lifecycle": {
+      "status": "fail",
+      "container_exit": 1,
+      "server_exit": 0,
+      "forced_signals": 0,
+      "host_cleanup_intervention": false,
+      "expected_workers": 4,
+      "workers": [
+        {
+          "name": "DiffusionWorker-0",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-1",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-2",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-3",
+          "exit_code": 0,
+          "alive": false
+        }
+      ]
+    }
+  },
+  "candidate_fix": {
+    "source": "0be853d46bcb1ae880d7582f4bed502ec29017af",
+    "patch": "patch/tp4-denoise-placement.patch",
+    "behavior": "Enter existing module-offload component context before denoise preparation; preserve explicit component selection on exit; unchanged RoPE arithmetic",
+    "regression": "Unmodifiedsource fails CPU-vs-meta buffer-device assertion before firstforward;17focused tests pass withfix",
+    "precommit": "Passed after initialruff formatting corrections",
+    "npu_validation": "Single-candidate bringup launched; notyetvalidated in this receipt",
+    "sources": [
+      "https://github.com/vllm-project/vllm-omni/pull/5691",
+      "https://github.com/InferMatrixLab/InferRSI/issues/320"
+    ]
+  },
+  "operator_screening": {
+    "head_layout": "Allthree independenthead refactorings exact, approximately201-203ms, no materialgain demonstrated",
+    "precision_matched": "BaselineLaser syntheticrepeat exact; FP16input alternates fusedscore/prompt/FIA allslower andnotexact. These match baseline conversion boundaries, not newprecision reductions.",
+    "source": "Installed MindIE SD3.1.0 and torch_npu2.10post4 under pinnedruntimeimage",
+    "scope": "Synthetic actual-shape probes, not fullmodelE2E or quality acceptance"
+  },
+  "raw_hashes": {
+    "tp4-screen/failed-candidate-qualification.json": "937b5c82eb18a2376718b9ce05e9db868ab77efb94066df7f193d231e5a77a52",
+    "runs/tp4-screen-tp4a/service.log": "990cc2655a7b17d3d839eef30c0fa739b0ddfbbe0b59aa009d756076cc5dfd7d",
+    "tp-placement-red.log": "3bb44d5408ea8654bb7439c030a03e537fcac4531716af7afa25b3d504ee365a",
+    "tp-placement-green.log": "132edc352d19cdfb60ed7b6d9eb6eed5fa18295811852f507819adec57223050",
+    "tp-placement-commit-v2.log": "24e4fe652034c6c5bae0c090b9b143d04e3ce5a90534e492a08a064118fe1857",
+    "head-layout-probe/manifest.json": "0f9799a885df805f77d045a4bcb8ed8d3a4c345f88c930e1a99e522f6f8cd9c6",
+    "precision-matched-attention-probe/manifest.json": "f3c425bc58929d139d327862de349fb757e40621702b5348450950af2d006e58",
+    "tp4-fixed-preflight/manifest.json": "9ea7fb9fbdeb8edecbde5173fde3827d1ff96006b236277e16471c51420d9efe"
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "plan/acceptance-elementwise-v2.json": "49d93de40a7e8884ddf43471f98ea69e0814e55288ce02cbe6af98d3effb7f91",
+  "results/nz-weight-operator.json": "936cafa3213d4d4db743347b1722127fa2f93bfc95cfab3bd36bc7eb7e99e994",
+  "results/laser-head-split-operator.json": "bb6c6ae2fb0c89cb31922122962266bdbe9fdcf2cee7f9ba2becf3e8028607e7",
+  "results/strict-followup.json": "10dce86d45cb4ce943620bebf7f928393e4c602960e481bc4b9528461b46284a"
+}

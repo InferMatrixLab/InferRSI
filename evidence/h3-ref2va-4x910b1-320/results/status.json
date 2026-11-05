@@ -1,0 +1,13 @@
+{
+  "verdict": "INCONCLUSIVE",
+  "execution": "queued",
+  "four_device_samples": 0,
+  "speedup": null,
+  "quality_acceptance": false,
+  "limitations": [
+    "No four-device execution result yet",
+    "No candidate search",
+    "No final 5s/15s paired measurement",
+    "No independent review"
+  ]
+}

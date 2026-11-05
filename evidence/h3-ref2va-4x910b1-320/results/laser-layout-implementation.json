@@ -1,0 +1,15 @@
+{
+  "candidate_revision": "8cbe1a1dd97d965c41c7f8904303243c36a66931",
+  "baseline_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+  "status": "Local isolated candidate only; not yet included in engine PR or model tested",
+  "source": "Pinned MindIE-SD3.1 AscendLaserAttention.la_preprocess_input preserves transpose strides during cast, then copies to contiguous; explicit Tensor.to memory_format combines that preparation",
+  "installed_source_sha256": "8a971c30fc85c38882886298de35492f8ed63ece114fa39cbcc515c5e2aae12d",
+  "image": "sha256:7fc6c73bd19a6ef4ee8d6048009972234796a1fc1bd3067168a425343cc476f7",
+  "compatibility": "Opt-in false by default; preserves legacy FP16 roundtrip, not newer native-BF16 Laser arithmetic",
+  "cpu_tests": "117 passed,7deselected; adapters only, not native numerical validation",
+  "cpu_log_sha256": "3061400fedb83d2bf8779b4615295d42ca61c648e1437a251c8eed0a98a29745",
+  "precommit": "All applicable checks passed on v3; initial ruff formatting and existing piecewise Optional type error corrected by an invariant assertion",
+  "precommit_log_sha256": "2bde30993724d3446a64e2653be46fa6989ed90c2d8a6d1e58e825c1f95630de",
+  "timing_isolation": "Commit-time automatic check rerun was paused before base0 measured request and resumed after its container exit; no CPU scoring or profiling overlapped measurement",
+  "target_achieved": false
+}

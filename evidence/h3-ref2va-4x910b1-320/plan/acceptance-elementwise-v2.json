@@ -1,0 +1,13 @@
+{
+  "recorded_at": "2026-11-03T09:38:07.485443+00:00",
+  "supersedes_lossless_adjudication_only": "acceptance-30pct.json",
+  "user_instruction": "必须逐元素一致；不接受仅靠质量指标判定无损",
+  "requirements": [
+    "Elementwise exact model output tensors and decoded audio/video equality; perceptual thresholds cannot substitute for equality.",
+    "Baseline nondeterminism does not excuse candidate mismatch. Locate and resolve repeatability before final acceptance.",
+    "Keep full 50 steps, BF16, dense compute, frozen inputs and same 4x910B1 devices.",
+    "Matched E2E latency reduction >=30% independently for 5s and 15s, clean lifecycle and complete requests.",
+    "Operator equality is screening only, not end-to-end lossless acceptance."
+  ],
+  "target_achieved": false
+}

@@ -1,0 +1,183 @@
+{
+  "scope": "Placement correctness bringup only, not paired performance qualification",
+  "isolated_revision": "0be853d46bcb1ae880d7582f4bed502ec29017af",
+  "qualification": {
+    "run": "tp4-fixed-preflight-v1",
+    "source_revision": "0be853d46bcb1ae880d7582f4bed502ec29017af",
+    "configuration": {
+      "dense_kernel": "ascend_laser_attention",
+      "pipeline_profiler": false,
+      "heldout_quality_cases": false,
+      "diagnostic_shutdown_override": false,
+      "shutdown_mode": "native",
+      "arm": "base",
+      "steps": 5,
+      "requests": 1,
+      "serve_args": [
+        "--num-gpus",
+        "4",
+        "--tensor-parallel-size",
+        "4",
+        "--usp",
+        "1",
+        "--ring",
+        "1",
+        "--text-encoder-tp-size",
+        "4",
+        "--vae-parallel-mode",
+        "tile",
+        "--vae-use-tiling",
+        "--vae-patch-parallel-size",
+        "4",
+        "--disable-log-stats",
+        "--diffusion-attention-backend",
+        "FLASH_ATTN",
+        "--diffusion-offload-config",
+        "{\"mode\":\"module\",\"components\":[\"text_encoder\"]}"
+      ],
+      "warmups_per_duration": 1,
+      "durations_s": [
+        5
+      ],
+      "dlo_wave_timeout_s": 14400.0,
+      "seeds": [
+        0
+      ],
+      "inputs_sha256": {
+        "prompt.txt": "91c1340ea893aede82312dec30a6ae8c975c1def921348fc1cc45ccc86b315dd",
+        "input_video.mp4": "d6edc20ac82aa980c9cbd0b05b371f60d12dc8d018492e571b42de0086819c41",
+        "input_audio.mp3": "2a48d447b343b38a2c504d5281a0c97c688db0ba87931ed9282c598bd6752454"
+      }
+    },
+    "runtime_settings_sha256": "8ae8395e701229695e7a92cce813dd0d7214be20828635183d33ee79723b37f1",
+    "cells": [
+      {
+        "duration_s": 5,
+        "seed": 0,
+        "expected_measured_requests": 1,
+        "completed": 1,
+        "failed": 0,
+        "missing": 0,
+        "samples_ms": [
+          173936.701846309
+        ],
+        "mean_ms": 173936.701846309,
+        "median_ms": 173936.701846309,
+        "min_ms": 173936.701846309,
+        "max_ms": 173936.701846309,
+        "request_sample_stdev_ms": null,
+        "statistics_scope": "Requests within one server; not independent process rounds or a reliable tail-latency estimate"
+      }
+    ],
+    "samples_including_warmups": [
+      {
+        "label": "measured-5-seed0-0",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 5,
+        "valid": true,
+        "e2e_ms": 173936.701846309,
+        "http_status": 200,
+        "bytes": 6610537,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-83bbcaa814f0cc7a",
+          "X-Inference-Time-S": "173.873",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.44232234358787537,\"stage_0_gen_ms\":172658.57577323914}",
+          "X-Peak-Memory-MB": "45038.000"
+        },
+        "output_sha256": "de7d74949e9171e17518ec070ea835b66a258b724f4700469c24d4c6eeb3d3d4"
+      },
+      {
+        "label": "warmup-5",
+        "seconds": 5,
+        "seed": 0,
+        "steps": 5,
+        "valid": true,
+        "e2e_ms": 249562.89844959974,
+        "http_status": 200,
+        "bytes": 6618361,
+        "response_metrics": {
+          "X-Request-Id": "video_sync-8676e3adad2fe02b",
+          "X-Inference-Time-S": "249.469",
+          "X-Stage-Durations": "{\"queue_wait_ms\":0.4505319520831108,\"stage_0_gen_ms\":248088.7153148651}",
+          "X-Peak-Memory-MB": "34234.000"
+        },
+        "output_sha256": "16407246fc5b0d0b56c2499994be95ed8ca06a201434e050b09dd0e5c42acd6a"
+      }
+    ],
+    "quality": "unknown; attach matched frozen-validator receipts for every accepted output",
+    "lifecycle": {
+      "status": "pass",
+      "container_exit": 0,
+      "server_exit": 0,
+      "forced_signals": 0,
+      "host_cleanup_intervention": false,
+      "expected_workers": 4,
+      "workers": [
+        {
+          "name": "DiffusionWorker-0",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-1",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-2",
+          "exit_code": 0,
+          "alive": false
+        },
+        {
+          "name": "DiffusionWorker-3",
+          "exit_code": 0,
+          "alive": false
+        }
+      ]
+    },
+    "service_log_sha256": "b9d97c080a3c58dd0e50104e9a7687b0cf97c090b3d6282e5744f85b9a089ae6"
+  },
+  "quality": {
+    "verdict": "INCONCLUSIVE",
+    "media_gate_verdict": "PASS",
+    "scope": "decoded media equality; unequal outputs require separate baseline-repeatability adjudication",
+    "exact_video": false,
+    "exact_audio": false,
+    "coverage": [
+      {
+        "expected_duration_s": 5.175,
+        "decoded_audio_end_s": 5.184
+      },
+      {
+        "expected_duration_s": 5.175,
+        "decoded_audio_end_s": 5.184
+      }
+    ],
+    "scorer_identity": {
+      "alexnet_sha256": "7be5be791159472b1fbf3c69796f7cb30dca7ad8466c2df70058c37116cdee02",
+      "lpips_sha256": "df73285e35b22355a2df87cdb6b70b343713b667eddbda73e1977e0c860835c0"
+    },
+    "metrics": {
+      "ssim": 0.984955,
+      "psnr_db": 45.748864,
+      "lpips": 0.017237607367156495,
+      "audio_spectral_cosine": 0.9983421663443247,
+      "audio_rms_ratio": 1.001951503445255,
+      "audio_samples": 165888
+    },
+    "inputs": {
+      "baseline": "48b8d9a102ee836c1522567ba0544b6aa0218d3e080a9a58a5346acbda0e1aba",
+      "candidate": "de7d74949e9171e17518ec070ea835b66a258b724f4700469c24d4c6eeb3d3d4",
+      "gates": "4fc26315d42731cf3af1b63e6a46563783f22e997f46bbc3c946fba6f630651f"
+    }
+  },
+  "engine_pr": {
+    "url": "https://github.com/vllm-project/vllm-omni/pull/9698",
+    "verified_head": "a0e7b09c83d0fa50f7caede18b41654bcfdef7f2",
+    "validation": "17 focused CPU tests and all applicable precommit hooks pass at integrated revision; actual NPU execution used isolated revision above",
+    "source": "Reproduced CPU RoPE buffer versus NPU position IDs before first forward; existing component-residency context"
+  },
+  "initial_integration_test_invocation": "Exited4 because one supplied test filename was wrong; corrected invocation completed17tests. Both original and corrected logs retained externally.",
+  "target_achieved": false
+}

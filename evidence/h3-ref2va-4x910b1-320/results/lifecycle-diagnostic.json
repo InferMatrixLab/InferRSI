@@ -1,0 +1,36 @@
+{
+  "source_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+  "scope": "Four-card 5-step diagnostic only; no full-compute performance or losslessness acceptance",
+  "workers": [
+    {
+      "name": "DiffusionWorker-0",
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-1",
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-2",
+      "exit_code": 0,
+      "alive": false
+    },
+    {
+      "name": "DiffusionWorker-3",
+      "exit_code": 0,
+      "alive": false
+    }
+  ],
+  "container_exit": 0,
+  "server_exit": 0,
+  "service_log_sha256": "716741040cf82f251f1755d633921964f3a47cabc27b75c8ae12f1416f96594a",
+  "profiling": "Start/stop HTTP200. Raw traces retained for all four ranks; online analysis rejected because workers are daemon processes. Offline analysis pending.",
+  "source": "https://github.com/vllm-project/vllm-omni/pull/9698",
+  "outputs": {
+    "diagnostic-warmup": true,
+    "diagnostic-profile": true
+  },
+  "interpretation": "Terminal-discard and bounded-grace candidate exited cleanly in this diagnostic. Full50-step15s lifecycle remains to be checked."
+}

@@ -1,0 +1,55 @@
+{
+  "state": "Queued, no four-device experiment started as of2026-11-03T08:55Z",
+  "reason": "Prior unstarted v2 reservation canceled prospectively to execute one-device FIA v2 screen first; that screen completed and was rejected",
+  "earlier_plans": "Retained immutable; no measured observations discarded",
+  "plan": {
+    "scope": "Independent task dispatch queue screening; five-step adaptive ABBA only",
+    "source": "https://www.hiascend.com/document/detail/en/Pytorch/2610/apiref/ENV/docs/en/environment_variable_reference/TASK_QUEUE_ENABLE.md",
+    "observed_baseline": "Pinned image/container TASK_QUEUE_ENABLE=1; OMP_NUM_THREADS=1; ASCEND_LAUNCH_BLOCKING unset",
+    "hypothesis": "Move workspace management into second-level dispatch queue, reducing host dispatch gaps without changing model math",
+    "hardware": "Four local910B1 under one reservation",
+    "source_revision": "ce216014adb4c037dc15b3d49623e493ca3d3ac3",
+    "arms": {
+      "base0": 1,
+      "queue2a": 2,
+      "queue2b": 2,
+      "base1": 1
+    },
+    "order": [
+      "base0",
+      "queue2a",
+      "queue2b",
+      "base1"
+    ],
+    "steps": 5,
+    "duration_s": 5,
+    "warmups": 1,
+    "measured": 1,
+    "same_settings": "SP4 TP1, textTP4, VAEtile4, DLO, BF16, OriginalLaser, seed0 and frozen input hashes",
+    "admission": "Continue second pair only if first clean pair candidate E2E at least3percent lower; otherwise retain incomplete ABBA as short screening without final rejection proof",
+    "quality": "Independent CPU scoring after model reservation ends; numerical scheduling parity must be measured",
+    "acceptance": "No30percent or losslessness claim from configuration documentation or this short screening",
+    "revision": "v3: unchanged model arms; original and v2 reservations canceled before execution, a separate one-device FIA v2 probe completed and was rejected before this requeue. Fused projection probe still precedes model A/B within one four-device reservation."
+  },
+  "harness": {
+    "admit_second_pair.py": "c68f3c39632620be23b381b19259017128af76a85d81cf69bf510eb20182d558",
+    "campaign.sh": "c661f596b0d4c29bbbad1926d1520178fd2146f1b8be3060ec079c5fcc427c86",
+    "plan.json": "d3762ea18b4d0188ca22d87a4b5bc6944c9dcd7e4f97417effb22d1b565eea23",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+    "run_host.sh": "8a8db40ce04c167faf55e49f57c2d147621eb1528c078ea8531875ff7a86f75d",
+    "run_inner.sh": "7d82eb05cb6c8220b5dc46ef5ae890a0cb996dbd8d20c3fcc2dfb77e240d0d26"
+  },
+  "outer_harness": {
+    "run_mm_then_queue_v3.py": "b824dd924ab7d543bb898fc6b6a7c6c0be15cf0c211b7b8fde8750709c6f2ead",
+    "mm-then-queue-v3-campaign.sh": "b0293ddeadf0b5e13bbb5c0ed7c9b310beb319ca389ad50a48537eb1cfc2d5d2",
+    "mm-allreduce-probe/manifest.json": "3372f5547080dce43cae06c554818d5c2f665f77951be1206cb475bb8bc3ac56",
+    "task-queue-screen-v3/manifest.json": "73e1d472f9fa69a712afcdceaeadc1fc1a312db499adb5f57239abd7f5c95082"
+  },
+  "order": [
+    "fused projection operator probe",
+    "task queue model adaptive ABBA if operator exits0",
+    "CPU quality after release"
+  ],
+  "target_achieved": false
+}

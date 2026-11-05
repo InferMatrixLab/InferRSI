@@ -1,0 +1,19 @@
+{
+  "target": "At least30percent lower E2E latency without quality loss",
+  "metric": "1 - candidate_e2e_ms / matched_baseline_e2e_ms >= 0.30",
+  "workloads_s": [
+    5,
+    15
+  ],
+  "hardware": "Same4physical Ascend910B1 devices",
+  "precision": "BF16; full50steps; same dense attention and inputs; no approximate cache, sparsity, quantization or distillation",
+  "evidence_required": [
+    "Separate matched baseline/candidate repetitions at both durations with clean worker lifecycle",
+    "Individual optimization attribution plus directly measured final combination",
+    "Independent audio/video coverage and quality checks; baseline nondeterminism explicitly adjudicated",
+    "Frozen source/runtime/input identity; no profiler or CPU scoring concurrent with timing",
+    "One engine PR and RSI evidence publication"
+  ],
+  "status": "Not achieved. Existing5s814.064s sample is feasibility-only, not the final acceptance denominator.",
+  "target_note": "Latency reduction30percent is stricter than throughput1.30x; this campaign uses latency reduction to match requested E2E objective."
+}

@@ -1,0 +1,6 @@
+{
+  "results/head-layout-probe.json": "367bc4c238624bb0c70ff15b9df54cc6b2bfcdc865c138df930ec2925eb1edf8",
+  "results/precision-matched-attention-probe.json": "12aa0b3dee329c853d1d7edb3c8d5abe4396a36ceba90cdeb9de9afdd2e19925",
+  "patch/tp4-denoise-placement.patch": "3b23e3538cfaa2a634ff5e302867a8105c663335987a662e4619231ec1ac35c8",
+  "results/tp4-placement-failure-and-fix.json": "2ff7130c186ef0242576ef3a7d4a9b7841c7404a01dbe08a2ec93793ab049698"
+}

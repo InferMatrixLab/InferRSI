@@ -1,0 +1,426 @@
+{
+  "result": {
+    "scope": "Four-rank synthetic operator screening; not model E2E or quality",
+    "rank_results": {
+      "0": [
+        {
+          "projection": "attention_output",
+          "x_shape": [
+            82944,
+            1792
+          ],
+          "weight_shape": [
+            5376,
+            1792
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.0625,
+            "rmse": 0.005227972753345966
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              35.71480178833008,
+              35.558998107910156,
+              35.30302047729492,
+              34.54096984863281,
+              35.69428253173828,
+              36.28462600708008,
+              34.55186080932617,
+              34.31361770629883,
+              36.21543502807617,
+              34.75422668457031
+            ],
+            "fused": [
+              29.00004768371582,
+              29.11380958557129,
+              29.293964385986328,
+              29.280134201049805,
+              29.10198974609375,
+              29.244884490966797,
+              30.05089569091797,
+              28.89644432067871,
+              28.790943145751953,
+              29.138561248779297
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 35.43100929260254,
+            "fused": 29.126185417175293
+          }
+        },
+        {
+          "projection": "ffn_output",
+          "x_shape": [
+            82944,
+            3584
+          ],
+          "weight_shape": [
+            5376,
+            3584
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.125,
+            "rmse": 0.007550136186182499
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              41.45832443237305,
+              39.80379867553711,
+              41.706878662109375,
+              39.84878921508789,
+              39.23906326293945,
+              40.6806526184082,
+              40.00970458984375,
+              39.12171173095703,
+              39.26765441894531,
+              40.694671630859375
+            ],
+            "fused": [
+              29.246204376220703,
+              29.3342342376709,
+              29.026268005371094,
+              29.29714584350586,
+              29.55521011352539,
+              30.19850730895996,
+              29.213891983032227,
+              28.91681480407715,
+              28.96112632751465,
+              28.9919376373291
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 39.92924690246582,
+            "fused": 29.230048179626465
+          }
+        }
+      ],
+      "1": [
+        {
+          "projection": "attention_output",
+          "x_shape": [
+            82944,
+            1792
+          ],
+          "weight_shape": [
+            5376,
+            1792
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.0625,
+            "rmse": 0.005227972753345966
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              35.71480178833008,
+              35.558998107910156,
+              35.30302047729492,
+              34.54096984863281,
+              35.69428253173828,
+              36.28462600708008,
+              34.55186080932617,
+              34.31361770629883,
+              36.21543502807617,
+              34.75422668457031
+            ],
+            "fused": [
+              29.00004768371582,
+              29.11380958557129,
+              29.293964385986328,
+              29.280134201049805,
+              29.10198974609375,
+              29.244884490966797,
+              30.05089569091797,
+              28.89644432067871,
+              28.790943145751953,
+              29.138561248779297
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 35.43100929260254,
+            "fused": 29.126185417175293
+          }
+        },
+        {
+          "projection": "ffn_output",
+          "x_shape": [
+            82944,
+            3584
+          ],
+          "weight_shape": [
+            5376,
+            3584
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.125,
+            "rmse": 0.007550136186182499
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              41.45832443237305,
+              39.80379867553711,
+              41.706878662109375,
+              39.84878921508789,
+              39.23906326293945,
+              40.6806526184082,
+              40.00970458984375,
+              39.12171173095703,
+              39.26765441894531,
+              40.694671630859375
+            ],
+            "fused": [
+              29.246204376220703,
+              29.3342342376709,
+              29.026268005371094,
+              29.29714584350586,
+              29.55521011352539,
+              30.19850730895996,
+              29.213891983032227,
+              28.91681480407715,
+              28.96112632751465,
+              28.9919376373291
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 39.92924690246582,
+            "fused": 29.230048179626465
+          }
+        }
+      ],
+      "2": [
+        {
+          "projection": "attention_output",
+          "x_shape": [
+            82944,
+            1792
+          ],
+          "weight_shape": [
+            5376,
+            1792
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.0625,
+            "rmse": 0.005227972753345966
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              35.71480178833008,
+              35.558998107910156,
+              35.30302047729492,
+              34.54096984863281,
+              35.69428253173828,
+              36.28462600708008,
+              34.55186080932617,
+              34.31361770629883,
+              36.21543502807617,
+              34.75422668457031
+            ],
+            "fused": [
+              29.00004768371582,
+              29.11380958557129,
+              29.293964385986328,
+              29.280134201049805,
+              29.10198974609375,
+              29.244884490966797,
+              30.05089569091797,
+              28.89644432067871,
+              28.790943145751953,
+              29.138561248779297
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 35.43100929260254,
+            "fused": 29.126185417175293
+          }
+        },
+        {
+          "projection": "ffn_output",
+          "x_shape": [
+            82944,
+            3584
+          ],
+          "weight_shape": [
+            5376,
+            3584
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.125,
+            "rmse": 0.007550136186182499
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              41.45832443237305,
+              39.80379867553711,
+              41.706878662109375,
+              39.84878921508789,
+              39.23906326293945,
+              40.6806526184082,
+              40.00970458984375,
+              39.12171173095703,
+              39.26765441894531,
+              40.694671630859375
+            ],
+            "fused": [
+              29.246204376220703,
+              29.3342342376709,
+              29.026268005371094,
+              29.29714584350586,
+              29.55521011352539,
+              30.19850730895996,
+              29.213891983032227,
+              28.91681480407715,
+              28.96112632751465,
+              28.9919376373291
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 39.92924690246582,
+            "fused": 29.230048179626465
+          }
+        }
+      ],
+      "3": [
+        {
+          "projection": "attention_output",
+          "x_shape": [
+            82944,
+            1792
+          ],
+          "weight_shape": [
+            5376,
+            1792
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.0625,
+            "rmse": 0.005227972753345966
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              35.71480178833008,
+              35.558998107910156,
+              35.30302047729492,
+              34.54096984863281,
+              35.69428253173828,
+              36.28462600708008,
+              34.55186080932617,
+              34.31361770629883,
+              36.21543502807617,
+              34.75422668457031
+            ],
+            "fused": [
+              29.00004768371582,
+              29.11380958557129,
+              29.293964385986328,
+              29.280134201049805,
+              29.10198974609375,
+              29.244884490966797,
+              30.05089569091797,
+              28.89644432067871,
+              28.790943145751953,
+              29.138561248779297
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 35.43100929260254,
+            "fused": 29.126185417175293
+          }
+        },
+        {
+          "projection": "ffn_output",
+          "x_shape": [
+            82944,
+            3584
+          ],
+          "weight_shape": [
+            5376,
+            3584
+          ],
+          "correctness": {
+            "exact": false,
+            "finite": true,
+            "max_abs": 0.125,
+            "rmse": 0.007550136186182499
+          },
+          "samples_ms_max_rank": {
+            "baseline": [
+              41.45832443237305,
+              39.80379867553711,
+              41.706878662109375,
+              39.84878921508789,
+              39.23906326293945,
+              40.6806526184082,
+              40.00970458984375,
+              39.12171173095703,
+              39.26765441894531,
+              40.694671630859375
+            ],
+            "fused": [
+              29.246204376220703,
+              29.3342342376709,
+              29.026268005371094,
+              29.29714584350586,
+              29.55521011352539,
+              30.19850730895996,
+              29.213891983032227,
+              28.91681480407715,
+              28.96112632751465,
+              28.9919376373291
+            ]
+          },
+          "medians_ms_max_rank": {
+            "baseline": 39.92924690246582,
+            "fused": 29.230048179626465
+          }
+        }
+      ]
+    },
+    "target_achieved": false
+  },
+  "frozen_plan": {
+    "scope": "Four-rank operator-only screen for TP4 row projections; prepared not launched",
+    "source": "Pinned torch_npu2.10 installed _op_plugin_docs.py npu_mm_all_reduce_base, and H3 RowParallelLinear projections",
+    "hypothesis": "Overlap row-projection matrix multiplication with SUM collective while retaining full BF16 computation",
+    "shapes": [
+      [
+        82944,
+        1792,
+        5376
+      ],
+      [
+        82944,
+        3584,
+        5376
+      ]
+    ],
+    "baseline": "F.linear then HCCL all_reduce SUM",
+    "candidate": "npu_mm_all_reduce_base unquantized BF16, default comm_turn, one HCCL domain",
+    "hardware_constraint": "Four local910B1, operator requires supported HCCS all-mesh; reject execution errors without fallback or semantic substitution",
+    "warmups": 3,
+    "rounds": 5,
+    "order": "ABBA",
+    "metrics": "Per-sample maximum rank wall time after device synchronization; timing aggregation excluded",
+    "parity": "Exact, finite, max error and RMSE on each rank; no model promotion from synthetic timing alone",
+    "prohibited": "No quantization, reduced precision, sparse math or approximation"
+  },
+  "harness": {
+    "plan.json": "8f404508254c42ff481462901b3e5259e446a3accbdb96a48d64e7bd6c662b67",
+    "probe.py": "3485694142898fe5662d41578276545c48a14900f42d643fe8e2839ea0f5d1c1",
+    "run.sh": "c83930154752e699b0ef4aff5f3176a60f33f1a52fcde8fd1eb7fe61ba10492d"
+  },
+  "job_exit": 0,
+  "decision": "Faster on both projections but nonexact on every rank; not promoted as lossless or model E2E gain",
+  "raw_result_sha256": "07885c0d54c270d61cf18c1c1781c55a49ad625b06e06e107b5becee352e9d0a"
+}

@@ -1,0 +1,7 @@
+{
+  "results/baseline-5s-complete.json": "28ab7da8f3cd6cd2ca96030795833bb9b2b657bada9f765896755b78f39f3fe7",
+  "results/baseline-w0-w1.json": "f17d234168d6e4e8d3651b683059efd52ba173aea8f15f07ec4ea55becd46837",
+  "results/baseline-w1-m0.json": "33f38006ed56e4bd7787c786399a40d2380d434fd857f49324f6962a5d57da7f",
+  "results/baseline-w0-m0.json": "ad624f94d07de9ca68be6ef6ba80f54913d698229951f5f75a342dd3689b25a4",
+  "results/baseline-lifecycle-diagnosis.json": "ae8c119805fe5a61ff55718828444f9382c220d6300dd9f4af87ff0903fd6040"
+}

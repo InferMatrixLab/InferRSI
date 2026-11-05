@@ -1,0 +1,29 @@
+{
+  "plan": {
+    "scope": "Real-activation paired native attention diagnostic, timing excluded",
+    "source_revision": "8cbe1a1dd97d965c41c7f8904303243c36a66931",
+    "baseline_path": "same source with npu_laser_fp16_layout false for each reference call",
+    "candidate_path": "npu_laser_fp16_layout true via public MindIE API",
+    "hardware": "4 local910B1 under reservation after queue campaign including CPU scoring completes",
+    "workload": "5s5steps,seed0,onewarmup/onemeasured; SP4TP1textTP4VAEtile4DLOBF16originalLaser",
+    "precision": "Original BF16/FP16 roundtrip boundaries and power-of-two scaling; full dense math",
+    "coverage": "Four worker files, ranks0..3, >=500 main attention comparisons per rank across two requests; all exact and finite",
+    "mismatch": "Fail closed; compare one repeated baseline to diagnose baseline instability if candidate differs",
+    "timing": "Duplicate attention and synchronizing equality checks make all request timings ineligible for performance claims",
+    "promotion": "No automatic30percent claim; clean uninstrumented matched model A/B still required",
+    "source": "Local Laser input-copy audit against pinned MindIE-SD3.1; operator receipts laser-cast-layout-probe and laser-public-layout-probe",
+    "status_at_freeze": "Prepared, not launched"
+  },
+  "harness": {
+    "campaign.sh": "1583f99d65944196a7f86456ce78d5eb9e5f56a7c5234d04c1aefbcbc2e1ffc1",
+    "logging_entry_laser_parity.py": "1872b7a984766571e5036182f9e64e1a00493b672c66d63ec0af7a868b9d8aa5",
+    "plan.json": "e6c99c5ccf8d2113f479057f3192ae221433fc3efa6b7633849c32191122d73c",
+    "run_client.py": "7a3e697077524c9729ebdae78a533feb55777718b0db72ac3735e5164444bcde",
+    "run_heldout.py": "489e3048120fa34a1c8d089053f45f1d4cda4fd6fdf1652457d079302f77eded",
+    "run_host.sh": "d4cf65d420a1a8c8533dc7d8182846e716a53b6b73a7d041ffe7f92bf28042ae",
+    "run_inner.sh": "4e560fa9704983cb561778b8e757077859a4b64c3392066ad104d8c8ba806788",
+    "verify_parity.py": "94a6501aaa8ac31c7b0a0054e853725590524dbcabd4133cd6ae81212d0a8f4c"
+  },
+  "follower_sha256": "6e7e281e22f7980ae3ff1a7de5fd2cadf5dffd367935e882d64b31e205acf183",
+  "state": "Follower waits for preceding queue A/B and CPU scoring; no diagnostic reservation yet"
+}

@@ -1,0 +1,7 @@
+{
+  "results/mm-fused-operator.json": "bdc3eab8077bad706c28a5fd1b093013224335da5d8181e1a960b7072782eb35",
+  "results/laser-layout-operator.json": "7350502320129b55d850d885fb1ebabf29af126dc7613a776282c876759966b6",
+  "results/laser-layout-implementation.json": "ee4084582339d357083f543a60c67ca59da74846246e1e147545492fecc07a74",
+  "results/laser-layout-parity-plan.json": "8dec9cd029c4f2cf33c3374e9f32f7a559eb81b19cb44e74e3106685a3b7978e",
+  "patch/laser-fp16-layout-candidate.patch": "900111861def48441ddf2ba2c2aa204a31a1a3a2db1026ce44fc76d20b47ea38"
+}

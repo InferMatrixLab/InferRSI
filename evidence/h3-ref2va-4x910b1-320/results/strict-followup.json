@@ -1,0 +1,17 @@
+{
+  "target_achieved": false,
+  "sources": {
+    "nz_weight": "Existing vLLM-Omni Qwen3-TTS maybe_trans_nz implementation and NPU platform allow_internal_format; installed torch_npu.npu_format_cast(weight,29).",
+    "head_split": "Imported head-bucket source f9e5d544d33428e17b818be3a01cb7d0956e4ead; this test retains original Laser and uses serial full-KV head splits."
+  },
+  "decisions": {
+    "nz_weight": "All four synthetic projection outputs exact; resident operator improvement only; DLO transfer and reconstruction unqualified.",
+    "head_split": "Rejected: output mismatch with repeatable synthetic baseline, and slower.",
+    "acceptance": "Elementwise equality is mandatory; perceptual thresholds and baseline variance do not waive it.",
+    "next_diagnostic": "Unlaunched v1 replaced before reservation by v2 adding full stage tensor hashes to real-activation attention parity. Diagnostic timings invalid."
+  },
+  "timing_scope": {
+    "nz_weight": "Separate reserved single device; model warmup incomplete at probe exit.",
+    "head_split": "Separate reserved single device; model warmup incomplete at probe exit."
+  }
+}

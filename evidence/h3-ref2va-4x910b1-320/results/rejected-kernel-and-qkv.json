@@ -1,0 +1,62 @@
+{
+  "dense_alternate": {
+    "status": "rejected_slower",
+    "scope": "Actual-shape synthetic NPU probe only",
+    "rows": [
+      {
+        "shape": [
+          1,
+          56,
+          7168,
+          128
+        ],
+        "median_ms": {
+          "ascend_laser_attention": 7.310947403311729,
+          "fused_attn_score": 8.836026303470135
+        },
+        "exact": false,
+        "rmse": 5.222966137807816e-05
+      },
+      {
+        "shape": [
+          1,
+          14,
+          82944,
+          128
+        ],
+        "median_ms": {
+          "ascend_laser_attention": 201.81505428627133,
+          "fused_attn_score": 311.7461372166872
+        },
+        "exact": false,
+        "rmse": 1.554289337946102e-05
+      }
+    ],
+    "source": "MindIE SD3.1.0 manual attention_forward dispatch; same captured shapes; synthetic BF16 input; not model quality evidence"
+  },
+  "combined_qkv": {
+    "status": "rejected_slower",
+    "scope": "Actual-shape synthetic4rank HCCL probe only",
+    "exact": {
+      "separate": true,
+      "combined_views": true,
+      "combined_contiguous": true
+    },
+    "median_ms": {
+      "separate": 17.243896484375,
+      "combined_views": 18.782387733459473,
+      "combined_contiguous": 20.29022216796875
+    },
+    "source": "https://github.com/vllm-project/vllm-omni/pull/4150",
+    "candidate_revision": "379b772b212f08f02433884f80c59306c67af610"
+  },
+  "final_30pct_target": "not achieved",
+  "raw_result_sha256": {
+    "attention-probe/result.json": "81c2227e198d381d98b71a480336d1c90aae32da0df91dfff4e1b5c46e785ab3",
+    "qkv-probe/result.json": "1c915189626368d7b7b501d1b756208234cae4da014f26baaaa3a9f7077cec72"
+  },
+  "execution_failures_retained": [
+    "First attention probe could not initialize NPU in restricted container; rerun used baseline-proven container access.",
+    "First QKV probe failed hostname resolution with isolated network; own unstarted computation container stopped and host-network retry completed."
+  ]
+}
