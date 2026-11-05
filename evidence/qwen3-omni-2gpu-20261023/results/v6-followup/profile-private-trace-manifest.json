@@ -1,0 +1,133 @@
+{
+  "status": "INCONCLUSIVE",
+  "closed_execution_sha256": "b59040522d4df9e81ba7e9186bcf435b9dc6e6cbf57311880547238add46e7a0",
+  "scope": "18 original closed artifacts verified; no trace payloads public",
+  "artifacts": [
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage2/20261024-085619_stage2_rank0_1792803379/trace_rank0.json.gz",
+      "sha256": "cd41aac4b91372b2b94a04d5fb94251310f495da952cb1ad2aed0cd423d83a59",
+      "bytes": 2105451,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage2/20261024-085619_stage2_rank0_1792803379/ops_rank0.xlsx",
+      "sha256": "978b63df50e1d1874f1f3c0c1371391d9085506f056034be3d1f1ff4ee72ad5a",
+      "bytes": 111095,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage2/20261024-085619_stage2_rank0_1792803379/profiler_out_0.txt",
+      "sha256": "1a9d683cdec7098f92e4f64c5f89d77768d146227af918d75279ddacd0574ff4",
+      "bytes": 20657,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage0/20261024-085619_stage0_rank0_1792803379/trace_rank0.json.gz",
+      "sha256": "bfcbe6108a947b7b0b14ea93d1429946e43071864b2790035b82eab04de2df41",
+      "bytes": 8047611,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage0/20261024-085619_stage0_rank0_1792803379/ops_rank0.xlsx",
+      "sha256": "e6746f131c69f515138434921cbfeeefd2b7f630480e3922fe638acd9d8f4d07",
+      "bytes": 95255,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage0/20261024-085619_stage0_rank0_1792803379/profiler_out_0.txt",
+      "sha256": "1f09822899b084f0ef86035c8c4e29e35810da5d0bc15d407ae4a221b2de73fa",
+      "bytes": 20654,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage1/20261024-085619_stage1_rank0_1792803379/trace_rank0.json.gz",
+      "sha256": "cbfe3473b49bd0c1797ff5c734347d5c51bd237a893d62d8eb6a2856565f3660",
+      "bytes": 37387648,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage1/20261024-085619_stage1_rank0_1792803379/ops_rank0.xlsx",
+      "sha256": "7760aec34904489740827ae56d584dcccaa311c65b6e9eaaa7dbd5d1d17eb3ef",
+      "bytes": 150865,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c1",
+      "file": "traces/stage1/20261024-085619_stage1_rank0_1792803379/profiler_out_0.txt",
+      "sha256": "c40cf4f518615ce8282c2e4b083274226cf1e06cd460b4e507a5234effc47af3",
+      "bytes": 20651,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage2/20261024-085904_stage2_rank0_1792803544/trace_rank0.json.gz",
+      "sha256": "a03453c656fd80139dc54a7d5dfd84e3f1e8af817ab02ed45e1aafed959c1e65",
+      "bytes": 7766572,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage2/20261024-085904_stage2_rank0_1792803544/ops_rank0.xlsx",
+      "sha256": "1e511f16946d5952b593640cfcc750982c3bc8585236bb5e8af7eaa2c14ded60",
+      "bytes": 410135,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage2/20261024-085904_stage2_rank0_1792803544/profiler_out_0.txt",
+      "sha256": "16bcd85b6108b9d650b58484a992573704925adc7164e6bc6fdd869eaa722d1f",
+      "bytes": 20651,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage0/20261024-085901_stage0_rank0_1792803541/trace_rank0.json.gz",
+      "sha256": "8144d0d07b030bee5bccc17f82c6482b245e2463a189f3846318ac0a72063fe9",
+      "bytes": 15183461,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage0/20261024-085901_stage0_rank0_1792803541/ops_rank0.xlsx",
+      "sha256": "74f8fb74e9518e433577ca72851fa2e388a0b5df2f19952f38da6268992bb430",
+      "bytes": 385687,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage0/20261024-085901_stage0_rank0_1792803541/profiler_out_0.txt",
+      "sha256": "1d763e51ffb81616bfc883da62e7106b89415dd95d095d392b6aa05b8fc33698",
+      "bytes": 20651,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage1/20261024-085902_stage1_rank0_1792803542/trace_rank0.json.gz",
+      "sha256": "47bebde9c8c001e4f917dc511b9bd84c56bdefd4d7a94fa229cb8e36e560174a",
+      "bytes": 27351668,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage1/20261024-085902_stage1_rank0_1792803542/ops_rank0.xlsx",
+      "sha256": "dad654d7637125013494c60a9c7e3a730e0e9a21cf5ee7c954da0fdc84204303",
+      "bytes": 724996,
+      "availability": "private payload omitted"
+    },
+    {
+      "phase": "profile-c64",
+      "file": "traces/stage1/20261024-085902_stage1_rank0_1792803542/profiler_out_0.txt",
+      "sha256": "17fd0f1593e02e0b98eabdaa30db43792f80004ff16cf6b2dc75881282edd67e",
+      "bytes": 20651,
+      "availability": "private payload omitted"
+    }
+  ]
+}

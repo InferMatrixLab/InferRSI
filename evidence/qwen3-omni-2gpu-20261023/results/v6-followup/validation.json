@@ -1,0 +1,23 @@
+{
+  "status": "REVIEW_READY_NOT_PUBLISHED",
+  "raw_rows_exact": [
+    256,
+    256
+  ],
+  "audio_hash_counts": [
+    256,
+    256
+  ],
+  "closed_profile_artifacts_verified": 18,
+  "known_private_path_pid_uuid_scan_hits": [],
+  "retained_hashes_verified": true,
+  "scope": "Targeted automated checks only; independent full privacy/source review required",
+  "executable_physical_mapping_review": {
+    "hash_only_scripts": [
+      "run-v1-kv-quality-v6.py",
+      "run-profile-v6.py"
+    ],
+    "remaining_script_mapping_scan_hits": [],
+    "scope": "NVML selector / device zip / visible-device literals; independent review required"
+  }
+}

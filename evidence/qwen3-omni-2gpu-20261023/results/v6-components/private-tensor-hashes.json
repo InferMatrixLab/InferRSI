@@ -1,0 +1,125 @@
+{
+  "status": "INCONCLUSIVE",
+  "artifacts": [
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b1-w1-pcm.pt",
+      "original_sha256": "9ddb504d1fc15b54c6238eb21447f761723959aefe6f25421fddd076068ed1d5",
+      "bytes": 18483,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b1-w25-pcm.pt",
+      "original_sha256": "69968233095c13ce9f6a179b5985ef25cd5a718dfe6d0728d443e29d20c215cb",
+      "bytes": 571452,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b1-w50-pcm.pt",
+      "original_sha256": "7874f6791bfabcd37ceffc783085f81fb0ff153ac0058e9577714723339070fb",
+      "bytes": 957692,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b12-w25-pcm.pt",
+      "original_sha256": "4d8209b6e5366363db01b85b77d40460c42a95123ef1adecdfc325c1f5065336",
+      "bytes": 6834117,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b16-w1-pcm.pt",
+      "original_sha256": "73d274e3e8957737e00656a37cb7712a70354c3b3539f2d8bfdc99960caf8d91",
+      "bytes": 264252,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b3-w50-pcm.pt",
+      "original_sha256": "488f76ce2bceee82b71d1d83612f8127b7239913f5ff2fb0ab2c943a461107d7",
+      "bytes": 2868732,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b6-w25-pcm.pt",
+      "original_sha256": "1d075dc6c4f4521e9322b773db36c61374d0ae7f62d7f45387f618d014d4b1ae",
+      "bytes": 3418044,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b6-w50-pcm.pt",
+      "original_sha256": "e9aec60b89023ffffefd433afea66b88ea64e3028f74eeece563e1b553d56414",
+      "bytes": 5735420,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/b8-w1-pcm.pt",
+      "original_sha256": "ebadc30e44fde3186e9aaa73464473de98af7139329c157b9266aae9ad26d060",
+      "bytes": 133107,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/inputs.pt",
+      "original_sha256": "12faf29616d11ed5a8d376239351041f87b9ba9a975b88ab378714cc764a93ea",
+      "bytes": 131066,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b1-w1-pcm.pt",
+      "original_sha256": "4359faeb5bb3ced6946c867a6d6c8c442d9d37bbe9fd018e6abad07f38ed6d83",
+      "bytes": 18483,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b1-w25-pcm.pt",
+      "original_sha256": "badebf5ab56f1ac7082d0848e374f4faee5c5c57a3cb47a92fa2b2dcdf8033e0",
+      "bytes": 571452,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b1-w50-pcm.pt",
+      "original_sha256": "9adc7b64b02ee6fe1109d5eca47ed9dd6ac5e6b6c869580fbb466ee5a00c695b",
+      "bytes": 957692,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b12-w25-pcm.pt",
+      "original_sha256": "45774ac72fad3512ed640965bf0d85ec9c4959fb7f5f08a6a1dfedc5f2e86a75",
+      "bytes": 6834117,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b16-w1-pcm.pt",
+      "original_sha256": "9dc8eba60574c473546293602e40eb0b8704e290578d82124cd064ae3e157605",
+      "bytes": 264252,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b3-w50-pcm.pt",
+      "original_sha256": "8fb9c0a021daa71967090f0287a027f1a81ecfeedf65043db7989799728afc26",
+      "bytes": 2868732,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b6-w25-pcm.pt",
+      "original_sha256": "254b30ddf40b1d70f7b12f6d6c83fe6164784d60087e35606570afaa0d9fbd0d",
+      "bytes": 3418044,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b6-w50-pcm.pt",
+      "original_sha256": "81ad9cdcb120a4c60dc436a39d4cf1ad78920fa6ef60876ca978905c30da3451",
+      "bytes": 5735420,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/b8-w1-pcm.pt",
+      "original_sha256": "d673e2d44296b7e46dadcb00a95b1dc9c26eab95cf33278c29d68b9e918d75b9",
+      "bytes": 133107,
+      "availability": "private tensor payload omitted"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/inputs.pt",
+      "original_sha256": "12faf29616d11ed5a8d376239351041f87b9ba9a975b88ab378714cc764a93ea",
+      "bytes": 131066,
+      "availability": "private tensor payload omitted"
+    }
+  ]
+}

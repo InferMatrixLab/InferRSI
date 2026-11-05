@@ -1,0 +1,395 @@
+{
+  "arm": "baseline",
+  "status": "PILOT_COMPLETE",
+  "source_sha": "a83eb6ed38fde8c6964a0315420f52e69706d31c",
+  "config_sha256": "c95a58038fa63b6ba1f0bf02f7d46b6a0cf4fb293d4345598da863110fc87f8e",
+  "pilot_pins_sha256": "e08a192d265a558b221fabcb11959aeab5c71cb827dda0b179e032a3ec2e7836",
+  "lifecycle_protocol_sha256": "68f1c0ab50dfae99fd5e10e0967af8964f5034d99ea5b39ad1656e2c4d715506",
+  "executor_sha256": "885ac42453ff13e46b60cae81873a0bd3bd53cfee71885e20f90de582d8fddf6",
+  "overlay_manifest_sha256": "f1cff0d333751f49db6fffefce4b875b2011a85abfe4cd0fa027a5c275db62c7",
+  "verified_artifact_count": 25,
+  "overlay_file_count": 2682,
+  "cudnn_configuration_verified": true,
+  "cudnn_benchmark_requested": false,
+  "cudnn_runtime_algorithm_verified": false,
+  "raw_measurement_complete": true,
+  "measured_jit_gate_passed": true,
+  "source_verified_unchanged": true,
+  "execution_complete": true,
+  "work_interval_verified": true,
+  "resource_isolation_verified": true,
+  "start_wall_time": 1792911266.584423,
+  "stop_wall_time": 1792913000.4151692,
+  "server_exit_code": 0,
+  "monitor_closed_sample_count": 1322,
+  "preflight_empty": true,
+  "postflight_empty": true,
+  "monitor_error_count": 0,
+  "cleanup_error_count": 0,
+  "foreign_observation_count": 0,
+  "phases": [
+    {
+      "phase": "conditioning",
+      "concurrency": 1,
+      "log_start_byte": 94377,
+      "log_end_byte": 186740,
+      "start_wall_time": 1792911666.655827,
+      "end_wall_time": 1792911829.9463928,
+      "log_interval_sha256": "3155876e3a6bf15fc7bf1bb525c45c4fc14f87e40aceec89136f1832d79920bd",
+      "jit_event_count": 9,
+      "runs": [
+        {
+          "file": "conditioning-c1.json",
+          "concurrency": 1,
+          "actual_peak": 1,
+          "summary": {
+            "throughput_frames_s": 228021.08283719796,
+            "ttfa_p50_ms": 76.23849855735898,
+            "ttfa_p95_ms": 84.18463892303407,
+            "rtf_mean": 0.1090122211735547,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 2,
+      "log_start_byte": 186740,
+      "log_end_byte": 269165,
+      "start_wall_time": 1792911829.966417,
+      "end_wall_time": 1792911934.0833127,
+      "log_interval_sha256": "18433b6c8b23c2a04c1829603bdbdac67c346f9e872ce72a7137de016d5c02ea",
+      "jit_event_count": 4,
+      "runs": [
+        {
+          "file": "conditioning-c2.json",
+          "concurrency": 2,
+          "actual_peak": 2,
+          "summary": {
+            "throughput_frames_s": 403236.8659956855,
+            "ttfa_p50_ms": 79.36944300308824,
+            "ttfa_p95_ms": 118.00062307156622,
+            "rtf_mean": 0.12286510270565809,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 4,
+      "log_start_byte": 269165,
+      "log_end_byte": 356573,
+      "start_wall_time": 1792911934.1076288,
+      "end_wall_time": 1792912028.200486,
+      "log_interval_sha256": "e695a99af8509801443abdcad2d6eeb6d6d82ea575f3caa0cbd9823141d5a377",
+      "jit_event_count": 4,
+      "runs": [
+        {
+          "file": "conditioning-c4.json",
+          "concurrency": 4,
+          "actual_peak": 4,
+          "summary": {
+            "throughput_frames_s": 654851.8815646324,
+            "ttfa_p50_ms": 85.54489025846124,
+            "ttfa_p95_ms": 121.764408191666,
+            "rtf_mean": 0.15357639440188586,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 8,
+      "log_start_byte": 356573,
+      "log_end_byte": 446433,
+      "start_wall_time": 1792912028.225908,
+      "end_wall_time": 1792912108.4223375,
+      "log_interval_sha256": "0f1188557c81d8365053c3e19216debf22c0a2fe6c70f0b3910cfd9e9c608107",
+      "jit_event_count": 4,
+      "runs": [
+        {
+          "file": "conditioning-c8.json",
+          "concurrency": 8,
+          "actual_peak": 8,
+          "summary": {
+            "throughput_frames_s": 1061059.1773988511,
+            "ttfa_p50_ms": 103.94131252542138,
+            "ttfa_p95_ms": 153.5915513522923,
+            "rtf_mean": 0.18765560779531937,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 16,
+      "log_start_byte": 446433,
+      "log_end_byte": 540465,
+      "start_wall_time": 1792912108.450415,
+      "end_wall_time": 1792912181.0590932,
+      "log_interval_sha256": "d270cd7a71b14b8a7ebee4516cc293da38a0d3ead653ea815857d7b3264a743f",
+      "jit_event_count": 5,
+      "runs": [
+        {
+          "file": "conditioning-c16.json",
+          "concurrency": 16,
+          "actual_peak": 16,
+          "summary": {
+            "throughput_frames_s": 1559546.3686238255,
+            "ttfa_p50_ms": 118.60137479379773,
+            "ttfa_p95_ms": 295.13846966437995,
+            "rtf_mean": 0.24905918034837513,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 32,
+      "log_start_byte": 540465,
+      "log_end_byte": 634927,
+      "start_wall_time": 1792912181.0893788,
+      "end_wall_time": 1792912248.952118,
+      "log_interval_sha256": "58e466e734e321cea279c5782cf1a957f5d08dc650951428043cba02b3de99c1",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "conditioning-c32.json",
+          "concurrency": 32,
+          "actual_peak": 32,
+          "summary": {
+            "throughput_frames_s": 2052124.6290814308,
+            "ttfa_p50_ms": 160.3261544369161,
+            "ttfa_p95_ms": 529.2371837422252,
+            "rtf_mean": 0.3710637235689297,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 64,
+      "log_start_byte": 634927,
+      "log_end_byte": 752971,
+      "start_wall_time": 1792912248.9844823,
+      "end_wall_time": 1792912321.0247023,
+      "log_interval_sha256": "d2befc2d1bd10aea78c8689937ca93627d22c3d998740a74e49a4a23c848f249",
+      "jit_event_count": 2,
+      "runs": [
+        {
+          "file": "conditioning-c64.json",
+          "concurrency": 64,
+          "actual_peak": 64,
+          "summary": {
+            "throughput_frames_s": 2627377.096980069,
+            "ttfa_p50_ms": 220.20646976307034,
+            "ttfa_p95_ms": 649.2849416099489,
+            "rtf_mean": 0.5594658797368005,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 1,
+      "log_start_byte": 752971,
+      "log_end_byte": 829687,
+      "start_wall_time": 1792912321.0605035,
+      "end_wall_time": 1792912478.1768773,
+      "log_interval_sha256": "dd1d1a09c5f77651fe9c6d60c6f93c8ec29e40c1873c55583f69507efa8735ba",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c1.json",
+          "concurrency": 1,
+          "actual_peak": 1,
+          "summary": {
+            "throughput_frames_s": 232043.5428097958,
+            "ttfa_p50_ms": 75.75929583981633,
+            "ttfa_p95_ms": 84.40881944261491,
+            "rtf_mean": 0.10703188398217539,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 2,
+      "log_start_byte": 829687,
+      "log_end_byte": 906643,
+      "start_wall_time": 1792912478.2177408,
+      "end_wall_time": 1792912589.2939355,
+      "log_interval_sha256": "829b2650b617498da75d9ce37a343b32859cb41737f0720449af07316c1f8d19",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c2.json",
+          "concurrency": 2,
+          "actual_peak": 2,
+          "summary": {
+            "throughput_frames_s": 406589.39324288967,
+            "ttfa_p50_ms": 79.0055962279439,
+            "ttfa_p95_ms": 116.98251171037555,
+            "rtf_mean": 0.12264281663397807,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 4,
+      "log_start_byte": 906643,
+      "log_end_byte": 984581,
+      "start_wall_time": 1792912589.3358164,
+      "end_wall_time": 1792912683.661724,
+      "log_interval_sha256": "aa8a23f414e5011c455118cb49fb3e11fb264fcd7031ea5d1538795e4384ba3b",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c4.json",
+          "concurrency": 4,
+          "actual_peak": 4,
+          "summary": {
+            "throughput_frames_s": 684126.8222455417,
+            "ttfa_p50_ms": 83.75703124329448,
+            "ttfa_p95_ms": 126.17605063132942,
+            "rtf_mean": 0.14461408320007085,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 8,
+      "log_start_byte": 984581,
+      "log_end_byte": 1064951,
+      "start_wall_time": 1792912683.712547,
+      "end_wall_time": 1792912767.18941,
+      "log_interval_sha256": "315fd110d935c04737e48d13915b9ced407df82222259c4dabb0ca217ba64cb2",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c8.json",
+          "concurrency": 8,
+          "actual_peak": 8,
+          "summary": {
+            "throughput_frames_s": 1068552.81806353,
+            "ttfa_p50_ms": 98.80644921213388,
+            "ttfa_p95_ms": 167.6772078499198,
+            "rtf_mean": 0.1845901062237546,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 16,
+      "log_start_byte": 1064951,
+      "log_end_byte": 1149985,
+      "start_wall_time": 1792912767.2420795,
+      "end_wall_time": 1792912846.3381426,
+      "log_interval_sha256": "fb67f6a22315eedb52171df91c0d3c0de9d25b3077b656738a8551dca43a1191",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c16.json",
+          "concurrency": 16,
+          "actual_peak": 16,
+          "summary": {
+            "throughput_frames_s": 1568481.3051048096,
+            "ttfa_p50_ms": 121.05142185464501,
+            "ttfa_p95_ms": 244.97617757879198,
+            "rtf_mean": 0.2515245527264271,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 32,
+      "log_start_byte": 1149985,
+      "log_end_byte": 1244447,
+      "start_wall_time": 1792912846.3891716,
+      "end_wall_time": 1792912921.7835386,
+      "log_interval_sha256": "744f6b0a6ec7706e3180116e29dd7f744049d58327478f8017da755037563440",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c32.json",
+          "concurrency": 32,
+          "actual_peak": 32,
+          "summary": {
+            "throughput_frames_s": 2117443.5647031483,
+            "ttfa_p50_ms": 159.95915373787284,
+            "ttfa_p95_ms": 423.5582964029163,
+            "rtf_mean": 0.36102863011983277,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 64,
+      "log_start_byte": 1244447,
+      "log_end_byte": 1357745,
+      "start_wall_time": 1792912921.837276,
+      "end_wall_time": 1792912992.5852683,
+      "log_interval_sha256": "ce1c80b1c60f90e813b0aa0738adb1fd5e0fabc7bc4362e439c89dd302ee403e",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c64.json",
+          "concurrency": 64,
+          "actual_peak": 64,
+          "summary": {
+            "throughput_frames_s": 2614500.8780870913,
+            "ttfa_p50_ms": 210.71548061445355,
+            "ttfa_p95_ms": 664.1795109026134,
+            "rtf_mean": 0.5621033813488437,
+            "completed": 256
+          }
+        }
+      ]
+    }
+  ],
+  "lifecycle_boundaries": [
+    {
+      "phase": "WORK",
+      "monotonic": 6899962.870981959,
+      "wall_time": 1792911266.5839322
+    },
+    {
+      "phase": "FINAL_SNAPSHOT",
+      "monotonic": 6901693.466749664,
+      "wall_time": 1792912997.1797001
+    },
+    {
+      "phase": "MONITOR_STOPPED",
+      "monotonic": 6901693.58445756,
+      "wall_time": 1792912997.297408
+    },
+    {
+      "phase": "CLEANUP",
+      "monotonic": 6901693.640207936,
+      "wall_time": 1792912997.353158
+    },
+    {
+      "phase": "POSTFLIGHT",
+      "monotonic": 6901696.530397357,
+      "wall_time": 1792913000.2433472
+    }
+  ]
+}

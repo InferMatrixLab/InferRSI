@@ -1,0 +1,18 @@
+{
+  "status": "PASS",
+  "scope": "Exact rational sampler-layer enumeration only; not numerical/model/service qualification",
+  "joint_distribution_cases": 90,
+  "tail_cases": 90,
+  "p_equals_q_case": 1,
+  "filter_boundary_cases": 4,
+  "random_trials": 0,
+  "limitations": [
+    "Rational exp-logit weights verify mathematical filter definition; not finite-precision native torch sorting/softmax equivalence.",
+    "Native tie order is unspecified here and must be supplied/captured.",
+    "Full17 causal verification/head positions and BF16 logits equivalence require real tensor tests.",
+    "No production RNG integration or seed semantics tested; no engine/harness modified.",
+    "Positive q required; no approximate epsilon fallback.",
+    "One-draft window2 only; rejection continuation uses target conditional, not an unverified draft."
+  ],
+  "script_sha256": "961fc46a748d7a9ff156957a4b6e9ceae2c7cd8b07b669d05a82722eb8fa0058"
+}

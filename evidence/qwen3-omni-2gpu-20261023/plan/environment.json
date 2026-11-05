@@ -1,0 +1,14 @@
+{
+  "torch": "2.13.0+cu130",
+  "vllm": "0.32.0",
+  "vllm-omni": "0.31.0rc2.dev289+g04aa51e9f.d20261019",
+  "transformers": "5.14.1",
+  "flashinfer-python": "0.7.0.post1",
+  "triton": "3.7.1",
+  "numpy": "2.2.6",
+  "soundfile": "0.14.0",
+  "openai-whisper": "20250625",
+  "jiwer": "4.0.0",
+  "zhon": "2.1.1",
+  "omni_source_override": "PYTHONPATH selects frozen worktree; installed vllm-omni distribution metadata is stale and not the executed revision"
+}

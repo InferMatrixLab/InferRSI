@@ -4,6 +4,8 @@ import hashlib
 import json
 from pathlib import Path
 
+import pytest
+
 from tools import build_skill_coverage as coverage
 
 PROJECT = Path(__file__).resolve().parents[1]
@@ -334,3 +336,24 @@ def test_resource_layer_decisions_preserve_unknown_na_and_conflicts(tmp_path):
     assert record["skill_metadata"]["status"] == "candidate"
     assert record["skill_metadata"]["empirical_validation"] == "not_run"
     assert record["verification"]["locally_verified"] is False
+
+
+def test_measurement_protocols_are_not_skill_selections(tmp_path):
+    campaign = tmp_path / "evidence" / "measurement" / "plan"
+    campaign.mkdir(parents=True)
+    (campaign / "protocol-v2.json").write_text(
+        json.dumps({"status": "INCONCLUSIVE"}), encoding="utf-8"
+    )
+    assert coverage.eval_campaigns(tmp_path) == {}
+    broken = tmp_path / "evidence" / "broken" / "plan"
+    broken.mkdir(parents=True)
+    (broken / "protocol-v9.json").write_text(json.dumps({"skills": []}), encoding="utf-8")
+    with pytest.raises(ValueError, match="no skills mapping"):
+        coverage.eval_campaigns(tmp_path)
+
+
+def test_qwen_measurement_protocols_do_not_select_skills():
+    selected = coverage.eval_campaigns(PROJECT)
+    assert all(
+        "qwen3-omni-2gpu-20261023" not in campaigns for campaigns in selected.values()
+    )

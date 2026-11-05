@@ -1,0 +1,6 @@
+base_config: <OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml
+connectors:
+  connector_of_shared_memory:
+    extra:
+      code_predictor_kv_cache: true
+      code_predictor_short_kv: true

@@ -1,0 +1,12 @@
+base_config: <OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe_mrv2_h200.yaml
+cuda_mps: false
+stages:
+  - stage_id: 0
+    devices: "0"
+    gpu_memory_utilization: 0.90
+  - stage_id: 1
+    devices: "1"
+    gpu_memory_utilization: 0.60
+  - stage_id: 2
+    devices: "1"
+    gpu_memory_utilization: 0.10

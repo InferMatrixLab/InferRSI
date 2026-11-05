@@ -1,0 +1,35 @@
+{
+  "scope": "configuration adaptation; no new kernel algorithm claimed",
+  "profile_evidence": "results/baseline-profile-summary.json",
+  "iterations": [
+    {
+      "id": "mrv2",
+      "plane": "infra",
+      "change": "bundled qwen3_omni_moe_mrv2.yaml; retain default two-GPU placement",
+      "hypothesis": "native MRv2 handoff, earlier first frame and grouped codec graphs reduce streaming latency",
+      "source": "https://github.com/vllm-project/vllm-omni/commit/d93e1a8e09d2a0d386c4a58424470d685ee7743c"
+    },
+    {
+      "id": "predictor-kv",
+      "plane": "infra",
+      "change": "enable code_predictor_kv_cache on MRv2",
+      "hypothesis": "avoid predictor prefix recomputation; profile attributes most kernel duration to Talker",
+      "source": "https://github.com/vllm-project/vllm-omni/commit/d93e1a8e09d2a0d386c4a58424470d685ee7743c"
+    },
+    {
+      "id": "predictor-short-kv",
+      "plane": "infra",
+      "change": "enable code_predictor_short_kv on the KV candidate",
+      "hypothesis": "reduce short-context attention overhead",
+      "source": "https://github.com/vllm-project/vllm-omni/commit/d93e1a8e09d2a0d386c4a58424470d685ee7743c"
+    },
+    {
+      "id": "mps",
+      "plane": "infra",
+      "change": "cuda_mps=true on selected two-GPU candidate",
+      "hypothesis": "overlap colocated Talker and Code2Wav; verify TTFA tradeoff",
+      "source": "https://github.com/vllm-project/vllm-omni/blob/88c9ccd7ceb39b0380ce1257198c5e34cbe2c029/docs/configuration/stage_configs.md#L753-L785"
+    }
+  ],
+  "promotion": "requires complete raw audio and paired quality; missing repetitions remains INCONCLUSIVE"
+}

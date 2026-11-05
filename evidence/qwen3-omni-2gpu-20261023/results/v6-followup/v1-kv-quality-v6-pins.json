@@ -1,0 +1,44 @@
+{
+  "scope": "New quality-only V1 predictor incremental KV contrast; no changes to existing pilot pins or frozen v5 contracts",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "configs": {
+    "baseline": "<PATH_1>",
+    "candidate": "<PATH_2>"
+  },
+  "config_chains": {
+    "baseline": [
+      {
+        "file": "<PATH_1>",
+        "sha256": "de7ae358e1aa021191a7a584e30d43707b06a236b933ea6792d0ba999fc362b9"
+      },
+      {
+        "file": "<PATH_3>",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ],
+    "candidate": [
+      {
+        "file": "<PATH_2>",
+        "sha256": "999d13cf8e1b7b514371e483250b0224b3bb04dfd8ba62e7ee70cfb5262e69b5"
+      },
+      {
+        "file": "<PATH_3>",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ]
+  },
+  "validator": "<PATH_4>",
+  "gate": "Same existing no-WER-regression criterion; UTMOS descriptive only",
+  "files": {
+    "<PATH_5>": "1155821231da0b8fd440ab806a2e64467e96e082ed4a851842323e093d470171",
+    "<PATH_3>": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+    "<PATH_6>": "2503f2f2a94dd7c4125579ba9e6e8ae41026b78a969ff8e6f809d54b7db5e6b3",
+    "<PATH_7>": "cb5c56c7ad45700a7892a95c0e6349768febc27ec6b232f9b9359e7f2a8c6634",
+    "<PATH_4>": "819ed3c7f517abe9d5b9af924893bfb6c15cf6c2a64b103fa8107dc056a26043",
+    "<PATH_8>": "adfdb84ce11595e553ef4b5c8beaee0dbb8b68da3a24b4f1e3de483630d6fba2",
+    "<PATH_9>": "79d6cd7e081cfdee1b078ed6a8019ebce9ac179776037a99da1dfc7b3829f3be",
+    "<PATH_1>": "de7ae358e1aa021191a7a584e30d43707b06a236b933ea6792d0ba999fc362b9",
+    "<PATH_2>": "999d13cf8e1b7b514371e483250b0224b3bb04dfd8ba62e7ee70cfb5262e69b5",
+    "<PATH_10>": "0f6ca742e569ad61533b33fcaa048cc719166d922edd0fd06536e3d75e86deb3"
+  }
+}

@@ -77,6 +77,11 @@ def validate_manifest(repo, bundle, entry, unavailable):
                 local = safe_path(repo, source["local"])
             verify_file(local, expected)
             checked += 1
+    elif schema == "metadata-sha256":
+        # Check the retained JSON object's bytes only. Nested paths/digests are
+        # descriptive metadata, not declarations of available payloads.
+        verify_file(path, entry["sha256"])
+        checked += 1
     elif schema == "archive-sha256":
         if "field" in entry:
             data = data[entry["field"]]

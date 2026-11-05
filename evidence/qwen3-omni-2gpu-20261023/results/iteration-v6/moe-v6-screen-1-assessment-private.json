@@ -1,0 +1,397 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "L0/L1 promising screening; independent confirmation and L3/L4 missing",
+  "source_results_sha256": "eed4c3895f2c5df081fb44f5e1c292b7ae87f26eddd7875589248ebfe0315b08",
+  "script_sha256": "90465cc4f1f4c9e514c4ad0a022106beb3897a7f8dc1131afff39fe9e652e707",
+  "source_url": "https://github.com/vllm-project/vllm/blob/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm/model_executor/layers/fused_moe/fused_moe.py",
+  "source_sha256": "21860340e4b409b01666e2ba0f0edae66b0f97b859756b174b573bab895cfaf7",
+  "rows_passed": 44,
+  "selected": [
+    {
+      "M": 1,
+      "route": "uniform",
+      "candidate_index": 1,
+      "config": {
+        "BLOCK_SIZE_M": 16,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 13.522720336914062,
+      "median_candidate_us": 13.11184048652649,
+      "median_speedup": 1.0313819068560144,
+      "speedup_min": 1.0305736872675841,
+      "speedup_max": 1.0355382359900083,
+      "paired_speedup_mad": 0.0004246241167786824,
+      "ab_median_speedup": 1.0314577949077925,
+      "ba_median_speedup": 1.0310010264811305,
+      "median_latency_reduction_fraction": 0.03042704806765195,
+      "max_abs_reference": 0.00390625,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 1,
+      "route": "concentrated",
+      "candidate_index": 1,
+      "config": {
+        "BLOCK_SIZE_M": 16,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 13.516319990158081,
+      "median_candidate_us": 13.063839673995972,
+      "median_speedup": 1.0346724395209472,
+      "speedup_min": 1.0325758559620584,
+      "speedup_max": 1.0380286315684197,
+      "paired_speedup_mad": 0.00021951282643462022,
+      "ab_median_speedup": 1.0347340931345868,
+      "ba_median_speedup": 1.0345134179117579,
+      "median_latency_reduction_fraction": 0.033510547103197785,
+      "max_abs_reference": 0.0078125,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 64,
+      "route": "uniform",
+      "candidate_index": 7,
+      "config": {
+        "BLOCK_SIZE_M": 32,
+        "BLOCK_SIZE_N": 128,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 94.29840087890625,
+      "median_candidate_us": 90.79695701599121,
+      "median_speedup": 1.038967612133979,
+      "speedup_min": 1.037242727496805,
+      "speedup_max": 1.0399025628499232,
+      "paired_speedup_mad": 0.0005682707518308572,
+      "ab_median_speedup": 1.03953588288581,
+      "ba_median_speedup": 1.0388800200688557,
+      "median_latency_reduction_fraction": 0.037506089389968356,
+      "max_abs_reference": 0.0078125,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 64,
+      "route": "concentrated",
+      "candidate_index": 7,
+      "config": {
+        "BLOCK_SIZE_M": 32,
+        "BLOCK_SIZE_N": 128,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 24.461920261383057,
+      "median_candidate_us": 23.300800323486328,
+      "median_speedup": 1.050098432163016,
+      "speedup_min": 1.0491694929584443,
+      "speedup_max": 1.0518152326781276,
+      "paired_speedup_mad": 0.0007779505576208656,
+      "ab_median_speedup": 1.050098432163016,
+      "ba_median_speedup": 1.0500967479934578,
+      "median_latency_reduction_fraction": 0.047708320123688086,
+      "max_abs_reference": 0.015625,
+      "max_abs_baseline": 0.0
+    }
+  ],
+  "baseline_vs_itself_controls": [
+    {
+      "M": 1,
+      "route": "uniform",
+      "candidate_index": 0,
+      "config": {
+        "BLOCK_SIZE_M": 16,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 128,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 4
+      },
+      "median_baseline_us": 13.520640134811401,
+      "median_candidate_us": 13.51855993270874,
+      "median_speedup": 1.0002723756316718,
+      "speedup_min": 0.9992903663509048,
+      "speedup_max": 1.0023316187824014,
+      "paired_speedup_mad": 0.0003551872985392279,
+      "ab_median_speedup": 1.0002723756316718,
+      "ba_median_speedup": 1.0002071820401526,
+      "median_latency_reduction_fraction": 0.00027230146338885763,
+      "max_abs_reference": 0.00390625,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 1,
+      "route": "concentrated",
+      "candidate_index": 0,
+      "config": {
+        "BLOCK_SIZE_M": 16,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 128,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 4
+      },
+      "median_baseline_us": 13.517760038375854,
+      "median_candidate_us": 13.497600555419922,
+      "median_speedup": 1.0017314150757517,
+      "speedup_min": 1.0013157745989263,
+      "speedup_max": 1.0095770122071581,
+      "paired_speedup_mad": 0.0002852277290033012,
+      "ab_median_speedup": 1.0019211371562753,
+      "ba_median_speedup": 1.0015888012112502,
+      "median_latency_reduction_fraction": 0.0017284224590488062,
+      "max_abs_reference": 0.0078125,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 64,
+      "route": "uniform",
+      "candidate_index": 0,
+      "config": {
+        "BLOCK_SIZE_M": 32,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 128,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 94.28576469421387,
+      "median_candidate_us": 94.19792175292969,
+      "median_speedup": 1.0009562263955336,
+      "speedup_min": 1.0003867188317512,
+      "speedup_max": 1.0020287168596456,
+      "paired_speedup_mad": 0.00044380518214626186,
+      "ab_median_speedup": 1.0008747777117046,
+      "ba_median_speedup": 1.001438795493002,
+      "median_latency_reduction_fraction": 0.000955312900122629,
+      "max_abs_reference": 0.0078125,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 64,
+      "route": "concentrated",
+      "candidate_index": 0,
+      "config": {
+        "BLOCK_SIZE_M": 32,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 128,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 24.411039352416992,
+      "median_candidate_us": 24.422719478607178,
+      "median_speedup": 0.9998493698181826,
+      "speedup_min": 0.9981318850477353,
+      "speedup_max": 1.001475236782831,
+      "paired_speedup_mad": 0.0005365630411976463,
+      "ab_median_speedup": 0.9998231455266359,
+      "ba_median_speedup": 0.9998591215182817,
+      "median_latency_reduction_fraction": -0.00015065287468729593,
+      "max_abs_reference": 0.015625,
+      "max_abs_baseline": 0.0
+    }
+  ],
+  "routing_dependence_counterexamples": [
+    {
+      "M": 64,
+      "route": "uniform",
+      "candidate_index": 8,
+      "config": {
+        "BLOCK_SIZE_M": 64,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 94.32160377502441,
+      "median_candidate_us": 94.67599868774414,
+      "median_speedup": 0.9956967883423311,
+      "speedup_min": 0.9946847738196283,
+      "speedup_max": 0.9964205765174549,
+      "paired_speedup_mad": 0.0002916123462938236,
+      "ab_median_speedup": 0.995791886049043,
+      "ba_median_speedup": 0.9956561319701585,
+      "median_latency_reduction_fraction": -0.004321809317907821,
+      "max_abs_reference": 0.0078125,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 64,
+      "route": "uniform",
+      "candidate_index": 10,
+      "config": {
+        "BLOCK_SIZE_M": 16,
+        "BLOCK_SIZE_N": 128,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 8,
+        "num_stages": 3
+      },
+      "median_baseline_us": 94.3280029296875,
+      "median_candidate_us": 88.47760200500488,
+      "median_speedup": 1.0663119124225615,
+      "speedup_min": 1.0645339478345783,
+      "speedup_max": 1.0681134736372453,
+      "paired_speedup_mad": 0.000713314907689,
+      "ab_median_speedup": 1.0654746922186697,
+      "ba_median_speedup": 1.0666171784858918,
+      "median_latency_reduction_fraction": 0.062188100545465086,
+      "max_abs_reference": 0.0078125,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 64,
+      "route": "concentrated",
+      "candidate_index": 8,
+      "config": {
+        "BLOCK_SIZE_M": 64,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "median_baseline_us": 24.47103977203369,
+      "median_candidate_us": 20.544159412384033,
+      "median_speedup": 1.1909914419348442,
+      "speedup_min": 1.1873797024764634,
+      "speedup_max": 1.1918587001325713,
+      "paired_speedup_mad": 0.0006503265878659015,
+      "ab_median_speedup": 1.1914348881612784,
+      "ba_median_speedup": 1.1904446533611839,
+      "median_latency_reduction_fraction": 0.16036340414383332,
+      "max_abs_reference": 0.015625,
+      "max_abs_baseline": 0.0
+    },
+    {
+      "M": 64,
+      "route": "concentrated",
+      "candidate_index": 10,
+      "config": {
+        "BLOCK_SIZE_M": 16,
+        "BLOCK_SIZE_N": 128,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 8,
+        "num_stages": 3
+      },
+      "median_baseline_us": 24.475679397583008,
+      "median_candidate_us": 28.414878845214844,
+      "median_speedup": 0.8613684235963156,
+      "speedup_min": 0.8601248251943674,
+      "speedup_max": 0.8627358866238817,
+      "paired_speedup_mad": 0.0005990563321078834,
+      "ab_median_speedup": 0.8613684235963156,
+      "ba_median_speedup": 0.8616660801487552,
+      "median_latency_reduction_fraction": -0.1609434158555303,
+      "max_abs_reference": 0.015625,
+      "max_abs_baseline": 0.0
+    }
+  ],
+  "assessment": [
+    "Both selected configurations improve both tested route patterns beyond observed same-config paired noise in this run.",
+    "Nine repeats use identical static inputs/graphs: narrow spread is measurement repeatability, not independent workload/run confidence.",
+    "Candidate order is fixed and all trials share one process/device session. AB/BA reduces local order drift but does not remove run-level bias.",
+    "M1 concentrated/uniform both activate six experts for one token, so these are different expert addresses rather than substantially different occupancy regimes.",
+    "M64 gains depend strongly on routing: BM16/BN128/BK64/8 warps wins uniform but loses concentrated; BM64/BN64/BK64 wins concentrated but slightly loses uniform.",
+    "Selected robust candidate is not universally optimal. No actual checkpoint route distribution was sampled.",
+    "Even the selected 3-5 percent MoE speedup cannot by itself supply the roughly 2x end-to-end improvement required by current RTF targets."
+  ],
+  "native_config_geometry": {
+    "Talker": {
+      "w1": [
+        128,
+        768,
+        1024
+      ],
+      "w2": [
+        128,
+        1024,
+        384
+      ],
+      "topk": 6
+    },
+    "Thinker": {
+      "w1": [
+        128,
+        1536,
+        2048
+      ],
+      "w2": [
+        128,
+        2048,
+        768
+      ],
+      "topk": 8
+    },
+    "lookup": "try_get_optimal_moe_config reads E,_,N=w2_shape; get_moe_configs filename keyed E,N,device,dtype; nearest M key selected by abs distance.",
+    "default_M1": "BM16 BN64 BK128 group1 split1 warps4 stages4",
+    "default_M64": "BM32 BN64 BK128 group1 split1 warps4 stages3",
+    "warning": "The screen output contains only M1/M64; native nearest-key dispatch would apply them to untested M2..32 and M>64. Do not deploy this sparse screen file as a qualified full-model tuning artifact.",
+    "work_boundary": "expert assignment/padding, gate-up GEMM, SILU-and-mul, down GEMM with routing weight, sum; excludes router logits/topk selection, attention, model scheduler, host replay overhead"
+  },
+  "confirmation": {
+    "seed": 20261025,
+    "models": [
+      "talker"
+    ],
+    "batches": [
+      1,
+      2,
+      4,
+      8,
+      16,
+      32,
+      64,
+      128
+    ],
+    "rounds": 15,
+    "preselected_primary": {
+      "M1": {
+        "BLOCK_SIZE_M": 16,
+        "BLOCK_SIZE_N": 64,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      },
+      "M64": {
+        "BLOCK_SIZE_M": 32,
+        "BLOCK_SIZE_N": 128,
+        "BLOCK_SIZE_K": 64,
+        "GROUP_SIZE_M": 1,
+        "SPLIT_K": 1,
+        "num_warps": 4,
+        "num_stages": 3
+      }
+    },
+    "rule": "Evaluate frozen M1/M64 choices on fresh seed; any newly selected shape configurations remain screening and require separate confirmation.",
+    "command": "CUDA_VISIBLE_DEVICES=<LOGICAL_DEVICES> PYTHONPATH=<PATH_22> OMP_NUM_THREADS=1 HF_HUB_OFFLINE=1 <PATH_23> <PATH_24> --output <PATH_25> --models talker --batches 1 2 4 8 16 32 64 128 --seed 20261025 --rounds 15",
+    "execution_constraint": "Only after parent frees its allocated GPU; no GPU work performed by assessment."
+  }
+}

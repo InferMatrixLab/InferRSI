@@ -148,6 +148,127 @@
       "manifests": [{"path": "plan/integrity.json", "schema": "bundle-sha256"}],
       "external": ["Original private client captures and unredacted host-specific plans remain outside the repository; the public bundle retains labelled redactions, original digests and replayable answer checks."]
     },
+    "qwen3-omni-2gpu-20261023": {
+      "kind": "campaign",
+      "manifests": [
+        {"path": "results/v6-captured/capture/inputs-manifest.json", "schema": "metadata-sha256", "sha256": "7ef8bf465e8ab1822a28548d4a980885652684bd1bb100db7d2ec28006a4303c"},
+        {"path": "results/v6-cudnn-performance/manifest.json", "schema": "metadata-sha256", "sha256": "ef1844072e98deeab9b663c097ca575240a2bdcb6482e69f1df0161d28561672"},
+        {"path": "results/v6-research-notes/manifest.json", "schema": "metadata-sha256", "sha256": "2394b7c7b52d1f722bde588a7c1134987cd569851dfc2d61669593e59c815c6f"},
+        {"path": "results/v6-captured/manifest.json", "schema": "metadata-sha256", "sha256": "e240d065deb1e97b942dc50d8e60f8bd9c7ce480654b9a7297c64b317a488ed5"},
+        {"path": "results/v6-cudnn-quality/manifest.json", "schema": "metadata-sha256", "sha256": "b839ad646a37c531f76348a077a8a3d89998d511f3f44da38184095ddeef4eb4"},
+      {"path": "results/v6-followup/profile-private-trace-manifest.json", "schema": "metadata-sha256", "sha256": "8deb2f2e8d94a0d777731ec0beec35a6f4e38301300916a1271904915851b791"},
+      {"path": "results/v6-components/manifest.json", "schema": "metadata-sha256", "sha256": "125a322cc23c21ecd7620bacd240ed59526e87ab681baa2b0e21b5b7e06a23de"},
+      {"path": "results/v6-followup/manifest.json", "schema": "metadata-sha256", "sha256": "80415e1d45d7f61769ce935e8bc508d58a70644bed50efba6a5369a6462fe4d9"},
+      {"path": "results/formal-v5/run-manifest.json", "schema": "metadata-sha256", "sha256": "8fc9f242c8648b0b67699724c0b2e1bea9799c92cc521608ca84e092f0bfe6d4"},
+        {
+          "path": "plan/frozen-files-v3.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "plan/frozen-files-v4.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "plan/frozen-files-v5.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "plan/frozen-files-v6.json",
+          "schema": "bundle-sha256"
+        },
+        {
+          "path": "plan/model-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "b2069f704bd1ae9d4669aaffa2cb05b3e98f6fd79797920ce6232464f2e4274c"
+        },
+        {
+          "path": "results/baseline-v3-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "7e6972a84b09434bf759f8ac79bbc383b3b8c18887b0e491670903f71870999d"
+        },
+        {
+          "path": "results/baseline-v3-quality-audio-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "ddfaada8768e70ad29eb0891bef695f878bce601dd8ff758afeb5159e26eef1d"
+        },
+        {
+          "path": "results/mrv2-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "c5ab2b59edef3fb3e2fa5b64e32f787f362091c354ef55fd59503a69b04e10e9"
+        },
+        {
+          "path": "results/predictor-kv-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "19714f8ee92bd29f7e85579b36372ba9201d2948613ebcccc92cdc07f4db6a09"
+        },
+        {
+          "path": "results/predictor-short-kv-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "df2c31bea535f337295b63e098bd66b48e31252ab96565d80a33b05f646b7ace"
+        },
+        {
+          "path": "results/mrv2-mps-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "483eed3b420a6f652f951b2877061e6f11d12831db470008a52c586daadf50e9"
+        },
+        {
+          "path": "results/full-cuda-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "dffce64e2a36a2fa26a1e7cd212560c89f00cd339484885addd45c72662ee709"
+        },
+        {
+          "path": "results/placement-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "75801357f4643164e75fd7e75490b3d622b15c8df09ecf5cf1947c0e4b9bbd86"
+        },
+        {
+          "path": "results/adapter-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "4f17ba497710c8f89f22428eb6912b964df273b14d38ef36715461d239b28d7b"
+        },
+        {
+          "path": "results/prefix-run-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "a09c71d3000a1f7df30c3256397479065615dfbfe561b34b4da5bec525087288"
+        },
+        {
+          "path": "results/formal-pair1-quality-decomposition.json",
+          "schema": "metadata-sha256",
+          "sha256": "4dd13949594b4e357602f802130f41f09164c9198be1934911ff12db03399c9a"
+        },
+        {
+          "path": "results/formal-pair2-jit-diagnosis.json",
+          "schema": "metadata-sha256",
+          "sha256": "d7944a609639fdff4953191e7b5ff92704b12c38caeb88360a72a54e217a8cf2"
+        },
+        {
+          "path": "results/pr9283-cudnn-quality-failure/manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "a28a638b7ed115813a0022e8557076ad97720ce649d0b672ba9d43bcd457c361"
+        },
+        {
+          "path": "results/pr9283-cudnn-performance/manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "1dd7b6a6688c115dc437c0130719020e6b79152a7c7315c6e61818e71dc3e0ee"
+        },
+        {
+          "path": "results/pr9283-cudnn-quality-v4/manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "087410604f53e5c014a5df5524d426c7d58fc76b0fef19074fa9aebc36688050"
+        },
+        {
+          "path": "results/iteration-v6/manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "a32f9778fccd4b07b8f26bae0563a65db46337af21afd8673bf3acff88c778c4"
+        },
+        {
+          "path": "results/iteration-v6/adapter-v6-overlay-manifest.json",
+          "schema": "metadata-sha256",
+          "sha256": "63e47a23f39b80f25c98fc7feb3ca5a0b2e1a4af481248211e2bfec9fe0604ea"
+        }
+      ],
+      "external": ["Original host logs, model weights and captured audio remain private; public results retain hashes and redaction boundaries."]
+    },
     "qwen3-tts-ascend-import": {
       "kind": "import", "manifests": [],
       "external": ["Original campaign validators and artifacts remain at the upstream source described in plan/README.md."]

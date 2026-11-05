@@ -1,0 +1,25 @@
+{
+  "status": "FAIL",
+  "scope": "Single V1 predictor-KV quality pilot only; no performance or promotion claim",
+  "criterion": "Candidate aggregate WER <= baseline; all256 rows complete with matching pinned provenance; UTMOS descriptive only",
+  "arms": {
+    "baseline": {
+      "wer": 0.028904790042742344,
+      "utmos_mean": 3.3319049393758178,
+      "utmos_evaluated": 256,
+      "utmos_failed": 0,
+      "quality_sha256": "773580d91cb5eaac5f886bbcba20edc1dcf596a6fdd1cb327fde742a783cd1ad",
+      "execution_sha256": "6b03955ab6f3a9e4b4b6c8b3565cbe960376d380264ae32e4b8df744c2206b1f"
+    },
+    "candidate": {
+      "wer": 0.04857627500665184,
+      "utmos_mean": 3.3323739003390074,
+      "utmos_evaluated": 256,
+      "utmos_failed": 0,
+      "quality_sha256": "abfb45208fa747f84595bc71b355a0a73342885576a00ea73c17e29b06ed6fba",
+      "execution_sha256": "faa8ce292eb0d1b1958f66e01f0d5d04f613dd4d192be5eee9a7e16fe3129600"
+    }
+  },
+  "wer_delta": 0.019671484963909497,
+  "pins_sha256": "0e5f345a68755e43202855ba07d5bb40cca5ed8e1258952a9dabc1ec13c48731"
+}

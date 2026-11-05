@@ -91,13 +91,22 @@ def references(root, path, registered):
 
 
 def eval_campaigns(root):
-    """skill id -> campaign directories whose frozen plan selected it."""
+    """skill id -> campaign directories whose frozen plan selected it.
+
+    A protocol selects skills only when it declares a ``skills`` object.
+    Measurement protocols reuse the same filename and have no such object;
+    they stay out of this view, and their frozen bytes are not rewritten.
+    A present ``skills`` value that is not an object is still rejected.
+    """
     found = {}
     for path in sorted((root / EVIDENCE).glob("*/plan/protocol-*.json")):
         record = json.loads(path.read_text(encoding="utf-8"))
-        if not isinstance(record.get("skills"), dict):
+        if "skills" not in record:
+            continue
+        skills = record.get("skills")
+        if not isinstance(skills, dict):
             raise ValueError(f"Frozen protocol has no skills mapping: {path}")
-        for name in record["skills"]:
+        for name in skills:
             found.setdefault(name, set()).add(path.parents[1].name)
     return {name: sorted(campaigns) for name, campaigns in found.items()}
 

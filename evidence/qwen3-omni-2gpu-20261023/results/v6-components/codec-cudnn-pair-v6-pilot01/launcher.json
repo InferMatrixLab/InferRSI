@@ -1,0 +1,1781 @@
+{
+  "status": "PASS",
+  "scope": "Component execution/comparison only; numerical differences and synthetic inputs do not qualify speech quality or service performance",
+  "launcher_sha256": "869ccfebc48703c43729598d6d664bbf10d3d195cfafb30941c42314aa64d1b3",
+  "reviewed_scripts": {
+    "probe-codec-cudnn-v6.py": "d0f177d30d346c41bb86b6db31309e300dd79ce39c096ee269336f623061322d",
+    "compare-codec-cudnn-v6.py": "83e80aec41056da7abeac4465cb5b0a39bf674c6c19128a6b0bf48c36b86bfc0",
+    "check-codec-firstframe-v6.py": "69a0caed4a0a1820fbfa44ac5e4458c6473555f5157680909ffdaeeab8fd084f"
+  },
+  "start_wall_time": 1792805124.3999453,
+  "assigned_gpu_indices_private": [
+    2,
+    3
+  ],
+  "child_visible_gpu_private": "2",
+  "steps": [
+    {
+      "label": "default",
+      "command": [
+        "<PATH_2>",
+        "<PATH_3>",
+        "--arm",
+        "default",
+        "--checkpoint",
+        "<PATH_4>",
+        "--output",
+        "<PATH_5>",
+        "--device",
+        "cuda",
+        "--seed",
+        "20261024",
+        "--rounds",
+        "9",
+        "--replays",
+        "10"
+      ],
+      "command_sha256": "c90b42bac845cab0fb23c613934c2bd22719b4244bf3e2f2556aa29ce7e3f1fb",
+      "scripts_sha256": {
+        "probe-codec-cudnn-v6.py": "d0f177d30d346c41bb86b6db31309e300dd79ce39c096ee269336f623061322d",
+        "compare-codec-cudnn-v6.py": "83e80aec41056da7abeac4465cb5b0a39bf674c6c19128a6b0bf48c36b86bfc0",
+        "check-codec-firstframe-v6.py": "69a0caed4a0a1820fbfa44ac5e4458c6473555f5157680909ffdaeeab8fd084f"
+      },
+      "environment_overrides": {
+        "CUDA_VISIBLE_DEVICES": "<LOGICAL_DEVICES>",
+        "OMP_NUM_THREADS": "1",
+        "HF_HUB_OFFLINE": "1",
+        "PYTHONPATH": "<PATH_6>"
+      },
+      "gpu_preflight": {
+        "2": [],
+        "3": []
+      },
+      "status": "PASS",
+      "observations": [
+        {
+          "wall_time": 1792805124.7519038,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805125.7836478,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805127.0266058,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805128.0543523,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805129.2278461,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805130.2528584,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805131.2870014,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805132.3177178,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805133.3474185,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805134.3866317,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805135.4168286,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805136.5485773,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805137.5733995,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805138.6060014,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805139.6349776,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805140.716971,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805141.987345,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805143.0124147,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805144.154679,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805145.1826463,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805146.2167988,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805147.2465081,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805148.2849495,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805149.4014418,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805150.4283848,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805151.5207987,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805152.5478144,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805153.5788677,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805154.612038,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805155.6398554,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805156.790447,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805157.8191097,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805159.0554783,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805160.0826173,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805161.1651275,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805162.1941202,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805163.222635,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805164.2569342,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805165.2903042,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805166.5633676,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805167.593188,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805168.6277566,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805169.6601012,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805170.6934795,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805171.7647429,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805172.7971485,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805173.921352,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805174.9496803,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805176.2080152,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805177.2467988,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805178.2755458,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805179.3054016,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805180.3353071,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805181.49391,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805182.5233314,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805183.6684148,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805184.699387,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805185.737564,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805186.77408,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805187.802311,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805189.0647304,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805190.0922148,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805191.1458044,
+          "gpu_pids": {
+            "2": [
+              2171056
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805192.1703386,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        }
+      ],
+      "monitor_errors": [],
+      "cleanup_errors": [],
+      "start_wall_time": 1792805124.5367255,
+      "private_pid": "<PROCESS_1>",
+      "private_sid": "<PRIVATE_PROCESS_OR_DEVICE>",
+      "process_birth_wall_time": 1792805123.82,
+      "exit_code": 0,
+      "execution_complete": true,
+      "gpu_postflight": {
+        "2": [],
+        "3": []
+      },
+      "resource_isolation_verified": true,
+      "end_wall_time": 1792805192.7731636
+    },
+    {
+      "label": "benchmark",
+      "command": [
+        "<PATH_2>",
+        "<PATH_3>",
+        "--arm",
+        "benchmark",
+        "--checkpoint",
+        "<PATH_4>",
+        "--output",
+        "<PATH_7>",
+        "--device",
+        "cuda",
+        "--seed",
+        "20261024",
+        "--rounds",
+        "9",
+        "--replays",
+        "10"
+      ],
+      "command_sha256": "9d826427526fdb647622ef752236bf235f2715f70f8fe6508ba9cd5c437383bf",
+      "scripts_sha256": {
+        "probe-codec-cudnn-v6.py": "d0f177d30d346c41bb86b6db31309e300dd79ce39c096ee269336f623061322d",
+        "compare-codec-cudnn-v6.py": "83e80aec41056da7abeac4465cb5b0a39bf674c6c19128a6b0bf48c36b86bfc0",
+        "check-codec-firstframe-v6.py": "69a0caed4a0a1820fbfa44ac5e4458c6473555f5157680909ffdaeeab8fd084f"
+      },
+      "environment_overrides": {
+        "CUDA_VISIBLE_DEVICES": "<LOGICAL_DEVICES>",
+        "OMP_NUM_THREADS": "1",
+        "HF_HUB_OFFLINE": "1",
+        "PYTHONPATH": "<PATH_6>"
+      },
+      "gpu_preflight": {
+        "2": [],
+        "3": []
+      },
+      "status": "PASS",
+      "observations": [
+        {
+          "wall_time": 1792805193.0257714,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805194.0604722,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805195.091593,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805196.3204608,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805197.3473656,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805198.3852956,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805199.4088564,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805200.4491796,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805201.48002,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805202.50611,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805203.5391629,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805204.5664177,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805205.6403322,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805206.6656618,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805207.7063239,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805208.7318034,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805209.759664,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805210.78893,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805211.8208265,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805212.8664188,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805213.8944364,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805215.0012877,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805216.030431,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805217.119576,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805218.152631,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805219.2187576,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805220.2508812,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805221.2817988,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805222.3087986,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805223.3399441,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805224.4440737,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805225.472848,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805226.6983602,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805227.7316139,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805228.764542,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805229.7914777,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805230.824912,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805232.1147318,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805233.1708162,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805234.3292258,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805235.355563,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805236.3915057,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805237.4226491,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805238.4576373,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805239.7314682,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805240.760131,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805241.9691577,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805242.9989686,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805244.042318,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805245.0832868,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805246.1129355,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805247.4122722,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805248.4792075,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805249.523342,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805250.550937,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805251.5850766,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805252.6218488,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805253.6650653,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805254.9922,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805256.0564272,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805257.0953257,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805258.1210234,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805259.1519344,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805260.1874957,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805261.2214258,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805262.5884545,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805263.6204832,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805264.6557615,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805265.6868067,
+          "gpu_pids": {
+            "2": [
+              2175951
+            ],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805266.7174182,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        }
+      ],
+      "monitor_errors": [],
+      "cleanup_errors": [],
+      "start_wall_time": 1792805192.9815698,
+      "private_pid": "<PROCESS_2>",
+      "private_sid": "<PRIVATE_PROCESS_OR_DEVICE>",
+      "process_birth_wall_time": 1792805192.28,
+      "exit_code": 0,
+      "execution_complete": true,
+      "gpu_postflight": {
+        "2": [],
+        "3": []
+      },
+      "resource_isolation_verified": true,
+      "end_wall_time": 1792805267.0460882
+    },
+    {
+      "label": "comparison",
+      "command": [
+        "<PATH_2>",
+        "<PATH_8>",
+        "--default",
+        "<PATH_5>",
+        "--benchmark",
+        "<PATH_7>",
+        "--output",
+        "<PATH_9>"
+      ],
+      "command_sha256": "d6fa9d802fa6e57e7dda60d2b6c89eac39592058332cff4146422d29e45c9b2b",
+      "scripts_sha256": {
+        "probe-codec-cudnn-v6.py": "d0f177d30d346c41bb86b6db31309e300dd79ce39c096ee269336f623061322d",
+        "compare-codec-cudnn-v6.py": "83e80aec41056da7abeac4465cb5b0a39bf674c6c19128a6b0bf48c36b86bfc0",
+        "check-codec-firstframe-v6.py": "69a0caed4a0a1820fbfa44ac5e4458c6473555f5157680909ffdaeeab8fd084f"
+      },
+      "environment_overrides": {
+        "CUDA_VISIBLE_DEVICES": "<LOGICAL_DEVICES>",
+        "OMP_NUM_THREADS": "1",
+        "HF_HUB_OFFLINE": "1",
+        "PYTHONPATH": "<PATH_6>"
+      },
+      "gpu_preflight": {
+        "2": [],
+        "3": []
+      },
+      "status": "PASS",
+      "observations": [
+        {
+          "wall_time": 1792805267.1051025,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805268.2860994,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805269.3113458,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        },
+        {
+          "wall_time": 1792805270.3380609,
+          "gpu_pids": {
+            "2": [],
+            "3": []
+          },
+          "foreign_pids": {
+            "2": [],
+            "3": []
+          }
+        }
+      ],
+      "monitor_errors": [],
+      "cleanup_errors": [],
+      "start_wall_time": 1792805267.062238,
+      "private_pid": "<PROCESS_3>",
+      "private_sid": "<PRIVATE_PROCESS_OR_DEVICE>",
+      "process_birth_wall_time": 1792805266.36,
+      "exit_code": 0,
+      "execution_complete": true,
+      "gpu_postflight": {
+        "2": [],
+        "3": []
+      },
+      "resource_isolation_verified": true,
+      "end_wall_time": 1792805271.087943
+    }
+  ],
+  "comparison_status": "PASS",
+  "comparison_sha256": "3cbc168c50ddde355960d236dababe3463b2ccc3b2edee8a618c7f99662a7b57",
+  "end_wall_time": 1792805271.0986862
+}

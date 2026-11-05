@@ -1,0 +1,646 @@
+{
+  "status": "DIAGNOSTIC_ONLY",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "script_sha256": "e6cd6fea9c8a68441619ab8639f2650dd2d0624a2154a7514295f33d56aed7f9",
+  "input_sha256": "7dc1656c930bd8c02befca3e92731490da6c239c39ea4350200d7b792a2b4dc9",
+  "config_sha256": "eab5093d47807aaf894119506b238b2b1cee70d08456e894fee9a012d88f2e0d",
+  "compiled": false,
+  "batches": [
+    {
+      "batch": 1,
+      "future_mode": "zero_future",
+      "all_logits_bitwise_equal": true,
+      "total_argmax_mismatches": 0,
+      "history_sha256": "a3dacf310b2c445a2b3b5946fabe2dfcb735eea9f352587e263258d6354fd5ac",
+      "progressive_vs_one_full17": [
+        {
+          "depth": 1,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 11.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 2,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 3,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.875,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 4,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 5,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 6,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.25,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 7,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 8,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 9,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 10,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 11,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 12,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 13,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 5.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 14,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 1.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 15,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        }
+      ]
+    },
+    {
+      "batch": 1,
+      "future_mode": "fixed_random_future",
+      "all_logits_bitwise_equal": true,
+      "total_argmax_mismatches": 0,
+      "history_sha256": "a3dacf310b2c445a2b3b5946fabe2dfcb735eea9f352587e263258d6354fd5ac",
+      "progressive_vs_one_full17": [
+        {
+          "depth": 1,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 11.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 2,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 3,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.875,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 4,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 5,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 6,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.25,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 7,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 8,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 9,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 10,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 11,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 12,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 13,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 5.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 14,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 1.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 15,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        }
+      ]
+    },
+    {
+      "batch": 64,
+      "future_mode": "zero_future",
+      "all_logits_bitwise_equal": true,
+      "total_argmax_mismatches": 0,
+      "history_sha256": "bbe29fdceb94c8e624364198e577fdbe196e7824a7191541ba45e3d38d9989ac",
+      "progressive_vs_one_full17": [
+        {
+          "depth": 1,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 11.5625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 2,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 3,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 4,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 5,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 6,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 7,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.875,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 8,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 9,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 10,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 11,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.5625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 12,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 13,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 5.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 14,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 0.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 15,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        }
+      ]
+    },
+    {
+      "batch": 64,
+      "future_mode": "fixed_random_future",
+      "all_logits_bitwise_equal": true,
+      "total_argmax_mismatches": 0,
+      "history_sha256": "bbe29fdceb94c8e624364198e577fdbe196e7824a7191541ba45e3d38d9989ac",
+      "progressive_vs_one_full17": [
+        {
+          "depth": 1,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 11.5625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 2,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 8.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 3,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 4,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.5,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 5,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 6,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.0,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 7,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.875,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 8,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 9,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.375,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 10,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 11,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.5625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 12,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 7.125,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 13,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 5.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 14,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 0.75,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        },
+        {
+          "depth": 15,
+          "max_abs": 0.0,
+          "rms": 0.0,
+          "reference_min_top1_margin": 6.625,
+          "argmax_mismatches": 0,
+          "bitwise_equal": true,
+          "reference_nonfinite": 0,
+          "test_nonfinite": 0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,8433 @@
+[
+  {
+    "wall_time": 1792804324.8219893,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804325.85069,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804327.0052183,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804328.0368502,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804329.198526,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804330.2297854,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804331.268666,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804332.3104603,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804333.3430083,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804334.4070005,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804335.4369922,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804336.507906,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804337.5384927,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804338.570672,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804339.601512,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804340.6335309,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804341.7580876,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804342.788476,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804343.8411117,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804344.8723998,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804345.9060266,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804346.9388537,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804347.969613,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804349.1133056,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804350.1431687,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804351.2225912,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804352.2545173,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804353.2858293,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804354.3172538,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804355.3476644,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804356.4472106,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804357.4791608,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804358.537537,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804359.5697346,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804360.6007376,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804361.6328447,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804362.6601162,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804363.8319724,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804364.866223,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804365.9546976,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804366.9876263,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804368.0656736,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804369.1111937,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804370.145084,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804371.3053453,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804372.3374493,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804373.4780796,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804374.5063543,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804375.5392723,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804376.5691593,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804377.5977886,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804378.6830864,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804379.7234435,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804380.8324423,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804381.8749108,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804382.9119897,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804383.9444754,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804384.977802,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804386.0134816,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804387.0455465,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804388.0861714,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804389.133464,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804390.1685898,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804391.2154486,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804392.2505968,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804393.282073,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804394.4015338,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804395.4360604,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804396.506141,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804397.5385046,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804398.5719783,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804399.6024528,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804400.6346002,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804401.7495632,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804402.7825336,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804403.8897917,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804404.9210446,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804405.9580603,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804406.9977763,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804408.032635,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804409.1207664,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804410.1574836,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804411.2206476,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804412.2577686,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804413.3008199,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804414.3312607,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804415.3627708,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804416.4570777,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804417.4868467,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804418.5201163,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804419.5515318,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804420.6307569,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804421.662882,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804422.694131,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804423.779972,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804424.8105097,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804425.9530463,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804426.9864655,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804428.0195305,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804429.0546334,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804430.0874465,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804431.4145892,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804432.4536126,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804433.4984822,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804434.5386117,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804435.5725214,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804436.6099086,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804437.6454568,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804438.8684533,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804439.9191988,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804441.0942671,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804442.1334336,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804443.1804702,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804444.5289216,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804445.5611112,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804446.6018076,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804447.6431158,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804448.676937,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804449.71967,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804450.7515342,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804452.1444414,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804453.178122,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804454.2253332,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804455.2592993,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804456.2912178,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804457.641376,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804458.6729684,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804459.7058325,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804460.7370071,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804461.7723348,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804462.9814017,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804464.0171714,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804465.1439016,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804466.1779344,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804467.2110288,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804468.2604685,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804469.2918563,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804470.5471592,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804471.581921,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804472.6164944,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804473.6528335,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804474.689002,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804476.061529,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804477.0948606,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804478.134483,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804479.169955,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804480.2025814,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804481.5266042,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804482.5576086,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804483.7982326,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804484.8421843,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804485.8786197,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804486.915007,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804487.9573166,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804489.1517062,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804490.1857533,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804491.3812804,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804492.412758,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804493.4471116,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804494.4895167,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804495.52147,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804496.9433477,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804497.991888,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804499.1057425,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804500.4706826,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804501.5049152,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804502.5913513,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804503.6254716,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804504.6678276,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804505.7039654,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804506.7416606,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804507.9425766,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804508.9917467,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804510.0455308,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804511.1159308,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804512.154546,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804513.1885664,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804514.2192078,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804515.4758134,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804516.5113301,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804517.5843172,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804518.6187851,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804519.6538231,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804520.6969345,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804521.7318342,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804523.0807934,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804524.112758,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804525.1453404,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804526.1897492,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804527.2248178,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804528.6163878,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804529.6534312,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804530.6896474,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804531.7202587,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804532.7567742,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804533.8746176,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804534.9113255,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804536.0644753,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804537.097232,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804538.1296625,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804539.17387,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804540.209735,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804541.4358568,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804542.4699643,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804543.6761227,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804544.7090046,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804545.7458537,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804546.7745588,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804547.8076258,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804549.1002874,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804550.137632,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804551.1725895,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804552.2115927,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804553.2515547,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804554.563368,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804555.6002045,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804556.6323674,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804557.6733563,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804558.7081747,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804559.74622,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804560.784157,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804562.1436489,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804563.177459,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804564.217886,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804565.2481031,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804566.2843175,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804567.6511075,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804568.6879644,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804569.7204201,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804570.757453,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804571.838003,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804573.02769,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804574.0628767,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804575.2157407,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804576.2532065,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804577.2927694,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804578.3310173,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804579.3653061,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804580.6151714,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804581.651045,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804582.7433736,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804583.775839,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804584.8201766,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804585.8572662,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804586.8920043,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804588.1353772,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804589.1724184,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804590.2024262,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804591.2409537,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804592.2748575,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804593.3143015,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804594.3510356,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804595.6268263,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804596.6602519,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804597.7188258,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804598.754239,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804599.78837,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804600.8312085,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804601.870632,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804603.2363782,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804604.2704735,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804605.3153574,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804606.3516634,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804607.3813002,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804608.689477,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804609.7217097,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804610.7635136,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804611.7980165,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804612.8342922,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804613.8698,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804614.8988476,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804616.2031941,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804617.2381423,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804618.2836473,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804619.3142319,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804620.3488853,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804621.3853474,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804622.4425714,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804623.786555,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804624.8216202,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804625.8671567,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804626.9028916,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804627.9372032,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804628.9806485,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804630.019588,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804631.3739,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804632.4088702,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804633.599555,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804634.6321166,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804635.668348,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804636.7125683,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804637.752311,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804639.090057,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804640.1249206,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804641.1581693,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804642.1921725,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804643.2269893,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804644.4838815,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804645.5184236,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804646.554158,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804647.5881603,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804648.6322606,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804649.8970413,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804650.9297454,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804652.0280817,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804653.0620039,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804654.0959861,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804655.132455,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804656.16834,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804657.4855106,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804658.5250645,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804659.558805,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804660.592992,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804661.6288228,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804662.9892392,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804664.028636,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804665.0649655,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804666.1077886,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804667.1456368,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804668.1896248,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804669.2220557,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804670.364728,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804671.401336,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804672.5183983,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804673.5528972,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804674.593031,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804675.6309886,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804676.666963,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804677.7018237,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804678.7390127,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804680.0966089,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804681.1370409,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804682.2806377,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804683.324342,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804684.3641295,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804685.4076574,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804686.4406672,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804687.6340647,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804688.6710052,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804689.908041,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804690.9492085,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804691.99719,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804693.0497108,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804694.1534033,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804695.5296152,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804696.568013,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804697.662917,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804698.7005072,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804699.743549,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804700.782283,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804701.822732,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804702.8747957,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804703.9226553,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804705.173416,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804706.2361407,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804707.4959934,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804708.572836,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804709.6688478,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804710.701162,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804711.73766,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804712.7704852,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804713.8232934,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804715.3270984,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804716.3583117,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804717.3933911,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804718.4418926,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804719.473472,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804720.5992546,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804721.6338506,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804722.856172,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804723.890032,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804724.9287326,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804725.9647558,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804727.0028875,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804728.343505,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804729.378958,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804730.4220479,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804731.4627724,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804732.498578,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804733.5381064,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804734.5731592,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804735.9485085,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804736.9834251,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804738.023446,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804739.0588045,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804740.0938597,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804741.1346521,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804742.1668248,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804743.4553127,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804744.4926429,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804745.5293493,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804746.570003,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804747.6086142,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804748.6478024,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804749.689309,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804750.7543063,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804751.7973633,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804752.8522813,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804753.889947,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804754.9326952,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804755.9699433,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804757.3203185,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804758.356146,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804759.3894014,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804760.4269843,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804761.462394,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804762.5069563,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804763.6013162,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804764.654888,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804765.699778,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804766.9298193,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804767.9652538,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804769.0074086,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804770.055853,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804771.0987535,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804772.14775,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804773.1976285,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804774.2421532,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804775.2741234,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804776.4632661,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804777.5002599,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804778.579873,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804779.6151483,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804780.6468956,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804781.6835275,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804782.7166212,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804784.0054543,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804785.0422802,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804786.081791,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804787.1192102,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804788.1541352,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804789.3303423,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804790.3680463,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804791.5482504,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>",
+          "<PROCESS_13>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804792.5856755,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804793.620525,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804794.6595647,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804795.6939278,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804796.8881767,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804797.9219024,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804799.0480616,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804800.0871792,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804801.1253276,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [
+          "<PROCESS_9>"
+        ],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804802.3647594,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_10>",
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804803.5036895,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [
+          "<PROCESS_12>"
+        ],
+        "foreign_pids": []
+      }
+    ]
+  },
+  {
+    "wall_time": 1792804804.6761332,
+    "gpus": [
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_1>",
+        "pids": [],
+        "foreign_pids": []
+      },
+      {
+        "private_physical_index": "<LOGICAL_DEVICE_2>",
+        "pids": [],
+        "foreign_pids": []
+      }
+    ]
+  }
+]

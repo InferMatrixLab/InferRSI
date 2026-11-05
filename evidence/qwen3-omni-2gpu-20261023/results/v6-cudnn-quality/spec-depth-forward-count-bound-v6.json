@@ -1,0 +1,116 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Algorithm-specific ideal forward-count counterfactual, not a hardware/service lower bound",
+  "source_decomposition_sha256": "2ab5d165b608b349405947d52a9a72a8778a99655e2bcb4b02b11b13946be2ee",
+  "assumptions": [
+    "Exactly15 residual codes; first serial full17 forward emits one code; subsequent verification emits at most window codes including bonus",
+    "All drafts accepted; constant full17 target-forward cost; draft/head/filter/sampling/host overhead zero",
+    "Observed per-request audio durations and TTFA/duration contributions held fixed",
+    "Entire post-first-audio elapsed time scales with target-forward count: optimistic and not demonstrated by trace",
+    "No quality or stochastic/RNG equivalence inferred; current formal candidate failed quality"
+  ],
+  "windows": [
+    {
+      "window_including_bonus": 2,
+      "minimum_target_forwards": 8,
+      "ideal_forward_count_speedup": 1.875,
+      "counterfactual_rtf": [
+        {
+          "concurrency": 1,
+          "rtf": 0.07007977102612481,
+          "target": 0.06
+        },
+        {
+          "concurrency": 64,
+          "rtf": 0.35740381716565006,
+          "target": 0.3
+        }
+      ]
+    },
+    {
+      "window_including_bonus": 3,
+      "minimum_target_forwards": 6,
+      "ideal_forward_count_speedup": 2.5,
+      "counterfactual_rtf": [
+        {
+          "concurrency": 1,
+          "rtf": 0.05892022349074355,
+          "target": 0.06
+        },
+        {
+          "concurrency": 64,
+          "rtf": 0.29194937998581827,
+          "target": 0.3
+        }
+      ]
+    },
+    {
+      "window_including_bonus": 4,
+      "minimum_target_forwards": 5,
+      "ideal_forward_count_speedup": 3.0,
+      "counterfactual_rtf": [
+        {
+          "concurrency": 1,
+          "rtf": 0.05334044972305292,
+          "target": 0.06
+        },
+        {
+          "concurrency": 64,
+          "rtf": 0.2592221613959024,
+          "target": 0.3
+        }
+      ]
+    },
+    {
+      "window_including_bonus": 5,
+      "minimum_target_forwards": 4,
+      "ideal_forward_count_speedup": 3.75,
+      "counterfactual_rtf": [
+        {
+          "concurrency": 1,
+          "rtf": 0.04776067595536229,
+          "target": 0.06
+        },
+        {
+          "concurrency": 64,
+          "rtf": 0.22649494280598648,
+          "target": 0.3
+        }
+      ]
+    },
+    {
+      "window_including_bonus": 7,
+      "minimum_target_forwards": 3,
+      "ideal_forward_count_speedup": 5.0,
+      "counterfactual_rtf": [
+        {
+          "concurrency": 1,
+          "rtf": 0.04218090218767166,
+          "target": 0.06
+        },
+        {
+          "concurrency": 64,
+          "rtf": 0.19376772421607058,
+          "target": 0.3
+        }
+      ]
+    },
+    {
+      "window_including_bonus": 14,
+      "minimum_target_forwards": 2,
+      "ideal_forward_count_speedup": 7.5,
+      "counterfactual_rtf": [
+        {
+          "concurrency": 1,
+          "rtf": 0.03660112841998103,
+          "target": 0.06
+        },
+        {
+          "concurrency": 64,
+          "rtf": 0.16104050562615468,
+          "target": 0.3
+        }
+      ]
+    }
+  ]
+}

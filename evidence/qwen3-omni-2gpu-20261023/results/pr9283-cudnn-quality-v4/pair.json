@@ -1,0 +1,17 @@
+{
+  "status": "PASS",
+  "scope": "Single-pair quality criterion only, not overall promotion",
+  "pins_sha256": "bbc9ba3e48cb14f3f6d38ea5dc5613ef44c74bac3f1167befbc844b320b3291b",
+  "arms": [
+    {
+      "arm": "baseline",
+      "returncode": 0,
+      "execution_sha256": "37bbb69207dd1b127a2e3a9b5fa8e381c9e50d8a95c4a53668b9e0a1ca563fd9"
+    },
+    {
+      "arm": "candidate",
+      "returncode": 0,
+      "execution_sha256": "023ff33bf866007728f8fc86e4faad413364f7455c5ac8967c8a4da1b3013567"
+    }
+  ]
+}

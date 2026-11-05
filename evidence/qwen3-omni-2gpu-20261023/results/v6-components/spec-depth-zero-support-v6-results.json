@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "scope": "Exact algebraic oracle only; no native finite-precision/RNG/model equivalence",
+  "joint_cases": 315,
+  "tail_cases": 315,
+  "zero_q_cases": 225,
+  "disjoint_support_cases": 27,
+  "equal_distribution_cases": 15,
+  "filtered_distribution_count": 8,
+  "filtered_pairs": 64,
+  "original_script_sha256": "961fc46a748d7a9ff156957a4b6e9ceae2c7cd8b07b669d05a82722eb8fa0058",
+  "limitations": [
+    "No GPU or stochastic trials",
+    "Top-p ties use explicit index convention of original oracle",
+    "Window2 only; rejection continuation uses actual target conditional",
+    "No production sampler, BF16, seed interface, or performance claim"
+  ],
+  "script_sha256": "13ea97bdd21c732c494ee2b3c5c9d4082be858c01f843457abdc96e5a82cd0e9"
+}

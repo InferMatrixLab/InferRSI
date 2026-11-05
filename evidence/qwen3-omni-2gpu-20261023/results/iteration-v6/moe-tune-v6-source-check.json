@@ -1,0 +1,6 @@
+{
+  "source_url": "https://raw.githubusercontent.com/vllm-project/vllm/5df63a7203cdb9328d824a27b682e77c7b9928be/vllm/model_executor/layers/fused_moe/fused_moe.py",
+  "upstream_sha256": "21860340e4b409b01666e2ba0f0edae66b0f97b859756b174b573bab895cfaf7",
+  "installed_sha256": "21860340e4b409b01666e2ba0f0edae66b0f97b859756b174b573bab895cfaf7",
+  "byte_identical": true
+}

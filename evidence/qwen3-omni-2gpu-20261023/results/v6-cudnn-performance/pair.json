@@ -1,0 +1,7 @@
+{
+  "status": "INCONCLUSIVE",
+  "candidate_status": "NOT_RUN",
+  "baseline_returncode": 1,
+  "baseline_original_execution_sha256": "76d3ad8fcee8e596c6647af80e2c4ba147f8c3e4b5581d4b58f650b7f81cbb52",
+  "scope": "Single baseline arm rejected by isolation gate; no comparative performance gain"
+}

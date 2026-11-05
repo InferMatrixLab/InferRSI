@@ -1,0 +1,63 @@
+# Qwen3-Omni two-GPU streaming speech
+
+Acceptance: [#112](https://github.com/InferMatrixLab/InferRSI/issues/112).
+
+Status: **INCONCLUSIVE**. Protocol-v5 execution has ended: the first pair was execution-eligible but failed the quality and RTF targets; both attempts of the second pair had measured-interval JIT in the baseline. The frozen retry limit stopped the campaign before pair three. No qualified optimization or target attainment is claimed.
+
+Later paired WER checks use the versioned successor [check_results_v6.py](validator/check_results_v6.py) under [wer-aggregate-protocol-v6.json](plan/wer-aggregate-protocol-v6.json). It recomputes the mean from validated per-item WER values and rejects a disagreeing supplied aggregate. Frozen `check_results_v3.py` bytes and recorded verdicts are unchanged.
+
+The separate [v6 diagnostic record](results/iteration-v6/README.md) isolates adapter quality and retains real-weight predictor/codec diagnostics, native MoE tile screening, and conditional hardware bounds. One adapter-only quality pilot had baseline/candidate WER 0.041917/0.040875; this does not qualify the MRv2 bundle against V1 or complete repeated quality/performance acceptance. Predictor component timing is uncompiled and uses synthetic inputs; the conditional bounds omit positive service costs. These findings guide further search and do not change the frozen v5 verdict.
+
+The frozen protocol records the full Thinker → Talker → Code2Wav pipeline, metric definitions, source provenance and quality gates. The hardware scope is exactly two L20X GPUs. Audio-input quality needs separate qualification; text readback alone does not establish conversational quality.
+
+The [v6 follow-up record](results/v6-followup/README.md) retains the isolated V1 Predictor-KV quality failure (paired mean WER 0.028905 → 0.048576), all 512 request rows, and the separate full-pipeline profile. KV does not advance to performance acceptance. Profile C64 includes four JIT events; cross-stage kernel unions are diagnostic and cannot establish recoverable service latency. The overall result remains **INCONCLUSIVE**.
+
+The [completed component diagnostics](results/v6-components/README.md) retain a fresh-process cuDNN pair, full17 causal verification and executable rational sampling oracles. Long-window codec replay was 1.23–1.42× faster in this one component pair, with non-bitwise PCM differences; this motivates an isolated quality pilot and is not a service gain. Full17 eager/compiled logits matched bitwise on synthetic inputs with real weights; real-request speculative acceptance remains unverified.
+
+See [the actual baseline run manifest](results/baseline-v3-run-manifest.json) for source revisions, deployment, runtime, workload, raw results and limitations. Each performance point contains 256 requests after five warmups. Throughput counts 24 kHz PCM sample frames, not codec tokens.
+
+| Concurrency | Throughput (frames/s) | TTFA p50 (ms) | TTFA p95 (ms) | RTF mean |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 189,393 | 132.4 | 141.2 | 0.1309 |
+| 2 | 317,327 | 164.3 | 214.3 | 0.1572 |
+| 4 | 524,676 | 201.6 | 299.4 | 0.1894 |
+| 8 | 876,231 | 248.5 | 383.7 | 0.2253 |
+| 16 | 1,289,916 | 357.0 | 514.5 | 0.3050 |
+| 32 | 1,760,062 | 525.8 | 981.3 | 0.4323 |
+| 64 | 2,094,731 | 735.0 | 1,032.4 | 0.6912 |
+
+Baseline quality: mean WER 0.0383296 over 256 items, with no failed requests, missing PCM or ASR failures. Native Seed-TTS evaluation uses the frozen Whisper scorer. UTMOS is supplementary. These baseline values do not meet the issue's RTF targets.
+
+[Candidate hypotheses and sources](plan/candidates.json) separate configuration adaptations from upstream algorithms. [PR #9278](https://github.com/vllm-project/vllm-omni/pull/9278) corrects valid-audio timestamps and preserves per-request benchmark measurements; it is instrumentation, not an inference speedup.
+
+The [MRv2 screening record](results/mrv2-run-manifest.json) retains C1/C64 results, including a C64 inference-time MoE compilation event. Its C1→C64 order differs from the full baseline matrix, so it is not a warmed comparative trial or promotion evidence. No outliers were removed.
+
+Source checkout: campaign-only benchmark commits are published on the [user fork](https://github.com/amy-why-3459/vllm-omni/tree/f9feff996da2a60009d7626f9b7b09154acef824). The frozen protocol used upstream URL prefixes for these commits; [source-location errata](results/source-location-errata.json) corrects their location without altering source bytes or frozen gates.
+
+The [MPS screen](results/mrv2-mps-run-manifest.json) retains C1/C64 raw results but establishes no fair comparison: GPU isolation was not confirmed, full conditioning was absent, and quality was not evaluated. A foreign process held GPU memory immediately after the run; allocation overlap during measured requests was not continuously timestamped and is not asserted. The [separate verbose-JIT startup failure](results/mrv2-mps-verbose-start-failure.json) occurred before screening; its later fix is not part of the measured source. These results remain **SCREENING / INCONCLUSIVE**, with all outliers retained.
+
+The [full CUDA bundle screen](results/full-cuda-run-manifest.json) records C1/C64 RTF 0.1050/0.4840 and a separate 256-item quality run. Mean WER 0.07514 exceeds the historical baseline 0.03833, so this combination fails the historical-baseline quality screen and is not recommended. It does not meet either RTF target. These are screening observations on a new two-GPU pair, without full conditioning, repeated paired trials or continuous ownership evidence; no comparative speedup is claimed. All outputs, including poor transcripts, remain retained.
+
+The [Code2Wav-beside-Thinker placement screen](results/placement-run-manifest.json) used the existing full CUDA feature bundle. Its C1/C64 RTF means were 0.106916/0.545543; WER 0.0450889 exceeded historical baseline 0.0383296, so the quality screen **FAILS** and no promotion is claimed. Periodic ownership monitoring reported no foreign processes; this is distinct from the unverified-isolation MPS screen. No placement profile or formal paired comparison was run.
+
+The [eager-MTP capability adapter screen](results/adapter-run-manifest.json) used MRv2 base without incremental KV, short-KV, fused sampling or codec cuDNN search. C1/C64 mean RTF was 0.109709/0.611656; WER 0.0420916 exceeded historical baseline 0.0383296, so the historical quality screen **FAILS**. Eight L20X CUDA staging-parity tests passed; this does not establish model quality equivalence. Periodic ownership monitoring found no foreign processes. Results remain **SCREENING / INCONCLUSIVE**, with all request rows and private audio hashes retained.
+
+The [prefix re-prefill/cuDNN trial](results/prefix-run-manifest.json) completed with C1/C64 mean RTF0.108235/0.555771 and WER0.0486058. It fails the historical-baseline WER screen and remains **INCONCLUSIVE** for promotion. Execution, periodic ownership, all raw requests and audio hashes are retained; the private startup stack is a point-in-time diagnostic. This combined trial does not isolate either mechanism.
+
+The [formal selection preregistration](plan/formal-selection-v5.json) selects MRv2-base adapter versus V1 on the same source for fresh protocol-v5 paired measurements. Screening evidence does not satisfy acceptance; all three pairs require the frozen performance and quality gates.
+
+The [complete formal-v5 record](results/formal-v5/run-manifest.json) retains every attempted arm and the six unattempted slots. First-pair baseline/candidate WER was 0.037269/0.058449; candidate C1/C64 mean RTF was 0.109138/0.586494. Pair-two attempts each observed two baseline JIT events. There is no three-pair aggregate. Further optimization must use a separately declared experiment; these frozen results remain unchanged.
+
+The [isolated codec cuDNN quality pilot](results/v6-cudnn-quality/README.md) retains two same-source MRv2 arms with 256 scored items each. Native WER was 0.068293/0.044286 and the pilot no-regression criterion passed. This single pair does not establish causal quality improvement, MRv2-versus-V1 equivalence, warmed service performance or promotion; overall status remains **INCONCLUSIVE**. Raw rows, private audio hashes, ownership, configuration chains and bounded source research are retained.
+
+The [captured predictor diagnostics](results/v6-captured/README.md) preserve both attempts, including the first runner validation error: 86 raw checkpoint tensors load into 71 fused parameters. Full17 progressive-versus-single-verification logits passed finite, bitwise checks for eager and compiled execution across all 15 depths in the tested B1/B64 shapes; B1 covers only the first captured row, not all 64 rows independently. The sampler accepted 257 of 576 draft trials across 64 sequential B1 frames; this is not a service speedup or general acceptance-rate estimate. Compiled V-stride B64 failed bitwise parity (maximum absolute difference 0.46875, zero argmax mismatches), so timing remains ineligible. Capture metrics are nonperformance diagnostics, and the HTTP-to-internal-request mapping is unestablished. Overall status remains **INCONCLUSIVE**.
+
+The [research notes and quality-variation audit](results/v6-research-notes/README.md) retain all 256 paired cuDNN WER rows and a descriptive bootstrap interval that includes zero. The single-pair mean difference is concentrated in a few tail samples and is not causal quality evidence. Source-pinned RVQ speculation research, offset-folding arithmetic and codec-cache context constraints remain unimplemented hypotheses; none changes acceptance gates or establishes a service gain.
+
+The [isolated cuDNN performance pilot](results/v6-cudnn-performance/README.md) remains **INCONCLUSIVE**. The baseline completed all seven measured concurrency points with zero JIT and all 3,584 conditioning/measured request rows retained, but its frozen isolation gate failed during cleanup. The candidate was not run. The lone foreign classification was recorded after the last measured interval; missing birth/status evidence prevents definitive attribution, and the original verdict is unchanged. No comparative cuDNN gain is established.
+
+The [PR9283 cuDNN performance pilot](results/pr9283-cudnn-performance/README.md) used actual validation head `a83eb6ed38fde8c6964a0315420f52e69706d31c` on a newly reserved two-GPU pair. Both arms completed all seven conditioning and measured points, with zero measured JIT and 7,168 raw numeric request rows retained. The single AB observation has mixed results: C1/C2 mean RTF increased 0.36%/3.26%; at C64 PCM throughput increased 7.79% and mean RTF decreased 6.06%, while TTFA p50/p95 increased 7.12%/2.02%. Endpoint RTF targets remain unmet. The separate same-card quality attempt failed its execution gate (retained below); this is **INCONCLUSIVE** for promotion, not a general speedup or causal estimate.
+
+The [PR9283 failed quality pilot](results/pr9283-cudnn-quality-failure/README.md) retains both 256-item quality files, all 512 numeric audio request rows and 512 private audio hashes. Baseline completed; candidate failed the frozen work-interval isolation gate. The registered benchmark process, which also runs the CUDA scorers, was observed as a zombie during **WORK**; that snapshot ended approximately 0.054 seconds before monitor stop. Its two device observations refer to the same process identity, not two separate scorer processes. Cleanup and postflight completed with empty GPU snapshots, but cannot erase the earlier failure. Native mean WER was 0.062301/0.052020 and UTMOS 3.336022/3.331607; these are descriptive only. The pair remains **INCONCLUSIVE**, no qualifying comparison passed, and this failed quality attempt does not qualify the performance pilot for promotion. No retry or selective row exclusion is represented by this retained attempt.
+
+The [PR9283 v4 quality pilot](results/pr9283-cudnn-quality-v4/README.md) passed the frozen single-pair WER criterion on the same two GPUs and validation source: baseline/candidate mean WER was 0.050304/0.037967, with 256 scored items each. UTMOS means were 3.334217/3.331941 and remain descriptive. The live-hold protocol verified the benchmark process remained live through the final snapshot and monitor join, then checked release, exit0, output hashes and empty postflight. The earlier v3 failure is unchanged. This single quality pair does not establish causal improvement or repeated assurance; the separate performance tradeoffs and unmet RTF targets keep overall promotion **INCONCLUSIVE**. All512 ordered numeric quality rows, raw request metrics and private audio hashes are retained.

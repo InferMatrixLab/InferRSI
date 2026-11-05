@@ -1,0 +1,53 @@
+{
+  "id": "formal-selection-v5",
+  "status": "INCONCLUSIVE",
+  "plane": "infra",
+  "protocol": "protocol-v5.json",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "candidate": {
+    "config": "adapter-mrv2.yaml",
+    "chain": [
+      {
+        "file": "<PRIVATE_RUN_ROOT>/adapter-mrv2.yaml",
+        "sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac"
+      },
+      {
+        "file": "<OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      },
+      {
+        "file": "<OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe.yaml",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ],
+    "description": "MRv2 base with eager-MTP capability adapter, original two-GPU placement, MPS off; no incremental predictor KV, short-KV, fused sampling or codec cuDNN search."
+  },
+  "baseline": {
+    "config": "formal-baseline.yaml",
+    "chain": [
+      {
+        "file": "<PRIVATE_RUN_ROOT>/formal-baseline.yaml",
+        "sha256": "e5a94ce79aa347c217e7d283c18cef6f26a176fb7b478e7b4b61d7e7416a8b24"
+      },
+      {
+        "file": "<OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe.yaml",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ],
+    "description": "V1 base on the same source revision; new MRv2 capability adapter inactive, original two-GPU placement and MPS off."
+  },
+  "executor_pins": [
+    {
+      "file": "<PRIVATE_RUN_ROOT>/run-formal-campaign.py",
+      "sha256": "decbb41a63b9497555759e1f3a1423c6e7d5e9ac6d3e49a91347f506cb245893"
+    },
+    {
+      "file": "<PRIVATE_RUN_ROOT>/run-formal-arm.py",
+      "sha256": "e42571085b0dd45763eb925dd2f554e10dff165bbf77bade6a8c87000a62f929"
+    }
+  ],
+  "rationale": "Select the conservative MRv2-base adapter candidate among completed screens: historical-baseline WER adapter0.0420916, prefix/cuDNN0.0486058, full-CUDA0.0751412. Every screen exceeds historical baseline0.0383296; none qualifies for promotion. This is candidate selection before fresh formal data, not acceptance selection or removal of failed evidence. No target achievement or isolated adapter benefit is claimed.",
+  "design": "Fresh protocol-v5 three paired repetitions, all seven concurrency points1/2/4/8/16/32/64, full conditioning, native warmups and separate WER for both arms of each selected pair. First qualifying performance attempt selected under frozen retry rule; quality cannot select a retry. No historical screen pooling.",
+  "scope": "Full text-readback streaming pipeline on exactly two L20X GPUs; no universal optimum or audio-input qualification claim.",
+  "frozen_files_v5_sha256": "0f6ca742e569ad61533b33fcaa048cc719166d922edd0fd06536e3d75e86deb3"
+}

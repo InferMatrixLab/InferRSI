@@ -1,0 +1,10 @@
+base_config: <OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml
+cuda_mps: false
+connectors:
+  connector_of_shared_memory:
+    extra:
+      code_predictor_prefix_graphs: true
+      code_predictor_kv_cache: false
+      code_predictor_short_kv: false
+      code_predictor_fused_sampling: false
+      codec_cudnn_benchmark: true

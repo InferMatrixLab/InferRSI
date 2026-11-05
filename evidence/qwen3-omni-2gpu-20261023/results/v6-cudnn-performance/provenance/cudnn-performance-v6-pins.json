@@ -1,0 +1,76 @@
+{
+  "scope": "One isolated sequential AB performance pilot only; no retries or three-pair promotion",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "configs": {
+    "baseline": "<PATH_2>",
+    "candidate": "<PATH_6>"
+  },
+  "config_chains": {
+    "baseline": [
+      {
+        "file": "<PATH_2>",
+        "sha256": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c"
+      },
+      {
+        "file": "<PATH_3>",
+        "sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac"
+      },
+      {
+        "file": "<PATH_4>",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      },
+      {
+        "file": "<PATH_5>",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ],
+    "candidate": [
+      {
+        "file": "<PATH_6>",
+        "sha256": "68a45a77cdca6feb872ecec88aa7ff0e374ec38677fc7bfd9409019390661b65"
+      },
+      {
+        "file": "<PATH_3>",
+        "sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac"
+      },
+      {
+        "file": "<PATH_4>",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      },
+      {
+        "file": "<PATH_5>",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      }
+    ]
+  },
+  "validator": "<PATH_7>",
+  "gate": "Same existing no-WER-regression criterion; UTMOS descriptive only",
+  "files": {
+    "<PATH_8>": "1155821231da0b8fd440ab806a2e64467e96e082ed4a851842323e093d470171",
+    "<PATH_5>": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898",
+    "<PATH_9>": "2503f2f2a94dd7c4125579ba9e6e8ae41026b78a969ff8e6f809d54b7db5e6b3",
+    "<PATH_10>": "cb5c56c7ad45700a7892a95c0e6349768febc27ec6b232f9b9359e7f2a8c6634",
+    "<PATH_7>": "819ed3c7f517abe9d5b9af924893bfb6c15cf6c2a64b103fa8107dc056a26043",
+    "<PATH_11>": "0f6ca742e569ad61533b33fcaa048cc719166d922edd0fd06536e3d75e86deb3",
+    "<PATH_2>": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c",
+    "<PATH_3>": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac",
+    "<PATH_4>": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a",
+    "<PATH_6>": "68a45a77cdca6feb872ecec88aa7ff0e374ec38677fc7bfd9409019390661b65",
+    "<PATH_12>": "5e24179ebf447e83e8a90f58584a48d9a5177e37b48f2c16947e4b9746b3ef3b",
+    "<PATH_13>": "37d3f7a558a73388d15a6aabf978444c7cfd4841db2a637f9524ac0eb0ef7d61",
+    "<PATH_14>": "95402eaad4fbf65f5554dbe559d89db127ed207499e2601313f40ae2f136ea3a",
+    "<PATH_15>": "e2317ec3f341d5ac8401287f6c097190274ed6f67174b9069622c20ca6eccf09",
+    "<PATH_16>": "4e1ed12463aba6039bf99a0bd13709b50bd2bc4aa7d5229e687e1e4d73333214",
+    "<PATH_17>": "1f9334350470dee4adf071e29d95dce1ec3bc926fa4b0306240d8835305dbce0",
+    "<PATH_18>": "33b8f9e9453db7e5721424718abdc993517fa188208339c4d1782b9460a927b0",
+    "<PATH_19>": "ef31b88ccd604a143d1be39c75a9c83459a56ceb234dfb714a78ae31a29f3d40",
+    "<PATH_1>": "672c0317d3f4286fe0e8b155063b2ac3a7fd7d73b16ee78178410bf9179b3900",
+    "<PATH_20>": "57299a0ec0b5c4fd0eb8a715ca9e483827099024b8fa0f082bdec5d6d60fdb1b",
+    "<PATH_21>": "a7661064ebc6f9adb2ef79453444f147d0c83bb997dc97ddf20dbba519d459b0",
+    "<PATH_22>": "72a58062abf01fba4032ae2270370f0b72d3731f459c4ba6433f8647f9670018",
+    "<PATH_23>": "24f5892a6d4c992e4cfe5e1f0919b113a3d09cddb3425777f8200e9e4584dae1",
+    "<PATH_24>": "11f0c2688ae71c74b05cf48fb9e1fcfe41b7bd63e8bd35e3224f65a8db97e4e9",
+    "<PATH_25>": "457d4d17c10086e4892a30419bbefd8485d7eb5e2d7d6d07c075498cc21e3138",
+    "<PATH_26>": "7280bf28402c1d79807a089df1ddc8d4d2b97414de57f560d40a71d0244b1777"
+  }
+}

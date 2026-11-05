@@ -1,0 +1,8 @@
+{
+  "status": "CAPTURE_COMPLETE",
+  "pins_sha256": "8ee44f32a53351764d8ca1d3fbead3f02e4d27a1c493fedc96794bea052298d6",
+  "error_present": false,
+  "monitor_errors_count": 0,
+  "cleanup_errors_count": 0,
+  "steps": []
+}

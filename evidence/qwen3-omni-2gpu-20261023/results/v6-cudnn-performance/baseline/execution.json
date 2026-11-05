@@ -1,0 +1,393 @@
+{
+  "run_id": "68428413-dce8-4ab2-a51f-41c679dba1e6",
+  "arm": "baseline",
+  "pair": null,
+  "attempt": null,
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "status": "INCONCLUSIVE",
+  "performance_pilot_complete": false,
+  "qualification_scope": "One AB performance pilot only; separate-process prior quality evidence; no promotion",
+  "quality_reference": {
+    "path": "<PATH_1>",
+    "sha256": "672c0317d3f4286fe0e8b155063b2ac3a7fd7d73b16ee78178410bf9179b3900",
+    "scope": "Previously completed separate-process single-pair quality pilot; no same-process quality rerun, no three-pair promotion"
+  },
+  "config_sha256": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c",
+  "config_chain": [
+    {
+      "file": "<PATH_2>",
+      "sha256": "2edafba24de4b458370fc99c568d0b555be5b95d1eb24dabbca20ded61cd261c"
+    },
+    {
+      "file": "<PATH_3>",
+      "sha256": "f677a7b86457bd4a7826f842115f167a429e0afc5074b8be95e84e81ac87a7ac"
+    },
+    {
+      "file": "<PATH_4>",
+      "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+    },
+    {
+      "file": "<PATH_5>",
+      "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+    }
+  ],
+  "verified_artifact_count": 25,
+  "overlay_file_count": 2682,
+  "overlay_manifest_sha256": "f1cff0d333751f49db6fffefce4b875b2011a85abfe4cd0fa027a5c275db62c7",
+  "executor_sha256": "4e1ed12463aba6039bf99a0bd13709b50bd2bc4aa7d5229e687e1e4d73333214",
+  "start_wall_time": 1792808716.7731824,
+  "cudnn_configuration_verified": true,
+  "cudnn_benchmark_requested": false,
+  "cudnn_runtime_algorithm_verified": false,
+  "raw_measurement_complete": true,
+  "measured_jit_gate_passed": true,
+  "source_verified_unchanged": true,
+  "execution_complete": false,
+  "resource_isolation_verified": false,
+  "server_exit_code": 0,
+  "stop_wall_time": 1792810449.115651,
+  "cleanup_errors": [],
+  "error": "GPU isolation gate failed",
+  "phases": [
+    {
+      "phase": "conditioning",
+      "concurrency": 1,
+      "log_start_byte": 94185,
+      "log_end_byte": 187128,
+      "start_wall_time": 1792809081.8273776,
+      "end_wall_time": 1792809244.3680718,
+      "log_interval_sha256": "58afe92afe8ade5fd18568147bd17a8f8e2317696783c8cb45ae38f6c7dfe765",
+      "jit_event_count": 9,
+      "runs": [
+        {
+          "file": "conditioning-c1.json",
+          "concurrency": 1,
+          "actual_peak": 1,
+          "summary": {
+            "throughput_frames_s": 227226.64779486513,
+            "ttfa_p50_ms": 75.64509240910411,
+            "ttfa_p95_ms": 87.22809585742652,
+            "rtf_mean": 0.10934138184198178,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 2,
+      "log_start_byte": 187128,
+      "log_end_byte": 269573,
+      "start_wall_time": 1792809244.3763356,
+      "end_wall_time": 1792809361.7510045,
+      "log_interval_sha256": "5c7a0174bf9ba1e3b03d5a2dbb029abd0b1caf928159b4c7a17cbb8863d3b5e7",
+      "jit_event_count": 4,
+      "runs": [
+        {
+          "file": "conditioning-c2.json",
+          "concurrency": 2,
+          "actual_peak": 2,
+          "summary": {
+            "throughput_frames_s": 403617.8239989922,
+            "ttfa_p50_ms": 77.6829975657165,
+            "ttfa_p95_ms": 112.40166635252535,
+            "rtf_mean": 0.12360968558986472,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 4,
+      "log_start_byte": 269573,
+      "log_end_byte": 356901,
+      "start_wall_time": 1792809361.7597284,
+      "end_wall_time": 1792809457.5489416,
+      "log_interval_sha256": "22c1badee765173153537f447fb9d0e741f0bd3f8386ca9ffca20f867af5e2d9",
+      "jit_event_count": 4,
+      "runs": [
+        {
+          "file": "conditioning-c4.json",
+          "concurrency": 4,
+          "actual_peak": 4,
+          "summary": {
+            "throughput_frames_s": 654085.1718856202,
+            "ttfa_p50_ms": 83.18266971036792,
+            "ttfa_p95_ms": 124.65144973248243,
+            "rtf_mean": 0.1535891185167662,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 8,
+      "log_start_byte": 356901,
+      "log_end_byte": 442017,
+      "start_wall_time": 1792809457.5580456,
+      "end_wall_time": 1792809540.5484393,
+      "log_interval_sha256": "1cc54b2a115949ec596bc3e67521f35a6bff4352782d56fbe4573f6665021265",
+      "jit_event_count": 2,
+      "runs": [
+        {
+          "file": "conditioning-c8.json",
+          "concurrency": 8,
+          "actual_peak": 8,
+          "summary": {
+            "throughput_frames_s": 1013574.8188525534,
+            "ttfa_p50_ms": 94.17994320392609,
+            "ttfa_p95_ms": 171.30119097419083,
+            "rtf_mean": 0.19493994080580135,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 16,
+      "log_start_byte": 442017,
+      "log_end_byte": 540793,
+      "start_wall_time": 1792809540.5567605,
+      "end_wall_time": 1792809618.7831933,
+      "log_interval_sha256": "95dee85ed9a9e41ac12368cad843e9e43e680bf57640cc895507e6c1ed0e6614",
+      "jit_event_count": 7,
+      "runs": [
+        {
+          "file": "conditioning-c16.json",
+          "concurrency": 16,
+          "actual_peak": 16,
+          "summary": {
+            "throughput_frames_s": 1448657.5544230503,
+            "ttfa_p50_ms": 116.76880344748497,
+            "ttfa_p95_ms": 408.8178966194391,
+            "rtf_mean": 0.2754626210843872,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 32,
+      "log_start_byte": 540793,
+      "log_end_byte": 640001,
+      "start_wall_time": 1792809618.7920809,
+      "end_wall_time": 1792809693.6934202,
+      "log_interval_sha256": "a60ee83f3c4d0357d32aafb3835310cf399cbe54c5403cccd75690c9bd85c223",
+      "jit_event_count": 2,
+      "runs": [
+        {
+          "file": "conditioning-c32.json",
+          "concurrency": 32,
+          "actual_peak": 32,
+          "summary": {
+            "throughput_frames_s": 1800913.7657078574,
+            "ttfa_p50_ms": 162.36299742013216,
+            "ttfa_p95_ms": 1685.775331221521,
+            "rtf_mean": 0.4304619006192745,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "conditioning",
+      "concurrency": 64,
+      "log_start_byte": 640001,
+      "log_end_byte": 753299,
+      "start_wall_time": 1792809693.702808,
+      "end_wall_time": 1792809768.6218462,
+      "log_interval_sha256": "4fa8a703496058597e9022cad1816a6b4083b1e940ede3e8e0759f74cf3ce07d",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "conditioning-c64.json",
+          "concurrency": 64,
+          "actual_peak": 64,
+          "summary": {
+            "throughput_frames_s": 2463788.1066180207,
+            "ttfa_p50_ms": 282.1668186224997,
+            "ttfa_p95_ms": 753.3429118338972,
+            "rtf_mean": 0.6052188048051986,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 1,
+      "log_start_byte": 753299,
+      "log_end_byte": 829435,
+      "start_wall_time": 1792809768.631926,
+      "end_wall_time": 1792809927.9681032,
+      "log_interval_sha256": "538a691309613dde47956cdc09977f14812d3dc9175e6b450c783b898f99a1b5",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c1.json",
+          "concurrency": 1,
+          "actual_peak": 1,
+          "summary": {
+            "throughput_frames_s": 229297.2571281189,
+            "ttfa_p50_ms": 77.40897918120027,
+            "ttfa_p95_ms": 83.3970324601978,
+            "rtf_mean": 0.10831259053476368,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 2,
+      "log_start_byte": 829435,
+      "log_end_byte": 906111,
+      "start_wall_time": 1792809927.9785109,
+      "end_wall_time": 1792810044.355332,
+      "log_interval_sha256": "c6fcc8529722b86762996c9491cb0c4cec38a0b3b26c747e1f7018cb27e77846",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c2.json",
+          "concurrency": 2,
+          "actual_peak": 2,
+          "summary": {
+            "throughput_frames_s": 401531.1200898053,
+            "ttfa_p50_ms": 80.37753170356154,
+            "ttfa_p95_ms": 115.87143130600452,
+            "rtf_mean": 0.12395151479821173,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 4,
+      "log_start_byte": 906111,
+      "log_end_byte": 983969,
+      "start_wall_time": 1792810044.3647513,
+      "end_wall_time": 1792810136.7216632,
+      "log_interval_sha256": "c6b40fcb04afa9a321848730baf30203a2791e74549af8aa55a0e06390ae0ed7",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c4.json",
+          "concurrency": 4,
+          "actual_peak": 4,
+          "summary": {
+            "throughput_frames_s": 684296.0003806265,
+            "ttfa_p50_ms": 84.17324628680944,
+            "ttfa_p95_ms": 118.86805924586952,
+            "rtf_mean": 0.14495546283705732,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 8,
+      "log_start_byte": 983969,
+      "log_end_byte": 1064239,
+      "start_wall_time": 1792810136.7306733,
+      "end_wall_time": 1792810220.4542832,
+      "log_interval_sha256": "23f323ca95aacf4a832ef3f078a45609d32dc986a567ff105670301fbcf7aa0a",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c8.json",
+          "concurrency": 8,
+          "actual_peak": 8,
+          "summary": {
+            "throughput_frames_s": 1081918.7776412878,
+            "ttfa_p50_ms": 94.70922173932195,
+            "ttfa_p95_ms": 133.05230694822967,
+            "rtf_mean": 0.18304420836025043,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 16,
+      "log_start_byte": 1064239,
+      "log_end_byte": 1149293,
+      "start_wall_time": 1792810220.4640927,
+      "end_wall_time": 1792810295.9142866,
+      "log_interval_sha256": "310e25403ba72afb7bf7de4c9fc0238f08fde728fdc9b6993b7601aa352b228d",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c16.json",
+          "concurrency": 16,
+          "actual_peak": 16,
+          "summary": {
+            "throughput_frames_s": 1526932.8892016604,
+            "ttfa_p50_ms": 119.34341071173549,
+            "ttfa_p95_ms": 212.9137134179473,
+            "rtf_mean": 0.2542800004911061,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 32,
+      "log_start_byte": 1149293,
+      "log_end_byte": 1243755,
+      "start_wall_time": 1792810296.0004106,
+      "end_wall_time": 1792810369.9086215,
+      "log_interval_sha256": "8dcb0159bd0ec5f5e1ef86918ad386dc7ca55b62f648d7beee429b9b61907eaf",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c32.json",
+          "concurrency": 32,
+          "actual_peak": 32,
+          "summary": {
+            "throughput_frames_s": 2047443.8050601988,
+            "ttfa_p50_ms": 155.94714134931564,
+            "ttfa_p95_ms": 444.32518421672285,
+            "rtf_mean": 0.3724444355650407,
+            "completed": 256
+          }
+        }
+      ]
+    },
+    {
+      "phase": "measured",
+      "concurrency": 64,
+      "log_start_byte": 1243755,
+      "log_end_byte": 1357053,
+      "start_wall_time": 1792810369.9178915,
+      "end_wall_time": 1792810441.09047,
+      "log_interval_sha256": "15178abc6ca37d1c8ab4bbc4e749178b336333df712b4a8d9f981b5ef4004c41",
+      "jit_event_count": 0,
+      "runs": [
+        {
+          "file": "measured-c64.json",
+          "concurrency": 64,
+          "actual_peak": 64,
+          "summary": {
+            "throughput_frames_s": 2568672.4452463225,
+            "ttfa_p50_ms": 223.3580183237791,
+            "ttfa_p95_ms": 658.9472477789968,
+            "rtf_mean": 0.5707767170598312,
+            "completed": 256
+          }
+        }
+      ]
+    }
+  ],
+  "gpu_monitor_error_count": 0,
+  "foreign_observation_count": 1,
+  "postflight_empty": true,
+  "identity_conclusion": "UNRESOLVED: monitor classification does not establish process birth identity or measured-work overlap"
+}

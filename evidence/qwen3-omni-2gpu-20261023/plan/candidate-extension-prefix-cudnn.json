@@ -1,0 +1,41 @@
+{
+  "id": "prefix-cudnn",
+  "phase": "screening",
+  "plane": "infra",
+  "status": "INCONCLUSIVE",
+  "source_sha": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+  "private_overlay_sha256": "377a22b098125926c735e7fc3741652a0521809f48c9834eeda209fa0ef8442a",
+  "overlay_template": "base_config: <OMNI_REPO>/vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml\ncuda_mps: false\nconnectors:\n  connector_of_shared_memory:\n    extra:\n      code_predictor_prefix_graphs: true\n      code_predictor_kv_cache: false\n      code_predictor_short_kv: false\n      code_predictor_fused_sampling: false\n      codec_cudnn_benchmark: true\n",
+  "control": "MRv2 base with campaign eager-MTP capability adapter; original two-GPU placement (Thinker logical0, Talker and Code2Wav logical1), MPS off. Inherits MRv2 first-audio, chunk ramp, fused snake and codec graph batching. Incremental KV, short-KV and fused sampling explicitly disabled.",
+  "hypothesis": "Shorter predictor prefix re-prefill reduces padded transformer work; scoped cuDNN algorithm search may reduce codec convolution cost. Combined candidate cannot establish an isolated feature gain.",
+  "sources": [
+    {
+      "revision": "a9e2117f5e18a882332501a3d96c6eaa076a9310",
+      "url": "https://github.com/vllm-project/vllm-omni/commit/a9e2117f5e18a882332501a3d96c6eaa076a9310",
+      "scope": "MRv2 shorter prefix re-prefill support"
+    },
+    {
+      "revision": "d93e1a8e09d2a0d386c4a58424470d685ee7743c",
+      "url": "https://github.com/vllm-project/vllm-omni/commit/d93e1a8e09d2a0d386c4a58424470d685ee7743c",
+      "scope": "Qwen3-Omni cuDNN benchmark option"
+    },
+    {
+      "revision": "4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+      "url": "https://github.com/amy-why-3459/vllm-omni/tree/4645c450ba4ed036433a30dfcb9782f22b0c3bfd",
+      "scope": "Campaign adapter and parity tests; reused staging attributed separately in source-attribution.md"
+    }
+  ],
+  "implementation_review": [
+    "common/qwen3_code_predictor.py:788-814: prefix re-prefill enabled on CUDA independently of wrapper-owned graph flag; KV and fused sampling remain separate options.",
+    "qwen3_omni/qwen3_omni_moe_code_predictor_mtp.py:21: CUDA MRv2 disables inner predictor graphs; shorter compiled forwards are captured by the outer Talker MTP graph.",
+    "common/qwen3_code_predictor.py:1046-1109,1144-1173,1298-1325: all prefixes 2..num_groups warmed across execution buckets by default; smallest available covering prefix selected; missing prefix falls back to full length.",
+    "qwen3_omni/qwen3_omni_code2wav.py:385-402: benchmark algorithm search limited to10, CUDA eager path only; context restores deterministic/TF32 policy and prior flags; captured replay uses selected kernels."
+  ],
+  "startup_risk": "Default all-prefix warmup scales as execution batch buckets times (num_groups-1) prefixes, each warmed twice. This campaign has16 codebooks: prefixes2..16 are15 lengths;11 outer batch buckets imply approximately165 shape specializations before outer capture. Dynamo cache limit is raised accordingly. Expect materially more startup compilation/cache memory than full-length re-prefill. No startup time or memory estimate is measured.",
+  "quality": "Native sampler and model preserved, but shorter matrix shapes and cuDNN algorithm selection may change floating-point rounding and generated codes/audio. Require unchanged protocol-v5 WER gate before promotion; no claim of bitwise parity or quality equivalence.",
+  "existing_tests": {
+    "prefix": "CUDA_VISIBLE_DEVICES empty: pytest tests/model_executor/models/qwen3_tts/test_code_predictor_dtype.py -k prefix:5 passed,51 deselected. Includes TestCodePredictorWrapperConfig prefix configuration/helpers and three prefixed-weight loading cases. These do not establish full-model numerical parity.",
+    "codec": "tests/model_executor/models/qwen3_omni/test_qwen3_omni_code2wav_cudnn.py:62,98,119 cover dtype parity with graphs, replay flag restoration and exception restoration; CUDA tests inspected only, not run for this preparation"
+  },
+  "gates": "No gate changes. Screening is separate from full conditioning/repeated paired formal trials under protocol-v5; no measured gain or promotion."
+}

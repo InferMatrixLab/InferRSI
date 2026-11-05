@@ -1,0 +1,156 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Completed component diagnostics only; no promotion",
+  "artifacts": [
+    {
+      "file": "full17-realweight-eager-v6.json",
+      "original_sha256": "bf500d1b236690ea1f610fc47285c6a3925da40003ed0dec369119d68572865c",
+      "retained_sha256": "bf500d1b236690ea1f610fc47285c6a3925da40003ed0dec369119d68572865c",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "full17-realweight-compiled-v6.json",
+      "original_sha256": "b5c47cd9397de0e79d5a1616fc6cccd9804440e21821f669baa08ddd026b8336",
+      "retained_sha256": "b5c47cd9397de0e79d5a1616fc6cccd9804440e21821f669baa08ddd026b8336",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "full17-realweight-eager-v6.log.gz",
+      "original_sha256": "87af39dd6fb06c482a2d06620e387021a7d0ef4bc4865a343358521f32101130",
+      "retained_sha256": "180ae9e77fd40aa9f6aa5b6537c537fd363b7fd9f6f68cbde8610698242d7bf1",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "full17-realweight-compiled-v6.log.gz",
+      "original_sha256": "87af39dd6fb06c482a2d06620e387021a7d0ef4bc4865a343358521f32101130",
+      "retained_sha256": "180ae9e77fd40aa9f6aa5b6537c537fd363b7fd9f6f68cbde8610698242d7bf1",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "full17-verification-design-v6.md",
+      "original_sha256": "2a0790619bd99af62cdd17c6447bb54883c246b800068f699c307dafca216724",
+      "retained_sha256": "2a0790619bd99af62cdd17c6447bb54883c246b800068f699c307dafca216724",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "spec-depth-math-prototype-v6-results.json",
+      "original_sha256": "6938ebb355a2ad755795daf47562b43e9f5a0e37ed0afd36fa3a06007e07553d",
+      "retained_sha256": "6938ebb355a2ad755795daf47562b43e9f5a0e37ed0afd36fa3a06007e07553d",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "spec-depth-math-prototype-v6.md",
+      "original_sha256": "a7d695c9f1c6a1aed1cb6f47f464930176fd71b9b7de555d6f314d2bd0fbfcbe",
+      "retained_sha256": "a7d695c9f1c6a1aed1cb6f47f464930176fd71b9b7de555d6f314d2bd0fbfcbe",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "spec-depth-zero-support-v6-results.json",
+      "original_sha256": "b4168d283f26a19c19ddea9f44c601a86953b6a7a6a552dde509af3d559343a6",
+      "retained_sha256": "b4168d283f26a19c19ddea9f44c601a86953b6a7a6a552dde509af3d559343a6",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "spec-depth-zero-support-v6.md",
+      "original_sha256": "b3413725b8e7effc4e486ea180842665b8ae99ea20050ba7a4b7950edcd671f1",
+      "retained_sha256": "b3413725b8e7effc4e486ea180842665b8ae99ea20050ba7a4b7950edcd671f1",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "speculative-depth-port-design-v6.md",
+      "original_sha256": "68b2272a50ce74c366f169d75b80c9f979a0fcfbb5f828a169d17ce8a5c3549a",
+      "retained_sha256": "68b2272a50ce74c366f169d75b80c9f979a0fcfbb5f828a169d17ce8a5c3549a",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/comparison.json",
+      "original_sha256": "3cbc168c50ddde355960d236dababe3463b2ccc3b2edee8a618c7f99662a7b57",
+      "retained_sha256": "3cbc168c50ddde355960d236dababe3463b2ccc3b2edee8a618c7f99662a7b57",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/launcher.json",
+      "original_sha256": "ffa7a500cfb8c6d81837f00c236761114d9fc773cf40ab30949877700d63866c",
+      "retained_sha256": "03fcc66429d7dc80057c26e3b75ef66871b751f0f1b2829325e298ff0f14870a",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default/results.json",
+      "original_sha256": "496662e37e40c7c78f1bde05689bc16f57bc3c6705b713192737b083de1ce074",
+      "retained_sha256": "8e21f5093e3112d516832b061cc02dc9d0208acfd1d1ece25d407378e1e55146",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark/results.json",
+      "original_sha256": "72d1e51ed5b996ee512a806479708ab3bfb33a4fabdbc126e58714474d0d7021",
+      "retained_sha256": "157389c56ec792e70fdba619ec0649925b1e3a1b837c99ce6530e013af790087",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/default.log.gz",
+      "original_sha256": "8eb1774f2ca0ec146362e2b0438bc29bf07a7fdb6c593b16bdd52a753dfa26a9",
+      "retained_sha256": "bc72051f90cb994c8510fdcfc8f60b36c4fc9b39096500bf8e55df39ebf6aa88",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/benchmark.log.gz",
+      "original_sha256": "2dd057be35acd309ac9d2d6899edc492971b3c7c4bed3f1766031c2f75777167",
+      "retained_sha256": "118bc026449c9eb75694f2ecf4bad552c60571786d474b2d4e5d6a3c2099f103",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "codec-cudnn-pair-v6-pilot01/comparison.log.gz",
+      "original_sha256": "328efc775064445bf08efbd7c60fb2e1790bb936021bb26c6ee2df1731fed59c",
+      "retained_sha256": "4dbc363634513b981a5db529ce73264192889d52189b15062953af91ede49232",
+      "representation": "sanitized copy"
+    },
+    {
+      "file": "probe-codec-cudnn-v6.py",
+      "original_sha256": "d0f177d30d346c41bb86b6db31309e300dd79ce39c096ee269336f623061322d",
+      "availability": "private hash-only",
+      "reason": "Executable source snapshot omitted to avoid embedded host/device selectors; no executable payload in export"
+    },
+    {
+      "file": "compare-codec-cudnn-v6.py",
+      "original_sha256": "83e80aec41056da7abeac4465cb5b0a39bf674c6c19128a6b0bf48c36b86bfc0",
+      "availability": "private hash-only",
+      "reason": "Executable source snapshot omitted to avoid embedded host/device selectors; no executable payload in export"
+    },
+    {
+      "file": "run-codec-cudnn-pair-v6.py",
+      "original_sha256": "869ccfebc48703c43729598d6d664bbf10d3d195cfafb30941c42314aa64d1b3",
+      "availability": "private hash-only",
+      "reason": "Executable source snapshot omitted to avoid embedded host/device selectors; no executable payload in export"
+    },
+    {
+      "file": "diagnose-full17-verification-v6.py",
+      "original_sha256": "e6cd6fea9c8a68441619ab8639f2650dd2d0624a2154a7514295f33d56aed7f9",
+      "availability": "private hash-only",
+      "reason": "Executable source snapshot omitted to avoid embedded host/device selectors; no executable payload in export"
+    },
+    {
+      "file": "spec-depth-math-prototype-v6.py",
+      "original_sha256": "961fc46a748d7a9ff156957a4b6e9ceae2c7cd8b07b669d05a82722eb8fa0058",
+      "retained_sha256": "961fc46a748d7a9ff156957a4b6e9ceae2c7cd8b07b669d05a82722eb8fa0058",
+      "representation": "portable CPU source, original bytes unchanged"
+    },
+    {
+      "file": "spec-depth-zero-support-v6.py",
+      "original_sha256": "13ea97bdd21c732c494ee2b3c5c9d4082be858c01f843457abdc96e5a82cd0e9",
+      "retained_sha256": "13ea97bdd21c732c494ee2b3c5c9d4082be858c01f843457abdc96e5a82cd0e9",
+      "representation": "portable CPU source, original bytes unchanged"
+    },
+    {
+      "file": "private-tensor-hashes.json",
+      "retained_sha256": "d4ab09ae4dd7c2d6aae2505d1d6a206442e8e2019d438444d97acb1cf3042b18"
+    },
+    {
+      "file": "README.md",
+      "retained_sha256": "a53008245d9a94e734100c10ac7a1210e9a99aa36f67cf96dca2ebb50b553b8f"
+    },
+    {
+      "file": "validation.json",
+      "retained_sha256": "12fc8a669de67ad5bb277202ee3f94fb153b1b4caf5ce7b88ea761114011e1db"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "validator/check_results.py": "d69df7b75c347965012c5b234820d0b15b679ccf26f42329698a722507e80bc7",
+  "plan/protocol-v2.json": "674a087b0d62e2523bb43a644e10fffa0423e52d4e3801a80eb34e05bcc57f7f",
+  "plan/benchmark-v2.sh": "795f75ae9ef03ba33ea4c4f522f23e262f5c39f826faea5f2a294a640699bad1",
+  "plan/benchmark_readback.py": "cb5c56c7ad45700a7892a95c0e6349768febc27ec6b232f9b9359e7f2a8c6634",
+  "plan/model-manifest.json": "b2069f704bd1ae9d4669aaffa2cb05b3e98f6fd79797920ce6232464f2e4274c"
+}

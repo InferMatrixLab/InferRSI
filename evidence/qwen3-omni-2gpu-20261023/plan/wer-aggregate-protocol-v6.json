@@ -1,0 +1,31 @@
+{
+  "role": "wer_aggregate_successor",
+  "protocol_revision": "v6",
+  "validator": "validator/check_results_v6.py",
+  "predecessor": "validator/check_results_v3.py",
+  "status": "GATE_CORRECTION_ONLY",
+  "campaign_status": "INCONCLUSIVE",
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/112",
+  "does_not_supersede": "plan/protocol-v5.json remains the frozen campaign protocol. This successor does not reopen historical measurements, change recorded verdicts, or authorize an acceptance claim.",
+  "preserves_frozen_bytes": [
+    "validator/check_results.py",
+    "validator/check_results_v3.py",
+    "plan/protocol.json",
+    "plan/protocol-v2.json",
+    "plan/protocol-v3.json",
+    "plan/protocol-v4.json",
+    "plan/protocol-v5.json",
+    "plan/frozen-files.json",
+    "plan/frozen-files-v2.json",
+    "plan/frozen-files-v3.json",
+    "plan/frozen-files-v4.json",
+    "plan/frozen-files-v5.json"
+  ],
+  "reason": "check_results_v3.quality validates every per-item WER and then returns the independently supplied seed_tts_content_error_mean. Regressed per-item scores plus a stale lower aggregate can therefore yield quality_gate=PASS. This successor closes that gate defect. It does not treat the defect as evidence that a retained historical verdict was wrong.",
+  "quality_gate": {
+    "mean": "arithmetic mean of validated seed_tts_wer_eval_items[].wer",
+    "disagreement": "reject when the supplied seed_tts_content_error_mean disagrees with that mean, using the same close tolerance as other raw/aggregate checks (rel_tol=1e-6, abs_tol=1e-6)",
+    "paired_comparison": "compare the reconciled means; a candidate mean greater than the baseline mean is a WER regression",
+    "unchanged_from_v3": "coverage, failure counters, utterance identity, scorer manifest identity, and performance summarize checks"
+  }
+}

@@ -1,0 +1,44 @@
+{
+  "status": "SOURCE_RESEARCH_ONLY_NO_GPU",
+  "checked_date": "2026-10-24",
+  "primary": {
+    "url": "https://arxiv.org/html/2609.37007v1",
+    "published": "2026-09-29",
+    "derived_summary_under200words": "The paper trains three lookahead-distance bias vectors shared across starting RVQ positions: 3,072 parameters, implying 1,024 elements each. Backbone, embeddings and existing heads remain frozen. Offsets affect proposals only; sparse tree verification uses ancestor attention and rejection/residual sampling. Training/validation use separate VoxPopuli subsets; LibriSpeech calibrates tree shape; multilingual Fleurs evaluates acceptance and error. Experiments use Qwen3-TTS-0.6B CustomVoice, W8A16 and Apple Neural Engine single-stream inference. The reported 2\u20132.2\u00d7 concerns RVQ token generation, not our full Omni service. Public SDK deployment is reported, but the paper does not directly link standalone offset-training code or bias checkpoints.",
+    "word_count": 94,
+    "sections": "2.2/3.1/3.4"
+  },
+  "availability": {
+    "method_code": "UNAVAILABLE_IN_INSPECTED_PUBLIC_SOURCES",
+    "standalone_offset_weights": "UNAVAILABLE_IN_INSPECTED_PUBLIC_SOURCES",
+    "scope_caveat": "Not proof of absence globally. Public inference SDK and compiled base CoreML bundles are available; these do not establish release of this paper implementation or standalone trained biases.",
+    "public_sdk": {
+      "url": "https://github.com/argmaxinc/argmax-oss-swift/tree/9f99b5cb6a907730543823ad271b82532782a899",
+      "commit": "9f99b5cb6a907730543823ad271b82532782a899",
+      "decoder_url": "https://raw.githubusercontent.com/argmaxinc/argmax-oss-swift/9f99b5cb6a907730543823ad271b82532782a899/Sources/TTSKit/Qwen3TTS/Qwen3MultiCodeDecoder.swift",
+      "decoder_sha256": "1fe2c476193325e8b6f53c75d73170421f26cf72126b30a89948945500be4076",
+      "finding": "Inspected public MultiCodeDecoder has sequential generation; no speculative/tree/Medusa/rejection code matches. offsetId refers to codebook vocabulary indexing, not learned lookahead biases."
+    },
+    "public_model_listing": {
+      "url": "https://huggingface.co/argmaxinc/ttskit-coreml/tree/065712357592bc0d194cf7cd91852c5cde3eb1b8",
+      "revision": "065712357592bc0d194cf7cd91852c5cde3eb1b8",
+      "files_count": 82,
+      "finding": "Lists CoreML W8A16 decoder bundles; no named speculative/offset/draft/tree/Medusa asset. No binary weights downloaded or inspected."
+    },
+    "search": "Paper links followed to official SDK; official organization repository listing, SDK recursive tree, decoder source and HF model metadata checked. Generic search found paper mirrors, not a primary standalone implementation."
+  },
+  "local_transfer_risks_inferences": [
+    "Our checkpoint is Omni30B-A3B end-to-end streaming, BF16 on two L20X and C1..64; identical1024 bias shape would not make TTS-trained bias weights portable. Fit only against our frozen predictor and immutable versioned normalization/filter contract.",
+    "Current stored sampler applies top_k50 then top_p.8. Tree proposal selection and multi-candidate rejection must implement this target distribution, including ties/zero support and FP64 normalization choices; do not copy claimed top-k exactness into our finite-precision contract.",
+    "Tree query/head shapes may change BF16 logits. Existing compiled B64 vstride mismatch .46875/argmax0 is a specific warning: strict verifier parity must precede timing, and argmax agreement alone is insufficient.",
+    "C64 tree expansion can increase compute/memory traffic and padding, with per-row divergent accepted lengths and cache rollback. Node budgets must be measured separately atC1/C64, not inferred from Apple single-stream.",
+    "Any latency reduction applies only to the measured predictor component until full pipeline TTFA/RTF/throughput and quality are tested. No use of paper2x as local gain."
+  ],
+  "data_requirements": [
+    "Create new provenance-tracked training corpus, disjoint validation corpus, separate tree calibration corpus and untouched held-out acceptance/quality evaluation. Freeze utterance/speaker/source split and detect near-duplicates before tuning.",
+    "Do NOT train biases, select checkpoints, choose tree shape/node budget or tune acceptance thresholds on existing frozen256 benchmark or its64 captured rows. Those captures already informed research; use fresh held-out evaluation for unbiased candidate assessment, then frozen campaign only as final regression gate.",
+    "Train only3x1024 biases with backbone/head frozen; no training authorized or executed. Record objective, seeds, data licenses/hashes, model hash and bias hash. Validate free-running histories, not merely teacher-forced overlap.",
+    "Require verifier numerical tests, independent sampling oracle including tree branch probability/zero-support cases, and held-out speech quality before any service pilot."
+  ],
+  "artifacts_downloaded": "Only HTML/API metadata and ~31KB public Swift source read; no large model files, no training, no GPU, no performance files modified"
+}

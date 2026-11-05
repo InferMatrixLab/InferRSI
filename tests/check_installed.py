@@ -15,7 +15,6 @@ assert Path(inferrsi.__file__).resolve().parent.parent.name != "src", (
     "This check requires an installed package"
 )
 records = knowledge_records()
-assert len(records) == 128, "Knowledge is missing from the installation"
 assert (
     files("inferrsi")
     .joinpath("data", "repo_packs", "vllm_omni", "knowledge", "README.md")
@@ -40,6 +39,8 @@ for record in mlx_records:
         "package:" + record["id"], mlx_document, revision=bundle.revision
     ) == files("inferrsi").joinpath(*mlx_document.split("/")).read_bytes()
 skill_index = search_knowledge(repo="inferrsi", limit=100)
+# Count topic records separately so independent skill/topic additions compose on merge.
+assert len(records) == 49 + len(skill_index), "Knowledge is missing from the installation"
 assert len(skill_index) == 80, "Missing installed skill abstracts"
 assert all(record["index_type"] == "packaged-skill" for record in skill_index)
 ascend_rc = KnowledgeReader().read("inferrsi.ascend.skills.vllm_ascend")

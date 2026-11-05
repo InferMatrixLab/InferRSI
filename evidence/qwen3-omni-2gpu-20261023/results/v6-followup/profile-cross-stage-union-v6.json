@@ -1,0 +1,109 @@
+{
+  "status": "INCONCLUSIVE",
+  "scope": "Cross-file process kernel intervals, not request critical path or available savings",
+  "execution_sha256": "b59040522d4df9e81ba7e9186bcf435b9dc6e6cbf57311880547238add46e7a0",
+  "server_log_sha256": "bd772aae7f3ea11b3b410865811d2f400e0251108271c265f6d9e1c90781fc0b",
+  "verified_artifacts": 18,
+  "mapping_evidence": "All config-chain hashes match execution; server startup mapping proves stage1 and stage2 share logicalGPU1 and stage0 uses separate logicalGPU0. Physical selectors omitted.",
+  "method": "gzip CRC/full JSON parse; explicit baseTimeNanoseconds + decimal ts*1000; integer ns endpoints; union and intersection on shared device only",
+  "limits": [
+    "Trace timestamps have emitted microsecond precision; ns arithmetic avoids epoch float cancellation but does not establish ns hardware accuracy.",
+    "No independent cross-process clock-skew calibration; Kineto common epoch supports alignment but small intersections near timing uncertainty should not be overinterpreted.",
+    "No stored request perf_counter-to-wall bridge; this is not an exact request window.",
+    "Kernel envelope omits startup/drain and includes any captured background kernels; gaps are not recoverable latency.",
+    "Memcpy/memset excluded; other processes not captured.",
+    "C64 retains JIT and profiler perturbation; no warmed service performance comparison."
+  ],
+  "rows": [
+    {
+      "concurrency": 1,
+      "trace_sources": [
+        {
+          "stage": 2,
+          "file": "traces/stage2/20261024-085619_stage2_rank0_1792803379/trace_rank0.json.gz",
+          "sha256": "cd41aac4b91372b2b94a04d5fb94251310f495da952cb1ad2aed0cd423d83a59",
+          "baseTimeNanoseconds": 1790857026000000000,
+          "kernel_count": 31608,
+          "trace_local_devices": [
+            "0"
+          ]
+        },
+        {
+          "stage": 0,
+          "file": "traces/stage0/20261024-085619_stage0_rank0_1792803379/trace_rank0.json.gz",
+          "sha256": "bfcbe6108a947b7b0b14ea93d1429946e43071864b2790035b82eab04de2df41",
+          "baseTimeNanoseconds": 1790857026000000000,
+          "kernel_count": 125244,
+          "trace_local_devices": [
+            "0"
+          ]
+        },
+        {
+          "stage": 1,
+          "file": "traces/stage1/20261024-085619_stage1_rank0_1792803379/trace_rank0.json.gz",
+          "sha256": "cbfe3473b49bd0c1797ff5c734347d5c51bd237a893d62d8eb6a2856565f3660",
+          "baseTimeNanoseconds": 1790857026000000000,
+          "kernel_count": 636721,
+          "trace_local_devices": [
+            "0"
+          ]
+        }
+      ],
+      "stage1_kernel_union_ms": 2079.635744,
+      "stage2_kernel_union_ms": 221.641405,
+      "speech_combined_union_ms": 2157.589996,
+      "speech_intersection_ms": 143.687153,
+      "speech_common_envelope_ms": 3142.438505,
+      "union_fraction_common_envelope": 0.6865973646157317,
+      "uncovered_inside_envelope_ms": 984.848509,
+      "first_kernel_epoch_ns": 1792803380136354979,
+      "last_kernel_end_epoch_ns": 1792803383278793484,
+      "jit_lines_in_phase": 0
+    },
+    {
+      "concurrency": 64,
+      "trace_sources": [
+        {
+          "stage": 2,
+          "file": "traces/stage2/20261024-085904_stage2_rank0_1792803544/trace_rank0.json.gz",
+          "sha256": "a03453c656fd80139dc54a7d5dfd84e3f1e8af817ab02ed45e1aafed959c1e65",
+          "baseTimeNanoseconds": 1790857026000000000,
+          "kernel_count": 108480,
+          "trace_local_devices": [
+            "0"
+          ]
+        },
+        {
+          "stage": 0,
+          "file": "traces/stage0/20261024-085901_stage0_rank0_1792803541/trace_rank0.json.gz",
+          "sha256": "8144d0d07b030bee5bccc17f82c6482b245e2463a189f3846318ac0a72063fe9",
+          "baseTimeNanoseconds": 1790857026000000000,
+          "kernel_count": 165685,
+          "trace_local_devices": [
+            "0"
+          ]
+        },
+        {
+          "stage": 1,
+          "file": "traces/stage1/20261024-085902_stage1_rank0_1792803542/trace_rank0.json.gz",
+          "sha256": "47bebde9c8c001e4f917dc511b9bd84c56bdefd4d7a94fa229cb8e36e560174a",
+          "baseTimeNanoseconds": 1790857026000000000,
+          "kernel_count": 338369,
+          "trace_local_devices": [
+            "0"
+          ]
+        }
+      ],
+      "stage1_kernel_union_ms": 2826.482059,
+      "stage2_kernel_union_ms": 2280.201738,
+      "speech_combined_union_ms": 3359.664048,
+      "speech_intersection_ms": 1747.019749,
+      "speech_common_envelope_ms": 6947.352022,
+      "union_fraction_common_envelope": 0.4835891484066215,
+      "uncovered_inside_envelope_ms": 3587.687974,
+      "first_kernel_epoch_ns": 1792803544937762735,
+      "last_kernel_end_epoch_ns": 1792803551885114757,
+      "jit_lines_in_phase": 4
+    }
+  ]
+}

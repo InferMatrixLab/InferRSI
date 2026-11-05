@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "phase": "SCREENING",
+  "status": "INCONCLUSIVE",
+  "promotion_eligible": false,
+  "acceptance_issue": "https://github.com/InferMatrixLab/InferRSI/issues/112",
+  "protocol": "../plan/protocol-v3.json",
+  "protocol_sha256": "16d7630cdc54ce4c556abe7a13269a3b73965ca2c975e7a91ac7985d340c719c",
+  "server_source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "benchmark_source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+  "revision_basis": "Actual source supplied by campaign operator; deployment bytes read from this commit.",
+  "source_attribution": {
+    "optimization_origin_sha": "d93e1a8e09d2a0d386c4a58424470d685ee7743c",
+    "url": "https://github.com/vllm-project/vllm-omni/blob/d93e1a8e09d2a0d386c4a58424470d685ee7743c/docs/design/qwen3_omni_mrv2_performance.md",
+    "qualification": "Existing upstream incremental predictor KV / optional short-KV mechanism enabled by deployment; no new algorithm or qualified speedup attributed to this campaign."
+  },
+  "deployment": {
+    "files": [
+      {
+        "file": "qwen3_omni_moe.yaml",
+        "source_path": "vllm_omni/deploy/qwen3_omni_moe.yaml",
+        "source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+        "sha256": "df882aa6ccc28a998dace784977b6d1dbf6c3225eb50b29f5aee2b9981ddd898"
+      },
+      {
+        "file": "qwen3_omni_moe_mrv2.yaml",
+        "source_path": "vllm_omni/deploy/qwen3_omni_moe_mrv2.yaml",
+        "source_sha": "f9feff996da2a60009d7626f9b7b09154acef824",
+        "sha256": "2287952a027d1df59c4fb7a6a19e9371653825294cfc6a6afc4703e684685e5a"
+      }
+    ],
+    "inheritance": "Predictor overlay inherits the MRv2 deployment, which inherits the baseline two-GPU placement.",
+    "logical_stage_devices": {
+      "thinker": 0,
+      "talker": 1,
+      "code2wav": 1
+    },
+    "requested_model_runners": "v2 for all three stages",
+    "runtime_evidence": "predictor-kv-runtime-excerpts.txt",
+    "overlay": {
+      "file": "predictor-kv.yaml",
+      "original_sha256": "f4154d99a7db91fc63b5b4f125410f2ea600f574167b1c76094943c40bda17ae",
+      "retained_sha256": "f5c20e5f857d8d6168721c34cfba9d203f16f1d6b33346de4bc3938440b147c0",
+      "redaction": "Absolute repository root in base_config replaced by <OMNI_REPO>; resolve that placeholder before use."
+    }
+  },
+  "hardware": {
+    "gpu": "NVIDIA L20X",
+    "count": 2,
+    "logical_devices": [
+      "0",
+      "1"
+    ],
+    "physical_mapping": "Host device indices redacted; both campaign-assigned GPUs used."
+  },
+  "environment": {
+    "torch": "2.13.0+cu130",
+    "vllm": "0.32.0",
+    "transformers": "5.16.1",
+    "flashinfer-python": "0.7.0.post1",
+    "triton": "3.7.1",
+    "numpy": "2.2.6",
+    "soundfile": "0.14.0",
+    "openai-whisper": "20250625",
+    "jiwer": "4.0.0",
+    "zhon": "2.1.1",
+    "omni_source_override": "PYTHONPATH selects frozen worktree; installed vllm-omni distribution metadata is stale and not the executed revision",
+    "tokenizers": "0.23.1",
+    "vllm-omni_distribution_metadata_only": "0.31.0rc2.dev289+g04aa51e9f.d20261019",
+    "OMP_NUM_THREADS": "1",
+    "HF_HUB_OFFLINE": "1",
+    "CUDA_VISIBLE_DEVICES": "<ASSIGNED_GPU_0>,<ASSIGNED_GPU_1>",
+    "overlay": "task-local runtime overlay ahead of site-packages; shared installation unchanged",
+    "transformers_metadata_sha256": "a552b99768921327581cb0e1389718d39cb25f09d4f49b80aa9fc27a843d09e4",
+    "tokenizers_metadata_sha256": "67226b8d55c78feec1f100f38cd5b04ad7385af8484696b7fd332c1d8cec4345"
+  },
+  "environment_basis": "Same task-local overlay and environment as baseline, per campaign operator; no claim of independent historical import capture.",
+  "workload": {
+    "dataset": "Seed-TTS Eval EN",
+    "selection": "first 256 rows, original order, no oversampling",
+    "meta_sha256": "7cd29f701743e6c7033edbca764ddc0b979de8c4f4907eff5e5454682114661f",
+    "selected_sha256": "4f6dea171994e984a9cd3db71dcb1fdddb590b26f87f82d21a457869d01e4024",
+    "user_prompt_wrapper": "benchmark_readback.py; target remains unwrapped for WER"
+  },
+  "run_order": [
+    1,
+    64
+  ],
+  "baseline_run_order": [
+    1,
+    2,
+    4,
+    8,
+    16,
+    32,
+    64
+  ],
+  "runs": [
+    {
+      "file": "predictor-kv-v3-c1.json",
+      "sha256": "0a6688dad40b570ca57b62b6b6b9fd46249c18172e8f9a69c07f14194d33d0ea",
+      "original_sha256": "83500d3dda1e3882ac4f53da8600cbf983a4a54b44910e8f3ee499b64ebd239a",
+      "concurrency": 1,
+      "requests": 256,
+      "replicate": 1,
+      "phase": "SCREENING",
+      "summary": {
+        "throughput_frames_s": 212848.46326809,
+        "ttfa_p50_ms": 77.07421202212572,
+        "ttfa_p95_ms": 88.28680287115276,
+        "rtf_mean": 0.11620228176860124,
+        "completed": 256
+      }
+    },
+    {
+      "file": "predictor-kv-v3-c64.json",
+      "sha256": "d8c7f87d570678cb42e375f423180f8459f3f55c32987eb290dc3cef45e813ea",
+      "original_sha256": "56204224ac27f45de096c5afeb51572a6f2d4674e0695d93df76bb481792eede",
+      "concurrency": 64,
+      "requests": 256,
+      "replicate": 1,
+      "phase": "SCREENING",
+      "summary": {
+        "throughput_frames_s": 1888599.6518175674,
+        "ttfa_p50_ms": 375.394050963223,
+        "ttfa_p95_ms": 3290.8157967031,
+        "rtf_mean": 0.843243016968316,
+        "completed": 256
+      }
+    }
+  ],
+  "jit_observations": {
+    "artifact": "predictor-kv-runtime-excerpts.txt",
+    "sha256": "e358dfdd6c3100b8c5cf9621fe79fd7e27f77c241dd52eceda32c1e85989f012",
+    "events": [
+      {
+        "source_line": 622,
+        "sanitized_log_line": "(StageEngineCoreProc_stage0_replica0 pid=<PROCESS_ID>) WARNING 10-23 12:37:36 [jit_monitor.py:140] Triton kernel JIT compilation during inference: fused_moe_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+      },
+      {
+        "source_line": 623,
+        "sanitized_log_line": "(StageEngineCoreProc_stage1_replica0 pid=<PROCESS_ID>) WARNING 10-23 12:37:38 [jit_monitor.py:140] Triton kernel JIT compilation during inference: _topk_topp_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+      },
+      {
+        "source_line": 624,
+        "sanitized_log_line": "(StageEngineCoreProc_stage1_replica0 pid=<PROCESS_ID>) WARNING 10-23 12:37:39 [jit_monitor.py:140] Triton kernel JIT compilation during inference: _gumbel_sample_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+      },
+      {
+        "source_line": 1151,
+        "sanitized_log_line": "(StageEngineCoreProc_stage1_replica0 pid=<PROCESS_ID>) WARNING 10-23 12:40:19 [jit_monitor.py:140] Triton kernel JIT compilation during inference: fused_moe_kernel. This causes a latency spike; consider extending warmup to cover this shape/config."
+      }
+    ],
+    "interpretation": "All logged JIT events retained without inferring which requests they affected. For predictor-kv v3, the campaign operator identifies the 12:40:19 fused_moe event during C64. Raw samples are not trimmed."
+  },
+  "quality": {
+    "status": "not_run",
+    "promotion_blocker": true
+  },
+  "limitations": [
+    "SCREENING only: one C1 then C64 run, no quality evaluation, no complete candidate matrix or repeated alternating AB/BA trials.",
+    "Inference-time JIT events and unmatched warmup histories prevent warmed comparative claims.",
+    "The future formal-comparison protocol v4 is separate; v3 screens are not pooled with v4 trials.",
+    "No outlier removal; all request rows and reported metrics are retained.",
+    "PCM sample frames/s is reported, not codec frames/s."
+  ],
+  "redaction": {
+    "changes": [
+      "tokenizer_id replaced by <MODEL_PATH>",
+      "Startup paths and process IDs replaced by placeholders",
+      "Host device indices represented as logical 0/1",
+      "Overlay base_config repository root replaced by <OMNI_REPO>"
+    ],
+    "preserved": "All request rows, timings, errors, generated text and numeric aggregates; no outliers excluded.",
+    "originals": "Private original JSON/logs retained locally; original hashes do not imply public availability."
+  },
+  "candidate": "predictor-kv"
+}
