@@ -1,0 +1,49 @@
+docs/reference-matrix.md
+  s_33b92c38f948ae::t_794cfbdb6173b7 554
+docs/searchspace-matrix.md
+  s_33b92c38f948ae::t_07dacfe974d9c7 624
+docs/skill-coverage.md
+  s_33b92c38f948ae::t_738cf4d2ca8dcb 7,120
+src/inferrsi/data/skill_library/repositories/vllm-ascend/SKILL.md
+  s_33b92c38f948ae::t_e7a4beefd1dac3 3,6,17-30
+src/inferrsi/data/skill_library/repositories/vllm-ascend/metadata.json
+  s_33b92c38f948ae::t_932008de44db2d 19-32,42-43,46-78,80-93,95-98,101-115,117-120,126-129,133,135,142-144
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/communication-config.md
+  s_33b92c38f948ae::t_4a5367adfcc9cd 1-69
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/deepseek-v4-evolution.md
+  s_33b92c38f948ae::t_8c9cfb18e19457 1-70
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/fused-operators.md
+  s_33b92c38f948ae::t_7867cc0ec4bef2 1-62
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/history-inventory.json
+  s_33b92c38f948ae::t_f4d6a7cef238e0 1-30368
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/history-reviewed.json
+  s_33b92c38f948ae::t_576a80662904ce 1-421
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/history-scope.md
+  s_33b92c38f948ae::t_8c534fe6534da7 1-33
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/model-performance.md
+  s_33b92c38f948ae::t_9f62bab42c897b 1-81
+src/inferrsi/data/skill_library/repositories/vllm-ascend/references/sources.md
+  s_33b92c38f948ae::t_c12e3ca24c8e3f 28-95
+src/inferrsi/data/skill_library/repositories/vllm-ascend/scripts/screen_history.py
+  s_33b92c38f948ae::t_f1f450104d98e9 1-85
+tests/check_installed.py
+  s_33b92c38f948ae::t_09c51a27b70257 46-48
+tests/test_vllm_ascend_rc_skill.py
+  s_33b92c38f948ae::t_0c3131390892d6 1-2,4,20-23,30,41-95
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "5004c0efeafb4772449588d23a6e6d8e00dd1a9d",
+  "prompts": {},
+  "sessions": {
+    "s_33b92c38f948ae": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1a999-4b43-7fb3-8dab-9aeba113b3d9",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
