@@ -21,7 +21,10 @@ ADVICE = (
 
 def manifest_problems(manifest: list[dict]) -> list[str]:
     problems = []
-    for entry in manifest:
+    for index, entry in enumerate(manifest, start=1):
+        if not isinstance(entry, dict):
+            problems.append(f"labels.json entry {index}: expected an object")
+            continue
         name = entry.get("name")
         if set(entry) != {"name", "group", "description"}:
             problems.append(f"{name}: expected exactly name, group and description")
@@ -32,7 +35,8 @@ def manifest_problems(manifest: list[dict]) -> list[str]:
         description = entry["description"]
         if not isinstance(description, str) or not 0 < len(description) <= MAX_DESCRIPTION:
             problems.append(f"{name}: description must have 1-{MAX_DESCRIPTION} characters")
-    names = [entry.get("name") for entry in manifest]
+    names = [entry.get("name") for entry in manifest
+             if isinstance(entry, dict) and isinstance(entry.get("name"), str)]
     problems += [f"{name}: listed more than once"
                  for name in sorted({name for name in names if names.count(name) > 1}, key=str)]
     return problems
@@ -41,7 +45,10 @@ def manifest_problems(manifest: list[dict]) -> list[str]:
 def external_problems(external: list[dict], manifest: list[dict]) -> list[str]:
     problems = []
     names = []
-    for entry in external:
+    for index, entry in enumerate(external, start=1):
+        if not isinstance(entry, dict):
+            problems.append(f"external-labels.json entry {index}: expected an object")
+            continue
         name = entry.get("name")
         if set(entry) != {"name", "owner"}:
             problems.append(f"{name}: expected exactly name and owner")
@@ -55,7 +62,8 @@ def external_problems(external: list[dict], manifest: list[dict]) -> list[str]:
             problems.append(f"{name}: owner must name the app that applies it")
     problems += [f"{name}: listed more than once"
                  for name in sorted({n for n in names if names.count(n) > 1})]
-    listed = {e["name"] for e in manifest if isinstance(e.get("name"), str)}
+    listed = {e["name"] for e in manifest
+              if isinstance(e, dict) and isinstance(e.get("name"), str)}
     problems += [f"{name}: external labels cannot also be in labels.json"
                  for name in sorted(set(names) & listed)]
     return problems

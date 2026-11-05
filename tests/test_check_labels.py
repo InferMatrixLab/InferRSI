@@ -55,6 +55,39 @@ def test_duplicate_names_are_reported():
     ]
 
 
+@pytest.mark.parametrize("bad", ["kind:bug", None, [], 7, True])
+def test_nonobject_entries_are_reported_in_both_manifests(bad):
+    assert check.manifest_problems([entry("kind:bug"), bad]) == [
+        "labels.json entry 2: expected an object"
+    ]
+    assert check.external_problems([{"name": "bot-reviewed", "owner": "app"}, bad], []) == [
+        "external-labels.json entry 2: expected an object"
+    ]
+
+
+def test_invalid_entries_do_not_hide_duplicates_or_overlap():
+    manifest = [None, entry("kind:bug"), entry("kind:bug")]
+    assert check.manifest_problems(manifest) == [
+        "labels.json entry 1: expected an object",
+        "kind:bug: listed more than once",
+    ]
+    external = [None, {"name": "kind:bug", "owner": "app"},
+                {"name": "kind:bug", "owner": "app"}]
+    assert check.external_problems(external, manifest) == [
+        "external-labels.json entry 1: expected an object",
+        "kind:bug: listed more than once",
+        "kind:bug: external labels cannot also be in labels.json",
+    ]
+
+
+@pytest.mark.parametrize("name", [["a", "b"], {"a": 1}, 7, None])
+def test_unusable_managed_names_do_not_reach_duplicate_checks(name):
+    bad = {"name": name, "group": "kind", "description": "Meaning"}
+    problems = check.manifest_problems([bad, bad])
+    assert len(problems) == 2
+    assert all("name must have the form" in problem for problem in problems)
+
+
 @pytest.mark.parametrize("bad, message", [
     ({"name": "bot-reviewed"}, "exactly name and owner"),
     ({"name": "bot-reviewed", "owner": "a", "note": "b"}, "exactly name and owner"),
@@ -157,3 +190,21 @@ def test_main_reports_each_drift_line_and_fails(tmp_path, capsys):
         "label drift: ::error::x: in the repository, missing from labels.json",
     ]
     assert "labels.json" in out[2] and len(out) == 3
+
+
+@pytest.mark.parametrize("filename", ["labels.json", "external-labels.json"])
+@pytest.mark.parametrize("bad", ["kind:bug", None])
+def test_main_reports_nonobject_entries_and_fails_without_drift(
+        tmp_path, monkeypatch, capsys, filename, bad):
+    github = tmp_path / ".github"
+    github.mkdir()
+    for name, entries in [("labels.json", MANIFEST), ("external-labels.json", EXTERNAL)]:
+        (github / name).write_text(json.dumps([bad] if name == filename else entries),
+                                  encoding="utf-8")
+    monkeypatch.setattr(check, "ROOT", tmp_path)
+    # No ISSUE_TEMPLATE directory exists: drift/reference reads must not run after validation fails.
+    assert check.main([write_lines(tmp_path / "labels.jsonl", LIVE)]) == 1
+    assert capsys.readouterr().out.splitlines() == [
+        f"label drift: {filename} entry 1: expected an object",
+        check.ADVICE,
+    ]
