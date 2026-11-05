@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.audit_recurrent_kv_finalization",
   "title": "audit-recurrent-kv-finalization",
   "repo": "inferrsi",
@@ -26,16 +26,15 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
-      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
+      "snapshot": "_provenance.json",
+      "path": "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
       "paths": [
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/LICENSE",
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/SKILL.md",
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/metadata.json",
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/NOTICE.md",
         "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-identity.json",
-        "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-notes.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
+        "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-notes.md"
       ],
       "content_sha256": "a468d75f25e77b96e6fb5376692f7a89c0464cc00d4df035f1dc6cc923f713cc"
     }
@@ -51,8 +50,7 @@
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/metadata.json": "dfd605f8f31740565063fad0785dea3e7751b8deea4d43e1a66ca30d92ae901f",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/NOTICE.md": "cca794656897ecdc37f983f7f23c4cd12306dbe3c9cd2f54fece6340753ae4cf",
     "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-identity.json": "5e52db0a0bda4673b9aac46a3fc035b824780def72921fee6796edb2ed9fca65",
-    "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-notes.md": "0956f59cd9a1fac27da53228dd60c51a07b87639a43c09bfab296c4aeeceaab9",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/repositories/vllm-rlt/audit-recurrent-kv-finalization/references/source-notes.md": "0956f59cd9a1fac27da53228dd60c51a07b87639a43c09bfab296c4aeeceaab9"
   },
   "skill_metadata": {
     "name": "audit-recurrent-kv-finalization",

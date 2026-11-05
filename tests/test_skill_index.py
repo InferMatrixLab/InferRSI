@@ -5,6 +5,7 @@ from pathlib import Path
 
 import pytest
 
+from inferrsi._skill_provenance import MANIFEST
 from inferrsi.arguments import parser
 from inferrsi.catalog import REPO_TYPES, repository_pack, search_knowledge
 from inferrsi.cli import main
@@ -75,6 +76,14 @@ def test_generated_index_matches_current_sources_without_historical_git_objects(
         for path in destination.rglob("*") if path.is_file()
     }
     assert actual == generated
+    snapshot = json.loads(actual[MANIFEST])
+    assert snapshot["source_revision"] in {
+        record["sources"][0]["commit"] for record in records
+    }
+    assert all(
+        json.loads(text)["schema_version"] == 2
+        for name, text in actual.items() if name.endswith(".json") and name != MANIFEST
+    )
 
 
 def test_committed_source_hashes_preserve_binary_and_newline_bytes(tmp_path):

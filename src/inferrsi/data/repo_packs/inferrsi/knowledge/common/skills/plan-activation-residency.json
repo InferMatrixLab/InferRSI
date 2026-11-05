@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.common.skills.plan_activation_residency",
   "title": "plan-activation-residency",
   "repo": "inferrsi",
@@ -16,13 +16,12 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
-      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
+      "snapshot": "_provenance.json",
+      "path": "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
       "paths": [
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md",
         "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json",
-        "src/inferrsi/data/skill_library/methods/plan-activation-residency/references/source-notes.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
+        "src/inferrsi/data/skill_library/methods/plan-activation-residency/references/source-notes.md"
       ],
       "content_sha256": "542d8a1e6963f5019986e1fbd79d3a247a045a51487c09313026087ac457c15e"
     }
@@ -35,8 +34,7 @@
   "source_files": {
     "src/inferrsi/data/skill_library/methods/plan-activation-residency/SKILL.md": "542d8a1e6963f5019986e1fbd79d3a247a045a51487c09313026087ac457c15e",
     "src/inferrsi/data/skill_library/methods/plan-activation-residency/metadata.json": "0289c62f93d087cd6a4ba4140487925c4b3258a9db1f7004ff1dfb22fd6d4582",
-    "src/inferrsi/data/skill_library/methods/plan-activation-residency/references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/methods/plan-activation-residency/references/source-notes.md": "5ff52655cfd06fcf970ed2a7d4d4fe1c31115b102af2d41497de0c74848ed2b3"
   },
   "skill_metadata": {
     "name": "plan-activation-residency",

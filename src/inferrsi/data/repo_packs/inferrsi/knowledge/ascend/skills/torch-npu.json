@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "inferrsi.ascend.skills.torch_npu",
   "title": "torch-npu",
   "repo": "inferrsi",
@@ -20,8 +20,8 @@
   "sources": [
     {
       "type": "git",
-      "url": "https://github.com/InferMatrixLab/InferRSI/blob/1e87be46b8d080d439bb516ed9fa9092f8306f62/src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md",
-      "commit": "1e87be46b8d080d439bb516ed9fa9092f8306f62",
+      "snapshot": "_provenance.json",
+      "path": "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md",
       "paths": [
         "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/SKILL.md",
         "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/metadata.json",
@@ -81,8 +81,7 @@
         "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/metadata.json",
         "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/source-map.md",
         "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/training.md",
-        "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/troubleshooting.md",
-        "src/inferrsi/data/skill_library/skill-index.json"
+        "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/troubleshooting.md"
       ],
       "content_sha256": "7e92d5c8d3d49ebe72613a2eac0855b8d7faa670277f6d1a1f6b84ed0fe7441b"
     }
@@ -151,8 +150,7 @@
     "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/metadata.json": "73e71cdcb98e187f1470eb71ec9030fa870e46d8cf6eaf396860b712c491aefa",
     "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/source-map.md": "3bfc78d9348f9a1072120f82d7a1a7f042b4fe2ce908a005e22716a797dc0c7b",
     "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/training.md": "0695532020c71d061ddf40ad16536621e004c23dd05d27aaa9f5b46101f6ef62",
-    "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/troubleshooting.md": "0f7fb3879d51c793ca0fd6d14fd34352f94297f075295d01488ffab4c5fc0fa4",
-    "src/inferrsi/data/skill_library/skill-index.json": "7904275c3383380db179287171e1430617aaa9ac4f439291eff8a71426987fbb"
+    "src/inferrsi/data/skill_library/frameworks/torch-npu/torch-npu/sub-skills/training-and-precision/references/troubleshooting.md": "0f7fb3879d51c793ca0fd6d14fd34352f94297f075295d01488ffab4c5fc0fa4"
   },
   "skill_metadata": {
     "name": "torch-npu",

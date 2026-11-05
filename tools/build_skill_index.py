@@ -13,12 +13,12 @@ import json
 import subprocess
 from pathlib import Path
 
+from inferrsi._skill_provenance import MANIFEST, REGISTRY, REPOSITORY
 from inferrsi.skill_catalog import skill_metadata, skill_records
 
 PROJECT = Path(__file__).resolve().parents[1]
 LIBRARY = Path("src/inferrsi/data/skill_library")
 DESTINATION = Path("src/inferrsi/data/repo_packs/inferrsi/knowledge")
-REPOSITORY = "https://github.com/InferMatrixLab/InferRSI"
 # Match the comparison tool: replacement refs and lazy promisor fetches must not
 # change the bytes hashed for a pinned revision.
 GIT_READ = ("git", "--no-replace-objects", "--no-lazy-fetch")
@@ -109,7 +109,12 @@ def recommendations(metadata: dict) -> list[str]:
 
 def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dict[str, str]:
     """Render the projection without requiring historical Git objects."""
-    outputs = {}
+    outputs = {MANIFEST: json.dumps({
+        "schema_version": 1,
+        "repository": REPOSITORY,
+        "source_revision": revision,
+        "registry": {"path": REGISTRY, "sha256": source_files[REGISTRY]},
+    }, ensure_ascii=False, indent=2) + "\n"}
     links = []
     entries = _registry(root)
     for selected in skill_records(root):
@@ -120,13 +125,12 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         hashes = {
             path: digest for path, digest in sorted(source_files.items())
             if path.startswith(f"{directory}/")
-            or path == f"{LIBRARY.as_posix()}/skill-index.json"
         }
         paths = list(hashes)
         entry = f"{directory}/SKILL.md"
         state = metadata.get("status", "unspecified")
         record = {
-            "schema_version": 1,
+            "schema_version": 2,
             "id": f"inferrsi.{backend}.skills.{name.replace('-', '_')}",
             "title": name,
             "repo": "inferrsi",
@@ -140,8 +144,8 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
             "origin": metadata.get("origin", ["unknown"]),
             "sources": [{
                 "type": "git",
-                "url": f"{REPOSITORY}/blob/{revision}/{entry}",
-                "commit": revision,
+                "snapshot": MANIFEST,
+                "path": entry,
                 "paths": paths,
                 "content_sha256": hashes[entry],
             }],
@@ -184,7 +188,11 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         "These are knowledge abstracts (`--kind knowledge`), with namespaced package",
         "IDs distinct from explicitly selected `checkout_ref` skills. Ascend/CUDA",
         "procedures use their corresponding backend; shared methods use `common`.", "",
-        f"Source snapshot: [{revision}]({REPOSITORY}/tree/{revision}/{LIBRARY.as_posix()}).", "",
+        f"Source snapshot and registry hash: [{MANIFEST}]({MANIFEST}).", "",
+        "Stored schema-v2 projections contain owner-local hashes and a fixed snapshot reference.",
+        "The catalog resolves that shared manifest into the existing schema-v1 records with",
+        "complete Git URLs, commits, source paths and registry hashes. No network lookup occurs.",
+        "",
         "```bash",
         "inferrsi knowledge search 'profiling' --repo-type inferrsi --limit 50",
         "inferrsi collect --repo-type inferrsi --kind knowledge --limit 50 --material",
@@ -195,7 +203,7 @@ def render_index(root: Path, revision: str, source_files: dict[str, str]) -> dic
         "`source_files` hashes identify the canonical Git bytes, not a validation result.", "",
         "```bash",
         "python tools/build_skill_index.py --source-revision <committed-source-revision>",
-        f"python tools/build_skill_index.py --source-revision {revision} --check",
+        "python tools/build_skill_index.py --source-revision <committed-source-revision> --check",
         "```", "",
         "`--check` detects missing, stale and unexpected generated records without writing.",
         "References and cases ship with their owning skill, not as duplicate knowledge abstracts.",
@@ -226,7 +234,7 @@ def main(argv: list[str] | None = None) -> int:
         if stale or changed:
             print("Skill index drift: " + ", ".join(sorted(stale | set(changed))))
             return 1
-        print(f"Skill index is current: {len(outputs) - 1} metadata records")
+        print(f"Skill index is current: {len(outputs) - 2} metadata records")
         return 0
     if stale:
         raise ValueError("Remove obsolete generated files explicitly: " + ", ".join(sorted(stale)))
@@ -234,7 +242,7 @@ def main(argv: list[str] | None = None) -> int:
         path = destination / relative
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(outputs[relative], encoding="utf-8", newline="\n")
-    print(f"Generated {len(outputs) - 1} skill metadata records")
+    print(f"Generated {len(outputs) - 2} skill metadata records")
     return 0
 
 

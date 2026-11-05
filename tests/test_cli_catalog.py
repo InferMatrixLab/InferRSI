@@ -152,6 +152,9 @@ def test_knowledge_has_one_canonical_record_and_complete_navigation():
         assert list(root.rglob("*.md")) == [root / "README.md"]
         index = (root / "README.md").read_text(encoding="utf-8")
         targets = set(re.findall(r"\]\(([^)]+\.json)\)", index))
+        if repo == "inferrsi":
+            assert "_provenance.json" in targets
+            targets.remove("_provenance.json")  # Shared snapshot, not a knowledge owner.
         assert targets == {path.relative_to(root).as_posix() for path in paths}
     for record in records:
         assert "/pull/" not in json.dumps(record)
