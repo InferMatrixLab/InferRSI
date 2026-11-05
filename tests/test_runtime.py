@@ -104,6 +104,26 @@ class RuntimeTests(unittest.TestCase):
         path = run_experiment(replace(self.spec, **changes), {"backend": "cpu", "test": True})
         return path, json.loads((path / "evaluation.json").read_text(encoding="utf-8"))
 
+    def test_validation_exit_code_can_distinguish_missing_evidence(self):
+        for code, selected, verdict in ((2, 2, "INCONCLUSIVE"), (1, 2, "FAIL"), (2, None, "FAIL")):
+            with self.subTest(code=code, selected=selected):
+                path, evaluation = self.run_spec(
+                    validation_command=(sys.executable, "-c", f"raise SystemExit({code})"),
+                    validation_inconclusive_exit_code=selected,
+                )
+                self.assertEqual(evaluation["verdict"], verdict)
+                record = json.loads((path / "validation/execution.json").read_text())
+                self.assertEqual((record["status"], record["returncode"]), ("failed", code))
+
+    def test_inconclusive_exit_code_requires_nonzero_status_and_validation(self):
+        for code in (0, 256, -1, True, 2.0):
+            with self.subTest(code=code), self.assertRaisesRegex(ValueError, "from 1 to 255"):
+                replace(self.spec, validation_inconclusive_exit_code=code).validate()
+        with self.assertRaisesRegex(ValueError, "requires a validation_command"):
+            replace(
+                self.spec, validation_command=None, validation_inconclusive_exit_code=2
+            ).validate()
+
     def test_positive_gain_with_explicit_quality_passes_and_alternates_order(self):
         path, evaluation = self.run_spec()
         self.assertEqual(evaluation["verdict"], "PASS")

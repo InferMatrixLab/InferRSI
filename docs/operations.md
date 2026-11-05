@@ -209,7 +209,8 @@ compatibility.
 - **Output:** a run ID and evidence directory; recorded progress; an HTML report.
 - **Side effects:** `run` executes the supplied commands and owns child-process cleanup; `report` writes HTML into the run directory.
 - **Failure behavior:** exit codes 0 PASS, 1 FAIL, 2 INCONCLUSIVE/input errors; cancellation is recorded.
-- **Example:** see [quickstart: real remote experiment](quickstart.md#real-remote-experiment)
+- **Validation evidence:** a validator may reserve a nonzero exit for insufficient evidence. Pass that value with `--validation-inconclusive-exit-code` to classify the quality evidence as incomplete while preserving the recorded exit. This setting applies only to the validation command.
+- **Example:** see [quickstart: real remote experiment](quickstart.md#real-remote-experiment) or the [optional AISBench adapter](aisbench.md).
 
 Operation success, recorded execution state and the experiment verdict are
 distinct conclusions; a completed run does not upgrade imported knowledge or

@@ -33,6 +33,7 @@ class RunSpec:
     executor: str = "default"
     snapshot_id: str = ""
     output_dir: str = "runs"
+    validation_inconclusive_exit_code: int | None = None
 
     def to_dict(self) -> dict:
         return asdict(self)
@@ -69,6 +70,14 @@ class RunSpec:
                 raise ValueError(f"{label} must be a nonempty argv sequence of strings")
             if not command[0]:
                 raise ValueError(f"{label} executable cannot be empty")
+        code = self.validation_inconclusive_exit_code
+        if code is not None:
+            if type(code) is not int or not 1 <= code <= 255:
+                raise ValueError(
+                    "validation_inconclusive_exit_code must be an integer from 1 to 255"
+                )
+            if self.validation_command is None:
+                raise ValueError("validation_inconclusive_exit_code requires a validation_command")
         if self.direction not in {"minimize", "maximize"}:
             raise ValueError("direction must be minimize or maximize")
         if self.mode not in {"config", "code", "semantic"}:

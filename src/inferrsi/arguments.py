@@ -82,6 +82,11 @@ def parser() -> argparse.ArgumentParser:
             help="Explicit quality/correctness command; missing evidence is INCONCLUSIVE",
         )
         child.add_argument(
+            "--validation-inconclusive-exit-code",
+            type=int,
+            help="Treat this nonzero validation exit code as insufficient quality evidence",
+        )
+        child.add_argument(
             "--metric-key",
             default="metrics.latency_ms",
             help="Flat or dotted key in benchmark JSON",
@@ -290,6 +295,7 @@ def make_spec(args: argparse.Namespace) -> RunSpec:
         baseline_command=command(args.baseline_command),
         candidate_command=command(args.candidate_command),
         validation_command=command(args.validation_command),
+        validation_inconclusive_exit_code=args.validation_inconclusive_exit_code,
         metric_key=args.metric_key,
         metric_unit=args.metric_unit,
         comparison_scope=args.comparison_scope,

@@ -91,7 +91,7 @@ examples above explicitly adds that root's skill and case IDs.
 doctor: --repo --repo-type --backend --device-ids --device-model --python
 plan/run: all doctor flags, plus
   --candidate-repo --scenario --mode --agent --executor local
-  --baseline-command --candidate-command --validation-command
+  --baseline-command --candidate-command --validation-command --validation-inconclusive-exit-code
   --metric-key --metric-unit --comparison-scope --direction
   --repetitions --min-improvement-pct --max-minutes
   --workload-id --model --model-revision --output-dir --dry-run
@@ -104,6 +104,8 @@ context: QUERY --tier --repo-type --backend --scenario --limit --output
 Scenario/model/workload/Agent fields retain caller declarations. They do not start an Agent or automatically generate model recipes. The initial evaluator checks one positive numeric metric and the caller's validation command. It does not implement all SLO/quality metrics from the target design.
 
 ## Benchmark result contract
+
+For an optional service evaluator using the same command boundary, see the [AISBench performance and accuracy example](aisbench.md).
 
 The benchmark writes JSON to `{result}` or `INFERRSI_RESULT_PATH`. Any flat or dotted positive numeric key is supported:
 
