@@ -629,10 +629,11 @@ function createRemoteManager({
         destroy(entry);
         return { status: 'closed' };
       }
-      if (closedReceipts.has(id) && closedReceipts.get(id) === sessionId) {
+      if (closedReceipts.has(id)) {
+        if (closedReceipts.get(id) !== sessionId) fail('connection_unavailable');
         return { status: 'already_closed' };
       }
-      fail('connection_unavailable');
+      fail('unknown_receipt');
     },
     closeSession(sessionId) {
       try {

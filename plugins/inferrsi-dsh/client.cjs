@@ -3,9 +3,16 @@ const { buildPrompt } = require('./form.cjs');
 const h = React.createElement;
 // Only receipts already authorized for closure survive a form remount. No credentials.
 const pendingClosures = new Map();
+const unknownClosures = new Map();
+const closingReceipts = new Map();
 
 function queuedClosures(sessionId) {
   return pendingClosures.get(sessionId) || new Set();
+}
+
+function removeReceipt(records, sessionId, connectionId) {
+  records.get(sessionId)?.delete(connectionId);
+  if (!records.get(sessionId)?.size) records.delete(sessionId);
 }
 
 const styles = `
@@ -59,6 +66,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const [testing, setTesting] = React.useState(false);
   const [uncertain, setUncertain] = React.useState(false);
   const [closeState, setCloseState] = React.useState(queuedClosures(sessionId).size ? 'failed' : 'idle');
+  const [forgetId, setForgetId] = React.useState(null);
   const dialog = React.useRef(null);
   const inFlight = React.useRef(false);
   const sentOnce = React.useRef(false);
@@ -68,6 +76,7 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
   const connectionRef = React.useRef(null);
   const connectionHandoff = React.useRef('owned');
   const closeAttempt = React.useRef(null);
+  const forgetSelection = React.useRef(null);
 
   function abandonConnection(receipt) {
     if (!receipt || connectionRef.current !== receipt) return;
@@ -82,6 +91,11 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     if (!receipt) return true;
     if (!pendingClosures.has(sessionId)) pendingClosures.set(sessionId, new Set());
     pendingClosures.get(sessionId).add(receipt.connectionId);
+    removeReceipt(unknownClosures, sessionId, receipt.connectionId);
+    if (forgetSelection.current?.connectionId === receipt.connectionId) {
+      forgetSelection.current = null;
+      if (mounted.current) setForgetId(null);
+    }
     if (closeAttempt.current?.pending) {
       const pending = closeAttempt.current;
       const closed = await pending.promise;
@@ -91,11 +105,22 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     closeAttempt.current = attempt;
     if (mounted.current) setCloseState('closing');
     attempt.promise = (async () => {
+      if (!closingReceipts.has(sessionId)) closingReceipts.set(sessionId, new Map());
+      const requests = closingReceipts.get(sessionId);
+      const request = requests.get(receipt.connectionId) || { pending: 0 };
+      const token = {};
+      request.latest = token;
+      request.pending += 1;
+      requests.set(receipt.connectionId, request);
       try {
         const result = await remoteRequest({ action: 'close', sessionId, connectionId: receipt.connectionId });
-        if (!['closed', 'already_closed'].includes(result?.status)) throw new Error('close_unconfirmed');
-        pendingClosures.get(sessionId)?.delete(receipt.connectionId);
-        if (!queuedClosures(sessionId).size) pendingClosures.delete(sessionId);
+        if (!['closed', 'already_closed'].includes(result?.status)) {
+          const error = new Error('close_unconfirmed');
+          if (result?.status === 'error') error.code = result.code;
+          throw error;
+        }
+        removeReceipt(pendingClosures, sessionId, receipt.connectionId);
+        removeReceipt(unknownClosures, sessionId, receipt.connectionId);
         if (connectionRef.current === receipt) {
           connectionRef.current = null;
           connectionHandoff.current = 'owned';
@@ -114,7 +139,14 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
         }
         if (closeAttempt.current === attempt) closeAttempt.current = null;
         return true;
-      } catch {
+      } catch (failure) {
+        if (request.latest === token) {
+          removeReceipt(unknownClosures, sessionId, receipt.connectionId);
+          if (failure?.code === 'unknown_receipt' && queuedClosures(sessionId).has(receipt.connectionId)) {
+            if (!unknownClosures.has(sessionId)) unknownClosures.set(sessionId, new Map());
+            unknownClosures.get(sessionId).set(receipt.connectionId, token);
+          }
+        }
         if (mounted.current) {
           setCloseState('failed');
           setError('尚未确认远程连接已断开。连接标识已保留，请重试断开；确认前不能修改连接或提交任务。');
@@ -122,6 +154,8 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
         return false;
       } finally {
         attempt.pending = false;
+        request.pending -= 1;
+        if (!request.pending) removeReceipt(closingReceipts, sessionId, receipt.connectionId);
       }
     })();
     return attempt.promise;
@@ -258,6 +292,43 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
     }
   }
 
+  function canForget(connectionId) {
+    return !closeAttempt.current?.pending && queuedClosures(sessionId).has(connectionId)
+      && !closingReceipts.get(sessionId)?.get(connectionId)?.pending
+      && unknownClosures.get(sessionId)?.has(connectionId);
+  }
+
+  function selectForget(connectionId) {
+    if (!canForget(connectionId)) return;
+    forgetSelection.current = { connectionId, token: unknownClosures.get(sessionId).get(connectionId) };
+    setForgetId(connectionId);
+  }
+
+  function forgetReceipt(connectionId) {
+    if (forgetSelection.current?.connectionId !== connectionId) return;
+    if (!canForget(connectionId) || forgetSelection.current.token !== unknownClosures.get(sessionId)?.get(connectionId)) {
+      forgetSelection.current = null;
+      setForgetId(null);
+      return;
+    }
+    removeReceipt(pendingClosures, sessionId, connectionId);
+    removeReceipt(unknownClosures, sessionId, connectionId);
+    if (connectionRef.current?.connectionId === connectionId) {
+      connectionRef.current = null;
+      connectionHandoff.current = 'owned';
+      sentOnce.current = false;
+      setConnection(null);
+      setConnectionState(null);
+      setUncertain(false);
+      setSent(false);
+    }
+    if (closeAttempt.current?.connectionId === connectionId) closeAttempt.current = null;
+    forgetSelection.current = null;
+    setForgetId(null);
+    setCloseState(queuedClosures(sessionId).size ? 'failed' : 'idle');
+    setError('已仅移除所选本地连接记录，未确认远程连接或任务停止。请自行检查远程机器并清理可能仍在运行的任务，再重新连接。');
+  }
+
   function field(name, label, { options, multiline = false, wide = false, ...attributes } = {}) {
     const props = {
       name, value: form[name], disabled: sending || testing || lockedConnection || (form.execution === 'remote' && session.running),
@@ -347,6 +418,15 @@ function IterationForm({ sessionId, useSession, useSessions, useAccess, submitPr
         h('button', { type: 'button', disabled: testing, onClick: () => setOpen(false) }, '保留连接，查看会话'),
         h('button', { type: 'button', disabled: testing || closeState === 'closing', onClick: disconnectHandoff }, closeState === 'closing' ? '正在断开…'
           : protectedConnection ? '断开远程连接（可能中止任务）' : '重试断开远程连接')),
+      [...queuedClosures(sessionId)].filter(canForget)
+        .map(connectionId => h('div', { key: connectionId, className: 'irsi-message', 'data-connection-id': connectionId },
+          h('p', null, '宿主已找不到这条连接记录；这不代表远程连接或任务已经停止。'),
+          h('code', { className: 'irsi-fingerprint' }, connectionId),
+          forgetId === connectionId && forgetSelection.current?.token === unknownClosures.get(sessionId)?.get(connectionId) ? h(React.Fragment, null,
+            h('p', null, '确认仅放弃这条本地记录？这不会关闭远程连接，也无法确认远程任务停止。你需要自行核验并清理远程任务。'),
+            h('button', { type: 'button', disabled: closeState === 'closing', onClick: () => forgetReceipt(connectionId) }, '确认放弃本地记录'),
+            h('button', { type: 'button', onClick: () => { forgetSelection.current = null; setForgetId(null); } }, '取消'))
+            : h('button', { type: 'button', disabled: closeState === 'closing', onClick: () => selectForget(connectionId) }, '放弃此本地连接记录'))),
       sent && h('div', { className: 'irsi-message', role: 'status' }, '任务已发送到当前 Agent。关闭表单后可在会话中查看执行进展。'),
       h('div', { className: 'irsi-actions' },
         h('span', null, session.running ? '当前 Agent 正在工作，请待本次任务结束后启动。' : '提交到当前会话 · 受填写的轮数与时间预算约束'),
@@ -371,7 +451,10 @@ function apply(ctx) {
         });
         const result = await response.json();
         if (!response.ok || result.status === 'error') {
-          throw new Error(result.message || '连接请求未完成，请检查网络后重试。');
+          const error = new Error(result.message || '连接请求未完成，请检查网络后重试。');
+          if (payload.action === 'close' && response.status === 400 && result.status === 'error'
+            && typeof result.code === 'string') error.code = result.code;
+          throw error;
         }
         return result;
       },

@@ -54,7 +54,7 @@ function mount(Action, props) {
   instance.unmount = () => {
     for (const hook of instance.hooks) hook?.cleanup?.();
   };
-  instance.find = predicate => {
+  instance.find = (predicate, root = instance.tree) => {
     function visit(node) {
       if (!node || typeof node !== 'object') return undefined;
       if (predicate(node)) return node;
@@ -63,7 +63,7 @@ function mount(Action, props) {
         if (found) return found;
       }
     }
-    const result = visit(instance.tree);
+    const result = visit(root);
     assert.ok(result, 'expected rendered element');
     return result;
   };
@@ -109,8 +109,17 @@ async function main() {
   }
 
   let plugin;
+  let nativeError;
+  let nativeReply = { status: 'error', code: 'unknown_receipt' };
+  let nativeStatus = 400;
   vm.runInNewContext(fs.readFileSync(process.argv[3], 'utf8'), {
     AbortController,
+    URL,
+    document: { baseURI: 'https://example.invalid/' },
+    fetch: async () => {
+      if (nativeError) throw nativeError;
+      return { ok: nativeStatus >= 200 && nativeStatus < 300, status: nativeStatus, json: async () => nativeReply };
+    },
     window: { __ModuleLoader__: { load: ({ id, factory }) => {
       assert.equal(id, 'inferrsi-dsh');
       plugin = factory(name => {
@@ -159,6 +168,24 @@ async function main() {
   conversationAvailable = true;
   send = async () => { throw Object.assign(new Error('unconfirmed admission'), { submissionState: 'rejected' }); };
   await assert.rejects(submit('target-session', prompt), error => error.submissionState === 'ambiguous');
+  const nativeRequest = registration.inject().remoteRequest;
+  for (const code of ['unknown_receipt', 'connection_unavailable', 'permission_denied']) {
+    nativeReply = { status: 'error', code };
+    await assert.rejects(nativeRequest({ action: 'close', sessionId: 'target-session', connectionId: 'test-receipt' }),
+      error => error.code === code, 'the HTTP wrapper preserves structured close codes');
+  }
+  nativeReply = { status: 'error', code: 'unknown_receipt' };
+  for (const status of [200, 401, 403, 500]) {
+    nativeStatus = status;
+    await assert.rejects(nativeRequest({ action: 'close' }), error => error.code === undefined,
+      'only a Host business error response can authorize unknown-receipt recovery');
+  }
+  nativeStatus = 400;
+  nativeReply = { code: 'unknown_receipt' };
+  await assert.rejects(nativeRequest({ action: 'close' }), error => error.code === undefined);
+  nativeError = new Error('synthetic network failure mentioning unknown_receipt');
+  await assert.rejects(nativeRequest({ action: 'close' }), error => error.code === undefined);
+  nativeError = null;
 
   async function remoteForm({ connect = true, sessionId = 'target-session' } = {}) {
     // Let confirmed cleanup from a previous unmount settle before a new fixture.
@@ -455,10 +482,173 @@ async function main() {
   instance = await remoteForm({ connect: false });
   assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, false);
   instance.unmount();
+
+  function button(instance, label, root) {
+    return instance.find(node => node.type === 'button' && node.children.includes(label), root);
+  }
+  function chooseForget(instance, connectionId) {
+    const row = instance.find(node => node.props['data-connection-id'] === connectionId);
+    button(instance, '放弃此本地连接记录', row).props.onClick();
+    instance.render();
+  }
+  function confirmForget(instance) {
+    button(instance, '确认放弃本地记录').props.onClick();
+    instance.render();
+  }
+  function noForget(instance) {
+    assert.throws(() => button(instance, '放弃此本地连接记录'), /expected rendered element/);
+  }
+  async function unknownQueue() {
+    const owner = await remoteForm();
+    owner.closeWith(async () => ({ status: 'error', code: 'unknown_receipt' }));
+    await owner.find(node => node.props.name === 'repository').props.onChange({ target: { value: '/other' } });
+    owner.unmount();
+    await new Promise(resolve => setImmediate(resolve));
+    return owner;
+  }
+
+  // Unknown Host state permits only an explicit, two-step local-only recovery.
+  instance = await remoteForm();
+  instance.closeWith(async () => ({ status: 'error', code: 'unknown_receipt' }));
+  await instance.find(node => node.props.name === 'repository').props.onChange({ target: { value: '/other' } });
+  instance.render();
+  chooseForget(instance, 'synthetic-connection');
+  assert.equal(instance.closes().length, 1);
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, true);
+  const cancelledConfirm = button(instance, '确认放弃本地记录').props.onClick;
+  button(instance, '取消').props.onClick();
+  cancelledConfirm();
+  instance.render();
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, true);
+  chooseForget(instance, 'synthetic-connection');
+  confirmForget(instance);
+  assert.equal(instance.closes().length, 1, 'forgetting local state does not claim or perform a close');
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, false);
+  assert.match(instance.find(node => node.props.role === 'alert').children.join(''), /未确认远程连接或任务停止/u);
+  instance.testWith(async () => ({ status: 'connected', connectionId: 'new-connection', fingerprint: 'SHA256:synthetic' }));
+  prepareRemote(instance);
+  await button(instance, '测试连接').props.onClick();
+  instance.render();
+  send = async () => {};
+  await instance.submit();
+  assert.match(deliveries.at(-1), /new-connection/u);
+  instance.unmount();
+  assert.equal(instance.closes().length, 1, 'only the matching stale receipt was forgotten');
+
+  // Neither error text nor unavailable/permission codes authorize local forgetting.
+  for (const code of [undefined, 'connection_unavailable', 'permission_denied']) {
+    instance = await remoteForm();
+    instance.closeWith(async () => { throw Object.assign(new Error('unknown_receipt in untrusted error text'), { code }); });
+    await instance.find(node => node.props.name === 'repository').props.onChange({ target: { value: '/other' } });
+    instance.render();
+    noForget(instance);
+    instance.closeWith(async () => ({ status: 'closed' }));
+    await button(instance, '重试断开远程连接').props.onClick();
+    instance.unmount();
+  }
+
+  await unknownQueue();
+  instance = await remoteForm({ connect: false });
+  chooseForget(instance, 'synthetic-connection');
+  confirmForget(instance);
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, false,
+    'an unknown receipt and its explicit recovery remain available after remount');
+  instance.unmount();
+
+  // Across remounts, stale unknown results cannot authorize a newer failed retry.
+  await unknownQueue();
+  const a = await remoteForm({ connect: false });
+  const aClose = deferred();
+  a.closeWith(() => aClose.promise);
+  const aRetry = button(a, '重试断开远程连接').props.onClick();
+  a.unmount();
+  const b = await remoteForm({ connect: false });
+  const bClose = deferred();
+  b.closeWith(() => bClose.promise);
+  const bRetry = button(b, '重试断开远程连接').props.onClick();
+  b.unmount();
+  const c = await remoteForm({ connect: false });
+  aClose.resolve({ status: 'error', code: 'unknown_receipt' });
+  await aRetry;
+  c.render();
+  noForget(c);
+  bClose.reject(new Error('synthetic network error'));
+  await bRetry;
+  c.render();
+  noForget(c);
+  c.closeWith(async () => ({ status: 'error', code: 'unknown_receipt' }));
+  await button(c, '重试断开远程连接').props.onClick();
+  c.render();
+  chooseForget(c, 'synthetic-connection');
+  const staleConfirm = button(c, '确认放弃本地记录').props.onClick;
+  const d = await remoteForm({ connect: false });
+  d.closeWith(async () => ({ status: 'error', code: 'unknown_receipt' }));
+  await button(d, '重试断开远程连接').props.onClick();
+  staleConfirm();
+  c.render();
+  assert.equal(c.find(node => node.props.name === 'repository').props.disabled, true,
+    'a fresh unknown response requires a fresh first confirmation step');
+  chooseForget(c, 'synthetic-connection');
+  confirmForget(c);
+  c.unmount();
+  d.unmount();
+
+  // Even the latest unknown result cannot be forgotten while an older close is pending.
+  await unknownQueue();
+  const older = await remoteForm({ connect: false });
+  const olderClose = deferred();
+  older.closeWith(() => olderClose.promise);
+  const olderRetry = button(older, '重试断开远程连接').props.onClick();
+  older.unmount();
+  const latest = await remoteForm({ connect: false });
+  latest.closeWith(async () => ({ status: 'error', code: 'unknown_receipt' }));
+  await button(latest, '重试断开远程连接').props.onClick();
+  latest.render();
+  noForget(latest);
+  olderClose.resolve({ status: 'error', code: 'unknown_receipt' });
+  await olderRetry;
+  latest.render();
+  chooseForget(latest, 'synthetic-connection');
+  confirmForget(latest);
+  latest.unmount();
+
+  // Selecting one unknown ID never drops another ID or another session's cleanup.
+  const other = await remoteForm({ sessionId: 'other-cleanup-session' });
+  other.closeWith(async () => ({ status: 'error', code: 'unknown_receipt' }));
+  await other.find(node => node.props.name === 'repository').props.onChange({ target: { value: '/other' } });
+  other.unmount();
+  await new Promise(resolve => setImmediate(resolve));
+  instance = await remoteForm({ connect: false });
+  prepareRemote(instance);
+  const pair = [deferred(), deferred()];
+  let pairIndex = 0;
+  instance.testWith(() => pair[pairIndex++].promise);
+  let closeIndex = 0;
+  instance.closeWith(async () => ({ status: 'error', code: closeIndex++ === 0 ? 'unknown_receipt' : 'permission_denied' }));
+  const pairHandler = button(instance, '测试连接').props.onClick;
+  const pairAttempts = [pairHandler(), pairHandler()];
+  instance.unmount();
+  pair[0].resolve({ status: 'connected', connectionId: 'forget-only-this-id' });
+  pair[1].resolve({ status: 'connected', connectionId: 'keep-this-id' });
+  await Promise.all(pairAttempts);
+  instance = await remoteForm({ connect: false });
+  chooseForget(instance, 'forget-only-this-id');
+  confirmForget(instance);
+  assert.equal(instance.find(node => node.props.name === 'repository').props.disabled, true);
+  noForget(instance);
+  await button(instance, '重试断开远程连接').props.onClick();
+  assert.deepEqual(instance.closes().map(request => request.connectionId), ['keep-this-id']);
+  instance.unmount();
+  const otherRecovery = await remoteForm({ connect: false, sessionId: 'other-cleanup-session' });
+  assert.equal(otherRecovery.find(node => node.props.name === 'repository').props.disabled, true);
+  await button(otherRecovery, '重试断开远程连接').props.onClick();
+  assert.equal(otherRecovery.closes()[0].connectionId, 'synthetic-connection');
+  otherRecovery.unmount();
   console.log('Form validation, prompt payload, native module and scoped Agent delivery verified.');
   console.log('Confirmed, rejected and ambiguous remote handoff, abandonment races and explicit disconnect verified.');
   console.log('Connection edits preserve receipts until confirmed close; retry, already-closed and unmount cleanup verified.');
   console.log('Session-scoped opaque cleanup receipts survive remounts and serialize distinct abandoned test connections.');
+  console.log('Typed unknown receipts require fresh two-step local-only recovery; other failures, attempts, IDs and sessions remain isolated.');
 }
 
 main().catch(error => {

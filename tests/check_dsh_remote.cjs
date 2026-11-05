@@ -407,7 +407,7 @@ async function main() {
     assert.throws(() => manager.close('another-session', id),
       error => error.code === 'connection_unavailable');
     assert.throws(() => manager.close(sessionId, 'unknown-receipt'),
-      error => error.code === 'connection_unavailable');
+      error => error.code === 'unknown_receipt');
     const closeDashboardChannel = finalDashboardChannel.close.bind(finalDashboardChannel);
     let failDashboardClose = true;
     finalDashboardChannel.close = () => {
@@ -433,7 +433,7 @@ async function main() {
     await assert.rejects(fetch(finalView.url), 'disposed tunnel remained available');
     manager.closeSession(sessionId);
     assert.throws(() => manager.close(sessionId, id),
-      error => error.code === 'connection_unavailable', 'session disposal retained old receipts');
+      error => error.code === 'unknown_receipt', 'session disposal retained old receipts');
     const keyed = await manager.test({ ...options, authType: 'key', privateKey: userKey, password: undefined,
       fingerprint }, { sessionId });
     assert.equal(keyed.status, 'connected');
@@ -441,7 +441,7 @@ async function main() {
     assert.deepEqual(manager.close(sessionId, keyed.connectionId), { status: 'already_closed' });
     manager.dispose();
     assert.throws(() => manager.close(sessionId, keyed.connectionId),
-      error => error.code === 'connection_unavailable', 'plugin disposal retained old receipts');
+      error => error.code === 'unknown_receipt', 'plugin disposal retained old receipts');
     delayPlatform = true;
     const aborter = new AbortController();
     const cancelled = manager.test({ ...options, fingerprint }, { sessionId, signal: aborter.signal });

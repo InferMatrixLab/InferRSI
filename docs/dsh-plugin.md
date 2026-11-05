@@ -107,6 +107,14 @@ field change is not applied. After successful retry, edit the fields again and
 test the new connection. A same-session receipt already confirmed closed by the
 Host is acknowledged separately; unknown or other-session IDs remain errors.
 
+If the Host explicitly reports no record of a queued ID, for example after a Host reload,
+the form also offers **Forget this local receipt**. This requires a separate
+confirmation and only discards the selected local cleanup record. It does not
+confirm that SSH or a remote task has stopped; check the remote target separately
+before forgetting it. Other-session IDs, network or permission failures and unconfirmed
+responses do not enable this action. Remaining cleanup records still block the
+form, and using a new remote connection always requires another connection test.
+
 Unconfirmed close requests retain only opaque connection IDs in session-scoped
 client memory. Leaving and reopening the form can resume this cleanup, including
 after an unmount retry fails. Pending or accepted task connections are not

@@ -37,6 +37,8 @@ async function main() {
       return { status: 'connected', connectionId };
     },
     close: (sessionId, id) => {
+      if (!connections.has(id) && !closedReceipts.has(id)) throw Object.assign(
+        new Error('unknown_receipt'), { code: 'unknown_receipt' });
       if (closedReceipts.has(id) && closedReceipts.get(id) === sessionId) {
         return { status: 'already_closed' };
       }
@@ -118,13 +120,14 @@ async function main() {
   assert.equal((await repeatedClose.json()).status, 'already_closed');
   assert.equal((await tool.execute({ operation: 'close', connectionId: result.connectionId },
     context('session-test'))).status, 'already_closed');
-  for (const [sessionId, connectionId] of [['another-session', result.connectionId],
-    ['session-test', 'unknown-receipt']]) {
+  for (const [sessionId, connectionId, code] of [
+    ['another-session', result.connectionId, 'connection_unavailable'],
+    ['session-test', 'unknown-receipt', 'unknown_receipt']]) {
     const rejected = await request({ action: 'close', sessionId, connectionId });
     assert.equal(rejected.status, 400);
-    assert.equal((await rejected.json()).code, 'connection_unavailable');
+    assert.equal((await rejected.json()).code, code);
     await assert.rejects(tool.execute({ operation: 'close', connectionId }, context(sessionId)),
-      error => error.code === 'connection_unavailable');
+      error => error.code === code);
   }
 
   const pendingController = new AbortController();
@@ -174,7 +177,11 @@ async function main() {
   assert.ok(!connections.has(agentConnection.connectionId));
   assert.ok(!connections.has(sessionConnection.connectionId));
   await assert.rejects(tool.execute({ operation: 'close', connectionId: agentConnection.connectionId },
-    context('session-agent')), error => error.code === 'connection_unavailable');
+    context('session-agent')), error => error.code === 'unknown_receipt');
+  const expiredClose = await request({ action: 'close', sessionId: 'session-agent',
+    connectionId: agentConnection.connectionId });
+  assert.equal(expiredClose.status, 400);
+  assert.equal((await expiredClose.json()).code, 'unknown_receipt');
   await test('session-unload');
   await Promise.all(effects.map(dispose => dispose()));
   assert.equal(disposed, true);
