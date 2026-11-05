@@ -1,5 +1,9 @@
 # Offline optimization dashboard
 
+For existing Ascend experiments, see [external optimization records](dashboard-external-records.md)
+to connect protocol-specific measurements, verdicts and events without fabricating a harness run.
+
+
 The dashboard renders a recorded InferRSI run or an explicitly assembled
 campaign as a single HTML file. It needs no web service or external assets.
 It is a read-only view of recorded data; generating it does not run an

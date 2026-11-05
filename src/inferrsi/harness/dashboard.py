@@ -138,6 +138,16 @@ def _round_trend(view: dict) -> dict | None:
 
 
 def _chart(source: Path, view: dict) -> tuple[str, str]:
+    external = [row for row in view["candidates"] if row.get("external", {}).get("metrics")]
+    if external:
+        from .dashboard_external import metric_chart
+        chart = metric_chart(external)
+        native = [row for row in view["candidates"] if not row.get("external")]
+        if native:
+            native_chart, _ = _chart(source, {**view, "candidates": native})
+            chart += native_chart
+        return (chart,
+                "Protocol-specific absolute measurements; recorded verdicts are not recomputed.")
     chart_file = source / "summary-chart.json"
     spec = None
     recorded_title = False
