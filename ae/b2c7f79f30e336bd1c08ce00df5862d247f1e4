@@ -1,0 +1,21 @@
+src/inferrsi/data/dashboard/template.html
+  s_1d875e3096cc02::t_a3529cd6cd4784 235-237,553,559,568
+tests/test_dashboard_translation_ui.py
+  s_1d875e3096cc02::t_a3529cd6cd4784 120-172
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "aeb2c7f79f30e336bd1c08ce00df5862d247f1e4",
+  "prompts": {},
+  "sessions": {
+    "s_1d875e3096cc02": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ab65-32e9-7762-b181-f88e6660bf45",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
