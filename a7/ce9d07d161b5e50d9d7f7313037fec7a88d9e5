@@ -1,0 +1,32 @@
+docs/dashboard-external-records.md
+  s_1d875e3096cc02::t_446cb2fcda14d1 47-52
+src/inferrsi/data/dashboard/template.html
+  s_1d875e3096cc02::t_446cb2fcda14d1 163,224,386-387,528-530,533-546
+src/inferrsi/harness/dashboard.py
+  s_1d875e3096cc02::t_446cb2fcda14d1 141,144-145,150-155,160-161
+src/inferrsi/harness/dashboard_external.py
+  s_1d875e3096cc02::t_446cb2fcda14d1 7,55-58,146-151,158
+tests/test_dashboard_external.py
+  s_1d875e3096cc02::t_64a59b8c8ee8b1 278
+  s_1d875e3096cc02::t_c99b494b7e626e 216-277
+tests/test_dashboard_translation_ui.py
+  s_1d875e3096cc02::t_64a59b8c8ee8b1 19-20,58-59,66-67,99-100
+  s_1d875e3096cc02::t_c99b494b7e626e 18,21,42-43,52-57,68-72,75-79,96-98
+  s_1d875e3096cc02::t_a364381475f51b 101
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "a7ce9d07d161b5e50d9d7f7313037fec7a88d9e5",
+  "prompts": {},
+  "sessions": {
+    "s_1d875e3096cc02": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a1ab65-32e9-7762-b181-f88e6660bf45",
+        "model": "gpt-6-astra"
+      },
+      "human_author": "jiangkuaixue123 <jiangxiaozhou111@163.com>"
+    }
+  }
+}
