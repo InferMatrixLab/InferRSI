@@ -5,6 +5,11 @@ inspection and `check|measure|profile|grade|compare` for explicit local executio
 See the [engineering benchmark contract](engineering-benchmarks.md) for trusted
 source requirements, task identities, Ascend/CPU coverage and offline SkillEval reuse.
 
+The separate [two-NPU MoE forward scenario](moe-forward-benchmark.md) uses
+`python -m tools.moe_benchmark` inside a caller-managed two-device allocation.
+It compares a supplied implementation with the task baseline through the
+existing external executor; it does not launch an Agent or retrieve knowledge.
+
 One concise map from an agent's intent to the supported entry point. This guide
 is navigation only: detailed contracts stay with their owning documents, and it
 is not a third primary matrix. The two authoritative matrices remain the

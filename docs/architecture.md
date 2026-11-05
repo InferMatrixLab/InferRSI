@@ -8,6 +8,13 @@ execution platform. The current device pilot runs trusted affine RMSNorm on
 Ascend through Workbench; the formal artifact sandbox remains CPU NumPy only.
 Each task's actual qualification and limits are recorded separately.
 
+The [two-rank MoE scenario](moe-forward-benchmark.md) has its own distributed
+task/grader contract under `data/engineering_scenarios` and reuses
+`harness.scenarios.external.execute_trial`. Its paired, slowest-rank timing is
+not the single-operation TaskPackage/SkillEval adapter. Historical Agent runs
+and their published evidence remain distinct from the portable runner's current
+software and device qualification.
+
 The local experiment path now has concrete Harness, Model and Infra modules. The
 CLI, RunSpec, knowledge retrieval and existing command contracts remain stable.
 The diagrams below describe implemented code, with the historical compatibility

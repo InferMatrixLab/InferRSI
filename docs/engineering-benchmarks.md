@@ -5,6 +5,14 @@ task package. Packages define semantics, inputs, correctness rules and timing;
 the existing Workbench runs paired comparisons and retains evidence. Agent
 execution, knowledge selection and optimization search remain caller-owned.
 
+For a complete distributed layer rather than a single-operation task, see the
+[two-NPU MoE forward scenario](moe-forward-benchmark.md). Its local paired runner
+uses the existing external executor with a distributed grader. It has a separate
+task contract and is not accepted by the single-operation `benchmarks` adapter.
+The [six-session MoE comparison](../evidence/moe-agent-comparison-20261104/README.md)
+publishes historical measurements, candidate snapshots, token costs and curves;
+it does not establish device validation of the newly packaged runner.
+
 | Task | Candidate entry point | Execution boundary |
 | --- | --- | --- |
 | [Ascend affine RMSNorm](../src/inferrsi/data/engineering_benchmarks/rmsnorm-npu/README.md) | `compute(x, weight, *, eps)` | Reviewed source on one caller-allocated NPU; no formal device sandbox |

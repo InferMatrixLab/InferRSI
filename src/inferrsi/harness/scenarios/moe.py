@@ -171,23 +171,36 @@ def _adjudicate(root: Path, execution: dict, guard: dict, identity: dict, pairs:
               "round_consumed": False, "process_cleanup": guard, "execution": execution}
     ranks = []
     try:
+        malformed_ranks = []
         for rank in range(2):
             path = root / "results" / f"rank-{rank}.json"
             if path.exists():
-                record = json.loads(path.read_text(encoding="utf-8"))
-                if not isinstance(record, dict) or record.get("rank") != rank:
-                    raise ValueError("Malformed rank record or rank/file identity mismatch")
+                try:
+                    record = json.loads(path.read_text(encoding="utf-8"))
+                    if not isinstance(record, dict) or record.get("rank") != rank:
+                        raise ValueError("Rank/file identity mismatch")
+                except (OSError, ValueError):
+                    malformed_ranks.append(rank)
+                    continue
                 ranks.append(record)
+                # A peer may leave a truncated record when the job is stopped.
+                # Preserve observed candidate work before parsing the next rank.
+                phase, kind, calls = (record.get(k) for k in ("phase", "failure_kind", "calls"))
+                if ((isinstance(phase, str) and phase.startswith("candidate_"))
+                        or (isinstance(kind, str) and kind.startswith("candidate_"))
+                        or (isinstance(calls, list) and any(
+                            isinstance(c, dict) and c.get("label") == "candidate" for c in calls))):
+                    result["round_consumed"] = True
         result["rank_status"] = [{k: r.get(k) for k in (
             "rank", "phase", "completed", "correctness", "failure_kind", "error")} for r in ranks]
         failed = any(r.get("phase", "").startswith("candidate_")
                      or r.get("failure_kind", "").startswith("candidate_") for r in ranks)
         # A later cleanup/integrity failure cannot erase observed candidate work
         # and turn a consumed attempt into a free infrastructure retry.
-        result["round_consumed"] = failed or any(
-            call.get("label") == "candidate" for r in ranks for call in r.get("calls", []))
         if failed:
             result.update(status="candidate_failure", correctness="FAIL", round_consumed=True)
+        if malformed_ranks:
+            raise ValueError("Incomplete or malformed rank records; no usable score")
         if not guard.get("verified"):
             raise ValueError("Workload process cleanup was not verified")
         if _hashes(root, identity) != identity:

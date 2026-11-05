@@ -151,6 +151,15 @@ def test_cleanup_failure_does_not_erase_consumed_candidate(fixture_run):
     assert "cleanup" in result["error"]
 
 
+@pytest.mark.parametrize("rank", [0, 1])
+def test_malformed_peer_does_not_erase_consumed_candidate(fixture_run, rank):
+    root = fixture_run[0]
+    (root / f"results/rank-{rank}.json").write_text("{")
+    result = _adjudicate(fixture_run, status="timeout", returncode=None)
+    assert result["round_consumed"] and result["status"] == "infrastructure_failure"
+    assert not result["completed"] and result["speedup"] is None
+
+
 @pytest.mark.parametrize("status,exit_code", [("infrastructure_failure", 1),
                                              ("candidate_failure", 2)])
 def test_exit_status_is_separate_from_consumed_attempt(monkeypatch, status, exit_code):
