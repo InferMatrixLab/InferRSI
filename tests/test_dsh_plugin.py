@@ -3,6 +3,7 @@
 import hashlib
 import io
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,13 @@ import pytest
 
 from tools.build_codex_plugin import PROJECT, _io_path
 from tools.build_dsh_plugin import build_bundle
+
+
+@pytest.fixture(scope="module", autouse=True)
+def require_node_in_ci():
+    """CI must exercise the native form, bridge and real SSH transport checks."""
+    if os.environ.get("CI") and shutil.which("node") is None:
+        pytest.fail("Node.js is required for DSH form, bridge and SSH checks in CI")
 
 
 def test_manual_bundle_runs_from_an_external_workspace(tmp_path):

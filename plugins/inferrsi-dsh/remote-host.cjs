@@ -45,6 +45,8 @@ function installRemote(ctx, runtimeDir) {
     fetch: request => track((async () => {
       try {
         const body = await readBody(request);
+        // DSH admits only authenticated owner Peers to exact Fetch routes.
+        // This is the owner's selected session, not a caller identity credential.
         if (typeof body.sessionId !== 'string' || body.sessionId.length > 256) {
           throw new Error('invalid_session');
         }
@@ -55,18 +57,12 @@ function installRemote(ctx, runtimeDir) {
         }
         if (body.action !== 'test') throw new Error('invalid_action');
         const result = await manager.test(body.options, { sessionId: body.sessionId, signal });
-        if (result.connectionId) {
-          const sessionId = body.sessionId;
-          const connectionId = result.connectionId;
-          const close = () => {
-            Promise.resolve().then(() => manager.close(sessionId, connectionId)).catch(() => {});
-          };
-          if (signal.aborted) {
-            close();
-            throw new Error('cancelled');
-          }
-          signal.addEventListener('abort', close, { once: true });
+        if (result.connectionId && signal.aborted) {
+          await manager.close(body.sessionId, result.connectionId);
+          throw new Error('cancelled');
         }
+        // A completed test transfers the connection to the session/plugin lifetime.
+        // Later HTTP cancellation must not close that established connection.
         return Response.json(result, { headers: { 'Cache-Control': 'no-store' } });
       } catch (error) {
         return Response.json({ status: 'error', code: error.code || 'connection_failed',
@@ -77,7 +73,7 @@ function installRemote(ctx, runtimeDir) {
   });
   ctx.tools.register({
     name: 'inferrsi_remote',
-    description: 'Operate on the SSH repository explicitly selected and tested in the InferRSI form. Credentials stay in the Host. Use cli for canonical InferRSI operations, dashboard for a local live-dashboard tunnel, list/read/write for scoped repository files, and run_script for the user-designated benchmark or quality script. No general shell commands.',
+    description: 'Operate on the SSH repository explicitly selected and tested in the InferRSI form. Credentials stay in the Host. Use cli for canonical InferRSI operations, dashboard for a local live-dashboard tunnel, list/read/write for scoped repository files, and run_script for the user-designated benchmark or quality script. run_script requires maxMinutes from the remaining task budget; cli accepts it optionally and cli run uses the smaller of it and --max-minutes. Fixed operations, not an execution sandbox: edited repository code and designated scripts run with the SSH user\'s permissions.',
     parameters: {
       type: 'object', additionalProperties: false,
       properties: {
@@ -86,6 +82,7 @@ function installRemote(ctx, runtimeDir) {
         path: { type: 'string' }, content: { type: 'string' },
         args: { type: 'array', items: { type: 'string' } },
         script: { type: 'string', enum: ['benchmark', 'quality'] },
+        maxMinutes: { type: 'number', exclusiveMinimum: 0, maximum: 10080 },
       },
       required: ['connectionId', 'operation'],
     },

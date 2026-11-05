@@ -100,9 +100,19 @@ The Agent uses `inferrsi_remote` through DSH's normal tool execution pipeline.
 Its operations are repository file listing/reading/writing, the designated
 benchmark or quality script, canonical InferRSI CLI operations, a live dashboard
 tunnel, and connection close. Paths are checked against the selected remote
-repository. Scripts execute with the connected user's permissions and must be
-trusted as part of the accepted task. Remote Python 3.10+, Git, the selected
+repository. These fixed operation names are not an execution sandbox: `write`
+can change repository code, including designated scripts or Git hooks, and
+`run_script` / `cli run` can execute that edited code with the SSH user's
+permissions. Treat the repository, selected scripts and edits as trusted parts
+of the authorized task. There is no arbitrary shell-command operation, but path
+containment does not isolate the effects of code that is executed. Remote
+Python 3.10+, Git, the selected
 engine, accelerator runtime and model resources must be prepared separately.
+
+For `run_script`, supply `maxMinutes` from the task's remaining time budget.
+Long CLI operations can use the same explicit limit; `cli run` also retains its
+own `--max-minutes` bound and uses the smaller limit when both are supplied.
+Do not reset the total task budget for each operation.
 
 Canonical CLI operations unpack the bundled runtime into a private remote
 temporary directory. Dashboard mode keeps that runtime alive while the view
@@ -110,8 +120,11 @@ is open and forwards the remote loopback listener to an OS-assigned local
 loopback port on the DSH Host. Use the returned local URL when the browser and
 DSH Host run on the same machine. For a remotely hosted DSH Web deployment,
 also forward that Host loopback port to the browser machine before opening it.
-Stopping a remote operation requests process cleanup and closes its connection
-when necessary. After interruption, inspect recorded state before a new run.
+Stopping or timing out an execution operation requests cleanup of that command's
+SSH channel while preserving the verified connection and any separate live
+dashboard. Explicit connection close, session disposal or transport failure
+still releases the whole connection. After interruption, inspect recorded state
+before a new run; no automatic retry follows a timeout.
 
 ## Integration design
 
@@ -136,6 +149,14 @@ flowchart LR
 | `inferrsi_remote` | Carry explicit repository operations and cancellation through DSH tools without including authentication material |
 | Canonical InferRSI runtime | Research, freeze, run, evaluate and record campaign rounds using the existing contracts |
 | Existing dashboard | Display recorded progress, candidate history, results and evidence through local or forwarded loopback access |
+
+The connection route uses DSH's authenticated owner transport. DSH rejects
+non-owner peers before calling the plugin handler. The request's `sessionId`
+selects the owner's target session; it is not an authentication credential.
+DSH uses that session ID as its Agent ID, and remote tool calls obtain it from
+`exec.agent.id` rather than from model arguments. The manager rejects a receipt
+used from another session. This is one DSH owner's session partitioning, not
+isolation between mutually untrusted users of one SSH account.
 
 User-supplied round and time budgets are part of the task prompt. Runtime command
 limits and recorded experiment verdicts retain their existing meaning. A form
@@ -171,15 +192,20 @@ version mismatch, rebuild or reinstall the `.tgz`.
 ## Open the live dashboard
 
 In the DSH session, ask InferRSI to open the dashboard for the intended run or
-campaign. Resolve `<launcher>` to `scripts/inferrsi.py` under the installed
-skill's resource directory and use the same Python interpreter selected for
-the other InferRSI commands.
+campaign. For a tested remote connection, use `inferrsi_remote` with operation
+`dashboard`, its connection ID and the remote campaign/run directory in `path`.
+The bridge starts the existing dashboard and returns a forwarded Host loopback
+URL; do not launch a second server through a local terminal.
+
+For local execution, resolve `<launcher>` to `scripts/inferrsi.py` under the
+installed skill's resource directory and use the same Python interpreter
+selected for the other InferRSI commands:
 
 ```text
 python -X utf8 "<launcher>" dashboard --input "<CAMPAIGN_OR_RUN_DIRECTORY>" --live --port 0
 ```
 
-The command prints a JSON object whose `dashboard` field contains the selected
+The local command prints a JSON object whose `dashboard` field contains the selected
 loopback URL. Open that URL in an external browser and share it as a clickable
 link in the DSH session. Port `0` lets the operating system choose an available
 port. Keep the server running through DSH's terminal/process tools and retain
@@ -203,8 +229,10 @@ for the optimization story. Record missing context or reasoning as missing
 when it was not captured during the work.
 
 Run the dashboard server on the machine holding the evidence. It binds to
-loopback. For a remote target, forward the printed remote port to the browser's
-machine, then open the forwarded local URL. Follow the
+loopback. The remote tool already forwards its port to the DSH Host; if the
+browser runs on another machine, forward that Host loopback port to the browser
+machine. For other remote execution mechanisms, arrange authorized forwarding
+before opening the URL. Follow the
 [live dashboard guide](https://github.com/InferMatrixLab/InferRSI/blob/main/docs/dashboard.md#live-observation) for port forwarding,
 access boundaries, and shutdown. The same guide documents offline exports
 and reviewed translation overlays.

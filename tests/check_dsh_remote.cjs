@@ -7,7 +7,7 @@ const net = require('node:net');
 const os = require('node:os');
 const path = require('node:path');
 const { createRemoteManager } = require('../plugins/inferrsi-dsh/remote.cjs');
-const { Server, utils } = require('../plugins/inferrsi-dsh/vendor/ssh2.cjs');
+const { Client, Server, utils } = require('../plugins/inferrsi-dsh/vendor/ssh2.cjs');
 
 const fakePassword = 'fake-password-with-no-service-access';
 const hostKey = generateKeyPairSync('rsa', { modulusLength: 2048 }).privateKey
@@ -35,6 +35,30 @@ let waitingChannel;
 const commands = [];
 const payloads = [];
 const peers = new Set();
+
+function operationClock() {
+  let now = 0;
+  const pending = new Set();
+  return {
+    timers: {
+      setTimeout(callback, delay) {
+        const timer = { callback, deadline: now + delay };
+        pending.add(timer);
+        return timer;
+      },
+      clearTimeout(timer) { pending.delete(timer); },
+    },
+    advance(milliseconds) {
+      now += milliseconds;
+      for (const timer of [...pending]) {
+        if (timer.deadline <= now) {
+          pending.delete(timer);
+          timer.callback();
+        }
+      }
+    },
+  };
+}
 
 function resolved(filename) {
   let value = path.posix.normalize(filename);
@@ -190,7 +214,24 @@ async function main() {
     });
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const manager = createRemoteManager({ runtimeDir });
+  const clock = operationClock();
+  let holdNextClose = false;
+  let controlledChannel;
+  let deferredClose;
+  class ControlledClient extends Client {
+    exec(command, callback) {
+      return super.exec(command, (error, channel) => {
+        if (channel && holdNextClose && command !== 'uname -s') {
+          holdNextClose = false;
+          controlledChannel = channel;
+          const close = channel.close.bind(channel);
+          channel.close = () => { deferredClose = close; return channel; };
+        }
+        callback(error, channel);
+      });
+    }
+  }
+  const manager = createRemoteManager({ runtimeDir, Client: ControlledClient, timers: clock.timers });
   const options = { host: '127.0.0.1', port: server.address().port, user: 'synthetic-user',
     authType: 'password', password: fakePassword, repository: root,
     benchmark: 'bench.py', quality: 'quality.sh' };
@@ -230,10 +271,16 @@ async function main() {
       }
     }
     assert.equal(files.get('/private/secret.txt').content.toString(), 'unrelated private fixture');
-    await assert.rejects(manager.run(sessionId, id, { operation: 'run_script', script: 'arbitrary.py' }),
+    await assert.rejects(manager.run(sessionId, id, { operation: 'run_script', script: 'arbitrary.py', maxMinutes: 1 }),
       error => error.code === 'script_unconfigured');
+    await assert.rejects(manager.run(sessionId, id, { operation: 'run_script', script: 'benchmark' }),
+      error => error.code === 'missing_budget');
+    for (const maxMinutes of [null, 0, -1, Infinity, NaN, '3', true, 10081]) {
+      await assert.rejects(manager.run(sessionId, id, { operation: 'run_script', script: 'benchmark', maxMinutes }),
+        error => error.code === 'invalid_budget');
+    }
     const injection = "literal'; exit 9; #";
-    const script = await manager.run(sessionId, id, { operation: 'run_script', script: 'benchmark', args: [injection] });
+    const script = await manager.run(sessionId, id, { operation: 'run_script', script: 'benchmark', maxMinutes: 1, args: [injection] });
     assert.equal(script.exitCode, 0);
     assert.equal(payloads.at(-1).script, root + '/bench.py');
     assert.deepEqual(payloads.at(-1).args, [injection]);
@@ -251,13 +298,19 @@ async function main() {
     await manager.run(sessionId, id, { operation: 'cli', args: ['--version'] });
     await assert.rejects(manager.run(sessionId, id, { operation: 'cli', args: ['run'] }),
       error => error.code === 'missing_budget');
-    const waiting = manager.run(sessionId, id, { operation: 'run_script', script: 'benchmark', args: ['wait-for-check'] });
+    const waiting = manager.run(sessionId, id, { operation: 'run_script', script: 'benchmark', maxMinutes: 3, args: ['wait-for-check'] });
     waiting.catch(() => {});
     while (!waitingChannel) await new Promise(resolve => setTimeout(resolve, 5));
+    let finished = false;
+    waiting.finally(() => { finished = true; });
     const view = await manager.run(sessionId, id, { operation: 'dashboard' });
     assert.match(view.url, /^http:\/\/127\.0\.0\.1:\d+\/$/u);
     assert.equal((await (await fetch(view.url + 'api/state')).json()).dashboard, true);
     assert.equal((await manager.run(sessionId, id, { operation: 'dashboard' })).url, view.url);
+    clock.advance(120001);
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal(finished, false, 'the script was still capped at the old two-minute timeout');
+    assert.equal((await (await fetch(view.url + 'api/state')).json()).dashboard, true);
     await assert.rejects(manager.run(sessionId, id, { operation: 'write', path: 'source.py', content: 'blocked' }),
       error => error.code === 'connection_busy');
     delayDashboard = true;
@@ -271,6 +324,69 @@ async function main() {
     assert.equal((await waiting).exitCode, 0, 'cancelling dashboard interrupted the benchmark');
     delayDashboard = false;
     const finalView = await manager.run(sessionId, id, { operation: 'dashboard' });
+    async function pendingCommand(request, signal) {
+      waitingChannel = null;
+      const result = manager.run(sessionId, id, request, signal);
+      result.catch(() => {});
+      while (!waitingChannel) await new Promise(resolve => setTimeout(resolve, 5));
+      return { result, closed: new Promise(resolve => waitingChannel.once('close', resolve)) };
+    }
+    const longCli = await pendingCommand({ operation: 'cli', args: ['collect', 'wait-for-check'], maxMinutes: 3 });
+    clock.advance(120001);
+    waitingChannel.write('completed\n');
+    waitingChannel.exit(0);
+    waitingChannel.end();
+    assert.equal((await longCli.result).exitCode, 0, 'the explicit CLI budget was ignored');
+    for (const [request, deadline] of [
+      [{ operation: 'run_script', script: 'benchmark', maxMinutes: 1, args: ['wait-for-check'] }, 60000],
+      [{ operation: 'cli', args: ['run', '--max-minutes', '3', 'wait-for-check'], maxMinutes: 1 }, 60000],
+      [{ operation: 'cli', args: ['run', '--max-minutes=1', 'wait-for-check'], maxMinutes: 3 }, 90000],
+      [{ operation: 'cli', args: ['run', '--max-minutes', '1', 'wait-for-check'] }, 90000],
+    ]) {
+      const timed = await pendingCommand(request);
+      let expired = false;
+      timed.result.catch(() => { expired = true; });
+      clock.advance(deadline - 1);
+      await new Promise(resolve => setImmediate(resolve));
+      assert.equal(expired, false, 'the command ended before its selected deadline');
+      clock.advance(1);
+      await assert.rejects(timed.result, error => error.code === 'timeout');
+      await timed.closed;
+      await new Promise(resolve => setImmediate(resolve));
+      assert.equal((await (await fetch(finalView.url + 'api/state')).json()).dashboard, true);
+      assert.equal((await manager.run(sessionId, id, { operation: 'cli', args: ['--version'] })).exitCode, 0);
+      assert.equal((await manager.run(sessionId, id, { operation: 'read', path: 'source.py' })).status, 'ok');
+    }
+    const commandAbort = new AbortController();
+    const cancelledCommand = await pendingCommand({ operation: 'run_script', script: 'benchmark',
+      maxMinutes: 3, args: ['wait-for-check'] }, commandAbort.signal);
+    commandAbort.abort();
+    await assert.rejects(cancelledCommand.result, error => error.code === 'cancelled');
+    await cancelledCommand.closed;
+    await new Promise(resolve => setImmediate(resolve));
+    assert.equal((await (await fetch(finalView.url + 'api/state')).json()).dashboard, true);
+    assert.equal((await manager.run(sessionId, id, { operation: 'cli', args: ['--version'] })).exitCode, 0);
+    for (const timeoutFirst of [false, true]) {
+      holdNextClose = true;
+      deferredClose = null;
+      const errored = await pendingCommand({ operation: 'run_script', script: 'benchmark',
+        maxMinutes: 1, args: ['wait-for-check'] });
+      const closed = new Promise(resolve => controlledChannel.once('close', resolve));
+      if (timeoutFirst) {
+        clock.advance(60000);
+        await assert.rejects(errored.result, error => error.code === 'timeout');
+      }
+      controlledChannel.emit('error', new Error('synthetic channel failure'));
+      await assert.rejects(errored.result,
+        error => error.code === (timeoutFirst ? 'timeout' : 'execution_failed'));
+      assert.equal(typeof deferredClose, 'function', 'the errored channel was not asked to close');
+      await assert.rejects(manager.run(sessionId, id, { operation: 'read', path: 'source.py' }),
+        error => error.code === 'connection_busy');
+      assert.equal((await (await fetch(finalView.url + 'api/state')).json()).dashboard, true);
+      deferredClose();
+      await closed;
+      assert.equal((await manager.run(sessionId, id, { operation: 'cli', args: ['--version'] })).exitCode, 0);
+    }
     manager.closeSession(sessionId);
     await assert.rejects(manager.run(sessionId, id, { operation: 'list' }), error => error.code === 'connection_unavailable');
     await assert.rejects(fetch(finalView.url), 'disposed tunnel remained available');

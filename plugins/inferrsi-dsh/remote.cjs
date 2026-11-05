@@ -194,7 +194,10 @@ function clearCredentials(config) {
   }
 }
 
-function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Client } = {}) {
+function createRemoteManager({
+  runtimeDir = path.join(__dirname, 'runtime'), Client,
+  timers = { setTimeout, clearTimeout },
+} = {}) {
   const ClientClass = Client || require('./vendor/ssh2.cjs').Client;
   const connections = new Map();
   const pending = new Set();
@@ -236,7 +239,7 @@ function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Cli
         reject(new RemoteError('cancelled'));
       };
       signal?.addEventListener('abort', abort, { once: true });
-      timer = setTimeout(() => {
+      timer = timers.setTimeout(() => {
         controller.abort();
         cleanup();
         reject(new RemoteError('timeout'));
@@ -247,15 +250,35 @@ function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Cli
     } catch (error) {
       throw error instanceof RemoteError ? error : new RemoteError('remote_io');
     } finally {
-      clearTimeout(timer);
+      timers.clearTimeout(timer);
       signal?.removeEventListener('abort', abort);
     }
   }
 
-  function execute(entry, command, payload) {
+  function execute(entry, command, payload, signal, owner) {
     return new Promise((resolve, reject) => {
-      entry.client.exec(command, (error, channel) => {
-        if (error) return reject(new RemoteError('execution_unavailable'));
+      if (signal?.aborted) return reject(new RemoteError('cancelled'));
+      let channel;
+      const abort = () => {
+        if (!channel) return;
+        try { channel.signal('TERM'); } catch { /* The command may already have exited. */ }
+        channel.close();
+      };
+      const finished = () => {
+        signal?.removeEventListener('abort', abort);
+        if (owner) {
+          owner.pending = false;
+          if (entry.busy === owner) entry.busy = false;
+        }
+      };
+      if (owner) owner.pending = true;
+      signal?.addEventListener('abort', abort, { once: true });
+      entry.client.exec(command, (error, opened) => {
+        if (error) {
+          finished();
+          return reject(new RemoteError('execution_unavailable'));
+        }
+        channel = opened;
         entry.channels.add(channel);
         const stdout = [];
         const stderr = [];
@@ -269,14 +292,22 @@ function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Cli
         };
         channel.on('data', chunk => append(stdout, chunk));
         channel.stderr.on('data', chunk => append(stderr, chunk));
-        channel.once('error', () => reject(new RemoteError('execution_failed')));
-        channel.once('close', (exitCode, signal) => {
+        channel.once('error', () => {
+          abort();
+          reject(new RemoteError('execution_failed'));
+        });
+        channel.once('close', exitCode => {
+          finished();
           entry.channels.delete(channel);
           if (!Number.isInteger(exitCode)) return reject(new RemoteError('execution_failed'));
           resolve({ status: 'ok', exitCode,
             stdout: Buffer.concat(stdout).toString('utf8'),
             stderr: Buffer.concat(stderr).toString('utf8'), truncated });
         });
+        if (signal?.aborted || entry.closed) {
+          abort();
+          return;
+        }
         channel.end(payload === undefined ? undefined : JSON.stringify(payload));
       });
     });
@@ -519,13 +550,13 @@ function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Cli
       const script = await canonicalPath(entry, selected);
       if (!/\.(?:py|sh)$/u.test(script)) fail('unsupported_script');
       return execute(entry, BOOTSTRAP_COMMAND, { mode: 'script', repository: entry.repository,
-        script, args: checkedArgs(request.args) });
+        script, args: checkedArgs(request.args) }, signal, token);
     }
     if (request.operation === 'cli') {
       const args = checkedArgs(request.args);
       if (!args.length || !['doctor', 'knowledge', 'collect', 'read', 'resource', 'context', 'skills',
         'plan', 'run', 'status', 'report', 'campaign', '--help', '-h', '--version'].includes(args[0])) fail('invalid_cli');
-      return execute(entry, BOOTSTRAP_COMMAND, await runtimePayload(entry, args));
+      return execute(entry, BOOTSTRAP_COMMAND, await runtimePayload(entry, args), signal, token);
     }
     fail('invalid_operation');
   }
@@ -537,6 +568,15 @@ function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Cli
     if (exclusive && entry.busy) fail('connection_busy');
     if (request.operation === 'dashboard' && entry.dashboardStarting) fail('connection_busy');
     let timeout = 120000;
+    if (request.maxMinutes !== undefined) {
+      const value = request.maxMinutes;
+      if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0 || value > 7 * 24 * 60) {
+        fail('invalid_budget');
+      }
+      timeout = value * 60000;
+    } else if (request.operation === 'run_script') {
+      fail('missing_budget');
+    }
     if (request.operation === 'cli' && request.args?.[0] === 'run' &&
         !request.args.includes('--help') && !request.args.includes('-h')) {
       const args = checkedArgs(request.args);
@@ -544,12 +584,14 @@ function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Cli
       if (index < 0) fail('missing_budget');
       const value = Number(args[index].includes('=') ? args[index].split('=')[1] : args[index + 1]);
       if (!Number.isFinite(value) || value <= 0 || value > 7 * 24 * 60) fail('invalid_budget');
-      timeout = value * 60000 + 30000;
+      const runTimeout = value * 60000 + 30000;
+      timeout = request.maxMinutes === undefined ? runTimeout : Math.min(timeout, runTimeout);
     }
-    if (exclusive) entry.busy = true;
-    if (request.operation === 'dashboard') entry.dashboardStarting = true;
     const token = {};
-    const cleanup = exclusive ? () => destroy(entry) : () => {
+    if (exclusive) entry.busy = token;
+    if (request.operation === 'dashboard') entry.dashboardStarting = true;
+    const execution = request.operation === 'run_script' || request.operation === 'cli';
+    const cleanup = execution ? () => {} : exclusive ? () => destroy(entry) : () => {
       if (entry.dashboard?.token === token) closeDashboard(entry);
     };
     try {
@@ -557,7 +599,7 @@ function createRemoteManager({ runtimeDir = path.join(__dirname, 'runtime'), Cli
         signal, timeout, cleanup);
     }
     finally {
-      if (exclusive) entry.busy = false;
+      if (exclusive && !token.pending && entry.busy === token) entry.busy = false;
       if (request.operation === 'dashboard') entry.dashboardStarting = false;
     }
   }

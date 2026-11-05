@@ -60,9 +60,9 @@ function buildPrompt(form, connection) {
     '   backend 表示 GPU 或 NPU 硬件类别。检查设备后再选择受支持的实际运行时后端。execution=remote 时，使用 inferrsi_remote 工具和 remote.connectionId，在已经测试的远程仓库内开展工作；通过 cli 操作运行随包 InferRSI，通过 dashboard 操作打开转发后的实时页面。',
     '2. 从 acceptance 引用读取已有验收条件。字段为空时先检查仓库内相关计划和脚本，准备缺失项。冻结 baseline、工作负载、验证器和数值门槛后再开始候选实验。关键验收输入无法确定时说明缺口。',
     '3. 在用户选择的 plane 范围内逐轮提出假设、修改、比较和决策。使用 maxRounds 限制优化迭代轮数，使用 maxMinutes 限制总时间。每轮中的 A/B 重复测量次数由冻结计划确定。到达预算后停止新实验并汇报当前证据。',
-    '4. 使用现有 InferRSI CLI 和目标仓库的基准、质量脚本。保留现有用户改动，遵守已有资源和执行授权。复用已准备好的目标环境。',
+    '4. 使用现有 InferRSI CLI 和目标仓库的基准、质量脚本。远程 run_script 必须传入 maxMinutes，远程长时间 cli 操作也传入该参数，按任务剩余总时间预算设置，不能为每次调用重新分配完整预算。保留现有用户改动，遵守已有资源和执行授权。复用已准备好的目标环境。',
     '5. 使用明确的 campaign 记录目标、知识检索上下文、搜索空间、每轮假设、决策和 run_id 关联，保留失败、跳过和回滚记录。使用 campaign capture-context、campaign record 和 campaign log。',
-    '6. 通过随包启动器打开该 campaign 的 dashboard --live --port 0，返回实际启动 URL 并保留服务进程标识。实时监控和历史轮次由现有 dashboard 展示。',
+    '6. execution=remote 时通过 inferrsi_remote 的 dashboard 操作打开该 campaign 的实时页面，保留连接标识；本机模式通过随包启动器运行 dashboard --live --port 0 并保留服务进程标识。返回实际 URL，实时监控和历史轮次由现有 dashboard 展示。',
     '7. 结论依据冻结验证器与运行证据，保留 PASS、FAIL、INCONCLUSIVE。服务性能结论需要相应 L4 或 campaign 定义的端到端证据。',
     '8. 汇报完成的轮数、候选决策、证据目录、dashboard 链接、剩余缺口和下一步。',
   ].join('\n');
