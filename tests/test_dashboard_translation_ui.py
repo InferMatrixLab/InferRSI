@@ -39,7 +39,8 @@ const missingOutcome = text('evidence candidate:b has no recorded outcome');
 const unavailableLabel = text('Run evidence unavailable');
 const missingOutcomeLabel = text('No recorded outcome');
 const narrative = text('Explain the experiment', true);
-const noMetrics=text('Protocol-specific absolute measurements; recorded verdicts are not recomputed. '+
+const noMetrics=text(
+  'Protocol-specific absolute measurements; recorded verdicts are not recomputed. '+
   '2 external record(s) have no recorded metrics; see candidate details and events.');
 const attr = {value: 'FAIL', hasAttribute: key => key === 'aria-label',
   getAttribute() { return this.value; }, setAttribute(_, value) { this.value = value; }};
